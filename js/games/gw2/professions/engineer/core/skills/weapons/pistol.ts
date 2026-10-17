@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, COMBO_FIELD, ACTOR, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -13,9 +13,9 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Projectile',
+        finisherType: COMBO_FINISHER.PROJECTILE,
         chance: 0.2,
-        preferredFieldTypes: ['Fire'],
+        preferredFieldTypes: [COMBO_FIELD.FIRE],
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -29,7 +29,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
           hits: 1,
           name: 'Fragmentation Shot',
           interruptCommitMs: 360,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           projectile: true
         },
         {
@@ -38,7 +38,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
           stacks: 1,
           duration: 6,
           interruptCommitMs: 360,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]
     )
@@ -54,7 +54,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         ticks: [160, 320, 520, 680, 840].map((atMs) => ({ atMs, coefficient: 2 / 5 })),
         name: 'Poison Dart Volley',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         projectile: true
       },
       {
@@ -65,7 +65,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
           stacks: 1,
           duration: 7
         })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -78,7 +78,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         coefficient: 0.4,
         hits: 1,
         name: 'Static Shot',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         projectile: true
       },
       {
@@ -86,14 +86,14 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         condition: CONDITION.CONFUSION,
         stacks: 3,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -104,7 +104,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Blast',
+        finisherType: COMBO_FINISHER.BLAST,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -114,7 +114,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         coefficient: 2.5,
         hits: 1,
         name: 'Glue Shot',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         projectile: true
       },
       {
@@ -127,14 +127,14 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         ],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 1.5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -152,7 +152,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         coefficient: 2,
         hits: 1,
         name: 'Maximum Damage',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       // Each Burning stack is a separate application and can trigger its own relic check.
       {
@@ -160,7 +160,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         condition: CONDITION.BURNING,
         stacks: 3,
         duration: 4.5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   }

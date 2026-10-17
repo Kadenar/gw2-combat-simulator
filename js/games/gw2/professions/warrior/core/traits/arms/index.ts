@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -365,14 +365,14 @@ export const blademaster = defineTrait({
           amount: balanceProfileNumber(profile, 'attributeBonus'),
           // The sword bonus joins conversion inputs only while its weapon requirement is satisfied.
           feedsConversions: 'all',
-          enabled: warriorWieldingWeapon(context, 'Sword')
+          enabled: warriorWieldingWeapon(context, WEAPON.SWORD)
         }
       ]
     };
   },
   rechargeRules: [
     {
-      when: (_runtime, skill) => skill.weapon === 'Sword',
+      when: (_runtime, skill) => skill.weapon === WEAPON.SWORD,
       multiplier: { profile: TRAIT.BLADEMASTER, field: 'rechargeMultiplier' }
     }
   ]
@@ -394,7 +394,7 @@ export const dualWielding = defineTrait({
 function signetMasteryDamage(context: WarriorRuntime, event: Gw2ResolverEvent): void {
   // The trait retains its threshold and stacking attribute reward; the lesser signet owns Might and recharge.
   if (
-    event.actorType !== 'player' ||
+    event.actorType !== ACTOR.PLAYER ||
     !(Number(event.coefficient) > 0) ||
     !context.combat.targetHealthBelow(balanceNumberFromContext(context, TRAIT.SIGNET_MASTERY, 'threshold'))
   )
@@ -419,7 +419,7 @@ function signetMasteryDamage(context: WarriorRuntime, event: Gw2ResolverEvent): 
 }
 
 function triggerOpportunist(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || !runtime.procs.claim(TRAIT.OPPORTUNIST)) return;
+  if (event.actorType !== ACTOR.PLAYER || !runtime.procs.claim(TRAIT.OPPORTUNIST)) return;
 
   grantWarriorResource(runtime, balanceNumberFromContext(runtime, TRAIT.OPPORTUNIST, 'resourceGain'));
   {
@@ -428,7 +428,7 @@ function triggerOpportunist(runtime: WarriorRuntime, event: Gw2ResolverEvent): v
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.OPPORTUNIST,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: event.skillId,
         skillName: event.skillName
       },
@@ -444,7 +444,7 @@ function burstPrecisionHit(runtime: WarriorRuntime, event: Gw2ResolverEvent): vo
     at: runtime.time,
     priority: 5,
     source: 'Trait',
-    actorType: 'effect' as const,
+    actorType: ACTOR.EFFECT,
     skillId: event.skillId,
     skillName: event.skillName,
     stacks: 1
@@ -494,7 +494,7 @@ function bloodlustCritical(
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.BLOODLUST,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillId: event.skillId,
           skillName: event.skillName
         },
@@ -529,7 +529,7 @@ function furiousCritical(
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.FURIOUS,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillId: event.skillId,
           skillName: event.skillName
         },
@@ -563,7 +563,7 @@ function sunderingBurstCritical(
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.SUNDERING_BURST,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillId: event.skillId,
           skillName: event.skillName
         },

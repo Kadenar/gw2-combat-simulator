@@ -1,5 +1,6 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { CONTROL } from '#gw2/platform/constants.js';
 import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import {
   rangerPetCombatMetadata,
   rangerPetCompanionId
@@ -541,7 +542,7 @@ test('Counterattack Kick lands once and its knockback triggers control traits', 
   assert.equal(hits[0].coefficient, 2.5);
   assert.deepEqual(
     result.events.filter((event) => event.type === 'control').map((event) => event.controlKind),
-    ['Knockback']
+    [CONTROL.KNOCKBACK]
   );
   assert.ok(result.resolvedEvents.some((event) => event.sourceId === TRAIT.DEBILITATING_BLOWS));
 });

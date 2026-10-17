@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { profession, createBuildContext, toApplicationBuild } from '#gw2/professions/revenant/build/context.js';
 // Browser-facing Revenant composition. It adds attribute calculation, runtime
 // config mapping, persistence metadata, and shared-shell adapter behavior to
@@ -13,5 +14,5 @@ export const revenantAppAdapter = defineProfessionApp({
   createBuildContext,
   toApplicationBuild,
   resetPrompt: 'Reset the Revenant build, legends, and rotation?',
-  defaultOffhand: preferOffhand('Sword')
+  defaultOffhand: preferOffhand(WEAPON.SWORD)
 });

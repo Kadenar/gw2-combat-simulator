@@ -1,5 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION, BOON } from '#gw2/platform/constants.js';
 /** Owns food catalog data, proc metadata, and UI groupings. */
 
 // ─── Food Data ────────────────────────────────────────────────────────────────

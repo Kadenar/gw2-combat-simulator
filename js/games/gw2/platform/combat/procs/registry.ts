@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -79,7 +80,7 @@ export function createProcRegistry(context: () => Gw2ResolverRuntime & { readonl
         const skill: Skill = {
           id: profileId,
           name: profile.name,
-          rechargeBuffAudience: 'summon'
+          rechargeBuffAudience: ACTOR.SUMMON
         };
         const progress = { startedAt: at, work, companionId };
         const projected = canonicalTime(

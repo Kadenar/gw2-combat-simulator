@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
@@ -31,7 +32,7 @@ const phantasmTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
     selected.id
   ];
   const facts = (selected.effects || []).flatMap((effect) => {
-    const companion = effect.actorType === 'summon';
+    const companion = effect.actorType === ACTOR.SUMMON;
     const entityIndex = effect.type === 'condition' ? effect.phantasmEntityIndex : undefined;
     const packetLabel = effect.type === 'condition' ? effect.packetLabel : undefined;
     const packetCount = packetLabel

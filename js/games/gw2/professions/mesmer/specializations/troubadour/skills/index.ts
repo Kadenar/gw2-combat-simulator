@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
 
 /**
@@ -31,7 +31,7 @@ function instrumentEffects(profileId: string): NonNullable<MesmerSkill['effectVa
           const damageAtMs = (cast.skill.instrument as MesmerInstrument).damageAtMs ?? 0;
           const timing = {
             source: 'Player',
-            actorType: 'player' as const,
+            actorType: ACTOR.PLAYER,
             timingAnchor: 'castStart' as const,
             timingScale: 'fixed' as const,
             atMs: damageAtMs + (effect.atMs ?? 0)
@@ -132,8 +132,8 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       {
         type: 'control',
         source: 'Player',
-        controlKind: 'daze',
-        actorType: 'player',
+        controlKind: CONTROL.DAZE,
+        actorType: ACTOR.PLAYER,
         atMs: 0,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
@@ -175,7 +175,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
           type: 'emitProfile',
           profileId: 'mesmer.troubadour.instruments',
           effects: (effect) => effect.type === 'buff' && effect.name === 'distortion',
-          attribution: { source: 'Player', sourceId: ID.HARMONIOUS_HARP, actorType: 'player' }
+          attribution: { source: 'Player', sourceId: ID.HARMONIOUS_HARP, actorType: ACTOR.PLAYER }
         }
       }
     ],
@@ -209,7 +209,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
         type: 'strike',
         ticks: [360, 1360, 2360, 3360].map((atMs) => ({ atMs, coefficient: 1 })),
         name: 'Damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         weapon: 'utility'
       },
       {
@@ -240,7 +240,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
           type: 'emitProfile',
           profileId: 'mesmer.troubadour.instruments',
           effects: (effect) => effect.type === 'buff' && effect.name === 'distortion',
-          attribution: { source: 'Player', sourceId: ID.HARMONIOUS_HARP_ALTERNATE, actorType: 'player' }
+          attribution: { source: 'Player', sourceId: ID.HARMONIOUS_HARP_ALTERNATE, actorType: ACTOR.PLAYER }
         }
       }
     ],
@@ -271,8 +271,8 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       {
         type: 'control',
         source: 'Player',
-        controlKind: 'stun',
-        actorType: 'player',
+        controlKind: CONTROL.STUN,
+        actorType: ACTOR.PLAYER,
         atMs: 0,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'

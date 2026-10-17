@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
@@ -25,7 +26,7 @@ export function soulcleavePlayer(runtime: RevenantRuntime, event: Gw2ResolverEve
     attribution: (effect) => ({
       source: 'revenant',
       sourceId: soulcleave.id,
-      actorType: effect.actorType || 'effect',
+      actorType: effect.actorType || ACTOR.EFFECT,
       skillId: soulcleave.id,
       skillName: soulcleave.name
     }),
@@ -53,7 +54,7 @@ export function grantSoulcleaveAllies(runtime: RevenantRuntime): void {
         attribution: (effect) => ({
           source: 'revenant',
           sourceId: skill.id,
-          actorType: effect.actorType || 'effect',
+          actorType: effect.actorType || ACTOR.EFFECT,
           skillId: skill.id,
           skillName: skill.name,
           activationId: opportunity.activationId

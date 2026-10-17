@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_LOADOUT_SKILL_IDS } from '#gw2/professions/elementalist/data/skill-identities.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -109,7 +109,7 @@ function elementalistPistolEquipped(context: ElementalistUiContext): boolean {
   // Preview the live equipment set when available, otherwise the build's chosen starting set.
   const weaponSet = context.activeWeaponSet || build?.startingWeaponSet || 1;
   const weapons = weaponSet === 2 ? build?.alternateWeapons : build?.weapons;
-  return Array.isArray(weapons) && weapons.includes('Pistol');
+  return Array.isArray(weapons) && weapons.includes(WEAPON.PISTOL);
 }
 
 // Render the four bullets as toggle controls: `active` shows the current stock,
@@ -195,7 +195,7 @@ function paletteWeaponSkills(
   return ordinarySkills.map((skill) => {
     const replacesActiveAutoattack =
       !replaced &&
-      skill.weapon === 'Pistol' &&
+      skill.weapon === WEAPON.PISTOL &&
       skill.slot === 'Weapon_1' &&
       String(skill.attunement || '') === primaryAttunement;
 
@@ -445,7 +445,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
       preview.condition(CONDITION.BURNING, "Pyromancer's Training", 'Fiery Might');
       preview.condition(CONDITION.BLEEDING, 'Serrated Stones');
 
-      if (context.weapons.includes('Hammer'))
+      if (context.weapons.includes(WEAPON.HAMMER))
         preview.add({
           key: 'flameWheel',
           label: 'Flame Wheel',
@@ -457,7 +457,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
         });
 
       // Grand Finale's orb inputs only apply when this weapon set can use Hammer skills.
-      if (context.weapons.includes('Hammer'))
+      if (context.weapons.includes(WEAPON.HAMMER))
         for (const element of ELEMENTALIST_ATTUNEMENTS)
           preview.add({
             key: `finaleOrb:${element}`,
@@ -502,7 +502,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
         description: 'Attunement-dependent traits'
       });
 
-      if (context.weapons.includes('Hammer'))
+      if (context.weapons.includes(WEAPON.HAMMER))
         preview.add({
           key: 'crescentWind',
           label: 'Crescent Wind',

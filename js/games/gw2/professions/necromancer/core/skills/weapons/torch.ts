@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type {
@@ -25,7 +25,7 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: { type: 'necromancer.oppressive-collapse' }
@@ -47,7 +47,7 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 5 } })
@@ -72,7 +72,7 @@ function resolveOppressiveCollapse(runtime: NecromancerRuntime, event: Gw2Resolv
     at: runtime.time,
     source: 'necromancer',
     sourceId: ID.OPPRESSIVE_COLLAPSE,
-    actorType: 'player' as const,
+    actorType: ACTOR.PLAYER,
     skillId: ID.OPPRESSIVE_COLLAPSE,
     skillName: event.skillName,
     activationId: event.activationId,
@@ -80,7 +80,7 @@ function resolveOppressiveCollapse(runtime: NecromancerRuntime, event: Gw2Resolv
     stacks,
     duration: 8,
     audience: {
-      recipients: 'party' as const,
+      recipients: RECIPIENT.PARTY,
       maximumRecipients: 5,
       eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime)
     }

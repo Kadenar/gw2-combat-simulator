@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import {
   effectNumber,
@@ -18,7 +18,7 @@ import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief
 // its Burning without allowing the mortar's granting strike to self-consume.
 function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   if (
-    event.actorType !== 'player' ||
+    event.actorType !== ACTOR.PLAYER ||
     event.coefficient == null ||
     event.skillId === ID.MISTBURN_MORTAR // the mortar itself grants the charge; it must not also consume one
   )
@@ -41,7 +41,7 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
       at: event.at,
       source: 'thief',
       sourceId: ID.MISTBURN_MORTAR,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: ID.MISTBURN_MORTAR,
       skillName: 'Mistburn Mortar',
       name: 'Mistburn Mortar — Charged Strike',

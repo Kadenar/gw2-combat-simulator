@@ -1,6 +1,6 @@
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';

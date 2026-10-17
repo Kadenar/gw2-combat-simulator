@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -120,7 +119,7 @@ export const elementalAttunement = defineTrait({
         name: 'Fire',
         boon: BOON.MIGHT,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 15
       },
@@ -129,7 +128,7 @@ export const elementalAttunement = defineTrait({
         name: 'Water',
         boon: BOON.REGENERATION,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 5
       },
@@ -138,7 +137,7 @@ export const elementalAttunement = defineTrait({
         name: 'Air',
         boon: BOON.SWIFTNESS,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 8
       },
@@ -147,7 +146,7 @@ export const elementalAttunement = defineTrait({
         name: 'Earth',
         boon: BOON.PROTECTION,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 5
       }
@@ -304,12 +303,12 @@ function triggerEvasiveArcana(context: ElementalistRuntime, { cast }: Elementali
       at,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
-      actorType: 'player'
+      actorType: ACTOR.PLAYER
     },
     {
       cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
       // Evasive Arcana invokes player attacks and conditions, retaining player-owned modifier eligibility.
-      attribution: { actorType: 'player', offTarget: cast.command.offTarget }
+      attribution: { actorType: ACTOR.PLAYER, offTarget: cast.command.offTarget }
     }
   );
   context.effects.emit({
@@ -319,7 +318,7 @@ function triggerEvasiveArcana(context: ElementalistRuntime, { cast }: Elementali
       at,
       source: proc.name,
       sourceId: proc.id,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: proc.id,
       skillName: proc.name,
       attunement
@@ -355,7 +354,7 @@ function applyArcaneLightning(context: ElementalistRuntime, { cast }: Elementali
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.ARCANE_LIGHTNING,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: skill.name,
         skillId: skill.id,
         name: skill.name
@@ -376,7 +375,7 @@ function applyArcaneLightning(context: ElementalistRuntime, { cast }: Elementali
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.ARCANE_LIGHTNING,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: skill.name,
         priority: 0
       }
@@ -389,7 +388,7 @@ function applyArcaneLightning(context: ElementalistRuntime, { cast }: Elementali
       skillId: skill.id,
       skillName: skill.name,
       cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
-      attribution: { source: skill.name, sourceId: skill.id, actorType: 'player', triggeredBy: '' },
+      attribution: { source: skill.name, sourceId: skill.id, actorType: ACTOR.PLAYER, triggeredBy: '' },
       transform: (event) => ({ ...event, name: skill.name + ' \u2014 ' + event.condition })
     });
   } else if (skill.id === ID.ARCANE_BLAST) {
@@ -401,8 +400,8 @@ function applyArcaneLightning(context: ElementalistRuntime, { cast }: Elementali
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.ARCANE_LIGHTNING,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         skillName: skill.name
       }
     });
@@ -418,7 +417,7 @@ function applyArcaneLightning(context: ElementalistRuntime, { cast }: Elementali
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.ARCANE_LIGHTNING,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: skill.name,
         priority: 0
       }
@@ -451,7 +450,7 @@ function applyElementalLockdown(context: ElementalistRuntime, event: SimulationE
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.ELEMENTAL_LOCKDOWN,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       name: 'Elemental Lockdown',
       priority: 0
     }
@@ -480,7 +479,7 @@ function applyArcanePrecision(context: ElementalistResolverContext, event: Gw2Re
       attribution: {
         source: 'Arcane Precision',
         sourceId: TRAIT.ARCANE_PRECISION,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: 'Arcane Precision',
         triggeredBy: resolverSourceSkill(event)
       },
@@ -508,7 +507,7 @@ function applyRenewingStamina(context: MechanicCombatContext, event: Gw2Resolver
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.RENEWING_STAMINA,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA).name,
         triggeredBy: resolverSourceSkill(event),
         priority: Number(event.priority || 0)
@@ -577,7 +576,7 @@ function applyArcaneProwess(
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.ARCANE_PROWESS,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       name: 'Arcane Prowess',
       priority: 0
     }
@@ -603,7 +602,7 @@ function grantElementalAttunementBoon(
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.ELEMENTAL_ATTUNEMENT,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       name: 'Elemental Attunement',
       priority: 0
     }
@@ -642,7 +641,7 @@ function triggerBountifulPower(
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.BOUNTIFUL_POWER,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       name: 'Bountiful Power',
       priority: 0
     }
@@ -658,7 +657,7 @@ function triggerBountifulPower(
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.BOUNTIFUL_POWER,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: 'Bountiful Power',
         skillId: elementalistEventSkill(context, 'Bountiful Power', sourceId).id,
         name: 'Bountiful Power'

@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
@@ -71,7 +71,10 @@ export const firebrandHooks = composeRuntimeHooks<GuardianRuntimeState, Guardian
       firebrandTomeAvailability(runtime, skill) ?? firebrandMantraAvailability(runtime, skill),
     reactions: {
       'damage.resolved'(runtime, event, details) {
-        if (event.actorType === 'player' && ((details as NativeResolvedDamageDetails).hitContext?.damage ?? 0) > 0) {
+        if (
+          event.actorType === ACTOR.PLAYER &&
+          ((details as NativeResolvedDamageDetails).hitContext?.damage ?? 0) > 0
+        ) {
           reactToAshesHit(runtime, event, details);
           runtime.fireTrigger(firebrandStruck, { cause: event });
         }

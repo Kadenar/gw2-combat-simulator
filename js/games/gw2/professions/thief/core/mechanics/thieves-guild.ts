@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -114,7 +115,7 @@ export function createThievesGuildHooks(
     const common = {
       at: runtime.time,
       sourceId: 'thief.thieves-guild',
-      actorType: 'summon' as const,
+      actorType: ACTOR.SUMMON,
       skillId: attack.skillId ?? ID.THIEVES_GUILD,
       skillName: summonName,
       parentSkillName: 'Thieves Guild',

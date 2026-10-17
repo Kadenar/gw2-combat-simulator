@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -29,7 +29,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: 'Whirl',
+            finisherType: COMBO_FINISHER.WHIRL,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -37,7 +37,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'control',
-        controlKind: 'knockback'
+        controlKind: CONTROL.KNOCKBACK
       }
     ])
   },
@@ -112,7 +112,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'control',
-        controlKind: 'knockdown'
+        controlKind: CONTROL.KNOCKDOWN
       }
     ])
   }

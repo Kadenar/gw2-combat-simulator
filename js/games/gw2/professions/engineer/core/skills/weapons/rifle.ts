@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, COMBO_FIELD, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -20,13 +19,13 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Rifle Burst',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         comboFinishers: [
           {
             ownerId: 'engineer',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2,
-            preferredFieldTypes: ['Fire'],
+            preferredFieldTypes: [COMBO_FIELD.FIRE],
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -41,7 +40,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
         // Separate grenade damage in results while retaining the Rifle Burst cast as its owner.
         damageBreakdownName: 'Rifle Burst Grenade',
         sourceId: ID.RIFLE_BURST_GRENADE,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion',
         projectile: true
       }
@@ -59,7 +58,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 1.25,
         hits: 1,
         name: 'Net Shot',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         projectile: true
       },
       {
@@ -67,14 +66,14 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
         condition: CONDITION.VULNERABILITY,
         stacks: 8,
         duration: 8,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -91,7 +90,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Leap Damage',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       // Share one impact timing while preserving independent payloads and declaration order.
       ...impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
@@ -100,11 +99,11 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
           coefficient: 2.4,
           hits: 1,
           name: 'Landing Damage',
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           comboFinishers: [
             {
               ownerId: 'engineer',
-              finisherType: 'Leap',
+              finisherType: COMBO_FINISHER.LEAP,
               fieldSelectionAnchor: 'castStart',
               ambiguousFieldSelection: 'oldest'
             }
@@ -116,7 +115,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
           condition: CONDITION.VULNERABILITY,
           stacks: 3,
           duration: 7,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ])
     ]
@@ -131,18 +130,18 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 2.2,
         hits: 1,
         name: 'Maximum Damage',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BLEEDING,
         stacks: 3,
         duration: 9,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 8,
         stacks: 5
@@ -159,13 +158,13 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Overcharged Shot',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         projectile: true
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'launch'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.LAUNCH
       }
     ]
   },
@@ -179,7 +178,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.8,
         hits: 1,
         name: 'Rifle Burst Grenade',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion',
         projectile: true
       }

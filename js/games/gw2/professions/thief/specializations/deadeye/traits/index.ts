@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
+import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
@@ -248,14 +248,14 @@ function traitBoons(
     effects: (effect) => effect.type === 'boon' && (only == null || effect.name === only),
     attribution: {
       sourceId: `thief.deadeye.${source.toLowerCase().replaceAll(' ', '-')}`,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       ...(cast ? { skillId: cast.skill.id, skillName: cast.skill.name, activationId: cast.id } : {})
     },
     transform: (event, effect) => ({
       ...event,
       name: `${source} \u2014 ${effect.boon}`,
       boon: String(effect.boon),
-      audience: party ? { recipients: 'party', maximumRecipients: 5 } : undefined
+      audience: party ? { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } : undefined
     })
   });
 }

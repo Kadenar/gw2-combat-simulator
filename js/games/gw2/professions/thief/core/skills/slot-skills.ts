@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { STATUS, RECIPIENT, ACTOR, WEAPON, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -51,7 +50,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     effects: [
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1
       },
@@ -101,7 +100,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     cooldown: 30,
     initiativeCost: 0,
     effects: [
-      { type: 'buff', kind: 'spider-venom', duration: 24, stacks: 6, audience: { recipients: 'party' as const } }
+      { type: 'buff', kind: 'spider-venom', duration: 24, stacks: 6, audience: { recipients: RECIPIENT.PARTY } }
     ]
   },
   [ID.BLINDING_POWDER]: {
@@ -113,7 +112,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     effects: [
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1
       },
@@ -122,7 +121,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -149,9 +148,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     castTimeMs: 0,
     cooldown: 30,
     initiativeCost: 0,
-    effects: [
-      { type: 'buff', kind: 'skale-venom', duration: 24, stacks: 4, audience: { recipients: 'party' as const } }
-    ]
+    effects: [{ type: 'buff', kind: 'skale-venom', duration: 24, stacks: 4, audience: { recipients: RECIPIENT.PARTY } }]
   },
   [ID.PREPARE_PITFALL]: {
     // The skill owns this transition at successful commitment.
@@ -235,7 +232,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
         {
           name: 'Male Dual-Pistol Thief',
           displayName: 'Thief',
-          weapon: 'Pistol',
+          weapon: WEAPON.PISTOL,
           weaponStrengthProfileId: 'weapon.pistol',
           attacks: [
             {
@@ -258,7 +255,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
         {
           name: 'Female Dual-Dagger Thief',
           displayName: 'Thief',
-          weapon: 'Dagger',
+          weapon: WEAPON.DAGGER,
           weaponStrengthProfileId: 'weapon.dagger',
           attacks: [
             {
@@ -310,7 +307,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
           name: 'Sword Thief',
           displayName: 'Thief',
           variant: 'Core Thief',
-          weapon: 'Sword',
+          weapon: WEAPON.SWORD,
           weaponStrengthProfileId: 'weapon.sword',
           // The core summon owns its basic attack, so an empty list can disable it.
           attacks: [{ name: 'Basic Attack', coefficientPerHit: 1.2, hits: 1, initialDelay: 1, interval: 1 }]
@@ -328,21 +325,21 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
         coefficient: 1.33,
         hits: 1,
         name: 'Dagger Storm',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BLEEDING,
         stacks: 2,
         duration: 7,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -354,7 +351,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     cooldown: 40,
     initiativeCost: 0,
     effects: [
-      { type: 'buff', kind: 'devourer-venom', duration: 24, stacks: 2, audience: { recipients: 'party' as const } }
+      { type: 'buff', kind: 'devourer-venom', duration: 24, stacks: 2, audience: { recipients: RECIPIENT.PARTY } }
     ]
   },
   [ID.BASILISK_VENOM]: {
@@ -362,7 +359,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     cooldown: 40,
     initiativeCost: 0,
     // Model only its control contribution on activation; venom sharing and on-hit charges are intentionally omitted.
-    effects: [{ type: 'control', controlKind: 'stun', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }]
+    effects: [{ type: 'control', controlKind: CONTROL.STUN, atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }]
   },
   [ID.SKELK_VENOM]: {
     castTimeMs: 680,
@@ -383,7 +380,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 1.25 }],
         name: 'Initial Impact Damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
@@ -392,7 +389,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
           type: 'strike',
           ticks: PITFALL_PULSE_OFFSETS_MS.map((atMs) => ({ atMs, coefficient: 0.5 })),
           name: 'Pulse Damage',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
@@ -402,13 +399,13 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
             stacks: 2,
             duration: 6
           })),
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'control',
           atMs: 0,
-          actorType: 'player',
-          controlKind: 'knockdown'
+          actorType: ACTOR.PLAYER,
+          controlKind: CONTROL.KNOCKDOWN
         }
       ])
     ]

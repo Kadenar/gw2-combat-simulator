@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, WEAPON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -23,12 +23,17 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
           coefficient: 1.2,
           hits: 3,
           name: 'Venomous Volley',
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           comboFinishers: [
-            { ownerId: 'thief', finisherType: 'Projectile', chance: 0.2, ambiguousFieldSelection: 'oldest' }
+            {
+              ownerId: 'thief',
+              finisherType: COMBO_FINISHER.PROJECTILE,
+              chance: 0.2,
+              ambiguousFieldSelection: 'oldest'
+            }
           ]
         },
-        { type: 'condition', condition: CONDITION.POISONED, stacks: 3, duration: 2, actorType: 'player' }
+        { type: 'condition', condition: CONDITION.POISONED, stacks: 3, duration: 2, actorType: ACTOR.PLAYER }
       ]
     )
   },
@@ -49,14 +54,14 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
           coefficient: 0.8,
           hits: 1,
           name: 'Spinning Axe',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 3,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]
     )
@@ -73,8 +78,8 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
     initiativeCost: 4,
     // Return packets depend on the live axe pool and are emitted by the recall owner.
     effects: [],
-    requiredMainHand: 'Axe',
-    requiredOffHand: 'Dagger'
+    requiredMainHand: WEAPON.AXE,
+    requiredOffHand: WEAPON.DAGGER
   },
   [ID.RECALL_AXES]: {
     // The skill owns this transition at successful commitment.
@@ -84,7 +89,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
     initiativeCost: 4,
     // Return packets depend on the live axe pool and are emitted by the recall owner.
     effects: [],
-    requiredMainHand: 'Axe',
+    requiredMainHand: WEAPON.AXE,
     requiredOffHand: false
   },
   [ID.ORCHESTRATED_ASSAULT]: {
@@ -98,8 +103,8 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
     initiativeCost: 4,
     // Return packets depend on the live axe pool and are emitted by the recall owner.
     effects: [],
-    requiredMainHand: 'Axe',
-    requiredOffHand: 'Pistol'
+    requiredMainHand: WEAPON.AXE,
+    requiredOffHand: WEAPON.PISTOL
   },
   [ID.SPINNING_AXE_ID_71967]: {
     // The fast opener and slow follow-up share one tile and alternate through the standard chain controller.
@@ -120,14 +125,14 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
           coefficient: 0.8,
           hits: 1,
           name: 'Spinning Axe',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 3,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]
     )
@@ -151,7 +156,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
             // Salvo refunds initiative only on a landed hit, including a returned axe.
             {
               on: 'damage.resolved',
-              actor: 'player',
+              actor: ACTOR.PLAYER,
               packets: 'first',
               // Keep the impact refund independently editable without changing its hit requirement.
               do: {
@@ -166,11 +171,11 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
           coefficient: 1.5,
           hits: 1,
           name: 'Cunning Salvo',
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           comboFinishers: [
             {
               ownerId: 'thief',
-              finisherType: 'Blast',
+              finisherType: COMBO_FINISHER.BLAST,
               ambiguousFieldSelection: 'oldest'
             }
           ],
@@ -181,18 +186,18 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
           condition: CONDITION.BLEEDING,
           stacks: 2,
           duration: 8,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 4,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]
     ),
-    requiredMainHand: 'Axe',
+    requiredMainHand: WEAPON.AXE,
     stealthAttack: true
   }
 });

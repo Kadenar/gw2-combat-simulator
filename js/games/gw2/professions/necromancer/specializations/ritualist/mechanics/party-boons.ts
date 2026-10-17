@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
@@ -16,7 +17,7 @@ export function ritualistPartyBoonPolicy(
       icon: cast.skill.icon,
       offTarget: cast.command.offTarget,
       audience: {
-        recipients: 'party',
+        recipients: RECIPIENT.PARTY,
         maximumRecipients: 5,
         eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime)
       }

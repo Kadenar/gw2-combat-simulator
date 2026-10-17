@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import { resultNumber as number } from '#gw2/app/results/formatting.js';
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
@@ -160,7 +161,7 @@ function ownerConditionsHtml(ownerKey: string, conditions: readonly OwnerConditi
   const ownerName = rows[0]!.ownerName;
   return `<div class="res-owner-conditions" data-owner-conditions-panel="${escapeHtml(ownerKey)}" role="region" aria-label="${escapeHtml(`${ownerName} condition damage breakdown`)}"${expanded ? '' : ' hidden'}>
     <div class="res-owner-conditions-title">${escapeHtml(ownerName)} condition damage</div>
-    <table><thead><tr><th scope="col">Condition</th><th scope="col">Damage</th><th scope="col">DPS</th><th scope="col">Share of ${ownerKey === 'Player' ? 'player' : 'entity'} condition damage</th></tr></thead>
+    <table><thead><tr><th scope="col">Condition</th><th scope="col">Damage</th><th scope="col">DPS</th><th scope="col">Share of ${ownerKey === 'Player' ? ACTOR.PLAYER : 'entity'} condition damage</th></tr></thead>
     <tbody>${rows
       .map((row) => {
         const icon = MODIFIER_EFFECT_ICONS[row.name];

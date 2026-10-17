@@ -1,7 +1,8 @@
+import { RECIPIENT, type EffectRecipientScope, type SimulationActorType } from '#gw2/platform/constants.js';
+import { ACTOR_TYPES } from '#gw2/platform/events/actors.js';
 import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import type { EffectReactionRef } from '#gw2/platform/effects/reactions.js';
-import { ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/events/actors.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { timeKey } from '#kernel/core/clock.js';
 import { weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
@@ -96,7 +97,7 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
     event.type === 'boon_extension' &&
     (!isFiniteNumber(event.duration) ||
       event.duration < 0 ||
-      (event.extensionAudience !== undefined && !['self', 'all'].includes(String(event.extensionAudience))))
+      (event.extensionAudience !== undefined && ![RECIPIENT.SELF, 'all'].includes(String(event.extensionAudience))))
   ) {
     throw new TypeError('Boon extensions require a finite non-negative duration and self/all audience.');
   }
@@ -175,10 +176,6 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
 
   return candidate as SimulationEvent;
 }
-
-/** Defines emitted events and recipient metadata shared by scheduling, resolution, and presentation. */
-
-type EffectRecipientScope = 'self' | 'party' | 'summons';
 
 /** Selects the canonical recipient group for one positive effect. */
 export interface EffectAudience {
@@ -365,7 +362,7 @@ interface BuffEvent extends SimulationEventBase<'buff'> {
 
 interface BoonExtensionEvent extends SimulationEventBase<'boon_extension'> {
   readonly duration: number;
-  readonly extensionAudience?: 'self' | 'all';
+  readonly extensionAudience?: typeof RECIPIENT.SELF | 'all';
   readonly excludedKind?: string;
 }
 

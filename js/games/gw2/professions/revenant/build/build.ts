@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
@@ -28,8 +29,8 @@ export function createRevenantBuildDefaults(): RevenantCanonicalBuild {
     profession: REVENANT_PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Viper's"])),
     alternateWeaponPrefixes: ["Viper's", "Viper's"],
-    weapons: ['Sword', 'Sword'],
-    alternateWeapons: ['Mace', 'Axe'],
+    weapons: [WEAPON.SWORD, WEAPON.SWORD],
+    alternateWeapons: [WEAPON.MACE, WEAPON.AXE],
     rune: 'Trapper',
     weaponSigils: normalizeWeaponSigils(DEFAULT_WEAPON_SIGILS),
     relic: 'Fractal',

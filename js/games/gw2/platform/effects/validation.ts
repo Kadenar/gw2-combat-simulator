@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
 import { snapshotEffectReactions } from '#gw2/platform/effects/action-declarations.js';
 import {
@@ -407,7 +408,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   if (
     normalizedEffect.castTimeMs != null &&
     (normalizedEffect.type !== 'strike' ||
-      normalizedEffect.actorType !== 'summon' ||
+      normalizedEffect.actorType !== ACTOR.SUMMON ||
       typeof normalizedEffect.castTimeMs !== 'number' ||
       !Number.isFinite(normalizedEffect.castTimeMs) ||
       normalizedEffect.castTimeMs < 0)

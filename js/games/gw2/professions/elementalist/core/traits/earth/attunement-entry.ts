@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
@@ -32,8 +33,8 @@ export function emitEarthenBlast(
       attribution: {
         source: 'Earthen Blast',
         sourceId: sourceId,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         skillName: 'Earthen Blast',
         triggeredBy: sourceSkill,
         icon: EARTHEN_BLAST_ICON,

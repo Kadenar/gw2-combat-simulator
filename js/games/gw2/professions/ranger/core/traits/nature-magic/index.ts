@@ -1,9 +1,9 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, RECIPIENT, WEAPON, BOON } from '#gw2/platform/constants.js';
+import { boonKey, GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import type { Gw2AttributeContext, Gw2AttributeContributions } from '#gw2/platform/builds/types.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { gw2EventOwnerActorType, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
@@ -40,8 +40,8 @@ function shareFortifyingBond(runtime: RangerRuntime, kind: string, stacks: numbe
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.FORTIFYING_BOND,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       skillId: TRAIT.FORTIFYING_BOND,
       skillName: 'Fortifying Bond',
       triggeredBy: cause?.skillName ?? 'Training console'
@@ -50,7 +50,7 @@ function shareFortifyingBond(runtime: RangerRuntime, kind: string, stacks: numbe
       ...packet,
       stacks,
       audience: {
-        recipients: 'summons',
+        recipients: RECIPIENT.SUMMONS,
         affectsSelf: false,
         maximumRecipients: 1,
         eligibleCompanionIds: [rangerPetCompanionId(runtime)]
@@ -101,8 +101,8 @@ export const fortifyingBond = defineTrait({
           !(Number(event.duration) > 0) ||
           !(Number(event.stacks) > 0) ||
           // Trait and equipment effects are player grants; NPCs and pet-cast boons cannot trigger sharing.
-          !['player', 'effect'].includes(event.actorType) ||
-          !['player', 'effect'].includes(gw2EventOwnerActorType(event))
+          ![ACTOR.PLAYER, 'effect'].includes(event.actorType) ||
+          ![ACTOR.PLAYER, 'effect'].includes(gw2EventOwnerActorType(event))
         )
           return;
 
@@ -142,7 +142,7 @@ function spiritRepeatSlamAt(runtime: MechanicQueriesOf<RangerRuntime>, cast: Run
             baseEvent: {
               source: 'ranger',
               sourceId: cast.skill.id,
-              actorType: 'player',
+              actorType: ACTOR.PLAYER,
               skillId: cast.skill.id,
               skillName: cast.skill.name
             }
@@ -252,7 +252,7 @@ export const wellspring = defineTrait({
         boon: BOON.REGENERATION,
         duration: 6,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
   },
@@ -287,7 +287,7 @@ export const windborneNotes = defineTrait({
         boon: BOON.REGENERATION,
         duration: 6,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
   },
@@ -297,7 +297,7 @@ export const windborneNotes = defineTrait({
       emit: TRAIT.WINDBORNE_NOTES,
       on: 'castCommit' as const,
       when: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) =>
-        cast.skill.weapon === 'Warhorn',
+        cast.skill.weapon === WEAPON.WARHORN,
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.REGENERATION),
       attribution: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) => ({
         skillId: TRAIT.WINDBORNE_NOTES,
@@ -371,7 +371,7 @@ export const bountifulHunter = defineTrait({
         balanceNumberFromContext(context, TRAIT.BOUNTIFUL_HUNTER, 'damageMultiplier') +
         Math.min(
           balanceNumberFromContext(context, TRAIT.BOUNTIFUL_HUNTER, 'maximumBoons'),
-          rangerActiveBoonCount(context, 'player')
+          rangerActiveBoonCount(context, ACTOR.PLAYER)
         ) *
           balanceNumberFromContext(context, TRAIT.BOUNTIFUL_HUNTER, 'damagePerBoon'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
@@ -413,7 +413,7 @@ function applySpiritedArrival(context: RangerRuntime, skill: RangerSkill): void 
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.SPIRITED_ARRIVAL,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: TRAIT.SPIRITED_ARRIVAL,
         skillName: 'Spirited Arrival',
         triggeredBy: skill.name
@@ -422,7 +422,7 @@ function applySpiritedArrival(context: RangerRuntime, skill: RangerSkill): void 
         ...event,
         name: 'Spirited Arrival - ' + event.kind,
         boon: event.kind,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }),
       preserveName: true,
       effects: (effect) => effect.type === 'boon'
@@ -445,11 +445,11 @@ function applyRejuvenation(context: RangerRuntime, skill: RangerSkill): void {
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.REJUVENATION,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: TRAIT.REJUVENATION,
         skillName: 'Rejuvenation',
         name: `Rejuvenation - ${kind}`,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         triggeredBy: skill.name
       }
     });

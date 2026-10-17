@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
@@ -295,7 +296,7 @@ const elementalistElementalTasks = {
         at: context.time,
         source: 'Elementalist',
         sourceId: 'elementalist.elemental-expire',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         name: element + ' Elemental expires'
       }
     });

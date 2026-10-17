@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, ACTOR, CONTROL, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
@@ -47,7 +47,7 @@ export const restorativeStrength = defineTrait({
       on: 'castStart',
       when: (_runtime, cast) => cast.skill.type === 'Heal',
       emit: TRAIT.RESTORATIVE_STRENGTH,
-      attribution: { audience: { recipients: 'self' } }
+      attribution: { audience: { recipients: RECIPIENT.SELF } }
     }
   ]
 });
@@ -109,7 +109,7 @@ export const recklessDodge = defineTrait({
       when: (_runtime, cast) => cast.skill.id === SHARED_SKILL_IDS.DODGE,
       emit: TRAIT.RECKLESS_DODGE,
       effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
-      attribution: { source: 'Warrior', actorType: 'player', name: 'Reckless Dodge', skillWeapon: '' }
+      attribution: { source: 'Warrior', actorType: ACTOR.PLAYER, name: 'Reckless Dodge', skillWeapon: '' }
     },
     {
       order: 4,
@@ -185,8 +185,10 @@ export const bodyBlow = defineTrait({
 
       on: 'control.resolved',
       when: (_runtime, event) =>
-        event.actorType === 'player' &&
-        ['stun', 'daze', 'knockback', 'pull', 'push', 'launch'].includes(String(event.controlKind).toLowerCase()),
+        event.actorType === ACTOR.PLAYER &&
+        [CONTROL.STUN, CONTROL.DAZE, CONTROL.KNOCKBACK, CONTROL.PULL, 'push', CONTROL.LAUNCH].includes(
+          String(event.controlKind).toLowerCase()
+        ),
       emit: TRAIT.BODY_BLOW,
       attribution: { priority: 5 }
     }
@@ -206,7 +208,7 @@ export const aggressiveOnslaught = defineTrait({
       order: 2,
 
       on: 'control.resolved',
-      when: (_runtime, event) => event.actorType === 'player',
+      when: (_runtime, event) => event.actorType === ACTOR.PLAYER,
       emit: TRAIT.AGGRESSIVE_ONSLAUGHT,
       cooldown: 'profile',
       attribution: { priority: 5 }
@@ -298,14 +300,14 @@ export const forcefulGreatsword = defineTrait({
           amount: balanceNumberFromContext(context.balanceContext, TRAIT.FORCEFUL_GREATSWORD, 'weaponAttributeBonus'),
           // The greatsword bonus feeds the same conversion pool as the permanent Power grant.
           feedsConversions: 'all',
-          enabled: weapons.includes('Greatsword')
+          enabled: weapons.includes(WEAPON.GREATSWORD)
         }
       ]
     };
   },
   rechargeRules: [
     {
-      when: (_runtime, skill) => skill.weapon === 'Greatsword',
+      when: (_runtime, skill) => skill.weapon === WEAPON.GREATSWORD,
       multiplier: { profile: TRAIT.FORCEFUL_GREATSWORD, field: 'rechargeMultiplier' }
     }
   ]
@@ -385,7 +387,7 @@ function peakPerformanceStart(runtime: WarriorRuntime, cast: RuntimeCast<Warrior
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.PEAK_PERFORMANCE,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillId: cast.skill.id,
           skillName: cast.skill.name,
           activationId: cast.id
@@ -411,7 +413,7 @@ function braveStrideCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSki
           attribution: {
             source: 'Trait',
             sourceId: TRAIT.BRAVE_STRIDE,
-            actorType: 'effect',
+            actorType: ACTOR.EFFECT,
             skillId: cast.skill.id,
             skillName: cast.skill.name,
             activationId: cast.id
@@ -436,7 +438,7 @@ function berserkersPowerBurst(runtime: WarriorRuntime, event: Gw2ResolverEvent, 
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.BERSERKERS_POWER,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: event.skillId,
         skillName: event.skillName
       },
@@ -467,7 +469,7 @@ function forcefulGreatswordCritical(
     chanceOnCriticalHit: Math.min(
       1,
       chance *
-        (weapons.includes('Greatsword')
+        (weapons.includes(WEAPON.GREATSWORD)
           ? balanceNumberFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD, 'weaponProcChanceMultiplier')
           : 1)
     ),
@@ -481,7 +483,7 @@ function forcefulGreatswordCritical(
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.FORCEFUL_GREATSWORD,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: event.skillId,
         skillName: event.skillName
       },
@@ -507,7 +509,7 @@ function berserkersPowerDragonSlash(
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.BERSERKERS_POWER,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       activationId: cast.id

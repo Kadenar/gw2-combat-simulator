@@ -1,6 +1,6 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
-import { appliedEffectStacks, type EffectRecipient } from '#gw2/platform/combat/query/effect-stacks.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { isDurationStackingBoon, isStandardBoon, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
+import { appliedEffectStacks, type EffectRecipient } from '#gw2/platform/combat/query/effect-stacks.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import {
   CANONICAL_TARGET_CONDITIONS,
@@ -61,7 +61,7 @@ export function playerHealthFraction(context: Gw2ModifierContext): number {
 export function boonActive(
   context: Gw2ModifierContext,
   boon: string,
-  recipient: EffectRecipient = { actor: 'player' }
+  recipient: EffectRecipient = { actor: ACTOR.PLAYER }
 ): boolean {
   return activeBoonStacks(context, boon, 1, recipient) > 0;
 }
@@ -69,10 +69,10 @@ export function boonActive(
 /** Only player counts use preview assumptions; companions count their own accepted boons. */
 export function countActiveBoons(
   context: Gw2ModifierContext,
-  recipient: EffectRecipient = { actor: 'player' },
+  recipient: EffectRecipient = { actor: ACTOR.PLAYER },
   active = (boon: string) => boonActive(context, boon, recipient)
 ): number {
-  if (recipient.actor === 'player' && context.config?.fixedBoonCount != null)
+  if (recipient.actor === ACTOR.PLAYER && context.config?.fixedBoonCount != null)
     return Math.trunc(boundedNumber(context.config.fixedBoonCount, 0, 0, GW2_STANDARD_BOONS.length));
 
   return GW2_STANDARD_BOONS.filter(active).length;
@@ -83,13 +83,13 @@ export function activeBoonStacks(
   context: Gw2ModifierContext,
   boon: string,
   maximum = 25,
-  recipient: EffectRecipient = { actor: 'player' }
+  recipient: EffectRecipient = { actor: ACTOR.PLAYER }
 ): number {
   boon = boon.toLowerCase();
 
   if (!isStandardBoon(boon)) return 0;
 
-  const base = recipient.actor === 'player' ? Number(context.config?.boons?.[boon] || 0) : 0;
+  const base = recipient.actor === ACTOR.PLAYER ? Number(context.config?.boons?.[boon] || 0) : 0;
 
   // Configured duration presence needs no history, but must still respect the caller's output cap.
   if (base > 0 && isDurationStackingBoon(boon)) return clamp(1, 0, maximum);
@@ -132,7 +132,7 @@ export function activeBuffStacks(
   context: Gw2ModifierContext,
   kind: string,
   maximum = 25,
-  recipient: EffectRecipient = { actor: 'player' },
+  recipient: EffectRecipient = { actor: ACTOR.PLAYER },
   fallbackDuration = 0
 ): number {
   if (isStandardBoon(kind)) return 0;
@@ -144,7 +144,7 @@ export function activeBuffStacks(
 export function buffActive(
   context: Gw2ModifierContext,
   kind: string,
-  recipient: EffectRecipient = { actor: 'player' }
+  recipient: EffectRecipient = { actor: ACTOR.PLAYER }
 ): boolean {
   return activeBuffStacks(context, kind, 1, recipient) > 0;
 }

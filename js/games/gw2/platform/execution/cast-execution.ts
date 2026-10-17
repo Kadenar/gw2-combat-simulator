@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { activationInputKind, resolveInputControl } from '#gw2/platform/results/input-trace.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
@@ -113,7 +114,7 @@ export function createCastExecution<T extends object>(
           at: runtime.time,
           source: profession.id,
           sourceId: cast.skill.id,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: cast.skill.id,
           skillName: cast.skill.name,
           activationId: cast.id,
@@ -154,7 +155,7 @@ export function createCastExecution<T extends object>(
       at: runtime.time,
       source: profession.id,
       sourceId: cast.skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       skillType: cast.skill.type,
@@ -322,7 +323,7 @@ export function createCastExecution<T extends object>(
     const attribution = {
       source: profession.id,
       sourceId: skill.id,
-      actorType: 'player' as const,
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name,
       activationId: cast.id
@@ -408,7 +409,7 @@ export function createCastExecution<T extends object>(
           ...attribution,
           source: effect.source || profession.id,
           sourceId: effect.sourceId ?? skill.id,
-          actorType: effect.actorType || 'player',
+          actorType: effect.actorType || ACTOR.PLAYER,
           // Derived effects retain the declared gameplay owner independently of their display actor.
           ...(effect.ownerActorType ? { ownerActorType: effect.ownerActorType } : {})
         },
@@ -497,7 +498,7 @@ export function createCastExecution<T extends object>(
     observePacket(packet: SimulationEvent) {
       const cast = packet.activationId == null ? undefined : reservations.get(packet.activationId);
 
-      if (cast && packet.type === 'damage' && packet.actorType === 'player' && packet.skillId === cast.skill.id)
+      if (cast && packet.type === 'damage' && packet.actorType === ACTOR.PLAYER && packet.skillId === cast.skill.id)
         cast.firstStrikeAt = Math.min(cast.firstStrikeAt, packet.at);
     },
     resetCooldowns() {

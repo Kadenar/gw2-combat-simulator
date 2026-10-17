@@ -1,5 +1,19 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import {
+  WEAPON,
+  COMBO_FIELD,
+  COMBO_FINISHER,
+  RECIPIENT,
+  STATUS,
+  ACTOR,
+  BOON,
+  CONDITION
+} from '#gw2/platform/constants.js';
+import {
+  boonKey,
+  buffMatchesAudience,
+  durationStackingBoonCapSeconds,
+  remainingDurationStackSeconds
+} from '#gw2/platform/combat/boons.js';
 /**
  * Warhorn weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -13,11 +27,6 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
-import {
-  buffMatchesAudience,
-  durationStackingBoonCapSeconds,
-  remainingDurationStackSeconds
-} from '#gw2/platform/combat/boons.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';
 import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
@@ -69,7 +78,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     name: 'Heat Sync',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Warhorn',
+    weapon: WEAPON.WARHORN,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 840,
@@ -85,7 +94,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     name: 'Wildfire',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Warhorn',
+    weapon: WEAPON.WARHORN,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 840,
@@ -95,7 +104,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 8,
         startAnchor: 'castEnd'
       }
@@ -125,7 +134,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     name: 'Tidal Surge',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Warhorn',
+    weapon: WEAPON.WARHORN,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -139,7 +148,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -154,7 +163,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     name: 'Water Globe',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Warhorn',
+    weapon: WEAPON.WARHORN,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 840,
@@ -162,7 +171,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Water',
+        fieldType: COMBO_FIELD.WATER,
         duration: 4,
         startAnchor: 'castEnd'
       }
@@ -174,7 +183,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     name: 'Cyclone',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Warhorn',
+    weapon: WEAPON.WARHORN,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 800,
@@ -186,12 +195,12 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'boon',
         boon: BOON.SWIFTNESS,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 3 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 3 },
         stacks: 1,
         duration: 10,
         metadata: {}
       },
-      { type: 'buff', kind: 'superspeed', stacks: 1, duration: 2.5, metadata: {} },
+      { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 2.5, metadata: {} },
       { type: 'control', applications: 1, controlKind: 'crowd-control' }
     ])
   },
@@ -202,7 +211,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       name: 'Lightning Orb',
       type: 'Weapon',
       slot: 'Weapon_5',
-      weapon: 'Warhorn',
+      weapon: WEAPON.WARHORN,
       attunement: 'Air',
       categories: ['Weapon skill'],
       castTimeMs: 440,
@@ -228,7 +237,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     name: 'Sand Squall',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Warhorn',
+    weapon: WEAPON.WARHORN,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 840,
@@ -238,7 +247,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     comboFinishers: [
       {
         ownerId: 'elementalist',
-        finisherType: 'Blast',
+        finisherType: COMBO_FINISHER.BLAST,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -247,7 +256,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'boon',
         boon: BOON.PROTECTION,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 2,
         atMs: 560,
@@ -263,7 +272,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       name: 'Dust Storm',
       type: 'Weapon',
       slot: 'Weapon_5',
-      weapon: 'Warhorn',
+      weapon: WEAPON.WARHORN,
       attunement: 'Earth',
       categories: ['Weapon skill'],
       castTimeMs: 840,
@@ -298,7 +307,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
           type: 'boon',
           boon: BOON.RESISTANCE,
           // Share this support boon with affected allies within its recipient cap.
-          audience: { recipients: 'party' as const, maximumRecipients: 5 },
+          audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
           stacks: 1,
           duration: 4,
           atMs: 1560,
@@ -315,7 +324,7 @@ export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2Resolv
   // The self grant is already recorded when this reaction runs; ally copies cannot trigger another share.
   if (
     event.skillId !== ID.HEAT_SYNC ||
-    event.actorType !== 'player' ||
+    event.actorType !== ACTOR.PLAYER ||
     !event.resolvedAudience?.includesSelf ||
     (event.kind !== boonKey(BOON.MIGHT) && event.kind !== boonKey(BOON.FURY))
   )
@@ -360,7 +369,7 @@ export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2Resolv
         at: event.at,
         source: event.source,
         sourceId: ID.HEAT_SYNC,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: ID.HEAT_SYNC,
         skillName: event.skillName,
         activationId: event.activationId,
@@ -370,7 +379,7 @@ export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2Resolv
         // Remaining durations already include boon-duration bonuses; sharing must not scale them again.
         fixedDuration: true,
         // The player received the original grant and must not receive the copied boons too.
-        audience: { recipients: 'party', affectsSelf: false, maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, affectsSelf: false, maximumRecipients: 5 }
       })
     });
   }

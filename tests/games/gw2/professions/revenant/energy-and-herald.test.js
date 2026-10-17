@@ -1,3 +1,4 @@
+import { timedBuffApplicationsAt, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 
 // Inputs are equipment attributes; baseline Might and its trait adjustment share one stage.
@@ -20,8 +21,6 @@ import assert from 'node:assert/strict';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
-import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
-import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { displayedSkillTiles, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import {

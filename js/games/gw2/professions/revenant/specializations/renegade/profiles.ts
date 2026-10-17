@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
 
 export const RENEGADE_PROFILE_IDS = Object.freeze({
@@ -43,7 +44,7 @@ export const RENEGADE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
         kind: 'band-together',
         duration: 4,
         stacks: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   })

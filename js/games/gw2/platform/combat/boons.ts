@@ -1,4 +1,4 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, BOON, type BoonName } from '#gw2/platform/constants.js';
 import type { ResolvedEffectAudience, SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
@@ -6,6 +6,11 @@ import { gw2EffectExpiresAt, roundEffectDuration } from '#gw2/platform/effects/t
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
 import { clamp } from '#kernel/core/numeric.js';
+
+/** Runtime boon storage uses lowercase keys while effect declarations and labels use canonical names. */
+export function boonKey<T extends BoonName>(name: T): Lowercase<T> {
+  return name.toLowerCase() as Lowercase<T>;
+}
 
 interface BuffAudienceMetadata {
   readonly resolvedAudience?: ResolvedEffectAudience;
@@ -518,7 +523,7 @@ export function timedBuffApplicationsAt(
   return applicationsByKind.get(kind) || [];
 }
 
-export type Gw2BuffAudience = 'all' | 'summon';
+export type Gw2BuffAudience = 'all' | typeof ACTOR.SUMMON;
 
 export interface Gw2TimedBuffApplication {
   readonly event?: SimulationEvent;

@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, STATUS, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { HERALD_NATURE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/facet-of-nature.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -66,21 +66,21 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
         condition: CONDITION.VULNERABILITY,
         stacks: 10,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: 'Revealed',
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     legendId: 'LegendaryDragon',
@@ -104,7 +104,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
       {
         type: 'strike',
         name: 'Elemental Blast',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: [
           {
             atMs: 280,
@@ -125,7 +125,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
       },
       {
         type: 'condition',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: [
           {
             atMs: 280,
@@ -218,16 +218,16 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
         coefficient: 4,
         hits: 1,
         name: 'Chaotic Release',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'knockback'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.KNOCKBACK
       },
       {
         type: 'buff',
-        kind: 'superspeed',
+        kind: STATUS.SUPERSPEED,
         duration: 5,
         stacks: 1
       }
@@ -251,7 +251,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
         type: 'strike',
         ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 360 + index * 320, coefficient: 3.2 / 2 })),
         name: 'Burst of Strength',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'buff',
@@ -299,21 +299,21 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
         coefficient: 0.75,
         hits: 1,
         name: 'Call of the Dragon',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BURNING,
         stacks: 2,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }

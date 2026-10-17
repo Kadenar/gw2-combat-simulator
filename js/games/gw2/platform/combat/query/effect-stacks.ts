@@ -1,5 +1,6 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import {
+  boonKey,
   buffApplicationStacks,
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
@@ -14,18 +15,18 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 /** Per-recipient boon and buff stack reads over accepted applications, for live queries and boon copying. */
 
 export type EffectRecipient =
-  { readonly actor: 'player' } | { readonly actor: 'companion'; readonly companionId: string | null };
+  { readonly actor: typeof ACTOR.PLAYER } | { readonly actor: 'companion'; readonly companionId: string | null };
 
 /** Read one recipient's accepted grants; only isolated previews may read scheduled applications. */
 export function appliedEffectStacks(
   context: Pick<Gw2ModifierContext, 'runtime' | 'timeline' | 'time'>,
   kind: string,
   maximum: number,
-  recipient: EffectRecipient = { actor: 'player' },
+  recipient: EffectRecipient = { actor: ACTOR.PLAYER },
   fallbackDuration = 0
 ): number {
   kind = kind.toLowerCase();
-  const audience = recipient.actor === 'player' ? 'all' : 'summon';
+  const audience = recipient.actor === ACTOR.PLAYER ? 'all' : ACTOR.SUMMON;
   const companionId = recipient.actor === 'companion' ? recipient.companionId : undefined;
   // A retired entity has no live boons or buffs; earlier queries still see its accepted grants.
   const retiredAt = companionId ? context.runtime?.retiredCompanions?.get(companionId) : undefined;
@@ -57,9 +58,9 @@ export function liveBoonSnapshot(
   // Copying a boon cannot expose ordinary buff windows or malformed assumptions.
   if (!isStandardBoon(kind)) return { stacks: 0, duration: 0 };
 
-  const audience = recipient.actor === 'player' ? 'all' : 'summon';
+  const audience = recipient.actor === ACTOR.PLAYER ? 'all' : ACTOR.SUMMON;
   const companionId = recipient.actor === 'companion' ? recipient.companionId : undefined;
-  const configured = recipient.actor === 'player' ? Number(config.boons?.[kind] || 0) : 0;
+  const configured = recipient.actor === ACTOR.PLAYER ? Number(config.boons?.[kind] || 0) : 0;
   const maximum = kind === boonKey(BOON.MIGHT) || kind === boonKey(BOON.STABILITY) ? 25 : 1;
   const permanent = Math.max(0, Math.min(maximum, configured));
   const stacks = Math.min(

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns user-issued mech command skill fragments.
  * Persistent mech state and autonomous behavior remain under `mechanics/mech.ts`.
@@ -37,19 +36,19 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
         coefficient: 2.2,
         hits: 1,
         name: 'Jade Mortar',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
         condition: CONDITION.BURNING,
         stacks: 3,
         duration: 6,
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'control',
-        actorType: 'summon',
-        controlKind: 'daze'
+        actorType: ACTOR.SUMMON,
+        controlKind: CONTROL.DAZE
       }
     ]),
     mechanicSlot: 3
@@ -82,8 +81,8 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
       ] as const
     ).map((effect) => ({
       ...effect,
-      actorType: 'summon',
-      audience: { recipients: 'party', maximumRecipients: 5 },
+      actorType: ACTOR.SUMMON,
+      audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
       applications: 5,
       atMs: 0,
       intervalMs: 1000,
@@ -116,7 +115,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Spark Revolver',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     mechanicSlot: 1
@@ -134,13 +133,13 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
           coefficient: 0.6,
           hits: 1,
           name: 'Missile Damage',
-          actorType: 'summon'
+          actorType: ACTOR.SUMMON
         },
-        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5, actorType: 'summon' }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5, actorType: ACTOR.SUMMON }
       ]),
       ...impactEffects({ atMs: 1320, timingAnchor: 'castStart', timingScale: 'cast' }, [
-        { type: 'strike', coefficient: 1.2, hits: 1, name: 'Landing Damage', actorType: 'summon' },
-        { type: 'control', actorType: 'summon', controlKind: 'knockback' }
+        { type: 'strike', coefficient: 1.2, hits: 1, name: 'Landing Damage', actorType: ACTOR.SUMMON },
+        { type: 'control', actorType: ACTOR.SUMMON, controlKind: CONTROL.KNOCKBACK }
       ])
     ],
     mechanicSlot: 3
@@ -151,28 +150,28 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.AEGIS,
         duration: 3,
         stacks: 1
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.STABILITY,
         duration: 6,
         stacks: 1
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.PROTECTION,
         duration: 6,
         stacks: 1
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.ALACRITY,
         duration: 6,
         stacks: 1
@@ -190,14 +189,14 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
         coefficient: 1.6,
         hits: 1,
         name: 'Rolling Smash',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
         condition: CONDITION.BLEEDING,
         stacks: 4,
         duration: 8,
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     mechanicSlot: 1
@@ -213,12 +212,12 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
         coefficient: 2.5,
         hits: 1,
         name: 'Core Reactor Shot',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'control',
-        actorType: 'summon',
-        controlKind: 'launch'
+        actorType: ACTOR.SUMMON,
+        controlKind: CONTROL.LAUNCH
       }
     ]),
     mechanicSlot: 2
@@ -232,7 +231,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
         coefficient: 1.8,
         hits: 1,
         name: 'Explosive Knuckle',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         damageKind: 'explosion'
       },
       {
@@ -240,7 +239,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
         condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 5,
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     mechanicSlot: 1
@@ -254,7 +253,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
         type: 'strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: (index + 1) * 1000, coefficient: 1.5 / 5 })),
         name: 'Discharge Array',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -264,7 +263,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
           stacks: 1,
           duration: 2
         })),
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -274,7 +273,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
           stacks: 2,
           duration: 3
         })),
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -284,7 +283,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
           stacks: 1,
           duration: 3
         })),
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     mechanicSlot: 2

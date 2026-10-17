@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { RELIC_RULES } from '#gw2/platform/equipment/relics/rules/index.js';
@@ -70,7 +71,7 @@ export function executeDamageOccurrence(
     throw new DamageCalculationError('unsupported', 'Damage calculation not implemented for this effect.');
 
   const belongs = (event: SimulationEventBase): boolean => {
-    if (event.actorType === 'summon' || event.summonOwner != null) return false;
+    if (event.actorType === ACTOR.SUMMON || event.summonOwner != null) return false;
 
     if (effect.kind === 'skill')
       return (
@@ -105,8 +106,8 @@ export function executeDamageOccurrence(
         attribution: {
           source: 'Trait',
           sourceId: effect.ownerId,
-          actorType: 'effect',
-          ownerActorType: 'player',
+          actorType: ACTOR.EFFECT,
+          ownerActorType: ACTOR.PLAYER,
           skillName: occurrence.name,
           activationId: 'damage:occurrence'
         }
@@ -125,7 +126,7 @@ export function executeDamageOccurrence(
           at: runtime.time,
           source: 'Relic',
           sourceId: effect.id,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillName: occurrence.name
         },
         inputs
@@ -140,7 +141,7 @@ export function executeDamageOccurrence(
         at: 0,
         source: 'Food',
         sourceId: effect.id,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillName: occurrence.name
       });
     else if (declared) declared.emit(runtime.mechanics, inputs);

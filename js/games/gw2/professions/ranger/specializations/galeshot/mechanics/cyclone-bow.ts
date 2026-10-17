@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
@@ -29,7 +29,8 @@ import { canonicalTime } from '#kernel/core/clock.js';
 export function reactToGaleshotMissile(context: RangerRuntime, event: Gw2ResolverEvent): void {
   if (
     event.type !== 'damage' ||
-    (event.actorType !== 'player' && !(event.actorType === 'effect' && event.ownerActorType === 'player')) ||
+    (event.actorType !== ACTOR.PLAYER &&
+      !(event.actorType === ACTOR.EFFECT && event.ownerActorType === ACTOR.PLAYER)) ||
     !(Number(event.coefficient) > 0) ||
     event.projectile !== true
   )
@@ -71,7 +72,7 @@ function applyMistral(context: RangerRuntime, event: Gw2ResolverEvent): void {
           at: at,
           source: 'ranger',
           sourceId: ID.MISTRAL,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: ID.MISTRAL,
           skillName: 'Mistral',
           name: 'Mistral',

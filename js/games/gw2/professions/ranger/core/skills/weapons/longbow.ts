@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, CONTROL, STATUS, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -39,7 +39,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2,
             ambiguousFieldSelection: 'oldest'
           }
@@ -68,7 +68,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2,
             ambiguousFieldSelection: 'oldest'
           }
@@ -87,14 +87,14 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ]
       },
       {
         type: 'control',
-        controlKind: 'knockback'
+        controlKind: CONTROL.KNOCKBACK
       }
     ],
     castTimeMs: 360
@@ -109,14 +109,14 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ]
       },
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1
       }

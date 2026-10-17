@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
@@ -26,14 +26,14 @@ export const MIRAGE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const MIRAGE_AMBUSH_PROFILE_IDS: Readonly<Record<string, string>> = Object.freeze({
-  Axe: MIRAGE_BALANCE_PROFILE_IDS.imaginaryAxes,
-  Dagger: MIRAGE_BALANCE_PROFILE_IDS.phantomRazor,
-  Greatsword: MIRAGE_BALANCE_PROFILE_IDS.splitSurge,
-  Rifle: MIRAGE_BALANCE_PROFILE_IDS.effervescence,
-  Scepter: MIRAGE_BALANCE_PROFILE_IDS.etherBarrage,
-  Spear: MIRAGE_BALANCE_PROFILE_IDS.fracturedGlass,
-  Staff: MIRAGE_BALANCE_PROFILE_IDS.chaosVortex,
-  Sword: MIRAGE_BALANCE_PROFILE_IDS.mirageThrust
+  [WEAPON.AXE]: MIRAGE_BALANCE_PROFILE_IDS.imaginaryAxes,
+  [WEAPON.DAGGER]: MIRAGE_BALANCE_PROFILE_IDS.phantomRazor,
+  [WEAPON.GREATSWORD]: MIRAGE_BALANCE_PROFILE_IDS.splitSurge,
+  [WEAPON.RIFLE]: MIRAGE_BALANCE_PROFILE_IDS.effervescence,
+  [WEAPON.SCEPTER]: MIRAGE_BALANCE_PROFILE_IDS.etherBarrage,
+  [WEAPON.SPEAR]: MIRAGE_BALANCE_PROFILE_IDS.fracturedGlass,
+  [WEAPON.STAFF]: MIRAGE_BALANCE_PROFILE_IDS.chaosVortex,
+  [WEAPON.SWORD]: MIRAGE_BALANCE_PROFILE_IDS.mirageThrust
 });
 
 function attackStatusEffect(status: ConditionEffect, source: 'Player' | 'Clone'): SkillEffect {

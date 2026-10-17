@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { fervorProfile } from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
@@ -48,7 +49,7 @@ export function heroicCommand(runtime: RevenantRuntime, cast: RuntimeCast<Revena
       activationId: cast.id,
       source: 'revenant',
       sourceId: cast.skill.id,
-      actorType: effect.actorType || 'player',
+      actorType: effect.actorType || ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name
     }),

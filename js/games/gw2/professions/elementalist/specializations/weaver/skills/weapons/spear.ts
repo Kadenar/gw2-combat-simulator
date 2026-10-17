@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, STATUS, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Spear weapon-skill mechanics owned by the Weaver module.
  *
@@ -40,7 +39,7 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     name: 'Frostfire Ward',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -70,7 +69,7 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     name: 'Galvanize',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -80,7 +79,7 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2.6 },
-      { type: 'buff', kind: 'superspeed', stacks: 1, duration: 3, metadata: {} },
+      { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3, metadata: {} },
       { type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 6, metadata: {} }
     ]),
     specialization: 'Weaver'
@@ -91,7 +90,7 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     name: 'Fiery Impact',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -107,7 +106,7 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -122,7 +121,7 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     name: 'Elutriate',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -143,7 +142,7 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     name: 'Soothing Burst',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -161,7 +160,7 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
             comboFinishers: [
               {
                 ownerId: 'elementalist',
-                finisherType: 'Blast',
+                finisherType: COMBO_FINISHER.BLAST,
                 ambiguousFieldSelection: 'oldest'
               }
             ],
@@ -178,7 +177,7 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     name: 'Shale Storm',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -225,7 +224,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
 export const WEAVER_SPEAR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
   Object.entries(SPEAR_DUAL_DEFINITIONS).map(([id, skill]) =>
     defineSkillVariantProfile(WEAVER_SPEAR_FOLLOWUPS[Number(id)], Number(id), `${skill.name} - Additional Strike`, {
-      weapon: 'Spear',
+      weapon: WEAPON.SPEAR,
       effects: (skill.effects ?? []).filter(followupEffect)
     })
   )

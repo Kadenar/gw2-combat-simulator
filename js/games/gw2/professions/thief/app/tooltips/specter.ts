@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import {
   fromProfile,
   tooltipSeconds,
@@ -44,7 +45,7 @@ const shadowShroudEnterTooltip: DescribeSimulationTooltip = (balanceContext) => 
         profile.effects?.map((effect) => ({
           ...effect,
           audience: {
-            recipients: 'party',
+            recipients: RECIPIENT.PARTY,
             affectsSelf: false,
             maximumRecipients: tooltipNumber(profile, 'maximumTargets')
           }
@@ -85,7 +86,7 @@ const shadowShroudSkillTooltip: DescribeSimulationTooltip = (balanceContext, ent
         profile.effects?.map((effect) => ({
           ...effect,
           audience: {
-            recipients: 'party',
+            recipients: RECIPIENT.PARTY,
             affectsSelf: true,
             maximumRecipients: tooltipNumber(profile, 'maximumTargets')
           }

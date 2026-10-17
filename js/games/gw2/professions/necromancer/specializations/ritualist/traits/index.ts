@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -39,7 +40,7 @@ const spiritsStrength = defineTrait({
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.SPIRITS_STRENGTH, 'damageMultiplier'),
       when: (context) =>
-        (context.event?.actorType === 'summon' || context.event?.summonKind === 'spirit') &&
+        (context.event?.actorType === ACTOR.SUMMON || context.event?.summonKind === 'spirit') &&
         // Innervate attacks are player-buffed abilities, not spirit autonomous attacks; the trait does not apply to them
         context.event.metadata?.spiritAttackType !== 'innervate'
     }
@@ -53,7 +54,7 @@ const explosiveGrowth = defineTrait({
   name: 'Explosive Growth',
   balance: {
     categories: ['Trait'],
-    effects: [{ name: 'Strike', type: 'strike', coefficient: 1.2, hits: 1, actorType: 'effect' }]
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 1.2, hits: 1, actorType: ACTOR.EFFECT }]
   }
 });
 
@@ -92,8 +93,8 @@ const empoweringSpirits = defineTrait({
         boon: BOON.QUICKNESS,
         stacks: 1,
         duration: 3.75,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY }
       },
       {
         name: boonKey(BOON.MIGHT),
@@ -101,8 +102,8 @@ const empoweringSpirits = defineTrait({
         boon: BOON.MIGHT,
         stacks: 8,
         duration: 10,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY }
       },
       {
         name: boonKey(BOON.FURY),
@@ -110,8 +111,8 @@ const empoweringSpirits = defineTrait({
         boon: BOON.FURY,
         stacks: 1,
         duration: 5,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY }
       },
       {
         name: boonKey(BOON.RESOLUTION),
@@ -119,8 +120,8 @@ const empoweringSpirits = defineTrait({
         boon: BOON.RESOLUTION,
         stacks: 1,
         duration: 4,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY }
       }
     ]
   }
@@ -199,7 +200,7 @@ function summonExplosiveGrowth(
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.EXPLOSIVE_GROWTH,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: TRAIT.EXPLOSIVE_GROWTH,
         skillName: 'Explosive Growth',
         parentSkillName: skill.name,

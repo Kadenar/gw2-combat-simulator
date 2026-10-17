@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, ACTOR, COMBO_FIELD, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -13,7 +12,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Leap',
+        finisherType: COMBO_FINISHER.LEAP,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -23,14 +22,14 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 2.5,
         hits: 1,
         name: 'Radiant Arc (non-holosmith)',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
@@ -50,14 +49,14 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 1.02,
         hits: 1,
         name: 'Sun Ripper (non-holosmith)',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -71,14 +70,14 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.96,
         hits: 1,
         name: 'Sun Edge (non-holosmith)',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -97,7 +96,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         name: 'Gleam Saber (non-holosmith)',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -111,7 +110,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 1.4,
         hits: 1,
         name: 'Refraction Cutter (non-holosmith) — Packet 1',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       ...impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
         {
@@ -121,12 +120,12 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
           // Report projectile damage separately while retaining the parent sword cast.
           damageBreakdownName: 'Refraction Cutter Blade',
           sourceId: ID.REFRACTION_CUTTER_BLADE,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           comboFinishers: [
             {
               ownerId: 'engineer',
-              finisherType: 'Projectile',
-              preferredFieldTypes: ['Fire'],
+              finisherType: COMBO_FINISHER.PROJECTILE,
+              preferredFieldTypes: [COMBO_FIELD.FIRE],
               ambiguousFieldSelection: 'oldest'
             }
           ],
@@ -135,7 +134,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         {
           type: 'condition',
           ticks: [40, 80].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 1, duration: 4 })),
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ])
     ]

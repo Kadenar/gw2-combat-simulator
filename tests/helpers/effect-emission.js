@@ -1,5 +1,5 @@
-import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/boons.js';
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { gw2BuffApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 

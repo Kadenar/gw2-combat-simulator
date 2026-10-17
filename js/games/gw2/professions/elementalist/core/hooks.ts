@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -233,7 +234,8 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
         shareHeatSyncBoon(runtime, event);
       },
       'control.resolved'(runtime, cause) {
-        if (cause.type === 'control' && cause.actorType === 'player') runtime.fireTrigger(controlAccepted, { cause });
+        if (cause.type === 'control' && cause.actorType === ACTOR.PLAYER)
+          runtime.fireTrigger(controlAccepted, { cause });
       },
       // Core consequences run before the composed elite reactions; combo auras are accepted without republishing.
       'aura.applied'(runtime, event) {

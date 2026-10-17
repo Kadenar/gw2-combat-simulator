@@ -1,3 +1,4 @@
+import { ACTOR, COMBO_FINISHER } from '#gw2/platform/constants.js';
 import { expireSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -26,9 +27,9 @@ export function detonateInspiringImagery(context: MesmerRuntime, cast: RuntimeCa
       sourceId: ID.ABSTRACTION,
       skillId: ID.ABSTRACTION,
       skillName: 'Abstraction',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       attemptId: `${cast.id}:abstraction`,
-      finisherType: 'Blast',
+      finisherType: COMBO_FINISHER.BLAST,
       fieldBinding: { kind: 'field-id', fieldId: field.fieldId },
       // Abstraction consumes this exact field at the shared detonation timestamp.
       allowFieldAtExpiry: true,

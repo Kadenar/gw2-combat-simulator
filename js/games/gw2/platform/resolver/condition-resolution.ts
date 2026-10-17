@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
 import type { EffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import type { Gw2ConditionCalculation, SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -8,7 +8,6 @@ import {
   conditionApplicationDuration,
   type Gw2ConditionDurationTrace
 } from '#gw2/platform/combat-calculation/combat-query.js';
-import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/events/actors.js';
 import type { Gw2RuntimeConditionEntry, Gw2RuntimeConditionStack } from '#gw2/platform/combat/state/targets.js';
 import {
   conditionStackLimit,
@@ -135,8 +134,8 @@ export function createGw2ConditionResolution({
           at,
           source: 'Environment',
           sourceId: `environment.target-condition.${condition.toLowerCase()}`,
-          actorType: GW2_EVENT_ACTOR_TYPES.ENVIRONMENT,
-          ownerActorType: GW2_EVENT_ACTOR_TYPES.ENVIRONMENT,
+          actorType: ACTOR.ENVIRONMENT,
+          ownerActorType: ACTOR.ENVIRONMENT,
           condition,
           stacks,
           fraction: 1
@@ -174,17 +173,17 @@ export function createGw2ConditionResolution({
 
   /** Summons share player condition packets unless their producer marks an independent pet/mech owner. */
   function damageOwner(application: Gw2ResolvedConditionApplication): string | Gw2ResolvedConditionApplication {
-    if (application.actorType === 'summon') {
-      if (!application.independentConditionOwner) return 'player';
+    if (application.actorType === ACTOR.SUMMON) {
+      if (!application.independentConditionOwner) return ACTOR.PLAYER;
 
       return application.summonOwner ? `summon:${application.summonOwner}` : application;
     }
 
     if (
-      application.actorType === 'player' ||
-      (application.actorType === 'effect' && application.ownerActorType === 'player')
+      application.actorType === ACTOR.PLAYER ||
+      (application.actorType === ACTOR.EFFECT && application.ownerActorType === ACTOR.PLAYER)
     )
-      return 'player';
+      return ACTOR.PLAYER;
 
     // Unclassified actors remain isolated until their producer supplies concrete ownership.
     return application;
@@ -294,7 +293,7 @@ export function createGw2ConditionResolution({
         at,
         source: 'Condition',
         sourceId: `condition.${group.condition.toLowerCase()}`,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         condition: group.condition,
         conditionGroup: group,
         wakeToken: group.wakeToken
@@ -341,7 +340,7 @@ export function createGw2ConditionResolution({
         at,
         source: 'Condition',
         sourceId: 'condition.buffer',
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       });
     } finally {
       ctx.queue.currentCausalOrder = causalOrder;

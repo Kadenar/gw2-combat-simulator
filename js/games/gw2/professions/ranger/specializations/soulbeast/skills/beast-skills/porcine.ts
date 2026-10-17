@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FIELD, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Porcine family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -40,7 +40,9 @@ export const SOULBEAST_PORCINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Pa
         }))
       }
     ]),
-    comboFields: [{ ownerId: 'ranger', fieldType: 'Poison', duration: 5, startMs: 680, startAnchor: 'castStart' }],
+    comboFields: [
+      { ownerId: 'ranger', fieldType: COMBO_FIELD.POISON, duration: 5, startMs: 680, startAnchor: 'castStart' }
+    ],
     castTimeMs: 680
   },
   [ID.BRUTAL_CHARGE_ID_46432]: {
@@ -54,7 +56,7 @@ export const SOULBEAST_PORCINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'control',
-        controlKind: 'knockdown'
+        controlKind: CONTROL.KNOCKDOWN
       }
     ])
   }

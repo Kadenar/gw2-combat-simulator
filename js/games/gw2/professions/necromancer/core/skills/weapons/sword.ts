@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -18,7 +17,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     comboFinishers: [
       {
         ownerId: 'necromancer',
-        finisherType: 'Leap',
+        finisherType: COMBO_FINISHER.LEAP,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -74,7 +73,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     comboFinishers: [
       {
         ownerId: 'necromancer',
-        finisherType: 'Leap',
+        finisherType: COMBO_FINISHER.LEAP,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -98,7 +97,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 12 } })
@@ -169,7 +168,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 10 } })

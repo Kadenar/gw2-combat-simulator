@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -57,7 +58,7 @@ function publishBerserk(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>
       at: runtime.time,
       source: 'Berserker',
       sourceId: ID.BERSERK,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       activationId: cast.id,
       skillId: cast.skill.id,
       skillName: cast.skill.name,

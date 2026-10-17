@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { profession, createBuildContext, toApplicationBuild } from '#gw2/professions/necromancer/build/context.js';
 // Browser-facing Necromancer composition. It adds attribute calculation,
 // runtime config mapping, persistence metadata, and shared-shell adapter
@@ -26,5 +27,5 @@ export const necromancerAppAdapter = defineProfessionApp({
 
     return true;
   },
-  defaultOffhand: preferOffhand('Dagger')
+  defaultOffhand: preferOffhand(WEAPON.DAGGER)
 });

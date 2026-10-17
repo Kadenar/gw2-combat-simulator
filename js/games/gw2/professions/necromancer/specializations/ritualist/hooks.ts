@@ -1,3 +1,4 @@
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { setNecromancerCreatureStrikeScaling } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { spiritsStrengthCreatureMultiplier } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
@@ -86,7 +87,11 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
       Object.entries(state.recipients ?? {}).map(([recipient, grant]) =>
         timedEffectState(spell + '-weapon', [{ stacks: grant.charges, expiresAt: grant.expiresAt }], null, {
           recipient:
-            recipient === 'player' ? 'self' : recipient.startsWith('ally:') ? recipient : 'companion:' + recipient
+            recipient === ACTOR.PLAYER
+              ? RECIPIENT.SELF
+              : recipient.startsWith('ally:')
+                ? recipient
+                : 'companion:' + recipient
         })
       )
     );

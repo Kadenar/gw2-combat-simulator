@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -76,7 +77,7 @@ export function scheduleThornsRetaliation(context: EngineerRuntime, skill: Engin
         at: at + index * interval,
         source: 'engineer',
         sourceId: skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: skill.id,
         skillName: skill.name,
         name: 'Thorns Retaliation',

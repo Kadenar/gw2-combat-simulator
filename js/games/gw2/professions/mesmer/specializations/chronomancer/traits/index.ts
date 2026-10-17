@@ -1,5 +1,5 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, RECIPIENT, CONDITION, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -46,7 +46,8 @@ const dangerTime = defineTrait<MesmerSkill>({
       operation: 'multiply',
       factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.DANGER_TIME, 'criticalDamage'),
       when: (context) =>
-        ['player', 'summon'].includes(gw2EventActorType(context.event)) && buffActive(context, 'danger-time')
+        [ACTOR.PLAYER, ACTOR.SUMMON].some((member) => member === gw2EventActorType(context.event)) &&
+        buffActive(context, 'danger-time')
     }
   ],
   triggers: [{ on: 'control.resolved', run: observeChronomancerEvent }]
@@ -64,7 +65,8 @@ const flowOfTime = defineTrait<MesmerSkill>({
   },
   attributes: ({ balanceContext, loadout, event }) => ({
     traitCriticalChance:
-      loadout.assumptions.alacrity !== false && (!event || ['player', 'summon'].includes(gw2EventActorType(event)))
+      loadout.assumptions.alacrity !== false &&
+      (!event || [ACTOR.PLAYER, ACTOR.SUMMON].some((member) => member === gw2EventActorType(event)))
         ? 100 * balanceNumberFromContext(balanceContext, TRAIT.FLOW_OF_TIME, 'criticalChance')
         : 0
   })
@@ -150,7 +152,7 @@ const stretchedTime = defineTrait<MesmerSkill>({
         boon: BOON.ALACRITY,
         duration: 3,
         stacks: 1,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
   }
@@ -175,7 +177,7 @@ const seizeTheMoment = defineTrait<MesmerSkill>({
         boon: BOON.QUICKNESS,
         duration: 3,
         stacks: 1,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
   }
@@ -233,7 +235,7 @@ function triggerShatterBoon(
   const traitSource = {
     source: 'Trait',
     sourceId: traitId,
-    actorType: 'player' as const,
+    actorType: ACTOR.PLAYER,
     skillId: traitId,
     skillName: profile.name
   };
@@ -242,7 +244,7 @@ function triggerShatterBoon(
     ...resolution.delivery,
     kind: 'announcement',
     log: true,
-    attribution: { ...traitSource, actorType: 'effect' },
+    attribution: { ...traitSource, actorType: ACTOR.EFFECT },
     announcement: {
       type: 'trait',
       name: profile.name,
@@ -313,7 +315,7 @@ function observeChronomancerEvent(context: MesmerRuntime, event: SimulationEvent
     const traitSource = {
       source: 'Trait',
       sourceId: TRAIT.DANGER_TIME,
-      actorType: 'player' as const,
+      actorType: ACTOR.PLAYER,
       skillId: TRAIT.DANGER_TIME,
       skillName: traitProfile.name
     };
@@ -322,7 +324,7 @@ function observeChronomancerEvent(context: MesmerRuntime, event: SimulationEvent
         receipt: true,
         kind: 'announcement',
         log: true,
-        attribution: { ...traitSource, actorType: 'effect' },
+        attribution: { ...traitSource, actorType: ACTOR.EFFECT },
         announcement: { type: 'trait', name: traitProfile.name, at: event.at, sourceSkill: skillName, detail: '' }
       });
       for (const grant of grants)

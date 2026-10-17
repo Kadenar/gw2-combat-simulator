@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -32,7 +32,7 @@ export const dwarvenBattleTraining = defineTrait({
         condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -56,7 +56,7 @@ export const dwarvenBattleTraining = defineTrait({
       attribution: {
         source: 'revenant',
         sourceId: TRAIT.DWARVEN_BATTLE_TRAINING,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: TRAIT.DWARVEN_BATTLE_TRAINING,
         skillName: 'Dwarven Battle Training',
         name: 'Dwarven Battle Training — Weakness'
@@ -110,7 +110,7 @@ export const viciousReprisalTrait = defineTrait({
         boon: BOON.MIGHT,
         duration: 10,
         stacks: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -150,7 +150,7 @@ function viciousReprisal(runtime: RevenantRuntime, { cause: event }: RevenantStr
     attribution: (effect) => ({
       source: 'revenant',
       sourceId: TRAIT.VICIOUS_REPRISAL,
-      actorType: effect.actorType || 'player',
+      actorType: effect.actorType || ACTOR.PLAYER,
       skillId: profile.id,
       skillName: profile.name
     }),

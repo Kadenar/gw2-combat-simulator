@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Smokescale family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.

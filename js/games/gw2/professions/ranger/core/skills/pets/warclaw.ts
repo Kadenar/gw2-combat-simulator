@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Warclaw family.
@@ -15,7 +15,7 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         coefficient: 0.35,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WARCLAW_SLASH]!.castTimeMs,
@@ -29,7 +29,7 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         coefficient: 1.1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -37,7 +37,7 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         stacks: 1,
         duration: 4,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WARCLAW_BATTLE_MAUL]!.castTimeMs,
@@ -51,14 +51,14 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         coefficient: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'control',
-        controlKind: 'knockdown',
+        controlKind: CONTROL.KNOCKDOWN,
         duration: 3,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WARCLAW_BOP]!.castTimeMs,

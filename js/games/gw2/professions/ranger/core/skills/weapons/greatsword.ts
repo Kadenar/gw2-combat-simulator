@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, RECIPIENT, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -27,7 +27,7 @@ const maul: Partial<Skill> = {
       reactions: [
         {
           on: 'damage.resolved',
-          actor: 'player',
+          actor: ACTOR.PLAYER,
           packets: 'each',
           when: (runtime, { event, skill }) =>
             Number(event.coefficient) > 0 &&
@@ -38,7 +38,7 @@ const maul: Partial<Skill> = {
         },
         {
           on: 'damage.resolved',
-          actor: 'player',
+          actor: ACTOR.PLAYER,
           packets: 'each',
           when: (runtime, { event, skill }) =>
             Number(event.coefficient) > 0 &&
@@ -77,8 +77,8 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         hits: 1
       },
       // Select one control packet at acceptance without rewriting effects in the Core hook.
-      { type: 'control', controlKind: 'Daze', when: (runtime) => !runtime.config.target?.defiant },
-      { type: 'control', controlKind: 'Stun', when: (runtime) => Boolean(runtime.config.target?.defiant) }
+      { type: 'control', controlKind: CONTROL.DAZE, when: (runtime) => !runtime.config.target?.defiant },
+      { type: 'control', controlKind: CONTROL.STUN, when: (runtime) => Boolean(runtime.config.target?.defiant) }
     ],
     castTimeMs: 640
   },
@@ -121,7 +121,7 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         coefficient: 2.4,
         hits: 1,
-        comboFinishers: [{ ownerId: 'ranger', finisherType: 'Leap', ambiguousFieldSelection: 'oldest' }]
+        comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.LEAP, ambiguousFieldSelection: 'oldest' }]
       }
     ],
     castTimeMs: 500
@@ -143,7 +143,7 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 2.5,
         hits: 1
       },
-      { type: 'control', controlKind: 'Knockback' }
+      { type: 'control', controlKind: CONTROL.KNOCKBACK }
     ],
     castTimeMs: 333
   },
@@ -152,12 +152,12 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
 });
 
 // Only direct attacks spend the charge; trait and stance damage cannot steal it.
-function attackRecipient(event?: SimulationEvent | null): 'pet' | 'player' | undefined {
-  if (event?.type !== 'damage' || !(Number(event.coefficient) > 0) || event.actorType === 'effect') return;
+function attackRecipient(event?: SimulationEvent | null): 'pet' | typeof ACTOR.PLAYER | undefined {
+  if (event?.type !== 'damage' || !(Number(event.coefficient) > 0) || event.actorType === ACTOR.EFFECT) return;
 
   if (isPetStrike(event)) return 'pet';
 
-  if (isPlayerStrike(event)) return 'player';
+  if (isPlayerStrike(event)) return ACTOR.PLAYER;
 }
 
 export const rangerAttackOfOpportunityModifier: Gw2ModifierRule = {
@@ -182,7 +182,7 @@ export const rangerAttackOfOpportunityModifier: Gw2ModifierRule = {
         application.at <= context.time &&
         application.expiresAt > context.time &&
         application.stacks > 0 &&
-        (recipient === 'player' ||
+        (recipient === ACTOR.PLAYER ||
           application.resolvedAudience.companionIds.includes(String(context.event?.summonOwner)))
     );
   }
@@ -192,7 +192,7 @@ export const rangerAttackOfOpportunityModifier: Gw2ModifierRule = {
 export function grantMaulAttackOfOpportunity(
   context: RangerResolverContext,
   event: Gw2ResolverEvent,
-  recipient: 'pet' | 'player'
+  recipient: 'pet' | typeof ACTOR.PLAYER
 ): void {
   context.effects.emit({
     kind: 'packet',
@@ -200,7 +200,7 @@ export function grantMaulAttackOfOpportunity(
       at: event.at,
       source: 'ranger',
       sourceId: event.skillId!,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: event.skillId,
       skillName: 'Attack of Opportunity',
 
@@ -209,8 +209,8 @@ export function grantMaulAttackOfOpportunity(
       stacks: 1,
       audience:
         recipient === 'pet'
-          ? { recipients: 'summons', eligibleCompanionIds: [rangerPetCompanionId(context)] }
-          : { recipients: 'self' },
+          ? { recipients: RECIPIENT.SUMMONS, eligibleCompanionIds: [rangerPetCompanionId(context)] }
+          : { recipients: RECIPIENT.SELF },
       triggeredBy: event.skillName
     })
   });
@@ -227,7 +227,7 @@ export function reactToRangerGreatswordDamage(context: RangerResolverContext, ev
     kind,
     (application) =>
       application.at <= event.at &&
-      (recipient === 'player' || application.resolvedAudience.companionIds.includes(String(event.summonOwner))),
+      (recipient === ACTOR.PLAYER || application.resolvedAudience.companionIds.includes(String(event.summonOwner))),
     (expiresAt) => Math.min(expiresAt, event.at)
   );
 }
@@ -237,7 +237,7 @@ export const maulLifecycle = {
   sideEffectHandlers: {
     // Queue the merged grant before observers consume the old charge; application still follows consumption.
     'ranger.maul-player'(runtime, context) {
-      if (context.kind === 'effect') grantMaulAttackOfOpportunity(runtime, context.trigger.event, 'player');
+      if (context.kind === 'effect') grantMaulAttackOfOpportunity(runtime, context.trigger.event, ACTOR.PLAYER);
     },
     'ranger.maul-pet'(runtime, context) {
       if (context.kind === 'effect') grantMaulAttackOfOpportunity(runtime, context.trigger.event, 'pet');

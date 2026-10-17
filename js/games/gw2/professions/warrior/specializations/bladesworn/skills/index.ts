@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, CONTROL, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -552,7 +552,7 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: 'Leap',
+            finisherType: COMBO_FINISHER.LEAP,
             fieldSelectionAnchor: 'castStart',
             ambiguousFieldSelection: 'oldest'
           }
@@ -614,7 +614,11 @@ function artilleryEffects(
       damageKind: 'explosion',
       projectile: sharp,
       ...(sharp
-        ? { comboFinishers: [{ ownerId: 'warrior', finisherType: 'Projectile', ambiguousFieldSelection: 'oldest' }] }
+        ? {
+            comboFinishers: [
+              { ownerId: 'warrior', finisherType: COMBO_FINISHER.PROJECTILE, ambiguousFieldSelection: 'oldest' }
+            ]
+          }
         : {})
     });
 
@@ -629,7 +633,7 @@ function artilleryEffects(
     });
 
   if (requireEffect(profile, 'control', 'Control'))
-    effects.push({ type: 'control', controlKind: sharp && rounds >= 2 ? 'stun' : 'daze' });
+    effects.push({ type: 'control', controlKind: sharp && rounds >= 2 ? CONTROL.STUN : CONTROL.DAZE });
 
   return effects;
 }
@@ -674,7 +678,7 @@ function activateCartridges(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
       at: runtime.time,
       source: 'Warrior',
       sourceId: cast.skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       activationId: cast.id,
@@ -688,7 +692,7 @@ function activateCartridges(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
 
 /** Only resolved positive player explosions emit the selected cartridge condition; derived conditions cannot recurse. */
 export function cartridgeExplosion(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || event.damageKind !== 'explosion' || !(Number(event.coefficient) > 0)) return;
+  if (event.actorType !== ACTOR.PLAYER || event.damageKind !== 'explosion' || !(Number(event.coefficient) > 0)) return;
 
   const state = bladeswornState.from(runtime);
   const window = activeCartridgeWindow(state.overchargedCartridgeWindows, runtime.time);
@@ -710,8 +714,8 @@ export function cartridgeExplosion(runtime: WarriorRuntime, event: Gw2ResolverEv
         at: runtime.time,
         source: 'Warrior',
         sourceId: ID.OVERCHARGED_CARTRIDGES,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         skillId: event.skillId,
         skillName: event.skillName,
         name: 'Overcharged Cartridges — Burning',
@@ -739,7 +743,7 @@ function tacticalReload(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>
       at: runtime.time,
       source: 'Warrior',
       sourceId: cast.skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       activationId: cast.id,

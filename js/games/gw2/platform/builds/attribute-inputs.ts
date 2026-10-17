@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import type {
   Gw2AttributeInputs,
   Gw2AttributeSeed,

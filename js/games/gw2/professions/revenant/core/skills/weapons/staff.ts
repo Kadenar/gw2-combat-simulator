@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
@@ -19,20 +19,20 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
           coefficient: 3.24 / 9
         })),
         name: 'Surge of the Mists',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'knockback'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.KNOCKBACK
       }
     ]
   },
   [ID.REJUVENATING_ASSAULT]: {
     castTimeMs: 680,
-    comboFinishers: [{ ownerId: 'revenant', finisherType: 'Whirl', ambiguousFieldSelection: 'oldest' }],
+    comboFinishers: [{ ownerId: 'revenant', finisherType: COMBO_FINISHER.WHIRL, ambiguousFieldSelection: 'oldest' }],
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -43,7 +43,7 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
           coefficient: 2 / 2
         })),
         name: 'Rejuvenating Assault',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -59,14 +59,14 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 1.5,
         hits: 1,
         name: "Mender's Rebuke",
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -80,7 +80,7 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.65,
         hits: 1,
         name: 'Rapid Swipe',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -94,14 +94,14 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.4,
         hits: 1,
         name: 'Warding Rift',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -121,7 +121,7 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.75,
         hits: 1,
         name: 'Forceful Bash',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }

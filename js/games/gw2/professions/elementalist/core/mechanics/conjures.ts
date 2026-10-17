@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { wieldedConjure } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
@@ -62,7 +63,7 @@ function finishConjureSwap(context: ElementalistRuntime, cast: RuntimeCast<Eleme
       at,
       source: skill.name,
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillName: skill.name,
       conjureEquipped: state.conjureEquipped,
       conjureExpiresAt: state.conjureExpiresAt
@@ -75,7 +76,7 @@ function finishConjureSwap(context: ElementalistRuntime, cast: RuntimeCast<Eleme
       at,
       source: skill.name,
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillName: skill.name
     }
   });

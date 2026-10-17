@@ -1,8 +1,8 @@
+import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
 import { draconicEcho } from '#gw2/professions/revenant/specializations/herald/traits/index.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
-import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';

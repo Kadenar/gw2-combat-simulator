@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { isPetStrike, petDerivedConditionMetadata } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
@@ -126,7 +126,7 @@ export const lightOnYourFeet = defineTrait({
   rechargeRules: [
     {
       order: 2,
-      when: (_runtime, skill) => skill.weapon === 'Shortbow',
+      when: (_runtime, skill) => skill.weapon === WEAPON.SHORTBOW,
       multiplier: { profile: TRAIT.LIGHT_ON_YOUR_FEET, field: 'rechargeMultiplier' }
     }
   ]
@@ -287,7 +287,7 @@ export const stridersStrength = defineTrait({
           amount: balanceNumberFromContext(
             profileContext,
             TRAIT.STRIDERS_STRENGTH,
-            weapons.includes('Sword') ? 'weaponAttributeBonus' : 'attributeBonus'
+            weapons.includes(WEAPON.SWORD) ? 'weaponAttributeBonus' : 'attributeBonus'
           ),
           // Both the permanent and sword-dependent Power bonuses feed conversions.
           feedsConversions: 'all'
@@ -388,9 +388,9 @@ const rangerCoreCriticalReactions = Object.freeze({
   id: 'ranger.sharpened-edges',
   chanceOnCriticalHit: (context: RangerResolverContext) =>
     balanceNumberFromContext(context, TRAIT.SHARPENED_EDGES, 'criticalChance'),
-  actorTypes: ['player', 'summon'] as const,
+  actorTypes: [ACTOR.PLAYER, ACTOR.SUMMON] as const,
   when(_context: RangerResolverContext, event: Gw2ResolverEvent): boolean {
-    return event.actorType === 'player' || isPetStrike(event);
+    return event.actorType === ACTOR.PLAYER || isPetStrike(event);
   },
   handler(context, event, _details, application): void {
     // Reuse this invocation's authored effect, emitting one bleeding application per threshold proc.
@@ -400,7 +400,7 @@ const rangerCoreCriticalReactions = Object.freeze({
     if (!bleeding) return;
 
     // Poisonous Cloud's Ranger-owned critical hits grant Ranger bleeds even though their source is ranger-pet.
-    const petOwned = event.actorType === 'summon' && isPetStrike(event);
+    const petOwned = event.actorType === ACTOR.SUMMON && isPetStrike(event);
     // Each threshold proc uses the canonical condition payload and the triggering pet's independent ownership.
     for (let proc = 0; proc < application.quantity; proc += 1)
       emitTraitProfile(context, TRAIT.SHARPENED_EDGES, TRAIT.SHARPENED_EDGES, undefined, {
@@ -408,8 +408,8 @@ const rangerCoreCriticalReactions = Object.freeze({
         effect: { type: 'condition', name: CONDITION.BLEEDING },
         attribution: {
           source: petOwned ? 'ranger-pet' : 'Trait',
-          actorType: petOwned ? 'summon' : 'effect',
-          ownerActorType: petOwned ? undefined : 'player',
+          actorType: petOwned ? ACTOR.SUMMON : ACTOR.EFFECT,
+          ownerActorType: petOwned ? undefined : ACTOR.PLAYER,
           skillId: TRAIT.SHARPENED_EDGES,
           skillName: 'Sharpened Edges',
           triggeredBy: event.skillName
@@ -444,7 +444,7 @@ function applyRangerDodgeTraits(context: RangerRuntime, at = context.time): void
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: TRAIT.LIGHT_ON_YOUR_FEET,
       skillName: 'Light on your Feet',
       name: 'Light on your Feet'
@@ -472,7 +472,7 @@ function tailWindSwap(context: RangerRuntime, skill: RangerSkill, at: number): v
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.TAIL_WIND,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillId: skill.id,
           skillName: 'Tail Wind',
           name: 'Tail Wind'
@@ -501,7 +501,7 @@ function quickDrawSwap(context: RangerRuntime, skill: RangerSkill, at: number): 
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.QUICK_DRAW,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillId: skill.id,
           skillName: 'Quick Draw',
           name: 'Quick Draw'
@@ -527,7 +527,7 @@ function furiousGripSwap(context: RangerRuntime, skill: RangerSkill, at: number)
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.FURIOUS_GRIP,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillId: skill.id,
           skillName: 'Furious Grip',
           name: 'Furious Grip'
@@ -557,7 +557,7 @@ function triggerTrappersExpertise(context: RangerResolverContext, event: Gw2Reso
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.TRAPPERS_EXPERTISE,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: TRAIT.TRAPPERS_EXPERTISE,
         skillName: "Trapper's Expertise",
         name: "Trapper's Expertise — Crippled",
@@ -585,7 +585,7 @@ function triggerLightOnYourFeet(context: RangerResolverContext, event: Gw2Resolv
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillId: TRAIT.LIGHT_ON_YOUR_FEET,
           skillName: 'Light on your Feet',
           name: 'Light on your Feet — Vulnerability',

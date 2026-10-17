@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -38,7 +38,7 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
         name: boonKey(BOON.REGENERATION),
         boon: BOON.REGENERATION,
         duration: 2,
-        audience: { recipients: 'party' }
+        audience: { recipients: RECIPIENT.PARTY }
       }
     ]
   },
@@ -53,7 +53,7 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
         name: boonKey(BOON.RESOLUTION),
         boon: BOON.RESOLUTION,
         duration: 1.5,
-        audience: { recipients: 'party' }
+        audience: { recipients: RECIPIENT.PARTY }
       }
     ]
   },

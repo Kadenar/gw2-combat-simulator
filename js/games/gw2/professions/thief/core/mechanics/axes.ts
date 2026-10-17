@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -115,13 +115,13 @@ export function recallThiefAxes(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSk
           : {}),
         ...(effect.type === 'condition' ? { stacks: Number(effect.stacks) / projectiles } : {})
       })),
-      skillWeaponFallback: 'Axe',
+      skillWeaponFallback: WEAPON.AXE,
       attribution: {
         source: 'thief',
         sourceId: skill.id,
         skillId: skill.id,
         skillName: skill.name,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         activationId: cast.id,
         metadata: { recallSkillId: cast.skill.id }
       },

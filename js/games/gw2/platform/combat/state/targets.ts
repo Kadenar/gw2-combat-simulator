@@ -1,10 +1,10 @@
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Hostile-target model: which packets face the target or establish combat, the condition vocabulary, and configured
  * and runtime condition stacks. Targets never carry boons.
  */
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';
 
 const HOSTILE_TARGET_EVENT_TYPES = new Set(['damage', 'condition', 'condition_tick', 'control']);
@@ -13,7 +13,8 @@ const HOSTILE_TARGET_EVENT_TYPES = new Set(['damage', 'condition', 'condition_ti
 export function isCombatEntryEvent(event: { readonly type: string; readonly actorType?: string }): boolean {
   return (
     event.type === 'combat_start' ||
-    (['damage', 'condition', 'control'].includes(event.type) && ['player', 'summon'].includes(String(event.actorType)))
+    (['damage', 'condition', 'control'].includes(event.type) &&
+      [ACTOR.PLAYER, ACTOR.SUMMON].some((member) => member === String(event.actorType)))
   );
 }
 

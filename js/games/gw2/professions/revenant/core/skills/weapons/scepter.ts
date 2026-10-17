@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -37,7 +36,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
           coefficient: 1.2 / 4
         })),
         name: 'Pulsing Damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -47,14 +46,14 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
         damageIncreasePerStack: 0.5,
         hits: 1,
         name: 'Final Damage',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -80,11 +79,11 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
         atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 9,
         stacks: 2
@@ -105,7 +104,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
         atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -123,7 +122,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
         atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -140,21 +139,21 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
         condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.SLOW,
         stacks: 1,
         duration: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -165,8 +164,8 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     cooldown: 0,
     energyCost: 10,
     effects: [
-      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 6, duration: 10, actorType: 'player' },
-      { type: 'control', controlKind: 'pull', actorType: 'player' }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 6, duration: 10, actorType: ACTOR.PLAYER },
+      { type: 'control', controlKind: CONTROL.PULL, actorType: ACTOR.PLAYER }
     ]
   },
   [ID.DETONATE_BLOSSOMING_AURA]: {
@@ -272,7 +271,7 @@ function detonateAura(runtime: RevenantRuntime, activationId?: string): void {
     at: runtime.time,
     source: 'revenant',
     sourceId: skill.id,
-    actorType: 'player' as const,
+    actorType: ACTOR.PLAYER,
     skillId: skill.id,
     skillName: skill.name,
     ...(activationId ? { activationId } : {})
@@ -321,7 +320,7 @@ function revenantBlossomingAuraPulse(runtime: RevenantRuntime, data: unknown): v
       at: runtime.time,
       source: 'revenant',
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name,
       activationId,

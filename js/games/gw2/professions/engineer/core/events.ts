@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { splitStrikeHits } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
@@ -14,7 +15,7 @@ export function buildEngineerPackets(
   const event: SimulationEventBase = {
     source: 'engineer',
     sourceId: skill?.id ?? fields.skillId ?? 'engineer',
-    actorType: 'player',
+    actorType: ACTOR.PLAYER,
     skillId: skill?.id,
     skillName: skill?.name,
     name: skill?.name,

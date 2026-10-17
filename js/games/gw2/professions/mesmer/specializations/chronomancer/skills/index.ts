@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FIELD, RECIPIENT, ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 /**
  * Owns Chronomancer well, profession-skill, and Continuum action catalog data.
@@ -15,13 +14,13 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
   [ID.WELL_OF_PRECOGNITION]: {
     castTimeMs: 800,
     // Protect allies during the well's three-second lifetime, then refund endurance when it ends.
-    comboFields: [{ ownerId: 'mesmer', fieldType: 'Ethereal', duration: 3, startAnchor: 'castEnd' }],
+    comboFields: [{ ownerId: 'mesmer', fieldType: COMBO_FIELD.ETHEREAL, duration: 3, startAnchor: 'castEnd' }],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       {
         type: 'boon',
         boon: BOON.AEGIS,
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         duration: 3,
         applications: 3,
         intervalMs: 1000,
@@ -29,13 +28,13 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
         timingScale: 'fixed'
       },
       // The immediate stun-break stability is personal; the well's later grant protects allies.
-      { type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 1, audience: { recipients: 'self' } },
+      { type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 1, audience: { recipients: RECIPIENT.SELF } },
       ...impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
         {
           type: 'boon',
           boon: BOON.STABILITY,
           stacks: 3,
-          audience: { recipients: 'party', maximumRecipients: 5 },
+          audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
           duration: 5,
           atMs: 1000
         },
@@ -80,7 +79,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
         hits: 3,
         atMs: 0,
         name: 'Pulse damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         weapon: 'utility'
       }
     ]
@@ -97,33 +96,33 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
         type: 'strike',
         ticks: [0, 1000, 2000].map((atMs) => ({ atMs, coefficient: 1.1 })),
         name: 'Pulse damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         weapon: 'utility'
       },
       {
         type: 'strike',
         ticks: [{ atMs: 2000, coefficient: 2.1 }],
         name: 'Final damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         weapon: 'utility'
       },
       {
         type: 'control',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         atMs: 0,
-        controlKind: 'knockdown'
+        controlKind: CONTROL.KNOCKDOWN
       },
       {
         type: 'control',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         atMs: 1000,
-        controlKind: 'pull'
+        controlKind: CONTROL.PULL
       },
       {
         type: 'control',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         atMs: 2000,
-        controlKind: 'float'
+        controlKind: CONTROL.FLOAT
       }
     ])
   },
@@ -134,7 +133,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
     comboFields: [
       {
         ownerId: 'mesmer',
-        fieldType: 'Ethereal',
+        fieldType: COMBO_FIELD.ETHEREAL,
         duration: 3,
         startMs: 560,
         startAnchor: 'castStart'
@@ -146,14 +145,14 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
         type: 'strike',
         ticks: [560, 1560, 2560].map((atMs) => ({ atMs, coefficient: 1.3 })),
         name: 'Pulse damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         weapon: 'utility'
       },
       {
         type: 'strike',
         ticks: [{ atMs: 3560, coefficient: 2.1 }],
         name: 'Final damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         weapon: 'utility'
       },
       {
@@ -184,7 +183,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
     comboFields: [
       {
         ownerId: 'mesmer',
-        fieldType: 'Ethereal',
+        fieldType: COMBO_FIELD.ETHEREAL,
         duration: 3,
         startMs: 520,
         startAnchor: 'castStart'
@@ -199,7 +198,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
           { atMs: 2520, coefficient: 1.5 }
         ],
         name: 'Pulse damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         weapon: 'utility',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -229,8 +228,8 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
       {
         type: 'control',
         source: 'Player',
-        controlKind: 'daze',
-        actorType: 'player',
+        controlKind: CONTROL.DAZE,
+        actorType: ACTOR.PLAYER,
         atMs: 0,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, CONTROL, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { RangerSkill, RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -25,7 +24,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2,
             ambiguousFieldSelection: 'oldest'
           }
@@ -52,7 +51,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2,
             ambiguousFieldSelection: 'oldest'
           }
@@ -110,7 +109,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ]
@@ -119,7 +118,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         type: 'control',
         // Pull and Claw activation belong to the returning contact.
         atMs: 480,
-        controlKind: 'pull'
+        controlKind: CONTROL.PULL
       }
     ]),
     castTimeMs: 440
@@ -134,7 +133,9 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
           ticks: WHIRLING_DEFENSE_TICK_OFFSETS_MS.map((atMs) => ({
             atMs,
             coefficient: 0.66,
-            comboFinishers: [{ ownerId: 'ranger', finisherType: 'Whirl', ambiguousFieldSelection: 'oldest' }]
+            comboFinishers: [
+              { ownerId: 'ranger', finisherType: COMBO_FINISHER.WHIRL, ambiguousFieldSelection: 'oldest' }
+            ]
           }))
         },
         {
@@ -168,7 +169,7 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     icon: 'https://render.guildwars2.com/file/B5B27723701C39327D2145DEE76579FB007F9344/103903.png',
     variantBadge: 'MAX',
     type: 'Weapon',
-    weapon: 'Axe',
+    weapon: WEAPON.AXE,
     slot: 'Weapon_4',
     castTimeMs: 440,
     rechargeAnchor: 'castStart',
@@ -190,7 +191,7 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ]
@@ -199,7 +200,7 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         type: 'control',
         // Keep the pull on the return contact, including when the player has already swapped weapons.
         atMs: 1920,
-        controlKind: 'pull'
+        controlKind: CONTROL.PULL
       }
     ])
   }

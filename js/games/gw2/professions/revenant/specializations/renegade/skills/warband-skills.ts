@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Renegade warband, enhanced Band Together, stance, and triggered skill identities.
  * Patchable mechanic and trait values live in sibling `profiles.ts`.
@@ -15,36 +14,36 @@ const BASE_RAZORCLAW_EFFECTS = Object.freeze([
     coefficient: 2,
     hits: 1,
     name: "Razorclaw's Rage",
-    actorType: 'player'
+    actorType: ACTOR.PLAYER
   },
   {
     type: 'condition',
     condition: CONDITION.BLEEDING,
     stacks: 4,
     duration: 8,
-    actorType: 'player'
+    actorType: ACTOR.PLAYER
   },
   {
     type: 'buff',
     kind: 'razorclaws-rage',
     duration: 5,
     stacks: 4,
-    actorType: 'player',
-    audience: { recipients: 'party' as const }
+    actorType: ACTOR.PLAYER,
+    audience: { recipients: RECIPIENT.PARTY }
   }
 ] as const);
 
 const BASE_BREAKRAZOR_EFFECTS = Object.freeze([
   {
     type: 'boon',
-    audience: { recipients: 'party' as const, maximumRecipients: 5 },
+    audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
     boon: BOON.RESOLUTION,
     duration: 2.5,
     stacks: 1
   },
   {
     type: 'boon',
-    audience: { recipients: 'party' as const, maximumRecipients: 5 },
+    audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
     boon: BOON.RESOLUTION,
     duration: 4,
     stacks: 1
@@ -70,12 +69,12 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       {
         type: 'strike',
         name: "Icerazor's Ire",
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: [480, 640, 800].map((atMs) => ({ atMs, coefficient: 2 }))
       },
       {
         type: 'condition',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: [
           {
             atMs: 480,
@@ -118,11 +117,11 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         type: 'strike',
         ticks: [{ atMs: 1000, coefficient: 3 }],
         name: "Darkrazor's Daring",
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
-      { type: 'boon', boon: BOON.STABILITY, duration: 1, stacks: 1, audience: { recipients: 'self' as const } },
+      { type: 'boon', boon: BOON.STABILITY, duration: 1, stacks: 1, audience: { recipients: RECIPIENT.SELF } },
       // Share one impact timing while preserving independent payloads and declaration order.
       ...impactEffects({ atMs: 1000, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
         {
@@ -130,12 +129,12 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
           boon: BOON.STABILITY,
           duration: 6,
           stacks: 3,
-          audience: { recipients: 'party' as const }
+          audience: { recipients: RECIPIENT.PARTY }
         },
         {
           type: 'control',
-          actorType: 'player',
-          controlKind: 'daze'
+          actorType: ACTOR.PLAYER,
+          controlKind: CONTROL.DAZE
         }
       ])
     ],
@@ -209,12 +208,12 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       {
         type: 'strike',
         name: "Icerazor's Ire",
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: [640, 800, 960].map((atMs) => ({ atMs, coefficient: 2 }))
       },
       {
         type: 'condition',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: [
           {
             atMs: 640,
@@ -258,7 +257,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         condition: CONDITION.TORMENT,
         stacks: 3,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       BASE_RAZORCLAW_EFFECTS[2]
     ],
@@ -276,13 +275,13 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         type: 'strike',
         ticks: [{ atMs: 1000, coefficient: 3 }],
         name: "Darkrazor's Daring",
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
-      { type: 'boon', boon: BOON.STABILITY, duration: 1, stacks: 1, audience: { recipients: 'self' as const } },
-      { type: 'boon', boon: BOON.RESISTANCE, duration: 4, stacks: 1, audience: { recipients: 'party' as const } },
-      { type: 'boon', boon: BOON.PROTECTION, duration: 4, stacks: 1, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: BOON.STABILITY, duration: 1, stacks: 1, audience: { recipients: RECIPIENT.SELF } },
+      { type: 'boon', boon: BOON.RESISTANCE, duration: 4, stacks: 1, audience: { recipients: RECIPIENT.PARTY } },
+      { type: 'boon', boon: BOON.PROTECTION, duration: 4, stacks: 1, audience: { recipients: RECIPIENT.PARTY } },
       // Share one impact timing while preserving independent payloads and declaration order.
       ...impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
@@ -290,12 +289,12 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
           boon: BOON.STABILITY,
           duration: 6,
           stacks: 3,
-          audience: { recipients: 'party' as const }
+          audience: { recipients: RECIPIENT.PARTY }
         },
         {
           type: 'control',
-          actorType: 'player',
-          controlKind: 'daze'
+          actorType: ACTOR.PLAYER,
+          controlKind: CONTROL.DAZE
         }
       ])
     ],
@@ -327,14 +326,14 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         coefficient: 0.5,
         hits: 1,
         name: 'Call of the Renegade',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BLEEDING,
         stacks: 2,
         duration: 8,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -366,7 +365,7 @@ export const RENEGADE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }),
@@ -380,7 +379,7 @@ export const RENEGADE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         coefficient: 0.8,
         hits: 1,
         name: "Soulcleave's Summit — Additional Strike",
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       },
       {
         type: 'strike',
@@ -390,7 +389,7 @@ export const RENEGADE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         flatStrikePowerCoeff: 0.1,
         hits: 1,
         name: "Soulcleave's Summit — Life Siphon",
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         canCrit: false
       }
     ]

@@ -1,5 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { AURA, ACTOR, CONDITION, BOON } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -32,7 +31,7 @@ export const soothingIce = defineTrait({
   balance: {
     internalCooldown: 15,
     effects: [
-      { type: 'buff', name: 'Frost Aura', kind: 'Frost Aura', stacks: 1, duration: 4 },
+      { type: 'buff', name: AURA.FROST, kind: AURA.FROST, stacks: 1, duration: 4 },
       { type: 'boon', name: BOON.REGENERATION, boon: BOON.REGENERATION, stacks: 1, duration: 4 }
     ]
   }
@@ -109,7 +108,7 @@ function applySoothingIce(context: ElementalistRuntime, { cast }: ElementalistCa
   if (!context.procs.claimCooldown('soothingIce', at, balanceProfileNumber(soothingIceProfile, 'internalCooldown')))
     return;
 
-  const soothingIceFrostAura = requireEffect(soothingIceProfile, 'buff', 'Frost Aura');
+  const soothingIceFrostAura = requireEffect(soothingIceProfile, 'buff', AURA.FROST);
 
   if (soothingIceFrostAura) {
     applyElementalistAura(context, {
@@ -132,7 +131,7 @@ function applySoothingIce(context: ElementalistRuntime, { cast }: ElementalistCa
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.SOOTHING_ICE,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       name: 'Soothing Ice',
       priority: 0
     }

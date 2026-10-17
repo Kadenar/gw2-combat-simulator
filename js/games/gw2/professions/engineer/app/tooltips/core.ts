@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONTROL, CONDITION } from '#gw2/platform/constants.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   tooltipSeconds,
@@ -94,7 +94,8 @@ const electricArtilleryTooltip: DescribeSimulationTooltip = (balanceContext) => 
 
 const roilingSkiesTooltip: DescribeSimulationTooltip = skillTooltip(
   'Strike and cripple the target. Also stun it, or launch it instead while Focused.',
-  () => simulationEffectFacts([{ type: 'control', controlKind: 'stun' }], 'replaced by launch while Focused').facts
+  () =>
+    simulationEffectFacts([{ type: 'control', controlKind: CONTROL.STUN }], 'replaced by launch while Focused').facts
 );
 
 const devastatorTooltip: DescribeSimulationTooltip = skillTooltip(

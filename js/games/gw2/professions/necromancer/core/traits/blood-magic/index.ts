@@ -1,3 +1,4 @@
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -47,7 +48,7 @@ export const vampiric = defineTrait({
   triggers: [
     onTriggerPoint(necromancerStrike, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
-        input.event.actorType !== 'effect' && Number(input.event.coefficient) > 0,
+        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
         applyVampiric(runtime, input.event)
     })
@@ -57,14 +58,14 @@ export const vampiric = defineTrait({
   balance: {
     effects: [
       {
-        name: 'player',
+        name: ACTOR.PLAYER,
         type: 'strike',
         coefficient: 0,
         hits: 1,
         flatStrikeBase: 38,
         flatStrikePowerCoeff: 0.003,
-        actorType: 'effect',
-        packetLabel: 'player',
+        actorType: ACTOR.EFFECT,
+        packetLabel: ACTOR.PLAYER,
         canCrit: false,
         damageKind: 'life-steal'
       },
@@ -75,7 +76,7 @@ export const vampiric = defineTrait({
         hits: 1,
         flatStrikeBase: 50,
         flatStrikePowerCoeff: 0.0213,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         packetLabel: 'minion',
         canCrit: false,
         damageKind: 'life-steal'
@@ -90,7 +91,7 @@ export const vampiricPresence = defineTrait({
     onTriggerPoint(necromancerPassivesInitialized, { run: startNecromancerAlliedOpportunities }),
     onTriggerPoint(necromancerStrike, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
-        input.event.actorType !== 'effect' && Number(input.event.coefficient) > 0,
+        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
         applyVampiricPresence(runtime, input.event)
     })
@@ -109,7 +110,7 @@ export const vampiricPresence = defineTrait({
         hits: 1,
         flatStrikeBase: 65,
         flatStrikePowerCoeff: 0.0333,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         packetLabel: 'base',
         canCrit: false,
         damageKind: 'life-steal'
@@ -121,7 +122,7 @@ export const vampiricPresence = defineTrait({
         hits: 1,
         flatStrikeBase: 129,
         flatStrikePowerCoeff: 0.0666,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         packetLabel: 'shroud',
         canCrit: false,
         damageKind: 'life-steal'
@@ -140,7 +141,8 @@ export const overflowingThirst = defineTrait({
         if (event.kind === 'taste-for-blood') reactToTasteForBloodGrant(runtime, event);
       },
       'damage.resolved'(runtime, event) {
-        if (event.actorType !== 'effect' && Number(event.coefficient) > 0) applyOverflowingThirstDamage(runtime, event);
+        if (event.actorType !== ACTOR.EFFECT && Number(event.coefficient) > 0)
+          applyOverflowingThirstDamage(runtime, event);
       }
     }
   },
@@ -155,7 +157,7 @@ export const overflowingThirst = defineTrait({
         kind: 'taste-for-blood',
         stacks: 3,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         name: 'Strike',
@@ -164,7 +166,7 @@ export const overflowingThirst = defineTrait({
         flatStrikeBase: 375,
         flatStrikePowerCoeff: 0.05,
         hits: 1,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         canCrit: false,
         damageKind: 'life-steal'
       }
@@ -258,7 +260,7 @@ function queueBloodMagicLifeSteal(
 
       source: 'Trait',
       sourceId: traitId,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillWeapon: 'Unequipped',
       canCrit: false,
       damageKind: 'life-steal',
@@ -280,14 +282,14 @@ const VAMPIRIC_ICON = NECROMANCER_TRAITS.find((trait) => trait.id === TRAIT.VAMP
 
 /** Applies Vampiric to qualifying player, minion, and Ritualist spirit strikes. */
 function applyVampiric(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  const summonHit = event.actorType === 'summon';
+  const summonHit = event.actorType === ACTOR.SUMMON;
   const minionHit = summonHit && event.summonKind !== 'spirit';
 
-  if (event.actorType !== 'player' && !summonHit) return;
+  if (event.actorType !== ACTOR.PLAYER && !summonHit) return;
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.VAMPIRIC);
   // Player and minion siphons are separately named, so removing one never borrows the other's values.
-  const effect = requireEffect(profile, 'strike', minionHit ? 'minion' : 'player');
+  const effect = requireEffect(profile, 'strike', minionHit ? 'minion' : ACTOR.PLAYER);
 
   if (!effect) return;
 
@@ -304,12 +306,13 @@ function applyVampiric(context: NecromancerResolverContext, event: NecromancerRe
 function vampiricPresenceActorKey(context: NecromancerResolverContext, event: NecromancerResolverEvent): string | null {
   // Spirit attacks are owner-attributed and share the player's proc interval;
   // ordinary minions remain independent capped allied recipients.
-  if (event.actorType === 'player' || (event.actorType === 'summon' && event.summonKind === 'spirit')) return 'self';
+  if (event.actorType === ACTOR.PLAYER || (event.actorType === ACTOR.SUMMON && event.summonKind === 'spirit'))
+    return RECIPIENT.SELF;
 
-  if (event.actorType !== 'summon') return null;
+  if (event.actorType !== ACTOR.SUMMON) return null;
 
   const recipients = gw2AlliedEffectRecipients(context.config, {
-    recipients: 'party',
+    recipients: RECIPIENT.PARTY,
     maximumRecipients: 5,
     eligibleCompanionIds: necromancerActiveMinionCompanionIds(context)
   });
@@ -376,7 +379,7 @@ function applyVampiricPresence(context: NecromancerResolverContext, event: Necro
 
   if (!damage) return;
 
-  const key = actorKey === 'self' ? 'necromancer.core.vampiricPresence' : `vampiricPresence:${actorKey}`;
+  const key = actorKey === RECIPIENT.SELF ? 'necromancer.core.vampiricPresence' : `vampiricPresence:${actorKey}`;
 
   // Player and companion hits keep independent cooldowns. In-game logs bracket the ICD at (498, 500] ms
   // with a proc exactly at +0.5 s, so a hit on the deadline is eligible.
@@ -450,7 +453,7 @@ function consumeTasteForBlood(
 
 /** Gives each selected player or minion its own expiring stack application. */
 function reactToTasteForBloodGrant(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (event.resolvedAudience?.includesSelf) addTasteForBloodApplication(context, event, 'self');
+  if (event.resolvedAudience?.includesSelf) addTasteForBloodApplication(context, event, RECIPIENT.SELF);
 
   context.alliedStrikes.registerRecipients(
     (allyIndex) => {
@@ -492,9 +495,9 @@ function reactToTasteForBloodGrant(context: NecromancerResolverContext, event: N
 
 function applyOverflowingThirstDamage(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   const recipient =
-    event.actorType === 'player'
-      ? 'self'
-      : event.actorType === 'summon' && event.summonOwner
+    event.actorType === ACTOR.PLAYER
+      ? RECIPIENT.SELF
+      : event.actorType === ACTOR.SUMMON && event.summonOwner
         ? companionTasteForBloodRecipient(event.summonOwner)
         : null;
 
@@ -525,12 +528,12 @@ function applyOverflowingThirstCast(runtime: NecromancerRuntime, cast: RuntimeCa
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.OVERFLOWING_THIRST,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       activationId: cast.id,
       audience: {
-        recipients: 'party',
+        recipients: RECIPIENT.PARTY,
         maximumRecipients: 5,
         eligibleCompanionIds: necromancerActiveMinionCompanionIds(runtime)
       }
@@ -568,7 +571,7 @@ function startNecromancerAlliedOpportunities(runtime: NecromancerRuntime): void 
           at: opportunity.at,
           source: 'Trait',
           sourceId: TRAIT.VAMPIRIC_PRESENCE,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillName: `Allied Player ${allyIndex} Attack`,
           allyIndex,
           activationId: opportunity.activationId

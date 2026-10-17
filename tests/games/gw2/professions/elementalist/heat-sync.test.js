@@ -1,11 +1,11 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import {
   buffApplicationStacks,
   buffMatchesAudience,
   remainingDurationStackSeconds
 } from '#gw2/platform/combat/boons.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';

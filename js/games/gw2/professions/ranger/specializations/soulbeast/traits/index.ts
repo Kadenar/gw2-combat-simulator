@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -128,7 +128,7 @@ const twiceAsVicious = defineTrait({
         ...(event.metadata?.triggeredByAlly
           ? {
               audience: {
-                recipients: 'party' as const,
+                recipients: RECIPIENT.PARTY,
                 alliedPlayerIndex: event.metadata.triggeredByAlly,
                 affectsSelf: false,
                 maximumRecipients: 1,
@@ -274,7 +274,7 @@ function applyUnstoppableUnion(context: RangerRuntime, skill: RangerSkill): void
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.UNSTOPPABLE_UNION,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: skill.id,
       skillName: 'Unstoppable Union',
       name: 'Unstoppable Union'

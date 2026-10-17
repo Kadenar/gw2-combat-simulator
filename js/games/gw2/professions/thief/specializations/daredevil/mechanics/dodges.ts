@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -45,7 +46,7 @@ export function queueDodgePackets(runtime: ThiefRuntime, cast: RuntimeCast<Thief
     attribution: (effect) => ({
       source: effect.type === 'strike' ? 'thief' : 'Trait',
       sourceId: profile.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: name,
       activationId: cast.id

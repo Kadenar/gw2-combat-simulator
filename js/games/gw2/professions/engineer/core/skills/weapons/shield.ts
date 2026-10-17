@@ -1,3 +1,4 @@
+import { ACTOR, CONTROL } from '#gw2/platform/constants.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -21,8 +22,8 @@ export const ENGINEER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'stun'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.STUN
       }
     ]
   },
@@ -40,12 +41,12 @@ export const ENGINEER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Pa
         coefficient: 0.5,
         hits: 1,
         name: 'Throw Shield',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'daze'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.DAZE
       }
     ]
   },
@@ -63,7 +64,7 @@ export const ENGINEER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Pa
         coefficient: 0.25,
         hits: 1,
         name: 'Magnetic Inversion',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }

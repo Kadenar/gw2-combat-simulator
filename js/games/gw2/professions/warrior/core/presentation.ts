@@ -1,5 +1,5 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { WEAPON, CONDITION, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import type {
   ProfessionAttributePreviewContext,
@@ -32,16 +32,16 @@ import { getActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
 import type { WarriorSkill, WarriorState, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const WARRIOR_REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze({
-  Axe: ID.EVISCERATE,
-  Dagger: ID.BREACHING_STRIKE,
-  Greatsword: ID.ARCING_SLICE,
-  Hammer: ID.EARTHSHAKER,
-  Longbow: ID.COMBUSTIVE_SHOT,
-  Mace: ID.SKULL_CRACK,
-  Rifle: ID.KILL_SHOT,
-  Spear: ID.HARRIERS_TOSS,
-  Staff: ID.PATH_TO_VICTORY_ID_71932,
-  Sword: ID.BLOODTHIRSTER
+  [WEAPON.AXE]: ID.EVISCERATE,
+  [WEAPON.DAGGER]: ID.BREACHING_STRIKE,
+  [WEAPON.GREATSWORD]: ID.ARCING_SLICE,
+  [WEAPON.HAMMER]: ID.EARTHSHAKER,
+  [WEAPON.LONGBOW]: ID.COMBUSTIVE_SHOT,
+  [WEAPON.MACE]: ID.SKULL_CRACK,
+  [WEAPON.RIFLE]: ID.KILL_SHOT,
+  [WEAPON.SPEAR]: ID.HARRIERS_TOSS,
+  [WEAPON.STAFF]: ID.PATH_TO_VICTORY_ID_71932,
+  [WEAPON.SWORD]: ID.BLOODTHIRSTER
 });
 
 export function warriorUiState(context: WarriorUiContext = {}): Partial<WarriorState> {
@@ -226,7 +226,7 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
     // Kill Shot has a procedural execute bonus; primal bursts and Dragon Trigger replace that rifle burst.
     preview.damageTargetHealth(
       preview.hasId(TRAIT.WARRIORS_CUNNING) ||
-        (context.weapons.includes('Rifle') && !['Berserker', 'Bladesworn'].includes(context.specialization))
+        (context.weapons.includes(WEAPON.RIFLE) && !['Berserker', 'Bladesworn'].includes(context.specialization))
     );
     // Expose held combat bonuses to isolated damage calculations.
     preview.boon(boonKey(BOON.SWIFTNESS), "Warrior's Sprint");

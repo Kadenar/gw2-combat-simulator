@@ -1,3 +1,4 @@
+import { CONTROL } from '#gw2/platform/constants.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -13,7 +14,7 @@ export const WARRIOR_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'control',
-        controlKind: 'stun'
+        controlKind: CONTROL.STUN
       }
     ]
   },

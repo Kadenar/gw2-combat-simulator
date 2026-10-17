@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
@@ -79,13 +79,13 @@ export function recordTimedBuffProc(
       stacks: 1,
       source: 'Relic',
       sourceId: `relic.${relicId}`,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       name,
       skillName: name,
       triggeredBy: event.skillName,
       activationId: event.activationId,
-      audience: { recipients: 'self' }
+      audience: { recipients: RECIPIENT.SELF }
     }
   });
 }
@@ -123,8 +123,8 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
           at,
           source: 'Relic',
           sourceId: `relic.${RELIC_IDS.DIRECTOR}`,
-          actorType: 'effect',
-          ownerActorType: 'player',
+          actorType: ACTOR.EFFECT,
+          ownerActorType: ACTOR.PLAYER,
           skillName: name,
           name,
           triggeredBy: event.skillName,

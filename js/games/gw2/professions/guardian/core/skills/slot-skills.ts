@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, COMBO_FIELD, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -17,8 +16,8 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ammoRecharge: 24,
     ammoCastLockout: 5,
     effects: [
-      { type: 'boon', boon: BOON.SWIFTNESS, duration: 20, audience: { recipients: 'party' } },
-      { type: 'boon', boon: BOON.AEGIS, duration: 20, audience: { recipients: 'party' } }
+      { type: 'boon', boon: BOON.SWIFTNESS, duration: 20, audience: { recipients: RECIPIENT.PARTY } },
+      { type: 'boon', boon: BOON.AEGIS, duration: 20, audience: { recipients: RECIPIENT.PARTY } }
     ]
   },
   [ID.HOLD_THE_LINE]: {
@@ -28,8 +27,8 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ammoRecharge: 20,
     ammoCastLockout: 5,
     effects: [
-      { type: 'boon', boon: BOON.PROTECTION, duration: 6, audience: { recipients: 'party' } },
-      { type: 'boon', boon: BOON.REGENERATION, duration: 6, audience: { recipients: 'party' } }
+      { type: 'boon', boon: BOON.PROTECTION, duration: 6, audience: { recipients: RECIPIENT.PARTY } },
+      { type: 'boon', boon: BOON.REGENERATION, duration: 6, audience: { recipients: RECIPIENT.PARTY } }
     ]
   },
   [ID.RECEIVE_THE_LIGHT]: {
@@ -149,7 +148,7 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     comboFields: [
       {
         ownerId: 'guardian',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 5,
         startAnchor: 'castEnd'
       }
@@ -194,10 +193,10 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     castTimeMs: 400,
     cooldown: 30,
     effects: [
-      { type: 'boon', boon: BOON.QUICKNESS, duration: 3, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: BOON.QUICKNESS, duration: 3, audience: { recipients: RECIPIENT.PARTY } },
       // The party application includes the caster, so this supplement doubles only the caster's duration to six seconds.
-      { type: 'boon', boon: BOON.QUICKNESS, duration: 3, audience: { recipients: 'self' as const } },
-      { type: 'boon', boon: BOON.FURY, duration: 10, audience: { recipients: 'party' as const } }
+      { type: 'boon', boon: BOON.QUICKNESS, duration: 3, audience: { recipients: RECIPIENT.SELF } },
+      { type: 'boon', boon: BOON.FURY, duration: 10, audience: { recipients: RECIPIENT.PARTY } }
     ]
   }
 });

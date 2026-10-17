@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 /**
@@ -43,7 +42,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Frostfire Flurry',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
     castTimeMs: 640,
@@ -80,7 +79,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Purblinding Plasma',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
     castTimeMs: 640,
@@ -94,7 +93,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -124,7 +123,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Molten Meteor',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 480,
@@ -157,7 +156,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Flowing Finesse',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
     castTimeMs: 880,
@@ -176,7 +175,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Echoing Erosion',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 480,
@@ -213,7 +212,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Enervating Earth',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 560,
@@ -227,7 +226,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ],

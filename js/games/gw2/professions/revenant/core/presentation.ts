@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import type { Skill as PreviewSkill } from '#gw2/platform/skills/types.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
@@ -140,7 +141,7 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
       });
 
     // Spear's native pool scales Raze and is consumed normally on an eligible swap.
-    if ([...context.weapons, ...context.build.alternateWeapons].includes('Spear'))
+    if ([...context.weapons, ...context.build.alternateWeapons].includes(WEAPON.SPEAR))
       preview.add({
         key: 'crushingAbyss',
         label: 'Crushing Abyss',

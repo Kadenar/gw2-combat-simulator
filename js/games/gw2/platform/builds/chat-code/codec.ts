@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { GW2_BUILD_TEMPLATE_PROFESSIONS } from '#gw2/platform/builds/chat-code/palette-data.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/external-skill-ids.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -14,23 +15,23 @@ const SLOT_LAYOUT = Object.freeze([
 ]);
 
 const GW2_BUILD_TEMPLATE_WEAPON_NAMES: Readonly<Record<number, string>> = Object.freeze({
-  5: 'Axe',
-  35: 'Longbow',
-  47: 'Dagger',
-  49: 'Focus',
-  50: 'Greatsword',
-  51: 'Hammer',
-  53: 'Mace',
-  54: 'Pistol',
-  85: 'Rifle',
-  86: 'Scepter',
-  87: 'Shield',
-  89: 'Staff',
-  90: 'Sword',
-  102: 'Torch',
-  103: 'Warhorn',
-  107: 'Shortbow',
-  265: 'Spear'
+  5: WEAPON.AXE,
+  35: WEAPON.LONGBOW,
+  47: WEAPON.DAGGER,
+  49: WEAPON.FOCUS,
+  50: WEAPON.GREATSWORD,
+  51: WEAPON.HAMMER,
+  53: WEAPON.MACE,
+  54: WEAPON.PISTOL,
+  85: WEAPON.RIFLE,
+  86: WEAPON.SCEPTER,
+  87: WEAPON.SHIELD,
+  89: WEAPON.STAFF,
+  90: WEAPON.SWORD,
+  102: WEAPON.TORCH,
+  103: WEAPON.WARHORN,
+  107: WEAPON.SHORTBOW,
+  265: WEAPON.SPEAR
 });
 
 interface DecodedGw2BuildTemplateSpecialization {

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FIELD, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -14,7 +13,7 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     comboFields: [
       {
         ownerId: 'guardian',
-        fieldType: 'Light',
+        fieldType: COMBO_FIELD.LIGHT,
         duration: 4,
         startMs: 240,
         startAnchor: 'castStart'
@@ -45,7 +44,7 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
         boon: BOON.MIGHT,
         stacks: 4,
         duration: 5,
-        audience: { recipients: 'party' as const },
+        audience: { recipients: RECIPIENT.PARTY },
         atMs
       }))
     ])

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, COMBO_FIELD, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Staff weapon-skill mechanics owned by the Weaver module.
  *
@@ -27,7 +26,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     name: 'Pressure Blast',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
     castTimeMs: 650,
@@ -50,7 +49,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     name: 'Plasma Blast',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
     castTimeMs: 480,
@@ -80,7 +79,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     name: 'Pyroclastic Blast',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 680,
@@ -88,7 +87,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 4,
         startAnchor: 'castEnd'
       }
@@ -168,7 +167,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     name: 'Monsoon',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
     castTimeMs: 640,
@@ -212,7 +211,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     name: 'Lahar',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 640,
@@ -251,7 +250,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     name: 'Pile Driver',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 1320,
@@ -265,7 +264,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ],

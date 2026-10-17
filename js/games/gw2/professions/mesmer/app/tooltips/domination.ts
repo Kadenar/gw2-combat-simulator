@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   fromProfile,
   tooltipFactorChange,
@@ -19,7 +20,7 @@ export const mesmerDominationTooltips = {
   [TRAIT.BOUNTIFUL_BLADES]: traitTooltip(
     'Mirror Blade gains additional target hits. Phantasmal Berserker summons additional phantasms, each with reduced damage.',
     [
-      ['summons', 'Phantasm count multiplier', (value) => `${tooltipDecimal(value)}×`],
+      [RECIPIENT.SUMMONS, 'Phantasm count multiplier', (value) => `${tooltipDecimal(value)}×`],
       ['damageMultiplier', 'Damage per phantasm', tooltipFactorChange]
     ],
     'additional Mirror Blade hits'

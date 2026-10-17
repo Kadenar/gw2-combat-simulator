@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { COMBO_FIELD, COMBO_FINISHER, RECIPIENT, BOON } from '#gw2/platform/constants.js';
 /** Core Engineer Med Kit skill mechanics. */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -60,7 +60,7 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
     comboFields: [
       {
         ownerId: 'engineer',
-        fieldType: 'Water',
+        fieldType: COMBO_FIELD.WATER,
         duration: 3,
         startAnchor: 'castEnd'
       }
@@ -80,28 +80,28 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Blast',
+        finisherType: COMBO_FINISHER.BLAST,
         ambiguousFieldSelection: 'oldest'
       }
     ],
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.SWIFTNESS,
         duration: 10,
         stacks: 1
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.VIGOR,
         duration: 10,
         stacks: 1
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 10,
         stacks: 1

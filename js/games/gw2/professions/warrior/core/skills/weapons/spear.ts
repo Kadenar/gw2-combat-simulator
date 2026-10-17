@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 /** Core Warrior spear packets use nearest-40 ms offsets to remove false timing precision. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -40,7 +40,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -98,7 +98,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 1,
             ambiguousFieldSelection: 'oldest'
           }
@@ -113,7 +113,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: CONTROL.DAZE
       }
     ])
   },
@@ -146,7 +146,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
     effects: [
       {
         type: 'control',
-        controlKind: 'launch'
+        controlKind: CONTROL.LAUNCH
       },
       {
         type: 'strike',

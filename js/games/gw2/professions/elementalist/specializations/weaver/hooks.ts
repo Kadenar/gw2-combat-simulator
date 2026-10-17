@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
@@ -48,7 +49,7 @@ export const weaverHooks = composeRuntimeHooks<ElementalistRuntimeState, Element
 
       if (
         skill &&
-        skillWeapon(skill) === 'Hammer' &&
+        skillWeapon(skill) === WEAPON.HAMMER &&
         weaverDualAttunements(skill) &&
         (event.type === 'damage' || event.type === 'condition')
       )

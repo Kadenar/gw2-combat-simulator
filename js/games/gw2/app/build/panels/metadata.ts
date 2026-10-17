@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { CONDITION_DURATION_ATTRIBUTES, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
 

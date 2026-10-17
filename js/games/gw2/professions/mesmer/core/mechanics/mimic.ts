@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -38,7 +39,13 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<Mesm
   context.effects.emit({
     kind: 'announcement',
     log: true,
-    attribution: { source: 'Mimic', sourceId: ID.MIMIC, skillId: ID.MIMIC, skillName: 'Mimic', actorType: 'player' },
+    attribution: {
+      source: 'Mimic',
+      sourceId: ID.MIMIC,
+      skillId: ID.MIMIC,
+      skillName: 'Mimic',
+      actorType: ACTOR.PLAYER
+    },
     announcement: { type: 'skill', at, name: 'Mimic' }
   });
 }

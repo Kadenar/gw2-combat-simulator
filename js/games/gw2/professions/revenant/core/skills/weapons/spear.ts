@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FIELD, CONTROL, COMBO_FINISHER, WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -38,28 +38,28 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         // The accepted authored strike owns the recharge reward.
         reactions: [
-          { on: 'damage.resolved', actor: 'player', packets: 'first', do: { type: 'revenant.spear-recharge' } }
+          { on: 'damage.resolved', actor: ACTOR.PLAYER, packets: 'first', do: { type: 'revenant.spear-recharge' } }
         ],
         name: 'Abyssal Blitz — Mine',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: [560, 720, 960].map((atMs) => ({ atMs, coefficient: 0.5 })),
         metadata: {}
       },
       {
         type: 'condition',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: CONDITION.SLOW, stacks: 1, duration: 3 })),
         metadata: {}
       },
       {
         type: 'condition',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: CONDITION.CHILLED, stacks: 1, duration: 3 })),
         metadata: {}
       },
       {
         type: 'condition',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 })),
         metadata: {}
       }
@@ -79,7 +79,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     comboFields: [
       {
         ownerId: 'revenant',
-        fieldType: 'Dark',
+        fieldType: COMBO_FIELD.DARK,
         duration: 1.12,
         startMs: 960,
         startAnchor: 'castStart',
@@ -91,10 +91,10 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         // The accepted authored strike owns the recharge reward.
         reactions: [
-          { on: 'damage.resolved', actor: 'player', packets: 'first', do: { type: 'revenant.spear-recharge' } }
+          { on: 'damage.resolved', actor: ACTOR.PLAYER, packets: 'first', do: { type: 'revenant.spear-recharge' } }
         ],
         name: 'Abyssal Blot',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -111,7 +111,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'condition',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true,
         ticks: [
           { atMs: 960, condition: CONDITION.POISONED, stacks: 1, duration: 6 },
@@ -129,12 +129,12 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
           condition: CONDITION.CHILLED,
           stacks: 1,
           duration: 2,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'control',
-          actorType: 'player',
-          controlKind: 'pull'
+          actorType: ACTOR.PLAYER,
+          controlKind: CONTROL.PULL
         }
       ])
     ]
@@ -151,12 +151,12 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         // The accepted authored strike owns the recharge reward.
         reactions: [
-          { on: 'damage.resolved', actor: 'player', packets: 'first', do: { type: 'revenant.spear-recharge' } }
+          { on: 'damage.resolved', actor: ACTOR.PLAYER, packets: 'first', do: { type: 'revenant.spear-recharge' } }
         ],
         coefficient: 0.8,
         hits: 1,
         name: 'Abyssal Force',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         metadata: {}
       },
       {
@@ -164,14 +164,14 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 8,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -192,26 +192,26 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
           type: 'strike',
           // The accepted authored strike owns the recharge reward.
           reactions: [
-            { on: 'damage.resolved', actor: 'player', packets: 'first', do: { type: 'revenant.spear-recharge' } }
+            { on: 'damage.resolved', actor: ACTOR.PLAYER, packets: 'first', do: { type: 'revenant.spear-recharge' } }
           ],
           coefficient: 0.85,
           hits: 1,
           name: 'Abyssal Strike',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.TORMENT,
           stacks: 1,
           duration: 3,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.VULNERABILITY,
           stacks: 1,
           duration: 6,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]
     )
@@ -233,7 +233,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     comboFinishers: [
       {
         ownerId: 'revenant',
-        finisherType: 'Blast',
+        finisherType: COMBO_FINISHER.BLAST,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -245,21 +245,21 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         hits: 1,
         damageIncreasePerStack: 0.33,
         name: 'Abyssal Raze',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.TORMENT,
         stacks: 2,
         duration: 5,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         metadata: { trigger: 'crushing-abyss' }
       },
       {
@@ -269,7 +269,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         duration: 10,
         stacks: 1,
         name: 'Crushing Abyss',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   }
@@ -304,10 +304,10 @@ function abyssalRazePackets(
     at: runtime.time,
     source: 'revenant',
     sourceId: skill.id,
-    actorType: 'player' as const,
+    actorType: ACTOR.PLAYER,
     skillId: skill.id,
     skillName: skill.name,
-    skillWeapon: 'Spear',
+    skillWeapon: WEAPON.SPEAR,
     ...(activationId ? { activationId } : {}),
     ...(triggeredBy ? { triggeredBy } : {})
   };
@@ -387,7 +387,7 @@ function revenantAbyssalRazeImpact(runtime: RevenantRuntime, data: unknown): voi
         at: runtime.time,
         source: 'revenant',
         sourceId: ID.ABYSSAL_RAZE,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: effectId,
         skillName: effectName,
         activationId,
@@ -406,7 +406,7 @@ function revenantAbyssalRazeImpact(runtime: RevenantRuntime, data: unknown): voi
     attribution: {
       source: 'revenant',
       sourceId: ID.ABYSSAL_RAZE,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: effectId,
       skillName: effectName
     },
@@ -461,7 +461,7 @@ function reactRevenantSpearRecharge(runtime: RevenantRuntime, event: Gw2Resolver
     attribution: {
       source: 'revenant',
       sourceId: source.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: source.id,
       skillName: source.name
     },

@@ -1,7 +1,7 @@
+import { recordBuffApplication, applyBoonExtension, standardBoonPresentation } from '#gw2/platform/combat/boons.js';
 import { conditionStackLimit } from '#gw2/platform/combat/state/targets.js';
 import { EffectRecorder, effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { observeBuffState, timedEffectState } from '#gw2/platform/combat/effect-state.js';
-import { recordBuffApplication, applyBoonExtension, standardBoonPresentation } from '#gw2/platform/combat/boons.js';
 import { buildBoonGeneration, projectedPartyEffects } from '#gw2/platform/results/boon-generation.js';
 
 /** Build canonical report fixtures with combat's application helpers; UI tests supply engine policies explicitly. */

@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -51,7 +52,7 @@ function emitTransitionLockout(
       kind,
       source: 'gw2',
       sourceId: skill?.id ?? kind,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       ...(skill ? { skillId: skill.id, skillName: skill.name } : {}),
       name: 'Transition delay'
     }

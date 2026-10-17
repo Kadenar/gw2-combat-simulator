@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { RECIPIENT, ACTOR, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -73,7 +74,7 @@ function activate(runtime: GuardianRuntime, data: unknown): void {
         kind: `willbender-${virtue}`,
         duration: effectNumber(profile, window, 'duration'),
         stacks: 1,
-        audience: { recipients: 'self' }
+        audience: { recipients: RECIPIENT.SELF }
       }
     });
 
@@ -130,7 +131,7 @@ function reactToWillbenderHit(
   if (
     !((details.hitContext?.damage ?? 0) > 0) ||
     !(Number(event.coefficient) > 0) ||
-    (event.actorType !== 'player' && event.sourceId !== `sigil.${SIGIL_IDS.AIR}`)
+    (event.actorType !== ACTOR.PLAYER && event.sourceId !== `sigil.${SIGIL_IDS.AIR}`)
   )
     return;
 
@@ -164,7 +165,7 @@ function reactToWillbenderHit(
             priority: 5,
             source: 'guardian',
             sourceId: 'guardian.justice-passive',
-            actorType: 'player',
+            actorType: ACTOR.PLAYER,
             skillId: ID.WILLBENDER_JUSTICE,
             skillName: 'Justice',
             // Keep virtue damage separate from the attack that satisfies its hit counter.
@@ -193,7 +194,7 @@ function reactToWillbenderHit(
             attribution: {
               source: 'guardian',
               sourceId: ID.CRASHING_COURAGE,
-              actorType: 'player',
+              actorType: ACTOR.PLAYER,
               skillId: ID.CRASHING_COURAGE,
               skillName: profile.name,
               activationId: event.activationId,
@@ -204,7 +205,7 @@ function reactToWillbenderHit(
               duration: packet.duration,
               name: profile.name + ' — ' + name,
               causalOrder: event.causalOrder ?? event.eventOrder,
-              audience: { recipients: 'self' }
+              audience: { recipients: RECIPIENT.SELF }
             })
           });
         }

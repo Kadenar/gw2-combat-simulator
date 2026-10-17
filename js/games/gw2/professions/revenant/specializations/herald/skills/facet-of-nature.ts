@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { EffectAudience } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -71,7 +71,7 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         coefficient: 1,
         hits: 1,
         name: 'True Nature (assassin)',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         weaponStrengthSource: 'equipped'
       }
     ],
@@ -95,7 +95,7 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         boon: BOON.STABILITY,
         duration: 4,
         stacks: 2,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ],
     consume: true
@@ -121,7 +121,7 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
           procType: 'boon-extension',
           name: 'True Nature (dragon) — Boon Extension',
           duration: 2,
-          audience: { recipients: 'party' as const, maximumRecipients: 5 }
+          audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
         }
       }
     ],
@@ -182,7 +182,7 @@ export function trueNatureDragon(runtime: RevenantRuntime, cast: RuntimeCast<Rev
       at: runtime.time,
       source: 'revenant',
       sourceId: cast.skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       activationId: cast.id,
@@ -197,7 +197,7 @@ export function trueNatureDragon(runtime: RevenantRuntime, cast: RuntimeCast<Rev
 
 /** Landed player strikes under Assassin Nature (active or retained) siphon once per cooldown; siphons never recurse. */
 export function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+  if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return;
 
   const core = runtime.profession.core;
   const state = heraldState.from(runtime);
@@ -231,8 +231,8 @@ export function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent):
       skillId: ID.FACET_OF_NATURE,
       skillName: profile.name,
       name: 'Facet of Nature — Life Siphon',
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       coefficient: 0,
       canCrit: false,
       damageKind: 'life-steal',

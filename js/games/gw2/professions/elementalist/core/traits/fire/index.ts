@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { AURA, ACTOR, COMBO_FIELD, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -128,7 +127,7 @@ export const conjurer = defineTrait({
   triggers: [onTriggerPoint(conjureEquipped, { run: applyConjurerAura })],
   name: 'Conjurer',
   balance: {
-    effects: [{ type: 'buff', name: 'Conjurer', kind: 'Fire Aura', stacks: 1, duration: 4 }]
+    effects: [{ type: 'buff', name: 'Conjurer', kind: AURA.FIRE, stacks: 1, duration: 4 }]
   }
 });
 
@@ -148,7 +147,7 @@ export const sunspot = defineTrait({
   name: 'Sunspot',
   balance: {
     effects: [
-      { type: 'buff', name: 'Sunspot Aura', kind: 'Fire Aura', stacks: 1, duration: 3 },
+      { type: 'buff', name: 'Sunspot Aura', kind: AURA.FIRE, stacks: 1, duration: 3 },
       { type: 'strike', name: 'Sunspot', coefficient: 0.6, hits: 1, canCrit: false }
     ]
   }
@@ -319,7 +318,7 @@ function applyPyromancersPuissance(context: ElementalistRuntime, { cast }: Eleme
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.PYROMANCERS_PUISSANCE,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       name: skill.name,
       priority: 0
     }
@@ -371,7 +370,7 @@ function applyBurningPrecision(context: MechanicCombatContext, event: Gw2Resolve
       attribution: {
         source: 'Burning Precision',
         sourceId: TRAIT.BURNING_PRECISION,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: 'Burning Precision',
         triggeredBy: resolverSourceSkill(event),
         metadata: { procCount: 1 }
@@ -441,7 +440,7 @@ function grantPersistingFlames(context: MechanicCombatContext, event: Gw2Resolve
       at: event.at,
       source: 'Trait',
       sourceId: TRAIT.PERSISTING_FLAMES,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillName: requireBalanceProfileFromContext(context, TRAIT.PERSISTING_FLAMES).name,
       kind: 'Persisting Flames'.toLowerCase(),
       stacks: 1,
@@ -458,7 +457,7 @@ function applyPersistingFlamesDamage(context: MechanicCombatContext, event: Gw2R
     event.damageKind === 'field-tick' &&
     context.helpers.skillsById
       .get(event.skillId ?? event.sourceId)
-      ?.comboFields?.some((field) => field.fieldType === 'Fire')
+      ?.comboFields?.some((field) => field.fieldType === COMBO_FIELD.FIRE)
   )
     grantPersistingFlames(context, event);
 }

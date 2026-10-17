@@ -1,5 +1,5 @@
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';

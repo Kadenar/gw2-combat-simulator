@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -43,7 +43,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 15 } })
@@ -65,7 +65,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: { type: 'necromancer.transfer' }

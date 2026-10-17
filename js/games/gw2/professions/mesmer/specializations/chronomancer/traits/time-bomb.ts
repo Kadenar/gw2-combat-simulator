@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
   balanceProfileNumber,
@@ -88,7 +89,7 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
     ...delivery,
     kind: 'announcement',
     log: true,
-    attribution: { source: 'Trait', sourceId: TRAIT.TIME_BOMB, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.TIME_BOMB, actorType: ACTOR.EFFECT },
     announcement: {
       type: 'trait',
       name: 'Time Bomb',

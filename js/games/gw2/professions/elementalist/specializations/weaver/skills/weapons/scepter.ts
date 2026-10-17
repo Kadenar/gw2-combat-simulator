@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Scepter weapon-skill mechanics owned by the Weaver module.
  *
@@ -27,7 +26,7 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     name: 'Fiery Frost',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Scepter',
+    weapon: WEAPON.SCEPTER,
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
     castTimeMs: 880,
@@ -46,7 +45,7 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     name: 'Plasma Beam',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Scepter',
+    weapon: WEAPON.SCEPTER,
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
     castTimeMs: 920,
@@ -117,7 +116,7 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     name: 'Fracturing Strike',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Scepter',
+    weapon: WEAPON.SCEPTER,
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 920,
@@ -143,7 +142,7 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     name: 'Glacial Drift',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Scepter',
+    weapon: WEAPON.SCEPTER,
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
     castTimeMs: 560,
@@ -165,7 +164,7 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     name: 'Stone Tide',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Scepter',
+    weapon: WEAPON.SCEPTER,
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 600,
@@ -222,7 +221,7 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     name: 'Earthen Synergy',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Scepter',
+    weapon: WEAPON.SCEPTER,
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 560,

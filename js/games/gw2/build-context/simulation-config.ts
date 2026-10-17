@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2AttributeSeed } from '#gw2/platform/builds/types.js';
 import type { BuildAttributes, BuildContextInput, ProfessionModifier } from '#gw2/build-context/types.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';

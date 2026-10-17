@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -17,8 +17,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
         hits: 1,
         atMs: 200,
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'sword'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SWORD.toLowerCase()
       },
       { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, atMs: 200 }
     ]),
@@ -36,8 +36,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
         hits: 1,
         atMs: 280,
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'sword'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SWORD.toLowerCase()
       },
       { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, atMs: 280 }
     ])
@@ -55,8 +55,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
         hits: 1,
         atMs: 360,
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'sword'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SWORD.toLowerCase()
       }
     ])
   },
@@ -78,8 +78,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
         atMs: 920,
         persistsAfterInterrupt: true,
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'sword'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SWORD.toLowerCase()
       }
     ])
   },
@@ -107,8 +107,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 0.5,
         hits: 1,
         name: 'Mesmer strike',
-        actorType: 'player',
-        weapon: 'sword',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SWORD.toLowerCase(),
         castProgress: 0.8625
       },
       {
@@ -117,13 +117,13 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
         hits: 1,
         atMs: 840,
         name: 'Phantasm leap',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         weapon: 'phantasm medium',
         comboFinishers: [
           {
             ownerId: 'mesmer',
-            finisherType: 'Leap',
+            finisherType: COMBO_FINISHER.LEAP,
             ambiguousFieldSelection: 'oldest'
           }
         ]
@@ -141,7 +141,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
           { atMs: 2280, coefficient: 0.2 }
         ],
         name: 'Phantasm Blurred Frenzy',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         weapon: 'phantasm medium'
       }
@@ -176,8 +176,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
           { atMs: 680, coefficient: 0.45 }
         ],
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'sword'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SWORD.toLowerCase()
       }
     ])
   },
@@ -195,13 +195,13 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
         hits: 1,
         atMs: 800,
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'sword',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SWORD.toLowerCase(),
         // Retain a field crossed during the leap even when it expires before landing.
         comboFinishers: [
           {
             ownerId: 'mesmer',
-            finisherType: 'Leap',
+            finisherType: COMBO_FINISHER.LEAP,
             fieldSelectionAnchor: 'castStart',
             ambiguousFieldSelection: 'oldest'
           }

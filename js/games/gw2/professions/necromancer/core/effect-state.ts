@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
@@ -29,7 +30,8 @@ export function necromancerEffectStates(
     )
   );
 
-  if (!effects.some((effect) => effect.recipient === 'self')) effects.push(timedEffectState('taste-for-blood', []));
+  if (!effects.some((effect) => effect.recipient === RECIPIENT.SELF))
+    effects.push(timedEffectState('taste-for-blood', []));
 
   return effects;
 }

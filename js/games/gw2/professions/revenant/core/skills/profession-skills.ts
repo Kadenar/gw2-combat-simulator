@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';

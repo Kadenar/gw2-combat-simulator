@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { isGw2IllusionEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -202,19 +203,19 @@ function criticalMetric(event: Gw2ResolverEvent): Readonly<{
     return { id: 'illusion', label: 'Illusion critical hits' };
   }
 
-  if (event.actorType === 'summon') {
-    return { id: 'summon', label: 'Summon critical hits' };
+  if (event.actorType === ACTOR.SUMMON) {
+    return { id: ACTOR.SUMMON, label: 'Summon critical hits' };
   }
 
-  if (event.actorType === 'effect') {
+  if (event.actorType === ACTOR.EFFECT) {
     return { id: 'effect', label: 'Triggered-effect critical hits' };
   }
 
-  if (event.actorType === 'environment') {
-    return { id: 'environment', label: 'Environment critical hits' };
+  if (event.actorType === ACTOR.ENVIRONMENT) {
+    return { id: ACTOR.ENVIRONMENT, label: 'Environment critical hits' };
   }
 
-  return { id: 'player', label: 'Player critical hits' };
+  return { id: ACTOR.PLAYER, label: 'Player critical hits' };
 }
 
 function addMetric(
@@ -278,7 +279,7 @@ export function randomDistributionMetrics(result: DistributionSimulationResult):
       }
 
       const triggeredEffect =
-        event.actorType === 'effect' || ['Food', 'Relic', 'Sigil', 'Trait'].includes(String(event.source));
+        event.actorType === ACTOR.EFFECT || ['Food', 'Relic', 'Sigil', 'Trait'].includes(String(event.source));
 
       if (triggeredEffect && hasStrikePayload(event)) {
         const name = effectName(event);

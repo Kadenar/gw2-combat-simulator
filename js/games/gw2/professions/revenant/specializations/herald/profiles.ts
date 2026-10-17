@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 
 export const HERALD_ELEVATED_COMPASSION_PROFILE_ID = 'revenant.elevated-compassion';
@@ -22,7 +23,7 @@ export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
         damageKind: 'life-steal',
         flatStrikeBase: 53,
         flatStrikePowerCoeff: 0.0666,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   }

@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -97,7 +98,8 @@ export const engineerCoreHooks = composeRuntimeHooks<EngineerRuntimeState, Engin
         reduceEngineerRecharge(
           runtime,
           cast,
-          (candidate) => candidate.type === 'Weapon' && candidate.weapon === 'Sword' && candidate.id !== cast.skill.id,
+          (candidate) =>
+            candidate.type === 'Weapon' && candidate.weapon === WEAPON.SWORD && candidate.id !== cast.skill.id,
           sideEffectAmount(runtime, action.amount),
           cast.skill.id,
           'Gleam Saber \u2014 Sword Recharge'

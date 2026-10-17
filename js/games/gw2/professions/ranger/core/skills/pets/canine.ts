@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Canine family.
@@ -16,7 +15,7 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         coefficient: 0.335,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BITE]!.castTimeMs,
@@ -30,12 +29,12 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         coefficient: 0.67,
         source: 'ranger-pet',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         comboFinishers: [
           {
             ownerId: 'ranger',
-            ownerActorType: 'summon',
-            finisherType: 'Leap'
+            ownerActorType: ACTOR.SUMMON,
+            finisherType: COMBO_FINISHER.LEAP
           }
         ]
       },
@@ -45,7 +44,7 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 1,
         duration: 5,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_CRIPPLING_LEAP]!.castTimeMs,
@@ -59,14 +58,14 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         coefficient: 0.67,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'control',
-        controlKind: 'knockdown',
+        controlKind: CONTROL.KNOCKDOWN,
         duration: 2,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BRUTAL_CHARGE]!.castTimeMs,
@@ -80,7 +79,7 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.5,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         // Pet-owned immobilize follows the attack's applications and uses pet condition duration.
@@ -90,7 +89,7 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         duration: 2,
         applications: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 1000,
@@ -103,7 +102,7 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.5,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -111,7 +110,7 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 1000,
@@ -121,12 +120,12 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 6,
         stacks: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 333,
@@ -144,7 +143,7 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.5,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 1000,

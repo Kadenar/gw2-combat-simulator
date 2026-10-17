@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -78,8 +78,8 @@ function queueOneWolfPackStrike(
       at: event.at + balanceProfileNumber(profile, 'initialDelay'),
       source: 'ranger',
       sourceId: ID.ONE_WOLF_PACK_STRIKE,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       skillId: ID.ONE_WOLF_PACK,
       skillName: 'One Wolf Pack',
 
@@ -116,7 +116,7 @@ function queueVultureStanceEffects(
           ...request.attribution,
           source: event.metadata?.triggeredByAlly ? 'ranger' : 'Trait',
           // Personal and shared stance poison both inherit the Ranger's damage and duration modifiers.
-          ownerActorType: 'player'
+          ownerActorType: ACTOR.PLAYER
         }
       });
   }
@@ -235,7 +235,7 @@ function scheduleSharedStance(context: RangerResolverContext, event: Gw2Resolver
           source: 'ranger',
           sourceId: event.sourceId,
           kind: event.kind,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillName: `Allied Player ${proc.allyIndex} Attack`,
           activationId: proc.activationId,
           metadata: { triggeredByAlly: proc.allyIndex }
@@ -255,7 +255,7 @@ export function reactToRangerWinterBite(context: RangerResolverContext, event: G
     !core.winterBiteReady ||
     // Guard against the Winter's Bite proc re-triggering itself.
     event.sourceId === ID.WINTERS_BITE ||
-    event.actorType === 'effect'
+    event.actorType === ACTOR.EFFECT
   ) {
     return;
   }

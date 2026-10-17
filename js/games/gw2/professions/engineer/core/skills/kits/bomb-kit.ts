@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, ACTOR, CONTROL, COMBO_FIELD, CONDITION } from '#gw2/platform/constants.js';
 /** Core Engineer Bomb Kit skill mechanics. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -24,7 +24,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Blast',
+        finisherType: COMBO_FINISHER.BLAST,
         successfulCombos: 2,
         ambiguousFieldSelection: 'oldest'
       }
@@ -39,13 +39,13 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
           coefficient: 3,
           hits: 1,
           name: "Big Ol' Bomb",
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           damageKind: 'explosion'
         },
         {
           type: 'control',
-          actorType: 'player',
-          controlKind: 'knockdown'
+          actorType: ACTOR.PLAYER,
+          controlKind: CONTROL.KNOCKDOWN
         }
       ]
     ),
@@ -60,7 +60,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Blast',
+        finisherType: COMBO_FINISHER.BLAST,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -72,7 +72,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
         coefficient: 2.5,
         hits: 1,
         name: 'Galvanic Bomb',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion'
       },
       {
@@ -80,12 +80,12 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
         condition: CONDITION.CONFUSION,
         stacks: 6,
         duration: 8,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'daze'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.DAZE
       }
     ]),
     kitId: ID.BOMB_KIT
@@ -97,7 +97,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
     comboFields: [
       {
         ownerId: 'engineer',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 3,
         startAnchor: 'castEnd',
         inclusiveExpiry: true
@@ -110,13 +110,13 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
         type: 'strike',
         ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 760 + index * 1000, coefficient: 1 / 4 })),
         name: 'Fire Bomb',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 760, condition: CONDITION.BURNING, stacks: 2, duration: 5 }],
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -126,7 +126,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
           stacks: 1,
           duration: 2
         })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     kitId: ID.BOMB_KIT
@@ -140,7 +140,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     toolbeltParentId: ID.BOMB_KIT
@@ -157,7 +157,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Bomb',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion'
       }
     ],
@@ -191,13 +191,13 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
           coefficient: 1.5,
           hits: 1,
           name: 'Magnetic Bomb',
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           damageKind: 'explosion'
         },
         {
           type: 'control',
-          actorType: 'player',
-          controlKind: 'pull'
+          actorType: ACTOR.PLAYER,
+          controlKind: CONTROL.PULL
         }
       ]
     ),

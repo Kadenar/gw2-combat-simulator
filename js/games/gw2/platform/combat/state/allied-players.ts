@@ -1,3 +1,4 @@
+import { RECIPIENT, ACTOR } from '#gw2/platform/constants.js';
 import { normalizeEffectAudience } from '#gw2/platform/effects/audience-metadata-validation.js';
 
 import type { EffectAudience, ResolvedEffectAudience, SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -58,7 +59,7 @@ export function prepareGw2BuffCompanionCandidates(
 
   const audience = normalizeEffectAudience(event.audience)!;
 
-  if (audience.recipients === 'self' || audience.eligibleCompanionIds) return event;
+  if (audience.recipients === RECIPIENT.SELF || audience.eligibleCompanionIds) return event;
 
   return {
     ...event,
@@ -75,22 +76,22 @@ export function prepareGw2BuffCompanionCandidates(
  */
 export function gw2AlliedEffectRecipients(
   config: Gw2AlliedPlayerConfig,
-  request: EffectAudience = { recipients: 'party' }
+  request: EffectAudience = { recipients: RECIPIENT.PARTY }
 ): ResolvedEffectAudience {
   const audience = normalizeEffectAudience(request)!;
   const party = gw2AlliedPlayerAssumptions(config);
-  const shared = audience.recipients !== 'self';
+  const shared = audience.recipients !== RECIPIENT.SELF;
   const limit = audience.maximumRecipients ?? (shared ? 5 : 1);
   const includesSelf = audience.affectsSelf !== false;
   // A named ally occupies one slot only when that player exists in the configured party.
   const eligiblePlayers =
     audience.alliedPlayerIndex == null ? party.count : Number(audience.alliedPlayerIndex <= party.count);
   const alliedPlayerCount =
-    audience.recipients === 'party' ? clamp(limit - Number(includesSelf), 0, eligiblePlayers) : 0;
+    audience.recipients === RECIPIENT.PARTY ? clamp(limit - Number(includesSelf), 0, eligiblePlayers) : 0;
   const remaining = limit - Number(includesSelf) - alliedPlayerCount;
   const summonsEligible =
-    audience.recipients === 'summons' ||
-    (audience.recipients === 'party' && config.sharePlayerBoonsWithSummons !== false);
+    audience.recipients === RECIPIENT.SUMMONS ||
+    (audience.recipients === RECIPIENT.PARTY && config.sharePlayerBoonsWithSummons !== false);
   const selectedCompanions = summonsEligible
     ? [...new Set((audience.eligibleCompanionIds || []).map(String).filter(Boolean))].slice(0, remaining)
     : [];
@@ -117,13 +118,13 @@ export function gw2BoonApplicationRecipients(
 ): ResolvedEffectAudience {
   if (event.resolvedAudience) return event.resolvedAudience;
 
-  const audience = normalizeEffectAudience(event.audience ?? { recipients: 'self' })!;
+  const audience = normalizeEffectAudience(event.audience ?? { recipients: RECIPIENT.SELF })!;
 
-  if (event.actorType !== 'summon') return gw2AlliedEffectRecipients(config, audience);
+  if (event.actorType !== ACTOR.SUMMON) return gw2AlliedEffectRecipients(config, audience);
 
   // Allied players have priority over a summon caster; the caster can receive a spare slot.
   // Summon-origin grants are independent of the toggle for sharing player-origin boons.
-  if (audience.recipients === 'party')
+  if (audience.recipients === RECIPIENT.PARTY)
     return gw2AlliedEffectRecipients(
       { ...config, sharePlayerBoonsWithSummons: true },
       {
@@ -136,13 +137,13 @@ export function gw2BoonApplicationRecipients(
     );
 
   // Personal summon grants stay on their caster; summon-only grants can include other companions.
-  const shared = audience.recipients !== 'self';
+  const shared = audience.recipients !== RECIPIENT.SELF;
   const limit = audience.maximumRecipients ?? (shared ? 5 : 1);
   const casterId = String(event.summonOwner || '');
   const candidates = [...new Set((audience.eligibleCompanionIds || []).map(String).filter(Boolean))].filter(
     (id) => id !== casterId
   );
-  const selectedCompanions = audience.recipients === 'summons' ? candidates.slice(0, limit - 1) : [];
+  const selectedCompanions = audience.recipients === RECIPIENT.SUMMONS ? candidates.slice(0, limit - 1) : [];
   return Object.freeze({
     includesSelf: false,
     includesSummons: true,

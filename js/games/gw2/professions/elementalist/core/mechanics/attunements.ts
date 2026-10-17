@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -120,7 +121,7 @@ export function onAttunementComplete(
       priority: -20,
       source: skill.name,
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name,
       from: previous,
@@ -136,7 +137,7 @@ export function onAttunementComplete(
       at,
       source: skill.name,
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name
     }

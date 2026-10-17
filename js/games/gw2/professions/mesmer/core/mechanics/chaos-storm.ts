@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -21,7 +22,7 @@ export function scheduleChaosStormPoison(context: MesmerRuntime, cast: RuntimeCa
       activationId,
       source: 'Player',
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name
     }

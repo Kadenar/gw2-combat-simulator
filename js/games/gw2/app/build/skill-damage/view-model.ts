@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import type {
   SkillDamageGroupKind,
   SkillDamagePlan,

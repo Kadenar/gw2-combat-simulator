@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import {
   balanceProfileNumber,
@@ -27,7 +27,7 @@ export const FIREBRAND_ASHES_EXPIRE = 'guardian.firebrand.ashes-expiry';
 export function attribution(event: Gw2ResolverEvent) {
   return {
     source: 'guardian',
-    actorType: 'player' as const,
+    actorType: ACTOR.PLAYER,
     skillId: event.skillId,
     skillName: event.skillName,
     activationId: event.activationId,
@@ -63,7 +63,7 @@ export function alliedAshes(
           kind: 'packet',
           event: buildResolverCondition({
             source: 'guardian',
-            actorType: 'player',
+            actorType: ACTOR.PLAYER,
             triggeredBy: event.skillName,
             at: proc.at,
             priority: source.priority,
@@ -96,7 +96,7 @@ function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<Guardia
     at: runtime.time,
     source: 'guardian',
     sourceId: cast.skill.id,
-    actorType: 'player',
+    actorType: ACTOR.PLAYER,
     skillId: cast.skill.id,
     skillName: cast.skill.name,
     activationId: cast.id
@@ -113,7 +113,7 @@ function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<Guardia
         kind: boonKey(BOON.MIGHT),
         stacks: effectNumber(profile, might, 'stacks'),
         duration: effectNumber(profile, might, 'duration'),
-        audience: { recipients: 'party' }
+        audience: { recipients: RECIPIENT.PARTY }
       }
     });
 
@@ -138,7 +138,7 @@ function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<Guardia
       kind: 'ashes-of-the-just',
       stacks: state.ashes.charges,
       duration,
-      audience: { recipients: 'party' }
+      audience: { recipients: RECIPIENT.PARTY }
     }
   });
   runtime.schedule(FIREBRAND_ASHES_EXPIRE, state.ashes.expiresAt, undefined, undefined, 10);

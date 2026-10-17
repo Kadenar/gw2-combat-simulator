@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import { resultNumber as number } from '#gw2/app/results/formatting.js';
 
@@ -11,7 +12,7 @@ export interface ResultMetric {
   readonly label: string;
   readonly value: unknown;
   readonly className?: string;
-  readonly group?: 'player' | 'target';
+  readonly group?: typeof ACTOR.PLAYER | 'target';
   readonly details?: readonly ResultMetricDetail[];
 }
 

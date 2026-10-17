@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
@@ -145,7 +145,7 @@ function enterDragonTrigger(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
       at: runtime.time,
       source: 'Warrior',
       sourceId: ID.DRAGON_TRIGGER,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: ID.DRAGON_TRIGGER,
       skillName: 'Dragon Trigger',
       activationId: cast.id,
@@ -201,7 +201,7 @@ function chargeTick(runtime: WarriorRuntime, identity: unknown): void {
       at: runtime.time,
       source: 'Warrior',
       sourceId: ID.DRAGON_TRIGGER,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: ID.DRAGON_TRIGGER,
       skillName: 'Dragon Trigger',
       activationId: state.dragonTriggerEventActivationId,
@@ -288,7 +288,7 @@ function captureSlash(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>):
       at: runtime.time,
       source: 'Warrior',
       sourceId: cast.skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       activationId: cast.id,

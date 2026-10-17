@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
@@ -40,11 +41,11 @@ export function instrumentAttack(
   data: MesmerInstrument,
   damageAt: number,
   source = 'Player',
-  actorType: 'player' | 'summon' = 'player',
+  actorType: typeof ACTOR.PLAYER | typeof ACTOR.SUMMON = ACTOR.PLAYER,
   delivery: EffectDelivery = {}
 ): void {
   // The extra note belongs to Shredding, so removing the native Lute strike does not remove it.
-  for (const attack of actorType === 'summon' ? [data] : []) {
+  for (const attack of actorType === ACTOR.SUMMON ? [data] : []) {
     if (attack.type !== 'strike') continue;
 
     buildMesmerStrikes(
@@ -75,7 +76,7 @@ export function instrumentAttack(
 
   context.fireTrigger(troubadourInstrumentStrike, { skill, data, damageAt, source, actorType, delivery });
 
-  for (const condition of actorType === 'summon' ? data.conditions || [] : []) {
+  for (const condition of actorType === ACTOR.SUMMON ? data.conditions || [] : []) {
     buildMesmerConditions(context, skill.name, damageAt, condition, source, '', {
       source,
       sourceId: skill.id,
@@ -96,7 +97,7 @@ export function instrumentAttack(
   context.fireTrigger(troubadourInstrumentConditions, { skill, data, damageAt, source, actorType, delivery });
 
   // Player and valid afterimage impacts use the same authored control with distinct ownership.
-  if (actorType === 'summon')
+  if (actorType === ACTOR.SUMMON)
     context.effects.emit({
       ...delivery,
       kind: 'profile',

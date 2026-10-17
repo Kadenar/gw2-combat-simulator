@@ -1,3 +1,4 @@
+import { WEAPON, ACTOR, COMBO_FINISHER } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 
@@ -13,12 +14,12 @@ export function bladecallEffects(): SkillEffect[] {
         type: 'strike',
         coefficient: 0.25 * hits,
         hits,
-        actorType: 'player',
-        weapon: 'dagger',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.DAGGER.toLowerCase(),
         comboFinishers: [
           {
             ownerId: 'mesmer',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2,
             ambiguousFieldSelection: 'oldest'
           }

@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   fromProfile,
   outsideScopeTooltip,
@@ -63,7 +64,7 @@ export const elementalistFireTooltips = {
       ['maximumStacks', 'Maximum stacks', tooltipDecimal],
       ['durationMultiplier', 'Stack duration', tooltipSeconds],
       ['durationPerTier', 'Additional weapon field duration', tooltipSeconds],
-      ['summons', 'Additional weapon field packets']
+      [RECIPIENT.SUMMONS, 'Additional weapon field packets']
     ]
   ),
   [TRAIT.PYROMANCERS_PUISSANCE]: traitTooltip(

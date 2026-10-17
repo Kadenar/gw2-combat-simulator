@@ -1,5 +1,5 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONTROL, ACTOR, COMBO_FINISHER, CONDITION, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -20,14 +20,14 @@ import { type RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
 // In-game "disable" reminder: stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.
 const DISABLE_CONTROL_KINDS = new Set([
-  'stun',
-  'daze',
-  'knockback',
-  'pull',
-  'knockdown',
+  CONTROL.STUN,
+  CONTROL.DAZE,
+  CONTROL.KNOCKBACK,
+  CONTROL.PULL,
+  CONTROL.KNOCKDOWN,
   'sink',
-  'float',
-  'launch',
+  CONTROL.FLOAT,
+  CONTROL.LAUNCH,
   CONDITION.TAUNT.toLowerCase(),
   CONDITION.FEAR.toLowerCase()
 ]);
@@ -61,7 +61,7 @@ export const hgh = defineTrait({
       when: (_runtime, cast) => isElixirSkill(cast.skill),
       emit: TRAIT.HGH,
       effects: (effect) => effect.type === 'boon' && effect.name === boon,
-      attribution: { source: 'Trait', sourceId: TRAIT.HGH, actorType: 'player', name: `HGH — ${boon}` }
+      attribution: { source: 'Trait', sourceId: TRAIT.HGH, actorType: ACTOR.PLAYER, name: `HGH — ${boon}` }
     })),
     { on: 'castCommit', when: (_runtime, cast) => cast.skill.id === ID.ACID_BOMB, run: applyHghAcidBomb }
   ],
@@ -116,7 +116,7 @@ export const blastZone = defineTrait({
         comboFinishers: [
           {
             ownerId: 'engineer',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             chance: 1,
             attemptGroup: 'blast-zone',
             ambiguousFieldSelection: 'oldest'
@@ -133,7 +133,7 @@ export const blastZone = defineTrait({
       isEngineerToolbeltSkill(cast.skill) &&
       cast.skill.mechanicSlot === 1 &&
       Boolean(cast.skill.independentCast) === (on === 'castStart'),
-    attribution: { actorType: 'player' }
+    attribution: { actorType: ACTOR.PLAYER }
   }))
 });
 
@@ -155,7 +155,7 @@ export const equalAndOppositeReaction = defineTrait({
       cooldown: 'profile',
       // Only the player's own on-target disables count; turret and mech control belong to those summons.
       when: (_runtime, event) =>
-        event.actorType === 'player' &&
+        event.actorType === ACTOR.PLAYER &&
         !missesTarget(event) &&
         DISABLE_CONTROL_KINDS.has(String(event.controlKind).toLowerCase())
     }
@@ -179,7 +179,7 @@ function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast<EngineerSk
     attribution: {
       source: 'engineer',
       sourceId: cast.skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       name: 'Acid Bomb'

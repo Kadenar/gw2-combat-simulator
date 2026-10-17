@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -52,7 +53,7 @@ function completeBladeswornAmmunition(runtime: WarriorRuntime, cast: RuntimeCast
 
 /** Only actual player explosions extend Glory or create cartridge Burning; neither derived condition can recurse. */
 function reactToBladeswornExplosion(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || event.damageKind !== 'explosion' || !(Number(event.coefficient) > 0)) return;
+  if (event.actorType !== ACTOR.PLAYER || event.damageKind !== 'explosion' || !(Number(event.coefficient) > 0)) return;
 
   runtime.fireTrigger(explosionAccepted, { event });
 

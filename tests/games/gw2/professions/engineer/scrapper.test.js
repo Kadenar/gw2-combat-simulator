@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';

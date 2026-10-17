@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { necromancerCreatureStrikeMultiplier } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
@@ -93,7 +94,7 @@ function emitHorrorEffects(runtime: NecromancerRuntime, key: string, terminal: b
     const attribution = {
       source: 'Minion',
       sourceId: `unstable-horror.${key.slice(key.lastIndexOf(':') + 1)}`,
-      actorType: 'summon' as const,
+      actorType: ACTOR.SUMMON,
       skillId: skill.id,
       skillName: effect.name ?? `Unstable Horror - ${effect.packetLabel}`,
       parentSkillName: skill.name,
@@ -153,7 +154,7 @@ function emitAttack(
     at: runtime.time,
     source: 'Minion',
     sourceId,
-    actorType: 'summon' as const,
+    actorType: ACTOR.SUMMON,
     skillId: sourceId,
     skillName: attack.name,
     parentSkillName: attack.skillId ? skill.name : '',
@@ -290,7 +291,7 @@ function commandImpact(runtime: NecromancerRuntime, data: unknown): void {
     at: runtime.time,
     source: 'Minion',
     sourceId: skill.id,
-    actorType: 'summon' as const,
+    actorType: ACTOR.SUMMON,
     skillId: skill.id,
     skillName: skill.name,
     activationId: work.activationId,

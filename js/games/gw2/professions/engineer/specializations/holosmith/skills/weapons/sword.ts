@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, ACTOR, COMBO_FIELD, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import {
   requireBalanceProfileFromContext,
@@ -38,7 +38,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Leap',
+        finisherType: COMBO_FINISHER.LEAP,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -48,14 +48,14 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
         coefficient: 2.5,
         hits: 1,
         name: 'Radiant Arc',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'custom',
@@ -63,7 +63,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
         event: {
           name: 'Radiant Arc - quickness'
         },
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -77,14 +77,14 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
         coefficient: 0.88,
         hits: 1,
         name: 'Sun Edge',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -101,7 +101,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Refraction Cutter - Packet 1',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       // Share one impact timing while preserving independent payloads and declaration order.
       ...impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -113,12 +113,12 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
           // Report projectile damage separately while retaining the parent sword cast.
           damageBreakdownName: 'Refraction Cutter Blade',
           sourceId: ID.REFRACTION_CUTTER_BLADE,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           comboFinishers: [
             {
               ownerId: 'engineer',
-              finisherType: 'Projectile',
-              preferredFieldTypes: ['Fire'],
+              finisherType: COMBO_FINISHER.PROJECTILE,
+              preferredFieldTypes: [COMBO_FIELD.FIRE],
               ambiguousFieldSelection: 'oldest'
             }
           ],
@@ -129,7 +129,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
           condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 4,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]),
       {
@@ -141,7 +141,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
         event: {
           name: 'Refraction Cutter extra blades'
         },
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -155,12 +155,12 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
         hits: 1,
         name: 'Refraction Cutter Blade',
         damageBreakdownName: 'Refraction Cutter Blade',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         comboFinishers: [
           {
             ownerId: 'engineer',
-            finisherType: 'Projectile',
-            preferredFieldTypes: ['Fire'],
+            finisherType: COMBO_FINISHER.PROJECTILE,
+            preferredFieldTypes: [COMBO_FIELD.FIRE],
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -171,7 +171,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
         condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -187,14 +187,14 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
         coefficient: 0.93,
         hits: 1,
         name: 'Sun Ripper',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -213,7 +213,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
         name: 'Gleam Saber',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -259,16 +259,16 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
           totalHits: extraBlades + 1,
           source: 'engineer',
           sourceId: ID.REFRACTION_CUTTER_BLADE,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: event.skillId,
-          skillWeapon: 'Sword',
+          skillWeapon: WEAPON.SWORD,
           projectile: true,
           comboFinishers: [
             {
               ownerId: 'engineer',
-              finisherType: 'Projectile',
+              finisherType: COMBO_FINISHER.PROJECTILE,
               chance: 1,
-              preferredFieldTypes: ['Fire'],
+              preferredFieldTypes: [COMBO_FIELD.FIRE],
               ambiguousFieldSelection: 'oldest'
             }
           ]
@@ -291,7 +291,7 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
           totalApplications: extraBlades + 1,
           source: 'engineer',
           sourceId: event.skillId ?? event.sourceId,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: event.skillId
         })
       });
@@ -335,7 +335,7 @@ export function prepareHolosmithSwordEvent(
 
   if (
     event.type !== 'damage' ||
-    event.actorType !== 'player' ||
+    event.actorType !== ACTOR.PLAYER ||
     !([ID.SUN_EDGE, ID.SUN_RIPPER, ID.GLEAM_SABER] as readonly number[]).includes(
       Number(event.skillId ?? event.sourceId)
     )

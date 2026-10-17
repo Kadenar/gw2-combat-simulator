@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { WEAPON, ACTOR, COMBO_FIELD, RECIPIENT, CONTROL, BOON } from '#gw2/platform/constants.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -13,8 +13,8 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 0.5,
         hits: 1,
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'rifle'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.RIFLE.toLowerCase()
       }
     ]
   },
@@ -30,8 +30,8 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 1.5,
         hits: 1,
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'rifle'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.RIFLE.toLowerCase()
       }
     ]
   },
@@ -41,7 +41,7 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Parti
     sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }],
     castTimeMs: 500,
     // The image grants boons after its field expires unless Abstraction detonates it first.
-    comboFields: [{ ownerId: 'mesmer', fieldType: 'Ethereal', duration: 2, startAnchor: 'castEnd' }],
+    comboFields: [{ ownerId: 'mesmer', fieldType: COMBO_FIELD.ETHEREAL, duration: 2, startAnchor: 'castEnd' }],
     tasks: [{ type: 'mesmer.core.imagery-expire', atMs: 2000, timingAnchor: 'castEnd' }],
     effects: [
       {
@@ -49,9 +49,9 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Parti
         boon: BOON.MIGHT,
         stacks: 12,
         duration: 9,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
-      { type: 'boon', boon: BOON.FURY, duration: 9, audience: { recipients: 'party', maximumRecipients: 5 } }
+      { type: 'boon', boon: BOON.FURY, duration: 9, audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } }
     ]
   },
   [ID.PHANTASMAL_SHARPSHOOTER]: {
@@ -73,9 +73,9 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Parti
       {
         type: 'control',
         source: 'Phantasm',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
-        controlKind: 'stun',
+        controlKind: CONTROL.STUN,
         atMs: 0,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
@@ -85,9 +85,9 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 2.28,
         hits: 1,
         name: 'Phantasm shot',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
-        weapon: 'rifle'
+        weapon: WEAPON.RIFLE.toLowerCase()
       }
     ]
   },

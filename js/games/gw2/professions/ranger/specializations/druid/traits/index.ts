@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
@@ -158,7 +158,7 @@ const bloodMoon = defineTrait({
       emit: TRAIT.BLOOD_MOON,
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.BLEEDING,
       attribution: (_runtime, event) => ({
-        ownerActorType: 'player',
+        ownerActorType: ACTOR.PLAYER,
         skillId: TRAIT.BLOOD_MOON,
         skillName: 'Blood Moon',
         name: 'Blood Moon - Bleeding',
@@ -173,7 +173,7 @@ const bloodMoon = defineTrait({
       emit: TRAIT.BLOOD_MOON,
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.BLEEDING,
       attribution: (_runtime, event) => ({
-        ownerActorType: 'player',
+        ownerActorType: ACTOR.PLAYER,
         skillId: TRAIT.BLOOD_MOON,
         skillName: 'Blood Moon',
         name: 'Blood Moon - Bleeding',
@@ -201,7 +201,7 @@ function applyNaturalBalance(runtime: RangerRuntime): void {
         sourceId: TRAIT.NATURAL_BALANCE,
         skillId: TRAIT.NATURAL_BALANCE,
         skillName: 'Natural Balance',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: 'Natural Balance'
       }
     });

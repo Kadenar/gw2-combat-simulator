@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { GUARDIAN_SKILL_IDS as SKILL } from '#gw2/professions/guardian/data/ids.js';
 import { normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
@@ -38,8 +39,8 @@ export function createGuardianBuildDefaults(): GuardianCanonicalBuild {
       Weapon2: "Berserker's"
     },
     alternateWeaponPrefixes: ["Berserker's", "Berserker's"],
-    weapons: ['Spear', ''],
-    alternateWeapons: ['Greatsword', ''],
+    weapons: [WEAPON.SPEAR, ''],
+    alternateWeapons: [WEAPON.GREATSWORD, ''],
     rune: 'Dragonhunter',
     weaponSigils: normalizeWeaponSigils([
       ['Force', 'Impact'],

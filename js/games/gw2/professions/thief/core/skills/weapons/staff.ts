@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, CONTROL, WEAPON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -21,19 +21,19 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
           coefficient: 2.22 / 3
         })),
         name: 'Weakening Whirl',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         // Each connecting hit adds two seconds of weakness at the strike's timestamp.
         ticks: [120, 240, 320].map((atMs) => ({ atMs, condition: CONDITION.WEAKNESS, stacks: 1, duration: 2 })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     comboFinishers: [
       {
         ownerId: 'thief',
-        finisherType: 'Whirl',
+        finisherType: COMBO_FINISHER.WHIRL,
         ambiguousFieldSelection: 'oldest'
       }
     ]
@@ -47,7 +47,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 0.9 }],
         name: 'Staff Bash',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -62,17 +62,17 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 0.65 }],
         name: 'Hook Strike',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'knockdown'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.KNOCKDOWN
       }
     ],
-    requiredMainHand: 'Staff',
+    requiredMainHand: WEAPON.STAFF,
     stealthAttack: true
   },
   [ID.PUNISHING_STRIKES]: {
@@ -88,14 +88,14 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
           coefficient: 2.1 / 4
         })),
         name: 'Punishing Strikes',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 0, condition: CONDITION.VULNERABILITY, stacks: 4, duration: 8 }],
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -103,7 +103,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
     comboFinishers: [
       {
         ownerId: 'thief',
-        finisherType: 'Whirl',
+        finisherType: COMBO_FINISHER.WHIRL,
         ambiguousFieldSelection: 'oldest'
       }
     ]
@@ -121,14 +121,14 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
         coefficient: 1,
         hits: 1,
         name: 'Debilitating Arc',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -141,7 +141,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 2.25 }],
         name: 'Vault',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -156,7 +156,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 0.85 }],
         name: 'Staff Strike',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -174,7 +174,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
           coefficient: 1.8 / 3
         })),
         name: 'Dust Strike',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -183,7 +183,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -198,14 +198,14 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 1.25 }],
         name: 'Helmet Breaker',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'daze'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.DAZE
       }
     ]
   }

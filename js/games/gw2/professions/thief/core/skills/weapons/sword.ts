@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, WEAPON, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -33,13 +32,13 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 2.17 }],
         name: 'Larcenous Strike',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
     ],
-    requiredMainHand: 'Sword',
-    requiredOffHand: 'Dagger'
+    requiredMainHand: WEAPON.SWORD,
+    requiredOffHand: WEAPON.DAGGER
   },
   [ID.SLICE]: {
     castTimeMs: 360,
@@ -50,7 +49,7 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 0.85 }],
         name: 'Slice (thief skill)',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -71,14 +70,14 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
         coefficient: 1.8,
         hits: 1,
         name: "Infiltrator's Strike",
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
@@ -99,13 +98,13 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 1 }],
         name: 'Flanking Strike',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
     ],
-    requiredMainHand: 'Sword',
-    requiredOffHand: 'Dagger'
+    requiredMainHand: WEAPON.SWORD,
+    requiredOffHand: WEAPON.DAGGER
   },
   [ID.SLASH]: {
     castTimeMs: 440,
@@ -116,7 +115,7 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 0.85 }],
         name: 'Slash (thief skill)',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -131,12 +130,12 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 1.05 }],
         name: 'Stab (thief sword skill)',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
     ],
-    requiredMainHand: 'Sword',
+    requiredMainHand: WEAPON.SWORD,
     requiredOffHand: false
   },
   [ID.TACTICAL_STRIKE]: {
@@ -144,11 +143,11 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     cooldown: 1,
     initiativeCost: 0,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 2, hits: 1, name: 'Tactical Strike', actorType: 'player' },
-      { type: 'control', actorType: 'player', controlKind: 'daze' },
-      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 5, actorType: 'player' }
+      { type: 'strike', coefficient: 2, hits: 1, name: 'Tactical Strike', actorType: ACTOR.PLAYER },
+      { type: 'control', actorType: ACTOR.PLAYER, controlKind: CONTROL.DAZE },
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 5, actorType: ACTOR.PLAYER }
     ]),
-    requiredMainHand: 'Sword',
+    requiredMainHand: WEAPON.SWORD,
     stealthAttack: true
   },
   [ID.CRIPPLING_STRIKE]: {
@@ -161,21 +160,21 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
         coefficient: 1.55,
         hits: 1,
         name: 'Crippling Strike',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -201,7 +200,7 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
           { atMs: 720, coefficient: 0.53 }
         ],
         name: 'Flawless Execution — Packet 1',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -209,7 +208,7 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [{ atMs: 1240, coefficient: 1.6 }],
         name: 'Final Slash Damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -224,12 +223,12 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
           { atMs: 840, coefficient: 0.25 }
         ],
         name: 'Projectile Damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
     ],
-    requiredMainHand: 'Sword',
-    requiredOffHand: 'Pistol'
+    requiredMainHand: WEAPON.SWORD,
+    requiredOffHand: WEAPON.PISTOL
   }
 });

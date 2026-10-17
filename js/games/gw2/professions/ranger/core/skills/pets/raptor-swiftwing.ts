@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Core Ranger pet skill fragments for the Raptor Swiftwing family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -17,7 +17,7 @@ export const RANGER_CORE_RAPTOR_SWIFTWING_PET_SKILL_MECHANICS: Readonly<Record<n
           type: 'strike',
           ticks: [440, 680].map((atMs) => ({ atMs, coefficient: 0.2165 })),
           source: 'ranger-pet',
-          actorType: 'summon'
+          actorType: ACTOR.SUMMON
         }
       ]),
       castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.RAPTOR_SWIFTWING_CLAW]!.castTimeMs,
@@ -27,14 +27,14 @@ export const RANGER_CORE_RAPTOR_SWIFTWING_PET_SKILL_MECHANICS: Readonly<Record<n
     [ID.RAPTOR_SWIFTWING_SAURIAN_MIGHT]: {
       // The ground strike applies four eight-second bleeds; the skill name does not imply a Might boon.
       effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-        { type: 'strike', coefficient: 0.75, source: 'ranger-pet', actorType: 'summon' },
+        { type: 'strike', coefficient: 0.75, source: 'ranger-pet', actorType: ACTOR.SUMMON },
         {
           type: 'condition',
           condition: CONDITION.BLEEDING,
           stacks: 4,
           duration: 8,
           source: 'ranger-pet',
-          actorType: 'summon'
+          actorType: ACTOR.SUMMON
         }
       ]),
       castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.RAPTOR_SWIFTWING_SAURIAN_MIGHT]!.castTimeMs,
@@ -44,14 +44,14 @@ export const RANGER_CORE_RAPTOR_SWIFTWING_PET_SKILL_MECHANICS: Readonly<Record<n
     [ID.RAPTOR_SWIFTWING_LEAPING_LIZARD]: {
       // Landing deals pet-owned damage and applies cripple before the movement recovery finishes.
       effects: impactEffects({ atMs: 1240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-        { type: 'strike', coefficient: 1, source: 'ranger-pet', actorType: 'summon' },
+        { type: 'strike', coefficient: 1, source: 'ranger-pet', actorType: ACTOR.SUMMON },
         {
           type: 'condition',
           condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 4,
           source: 'ranger-pet',
-          actorType: 'summon'
+          actorType: ACTOR.SUMMON
         }
       ]),
       castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.RAPTOR_SWIFTWING_LEAPING_LIZARD]!.castTimeMs,
@@ -67,7 +67,7 @@ export const RANGER_CORE_RAPTOR_SWIFTWING_PET_SKILL_MECHANICS: Readonly<Record<n
           coefficient: 0.25,
           hits: 1,
           source: 'ranger-pet',
-          actorType: 'summon'
+          actorType: ACTOR.SUMMON
         },
         {
           type: 'condition',
@@ -75,9 +75,9 @@ export const RANGER_CORE_RAPTOR_SWIFTWING_PET_SKILL_MECHANICS: Readonly<Record<n
           stacks: 2,
           duration: 8,
           source: 'ranger-pet',
-          actorType: 'summon'
+          actorType: ACTOR.SUMMON
         },
-        { type: 'control', controlKind: 'daze', source: 'ranger-pet', actorType: 'summon' }
+        { type: 'control', controlKind: CONTROL.DAZE, source: 'ranger-pet', actorType: ACTOR.SUMMON }
       ]),
       castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PIERCING_SHRIEK]!.castTimeMs,
       quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PIERCING_SHRIEK]!.quicknessCastTimeMs,

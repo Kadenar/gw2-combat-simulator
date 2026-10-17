@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -33,8 +34,8 @@ export function lesserDaggers(runtime: RevenantRuntime, source: Skill): void {
     attribution: {
       source: 'revenant',
       sourceId: skill.id,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name,
       triggeredBy: source.name
@@ -73,8 +74,8 @@ export function dervishAttack(
     attribution: {
       source: 'revenant',
       sourceId: attack.id,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       skillId: attack.id,
       skillName: 'Form of the Dervish',
       activationId: cast.id,

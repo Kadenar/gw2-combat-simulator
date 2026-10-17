@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Canonical Core elementalist skill fragments grouped by their GW2 owner.
  *
@@ -42,7 +41,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
             comboFinishers: [
               {
                 ownerId: 'elementalist',
-                finisherType: 'Blast',
+                finisherType: COMBO_FINISHER.BLAST,
                 ambiguousFieldSelection: 'oldest'
               }
             ],
@@ -109,7 +108,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
             comboFinishers: [
               {
                 ownerId: 'elementalist',
-                finisherType: 'Projectile',
+                finisherType: COMBO_FINISHER.PROJECTILE,
                 ambiguousFieldSelection: 'oldest'
               }
             ],
@@ -151,7 +150,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],

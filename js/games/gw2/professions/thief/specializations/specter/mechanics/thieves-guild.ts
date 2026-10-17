@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { permanentTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefGuildSummonProfile, ThiefSummonCondition, ThiefSummonStrike } from '#gw2/professions/thief/types.js';
@@ -86,7 +86,7 @@ export const SPECTER_THIEVES_GUILD_PROFILE: ThiefGuildSummonProfile = Object.fre
   name: 'Scepter Specter',
   displayName: 'Specter',
   variant: 'Specter',
-  weapon: 'Scepter',
+  weapon: WEAPON.SCEPTER,
   weaponStrengthProfileId: 'weapon.scepter',
   attacks: specterAttackPattern()
 });

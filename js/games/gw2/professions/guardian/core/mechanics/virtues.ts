@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -107,7 +108,7 @@ export function applyJusticeBurn(
       at: event.at,
       source: 'guardian',
       sourceId,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId,
       skillName,
       // Justice owns this proc; the activation still records which hit caused it for chronological reactions.

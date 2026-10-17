@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, STATUS, CONTROL, WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -32,21 +32,21 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
           coefficient: 1.2,
           hits: 1,
           name: 'Entangling Asp',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.POISONED,
           stacks: 1,
           duration: 2,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.IMMOBILIZED,
           stacks: 1,
           duration: 2,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]
     )
@@ -66,13 +66,13 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 1.8 }],
         name: 'Shattering Assault',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1
       }
@@ -92,27 +92,27 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
           coefficient: 0.5,
           hits: 1,
           name: 'Distracting Throw',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 3,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.VULNERABILITY,
           stacks: 3,
           duration: 6,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]),
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'daze'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.DAZE
       }
     ]
   },
@@ -128,14 +128,14 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         coefficient: 0.8,
         hits: 1,
         name: 'Unsuspecting Strike',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -144,7 +144,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         reactions: [
           {
             on: 'condition.applied',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'each',
             // Both fixed preview health and simulated health use the same strict upper-health gate.
             when: (runtime) => (runtime.combat.remainingTargetHealthFraction() ?? 1) > 0.9,
@@ -153,7 +153,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         ],
         stacks: 1,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -183,7 +183,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
           coefficient: 1.5 / 5
         })),
         name: 'Ashen Assault',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -193,32 +193,32 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
           coefficient: 0.3,
           hits: 1,
           name: 'Ashen Assault — Final Strike',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.VULNERABILITY,
           stacks: 5,
           duration: 8,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.BLEEDING,
           stacks: 3,
           duration: 4,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.POISONED,
           stacks: 3,
           duration: 4,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ])
     ],
-    requiredMainHand: 'Spear',
+    requiredMainHand: WEAPON.SPEAR,
     stealthAttack: true
   },
   [ID.MANTIS_STING]: {
@@ -234,21 +234,21 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         coefficient: 1,
         hits: 1,
         name: 'Mantis Sting',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -267,7 +267,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [{ atMs: 400, coefficient: 1 }],
         name: 'Vampiric Slash — Packet 1',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -284,7 +284,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
           name: 'Vampiric Slash — Life Siphon',
           // The vulnerability modifier targets this packet identity without depending on its display label.
           metadata: { packetKind: 'thief.vampiric-slash-life-siphon' },
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           canCrit: false
         },
         {
@@ -292,7 +292,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
           condition: CONDITION.WEAKNESS,
           stacks: 1,
           duration: 3,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ])
     ]
@@ -347,28 +347,28 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         coefficient: 1.8,
         hits: 1,
         name: 'Falling Spider',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 3.5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.POISONED,
         stacks: 1,
         duration: 3.5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 4,
         duration: 8,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -385,14 +385,14 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         coefficient: 0.375,
         hits: 1,
         name: 'Barbed Spear',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 2.25,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   }

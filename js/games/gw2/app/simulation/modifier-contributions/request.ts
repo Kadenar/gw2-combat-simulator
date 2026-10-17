@@ -1,5 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION, BOON } from '#gw2/platform/constants.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { BuildContextFactory } from '#gw2/build-context/types.js';
 import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';

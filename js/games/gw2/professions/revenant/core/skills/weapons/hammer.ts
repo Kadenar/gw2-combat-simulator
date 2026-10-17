@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FIELD, ACTOR, COMBO_FINISHER, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 // Name packets independently for patch deletion while preserving their shared attribution.
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
@@ -16,7 +15,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFields: [
       {
         ownerId: 'revenant',
-        fieldType: 'Dark',
+        fieldType: COMBO_FIELD.DARK,
         duration: 6,
         startMs: 680,
         startAnchor: 'castStart'
@@ -27,14 +26,14 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         ticks: [{ atMs: 680, coefficient: 1.8 }],
         name: 'Field of the Mists',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         metadata: {},
         comboFinishers: [
           {
             ownerId: 'revenant',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 1,
             ambiguousFieldSelection: 'oldest'
           }
@@ -60,11 +59,11 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         coefficient: 2.22,
         hits: 1,
         name: 'Phase Smash',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         comboFinishers: [
           {
             ownerId: 'revenant',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ]
@@ -74,7 +73,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -90,7 +89,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: { type: 'rechargeReset', skillIds: [ID.COALESCENCE_OF_RUIN] }
@@ -99,20 +98,20 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         coefficient: 3.2,
         hits: 1,
         name: 'Drop the Hammer',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         metadata: {},
         comboFinishers: [
           {
             ownerId: 'revenant',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ]
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'knockdown'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.KNOCKDOWN
       }
     ])
   },
@@ -128,7 +127,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         // Each cascade region uses the same 2.3 PvE coefficient, including repeat hits on large targets.
         ticks: [{ atMs: 560, coefficient: 2.3 }],
         name: 'Coalescence of Ruin - First Cascade',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -139,7 +138,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         ticks: [{ atMs: 1520, coefficient: 2.3 }],
         name: 'Coalescence of Ruin - Second Cascade',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -159,14 +158,14 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         ticks: [{ atMs: 560, coefficient: 0.9 }],
         name: 'Hammer Bolt',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
         comboFinishers: [
           {
             ownerId: 'revenant',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 1,
             ambiguousFieldSelection: 'oldest'
           }

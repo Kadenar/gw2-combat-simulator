@@ -1,5 +1,14 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import {
+  COMBO_FIELD,
+  RECIPIENT,
+  COMBO_FINISHER,
+  ACTOR,
+  CONTROL,
+  WEAPON,
+  BOON,
+  CONDITION
+} from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 
@@ -109,13 +118,15 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     ],
     castTimeMs: 560,
     // Luminous Staff's symbol creates a four-second Light field on its first pulse.
-    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 440, startAnchor: 'castStart' }],
+    comboFields: [
+      { ownerId: 'guardian', fieldType: COMBO_FIELD.LIGHT, duration: 4, startMs: 440, startAnchor: 'castStart' }
+    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       // Allied symbol boons survive a missed hostile pulse.
       ...[440, 1440, 2440, 3440].map((atMs) => ({
         type: 'boon' as const,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.RESOLUTION,
         duration: 1,
         stacks: 1,
@@ -127,7 +138,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
         boon: BOON.PROTECTION,
         duration: 4,
         atMs: 440,
-        audience: { recipients: 'party' }
+        audience: { recipients: RECIPIENT.PARTY }
       },
       {
         weaponStrengthProfileId: 'transform.radiant-forge',
@@ -176,7 +187,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
         comboFinishers: [
           {
             ownerId: 'guardian',
-            finisherType: 'Leap',
+            finisherType: COMBO_FINISHER.LEAP,
             ambiguousFieldSelection: 'oldest'
           }
         ]
@@ -262,7 +273,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
         atMs: 0,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        audience: { recipients: 'party' }
+        audience: { recipients: RECIPIENT.PARTY }
       }
     ]
   },
@@ -285,13 +296,13 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
           boon: BOON.MIGHT,
           stacks: 8,
           duration: 8,
-          audience: { recipients: 'party' }
+          audience: { recipients: RECIPIENT.PARTY }
         },
         {
           type: 'boon',
           boon: BOON.FURY,
           duration: 6,
-          audience: { recipients: 'party' }
+          audience: { recipients: RECIPIENT.PARTY }
         },
         {
           weaponStrengthProfileId: 'transform.radiant-forge',
@@ -300,9 +311,9 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
           reactions: [
             {
               on: 'combo.resolved',
-              actor: 'player',
+              actor: ACTOR.PLAYER,
               packets: 'each',
-              when: (_runtime, trigger) => trigger.event.finisherType === 'Blast',
+              when: (_runtime, trigger) => trigger.event.finisherType === COMBO_FINISHER.BLAST,
               do: { type: 'guardian.hammer-aura' }
             }
           ],
@@ -310,7 +321,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
           comboFinishers: [
             {
               ownerId: 'guardian',
-              finisherType: 'Blast',
+              finisherType: COMBO_FINISHER.BLAST,
               // Hammer can encounter a field from cast start through its committed impact, when it grants the aura.
               fieldSelectionAnchor: 'castStart',
               ambiguousFieldSelection: 'oldest'
@@ -319,7 +330,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
         },
         {
           type: 'control',
-          controlKind: 'daze'
+          controlKind: CONTROL.DAZE
         }
       ]
     )
@@ -389,7 +400,7 @@ export function glaringBurstDetail(context: CastDetailContext<GuardianRuntimeSta
   const label =
     state.radiantWeapon === 'blade'
       ? `Sword (${state.glaringBurstSwordSlow ? CONDITION.SLOW.toLowerCase() : 'fast'})`
-      : { hammer: 'Hammer', staff: 'Staff', bulwark: 'Shield' }[state.radiantWeapon];
+      : { hammer: WEAPON.HAMMER, staff: WEAPON.STAFF, bulwark: WEAPON.SHIELD }[state.radiantWeapon];
   return label ? `Variant: ${label}` : undefined;
 }
 

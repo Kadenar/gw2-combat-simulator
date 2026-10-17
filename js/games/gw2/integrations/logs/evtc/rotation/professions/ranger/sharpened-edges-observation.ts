@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import {
   EVTC_BLEEDING_SKILL_ID,
   EVTC_CRITICAL_RESULT,

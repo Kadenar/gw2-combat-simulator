@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /**
  * Owns supplemental Core Mesmer fragments for flip and alternate skill identities.
@@ -33,7 +33,7 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
         coefficient: 1.33,
         hits: 1,
         name: 'Damage',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       // Apply the live debuff with the instant strike so reconstructed Mantra casts update target state.
       {
@@ -65,15 +65,15 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
         stacks: 1,
         duration: 5,
         source: 'Player',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'strike',
         coefficient: 0.1,
         hits: 1,
         name: 'Projectile',
-        actorType: 'player',
-        weapon: 'scepter'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SCEPTER.toLowerCase()
       },
       {
         type: 'condition',
@@ -91,7 +91,7 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     comboFinishers: [
       {
         ownerId: 'mesmer',
-        finisherType: 'Leap',
+        finisherType: COMBO_FINISHER.LEAP,
         fieldSelectionAnchor: 'castStart',
         ambiguousFieldSelection: 'oldest'
       }
@@ -108,7 +108,7 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
       {
         type: 'control',
         source: 'Player',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         atMs: 0,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
@@ -117,8 +117,8 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
         type: 'strike',
         ticks: [{ atMs: 480, coefficient: 0.1 }],
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'sword',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SWORD.toLowerCase(),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -131,7 +131,14 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     cooldown: 0,
     // Activating the flip applies its pull immediately.
     effects: [
-      { type: 'control', source: 'Player', actorType: 'player', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }
+      {
+        type: 'control',
+        source: 'Player',
+        actorType: ACTOR.PLAYER,
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
     ]
   },
   [ID.DIMENSIONAL_APERTURE]: {
@@ -160,8 +167,8 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
         coefficient: 1.81,
         hits: 1,
         name: 'Detonation',
-        actorType: 'player',
-        weapon: 'rifle'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.RIFLE.toLowerCase()
       },
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 5 },
       { type: 'condition', condition: CONDITION.BLINDNESS, stacks: 1, duration: 5 }

@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Mistburn relic rules. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
@@ -35,7 +36,7 @@ function mistburnGrant(state: Gw2RelicState, event: SimulationEvent): Simulation
     stacks: 1,
     source: 'Relic',
     sourceId: `relic.${RELIC_IDS.MISTBURN}`,
-    actorType: 'effect'
+    actorType: ACTOR.EFFECT
   };
 }
 

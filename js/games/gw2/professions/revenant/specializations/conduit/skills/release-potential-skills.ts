@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { conditionEffectTicks, impactEffects } from '#gw2/platform/effects/authoring.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -59,14 +58,14 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.RESISTANCE,
         duration: 2,
         stacks: 1
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 6,
         stacks: 1
@@ -89,7 +88,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         coefficient: 1.98,
         hits: 1,
         name: 'Release Potential: Mesmer',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -97,7 +96,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         stacks: 2,
         duration: 3,
         durationPerAffinity: 0.1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -105,13 +104,13 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         stacks: 1,
         duration: 8,
         durationReductionPerAffinity: 0.15,
-        actorType: 'player',
-        target: 'self'
+        actorType: ACTOR.PLAYER,
+        target: RECIPIENT.SELF
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'daze'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.DAZE
       }
     ])
   },
@@ -144,20 +143,20 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         hits: 1,
         name: 'Release Potential: Dervish',
         weaponStrengthProfileId: 'nonweapon.profession-mechanic',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BLEEDING,
         stacks: 3,
         duration: 6,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         metadata: { legendId: LEGEND.DEMON },
         when: releaseLegend(LEGEND.DEMON)
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         stacks: 10,
         duration: 8,
@@ -166,7 +165,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.FURY,
         stacks: 1,
         duration: 8,
@@ -200,7 +199,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'strike',
         name: 'Release Potential: Assassin',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true,
         weaponStrengthProfileId: 'nonweapon.profession-mechanic',
         ticks: [160, 480, 800].map((atMs) => ({
@@ -218,7 +217,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
           stacks: 1,
           duration: 2,
           durationPerAffinity: 0.2,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
@@ -226,7 +225,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
           stacks: 1,
           duration: 2,
           durationPerAffinity: 0.2,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ])
     ]
@@ -255,7 +254,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         coefficient: 1.649,
         hits: 1,
         name: 'Release Potential: Warrior',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }

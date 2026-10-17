@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
 import {
@@ -66,7 +65,7 @@ export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Par
               timingScale: 'fixed',
               name: "Dragon's Roar — Damage per Bullet",
               damageKind: 'explosion',
-              weapon: 'Pistol',
+              weapon: WEAPON.PISTOL,
               ticks: Array.from({ length: bullets }, (_, index) => ({
                 atMs: first + index * interval,
                 coefficient: effectNumber(profile, strike, 'coefficient')

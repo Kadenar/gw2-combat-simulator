@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -30,7 +31,7 @@ export function swapGunsaber(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
       at: runtime.time,
       source: 'warrior',
       sourceId: cast.skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       activationId: cast.id,
       skillId: cast.skill.id,
       skillName: cast.skill.name,

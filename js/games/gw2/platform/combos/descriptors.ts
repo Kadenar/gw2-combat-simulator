@@ -1,10 +1,10 @@
+import type { SimulationActorType, ComboFieldType, ComboFinisherType } from '#gw2/platform/constants.js';
+import type { ComboFieldSelectionAnchor } from '#gw2/platform/combos/types.js';
 import { requireOwnedComboDescriptors } from '#gw2/platform/combos/ownership.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { SimulationActorType } from '#gw2/platform/events/actors.js';
-import type { ComboFieldType, ComboFinisherType, ComboFieldSelectionAnchor } from '#gw2/platform/combos/types.js';
 import {
   normalizeComboFieldType,
   normalizeComboFinisherType,

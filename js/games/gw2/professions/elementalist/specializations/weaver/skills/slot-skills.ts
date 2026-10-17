@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -215,7 +215,7 @@ export function applyFerventStance(
             at,
             source: 'Fervent Stance',
             sourceId: skill.id,
-            actorType: 'player',
+            actorType: ACTOR.PLAYER,
             kind: String(might.boon).toLowerCase(),
             stacks: Number(might.stacks),
             duration: might.duration,

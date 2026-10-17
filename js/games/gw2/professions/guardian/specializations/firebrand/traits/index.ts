@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, ACTOR, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -163,7 +163,7 @@ const legendaryLore = defineTrait({
             preserveName: true,
             effects: (effect) => effect === selectedBoon,
             attribution: boonCause,
-            transform: (event) => ({ ...boonCause, ...event, audience: { recipients: 'self' } })
+            transform: (event) => ({ ...boonCause, ...event, audience: { recipients: RECIPIENT.SELF } })
           });
         }
       }
@@ -219,7 +219,7 @@ export const liberatorsVow = defineTrait({
           preserveName: true,
           effects: (effect) => effect === selectedBoon,
           attribution: boonCause,
-          transform: (event) => ({ ...boonCause, ...event, audience: { recipients: 'party' } })
+          transform: (event) => ({ ...boonCause, ...event, audience: { recipients: RECIPIENT.PARTY } })
         });
         runtime.effects.emit({
           kind: 'announcement',
@@ -302,7 +302,7 @@ const stoicDemeanor = defineTrait({
   },
   triggers: [
     onTriggerPoint(firebrandControlAccepted, {
-      when: (_runtime, { cause }: FirebrandControl) => cause.actorType === 'player',
+      when: (_runtime, { cause }: FirebrandControl) => cause.actorType === ACTOR.PLAYER,
       run: grantStoicDemeanor
     })
   ]
@@ -326,7 +326,7 @@ const unrelentingCriticism = defineTrait({
   triggers: [
     onTriggerPoint(firebrandStruck, {
       when: (runtime, { cause }: FirebrandStrike) =>
-        cause.skillId != null && runtime.helpers.skillsById.get(cause.skillId)?.weapon === 'Axe',
+        cause.skillId != null && runtime.helpers.skillsById.get(cause.skillId)?.weapon === WEAPON.AXE,
       run: applyUnrelentingCriticism
     })
   ]
@@ -413,7 +413,7 @@ function openSwiftScholarSession(runtime: GuardianRuntime, { cast, virtue, ready
     preserveName: true,
     effects: (effect) => effect === selectedBoon,
     attribution: boonCause,
-    transform: (event) => ({ ...boonCause, ...event, audience: { recipients: 'self' } })
+    transform: (event) => ({ ...boonCause, ...event, audience: { recipients: RECIPIENT.SELF } })
   });
   runtime.effects.emit({
     kind: 'announcement',
@@ -439,7 +439,7 @@ function grantWeightyTerms(runtime: GuardianRuntime, { context }: FinalMantraCha
     type: 'emitProfile',
     profileId: TRAIT.WEIGHTY_TERMS,
     // Keep the granting trait visible while the shared profile preserves cast lineage.
-    attribution: { source: 'guardian', actorType: 'player', name: 'Weighty Terms — Slow' }
+    attribution: { source: 'guardian', actorType: ACTOR.PLAYER, name: 'Weighty Terms — Slow' }
   });
 }
 
@@ -470,7 +470,7 @@ function grantStalwartSpeed(runtime: GuardianRuntime, { cause: boonCause }: Fire
       skillId: TRAIT.STALWART_SPEED,
       skillName: boonProfile.name
     },
-    transform: (packet) => ({ ...packet, audience: { recipients: 'party' } })
+    transform: (packet) => ({ ...packet, audience: { recipients: RECIPIENT.PARTY } })
   });
   runtime.effects.emit({
     kind: 'announcement',
@@ -542,7 +542,7 @@ function grantStoicDemeanor(runtime: GuardianRuntime, { cause: boonCause }: Fire
       skillId: TRAIT.STOIC_DEMEANOR,
       skillName: boonProfile.name
     },
-    transform: (packet) => ({ ...packet, audience: { recipients: 'party', maximumRecipients: 5 } })
+    transform: (packet) => ({ ...packet, audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } })
   });
   runtime.effects.emit({
     kind: 'announcement',

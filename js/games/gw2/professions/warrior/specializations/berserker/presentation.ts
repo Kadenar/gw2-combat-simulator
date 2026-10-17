@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type {
   ProfessionAttributePreviewContext,
@@ -25,16 +26,16 @@ const BERSERKER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = 
   { id: 'warrior-berserk', kind: 'berserk', name: 'Berserk' }
 ]);
 const PRIMAL_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze({
-  Axe: ID.DECAPITATE,
-  Dagger: ID.SLICING_MAELSTROM,
-  Greatsword: ID.ARC_DIVIDER,
-  Hammer: ID.RUPTURING_SMASH,
-  Longbow: ID.SCORCHED_EARTH,
-  Mace: ID.SKULL_GRINDER,
-  Rifle: ID.GUN_FLAME,
-  Spear: ID.WILD_THROW,
-  Staff: ID.RAMPART_SPLITTER,
-  Sword: ID.FLAMING_FLURRY
+  [WEAPON.AXE]: ID.DECAPITATE,
+  [WEAPON.DAGGER]: ID.SLICING_MAELSTROM,
+  [WEAPON.GREATSWORD]: ID.ARC_DIVIDER,
+  [WEAPON.HAMMER]: ID.RUPTURING_SMASH,
+  [WEAPON.LONGBOW]: ID.SCORCHED_EARTH,
+  [WEAPON.MACE]: ID.SKULL_GRINDER,
+  [WEAPON.RIFLE]: ID.GUN_FLAME,
+  [WEAPON.SPEAR]: ID.WILD_THROW,
+  [WEAPON.STAFF]: ID.RAMPART_SPLITTER,
+  [WEAPON.SWORD]: ID.FLAMING_FLURRY
 });
 
 export const berserkerUi: WarriorUiSlice = Object.freeze({

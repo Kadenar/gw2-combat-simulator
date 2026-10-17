@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 
@@ -25,7 +25,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         type: 'strike',
         coefficient: 0.666,
         hits: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         name: CONDITION.TORMENT,
@@ -33,7 +33,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         name: 'active-shade',
@@ -41,7 +41,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         kind: 'active-shade',
         stacks: 1,
         duration: 15,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -57,7 +57,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         condition: CONDITION.FEAR,
         stacks: 1,
         duration: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -71,7 +71,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         name: 'Strike',
         type: 'strike',
         ticks: Array.from({ length: 7 }, (_, index) => ({ atMs: index * 1000, coefficient: 3.15 / 7 })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         name: CONDITION.TORMENT,
@@ -81,7 +81,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         duration: 5,
         applications: 7,
         intervalMs: 1000,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -92,14 +92,14 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: [
       ...impactEffects({ atMs: 3500, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-        { name: 'Strike', type: 'strike', coefficient: 3, hits: 1, actorType: 'player' },
+        { name: 'Strike', type: 'strike', coefficient: 3, hits: 1, actorType: ACTOR.PLAYER },
         {
           name: CONDITION.TORMENT,
           type: 'condition',
           condition: CONDITION.TORMENT,
           stacks: 6,
           duration: 5,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]),
       {
@@ -112,8 +112,8 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         intervalMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY }
       },
       {
         name: boonKey(BOON.PROTECTION),
@@ -124,8 +124,8 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         atMs: 3500,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY }
       }
     ]
   }

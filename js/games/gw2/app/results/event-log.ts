@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 /** Maps simulation events to display rows and mounts the rotation event-log view. */
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -307,7 +308,7 @@ export function simulationEventLogRows(
       const attacker = alliedAttacker || minionAttackerLabel(event);
       const procTrigger =
         !attacker &&
-        event.actorType === 'effect' &&
+        event.actorType === ACTOR.EFFECT &&
         triggeredBy &&
         triggeredBy !== event.name &&
         triggeredBy !== event.skillName

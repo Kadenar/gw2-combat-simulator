@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, STATUS, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Core Ranger pet skill fragments for the Feline family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -20,7 +19,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         hits: 2,
         atMs: 0,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -28,7 +27,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 4,
         duration: 10,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_PHASE_POUNCE]!.castTimeMs,
@@ -39,12 +38,12 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 15,
         stacks: 8,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 333,
@@ -58,7 +57,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         hits: 2,
         atMs: 0,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -66,7 +65,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 4,
         duration: 6,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 1000,
@@ -80,7 +79,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         hits: 2,
         atMs: 0,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -88,7 +87,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 2,
         duration: 2,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 1000,
@@ -96,7 +95,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
   },
   [ID.STALK]: {
     // Jaguar grants its ranger stealth, enabling spear attacks without spending Panther's Prowl.
-    effects: [{ type: 'buff', kind: 'stealth', duration: 3, stacks: 1 }],
+    effects: [{ type: 'buff', kind: STATUS.STEALTH, duration: 3, stacks: 1 }],
     quicknessCastTimeMs: 333,
     petSkill: true
   },
@@ -105,19 +104,19 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: impactEffects({ atMs: 1080, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.FURY,
         duration: 10,
         stacks: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'strike',
         coefficient: 2,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FURIOUS_POUNCE]!.castTimeMs,
@@ -132,7 +131,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_SLASH]!.castTimeMs,
@@ -145,7 +144,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         coefficient: 0.7,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -153,7 +152,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 5,
         duration: 6,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     // Recorded pet activation timing keeps manual commands on the pet's independent lane.
@@ -171,13 +170,13 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
           coefficient: 0.4
         })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
         ticks: [360, 560].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 2, duration: 10 })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_MAUL]!.castTimeMs,
@@ -192,16 +191,16 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         hits: 2,
         atMs: 0,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.SWIFTNESS,
         duration: 5,
         stacks: 2,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 500,
@@ -215,7 +214,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         hits: 3,
         atMs: 0,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 1000,
@@ -225,12 +224,12 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.AEGIS,
         duration: 5,
         stacks: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 333,

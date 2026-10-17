@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FIELD, ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 /** Core Engineer Elite Mortar Kit skill mechanics. */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -11,7 +11,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     comboFields: [
       {
         ownerId: 'engineer',
-        fieldType: 'Water',
+        fieldType: COMBO_FIELD.WATER,
         duration: 5,
         startAnchor: 'castEnd',
         inclusiveExpiry: true
@@ -30,14 +30,14 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         coefficient: 1,
         hits: 1,
         name: 'Flash Shell',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     kitId: ID.ELITE_MORTAR_KIT
@@ -52,14 +52,14 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         coefficient: 1,
         hits: 1,
         name: 'Endothermic Shell',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     kitId: ID.ELITE_MORTAR_KIT
@@ -75,7 +75,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         coefficient: 1,
         hits: 1,
         name: 'Mortar Shot',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     kitId: ID.ELITE_MORTAR_KIT
@@ -86,7 +86,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Blast',
+        finisherType: COMBO_FINISHER.BLAST,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -98,7 +98,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Orbital Strike',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     toolbeltParentId: ID.ELITE_MORTAR_KIT,
@@ -121,7 +121,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     comboFields: [
       {
         ownerId: 'engineer',
-        fieldType: 'Poison',
+        fieldType: COMBO_FIELD.POISON,
         duration: 5,
         startAnchor: 'castEnd',
         inclusiveExpiry: true
@@ -134,7 +134,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         coefficient: 1,
         hits: 1,
         name: 'Poison Gas Shell',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -146,7 +146,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     kitId: ID.ELITE_MORTAR_KIT

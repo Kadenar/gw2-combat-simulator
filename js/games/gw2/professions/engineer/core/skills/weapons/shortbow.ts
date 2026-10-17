@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -15,25 +14,25 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         coefficient: 1.32,
         hits: 1,
         name: 'Essence of Liquid Wrath',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.PROTECTION,
         duration: 5,
         stacks: 1
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.AEGIS,
         duration: 5,
         stacks: 1
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.PROTECTION,
         duration: 3,
         stacks: 1
@@ -50,21 +49,21 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         coefficient: 0.3,
         hits: 1,
         name: 'Arc Detonator — Packet 1',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'strike',
         coefficient: 0.2,
         hits: 1,
         name: 'Shock Damage',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 8,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -78,7 +77,7 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         coefficient: 1,
         hits: 1,
         name: 'Essence of Living Shadows',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -91,17 +90,17 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         coefficient: 1.5,
         hits: 1,
         name: 'Essence of Borrowed Time',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'daze'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.DAZE
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'stun'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.STUN
       }
     ]
   },
@@ -114,18 +113,18 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         coefficient: 1,
         hits: 1,
         name: 'Essence of Animated Sand',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 8,
         stacks: 5
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 8,
         stacks: 3

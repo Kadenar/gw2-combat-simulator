@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -8,7 +9,7 @@ export function reactToNecromancerAxeHealth(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
 ): void {
-  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+  if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return;
 
   const skill = skillForEvent(context.helpers, event);
 
@@ -32,7 +33,7 @@ export function reactToNecromancerAxeHealth(
         sourceId: skill.id,
         skillId: skill.id,
         skillName: skill.name,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         condition: vulnerability.condition,
         stacks: vulnerability.stacks,
         duration: vulnerability.duration
@@ -57,7 +58,7 @@ export function reactToNecromancerAxeHealth(
       sourceId: burst.id,
       skillId: burst.id,
       skillName: burst.name,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       triggeredBy: skill.name,
       activationId: event.activationId
     }

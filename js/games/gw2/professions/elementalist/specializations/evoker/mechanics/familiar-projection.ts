@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';

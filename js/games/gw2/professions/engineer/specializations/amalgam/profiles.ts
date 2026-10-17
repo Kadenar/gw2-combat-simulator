@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONTROL, STATUS, BOON } from '#gw2/platform/constants.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 
 // Stable profile IDs let runtime mechanics request patchable values without
@@ -55,7 +55,7 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
       },
       {
         type: 'control',
-        controlKind: 'stun',
+        controlKind: CONTROL.STUN,
         sourceId: 'engineer.volatile-strain',
         name: 'Volatile Strain',
         metadata: { trigger: 'pierce' }
@@ -79,7 +79,7 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
       },
       {
         type: 'buff',
-        kind: 'superspeed',
+        kind: STATUS.SUPERSPEED,
         duration: 8,
         sourceId: 'engineer.predator-strain',
         name: 'Predator Strain',

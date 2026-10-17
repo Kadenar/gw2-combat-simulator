@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
@@ -60,7 +59,7 @@ export const daggerTraining = defineTrait({
           amount: balanceNumberFromContext(
             balanceContext,
             TRAIT.DAGGER_TRAINING,
-            weapons.includes('Dagger') ? 'weaponAttributeBonus' : 'attributeBonus'
+            weapons.includes(WEAPON.DAGGER) ? 'weaponAttributeBonus' : 'attributeBonus'
           ),
           feedsConversions: 'all'
         }
@@ -185,7 +184,14 @@ export const lotusPoison = defineTrait({
   balance: {
     internalCooldown: 10,
     effects: [
-      { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 3, duration: 10, audience: { recipients: 'self' } },
+      {
+        type: 'boon',
+        name: BOON.MIGHT,
+        boon: BOON.MIGHT,
+        stacks: 3,
+        duration: 10,
+        audience: { recipients: RECIPIENT.SELF }
+      },
       { type: 'condition', name: CONDITION.WEAKNESS, condition: CONDITION.WEAKNESS, stacks: 1, duration: 4 }
     ]
   }
@@ -261,7 +267,12 @@ export const revealedTraining = defineTrait({
     onTriggerPoint(thiefStruck, {
       run(runtime: ThiefRuntime, { cause }: ThiefStrike) {
         // Record successful player hits after their damage resolves so only later hits can use the bonus.
-        if (cause.actorType !== 'player' || cause.offTarget || !cause.activationId || !(Number(cause.coefficient) > 0))
+        if (
+          cause.actorType !== ACTOR.PLAYER ||
+          cause.offTarget ||
+          !cause.activationId ||
+          !(Number(cause.coefficient) > 0)
+        )
           return;
 
         if (skillForEvent(runtime.helpers, cause)?.stealthAttack)
@@ -335,7 +346,7 @@ function applyEvenTheOdds(runtime: ThiefRuntime, { cast }: StealAcceptance): voi
       sourceId: TRAIT.EVEN_THE_ODDS,
       activationId: cast.id,
       name: 'Even the Odds — Vulnerability',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name
     }
@@ -363,7 +374,7 @@ function applyMug(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
     at: runtime.time,
     effect: { type: 'strike', name: 'Mug' },
     activationId: cast.id,
-    attribution: { actorType: 'player', skillId: cast.skill.id, skillName: cast.skill.name, name: 'Mug' }
+    attribution: { actorType: ACTOR.PLAYER, skillId: cast.skill.id, skillName: cast.skill.name, name: 'Mug' }
   });
 }
 
@@ -385,7 +396,7 @@ function applySerpentsTouch(runtime: ThiefRuntime, { cast }: StealAcceptance): v
       triggeredBy: cast.skill.name,
       activationId: cast.id,
       name: "Serpent's Touch — Poison",
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       sourceId: TRAIT.SERPENTS_TOUCH
     },
     transform: (packet) => ({ ...packet, stacks: potentPoisonStacks(runtime, profile, poison) })
@@ -401,7 +412,7 @@ function applyDeadlyAmbition(context: ThiefResolverContext, { cause }: ThiefStri
   const event: ThiefResolverEvent =
     recallId == null ? cause : { ...cause, skillId: Number(recallId), sourceId: Number(recallId) };
 
-  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+  if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return;
 
   const skill = skillForEvent(context.helpers, event);
 
@@ -433,7 +444,7 @@ function applyDeadlyAmbition(context: ThiefResolverContext, { cause }: ThiefStri
     settlement: 'reaction',
     attribution: {
       source: 'Trait',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: TRAIT.DEADLY_AMBITION,
       skillName: 'Deadly Ambition',
       activationId: event.activationId,
@@ -449,7 +460,7 @@ function applyDeadlyAmbition(context: ThiefResolverContext, { cause }: ThiefStri
 function applyLotusPoison(context: ThiefResolverContext, { cause: event }: ThiefConditionApplication): void {
   if (
     event.condition !== CONDITION.POISONED ||
-    event.actorType !== 'player' ||
+    event.actorType !== ACTOR.PLAYER ||
     (event.metadata?.triggeredByAlly || 0) > 0
   )
     return;
@@ -477,11 +488,11 @@ function applyLotusPoison(context: ThiefResolverContext, { cause: event }: Thief
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.LOTUS_POISON,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: TRAIT.LOTUS_POISON,
         skillName: 'Lotus Poison',
         name: `Lotus Poison - ${boon}`,
-        audience: { recipients: 'self' },
+        audience: { recipients: RECIPIENT.SELF },
         triggeredBy: event.skillName
       }
     });
@@ -497,7 +508,7 @@ function applyLotusPoison(context: ThiefResolverContext, { cause: event }: Thief
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.LOTUS_POISON,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: TRAIT.LOTUS_POISON,
         skillName: 'Lotus Poison',
         name: 'Lotus Poison - Weakness',
@@ -508,7 +519,7 @@ function applyLotusPoison(context: ThiefResolverContext, { cause: event }: Thief
 }
 
 function applyPanicStrike(context: ThiefResolverContext, { cause: event }: VenomConsumption): void {
-  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+  if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return;
 
   const panicStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.PANIC_STRIKE);
 
@@ -537,7 +548,7 @@ function applyPanicStrike(context: ThiefResolverContext, { cause: event }: Venom
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.PANIC_STRIKE,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: TRAIT.PANIC_STRIKE,
       skillName: 'Panic Strike',
       name: 'Panic Strike - Immobilized',
@@ -551,7 +562,7 @@ function applyPanicStrikePoison(
   context: ThiefResolverContext,
   { cause: application }: ThiefConditionApplication
 ): void {
-  if (application.condition !== CONDITION.IMMOBILIZED || application.actorType !== 'player') return;
+  if (application.condition !== CONDITION.IMMOBILIZED || application.actorType !== ACTOR.PLAYER) return;
 
   const panicStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.PANIC_STRIKE);
   const poison = requireEffect(panicStrikeProfile, 'condition', CONDITION.POISONED);
@@ -566,7 +577,7 @@ function applyPanicStrikePoison(
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.PANIC_STRIKE,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: TRAIT.PANIC_STRIKE,
       skillName: 'Panic Strike',
       name: 'Panic Strike - Poison',

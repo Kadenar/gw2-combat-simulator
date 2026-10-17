@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
@@ -188,7 +187,7 @@ const mistfire = defineTrait({
         coefficient: 0.6,
         hits: 1,
         name: 'Mistfire',
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       },
       {
         name: CONDITION.BURNING,
@@ -196,7 +195,7 @@ const mistfire = defineTrait({
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 6,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   },
@@ -216,7 +215,7 @@ const mistfire = defineTrait({
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.BURNING,
       attribution: {
         source: 'revenant',
-        ownerActorType: 'player',
+        ownerActorType: ACTOR.PLAYER,
         skillId: TRAIT.MISTFIRE,
         skillName: 'Mistfire',
         name: 'Mistfire — Burning'
@@ -336,7 +335,7 @@ const sharedWisdom = defineTrait({
         boon: BOON.SWIFTNESS,
         duration: 5,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         metadata: { trigger: 'entity-skill' }
       },
       {
@@ -345,7 +344,7 @@ const sharedWisdom = defineTrait({
         boon: BOON.PROTECTION,
         duration: 3,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         metadata: { trigger: 'shielding-hands' }
       },
       {
@@ -354,7 +353,7 @@ const sharedWisdom = defineTrait({
         boon: BOON.FURY,
         duration: 5,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         metadata: { trigger: 'beguiling-haze' }
       },
       {
@@ -363,7 +362,7 @@ const sharedWisdom = defineTrait({
         boon: BOON.RESOLUTION,
         duration: 3,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         metadata: { trigger: 'hex-eater-vortex' }
       },
       {
@@ -372,7 +371,7 @@ const sharedWisdom = defineTrait({
         boon: BOON.STABILITY,
         duration: 3,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         metadata: { trigger: 'gladiators-defense' }
       },
       {
@@ -386,7 +385,7 @@ const sharedWisdom = defineTrait({
         intervalMs: 0,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         metadata: { trigger: 'twin-moon-sweep' }
       }
     ]
@@ -447,8 +446,8 @@ function emitCosmicMistfire(runtime: RevenantRuntime, cast: RuntimeCast<Revenant
     attribution: {
       source: 'revenant',
       sourceId: TRAIT.MISTFIRE,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       skillId: TRAIT.MISTFIRE,
       skillName: 'Mistfire',
       activationId: cast.id
@@ -480,7 +479,7 @@ function numinousGift(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>
     attribution: {
       source: 'revenant',
       sourceId: cast.skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       activationId: cast.id
@@ -488,7 +487,7 @@ function numinousGift(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>
     transform: (event) => ({
       ...event,
       name: cast.skill.name + ' \u2014 ' + event.kind,
-      audience: { recipients: hasTrait(runtime, TRAIT.FOUND_PURPOSE) ? 'party' : 'self' }
+      audience: { recipients: hasTrait(runtime, TRAIT.FOUND_PURPOSE) ? RECIPIENT.PARTY : RECIPIENT.SELF }
     })
   });
 }
@@ -510,7 +509,7 @@ function completionSharedWisdom(runtime: RevenantRuntime, cast: RuntimeCast<Reve
     attribution: {
       source: 'revenant',
       sourceId: cast.skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       activationId: cast.id
@@ -541,7 +540,7 @@ function grantEntitySkillBoon(runtime: RevenantRuntime, cast: RuntimeCast<Revena
     attribution: {
       source: 'revenant',
       sourceId: haze ? TRAIT.SHARED_WISDOM : cast.skill.id,
-      actorType: 'player'
+      actorType: ACTOR.PLAYER
     }
   });
 }

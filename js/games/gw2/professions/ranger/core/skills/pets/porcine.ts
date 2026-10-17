@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, CONTROL, COMBO_FIELD, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Core Ranger pet skill fragments for the Porcine family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -12,7 +12,7 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.PORCINE_JAB]: {
     // The tusk impact precedes recovery; pet ownership supplies independent stats and swap cancellation.
     effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 0.41, source: 'ranger-pet', actorType: 'summon' }
+      { type: 'strike', coefficient: 0.41, source: 'ranger-pet', actorType: ACTOR.SUMMON }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_JAB]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_JAB]!.quicknessCastTimeMs,
@@ -25,13 +25,13 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         ticks: [600, 600].map((atMs) => ({ atMs, coefficient: 0.33 })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
         ticks: [600, 600].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 2, duration: 6 })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_MAUL]!.castTimeMs,
@@ -45,12 +45,17 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         coefficient: 0.67,
         comboFinishers: [
-          { ownerId: 'ranger', ownerActorType: 'summon', finisherType: 'Leap', ambiguousFieldSelection: 'oldest' }
+          {
+            ownerId: 'ranger',
+            ownerActorType: ACTOR.SUMMON,
+            finisherType: COMBO_FINISHER.LEAP,
+            ambiguousFieldSelection: 'oldest'
+          }
         ],
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
-      { type: 'control', controlKind: 'knockdown', source: 'ranger-pet', actorType: 'summon' }
+      { type: 'control', controlKind: CONTROL.KNOCKDOWN, source: 'ranger-pet', actorType: ACTOR.SUMMON }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_BRUTAL_CHARGE]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_BRUTAL_CHARGE]!.quicknessCastTimeMs,
@@ -59,7 +64,7 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.VAMPIRIC_BITE]: {
     // The bite can crit; its healing does not add a separate life-siphon damage packet.
     effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 0.42, source: 'ranger-pet', actorType: 'summon' }
+      { type: 'strike', coefficient: 0.42, source: 'ranger-pet', actorType: ACTOR.SUMMON }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.VAMPIRIC_BITE]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.VAMPIRIC_BITE]!.quicknessCastTimeMs,
@@ -72,13 +77,13 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         ticks: [680, 680].map((atMs) => ({ atMs, coefficient: 0.33 })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
         ticks: [680, 680].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 2, duration: 6 })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WALLOW_MAUL]!.castTimeMs,
@@ -93,9 +98,9 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         ticks: [640, 1640, 2640, 3640, 4640].map((atMs) => ({ atMs, coefficient: 0.2 })),
         // Register the field at the actual first impact, including the pet's current action rate.
-        comboFields: [{ ownerId: 'ranger', ownerActorType: 'summon', fieldType: 'Poison', duration: 5 }],
+        comboFields: [{ ownerId: 'ranger', ownerActorType: ACTOR.SUMMON, fieldType: COMBO_FIELD.POISON, duration: 5 }],
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -106,7 +111,7 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
           duration: 4
         })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.UNDEAD_PLAGUE_PET]!.castTimeMs,
@@ -143,7 +148,7 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         coefficient: 1,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -151,13 +156,13 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         stacks: 2,
         duration: 8,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'control',
-        controlKind: 'knockback',
+        controlKind: CONTROL.KNOCKBACK,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BLOODTHIRSTY_CHARGE]!.castTimeMs,

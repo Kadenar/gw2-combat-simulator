@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 /**
  * Derives which visible event-log row caused each other row, using provenance the runtime already records.
@@ -51,7 +52,7 @@ export const CAST_LINK = PART_OF;
 
 export const ENTITY_SOURCE: EventLogSource = Object.freeze({ id: 'entity', label: 'Spawned' });
 const SKILL_SOURCE: EventLogSource = Object.freeze({ id: 'skill', label: 'Skill', badge: false });
-const SUMMON_SOURCE: EventLogSource = Object.freeze({ id: 'summon', label: 'Summon' });
+const SUMMON_SOURCE: EventLogSource = Object.freeze({ id: ACTOR.SUMMON, label: 'Summon' });
 const CLONE_SOURCE: EventLogSource = Object.freeze({ id: 'clone', label: 'Clone' });
 const REACTION_SOURCES: Readonly<Record<string, EventLogSource>> = Object.freeze({
   Trait: Object.freeze({ id: 'trait', label: 'Trait' }),
@@ -65,13 +66,14 @@ const REACTION_SOURCES: Readonly<Record<string, EventLogSource>> = Object.freeze
  * pets, mech, minions) act autonomously, so their unlinked packets are expected rather than missing a cause.
  */
 const OWNED_TYPES = new Set(['damage', 'condition', 'buff', 'proc', 'control', 'resource']);
-const expectsOwner = (event: SimulationEvent): boolean => OWNED_TYPES.has(event.type) && event.actorType !== 'summon';
+const expectsOwner = (event: SimulationEvent): boolean =>
+  OWNED_TYPES.has(event.type) && event.actorType !== ACTOR.SUMMON;
 
 /** Classifies a row's origin so reactions carry a badge and can be hidden as a group. */
 export function eventLogSource(event: SimulationEvent): EventLogSource | undefined {
-  if (event.actorType === 'environment') return undefined;
+  if (event.actorType === ACTOR.ENVIRONMENT) return undefined;
 
-  if (event.actorType === 'summon') return event.source === 'Clone' ? CLONE_SOURCE : SUMMON_SOURCE;
+  if (event.actorType === ACTOR.SUMMON) return event.source === 'Clone' ? CLONE_SOURCE : SUMMON_SOURCE;
 
   return REACTION_SOURCES[event.source] ?? SKILL_SOURCE;
 }
@@ -187,7 +189,7 @@ export function deriveEventLogOwnership(
 
       parentId = castIds.get(suffixed[1]);
       label =
-        event.actorType === 'summon'
+        event.actorType === ACTOR.SUMMON
           ? `MINION ${minionAttackerLabel(event) || name}`
           : `${suffixed[2].toUpperCase()} ${name}`;
     }
@@ -221,7 +223,7 @@ export function deriveEventLogOwnership(
    * lanes, and packets already inside that cast or a spawned entity are left alone.
    */
   const owningCast = (event: SimulationEvent, parentId: string | undefined): string | undefined => {
-    if (event.comboId != null || event.actorType === 'summon' || parentId?.startsWith('entity:')) return undefined;
+    if (event.comboId != null || event.actorType === ACTOR.SUMMON || parentId?.startsWith('entity:')) return undefined;
 
     const trigger = parentId ? eventById.get(parentId) : undefined;
     const key = skillKey(event);

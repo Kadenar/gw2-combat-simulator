@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
@@ -34,7 +33,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
         kind: 'enchanted-daggers',
         duration: 15,
         stacks: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'strike',
@@ -47,7 +46,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
         flatStrikeBase: 1028,
         flatStrikePowerCoeff: 0.06,
         name: 'Enchanted Daggers — Siphon Damage',
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ],
     legendId: 'LegendaryAssassin'
@@ -86,7 +85,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Impossible Odds',
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ],
     legendId: 'LegendaryAssassin'
@@ -101,7 +100,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
         coefficient: 2,
         hits: 1,
         name: 'Phase Traversal',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
@@ -122,14 +121,14 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
         coefficient: 3,
         hits: 1,
         name: 'Jade Winds',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 6,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     legendId: 'LegendaryAssassin'
@@ -158,14 +157,14 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
         coefficient: 3,
         hits: 1,
         name: 'Jade Winds',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 6,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     legendId: 'LegendaryAssassin'
@@ -219,8 +218,8 @@ function emitEnchantedDagger(runtime: RevenantRuntime, event: Gw2ResolverEvent, 
       at: canonicalTime(runtime.time + delay),
       source: 'revenant',
       sourceId: ID.ENCHANTED_DAGGERS,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       skillId: ID.ENCHANTED_DAGGERS,
       skillName: 'Enchanted Daggers',
       // The armed heal owns this siphon; its causal hit must not absorb the damage in isolated previews.
@@ -259,7 +258,7 @@ function completeRevenantEnchantedDaggers(runtime: RevenantRuntime, cast: Runtim
         at: runtime.time,
         source: 'revenant',
         sourceId: cast.skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: cast.skill.id,
         skillName: cast.skill.name,
         activationId: cast.id,
@@ -307,7 +306,7 @@ function triggersImpossibleOdds(event: Gw2ResolverEvent): boolean {
     // Only Assassin's final shockwave triggers a follow-up.
     (event.skillId !== ID.RELEASE_POTENTIAL_ASSASSIN || event.hitIndex === event.totalHits) &&
     // Player-owned strikes include equipment effects; display source labels do not gate the proc.
-    (event.actorType === 'player' || (event.actorType === 'effect' && isGw2PlayerModifierOwnedEvent(event)))
+    (event.actorType === ACTOR.PLAYER || (event.actorType === ACTOR.EFFECT && isGw2PlayerModifierOwnedEvent(event)))
   );
 }
 
@@ -332,8 +331,8 @@ export function reactRevenantImpossibleOdds(runtime: RevenantRuntime, event: Gw2
       at: canonicalTime(runtime.time + (effectFirstAtMs(strike) || 0) / 1000),
       source: 'revenant',
       sourceId: impossible.id,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       skillId: impossible.id,
       skillName: 'Impossible Odds',
       name: 'Impossible Odds',

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, COMBO_FINISHER, COMBO_FIELD, STATUS, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Spear weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -28,7 +27,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Flame Spear',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 640,
@@ -56,7 +55,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Blazing Barrage',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 560,
@@ -70,7 +69,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -83,7 +82,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Seethe',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 360,
@@ -115,7 +114,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Meteor',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 680,
@@ -145,7 +144,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Etching: Volcano',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 240,
@@ -153,7 +152,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 7,
         startAnchor: 'castEnd'
       }
@@ -179,7 +178,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Lesser Volcano',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 600,
@@ -261,7 +260,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Volcano',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 600,
@@ -294,7 +293,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Restorative Spear',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 640,
@@ -322,7 +321,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Ice Beam',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 840,
@@ -347,7 +346,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Ripple',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 800,
@@ -366,7 +365,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Undertow',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 600,
@@ -383,7 +382,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Etching: Jökulhlaup',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 240,
@@ -391,7 +390,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Water',
+        fieldType: COMBO_FIELD.WATER,
         duration: 7,
         startAnchor: 'castEnd'
       }
@@ -405,7 +404,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Lesser Jökulhlaup',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 600,
@@ -431,7 +430,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Jökulhlaup',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 600,
@@ -456,7 +455,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Lightning Javelin',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 640,
@@ -481,7 +480,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Fulgor',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 560,
@@ -514,7 +513,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Energize',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -530,7 +529,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       {
         type: 'buff',
-        kind: 'superspeed',
+        kind: STATUS.SUPERSPEED,
         stacks: 1,
         duration: 4,
         atMs: 0,
@@ -544,7 +543,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Twister',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 600,
@@ -558,7 +557,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -575,7 +574,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Etching: Derecho',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 240,
@@ -583,7 +582,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Lightning',
+        fieldType: COMBO_FIELD.LIGHTNING,
         duration: 7,
         startAnchor: 'castEnd'
       }
@@ -608,7 +607,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Lesser Derecho',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 600,
@@ -625,7 +624,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Derecho',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 600,
@@ -641,7 +640,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Stone Strike',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 640,
@@ -657,7 +656,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Earthen Spear',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 680,
@@ -671,7 +670,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -684,7 +683,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Harden',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 200,
@@ -703,7 +702,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Fissure',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 680,
@@ -726,7 +725,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Etching: Haboob',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 240,
@@ -734,7 +733,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Dark',
+        fieldType: COMBO_FIELD.DARK,
         duration: 7,
         startAnchor: 'castEnd'
       }
@@ -748,7 +747,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Lesser Haboob',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 600,
@@ -773,7 +772,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Haboob',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 600,

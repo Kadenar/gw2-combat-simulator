@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, COMBO_FIELD, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -20,14 +19,14 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
           coefficient: 0.6,
           hits: 1,
           name: 'Manifest Toxin — Packet 1',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.POISONED,
           stacks: 1,
           duration: 12,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]
     )
@@ -46,14 +45,14 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
           coefficient: 0.4,
           hits: 1,
           name: 'Anguish Swipe',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.TORMENT,
           stacks: 1,
           duration: 3,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]
     )
@@ -72,14 +71,14 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
           coefficient: 0.35,
           hits: 1,
           name: 'Misery Swipe',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.TORMENT,
           stacks: 1,
           duration: 3,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]
     )
@@ -93,7 +92,7 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
     comboFinishers: [
       {
         ownerId: 'revenant',
-        finisherType: 'Blast',
+        finisherType: COMBO_FINISHER.BLAST,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -104,21 +103,21 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 1,
         hits: 1,
         name: 'Echoing Eruption',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.TORMENT,
         stacks: 4,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
@@ -136,7 +135,7 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
     comboFields: [
       {
         ownerId: 'revenant',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 3,
         startAnchor: 'castEnd'
       }
@@ -147,19 +146,19 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'strike',
         ticks: [{ atMs: 480, coefficient: 0.5 }],
         name: 'Initial Strike',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'strike',
         ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 1480 + index * 1000, coefficient: 0.75 / 3 })),
         name: 'Pulsing Strikes',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         metadata: {}
       },
       {
         type: 'condition',
         ticks: [{ atMs: 480, condition: CONDITION.BURNING, stacks: 3, duration: 3 }],
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -169,7 +168,7 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
           stacks: 1,
           duration: 1
         })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   }

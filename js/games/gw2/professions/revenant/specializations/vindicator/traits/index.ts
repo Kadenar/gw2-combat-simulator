@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -74,7 +75,7 @@ const forerunnerOfDeath = defineTrait({
         kind: 'forerunner-of-death',
         duration: 10,
         stacks: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -130,7 +131,7 @@ const reaversCurse = defineTrait({
         kind: 'reavers-curse',
         duration: 6,
         stacks: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -157,11 +158,11 @@ const songOfArboreum = defineTrait({
       {
         name: boonKey(BOON.VIGOR),
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.VIGOR,
         duration: 9,
         stacks: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -178,7 +179,7 @@ const songOfArboreum = defineTrait({
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.VIGOR),
       attribution: (_runtime, cast) => ({
         source: 'revenant',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: `${cast.skill.name} — vigor`
       })
     }
@@ -245,7 +246,7 @@ function renewForerunnerOfDeath(runtime: RevenantRuntime, profile: RevenantSkill
             at: runtime.time,
             source: 'revenant',
             sourceId: TRAIT.FORERUNNER_OF_DEATH,
-            actorType: 'player',
+            actorType: ACTOR.PLAYER,
             skillId: TRAIT.FORERUNNER_OF_DEATH,
             skillName: 'Forerunner of Death',
             activationId,

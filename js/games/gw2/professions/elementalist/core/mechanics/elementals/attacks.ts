@@ -1,5 +1,5 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, RECIPIENT, CONDITION, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/combat/recharge.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
@@ -98,7 +98,7 @@ function beginSummonAction(
       at,
       source: `${element} Elemental`,
       sourceId: skillId,
-      actorType: 'summon',
+      actorType: ACTOR.SUMMON,
       skillId,
       skillName,
       name: skillName,
@@ -253,7 +253,7 @@ function emitStrike(
       at: context.time,
       source: `${element} Elemental`,
       sourceId: skillId,
-      actorType: 'summon',
+      actorType: ACTOR.SUMMON,
       skillId,
       skillName,
       name: skillName,
@@ -308,14 +308,14 @@ function emitFlameBurstMight(context: ElementalistRuntime, payload: ElementalImp
       at: context.time,
       source: 'Fire Elemental',
       sourceId: profile.skillId,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: profile.skillId,
       skillName: 'Flame Burst',
       name: 'Flame Burst — Might',
       kind: boonKey(BOON.MIGHT),
       stacks: profile.mightStacks,
       duration: profile.mightDuration,
-      audience: { recipients: 'party' as const, maximumRecipients: 5 }
+      audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
     })
   );
 }
@@ -333,14 +333,14 @@ function emitStompProtection(context: ElementalistRuntime, payload: ElementalImp
       at: context.time,
       source: 'Earth Elemental',
       sourceId: profile.skillId,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: profile.skillId,
       skillName: 'Stomp',
       name: 'Stomp — Protection',
       kind: boonKey(BOON.PROTECTION),
       stacks: 1,
       duration: profile.protectionDuration,
-      audience: { recipients: 'party' as const, maximumRecipients: 5 }
+      audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
     })
   );
 }

@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { AURA, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { elementalEmpowermentAttributes } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
@@ -95,10 +95,10 @@ const elementalEpitome = defineTrait({
   balance: {
     internalCooldown: 10,
     effects: [
-      aura('Fire', 'Fire Aura', 4),
-      aura('Water', 'Frost Aura', 4),
-      aura('Air', 'Shocking Aura', 3),
-      aura('Earth', 'Magnetic Aura', 3),
+      aura('Fire', AURA.FIRE, 4),
+      aura('Water', AURA.FROST, 4),
+      aura('Air', AURA.SHOCKING, 3),
+      aura('Earth', AURA.MAGNETIC, 3),
       {
         type: 'buff',
         name: 'Empowerment',
@@ -268,9 +268,9 @@ function applySphereStartTraits(
       attribution: {
         source: skill.name,
         sourceId: skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: skill.name,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         skillId: skill.id,
         name: skill.name
       }
@@ -289,9 +289,9 @@ function applySphereStartTraits(
       attribution: {
         source: skill.name,
         sourceId: skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: skill.name,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         skillId: skill.id,
         name: skill.name
       }
@@ -319,7 +319,7 @@ function applyEnergizedElements(context: ElementalistRuntime, event: SimulationE
         attribution: {
           source: 'Energized Elements',
           sourceId: event.sourceId,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillName: 'Energized Elements',
           skillId: elementalistEventSkill(context, 'Energized Elements', event.sourceId).id,
           name: 'Energized Elements'
@@ -336,7 +336,7 @@ function applyEnergizedElements(context: ElementalistRuntime, event: SimulationE
           at: event.at,
           source: 'Energized Elements',
           sourceId: event.sourceId,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillName: 'Energized Elements',
           kind: 'catalyst-energy',
           value: after,
@@ -377,7 +377,7 @@ function applyEmpoweringAura(context: ElementalistRuntime, event: Gw2ResolverEve
         at: event.at,
         source: 'Trait',
         sourceId: TRAIT.EMPOWERING_AURAS,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: requireBalanceProfileFromContext(context, TRAIT.EMPOWERING_AURAS).name,
         kind: 'Empowering Auras'.toLowerCase(),
         stacks: 1,
@@ -415,7 +415,7 @@ function applyEpitomeAura(context: ElementalistRuntime, event: Gw2ResolverEvent)
     durationContext: event,
     effect: { type: 'buff', name: 'Empowerment' },
     attribution: {
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillName: requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_EPITOME).name,
       triggeredBy: resolverSourceSkill(event),
       priority: Number(event.priority || 0)
@@ -481,7 +481,7 @@ function applySynergyCombo(context: ElementalistRuntime, event: Gw2ResolverEvent
         durationContext: event,
         effect: { type: 'boon', name: attunement },
         attribution: {
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillName: requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_SYNERGY).name,
           triggeredBy: resolverSourceSkill(event),
           priority: Number(event.priority || 0)
@@ -523,7 +523,7 @@ function applyViciousEmpowerment(context: MechanicCombatContext, event: Gw2Resol
   const immobilize = event.condition === CONDITION.IMMOBILIZED;
 
   if (
-    event.actorType !== 'player' ||
+    event.actorType !== ACTOR.PLAYER ||
     (event.type !== 'control' && !immobilize) ||
     (context.engagement.startTime != null && event.at < context.engagement.startTime)
   ) {
@@ -540,7 +540,7 @@ function applyViciousEmpowerment(context: MechanicCombatContext, event: Gw2Resol
     durationContext: event,
     effects: (effect) => effect.type === 'boon' || effect.type === 'buff',
     attribution: {
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillName: requireBalanceProfileFromContext(context, TRAIT.VICIOUS_EMPOWERMENT).name,
       triggeredBy: resolverSourceSkill(event),
       priority: Number(event.priority || 0)

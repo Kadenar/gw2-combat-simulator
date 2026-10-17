@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import {
   sampleWeaponStrength,
   weaponStrengthMidpoint,
@@ -78,15 +79,15 @@ export function weaponStrengthProfileIdForEvent(
 }
 
 function streamActor(event: Gw2ResolverEvent): string {
-  if (event.actorType === 'summon') {
-    return 'summon';
+  if (event.actorType === ACTOR.SUMMON) {
+    return ACTOR.SUMMON;
   }
 
-  if (event.actorType === 'effect') return 'effect';
+  if (event.actorType === ACTOR.EFFECT) return 'effect';
 
-  if (event.actorType === 'environment') return 'environment';
+  if (event.actorType === ACTOR.ENVIRONMENT) return ACTOR.ENVIRONMENT;
 
-  return 'player';
+  return ACTOR.PLAYER;
 }
 
 function generatedActivationId(context: Gw2ResolverRuntime): string {

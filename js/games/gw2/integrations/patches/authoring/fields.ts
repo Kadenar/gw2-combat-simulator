@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 /** Owns editable-field metadata and sanitized authoring references without applying patches. */
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -88,7 +89,7 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   'baseExtraBlades',
   'highExtraBlades',
   'enhancedExtraBlades',
-  'summons',
+  RECIPIENT.SUMMONS,
   'summonInterval',
   'minionCount',
 
@@ -242,7 +243,7 @@ const ADVANCED_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   'packetInterval',
   'pulseInterval',
   'summonInterval',
-  'summons',
+  RECIPIENT.SUMMONS,
   'weaponStrength'
 ]);
 

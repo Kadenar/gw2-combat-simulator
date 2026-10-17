@@ -1,3 +1,4 @@
+import { ACTOR, AURA, RECIPIENT } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -70,7 +71,7 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
             at: runtime.time,
             source: 'Assumption',
             sourceId: 'assumption.radiant-armaments',
-            actorType: 'player',
+            actorType: ACTOR.PLAYER,
             skillName: 'Radiant Armaments',
             kind: 'guardian-radiant-armaments',
             duration: 3600,
@@ -132,7 +133,7 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
         });
       },
       'aura.applied'(runtime, event) {
-        if (event.aura === 'Light Aura') grantLuminaryAura(runtime, event);
+        if (event.aura === AURA.LIGHT) grantLuminaryAura(runtime, event);
       }
     },
     tasks: {
@@ -161,7 +162,7 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
             kind,
             duration,
             stacks: 1,
-            audience: { recipients: party ? 'party' : 'self' }
+            audience: { recipients: party ? RECIPIENT.PARTY : RECIPIENT.SELF }
           }
         });
       }

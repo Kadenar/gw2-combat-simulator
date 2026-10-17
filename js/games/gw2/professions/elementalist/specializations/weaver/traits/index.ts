@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { type ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { primaryAttunement } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -140,14 +139,14 @@ const elementalPursuit = defineTrait({
     {
       emit: TRAIT.ELEMENTAL_PURSUIT,
       on: 'control.resolved',
-      when: (_runtime, event) => event.type === 'control' && event.actorType === 'player',
+      when: (_runtime, event) => event.type === 'control' && event.actorType === ACTOR.PLAYER,
       effects: (effect) => effect.type === 'boon' && effect.name === BOON.SWIFTNESS,
       attribution: (runtime, event) => ({
         source: 'Elemental Pursuit',
         sourceId: event.skillId ?? event.sourceId,
         skillId: elementalistEventSkill(runtime, 'Elemental Pursuit', event.skillId ?? event.sourceId).id,
         skillName: 'Elemental Pursuit',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: 'Elemental Pursuit',
         priority: 0
       })
@@ -269,7 +268,7 @@ function initializeElementsOfRage(context: ElementalistRuntime): void {
         at: context.time,
         source: 'Starting Attunement',
         sourceId: 'starting-attunement',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         kind: 'elements of rage',
         stacks: 1,
         duration: balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'durationMultiplier'),
@@ -295,7 +294,7 @@ function applyElementsOfRageAttunement(context: ElementalistRuntime, event: Simu
         at,
         source,
         sourceId,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         kind: 'elements of rage',
         stacks: 1,
         duration: balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'durationMultiplier'),
@@ -325,7 +324,7 @@ function applyWeaversProwess(context: ElementalistRuntime, event: SimulationEven
         attribution: {
           source: "Weaver's Prowess",
           sourceId: sourceId,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillName: "Weaver's Prowess",
           skillId: elementalistEventSkill(context, "Weaver's Prowess", sourceId).id,
           name: "Weaver's Prowess"
@@ -352,7 +351,7 @@ function applyBolsteredElements(context: ElementalistRuntime, { cast }: WeaverCa
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.BOLSTERED_ELEMENTS,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: skill.name,
         priority: 0
       }
@@ -379,7 +378,7 @@ function applySwiftRevenge(context: ElementalistRuntime, { cast, dualAttunements
           attribution: {
             source: 'Trait',
             sourceId: TRAIT.SWIFT_REVENGE,
-            actorType: 'player',
+            actorType: ACTOR.PLAYER,
             name: skill.name,
             priority: 0
           }
@@ -396,7 +395,7 @@ function applySwiftRevenge(context: ElementalistRuntime, { cast, dualAttunements
           attribution: {
             source: 'Trait',
             sourceId: TRAIT.SWIFT_REVENGE,
-            actorType: 'player',
+            actorType: ACTOR.PLAYER,
             name: skill.name,
             priority: 0
           }
@@ -421,7 +420,7 @@ function applySuperiorElements(context: ElementalistRuntime, { cast, dualAttunem
       skillId: skill.id,
       skillName: skill.name,
       cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
-      attribution: { source: skill.name, sourceId: skill.id, actorType: 'player', triggeredBy: '' },
+      attribution: { source: skill.name, sourceId: skill.id, actorType: ACTOR.PLAYER, triggeredBy: '' },
       transform: (event) => ({ ...event, name: skill.name + ' \u2014 ' + event.condition })
     });
   }
@@ -444,7 +443,7 @@ function applyUnravelElementsOfRage(
           at: cast.effectiveEnd,
           source: skill.name,
           sourceId: skill.id,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           name: skill.name,
           kind: 'elements of rage',
           duration: balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'durationMultiplier'),

@@ -1,3 +1,4 @@
+import { AURA } from '#gw2/platform/constants.js';
 /**
  * Literal lookup tables shared by Core Elementalist mechanics.
  *
@@ -36,10 +37,10 @@ export const CONJURED_WEAPONS = new Set(Object.values(CONJURE_SKILLS));
 
 /** Transmute skills, mapped to the aura they consume. */
 export const AURA_TRANSMUTE_SKILLS: Readonly<Record<number, string>> = Object.freeze({
-  [ID.TRANSMUTE_FROST]: 'Frost Aura',
-  [ID.TRANSMUTE_LIGHTNING]: 'Shocking Aura',
-  [ID.TRANSMUTE_EARTH]: 'Magnetic Aura',
-  [ID.TRANSMUTE_FIRE]: 'Fire Aura'
+  [ID.TRANSMUTE_FROST]: AURA.FROST,
+  [ID.TRANSMUTE_LIGHTNING]: AURA.SHOCKING,
+  [ID.TRANSMUTE_EARTH]: AURA.MAGNETIC,
+  [ID.TRANSMUTE_FIRE]: AURA.FIRE
 });
 
 /** Spear etching progressions: the etching skill and its lesser/full payoff stages that share slot 5. */

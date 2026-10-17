@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -52,7 +53,7 @@ export function emitSoulShard(runtime: NecromancerRuntime, event: Gw2ResolverEve
       at: runtime.time,
       source: 'necromancer',
       sourceId: ID.SOUL_SHARDS,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: ID.SOUL_SHARDS,
       skillName: 'Soul Shards',
       // The consumed shard owns its siphon even when a weapon hit supplies the causal parent.

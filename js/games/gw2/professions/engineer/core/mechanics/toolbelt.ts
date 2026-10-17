@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { toolbeltActivated } from '#gw2/professions/engineer/core/mechanics/trigger-points.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
@@ -20,7 +21,7 @@ export function notifyToolbeltActivation(runtime: EngineerRuntime, skill: Engine
       at,
       source: 'engineer',
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name
     }

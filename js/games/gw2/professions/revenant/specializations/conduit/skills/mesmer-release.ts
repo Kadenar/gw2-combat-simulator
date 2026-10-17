@@ -1,3 +1,4 @@
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -21,7 +22,7 @@ export function scheduleMesmerReleaseConditions(runtime: RevenantRuntime, cast: 
       baseEvent: {
         source: 'revenant',
         sourceId: cast.skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: cast.skill.id,
         skillName: cast.skill.name,
         activationId: cast.id
@@ -44,7 +45,7 @@ export function mesmerRelease(runtime: RevenantRuntime, data: unknown): void {
   };
   const affinity = effectiveConduitAffinity(runtime);
 
-  if (event.target === 'self') {
+  if (event.target === RECIPIENT.SELF) {
     const duration = Number(event.duration) * Math.max(0, 1 - affinity * durationReductionPerAffinity);
     runtime.profession.core.selfConditions.push({
       condition: String(event.condition),

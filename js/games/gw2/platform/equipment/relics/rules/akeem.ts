@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -47,7 +47,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
       stacks: 2,
       source: 'Relic',
       sourceId: RELIC_IDS.AKEEM,
-      actorType: 'effect'
+      actorType: ACTOR.EFFECT
     }
   });
   ctx.effects.emit({
@@ -63,7 +63,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
       stacks: 2,
       source: 'Relic',
       sourceId: RELIC_IDS.AKEEM,
-      actorType: 'effect'
+      actorType: ACTOR.EFFECT
     }
   });
 }

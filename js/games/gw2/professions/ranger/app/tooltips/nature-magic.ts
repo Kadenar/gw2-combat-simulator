@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   fromProfile,
   tooltipSeconds,
@@ -13,12 +14,12 @@ export const rangerNatureMagicTooltips = {
   [TRAIT.REJUVENATION]: traitTooltip(
     'Using an eligible beast skill grants regeneration to the party.',
     [['internalCooldown', 'Internal cooldown', tooltipSeconds]],
-    'party'
+    RECIPIENT.PARTY
   ),
   [TRAIT.FORTIFYING_BOND]: traitTooltip(
     "Boons received from players are shared with your active pet using the ranger's boon duration. Permanent boon settings represent training-console pulses and also trigger sharing. Inactive in Beastmode; other NPC boons do not trigger sharing.",
     [['pulseInterval', 'Configured boon refresh interval', tooltipSeconds]],
-    'summons'
+    RECIPIENT.SUMMONS
   ),
   [TRAIT.LINGERING_MAGIC]: traitTooltip('Gain concentration.', [['attributeBonus', 'Concentration']]),
   [TRAIT.BOUNTIFUL_HUNTER]: traitTooltip(
@@ -31,19 +32,19 @@ export const rangerNatureMagicTooltips = {
   [TRAIT.WELLSPRING]: traitTooltip(
     'Gain healing power from power. Completing a healing skill grants regeneration to the party.',
     [['attributeConversion', 'Power converted to healing power', tooltipPercent]],
-    'party'
+    RECIPIENT.PARTY
   ),
   [TRAIT.ALLIES_AID]: outsideScopeTooltip,
   [TRAIT.EVASIVE_PURITY]: outsideScopeTooltip,
   [TRAIT.SPIRITED_ARRIVAL]: traitTooltip(
     'Swapping pets in combat grants might and fury to the party.',
     () => [],
-    'party'
+    RECIPIENT.PARTY
   ),
   [TRAIT.WINDBORNE_NOTES]: traitTooltip(
     'Completing a warhorn skill grants regeneration to the party.',
     () => [],
-    'party'
+    RECIPIENT.PARTY
   ),
   [TRAIT.NATURES_VENGEANCE]: traitTooltip(
     'Spirits repeat their slam after their final boon shake. Summon effects and boon pulses are not repeated.',

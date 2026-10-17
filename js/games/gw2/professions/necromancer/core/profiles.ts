@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, CONTROL, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
@@ -33,14 +33,14 @@ const minion = (
   id,
   name,
   profileKind: 'skill-variant',
-  actorType: 'summon',
+  actorType: ACTOR.SUMMON,
   ...fields,
   effects
 });
 
 const MINION_PROJECTILE_FINISHER = Object.freeze({
   ownerId: 'necromancer',
-  finisherType: 'Projectile',
+  finisherType: COMBO_FINISHER.PROJECTILE,
   chance: 1,
   ambiguousFieldSelection: 'oldest'
 });
@@ -48,7 +48,7 @@ const MINION_PROJECTILE_FINISHER = Object.freeze({
 export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   // Addle's landed strike selects these packets; its acceptance snapshot gates only Immobilized.
   variant(NECROMANCER_CORE_BALANCE_PROFILE_IDS.addleDaze, ID.ADDLE, 'Addle Daze', {
-    effects: [{ type: 'control', name: 'Daze', controlKind: 'daze' }]
+    effects: [{ type: 'control', name: 'Daze', controlKind: CONTROL.DAZE }]
   }),
   variant(NECROMANCER_CORE_BALANCE_PROFILE_IDS.addleImmobilize, ID.ADDLE, 'Addle Immobilized', {
     effects: [
@@ -63,7 +63,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         condition: CONDITION.BLEEDING,
         stacks: 2,
         duration: 10,
-        target: 'self'
+        target: RECIPIENT.SELF
       },
       { name: CONDITION.IMMOBILIZED, type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 6 }
     ]
@@ -76,7 +76,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 8,
-        target: 'self'
+        target: RECIPIENT.SELF
       }
     ]
   }),
@@ -94,7 +94,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         hits: 1,
         flatStrikeBase: 1504,
         flatStrikePowerCoeff: 0.1,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         name: 'Soul Shards',
         canCrit: false,
         damageKind: 'life-steal'
@@ -120,7 +120,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         hits: 1,
         flatStrikeBase: 129,
         flatStrikePowerCoeff: 0.03,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         name: 'Signet of Vampirism - Passive Life Siphon',
         canCrit: false,
         damageKind: 'life-steal'
@@ -172,7 +172,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         type: 'strike',
         coefficient: 0.065,
         hits: 1,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         name: 'Summon Blood Fiend - Minion Attack',
         castTimeMs: 2000
       }
@@ -204,7 +204,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         atMs: 0,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         sourceId: 3633,
         name: 'Bone Shard - First Projectile',
         skillName: 'Bone Shard',
@@ -217,7 +217,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         atMs: 40,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         sourceId: 3633,
         name: 'Bone Shard - Second Projectile',
         skillName: 'Bone Shard',
@@ -230,7 +230,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         atMs: 0,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         sourceId: 3644,
         name: 'Bone Shard - Crippling Volley - First Projectile',
         skillName: 'Bone Shard - Crippling Volley',
@@ -244,7 +244,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         atMs: 40,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         sourceId: 3644,
         name: 'Bone Shard - Crippling Volley - Second Projectile',
         skillName: 'Bone Shard - Crippling Volley',
@@ -261,7 +261,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         intervalMs: 40,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         packetLabel: 'alternate'
       }
     ]
@@ -287,7 +287,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         type: 'strike',
         coefficient: 0.04,
         hits: 1,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         name: 'Summon Bone Minions - Minion Attack',
         castTimeMs: 1440
       }
@@ -315,7 +315,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         type: 'strike',
         coefficient: 0.3,
         hits: 1,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         sourceId: 3642,
         name: 'Slash'
       }
@@ -345,7 +345,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         atMs: 0,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         sourceId: 3653,
         // Both Slashes accelerate; Fist's animation and the chain's idle gaps remain fixed.
         castTimeMs: 1200,
@@ -360,7 +360,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         atMs: 1280,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         sourceId: 3654,
         castTimeMs: 1200,
         name: 'Second Slash',
@@ -374,7 +374,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         atMs: 2560,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         sourceId: 3655,
         name: 'Fist',
         icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png',

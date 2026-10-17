@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { profession, createBuildContext, toApplicationBuild } from '#gw2/professions/guardian/build/context.js';
 // Browser-facing Guardian composition. It adds attribute calculation, runtime
 // config mapping, persistence metadata, and shared-shell adapter behavior to
@@ -12,5 +13,5 @@ export const guardianAppAdapter = defineProfessionApp({
   profession,
   createBuildContext,
   toApplicationBuild,
-  defaultOffhand: preferOffhand('Focus')
+  defaultOffhand: preferOffhand(WEAPON.FOCUS)
 });

@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { AURA, STATUS, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 /** Mechanic and skill-variant tuning for Weaver; traits own their profiles under traits/. */
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -77,7 +77,7 @@ export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     effects: []
   },
   variant(WEAVER_BALANCE_PROFILE_IDS.frostfireFlurry, ID.FROSTFIRE_FLURRY, 'Frostfire Flurry - Consumed Bullets', {
-    effects: [aura('Fire', 'Fire Aura', 3), condition('Water', CONDITION.VULNERABILITY, 4, 8)]
+    effects: [aura('Fire', AURA.FIRE, 3), condition('Water', CONDITION.VULNERABILITY, 4, 8)]
   }),
   variant(WEAVER_BALANCE_PROFILE_IDS.purblindingPlasma, ID.PURBLINDING_PLASMA, 'Purblinding Plasma - Fire Bullet', {
     rechargeMultiplier: 2 / 3,
@@ -87,7 +87,7 @@ export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     effects: [condition('Earth', CONDITION.BLEEDING, 3, 8)]
   }),
   variant(WEAVER_BALANCE_PROFILE_IDS.flowingFinesse, ID.FLOWING_FINESSE, 'Flowing Finesse - Consumed Bullets', {
-    effects: [aura('Water', 'Frost Aura', 3), buff('Air', 'superspeed', 1, 4)]
+    effects: [aura('Water', AURA.FROST, 3), buff('Air', STATUS.SUPERSPEED, 1, 4)]
   }),
   variant(WEAVER_BALANCE_PROFILE_IDS.enervatingEarth, ID.ENERVATING_EARTH, 'Enervating Earth - Earth Bullet', {
     effects: [condition('Earth', CONDITION.BLEEDING, 4, 8)]

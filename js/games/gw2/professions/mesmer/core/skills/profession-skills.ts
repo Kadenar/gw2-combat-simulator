@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONTROL, ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
@@ -91,8 +91,8 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
       {
         type: 'control',
         source: 'Player',
-        controlKind: 'daze',
-        actorType: 'player',
+        controlKind: CONTROL.DAZE,
+        actorType: ACTOR.PLAYER,
         atMs: 0,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'

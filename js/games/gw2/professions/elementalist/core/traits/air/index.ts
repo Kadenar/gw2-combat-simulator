@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { STATUS, RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -143,7 +143,7 @@ export const oneWithAir = defineTrait({
   id: TRAIT.ONE_WITH_AIR,
   name: 'One with Air',
   balance: {
-    effects: [{ type: 'buff', name: 'Superspeed', kind: 'superspeed', stacks: 1, duration: 3 }]
+    effects: [{ type: 'buff', name: 'Superspeed', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3 }]
   }
 });
 
@@ -262,7 +262,7 @@ export const ragingStorm = defineTrait({
         name: BOON.FURY,
         boon: BOON.FURY,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 4
       }
@@ -370,7 +370,13 @@ function applyInscriptionPostCast(context: ElementalistRuntime, { cast }: Elemen
     skillName: skill.name,
     cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
     priority: 0,
-    attribution: { source: 'Trait', sourceId: TRAIT.INSCRIPTION, actorType: 'player', name: skill.name, priority: 0 }
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.INSCRIPTION,
+      actorType: ACTOR.PLAYER,
+      name: skill.name,
+      priority: 0
+    }
   });
 }
 
@@ -389,8 +395,8 @@ function applyLightningRod(context: ElementalistRuntime, event: SimulationEvent)
       attribution: {
         source: 'Lightning Rod',
         sourceId: sourceId,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         skillName: 'Lightning Rod',
         skillId: sourceId,
         name: 'Lightning Rod',
@@ -406,7 +412,7 @@ function applyLightningRod(context: ElementalistRuntime, event: SimulationEvent)
       effect: { type: 'condition', name: 'Lightning Rod' },
       skillId: sourceId,
       skillName: 'Lightning Rod',
-      attribution: { source: 'Lightning Rod', sourceId: sourceId, actorType: 'player', triggeredBy: '' },
+      attribution: { source: 'Lightning Rod', sourceId: sourceId, actorType: ACTOR.PLAYER, triggeredBy: '' },
       transform: (event) => ({ ...event, name: 'Lightning Rod' + ' \u2014 ' + event.condition }),
       receipt: true
     }).length > 0;
@@ -432,7 +438,7 @@ function applyResolverZephyrsBoon(context: MechanicCombatContext, event: Gw2Reso
     durationContext: event,
     effects: (effect) => effect.type === 'boon',
     attribution: {
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillName: requireBalanceProfileFromContext(context, TRAIT.ZEPHYRS_BOON).name,
       triggeredBy: resolverSourceSkill(event),
       priority: Number(event.priority || 0)
@@ -466,7 +472,7 @@ function applyRagingStorm(context: MechanicCombatContext, event: Gw2ResolverEven
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.RAGING_STORM,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM).name,
         triggeredBy: resolverSourceSkill(event),
         priority: Number(event.priority || 0)
@@ -483,7 +489,7 @@ function applyFreshAirCritical(
   critical: { chance: number; didCrit?: boolean }
 ): void {
   if (
-    event.actorType !== 'player' ||
+    event.actorType !== ACTOR.PLAYER ||
     !(Number(event.coefficient) > 0) ||
     context.profession.core.primaryAttunement === 'Air' ||
     !critical.didCrit
@@ -501,7 +507,7 @@ function applyFreshAirCritical(
       at: event.at,
       source: 'Fresh Air',
       sourceId: 'Fresh Air',
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillName: 'Fresh Air',
       sourceSkill: event.skillName
     }
@@ -512,7 +518,7 @@ function applyFreshAirCritical(
 function observeFreshAirCandidate(runtime: ElementalistRuntime, event: SimulationEventBase): void {
   if (
     event.type === 'damage' &&
-    event.actorType === 'player' &&
+    event.actorType === ACTOR.PLAYER &&
     Number(event.coefficient) > 0 &&
     canonicalTime(event.at) > runtime.time
   ) {
@@ -575,7 +581,7 @@ function applyFreshAirAttunementEntry(
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.FRESH_AIR,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: skill.name,
         priority: -10,
         skillId: skill.id,
@@ -605,7 +611,7 @@ function applyOneWithAir(
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.ONE_WITH_AIR,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: skill.name,
         skillId: skill.id,
         name: skill.name
@@ -629,7 +635,13 @@ function applyInscriptionAirEntry(
     skillName: skill.name,
     cast: emissionCast,
     priority: 0,
-    attribution: { source: 'Trait', sourceId: TRAIT.INSCRIPTION, actorType: 'player', name: skill.name, priority: 0 }
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.INSCRIPTION,
+      actorType: ACTOR.PLAYER,
+      name: skill.name,
+      priority: 0
+    }
   });
 }
 
@@ -652,7 +664,7 @@ function applyFreshAirSyntheticEntry(
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.FRESH_AIR,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: skill.name,
         skillId: skill.id,
         name: skill.name

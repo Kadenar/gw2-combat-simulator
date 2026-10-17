@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { holosmithCastAvailability } from '#gw2/professions/engineer/specializations/holosmith/mechanics/availability.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
@@ -354,7 +355,7 @@ export function triggerVentExhaust(
   context.effects.emit({
     kind: 'announcement',
     log: true,
-    attribution: { source: 'engineer', sourceId: ventExhaust.id, actorType: 'player' },
+    attribution: { source: 'engineer', sourceId: ventExhaust.id, actorType: ACTOR.PLAYER },
     announcement: {
       name: ventExhaust.name,
       at: at,
@@ -373,7 +374,7 @@ export function triggerVentExhaust(
       activationId,
       source: 'engineer',
       sourceId: ventExhaust.id,
-      actorType: effect.actorType || 'player',
+      actorType: effect.actorType || ACTOR.PLAYER,
       skillId: ventExhaust.id,
       skillName: ventExhaust.name,
       triggeredBy: triggeringSkill.name
@@ -502,7 +503,7 @@ function emitEngineerBarSwap(context: EngineerRuntime, skill: EngineerSkill, at:
       at,
       source: 'engineer',
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name,
       weaponSet: context.activeWeaponSet

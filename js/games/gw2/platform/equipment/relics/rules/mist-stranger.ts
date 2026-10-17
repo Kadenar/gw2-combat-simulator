@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -31,8 +32,8 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
       hits: event.hits,
       source: 'Relic',
       sourceId: RELIC_IDS.MIST_STRANGER,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       flatDamage: siphon,
       damageKind: 'life-steal',
       canCrit: false

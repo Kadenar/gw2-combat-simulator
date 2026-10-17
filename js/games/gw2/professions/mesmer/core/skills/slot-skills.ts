@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FIELD, RECIPIENT, STATUS, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -40,7 +39,14 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     castTimeMs: 480,
     // Signet activation applies its control when the cast completes.
     effects: [
-      { type: 'control', source: 'Player', actorType: 'player', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }
+      {
+        type: 'control',
+        source: 'Player',
+        actorType: ACTOR.PLAYER,
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
     ]
   },
   [ID.SIGNET_OF_MIDNIGHT]: {
@@ -54,7 +60,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
         stacks: 1,
         duration: 5,
         source: 'Player',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -94,7 +100,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
         coefficient: 1,
         hits: 1,
         name: 'Target without boons',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         weapon: 'phantasm medium'
       }
@@ -105,18 +111,18 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     // Feedback's dome provides an ethereal combo field for its six-second lifetime.
-    comboFields: [{ ownerId: 'mesmer', fieldType: 'Ethereal', duration: 6, startAnchor: 'castStart' }],
+    comboFields: [{ ownerId: 'mesmer', fieldType: COMBO_FIELD.ETHEREAL, duration: 6, startAnchor: 'castStart' }],
     effects: []
   },
   [ID.TIME_WARP]: {
     castTimeMs: 640,
-    comboFields: [{ ownerId: 'mesmer', fieldType: 'Ethereal', duration: 5, startAnchor: 'castEnd' }],
+    comboFields: [{ ownerId: 'mesmer', fieldType: COMBO_FIELD.ETHEREAL, duration: 5, startAnchor: 'castEnd' }],
     // Apply an immediate pulse when the field forms, then pulse once per second through its fifth second.
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.QUICKNESS,
         duration: 1,
         applications: 6,
@@ -124,7 +130,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
       },
       {
         type: 'buff',
-        kind: 'superspeed',
+        kind: STATUS.SUPERSPEED,
         duration: 1.5,
         applications: 6,
         intervalMs: 1000
@@ -158,14 +164,14 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
           type: 'control',
           controlKind: CONDITION.TAUNT.toLowerCase(),
           source: 'Player',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.TAUNT,
           stacks: 1,
           duration: 3,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]),
       {
@@ -173,7 +179,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
         coefficient: 0.4,
         hits: 1,
         name: 'Damage',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         weapon: 'phantasm defender'
       }
@@ -199,7 +205,14 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     castTimeMs: 880,
     // Signet activation applies its control when the cast completes.
     effects: [
-      { type: 'control', source: 'Player', actorType: 'player', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }
+      {
+        type: 'control',
+        source: 'Player',
+        actorType: ACTOR.PLAYER,
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
     ]
   },
   [ID.MIMIC]: {

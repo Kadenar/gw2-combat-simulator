@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -36,8 +37,8 @@ export function replaceFulgor(context: ElementalistRuntime, cast: RuntimeCast<El
     at: canonicalTime(Math.max(context.time, cast.start + tick.atMs / 1000)),
     source: cast.skill.name,
     sourceId: cast.skill.id,
-    actorType: 'effect',
-    ownerActorType: 'player',
+    actorType: ACTOR.EFFECT,
+    ownerActorType: ACTOR.PLAYER,
     skillName: cast.skill.name,
     skillId: cast.skill.id,
     coefficient: tick.coefficient,

@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Moa family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.

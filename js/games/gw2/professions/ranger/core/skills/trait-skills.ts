@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
@@ -23,7 +23,7 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
         duration: 5,
         stacks: 1,
         audience: {
-          recipients: 'party',
+          recipients: RECIPIENT.PARTY,
           maximumRecipients: 5
         }
       },
@@ -34,7 +34,7 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
         duration: 5,
         stacks: 6,
         audience: {
-          recipients: 'party',
+          recipients: RECIPIENT.PARTY,
           maximumRecipients: 5
         }
       },
@@ -45,7 +45,7 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
         duration: 5,
         stacks: 1,
         audience: {
-          recipients: 'party',
+          recipients: RECIPIENT.PARTY,
           maximumRecipients: 5
         }
       },
@@ -64,7 +64,7 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ]

@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -33,7 +33,7 @@ export function applyCatalystResolvedDamage(context: MechanicCombatContext, even
   const state = catalystState.from(context);
 
   if (
-    (event.actorType !== 'player' && event.actorType !== 'effect') ||
+    (event.actorType !== ACTOR.PLAYER && event.actorType !== ACTOR.EFFECT) ||
     event.metadata?.packetKind === SHATTERING_ICE_PACKET ||
     !(Number(event.coefficient) > 0) ||
     state.shatteringIceUntil <= event.at ||
@@ -53,8 +53,8 @@ export function applyCatalystResolvedDamage(context: MechanicCombatContext, even
         at: event.at,
         source: 'Shattering Ice Proc',
         sourceId: event.skillId ?? event.sourceId,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         skillName: 'Shattering Ice Proc',
         coefficient: Number(strike.coefficient),
         skillWeapon: 'Unequipped',
@@ -71,8 +71,8 @@ export function applyCatalystResolvedDamage(context: MechanicCombatContext, even
         at: event.at,
         source: 'Shattering Ice Proc',
         sourceId: event.skillId ?? event.sourceId,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         skillName: 'Shattering Ice Proc',
         condition: String(chilled.condition),
         stacks: Number(chilled.stacks),

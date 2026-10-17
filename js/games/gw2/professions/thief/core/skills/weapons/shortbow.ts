@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, CONTROL, WEAPON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -18,11 +18,11 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.55,
         hits: 1,
         name: 'Trick Shot',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2,
             ambiguousFieldSelection: 'oldest'
           }
@@ -34,7 +34,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
         condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -47,21 +47,21 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         ticks: [80, 200, 280, 360].map((atMs) => ({ atMs, coefficient: 2.4 / 4 })),
         name: 'Choking Gas',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 0, condition: CONDITION.POISONED, stacks: 1, duration: 3 }],
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'daze'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.DAZE
       }
     ]
   },
@@ -75,7 +75,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -92,11 +92,11 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 2.25,
         hits: 1,
         name: 'Large Explosion',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -107,7 +107,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
         condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -122,14 +122,14 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         ticks: [160, 360, 520, 680].map((atMs) => ({ atMs, coefficient: 2 / 4 })),
         name: 'Small Explosion',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 0, condition: CONDITION.BLEEDING, stacks: 1, duration: 4 }],
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -145,11 +145,11 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.5,
         hits: 1,
         name: 'Disabling Shot (thief short bow skill)',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -160,7 +160,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
         condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -174,11 +174,11 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.6,
         hits: 1,
         name: 'Surprise Shot',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -189,17 +189,17 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
         condition: CONDITION.BLEEDING,
         stacks: 3,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
-    requiredMainHand: 'Shortbow',
+    requiredMainHand: WEAPON.SHORTBOW,
     stealthAttack: true
   }
 });

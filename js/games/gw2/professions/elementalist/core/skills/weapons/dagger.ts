@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, COMBO_FIELD, COMBO_FINISHER, AURA, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Dagger weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -29,7 +28,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: "Dragon's Claw",
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 720,
@@ -57,7 +56,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 1360,
@@ -90,7 +89,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Burning Speed',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 800,
@@ -98,7 +97,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 4,
         startAnchor: 'castEnd'
       }
@@ -137,7 +136,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Ring of Fire',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 480,
@@ -147,7 +146,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 5,
         startAnchor: 'castEnd'
       }
@@ -168,7 +167,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Fire Grab',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 560,
@@ -196,7 +195,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Vapor Blade',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 360,
@@ -218,7 +217,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Cone of Cold',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 1360,
@@ -276,7 +275,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Frozen Burst',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 600,
@@ -284,7 +283,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Ice',
+        fieldType: COMBO_FIELD.ICE,
         duration: 2,
         startAnchor: 'castEnd'
       }
@@ -298,7 +297,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -310,10 +309,10 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   // Instant aura grant that flips the slot to Transmute Frost; `aura: 'Frost|10'` is the aura/duration
   // pair the cast-effects layer reads when applying it.
   [ID.FROST_AURA]: {
-    name: 'Frost Aura',
+    name: AURA.FROST,
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -330,7 +329,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Transmute Frost',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 360,
@@ -343,7 +342,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'boon',
         boon: BOON.REGENERATION,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 4,
         metadata: {}
@@ -355,7 +354,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Cleansing Wave',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 960,
@@ -371,7 +370,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Lightning Whip',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 640,
@@ -407,7 +406,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Convergence',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 360,
@@ -421,7 +420,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -433,10 +432,10 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   // Air-attunement counterpart of the Frost Aura pair: grants the aura and flips to Transmute Lightning.
   [ID.SHOCKING_AURA]: {
-    name: 'Shocking Aura',
+    name: AURA.SHOCKING,
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -453,7 +452,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Transmute Lightning',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 360,
@@ -473,7 +472,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Ride the Lightning',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 120,
@@ -497,7 +496,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Updraft',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 880,
@@ -520,7 +519,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Impale',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 600,
@@ -537,7 +536,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Ring of Earth',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 880,
@@ -560,7 +559,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Earthen Rush',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 640,
@@ -574,7 +573,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Leap',
+            finisherType: COMBO_FINISHER.LEAP,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -587,7 +586,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Earthquake',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 680,
@@ -602,7 +601,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -618,7 +617,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Churning Earth',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 960,
@@ -636,7 +635,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
             comboFinishers: [
               {
                 ownerId: 'elementalist',
-                finisherType: 'Blast',
+                finisherType: COMBO_FINISHER.BLAST,
                 ambiguousFieldSelection: 'oldest'
               }
             ],

@@ -1,9 +1,9 @@
+import { ACTOR, type SimulationActorType } from '#gw2/platform/constants.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { normalizeEffectAudience } from '#gw2/platform/effects/audience-metadata-validation.js';
 import { proceduralSkillWeapon, splitStrikeHits } from '#gw2/platform/effects/packet-builders.js';
 import type { EffectAudience, EffectMetadata, SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -49,7 +49,7 @@ function envelope(skill: { readonly id: SkillId; readonly name: string } | null,
     ...rest,
     source: source ?? 'thief',
     sourceId: sourceId ?? skill?.id ?? id ?? 'thief.procedural',
-    actorType: actorType ?? 'player',
+    actorType: actorType ?? ACTOR.PLAYER,
     ...(id == null ? {} : { skillId: id }),
     ...(label == null ? {} : { skillName: label })
   };

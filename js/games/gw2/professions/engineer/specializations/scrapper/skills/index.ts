@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { COMBO_FIELD, RECIPIENT, ACTOR, CONTROL, BOON } from '#gw2/platform/constants.js';
 /**
  * Scrapper Engineer skill mechanics.
  *
@@ -15,7 +15,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
     comboFields: [
       {
         ownerId: 'engineer',
-        fieldType: 'Water',
+        fieldType: COMBO_FIELD.WATER,
         duration: 2,
         startAnchor: 'castEnd',
         inclusiveExpiry: true
@@ -24,7 +24,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.PROTECTION,
         duration: 2,
         stacks: 1
@@ -49,7 +49,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Shredder Gyro',
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   },
@@ -59,7 +59,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
     comboFields: [
       {
         ownerId: 'engineer',
-        fieldType: 'Water',
+        fieldType: COMBO_FIELD.WATER,
         duration: 5,
         startAnchor: 'castEnd',
         inclusiveExpiry: true
@@ -82,7 +82,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Spare Capacitor',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     toolbeltParentId: ID.SHREDDER_GYRO
@@ -97,16 +97,16 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Blast Gyro',
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       },
       {
         type: 'control',
-        actorType: 'effect',
-        controlKind: 'stun'
+        actorType: ACTOR.EFFECT,
+        controlKind: CONTROL.STUN
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 15,
         stacks: 2
@@ -124,7 +124,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
         coefficient: 1,
         hits: 1,
         name: 'Function Gyro (tool belt skill)',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     mechanicSlot: 5

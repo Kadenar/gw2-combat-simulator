@@ -1,3 +1,4 @@
+import { CONTROL } from '#gw2/platform/constants.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Devourer family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -21,7 +22,7 @@ export const SOULBEAST_DEVOURER_BEAST_SKILL_MECHANICS: Readonly<Record<number, P
       {
         // The merged Tail Lash disables foes just like the pet skill, including on-disable trait triggers.
         type: 'control',
-        controlKind: 'knockback'
+        controlKind: CONTROL.KNOCKBACK
       }
     ]
   }

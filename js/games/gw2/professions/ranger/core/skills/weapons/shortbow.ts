@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, CONTROL, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -93,7 +92,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
           comboFinishers: [
             {
               ownerId: 'ranger',
-              finisherType: 'Projectile',
+              finisherType: COMBO_FINISHER.PROJECTILE,
               chance: 0.2,
               ambiguousFieldSelection: 'oldest'
             }
@@ -125,7 +124,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
           comboFinishers: [
             {
               ownerId: 'ranger',
-              finisherType: 'Projectile',
+              finisherType: COMBO_FINISHER.PROJECTILE,
               ambiguousFieldSelection: 'oldest'
             }
           ]
@@ -162,19 +161,19 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
           comboFinishers: [
             {
               ownerId: 'ranger',
-              finisherType: 'Projectile',
+              finisherType: COMBO_FINISHER.PROJECTILE,
               ambiguousFieldSelection: 'oldest'
             }
           ]
         },
         {
           type: 'control',
-          controlKind: 'daze',
+          controlKind: CONTROL.DAZE,
           when: (runtime) => !runtime.config.target?.defiant
         },
         {
           type: 'control',
-          controlKind: 'stun',
+          controlKind: CONTROL.STUN,
           when: (runtime) => Boolean(runtime.config.target?.defiant)
         }
       ]
@@ -196,7 +195,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
           comboFinishers: [
             {
               ownerId: 'ranger',
-              finisherType: 'Projectile',
+              finisherType: COMBO_FINISHER.PROJECTILE,
               ambiguousFieldSelection: 'oldest'
             }
           ]
@@ -239,8 +238,8 @@ export function triggerBloodThirst(context: RangerResolverContext, event: Gw2Res
     attribution: {
       source: 'ranger',
       sourceId: ID.CRIPPLING_SHOT,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       skillId: ID.CRIPPLING_SHOT,
       skillName: 'Blood Thirst',
       triggeredBy: event.skillName

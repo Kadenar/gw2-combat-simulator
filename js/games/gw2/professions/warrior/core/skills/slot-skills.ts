@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
@@ -43,7 +42,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: 'Projectile',
+        finisherType: COMBO_FINISHER.PROJECTILE,
         chance: 1,
         ambiguousFieldSelection: 'oldest'
       }
@@ -113,7 +112,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'control',
-        controlKind: 'launch'
+        controlKind: CONTROL.LAUNCH
       }
     ]
   },
@@ -173,7 +172,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 10,
         stacks: 2
@@ -185,7 +184,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: CONTROL.DAZE
       }
     ]
   },
@@ -194,7 +193,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.FURY,
         duration: 4,
         stacks: 1
@@ -245,21 +244,21 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 12,
         stacks: 2
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.FURY,
         duration: 6,
         stacks: 1
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.SWIFTNESS,
         duration: 12,
         stacks: 1
@@ -298,7 +297,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'control',
-        controlKind: 'knockback'
+        controlKind: CONTROL.KNOCKBACK
       }
     ])
   },
@@ -313,7 +312,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: 'Leap',
+        finisherType: COMBO_FINISHER.LEAP,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -325,7 +324,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'control',
-        controlKind: 'knockdown'
+        controlKind: CONTROL.KNOCKDOWN
       }
     ])
   },

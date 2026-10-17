@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -101,9 +102,9 @@ const feverishPulse = defineTrait({
       attribution: (_runtime, cast) => ({
         source: 'Paragon',
         sourceId: cast.skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: `${cast.skill.name} — alacrity`,
-        audience: { recipients: 'party' }
+        audience: { recipients: RECIPIENT.PARTY }
       })
     }
   ]

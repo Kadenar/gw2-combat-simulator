@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
@@ -47,7 +48,7 @@ export const VINDICATOR_PROFESSION_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 0.93,
         hits: 1,
         name: 'Call of the Alliance',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },

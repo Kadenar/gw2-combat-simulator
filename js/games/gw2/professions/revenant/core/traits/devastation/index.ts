@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -59,7 +59,7 @@ export const assassinsPresence = defineTrait({
         boon: BOON.FURY,
         duration: 3,
         stacks: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -80,7 +80,7 @@ export const battleScarred = defineTrait({
         kind: 'battle-scars',
         duration: 10,
         stacks: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -102,7 +102,7 @@ export const brutality = defineTrait({
         boon: BOON.QUICKNESS,
         duration: 3,
         stacks: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -165,7 +165,7 @@ export const exposeDefensesTrait = defineTrait({
         condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -192,7 +192,7 @@ export const notoriety = defineTrait({
         boon: BOON.MIGHT,
         duration: 10,
         stacks: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -254,7 +254,7 @@ export const thrillOfCombatTrait = defineTrait({
         kind: 'battle-scars',
         duration: 10,
         stacks: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -302,7 +302,7 @@ function revenantAssassinsPresencePulse(runtime: RevenantRuntime): void {
     effects: (effect) => effect === boon,
     attribution: {
       source: 'Trait',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       sourceId: TRAIT.ASSASSINS_PRESENCE,
       skillId: TRAIT.ASSASSINS_PRESENCE,
       skillName: profile.name
@@ -312,7 +312,7 @@ function revenantAssassinsPresencePulse(runtime: RevenantRuntime): void {
       sourceId: TRAIT.ASSASSINS_PRESENCE,
       skillId: TRAIT.ASSASSINS_PRESENCE,
       skillName: profile.name,
-      audience: { recipients: 'party', maximumRecipients: 5 }
+      audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
     })
   });
 }
@@ -354,7 +354,7 @@ function exposeDefenses(runtime: RevenantRuntime, { cause: event }: RevenantStri
     attribution: {
       source: 'revenant',
       sourceId: TRAIT.EXPOSE_DEFENSES,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: TRAIT.EXPOSE_DEFENSES,
       skillName: 'Expose Defenses',
       name: `Expose Defenses — ${name}`
@@ -408,7 +408,7 @@ function thrillOfCombat(runtime: RevenantRuntime, { cause: event }: RevenantStri
       type: 'buff',
       at: runtime.time,
       source: 'revenant',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       sourceId: TRAIT.THRILL_OF_COMBAT,
       skillId: TRAIT.THRILL_OF_COMBAT,
       skillName: 'Thrill of Combat',
@@ -499,7 +499,7 @@ function grantBattleScars(
       at: runtime.time,
       source: 'revenant',
       sourceId,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: sourceId,
       skillName: sourceName,
       name: `${sourceName} — Battle Scars`,
@@ -526,7 +526,7 @@ function completeRevenantBrutality(runtime: RevenantRuntime, { cast }: RevenantC
     effects: (effect) => effect === boon,
     attribution: {
       source: 'Trait',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       sourceId: TRAIT.BRUTALITY,
       skillId: TRAIT.BRUTALITY,
       skillName: 'Brutality',
@@ -557,7 +557,7 @@ function completeNotoriety(runtime: RevenantRuntime, { cast }: RevenantCastCompl
         effects: (effect) => effect === boon,
         attribution: {
           source: 'Trait',
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           sourceId: TRAIT.NOTORIETY,
           skillId: skill.id,
           skillName: skill.name,

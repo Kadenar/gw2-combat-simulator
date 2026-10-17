@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { RECIPIENT, COMBO_FIELD, ACTOR, BOON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
@@ -40,7 +40,7 @@ function jadeSphereEffects(boon: string, duration: number): readonly SkillEffect
       stacks: 1,
       duration,
       atMs,
-      audience: { recipients: 'party' as const, maximumRecipients: 5 },
+      audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
       metadata: {}
     }))
   ]);
@@ -71,7 +71,7 @@ export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, Partial<Skill>
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 5,
         startAnchor: 'castEnd'
       }
@@ -94,7 +94,7 @@ export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, Partial<Skill>
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Water',
+        fieldType: COMBO_FIELD.WATER,
         duration: 5,
         startAnchor: 'castEnd'
       }
@@ -117,7 +117,7 @@ export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, Partial<Skill>
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Lightning',
+        fieldType: COMBO_FIELD.LIGHTNING,
         duration: 5,
         startAnchor: 'castEnd'
       }
@@ -140,7 +140,7 @@ export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, Partial<Skill>
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Poison',
+        fieldType: COMBO_FIELD.POISON,
         duration: 5,
         startAnchor: 'castEnd'
       }
@@ -193,7 +193,7 @@ function deployJadeSphere(context: ElementalistRuntime, cast: RuntimeCast<Elemen
       at: cast.start,
       source: skill.name,
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillName: skill.name,
       kind: 'catalyst-energy',
       value: context.resourceController.value('catalystEnergy'),

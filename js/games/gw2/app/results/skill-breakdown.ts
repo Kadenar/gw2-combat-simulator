@@ -1,4 +1,4 @@
-import type { SimulationActorType } from '#gw2/platform/events/actors.js';
+import { ACTOR, type SimulationActorType } from '#gw2/platform/constants.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
@@ -111,7 +111,7 @@ export const baseBreakdownName = (name: unknown): string =>
     .trim();
 
 const breakdownGroup = (actorType: SimulationActorType): 'Player' | 'Entities' | 'Environment' =>
-  actorType === 'summon' ? 'Entities' : actorType === 'environment' ? 'Environment' : 'Player';
+  actorType === ACTOR.SUMMON ? 'Entities' : actorType === ACTOR.ENVIRONMENT ? 'Environment' : 'Player';
 
 const CHRONOPHANTASMA_SUFFIX = ' - Chronophantasma';
 const PARENT_SKILL_SEPARATOR = ' \u2014 ';
@@ -161,7 +161,7 @@ function attributeBreakdownEntry(entry: Gw2DamageBreakdownEntry): BreakdownAttri
   const group = breakdownGroup(actorType);
   const name = breakdownDisplayName(entry, sourceSkill, parentSkill, group, String(entry.damageBreakdownName || ''));
   return {
-    entityName: actorType === 'summon' ? entry.entityName || '' : '',
+    entityName: actorType === ACTOR.SUMMON ? entry.entityName || '' : '',
     group,
     name,
     sourceSkill,
@@ -192,7 +192,7 @@ export function skillDamageIdentityKey(fields: {
   const actorIdentity = fields.summonKind
     ? `${fields.actorType ?? ''}:${fields.summonKind}`
     : (fields.actorType ?? fields.source ?? '');
-  const entityName = fields.actorType === 'summon' ? fields.entityName || '' : '';
+  const entityName = fields.actorType === ACTOR.SUMMON ? fields.entityName || '' : '';
   return `${String(identityId)}|${String(actorIdentity)}|${fields.parentSkill || ''}|${fields.name || ''}|${entityName}`;
 }
 
@@ -267,7 +267,7 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
 
     // Renamed contributions match accepted actions by ID, then event display name;
     // derive these counts here instead of transporting them on every contribution.
-    const entityName = event.actorType === 'summon' ? event.entityName || '' : '';
+    const entityName = event.actorType === ACTOR.SUMMON ? event.entityName || '' : '';
     // Some pet commands deal player-owned damage; retain their combined action totals for those rows.
     for (const scope of entityName ? ['', entityName] : ['']) {
       const id = actionKey(String(event.skillId ?? event.sourceId), scope);

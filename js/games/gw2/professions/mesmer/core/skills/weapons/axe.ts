@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import {
   buildMesmerStrikes,
   mesmerPacketOwner,
@@ -26,8 +26,8 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
         hits: 2,
         atMs: 0,
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'axe'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.AXE.toLowerCase()
       },
       {
         type: 'condition',
@@ -51,8 +51,8 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
         coefficient: 0.55,
         hits: 1,
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'axe'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.AXE.toLowerCase()
       },
       {
         type: 'condition',
@@ -72,8 +72,8 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
         coefficient: 0.55,
         hits: 1,
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'axe'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.AXE.toLowerCase()
       },
       {
         type: 'condition',
@@ -91,7 +91,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
     comboFinishers: [
       {
         ownerId: 'mesmer',
-        finisherType: 'Whirl',
+        finisherType: COMBO_FINISHER.WHIRL,
         applications: 2,
         ambiguousFieldSelection: 'oldest'
       }
@@ -107,8 +107,8 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
         hits: 3,
         atMs: 0,
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'axe'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.AXE.toLowerCase()
       },
       {
         type: 'condition',
@@ -134,7 +134,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
     comboFinishers: [
       {
         ownerId: 'mesmer',
-        finisherType: 'Leap',
+        finisherType: COMBO_FINISHER.LEAP,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -144,8 +144,8 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
         coefficient: 1.75,
         hits: 1,
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'axe'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.AXE.toLowerCase()
       },
       {
         type: 'condition',
@@ -173,7 +173,7 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
   {
     const delivery = mesmerCastDelivery(cast, skill);
     const axeClones = professionCoreState(state).clones.filter(
-      (clone) => clone.weapon === 'Axe' && canonicalTime(clone.createdAt) <= canonicalTime(castStart)
+      (clone) => clone.weapon === WEAPON.AXE && canonicalTime(clone.createdAt) <= canonicalTime(castStart)
     );
     for (const clone of axeClones) {
       const impactAt = at - 0.04;
@@ -182,7 +182,7 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
         {
           id: ID.AXES_OF_SYMMETRY,
           name: `${skill.name} — Clone`,
-          weapon: 'Axe',
+          weapon: WEAPON.AXE,
           blade: false
         },
         impactAt,
@@ -195,7 +195,7 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
         {
           metadata: { cloneId: clone.id },
           source: 'Clone',
-          actorType: 'summon',
+          actorType: ACTOR.SUMMON,
           summonKind: 'clone',
           name: `${skill.name} — Clone`
         }
@@ -215,7 +215,7 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
         { type: 'condition', condition: CONDITION.CONFUSION, duration: 6, stacks: 1 },
         'Clone',
         `${skill.name} — Clone`,
-        { metadata: { cloneId: clone.id }, skillId: skill.id, actorType: 'summon', summonKind: 'clone' }
+        { metadata: { cloneId: clone.id }, skillId: skill.id, actorType: ACTOR.SUMMON, summonKind: 'clone' }
       ).forEach((packet) => {
         state.effects.emit({
           ...delivery,

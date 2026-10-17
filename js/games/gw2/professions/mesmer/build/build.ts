@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { MESMER_SKILL_IDS as SKILL } from '#gw2/professions/mesmer/data/ids.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
@@ -28,8 +29,8 @@ export function createMesmerBuildDefaults(): MesmerCanonicalBuild {
     profession: PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Berserker's"])),
     alternateWeaponPrefixes: ["Berserker's", "Berserker's"],
-    weapons: ['Dagger', 'Sword'],
-    alternateWeapons: ['Spear', ''],
+    weapons: [WEAPON.DAGGER, WEAPON.SWORD],
+    alternateWeapons: [WEAPON.SPEAR, ''],
     rune: 'Scholar',
     weaponSigils: normalizeWeaponSigils(DEFAULT_WEAPON_SIGILS),
     relic: 'Thief',

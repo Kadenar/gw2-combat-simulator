@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   fromProfile,
@@ -88,7 +89,7 @@ export const troubadourTooltips = {
             ...simulationEffectFacts(
               tooltipProfile(balanceContext, profileId).effects?.map((effect) => ({
                 ...effect,
-                audience: { recipients: 'party', maximumRecipients: 5 }
+                audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
               }))
             ).facts,
             profileFact(balanceContext, profileId, 'resourceGain', 'Notes with matching instrument')
@@ -142,7 +143,7 @@ export const troubadourTooltips = {
     [TRAIT.LIFE_OF_THE_PARTY]: traitTooltip(
       'Lively Lute grants quickness and might to the party. Crescendo grants its separate quickness, might, and fury applications.',
       () => [],
-      'party'
+      RECIPIENT.PARTY
     ),
     [TRAIT.LOVE_SONG]: outsideScopeTooltip,
     [TRAIT.FORTISSIMO]: traitTooltip(

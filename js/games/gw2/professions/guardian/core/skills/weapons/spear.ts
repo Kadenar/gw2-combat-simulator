@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { ACTOR, RECIPIENT, COMBO_FIELD, CONTROL, WEAPON, BOON } from '#gw2/platform/constants.js';
 import { strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
@@ -104,7 +104,7 @@ function illuminatedSpearEffects(
       timingAnchor: 'castStart',
       timingScale: 'fixed',
       persistsAfterInterrupt: firstBonus.persistsAfterInterrupt,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       source: 'Skill',
       sourceId: 'guardian.illuminated',
       event: {
@@ -152,7 +152,7 @@ function completeSpearIllumination(runtime: GuardianRuntime, cast: RuntimeCast<G
       attribution: {
         source: 'Skill',
         sourceId: 'guardian.symbol-of-luminance',
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         activationId: cast.id,
         skillId: cast.skill.id,
         skillName: cast.skill.name
@@ -204,7 +204,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, affectsSelf: false, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, affectsSelf: false, maximumRecipients: 5 },
         boon: BOON.RESOLUTION,
         duration: 4
       }
@@ -309,7 +309,9 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
 
     cooldown: 20,
     // The Light field begins on the initial impact and lasts four seconds.
-    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 360, startAnchor: 'castStart' }],
+    comboFields: [
+      { ownerId: 'guardian', fieldType: COMBO_FIELD.LIGHT, duration: 4, startMs: 360, startAnchor: 'castStart' }
+    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -327,7 +329,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         // The knockback belongs to the initial impact, not the recurring symbol pulses.
         type: 'control',
-        controlKind: 'knockback',
+        controlKind: CONTROL.KNOCKBACK,
         atMs: 360
       }
     ])
@@ -347,7 +349,7 @@ const guardianSpearActions: RuntimeProfession<GuardianRuntimeState, GuardianSkil
 export const guardianSpearLifecycle = {
   // Seed the native charge before an isolated spear activation so its normal effect selection owns the bonus.
   prepareDamageState(runtime, skill, inputs) {
-    if (skill?.weapon !== 'Spear' || !inputs.illuminated) return;
+    if (skill?.weapon !== WEAPON.SPEAR || !inputs.illuminated) return;
 
     runtime.profession.core.spearIlluminatedArmed = true;
     runtime.profession.core.spearIlluminatedUntil = Infinity;

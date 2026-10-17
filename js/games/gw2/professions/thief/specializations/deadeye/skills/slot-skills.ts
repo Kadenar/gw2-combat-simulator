@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, STATUS, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -35,7 +35,7 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, Partial<Skill>>> = Obj
         // Scale the observed cast-end hit from cast start so Quickness preserves packet alignment.
         ticks: [{ atMs: 480, coefficient: 1 }],
         name: 'Shadow Flare',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -51,28 +51,28 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, Partial<Skill>>> = Obj
         coefficient: 1,
         hits: 1,
         name: 'Binding Shadow',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.POISONED,
         stacks: 2,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 15,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -112,7 +112,7 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, Partial<Skill>>> = Obj
     effects: [
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1
       }
@@ -129,7 +129,7 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, Partial<Skill>>> = Obj
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 1 }],
         name: 'Shadow Swap',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -146,20 +146,20 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, Partial<Skill>>> = Obj
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 0.4 }],
         name: 'Shadow Gust',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'knockback'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.KNOCKBACK
       }
     ]
   }

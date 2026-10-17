@@ -1,3 +1,4 @@
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
@@ -43,7 +44,7 @@ export function activateSoulbeastStance(runtime: RangerRuntime, skill: Skill, ki
     at: runtime.time,
     source: 'ranger',
     sourceId: skill.id,
-    actorType: 'player' as const,
+    actorType: ACTOR.PLAYER,
     skillId: skill.id,
     skillName: skill.name,
     kind,
@@ -59,7 +60,7 @@ export function activateSoulbeastStance(runtime: RangerRuntime, skill: Skill, ki
         {
           ...application,
           duration: sharedDuration,
-          audience: { recipients: 'party', affectsSelf: false, maximumRecipients: 4, eligibleCompanionIds: [] }
+          audience: { recipients: RECIPIENT.PARTY, affectsSelf: false, maximumRecipients: 4, eligibleCompanionIds: [] }
         },
         'buff'
       )

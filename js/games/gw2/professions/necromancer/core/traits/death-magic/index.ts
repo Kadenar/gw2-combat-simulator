@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { addCarapace, deathCarapaceStacks } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -165,7 +165,7 @@ function applyDarkDefense(runtime: NecromancerRuntime, cast: RuntimeCast<Necroma
 }
 
 function applyCorruptorsFervor(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (event.actorType === 'summon') return;
+  if (event.actorType === ACTOR.SUMMON) return;
 
   addCarapace(
     context,

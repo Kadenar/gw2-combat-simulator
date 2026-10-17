@@ -1,7 +1,7 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { boonKey, buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import {
@@ -58,8 +58,8 @@ export function emitSunspot(
       attribution: {
         source: 'Sunspot',
         sourceId: sourceId,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         skillName: 'Sunspot',
         icon: SUNSPOT_ICON,
         triggeredBy: sourceSkill,
@@ -79,7 +79,7 @@ export function emitSunspot(
       skillId: sourceId,
       skillName: 'Sunspot',
       cast: emissionCast,
-      attribution: { source: 'Sunspot', sourceId: sourceId, actorType: 'player', triggeredBy: sourceSkill },
+      attribution: { source: 'Sunspot', sourceId: sourceId, actorType: ACTOR.PLAYER, triggeredBy: sourceSkill },
       transform: (event) => ({ ...event, name: 'Sunspot' + ' \u2014 ' + event.condition }),
       receipt: true
     }).length > 0;
@@ -130,8 +130,8 @@ export function emitFlameExpulsion(
       attribution: {
         source: 'Flame Expulsion',
         sourceId,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         skillId: sourceId,
         skillName: 'Flame Expulsion',
         name: "Pyromancer's Puissance — Flame Expulsion",
@@ -158,7 +158,7 @@ export function emitFlameExpulsion(
         sourceId: sourceId,
         skillName: 'Flame Expulsion',
         skillId: elementalistEventSkill(context, 'Flame Expulsion', sourceId).id,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       transform: (packet) => ({
         ...packet,
@@ -188,9 +188,9 @@ export function emitFlameExpulsion(
           source: 'Trait',
           sourceId: TRAIT.PYROMANCERS_PUISSANCE,
           skillName: 'Flame Expulsion',
-          audience: { recipients: 'party', affectsSelf: false, maximumRecipients: 5 },
+          audience: { recipients: RECIPIENT.PARTY, affectsSelf: false, maximumRecipients: 5 },
           skillId: elementalistEventSkill(context, 'Flame Expulsion', sourceId).id,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           name: 'Flame Expulsion'
         },
         transform: (packet) => ({ ...packet, stacks: cappedMight })

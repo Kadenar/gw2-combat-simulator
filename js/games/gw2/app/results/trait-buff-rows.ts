@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { CatalogEntity } from '#gw2/platform/skills/types.js';
 import type { EventLogRow } from '#ui/results/event-log.js';
@@ -11,18 +12,18 @@ function recipients(event: SimulationEvent): string {
 
   if (resolved) {
     const labels = [
-      ...(resolved.includesSelf ? ['self'] : []),
+      ...(resolved.includesSelf ? [RECIPIENT.SELF] : []),
       ...(resolved.alliedPlayerCount
         ? [`${resolved.alliedPlayerCount} ${resolved.alliedPlayerCount === 1 ? 'ally' : 'allies'}`]
         : []),
-      ...(resolved.includesSummons ? ['summons'] : [])
+      ...(resolved.includesSummons ? [RECIPIENT.SUMMONS] : [])
     ];
     return labels.join(' + ') || 'no recipients';
   }
 
   const audience = event.audience;
 
-  if (!audience || audience.recipients === 'self') return 'self';
+  if (!audience || audience.recipients === RECIPIENT.SELF) return RECIPIENT.SELF;
 
   return `${audience.recipients}${audience.affectsSelf === false ? ' (excluding self)' : ''}`;
 }

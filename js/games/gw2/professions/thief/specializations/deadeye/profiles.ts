@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { DEADEYE_THIEVES_GUILD_PROFILE } from '#gw2/professions/thief/specializations/deadeye/mechanics/thieves-guild.js';
 

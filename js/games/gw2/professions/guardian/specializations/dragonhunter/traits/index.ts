@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -77,14 +77,14 @@ const bigGameHunter = defineTrait({
       emit: TRAIT.BIG_GAME_HUNTER,
       on: 'damage.resolved',
       when: (runtime, event, details) =>
-        event.actorType === 'player' &&
+        event.actorType === ACTOR.PLAYER &&
         Number(event.coefficient) > 0 &&
         (details.hitContext?.damage ?? 0) > 0 &&
         dragonhunterState.from(runtime).tetherUntil > runtime.time,
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.VULNERABILITY,
       attribution: (_runtime, event) => ({
         source: 'guardian',
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: TRAIT.BIG_GAME_HUNTER,
         skillName: 'Big Game Hunter',
         name: 'Big Game Hunter \u2014 Vulnerability',
@@ -125,7 +125,7 @@ const huntersPremonition = defineTrait({
       attribution: (_runtime, cast) => ({
         source: 'guardian',
         sourceId: cast.skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: undefined
       })
     }
@@ -262,7 +262,7 @@ function applyDulledSenses(runtime: GuardianRuntime, { cause: event }: Dragonhun
       source: 'guardian',
       sourceId: TRAIT.DULLED_SENSES,
       activationId: event.activationId,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: TRAIT.DULLED_SENSES,
       skillName: 'Dulled Senses',
       name: 'Dulled Senses — Crippled'
@@ -289,7 +289,7 @@ function grantHeavyLight(runtime: GuardianRuntime, { cause: event }: Dragonhunte
       source: 'guardian',
       sourceId: TRAIT.HEAVY_LIGHT,
       activationId: event.activationId,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: TRAIT.HEAVY_LIGHT,
       skillName: 'Heavy Light',
       name: 'Heavy Light'

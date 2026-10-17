@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONTROL, ACTOR, WEAPON, RECIPIENT, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -89,7 +89,7 @@ const engineerSpearSideEffectHandlers: RuntimeProfession<EngineerRuntimeState, E
         at: runtime.time,
         activationId: cast.id,
         offTarget: cast.command.offTarget,
-        controlKind: focused ? 'launch' : 'stun'
+        controlKind: focused ? CONTROL.LAUNCH : CONTROL.STUN
       },
       cast.skill
     ).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
@@ -129,7 +129,7 @@ const engineerSpearTasks: RuntimeProfession<EngineerRuntimeState, EngineerSkill>
       attribution: {
         source: 'engineer',
         sourceId: followup.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: followup.id,
         skillName: followup.name,
         activationId: `${cast.id}:focused-devastation`
@@ -137,7 +137,7 @@ const engineerSpearTasks: RuntimeProfession<EngineerRuntimeState, EngineerSkill>
       transform: (event) => ({
         ...event,
         offTarget: cast.command.offTarget,
-        skillWeapon: 'Spear',
+        skillWeapon: WEAPON.SPEAR,
         weaponStrengthProfileId: 'nonweapon.unequipped',
         persistsAfterInterrupt: true
       })
@@ -170,7 +170,7 @@ export function handleLightningRodPulse(context: EngineerResolverContext, event:
     context.effects.emit({
       kind: 'packet',
       event: buildEngineerStrike(event, {
-        skillWeapon: 'Spear',
+        skillWeapon: WEAPON.SPEAR,
         name: 'Lightning Rod',
         coefficient: Number(strike.coefficient)
       })
@@ -209,10 +209,10 @@ function handleConduitSurge(context: EngineerResolverContext, event: EngineerRes
         stacks: 1,
         source: 'engineer',
         sourceId: ID.CONDUIT_SURGE,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: 'Focused',
         skillName: event.skillName,
-        audience: { recipients: 'self' }
+        audience: { recipients: RECIPIENT.SELF }
       }
     });
 
@@ -222,13 +222,13 @@ function handleConduitSurge(context: EngineerResolverContext, event: EngineerRes
     context.effects.emit({
       kind: 'packet',
       event: buildEngineerStrike(event, {
-        skillWeapon: 'Spear',
+        skillWeapon: WEAPON.SPEAR,
         name: 'Conduit Surge',
         coefficient: Number(strike.coefficient),
         // Attempt the leap only when the strike reaches impact.
         comboFinisher: {
           ownerId: 'engineer',
-          finisherType: 'Leap',
+          finisherType: COMBO_FINISHER.LEAP,
           ambiguousFieldSelection: 'oldest'
         }
       })
@@ -246,7 +246,7 @@ function handleConduitSurge(context: EngineerResolverContext, event: EngineerRes
         duration: Number(burning.duration),
         source: 'engineer',
         sourceId: event.skillId ?? event.sourceId,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         activationId: event.activationId,
         offTarget: event.offTarget
       })
@@ -272,7 +272,7 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
     context.effects.emit({
       kind: 'packet',
       event: buildEngineerStrike(event, {
-        skillWeapon: 'Spear',
+        skillWeapon: WEAPON.SPEAR,
         name: 'Electric Artillery',
         coefficient: Number(strike.coefficient),
         explosion: true
@@ -324,7 +324,7 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
         duration: Number(burning.duration) + charges * balanceProfileNumber(idProfile, 'burningDurationPerCharge'),
         source: 'engineer',
         sourceId: event.skillId ?? event.sourceId,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         activationId: event.activationId,
         offTarget: event.offTarget
       })

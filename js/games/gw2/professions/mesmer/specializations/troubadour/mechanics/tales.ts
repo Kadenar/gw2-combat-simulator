@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { activeTroubadourInstrumentsAt } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
@@ -19,7 +20,7 @@ interface TroubadourTaleInvocation {
 export function resolveTroubadourTale({ context, skill, at, eligible }: TroubadourTaleInvocation): void {
   const profileId = skill.tale?.profileId;
   const profile = profileId ? requireBalanceProfileFromContext(context, profileId) : null;
-  const partyRecipients = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
+  const partyRecipients = { audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } };
 
   for (const boon of (profile?.effects || []).filter((effect) => effect.type === 'boon')) {
     const packet = buildMesmerPacket({

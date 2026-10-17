@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -72,7 +71,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: 'Projectile',
+        finisherType: COMBO_FINISHER.PROJECTILE,
         chance: 1,
         ambiguousFieldSelection: 'oldest'
       }
@@ -114,7 +113,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: 'Whirl',
+            finisherType: COMBO_FINISHER.WHIRL,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -157,7 +156,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: 'Whirl',
+            finisherType: COMBO_FINISHER.WHIRL,
             ambiguousFieldSelection: 'oldest'
           }
         ],

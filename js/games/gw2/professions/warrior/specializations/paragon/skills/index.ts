@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Explicit PvE skill mechanics owned by the Paragon Warrior module. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';

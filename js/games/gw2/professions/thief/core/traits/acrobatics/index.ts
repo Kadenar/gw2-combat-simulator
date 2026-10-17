@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { RECIPIENT, WEAPON, BOON } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -21,7 +21,14 @@ export const pumpingUp = defineTrait({
   name: 'Pumping Up',
   balance: {
     effects: [
-      { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 3, duration: 20, audience: { recipients: 'self' } }
+      {
+        type: 'boon',
+        name: BOON.MIGHT,
+        boon: BOON.MIGHT,
+        stacks: 3,
+        duration: 20,
+        audience: { recipients: RECIPIENT.SELF }
+      }
     ]
   },
   triggers: [
@@ -94,7 +101,7 @@ export const swindlersEquilibrium = defineTrait({
           amount: balanceNumberFromContext(
             balanceContext,
             TRAIT.SWINDLERS_EQUILIBRIUM,
-            weapons.includes('Sword') ? 'weaponAttributeBonus' : 'attributeBonus'
+            weapons.includes(WEAPON.SWORD) ? 'weaponAttributeBonus' : 'attributeBonus'
           ),
           feedsConversions: 'all'
         }

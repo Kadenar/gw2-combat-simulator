@@ -1,5 +1,13 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import {
+  WEAPON,
+  COMBO_FIELD,
+  COMBO_FINISHER,
+  RECIPIENT,
+  STATUS,
+  AURA,
+  BOON,
+  CONDITION
+} from '#gw2/platform/constants.js';
 /**
  * Staff weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -53,7 +61,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Fireball',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 960,
@@ -69,7 +77,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Lava Font',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 280,
@@ -77,7 +85,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 4,
         startAnchor: 'castEnd'
       }
@@ -100,7 +108,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Flame Burst',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 360,
@@ -130,7 +138,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Burning Retreat',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 1000,
@@ -138,7 +146,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 6,
         startAnchor: 'castEnd'
       }
@@ -239,7 +247,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
       name: 'Meteor Shower',
       type: 'Weapon',
       slot: 'Weapon_5',
-      weapon: 'Staff',
+      weapon: WEAPON.STAFF,
       attunement: 'Fire',
       categories: ['Weapon skill'],
       castTimeMs: 2640,
@@ -259,7 +267,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Water Blast',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 840,
@@ -284,7 +292,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Ice Spike',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 520,
@@ -298,7 +306,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -312,7 +320,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Geyser',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 560,
@@ -320,7 +328,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Water',
+        fieldType: COMBO_FIELD.WATER,
         duration: 4,
         startAnchor: 'castEnd'
       }
@@ -333,7 +341,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Frozen Grounds',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 280,
@@ -341,7 +349,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Ice',
+        fieldType: COMBO_FIELD.ICE,
         duration: 5,
         startAnchor: 'castEnd'
       }
@@ -368,7 +376,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Healing Rain',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 840,
@@ -376,7 +384,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Water',
+        fieldType: COMBO_FIELD.WATER,
         duration: 6,
         startAnchor: 'castEnd'
       }
@@ -387,7 +395,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'boon',
         boon: BOON.REGENERATION,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 13,
         atMs: 720,
@@ -402,7 +410,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Chain Lightning',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 840,
@@ -426,7 +434,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Lightning Surge',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 1000,
@@ -447,7 +455,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Gust',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 480,
@@ -468,7 +476,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Windborne Speed',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 480,
@@ -479,12 +487,12 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'boon',
         boon: BOON.SWIFTNESS,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 10,
         metadata: {}
       },
-      { type: 'buff', kind: 'superspeed', stacks: 1, duration: 3, metadata: {} }
+      { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3, metadata: {} }
     ])
   },
   // Two crowd-control pulses (the field's edges) at 200ms and 680ms, each with its own strike.
@@ -492,7 +500,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Static Field',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 680,
@@ -500,7 +508,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Lightning',
+        fieldType: COMBO_FIELD.LIGHTNING,
         duration: 4,
         startAnchor: 'castEnd'
       }
@@ -522,7 +530,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Stoning',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 880,
@@ -536,7 +544,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -550,7 +558,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Eruption',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 840,
@@ -564,7 +572,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -577,10 +585,10 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   // Aura/transmute flip pair: Magnetic Aura grants the aura and flips to Transmute Earth, which
   // is only available while that aura is active and consumes it for a blast finisher.
   [ID.MAGNETIC_AURA]: {
-    name: 'Magnetic Aura',
+    name: AURA.MAGNETIC,
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -596,7 +604,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Transmute Earth',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 360,
@@ -613,7 +621,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
             comboFinishers: [
               {
                 ownerId: 'elementalist',
-                finisherType: 'Blast',
+                finisherType: COMBO_FINISHER.BLAST,
                 ambiguousFieldSelection: 'oldest'
               }
             ],
@@ -629,7 +637,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Unsteady Ground',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 720,
@@ -651,7 +659,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Shock Wave',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 680,
@@ -665,7 +673,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ],

@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -75,7 +75,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
   const criticalFoodReaction = criticalProcHandler<Gw2ResolverRuntime, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'food.critical-strike',
     chanceOnCriticalHit: (ctx) => criticalFoodProc(ctx)?.chance || 0,
-    actorTypes: ['player'],
+    actorTypes: [ACTOR.PLAYER],
     when: (ctx, event) =>
       isGw2PlayerActorEvent(event) && Number(event.coefficient) > 0 && criticalFoodProc(ctx) != null,
     internalCooldown: {

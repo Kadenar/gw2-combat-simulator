@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -41,7 +41,7 @@ export const abyssalChill = defineTrait({
         condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -78,7 +78,7 @@ export const diabolicInferno = defineTrait({
         duration: 10,
         name: 'Invoke Torment - Poisoned',
         skillName: 'Invoke Torment',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         metadata: { trigger: 'diabolic-inferno' }
       },
       {
@@ -88,7 +88,7 @@ export const diabolicInferno = defineTrait({
         duration: 4,
         name: 'Invoke Torment - Burning',
         skillName: 'Invoke Torment',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         metadata: { trigger: 'diabolic-inferno' }
       }
     ])
@@ -110,7 +110,7 @@ export const invokingTorment = defineTrait({
         coefficient: 1,
         hits: 1,
         name: 'Invoke Torment',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -119,7 +119,7 @@ export const invokingTorment = defineTrait({
         duration: 10,
         name: 'Invoke Torment - Torment',
         skillName: 'Invoke Torment',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   }
@@ -175,7 +175,7 @@ function reactAbyssalChill(runtime: RevenantRuntime, { cause: event }: RevenantS
         attribution: {
           source: 'revenant',
           sourceId: TRAIT.ABYSSAL_CHILL,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: TRAIT.ABYSSAL_CHILL,
           skillName: 'Abyssal Chill',
           name: `Abyssal Chill — ${name}`
@@ -203,7 +203,7 @@ function invokeTorment(runtime: RevenantRuntime): void {
         activationId: `legend-invocation:${TRAIT.INVOKING_TORMENT}:${runtime.time}`,
         source: 'Trait',
         sourceId: TRAIT.INVOKING_TORMENT,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: TRAIT.INVOKING_TORMENT,
         skillName: 'Invoke Torment'
       },

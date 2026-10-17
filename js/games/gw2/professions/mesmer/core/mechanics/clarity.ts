@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -26,7 +27,7 @@ export function applyMesmerClarity(state: MesmerRuntime, event: Gw2ResolverEvent
     attribution: {
       source: event.source,
       sourceId: event.sourceId,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: event.skillId,
       activationId: event.activationId
     },
@@ -60,7 +61,7 @@ export function grantMesmerClarity(runtime: MesmerRuntime, skill: MesmerSkill, d
     attribution: {
       source: 'Player',
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name
     },

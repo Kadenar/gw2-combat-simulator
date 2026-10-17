@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -12,14 +11,14 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Part
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.PROTECTION,
         duration: 4,
         stacks: 1
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.AEGIS,
         duration: 4,
         stacks: 1
@@ -38,7 +37,7 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Part
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.RESOLUTION,
         duration: 6,
         stacks: 1
@@ -68,14 +67,14 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 8,
         stacks: 5
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.FURY,
         duration: 4,
         stacks: 1
@@ -108,7 +107,7 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'control',
-        controlKind: 'pull'
+        controlKind: CONTROL.PULL
       }
     ]
   },

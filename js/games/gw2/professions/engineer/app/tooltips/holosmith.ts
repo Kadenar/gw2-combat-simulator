@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
 import {
   fromProfile,
   tooltipSeconds,

@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, AURA, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -95,8 +95,8 @@ const lastBlaze = defineTrait({
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.LAST_BLAZE,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         name: 'Last Blaze — Burning'
       }
     }
@@ -150,7 +150,7 @@ const kingOfFires = defineTrait({
     {
       on: 'damage.resolved',
       run(runtime, event, details) {
-        if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+        if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return;
 
         const hit = details.hitContext as Gw2HitResolutionContext;
         const state = berserkerState.from(runtime);
@@ -177,7 +177,7 @@ const kingOfFires = defineTrait({
           attribution: {
             source: 'Trait',
             sourceId: TRAIT.KING_OF_FIRES,
-            actorType: 'effect',
+            actorType: ACTOR.EFFECT,
             skillId: event.skillId,
             skillName: event.skillName,
             name: 'King of Fires — Fire Aura'
@@ -188,7 +188,7 @@ const kingOfFires = defineTrait({
           kind: 'announcement',
           announcement: {
             type: 'trait',
-            name: 'Fire Aura',
+            name: AURA.FIRE,
             at: runtime.time,
             sourceSkill: event.skillName,
             detail: 'Granted by King of Fires',
@@ -233,7 +233,7 @@ const kingOfFires = defineTrait({
   lifetime: {
     reactions: {
       'aura.applied'(runtime, event) {
-        if (event.aura === 'Fire Aura') armAura(runtime, gw2EffectExpiresAt(runtime.time, event.duration ?? 0));
+        if (event.aura === AURA.FIRE) armAura(runtime, gw2EffectExpiresAt(runtime.time, event.duration ?? 0));
       }
     },
     tasks: {
@@ -308,7 +308,7 @@ function emitBerserkEntryBoons(runtime: WarriorRuntime, cast: RuntimeCast<Warrio
     attribution: {
       source: 'Trait',
       sourceId: traitId,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       activationId: cast.id,
       skillId: cast.skill.id,
       skillName: cast.skill.name
@@ -317,7 +317,7 @@ function emitBerserkEntryBoons(runtime: WarriorRuntime, cast: RuntimeCast<Warrio
       ...event,
       name: profile.name,
       duration: event.duration,
-      audience: { recipients: 'self' }
+      audience: { recipients: RECIPIENT.SELF }
     }),
     effects: (effect) => effect.type === 'boon'
   });
@@ -331,7 +331,7 @@ function heatTheSoulCompletion(runtime: WarriorRuntime, cast: RuntimeCast<Warrio
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.HEAT_THE_SOUL,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         activationId: cast.id,
         skillId: cast.skill.id,
         skillName: cast.skill.name
@@ -339,7 +339,7 @@ function heatTheSoulCompletion(runtime: WarriorRuntime, cast: RuntimeCast<Warrio
       transform: (event) => ({
         ...event,
         name: profile.name,
-        audience: { recipients: 'party' }
+        audience: { recipients: RECIPIENT.PARTY }
       }),
       // Select exactly one Quickness variant before materialization so live boon duration applies once.
       effects: (effect) =>

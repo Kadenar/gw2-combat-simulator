@@ -1,3 +1,4 @@
+import { ACTOR, STATUS } from '#gw2/platform/constants.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
@@ -60,7 +61,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   rechargeCompanionId: (runtime, skill) => (skill.petSkill ? rangerPetCompanionId(runtime) : undefined),
   // Pet packets and delayed field creation end with their caster; existing fields and ranger-stat packets survive.
   effectOwner(_context, event) {
-    if (event.actorType === 'summon' && isRangerPetInstanceId(event.summonOwner))
+    if (event.actorType === ACTOR.SUMMON && isRangerPetInstanceId(event.summonOwner))
       return { id: event.summonOwner, generation: 0 };
 
     return undefined;
@@ -70,7 +71,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
 
     // A surviving ranger-stat effect cannot create new pet-owned children after that pet is removed.
     if (
-      event.actorType === 'summon' &&
+      event.actorType === ACTOR.SUMMON &&
       typeof event.summonOwner === 'string' &&
       runtime.time >= (runtime.combat.companionRetiredAt(event.summonOwner) ?? Infinity)
     )
@@ -79,7 +80,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     const skill = runtime.helpers.skillsById.get(event.skillId!);
 
     // The pet lane publishes its action only when the command actually starts in the current generation.
-    if (event.type === 'action' && skill?.petSkill && event.actorType !== 'summon') return null;
+    if (event.type === 'action' && skill?.petSkill && event.actorType !== ACTOR.SUMMON) return null;
 
     if (!prepareFrostTrapEvent(runtime, event)) return null;
 
@@ -145,7 +146,10 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
       runtime.fireTrigger(criticalResolved, { event, details });
       const state = runtime.profession.core;
 
-      if ((event.actorType === 'player' || event.ownerActorType === 'player') && state.stealthUntil > runtime.time) {
+      if (
+        (event.actorType === ACTOR.PLAYER || event.ownerActorType === ACTOR.PLAYER) &&
+        state.stealthUntil > runtime.time
+      ) {
         state.stealthUntil = runtime.time;
         state.revealedUntil = runtime.time + 3;
       }
@@ -156,7 +160,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
       armPetSharpenSpines(runtime, event);
       armParalyzingVenom(runtime, event);
 
-      if (event.kind === 'stealth' && event.resolvedAudience?.includesSelf && state.revealedUntil <= runtime.time)
+      if (event.kind === STATUS.STEALTH && event.resolvedAudience?.includesSelf && state.revealedUntil <= runtime.time)
         runtime.schedule('ranger.stealth', runtime.time, event.duration || 0, undefined, 10);
     }
   }

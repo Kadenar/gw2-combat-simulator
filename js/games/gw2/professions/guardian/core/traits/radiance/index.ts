@@ -1,8 +1,7 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey, durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 
@@ -91,7 +90,10 @@ export const rightHandStrength = defineTrait({
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     const mainHand = weapons[0] || '';
     const oneHandedMainHand =
-      mainHand !== '' && !['Greatsword', 'Hammer', 'Longbow', 'Spear', 'Staff'].includes(mainHand);
+      mainHand !== '' &&
+      ![WEAPON.GREATSWORD, WEAPON.HAMMER, WEAPON.LONGBOW, WEAPON.SPEAR, WEAPON.STAFF].some(
+        (member) => member === mainHand
+      );
     return {
       attributeEffects: [
         {
@@ -152,7 +154,7 @@ export const radiantFire = defineTrait({
   ],
   rechargeRules: [
     {
-      when: (_runtime, skill) => skill.weapon === 'Torch',
+      when: (_runtime, skill) => skill.weapon === WEAPON.TORCH,
       multiplier: { profile: TRAIT.RADIANT_FIRE, field: 'rechargeMultiplier' }
     }
   ],
@@ -264,7 +266,7 @@ export const innerFire = defineTrait({
       emit: TRAIT.INNER_FIRE,
       cooldown: 'profile',
       when: (runtime, event, details) =>
-        event.actorType === 'player' &&
+        event.actorType === ACTOR.PLAYER &&
         (details.hitContext?.damage ?? 0) > 0 &&
         runtime.combat.targetConditionStacks(CONDITION.BURNING, event.at) >=
           balanceNumberFromContext(runtime, TRAIT.INNER_FIRE, 'threshold')
@@ -300,7 +302,7 @@ function righteousMight(runtime: GuardianRuntime, event: Gw2ResolverEvent): bool
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.RIGHTEOUS_INSTINCTS,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: TRAIT.RIGHTEOUS_INSTINCTS,
       skillName: profile.name,
       activationId: event.activationId
@@ -417,8 +419,8 @@ function blindFromJustice(runtime: GuardianRuntime, { cause: event, skill, auraT
     attribution: {
       source: event.source,
       skillId: TRAIT.JUSTICE_IS_BLIND,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       skillName: 'Justice is Blind',
       triggeredBy: skill.name,
       offTarget: event.offTarget

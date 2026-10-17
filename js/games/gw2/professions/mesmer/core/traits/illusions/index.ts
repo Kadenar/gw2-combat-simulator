@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -170,7 +170,7 @@ export const masterOfFragmentation = defineTrait<MesmerSkill>({
       emit: TRAIT.MASTER_OF_FRAGMENTATION,
       effects: (effect) => effect.type === 'condition' && effect.name === condition,
       attribution: (_runtime, event) => ({
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: `${event.skillName || TRAIT.MASTER_OF_FRAGMENTATION} — ${condition}`
       })
     }))
@@ -253,7 +253,7 @@ function triggerThePledge(context: MesmerRuntime, event: SimulationEvent): void 
     effect: { type: 'condition', name: CONDITION.BURNING },
     transform: (payload) =>
       buildResolverCondition({
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         at: event.at,
         source: 'Trait',
         sourceId: TRAIT.THE_PLEDGE,
@@ -301,7 +301,7 @@ function triggerCompoundingPower(
     const traitSource = {
       source: 'Trait',
       sourceId: TRAIT.COMPOUNDING_POWER,
-      actorType: 'player' as const,
+      actorType: ACTOR.PLAYER,
       skillId: TRAIT.COMPOUNDING_POWER,
       skillName: traitProfile.name
     };
@@ -313,7 +313,7 @@ function triggerCompoundingPower(
         ...delivery,
         kind: 'announcement',
         log: true,
-        attribution: { ...traitSource, actorType: 'effect' },
+        attribution: { ...traitSource, actorType: ACTOR.EFFECT },
         announcement: {
           type: 'trait',
           name: traitProfile.name,
@@ -373,7 +373,7 @@ function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: MesmerS
     ...resolution.delivery,
     kind: 'announcement',
     log: true,
-    attribution: { source: 'Trait', sourceId: TRAIT.MAIM_THE_DISILLUSIONED, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.MAIM_THE_DISILLUSIONED, actorType: ACTOR.EFFECT },
     announcement: {
       type: 'trait',
       name: 'Maim the Disillusioned',

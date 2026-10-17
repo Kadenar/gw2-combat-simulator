@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
@@ -417,7 +418,7 @@ export function runRuntime<T extends object>(
       at: combatStartTime,
       source: 'Runtime',
       sourceId: 'combat-start',
-      actorType: 'environment',
+      actorType: ACTOR.ENVIRONMENT,
       eventOrder: 0
     });
     for (const relic of [runtime.relic, ...precastRelics]) relic.state.combatMarker = marker;
@@ -447,7 +448,7 @@ export function runRuntime<T extends object>(
         source: buff.name ?? buff.kind,
         sourceId: `assumption.initial-buff.${buff.kind}`,
         skillName: buff.name ?? buff.kind,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       })
     });
   }

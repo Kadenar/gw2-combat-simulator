@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Mechanist autonomous, triggered, and supplemental mech attack identities.
  * User-issued mech commands and their cast-lane rules live in `mech-command-skills.ts`.
@@ -18,7 +18,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
         coefficient: 1,
         hits: 1,
         name: 'Aerial Support',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -32,7 +32,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
         coefficient: 1,
         hits: 1,
         name: 'Rocket Punch (Mech)',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         damageKind: 'explosion'
       },
       {
@@ -40,11 +40,11 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 5,
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'control',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         controlKind: 'defiance'
       }
     ]
@@ -59,7 +59,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
         coefficient: 0.45,
         hits: 1,
         name: 'Heavy Smash (Mech)',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]
   },
@@ -67,7 +67,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
     castTimeMs: 0,
     cooldown: 0,
     // Both arm identities share their intrinsic summon projectile payload.
-    effects: [{ type: 'strike', name: 'Jade Energy Shot', coefficient: 0.42, hits: 1, actorType: 'summon' }]
+    effects: [{ type: 'strike', name: 'Jade Energy Shot', coefficient: 0.42, hits: 1, actorType: ACTOR.SUMMON }]
   },
   [ID.TWIN_STRIKE_MECH]: {
     castTimeMs: 500,
@@ -80,7 +80,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
         coefficient: 0.8,
         hits: 1,
         name: 'Twin Strike (Mech)',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]
   },
@@ -94,7 +94,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
         coefficient: 0.45,
         hits: 1,
         name: 'Hard Strike',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]
   },
@@ -102,7 +102,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
     castTimeMs: 0,
     cooldown: 0,
     // Both arm identities share their intrinsic summon projectile payload.
-    effects: [{ type: 'strike', name: 'Jade Energy Shot', coefficient: 0.42, hits: 1, actorType: 'summon' }]
+    effects: [{ type: 'strike', name: 'Jade Energy Shot', coefficient: 0.42, hits: 1, actorType: ACTOR.SUMMON }]
   },
   [ID.JADE_BUSTER_CANNON]: {
     simulatorExcluded: true,
@@ -116,7 +116,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
         type: 'strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 880 + index * 360, coefficient: 4.75 / 5 })),
         name: 'Jade Buster Cannon',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -126,7 +126,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
           stacks: 1,
           duration: 6
         })),
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     toolbeltParentId: ID.OVERCLOCK_SIGNET

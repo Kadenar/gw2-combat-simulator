@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 /** Owns Conduit Cosmic Wisdom form and attack skills; Demon button aliases resolve to Core skills. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -13,7 +14,7 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 0.8,
         hits: 1,
         name: 'Form of the Dervish (Attack)',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -36,7 +37,7 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 0.8,
         hits: 1,
         name: 'Form of the Dervish (Attack - Elite)',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -54,7 +55,7 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Part
         kind: 'cosmic-wisdom',
         duration: 7,
         stacks: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -68,7 +69,7 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 1.1,
         hits: 1,
         name: 'Dwarven Retribution',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -87,7 +88,7 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Part
         canCrit: false,
         hits: 1,
         name: 'Lesser Enchanted Daggers',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }

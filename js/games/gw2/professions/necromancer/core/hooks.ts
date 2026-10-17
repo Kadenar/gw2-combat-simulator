@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
@@ -68,7 +69,7 @@ function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
 
   if (!skill) return;
 
-  if (event.actorType !== 'player') return;
+  if (event.actorType !== ACTOR.PLAYER) return;
 
   // Combine trait rewards before the shared conversion and pool refresh, ahead of condition transfers.
   const reward = { skill, event, percent: 0 };
@@ -192,7 +193,7 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
       runtime.combat.statsAt(runtime.time, {
         type: 'action',
         at: runtime.time,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         source: 'Player',
         sourceId: 'resource-initialization'
       }).vitality

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -41,7 +40,7 @@ export const burstOfAgility = defineTrait({
       invoke: ID.LESSER_HASTE,
       cooldown: 'skill',
       when: (runtime, event) =>
-        event.actorType === 'player' && Number(event.coefficient) > 0 && Boolean(runtime.config.target?.defiant)
+        event.actorType === ACTOR.PLAYER && Number(event.coefficient) > 0 && Boolean(runtime.config.target?.defiant)
     }
   ]
 });
@@ -170,7 +169,7 @@ export const sleightOfHand = defineTrait({
   triggers: [onTriggerPoint(stealAccepted, { run: applySleightOfHand })],
   balance: {
     rechargeMultiplier: 0.8,
-    effects: [{ type: 'control', name: 'daze', kind: 'daze' }]
+    effects: [{ type: 'control', name: CONTROL.DAZE, kind: CONTROL.DAZE }]
   },
   rechargeRules: [
     {
@@ -208,14 +207,14 @@ function applyBountifulTheft(runtime: ThiefRuntime, { cast }: StealAcceptance): 
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       activationId: cast.id,
-      attribution: { source: 'Trait', sourceId: TRAIT.BOUNTIFUL_THEFT, actorType: 'player' },
+      attribution: { source: 'Trait', sourceId: TRAIT.BOUNTIFUL_THEFT, actorType: ACTOR.PLAYER },
       transform: (event, effect) => ({
         ...event,
         name: 'Steal \u2014 ' + String(effect.boon),
         kind: String(effect.boon).toLowerCase(),
         boon: String(effect.boon),
         fixedDuration: false,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       })
     });
   }
@@ -238,7 +237,7 @@ function applyDeadlyAmbush(runtime: ThiefRuntime, { cast }: StealAcceptance): vo
       triggeredBy: cast.skill.name,
       activationId: cast.id,
       name: 'Deadly Ambush — Bleeding',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       sourceId: TRAIT.DEADLY_AMBUSH
     }
   });
@@ -252,7 +251,11 @@ function applyKleptomaniac(runtime: ThiefRuntime): void {
 }
 
 function applySleightOfHand(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
-  const control = requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.SLEIGHT_OF_HAND), 'control', 'daze');
+  const control = requireEffect(
+    requireBalanceProfileFromContext(runtime, TRAIT.SLEIGHT_OF_HAND),
+    'control',
+    CONTROL.DAZE
+  );
 
   if (!control) return;
 
@@ -276,14 +279,14 @@ function applyThrillOfTheCrime(runtime: ThiefRuntime, { cast }: StealAcceptance)
     skillId: cast.skill.id,
     skillName: cast.skill.name,
     activationId: cast.id,
-    attribution: { source: 'Trait', sourceId: TRAIT.THRILL_OF_THE_CRIME, actorType: 'player' },
+    attribution: { source: 'Trait', sourceId: TRAIT.THRILL_OF_THE_CRIME, actorType: ACTOR.PLAYER },
     transform: (event, effect) => ({
       ...event,
       name: 'Steal \u2014 ' + String(effect.boon),
       kind: String(effect.boon).toLowerCase(),
       boon: String(effect.boon),
       fixedDuration: false,
-      audience: { recipients: 'party', maximumRecipients: 5 }
+      audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
     })
   });
 }
@@ -341,7 +344,7 @@ function startUncatchable(runtime: ThiefRuntime, { cast }: ThiefDodge): void {
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.UNCATCHABLE,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: caltrops.id,
       skillName: caltrops.name,
       triggeredBy: cast.skill.name,

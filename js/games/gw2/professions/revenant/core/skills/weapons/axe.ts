@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -17,23 +17,23 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         ticks: [{ atMs: 680, coefficient: 0.15 }],
         name: 'Pass-Through Damage',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'strike',
         ticks: [{ atMs: 1000, coefficient: 1.5 }],
         name: 'Final Damage',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         ticks: [{ atMs: 680, condition: CONDITION.CHILLED, stacks: 1, duration: 2 }],
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         ticks: [{ atMs: 1000, condition: CONDITION.TORMENT, stacks: 3, duration: 6 }],
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -51,19 +51,19 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 0.75,
         hits: 1,
         name: 'Temporal Rift',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.TORMENT,
         stacks: 4,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'pull'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.PULL
       }
     ])
   }

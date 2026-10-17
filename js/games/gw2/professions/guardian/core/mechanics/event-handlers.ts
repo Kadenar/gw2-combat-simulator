@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
@@ -9,7 +10,7 @@ import type { GuardianStrikeFields } from '#gw2/professions/guardian/types.js';
 export function buildGuardianStrike(fields: GuardianStrikeFields): DamageEvent {
   return buildResolverStrike({
     source: 'guardian',
-    actorType: 'player',
+    actorType: ACTOR.PLAYER,
     skillWeapon: '',
     canCrit: true,
     ...fields
@@ -26,7 +27,7 @@ export function guardianCastCause(
     at: runtime.time,
     source: 'guardian',
     sourceId: cast.skill.id,
-    actorType: 'player',
+    actorType: ACTOR.PLAYER,
     skillId: cast.skill.id,
     skillName: cast.skill.name,
     activationId: cast.id

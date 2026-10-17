@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { splitStrikeHits } from '#gw2/platform/effects/packet-builders.js';
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -13,7 +14,7 @@ export function buildRangerPacket(
   return {
     source: 'ranger',
     sourceId: fields.skillId ?? 'ranger',
-    actorType: 'player',
+    actorType: ACTOR.PLAYER,
     name: fields.skillName,
     ...fields,
     type

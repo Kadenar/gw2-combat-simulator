@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import {
   fromProfile,
   modifierFact,
@@ -56,7 +55,7 @@ export const elementalistCoreTooltips = {
       : []),
     // Orb and conjure bonuses belong to their equipped state, including when created by a dual attack or pickup.
     ...(HAMMER_ORB_SKILLS[Number(entity.id)] === 'Fire' ||
-    (String(entity.skillWeapon || entity.weapon) === 'Hammer' &&
+    (String(entity.skillWeapon || entity.weapon) === WEAPON.HAMMER &&
       String(entity.attunement).includes('+') &&
       String(entity.attunement).includes('Fire'))
       ? [
@@ -69,7 +68,7 @@ export const elementalistCoreTooltips = {
         ]
       : []),
     ...(HAMMER_ORB_SKILLS[Number(entity.id)] === 'Air' ||
-    (String(entity.skillWeapon || entity.weapon) === 'Hammer' &&
+    (String(entity.skillWeapon || entity.weapon) === WEAPON.HAMMER &&
       String(entity.attunement).includes('+') &&
       String(entity.attunement).includes('Air'))
       ? [
@@ -316,16 +315,16 @@ export const elementalistCoreTooltips = {
             type: 'strike',
             coefficient: FIRE_ELEMENTAL.flameBarrage.projectileCoefficient,
             applications: FIRE_ELEMENTAL.flameBarrage.projectileImpacts.length,
-            actorType: 'summon'
+            actorType: ACTOR.SUMMON
           },
-          { type: 'strike', coefficient: FIRE_ELEMENTAL.flameBarrage.explosionCoefficient, actorType: 'summon' },
+          { type: 'strike', coefficient: FIRE_ELEMENTAL.flameBarrage.explosionCoefficient, actorType: ACTOR.SUMMON },
           {
             type: 'condition',
             condition: CONDITION.BURNING,
             stacks: FIRE_ELEMENTAL.flameBarrage.burningStacks,
             duration: FIRE_ELEMENTAL.flameBarrage.burningDuration,
             applications: FIRE_ELEMENTAL.flameBarrage.projectileImpacts.length,
-            actorType: 'player'
+            actorType: ACTOR.PLAYER
           }
         ]).facts
     ),
@@ -333,25 +332,25 @@ export const elementalistCoreTooltips = {
       'Command the active Earth Elemental to stop its autonomous attack and stomp. It strikes, cripples and immobilizes the target, and grants party protection.',
       () =>
         simulationEffectFacts([
-          { type: 'strike', flatDamage: EARTH_ELEMENTAL.stomp.baseDamage, actorType: 'summon' },
+          { type: 'strike', flatDamage: EARTH_ELEMENTAL.stomp.baseDamage, actorType: ACTOR.SUMMON },
           {
             type: 'condition',
             condition: CONDITION.CRIPPLED,
             duration: EARTH_ELEMENTAL.stomp.crippleDuration,
-            actorType: 'player'
+            actorType: ACTOR.PLAYER
           },
           {
             type: 'condition',
             condition: CONDITION.IMMOBILIZED,
             duration: EARTH_ELEMENTAL.stomp.immobilizeDuration,
-            actorType: 'player'
+            actorType: ACTOR.PLAYER
           },
           {
             type: 'boon',
             boon: BOON.PROTECTION,
             duration: EARTH_ELEMENTAL.stomp.protectionDuration,
-            actorType: 'player',
-            audience: { recipients: 'party', maximumRecipients: 5 }
+            actorType: ACTOR.PLAYER,
+            audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
           }
         ]).facts
     )

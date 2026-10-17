@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { controlOnSkillBar } from '#gw2/platform/results/input-trace.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
@@ -201,7 +202,7 @@ function modifyRevenantLifeSiphon(context: RevenantResolverContext, event: Gw2Re
 
 /** Landed player strikes interleave trait rewards, Battle Scars, and Enchanted Daggers in their established order. */
 function reactRevenantPlayerStrike(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || !((event.coefficient || 0) > 0)) return;
+  if (event.actorType !== ACTOR.PLAYER || !((event.coefficient || 0) > 0)) return;
 
   runtime.fireTrigger(revenantStruck, { cause: event });
   consumeBattleScar(runtime, event);

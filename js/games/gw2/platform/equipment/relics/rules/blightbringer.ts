@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -75,8 +75,8 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, applicat
         stacks,
         source: 'Relic',
         sourceId: `relic.${RELIC_IDS.BLIGHTBRINGER}`,
-        actorType: 'effect',
-        ownerActorType: 'player'
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER
       }
     });
   }

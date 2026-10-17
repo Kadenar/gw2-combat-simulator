@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { ACTOR, CONTROL, RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Turtle family.
@@ -15,7 +15,7 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         coefficient: 0.53,
         source: 'ranger-pet',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         projectile: true
       }
     ],
@@ -30,15 +30,15 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         coefficient: 1,
         source: 'ranger-pet',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         projectile: true
       },
       {
         type: 'control',
-        controlKind: 'daze',
+        controlKind: CONTROL.DAZE,
         duration: 2,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TURTLE_HEAVY_SHOT]!.castTimeMs,
@@ -52,14 +52,14 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         coefficient: 0.1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'control',
-        controlKind: 'launch',
+        controlKind: CONTROL.LAUNCH,
         duration: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TURTLE_SLAM]!.castTimeMs,
@@ -70,12 +70,12 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.PROTECTION,
         duration: 2,
         stacks: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 333,

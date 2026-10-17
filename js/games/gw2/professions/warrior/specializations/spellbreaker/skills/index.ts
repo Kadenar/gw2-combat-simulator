@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, COMBO_FINISHER, CONTROL, COMBO_FIELD, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Explicit PvE skill mechanics owned by the Spellbreaker Warrior module. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -7,7 +6,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.EARTHSHAKER_ID_40601]: {
-    skillWeapon: 'Hammer',
+    skillWeapon: WEAPON.HAMMER,
     cooldown: 8,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -17,7 +16,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -25,7 +24,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       },
       {
         type: 'control',
-        controlKind: 'stun'
+        controlKind: CONTROL.STUN
       }
     ]),
     castTimeMs: 1000,
@@ -38,7 +37,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   },
   [ID.SKULL_CRACK_ID_41110]: {
     // Spellbreaker's level-one variant shares the mace burst's cast and impact timing.
-    skillWeapon: 'Mace',
+    skillWeapon: WEAPON.MACE,
     cooldown: 8,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -49,7 +48,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: CONTROL.DAZE
       }
     ]),
     castTimeMs: 560,
@@ -140,7 +139,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     comboFields: [
       {
         ownerId: 'warrior',
-        fieldType: 'Lightning',
+        fieldType: COMBO_FIELD.LIGHTNING,
         duration: 5,
         startAnchor: 'castEnd'
       }
@@ -163,7 +162,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1

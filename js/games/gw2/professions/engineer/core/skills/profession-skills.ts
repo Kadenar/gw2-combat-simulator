@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FIELD, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { notifyToolbeltActivation } from '#gw2/professions/engineer/core/mechanics/toolbelt.js';
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
@@ -25,7 +24,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         hits: 5,
         atMs: 0,
         name: 'Damage per Mine',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion'
       },
       {
@@ -40,7 +39,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     toolbeltParentId: ID.THROW_MINE
@@ -54,7 +53,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         coefficient: 0.77,
         hits: 1,
         name: 'Damage per Mine',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion',
         skillName: 'Mine Field'
       },
@@ -63,7 +62,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 2.5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     toolbeltParentId: ID.THROW_MINE
@@ -74,7 +73,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     comboFields: [
       {
         ownerId: 'engineer',
-        fieldType: 'Water',
+        fieldType: COMBO_FIELD.WATER,
         duration: 1,
         startAnchor: 'castEnd'
       }
@@ -82,7 +81,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 3,
         stacks: 2
@@ -104,12 +103,12 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         hits: 1,
         name: 'Static Shock',
         weapon: 'Profession mechanic',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'daze'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.DAZE
       }
     ]),
     toolbeltParentId: ID.A_E_D,
@@ -135,7 +134,7 @@ function detonatePrecastMines(runtime: EngineerRuntime): void {
       attribution: {
         source: 'engineer',
         sourceId: skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         activationId,
         skillId: skill.id,
         skillName: skill.name

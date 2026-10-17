@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { MesmerPhantasmExecution } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
@@ -63,7 +64,7 @@ export function schedulePhantasmStrike(
   const sourcedGroup: Partial<MesmerStrikeEffect> = {
     ...group,
     source: 'Phantasm',
-    actorType: 'summon',
+    actorType: ACTOR.SUMMON,
     summonKind: 'phantasm'
   };
   const baseTicks = sourcedGroup.ticks?.length ? sourcedGroup.ticks : null;
@@ -276,7 +277,7 @@ export function schedulePhantasmStatuses(
           sourceId: execution.skill.id,
           skillId: execution.skill.id,
           skillName: execution.skill.name,
-          actorType: 'summon',
+          actorType: ACTOR.SUMMON,
           summonKind: 'phantasm'
         }
       })) {
@@ -295,7 +296,7 @@ export function schedulePhantasmStatuses(
     source: 'Phantasm',
     sourceId: execution.skill.id,
     skillId: execution.skill.id,
-    actorType: 'summon' as const,
+    actorType: ACTOR.SUMMON,
     summonKind: 'phantasm' as const
   };
   const authoredDamageTicks = (label: string) =>

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, COMBO_FIELD, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
@@ -123,7 +122,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         type: 'boon',
         boon: BOON.REGENERATION,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 4,
         atMs: 0,
@@ -153,7 +152,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Water',
+        fieldType: COMBO_FIELD.WATER,
         duration: 4,
         startAnchor: 'castEnd'
       }
@@ -289,7 +288,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -309,7 +308,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         atMs: 2320,
         intervalMs: 1000,
         intervalTimingScale: 'fixed',
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ])
   }
@@ -384,7 +383,7 @@ export const familiarBalanceProfiles: readonly BalanceProfile[] = Object.freeze(
         boon: BOON.PROTECTION,
         stacks: 1,
         duration: 2,
-        audience: { recipients: 'self' }
+        audience: { recipients: RECIPIENT.SELF }
       }
     ]
   })

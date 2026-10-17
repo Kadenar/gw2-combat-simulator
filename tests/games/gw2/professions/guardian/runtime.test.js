@@ -1,6 +1,6 @@
+import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';

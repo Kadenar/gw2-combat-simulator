@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
@@ -69,7 +70,7 @@ export function setShadowShroud(
       at: runtime.time,
       source: 'thief',
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name,
       weaponSet: runtime.activeWeaponSet

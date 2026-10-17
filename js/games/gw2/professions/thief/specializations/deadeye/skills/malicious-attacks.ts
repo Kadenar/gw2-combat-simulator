@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, WEAPON, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -54,14 +54,16 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [{ atMs: 560, coefficient: 2.67 }],
         name: "Malicious Death's Judgment — Packet 1",
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true,
-        comboFinishers: [{ ownerId: 'thief', finisherType: 'Projectile', ambiguousFieldSelection: 'oldest' }],
+        comboFinishers: [
+          { ownerId: 'thief', finisherType: COMBO_FINISHER.PROJECTILE, ambiguousFieldSelection: 'oldest' }
+        ],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
     ],
-    requiredMainHand: 'Rifle',
+    requiredMainHand: WEAPON.RIFLE,
     stealthAttack: true,
     malicious: true
   },
@@ -75,25 +77,27 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         coefficient: 0.6,
         hits: 1,
         name: 'Malicious Surprise Shot',
-        actorType: 'player',
-        comboFinishers: [{ ownerId: 'thief', finisherType: 'Projectile', ambiguousFieldSelection: 'oldest' }]
+        actorType: ACTOR.PLAYER,
+        comboFinishers: [
+          { ownerId: 'thief', finisherType: COMBO_FINISHER.PROJECTILE, ambiguousFieldSelection: 'oldest' }
+        ]
       },
       {
         type: 'condition',
         condition: CONDITION.BLEEDING,
         stacks: 3,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
-    requiredMainHand: 'Shortbow',
+    requiredMainHand: WEAPON.SHORTBOW,
     stealthAttack: true,
     malicious: true
   },
@@ -115,8 +119,10 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [120, 280, 400, 560, 680].map((atMs) => ({ atMs, coefficient: 1.8 / 5 })),
         name: 'Malicious Sneak Attack',
-        actorType: 'player',
-        comboFinishers: [{ ownerId: 'thief', finisherType: 'Projectile', ambiguousFieldSelection: 'oldest' }],
+        actorType: ACTOR.PLAYER,
+        comboFinishers: [
+          { ownerId: 'thief', finisherType: COMBO_FINISHER.PROJECTILE, ambiguousFieldSelection: 'oldest' }
+        ],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -129,12 +135,12 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
             stacks: 1,
             duration: 5
           })),
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
         // Malice-scaled Torment is emitted from its removable balance profile at completion.
       ])
     ],
-    requiredMainHand: 'Pistol',
+    requiredMainHand: WEAPON.PISTOL,
     stealthAttack: true,
     malicious: true
   },
@@ -150,13 +156,13 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 1.5 }],
         name: 'Front damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
     ],
-    requiredMainHand: 'Dagger',
+    requiredMainHand: WEAPON.DAGGER,
     stealthAttack: true,
     malicious: true
   },
@@ -166,12 +172,12 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
     initiativeCost: 0,
     // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 2, hits: 1, name: 'Malicious Tactical Strike', actorType: 'player' },
-      { type: 'control', actorType: 'player', controlKind: 'daze' },
-      { type: 'control', actorType: 'player', controlKind: 'daze' },
-      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 5, actorType: 'player' }
+      { type: 'strike', coefficient: 2, hits: 1, name: 'Malicious Tactical Strike', actorType: ACTOR.PLAYER },
+      { type: 'control', actorType: ACTOR.PLAYER, controlKind: CONTROL.DAZE },
+      { type: 'control', actorType: ACTOR.PLAYER, controlKind: CONTROL.DAZE },
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 5, actorType: ACTOR.PLAYER }
     ]),
-    requiredMainHand: 'Sword',
+    requiredMainHand: WEAPON.SWORD,
     stealthAttack: true,
     malicious: true
   },
@@ -197,7 +203,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [200, 440, 640, 840, 1040, 1280, 1480, 1680].map((atMs) => ({ atMs, coefficient: 1.6 / 8 })),
         name: 'Malicious Shadowsquall',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -209,12 +215,12 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
           stacks: 1,
           duration: 3
         })),
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
     ],
-    requiredMainHand: 'Scepter',
+    requiredMainHand: WEAPON.SCEPTER,
     stealthAttack: true,
     malicious: true
   },
@@ -243,7 +249,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 0.65 }],
         name: 'Malicious Hook Strike',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
@@ -255,11 +261,11 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'knockdown'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.KNOCKDOWN
       }
     ],
-    requiredMainHand: 'Staff',
+    requiredMainHand: WEAPON.STAFF,
     stealthAttack: true,
     malicious: true
   },
@@ -298,7 +304,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
           // Refund on impact so misses and cancelled casts grant nothing.
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             // Keep the impact refund independently editable without changing its hit requirement.
             do: {
@@ -313,32 +319,32 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         coefficient: 1.5,
         hits: 1,
         name: 'Malicious Cunning Salvo',
-        actorType: 'player',
-        comboFinishers: [{ ownerId: 'thief', finisherType: 'Blast', ambiguousFieldSelection: 'oldest' }]
+        actorType: ACTOR.PLAYER,
+        comboFinishers: [{ ownerId: 'thief', finisherType: COMBO_FINISHER.BLAST, ambiguousFieldSelection: 'oldest' }]
       },
       {
         type: 'condition',
         condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 8,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.POISONED,
         stacks: 1,
         duration: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
-    requiredMainHand: 'Axe',
+    requiredMainHand: WEAPON.AXE,
     stealthAttack: true,
     malicious: true
   },
@@ -390,7 +396,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
                   condition: CONDITION.TORMENT,
                   name: 'Malicious Ashen Assault — Torment',
                   source: 'Trait',
-                  actorType: 'player',
+                  actorType: ACTOR.PLAYER,
                   duration:
                     effectNumber(profile, torment, 'duration') +
                     malice * balanceProfileNumber(profile, 'durationMultiplier'),
@@ -418,7 +424,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
           coefficient: 1.5 / 5
         })),
         name: 'Malicious Ashen Assault',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -428,32 +434,32 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
           coefficient: 0.3,
           hits: 1,
           name: 'Malicious Ashen Assault — Final Strike',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.VULNERABILITY,
           stacks: 5,
           duration: 8,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.BLEEDING,
           stacks: 3,
           duration: 4,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.POISONED,
           stacks: 3,
           duration: 4,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ])
     ],
-    requiredMainHand: 'Spear',
+    requiredMainHand: WEAPON.SPEAR,
     stealthAttack: true,
     malicious: true
   }

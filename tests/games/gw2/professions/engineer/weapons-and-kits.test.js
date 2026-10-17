@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';

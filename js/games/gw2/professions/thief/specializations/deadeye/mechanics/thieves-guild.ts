@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import type { ThiefGuildSummonProfile } from '#gw2/professions/thief/types.js';
 
 // Deadeye owns the rifle-wielding third summon selected by Thieves Guild.
@@ -8,7 +9,7 @@ export const DEADEYE_THIEVES_GUILD_PROFILE: ThiefGuildSummonProfile = Object.fre
   name: 'Rifle Deadeye',
   displayName: 'Deadeye',
   variant: 'Deadeye',
-  weapon: 'Rifle',
+  weapon: WEAPON.RIFLE,
   weaponStrengthProfileId: 'weapon.rifle',
   // Authored basic attack preserves this summon while allowing an explicit empty list.
   attacks: [{ name: 'Basic Attack', coefficientPerHit: 1.2, hits: 1, initialDelay: 1, interval: 1 }]

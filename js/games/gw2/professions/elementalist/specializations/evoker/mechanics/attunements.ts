@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -132,7 +133,7 @@ export function reenterEvokerAttunement(
       at,
       source: skill.name,
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillName: skill.name,
       to: element
     }

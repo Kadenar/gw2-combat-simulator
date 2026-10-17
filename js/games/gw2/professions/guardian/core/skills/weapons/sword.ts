@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FIELD, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -12,7 +11,9 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     // The symbol is placed before the animation ends and continues pulsing after a committed cancel.
     interruptCommitMs: 320,
     // The Light field begins with the first symbol pulse and lasts through the fifth.
-    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 320, startAnchor: 'castStart' }],
+    comboFields: [
+      { ownerId: 'guardian', fieldType: COMBO_FIELD.LIGHT, duration: 4, startMs: 320, startAnchor: 'castStart' }
+    ],
     effects: [
       {
         type: 'strike',
@@ -33,7 +34,7 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         boon: BOON.FURY,
         duration: 2,
         stacks: 1,
-        audience: { recipients: 'party' as const }
+        audience: { recipients: RECIPIENT.PARTY }
       }
     ]
   },

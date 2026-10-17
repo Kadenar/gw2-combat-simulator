@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -28,7 +27,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         hits: 3,
         atMs: 0,
         name: 'Vengeful Hammers',
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ],
     legendId: 'LegendaryDwarf'
@@ -43,18 +42,18 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         coefficient: 0.5,
         hits: 1,
         name: 'Forced Engagement',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.SLOW,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         controlKind: CONDITION.TAUNT.toLowerCase()
       }
     ],
@@ -101,25 +100,25 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         coefficient: 1.5,
         hits: 1,
         name: 'Inspiring Reinforcement',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.STABILITY,
         duration: 3,
         stacks: 1
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.STABILITY,
         duration: 3,
         stacks: 1,
@@ -156,18 +155,18 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         coefficient: 0.5,
         hits: 1,
         name: 'Forced Engagement',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.SLOW,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         controlKind: CONDITION.TAUNT.toLowerCase()
       }
     ],
@@ -192,7 +191,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         hits: 3,
         atMs: 0,
         name: 'Vengeful Hammers',
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ],
     legendId: 'LegendaryDwarf'
@@ -213,7 +212,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         type: 'strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 40 + index * 40, coefficient: 7.5 / 5 })),
         name: 'Inspiring Reinforcement',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -222,18 +221,18 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.STABILITY,
         duration: 3,
         stacks: 1
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.STABILITY,
         duration: 3,
         stacks: 1
@@ -261,7 +260,7 @@ export function hammerPulse(runtime: RevenantRuntime, skill: RevenantSkill, at: 
         at: canonicalTime(at + Number(strike.atMs) / 1000),
         source: 'revenant',
         sourceId: skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: skill.id,
         skillName: skill.name,
         name: `Vengeful Hammers — Hammer ${index}`,

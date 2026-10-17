@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONTROL, COMBO_FIELD, RECIPIENT, COMBO_FINISHER, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
@@ -48,7 +47,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         },
         {
           type: 'control',
-          controlKind: 'stun'
+          controlKind: CONTROL.STUN
         }
       ]
     )
@@ -125,7 +124,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFields: [
       {
         ownerId: 'guardian',
-        fieldType: 'Light',
+        fieldType: COMBO_FIELD.LIGHT,
         duration: 4,
         startAnchor: 'castEnd'
       }
@@ -145,7 +144,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         boon: BOON.MIGHT,
         stacks: 1,
         duration: 5,
-        audience: { recipients: 'party' as const },
+        audience: { recipients: RECIPIENT.PARTY },
         atMs
       }))
     ])
@@ -183,7 +182,7 @@ export function guardianIgnitionFields(runtime: MechanicQueriesOf<GuardianRuntim
     ? [
         {
           ownerId: 'guardian',
-          fieldType: 'Light',
+          fieldType: COMBO_FIELD.LIGHT,
           duration: effectNumber(profile, field, 'duration'),
           startAnchor: 'castEnd'
         }
@@ -222,8 +221,8 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
     event.type === 'condition' &&
     event.condition === CONDITION.BURNING &&
     !!event.comboId &&
-    event.fieldType === 'Fire' &&
-    event.finisherType === 'Whirl';
+    event.fieldType === COMBO_FIELD.FIRE &&
+    event.finisherType === COMBO_FINISHER.WHIRL;
   const torchPulse =
     event.type === 'condition' && event.condition === CONDITION.BURNING && event.skillId === ID.ZEALOTS_FLAME;
 
@@ -259,7 +258,7 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
       priority: 5,
       source: 'guardian',
       sourceId: ID.SYMBOL_OF_IGNITION,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       // Ignition remains attributed to the actual impact that claimed its cooldown.
       activationId: event.activationId,
       causalOrder: event.causalOrder ?? event.eventOrder,

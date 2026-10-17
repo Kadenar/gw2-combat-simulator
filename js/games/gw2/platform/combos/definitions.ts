@@ -1,8 +1,18 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import {
+  STATUS,
+  COMBO_FIELD,
+  COMBO_FINISHER,
+  AURA,
+  CONTROL,
+  RECIPIENT,
+  BOON,
+  CONDITION,
+  type ComboFieldType,
+  type ComboFinisherType
+} from '#gw2/platform/constants.js';
+import type { ComboEvent } from '#gw2/platform/combos/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { ComboEvent, ComboFieldType, ComboFinisherType } from '#gw2/platform/combos/types.js';
 import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
 
 const COMBO_COMBAT_METADATA_FIELDS = Object.freeze([
@@ -87,7 +97,7 @@ type ComboOutcome =
       readonly name: string;
     }
   | {
-      readonly kind: 'stealth';
+      readonly kind: typeof STATUS.STEALTH;
       readonly name: string;
       readonly duration: number;
     };
@@ -111,7 +121,7 @@ const condition = (name: string, conditionName: string, stacks: number, duration
     duration
   });
 const cleanse = (name: string): ComboOutcome => Object.freeze({ kind: 'cleanse', name, conditions: 1 });
-const stealth = (name: string): ComboOutcome => Object.freeze({ kind: 'stealth', name, duration: 3 });
+const stealth = (name: string): ComboOutcome => Object.freeze({ kind: STATUS.STEALTH, name, duration: 3 });
 // Healing combos retain their identity for proc handling; player health is fixed at full.
 const healing = (name: string): ComboOutcome => Object.freeze({ kind: 'healing', name });
 const lifeSteal = (name: string, flatStrikeBase: number, icon?: string): ComboOutcome =>
@@ -124,17 +134,17 @@ const lifeSteal = (name: string, flatStrikeBase: number, icon?: string): ComboOu
   });
 
 const definitions: readonly ComboDefinition[] = [
-  { fieldType: 'Dark', finisherType: 'Blast', outcome: aura('Dark Aura', 3) },
-  { fieldType: 'Dark', finisherType: 'Leap', outcome: aura('Dark Aura', 5) },
+  { fieldType: COMBO_FIELD.DARK, finisherType: COMBO_FINISHER.BLAST, outcome: aura(AURA.DARK, 3) },
+  { fieldType: COMBO_FIELD.DARK, finisherType: COMBO_FINISHER.LEAP, outcome: aura(AURA.DARK, 5) },
   {
-    fieldType: 'Dark',
-    finisherType: 'Projectile',
+    fieldType: COMBO_FIELD.DARK,
+    finisherType: COMBO_FINISHER.PROJECTILE,
     // Projectile siphons have their own damage identity; Leeching Bolts belongs to whirls.
     outcome: lifeSteal('Life Siphon Damage', 202)
   },
   {
-    fieldType: 'Dark',
-    finisherType: 'Whirl',
+    fieldType: COMBO_FIELD.DARK,
+    finisherType: COMBO_FINISHER.WHIRL,
     // Combat-log-only Leeching Bolts uses the healing artwork, as in Elite Insights.
     outcome: lifeSteal(
       'Leeching Bolts',
@@ -143,122 +153,122 @@ const definitions: readonly ComboDefinition[] = [
     )
   },
   {
-    fieldType: 'Ethereal',
-    finisherType: 'Blast',
-    outcome: aura('Chaos Aura', 3)
+    fieldType: COMBO_FIELD.ETHEREAL,
+    finisherType: COMBO_FINISHER.BLAST,
+    outcome: aura(AURA.CHAOS, 3)
   },
   {
-    fieldType: 'Ethereal',
-    finisherType: 'Leap',
-    outcome: aura('Chaos Aura', 5)
+    fieldType: COMBO_FIELD.ETHEREAL,
+    finisherType: COMBO_FINISHER.LEAP,
+    outcome: aura(AURA.CHAOS, 5)
   },
   {
-    fieldType: 'Ethereal',
-    finisherType: 'Projectile',
+    fieldType: COMBO_FIELD.ETHEREAL,
+    finisherType: COMBO_FINISHER.PROJECTILE,
     outcome: condition(CONDITION.CONFUSION, CONDITION.CONFUSION, 1, 5)
   },
   {
-    fieldType: 'Ethereal',
-    finisherType: 'Whirl',
+    fieldType: COMBO_FIELD.ETHEREAL,
+    finisherType: COMBO_FINISHER.WHIRL,
     outcome: condition('Confounding Bolts', CONDITION.CONFUSION, 1, 5)
   },
   {
-    fieldType: 'Fire',
-    finisherType: 'Blast',
+    fieldType: COMBO_FIELD.FIRE,
+    finisherType: COMBO_FINISHER.BLAST,
     outcome: boon('Area Might', BOON.MIGHT, 3, 20)
   },
-  { fieldType: 'Fire', finisherType: 'Leap', outcome: aura('Fire Aura', 5) },
+  { fieldType: COMBO_FIELD.FIRE, finisherType: COMBO_FINISHER.LEAP, outcome: aura(AURA.FIRE, 5) },
   {
-    fieldType: 'Fire',
-    finisherType: 'Projectile',
+    fieldType: COMBO_FIELD.FIRE,
+    finisherType: COMBO_FINISHER.PROJECTILE,
     outcome: condition(CONDITION.BURNING, CONDITION.BURNING, 1, 1)
   },
   {
-    fieldType: 'Fire',
-    finisherType: 'Whirl',
+    fieldType: COMBO_FIELD.FIRE,
+    finisherType: COMBO_FINISHER.WHIRL,
     outcome: condition('Burning Bolts', CONDITION.BURNING, 1, 1)
   },
-  { fieldType: 'Ice', finisherType: 'Blast', outcome: aura('Frost Aura', 3) },
-  { fieldType: 'Ice', finisherType: 'Leap', outcome: aura('Frost Aura', 5) },
+  { fieldType: COMBO_FIELD.ICE, finisherType: COMBO_FINISHER.BLAST, outcome: aura(AURA.FROST, 3) },
+  { fieldType: COMBO_FIELD.ICE, finisherType: COMBO_FINISHER.LEAP, outcome: aura(AURA.FROST, 5) },
   {
-    fieldType: 'Ice',
-    finisherType: 'Projectile',
+    fieldType: COMBO_FIELD.ICE,
+    finisherType: COMBO_FINISHER.PROJECTILE,
     outcome: condition(CONDITION.CHILLED, CONDITION.CHILLED, 1, 1)
   },
   {
-    fieldType: 'Ice',
-    finisherType: 'Whirl',
+    fieldType: COMBO_FIELD.ICE,
+    finisherType: COMBO_FINISHER.WHIRL,
     outcome: condition('Chilling Bolts', CONDITION.CHILLED, 1, 1)
   },
   {
-    fieldType: 'Light',
-    finisherType: 'Blast',
+    fieldType: COMBO_FIELD.LIGHT,
+    finisherType: COMBO_FINISHER.BLAST,
     outcome: cleanse('Area Cleanse')
   },
-  { fieldType: 'Light', finisherType: 'Leap', outcome: aura('Light Aura', 5) },
+  { fieldType: COMBO_FIELD.LIGHT, finisherType: COMBO_FINISHER.LEAP, outcome: aura(AURA.LIGHT, 5) },
   {
-    fieldType: 'Light',
-    finisherType: 'Projectile',
+    fieldType: COMBO_FIELD.LIGHT,
+    finisherType: COMBO_FINISHER.PROJECTILE,
     outcome: cleanse('Cleanse')
   },
   {
-    fieldType: 'Light',
-    finisherType: 'Whirl',
+    fieldType: COMBO_FIELD.LIGHT,
+    finisherType: COMBO_FINISHER.WHIRL,
     outcome: cleanse('Cleansing Bolts')
   },
   {
-    fieldType: 'Lightning',
-    finisherType: 'Blast',
+    fieldType: COMBO_FIELD.LIGHTNING,
+    finisherType: COMBO_FINISHER.BLAST,
     outcome: boon('Area Swiftness', BOON.SWIFTNESS, 1, 10)
   },
   {
-    fieldType: 'Lightning',
-    finisherType: 'Leap',
+    fieldType: COMBO_FIELD.LIGHTNING,
+    finisherType: COMBO_FINISHER.LEAP,
     outcome: Object.freeze({
       kind: 'control',
       name: 'Dazing Strike',
-      control: 'daze'
+      control: CONTROL.DAZE
     })
   },
   {
-    fieldType: 'Lightning',
-    finisherType: 'Projectile',
+    fieldType: COMBO_FIELD.LIGHTNING,
+    finisherType: COMBO_FINISHER.PROJECTILE,
     outcome: condition(CONDITION.VULNERABILITY, CONDITION.VULNERABILITY, 2, 5)
   },
   {
-    fieldType: 'Lightning',
-    finisherType: 'Whirl',
+    fieldType: COMBO_FIELD.LIGHTNING,
+    finisherType: COMBO_FINISHER.WHIRL,
     outcome: condition('Brutal Bolts', CONDITION.VULNERABILITY, 2, 5)
   },
   {
-    fieldType: 'Poison',
-    finisherType: 'Blast',
+    fieldType: COMBO_FIELD.POISON,
+    finisherType: COMBO_FINISHER.BLAST,
     outcome: condition('Area Weakness', CONDITION.WEAKNESS, 1, 3)
   },
   {
-    fieldType: 'Poison',
-    finisherType: 'Leap',
+    fieldType: COMBO_FIELD.POISON,
+    finisherType: COMBO_FINISHER.LEAP,
     outcome: condition(CONDITION.WEAKNESS, CONDITION.WEAKNESS, 1, 8)
   },
   {
-    fieldType: 'Poison',
-    finisherType: 'Projectile',
+    fieldType: COMBO_FIELD.POISON,
+    finisherType: COMBO_FINISHER.PROJECTILE,
     outcome: condition(CONDITION.POISONED, CONDITION.POISONED, 1, 2)
   },
   {
-    fieldType: 'Poison',
-    finisherType: 'Whirl',
+    fieldType: COMBO_FIELD.POISON,
+    finisherType: COMBO_FINISHER.WHIRL,
     outcome: condition('Poison Bolts', CONDITION.POISONED, 1, 2)
   },
   {
-    fieldType: 'Smoke',
-    finisherType: 'Blast',
+    fieldType: COMBO_FIELD.SMOKE,
+    finisherType: COMBO_FINISHER.BLAST,
     outcome: stealth('Area Stealth')
   },
-  { fieldType: 'Smoke', finisherType: 'Leap', outcome: stealth('Stealth') },
+  { fieldType: COMBO_FIELD.SMOKE, finisherType: COMBO_FINISHER.LEAP, outcome: stealth('Stealth') },
   {
-    fieldType: 'Smoke',
-    finisherType: 'Projectile',
+    fieldType: COMBO_FIELD.SMOKE,
+    finisherType: COMBO_FINISHER.PROJECTILE,
     outcome: Object.freeze({
       kind: 'condition',
       name: CONDITION.BLINDNESS,
@@ -268,8 +278,8 @@ const definitions: readonly ComboDefinition[] = [
     })
   },
   {
-    fieldType: 'Smoke',
-    finisherType: 'Whirl',
+    fieldType: COMBO_FIELD.SMOKE,
+    finisherType: COMBO_FINISHER.WHIRL,
     outcome: Object.freeze({
       kind: 'condition',
       name: 'Blinding Bolts',
@@ -279,23 +289,23 @@ const definitions: readonly ComboDefinition[] = [
     })
   },
   {
-    fieldType: 'Water',
-    finisherType: 'Blast',
+    fieldType: COMBO_FIELD.WATER,
+    finisherType: COMBO_FINISHER.BLAST,
     outcome: healing('Area Healing')
   },
   {
-    fieldType: 'Water',
-    finisherType: 'Leap',
+    fieldType: COMBO_FIELD.WATER,
+    finisherType: COMBO_FINISHER.LEAP,
     outcome: healing('Healing')
   },
   {
-    fieldType: 'Water',
-    finisherType: 'Projectile',
+    fieldType: COMBO_FIELD.WATER,
+    finisherType: COMBO_FINISHER.PROJECTILE,
     outcome: boon(BOON.REGENERATION, BOON.REGENERATION, 1, 2)
   },
   {
-    fieldType: 'Water',
-    finisherType: 'Whirl',
+    fieldType: COMBO_FIELD.WATER,
+    finisherType: COMBO_FINISHER.WHIRL,
     outcome: boon('Healing Bolts', BOON.REGENERATION, 1, 2)
   }
 ].map((definition) => Object.freeze(definition) as ComboDefinition);
@@ -425,12 +435,12 @@ export function materializeComboOutcome(combo: ComboEvent): readonly SimulationE
           ...(outcome.name.startsWith('Area ')
             ? {
                 audience: {
-                  recipients: 'party' as const,
+                  recipients: RECIPIENT.PARTY,
                   maximumRecipients: 5,
                   eligibleCompanionIds: combo.companionCandidates
                 }
               }
-            : { audience: { recipients: 'party' as const } })
+            : { audience: { recipients: RECIPIENT.PARTY } })
         };
       case 'condition':
         return {
@@ -464,15 +474,15 @@ export function materializeComboOutcome(combo: ComboEvent): readonly SimulationE
           canCrit: false,
           damageKind: 'life-steal'
         };
-      case 'stealth':
+      case STATUS.STEALTH:
         return {
           ...base,
           type: 'buff',
           name: outcome.name,
-          kind: 'stealth',
+          kind: STATUS.STEALTH,
           stacks: 1,
           duration: outcome.duration,
-          audience: { recipients: 'party' as const },
+          audience: { recipients: RECIPIENT.PARTY },
           fixedDuration: true
         };
       case 'cleanse':

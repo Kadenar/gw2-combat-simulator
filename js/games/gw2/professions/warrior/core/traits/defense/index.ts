@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -32,13 +32,15 @@ export const mercilessHammer = defineTrait({
       factor: (context) => balanceNumberFromContext(context, TRAIT.MERCILESS_HAMMER, 'damageMultiplier'),
       order: 94,
       when: (context) =>
-        ['Hammer', 'Mace'].includes(
-          String(
-            context.event?.skillWeapon ||
-              skillForEvent(context.profession?.catalog, context.event, context.skillId)?.skillWeapon ||
-              skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon ||
-              ''
-          )
+        [WEAPON.HAMMER, WEAPON.MACE].some(
+          (member) =>
+            member ===
+            String(
+              context.event?.skillWeapon ||
+                skillForEvent(context.profession?.catalog, context.event, context.skillId)?.skillWeapon ||
+                skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon ||
+                ''
+            )
         ) && Boolean(context.config?.target?.defiant)
     }
   ]
@@ -68,7 +70,7 @@ export const stalwartStrength = defineTrait({
       order: 0,
 
       on: 'control.resolved',
-      when: (_runtime, event) => event.actorType === 'player',
+      when: (_runtime, event) => event.actorType === ACTOR.PLAYER,
       emit: TRAIT.STALWART_STRENGTH,
       cooldown: 'profile',
       attribution: { priority: 5 }
@@ -134,7 +136,7 @@ function cullTheWeakBurst(runtime: WarriorRuntime, event: Gw2ResolverEvent): voi
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.CULL_THE_WEAK,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: event.skillId,
         skillName: event.skillName
       },

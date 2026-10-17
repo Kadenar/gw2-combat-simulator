@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, CONTROL, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
@@ -183,7 +183,7 @@ const daringDragon = defineTrait({
         boon: BOON.ALACRITY,
         stacks: 1,
         duration: 10,
-        audience: { recipients: 'party' },
+        audience: { recipients: RECIPIENT.PARTY },
         packetLabel: 'on Dragon Slash release'
       }
     ]
@@ -196,7 +196,7 @@ const daringDragon = defineTrait({
       on: 'castCommit',
       when: (_runtime, cast) => dragonSlashRelease(cast) != null,
       effects: (effect) => effect.type === 'boon' || effect.type === 'buff',
-      attribution: { priority: 0, audience: { recipients: 'party' } }
+      attribution: { priority: 0, audience: { recipients: RECIPIENT.PARTY } }
     }
   ]
 });
@@ -250,7 +250,7 @@ const unyieldingDragon = defineTrait({
           type: 'control',
           source: 'Trait',
           sourceId: TRAIT.UNYIELDING_DRAGON,
-          controlKind: 'stun',
+          controlKind: CONTROL.STUN,
           timingAnchor: 'castStart',
           timingScale: 'fixed',
           atMs: strike?.atMs
@@ -288,7 +288,7 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
     at: runtime.time,
     source: 'Trait',
     sourceId: trait,
-    actorType: 'effect' as const,
+    actorType: ACTOR.EFFECT,
     activationId: cast.id,
     skillId: ID.UNSHEATHE_GUNSABER,
     skillName: 'Unsheathe Gunsaber'
@@ -306,7 +306,7 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
         attribution: {
           source: 'Trait',
           sourceId: trait,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           activationId: cast.id,
           skillId: 62847,
           skillName: 'Unseen Sword',
@@ -333,11 +333,11 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
         attribution: {
           source: 'Trait',
           sourceId: trait,
-          actorType: 'effect' as const,
+          actorType: ACTOR.EFFECT,
           activationId: cast.id,
           skillId: ID.UNSHEATHE_GUNSABER,
           skillName: 'Unsheathe Gunsaber',
-          ownerActorType: 'player',
+          ownerActorType: ACTOR.PLAYER,
           name: 'Sharp as the Wind — Burning'
         }
       });
@@ -352,12 +352,12 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
         attribution: {
           source: 'Trait',
           sourceId: trait,
-          actorType: 'effect' as const,
+          actorType: ACTOR.EFFECT,
           activationId: cast.id,
           skillId: ID.UNSHEATHE_GUNSABER,
           skillName: 'Unsheathe Gunsaber',
           name: "River's Flow — Might",
-          audience: { recipients: 'party' }
+          audience: { recipients: RECIPIENT.PARTY }
         }
       });
   }
@@ -399,7 +399,7 @@ function fierceAsFireAmmo(
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.FIERCE_AS_FIRE,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       activationId: cast.id
@@ -464,7 +464,7 @@ function lushForestAmmo(
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.LUSH_FOREST,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       activationId: cast.id
@@ -497,7 +497,7 @@ function gunsAndGloryExplosion(runtime: WarriorRuntime, event: Gw2ResolverEvent)
           at: runtime.time,
           source: 'Trait',
           sourceId: TRAIT.GUNS_AND_GLORY,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillId: event.skillId,
           skillName: event.skillName,
           name: 'Guns and Glory',

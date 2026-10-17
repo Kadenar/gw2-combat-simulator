@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, COMBO_FIELD, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Dagger weapon-skill mechanics owned by the Weaver module.
  *
@@ -29,7 +28,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Steam Surge',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
     castTimeMs: 560,
@@ -37,7 +36,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Water',
+        fieldType: COMBO_FIELD.WATER,
         duration: 4,
         startAnchor: 'castEnd'
       }
@@ -64,7 +63,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Plasma Burst',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
     castTimeMs: 600,
@@ -78,7 +77,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -94,7 +93,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Ashen Blast',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 920,
@@ -126,7 +125,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Katabatic Wind',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
     castTimeMs: 280,
@@ -141,7 +140,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
             {
               attemptGroup: 'effect:1:tick:1',
               ownerId: 'elementalist',
-              finisherType: 'Blast',
+              finisherType: COMBO_FINISHER.BLAST,
               ambiguousFieldSelection: 'oldest'
             }
           ],
@@ -165,7 +164,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Mud Slide',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 1000,
@@ -184,7 +183,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Grinding Stones',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 600,

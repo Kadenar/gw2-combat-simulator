@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { ELEMENTALIST_SKILL_IDS as SKILL } from '#gw2/professions/elementalist/data/ids.js';
 /**
  * Elementalist build persistence.
@@ -32,7 +33,7 @@ export function createElementalistBuildDefaults(): ElementalistCanonicalBuild {
     profession: ELEMENTALIST_PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Berserker's"])),
     alternateWeaponPrefixes: ["Berserker's", "Berserker's"],
-    weapons: ['Sword', 'Dagger'],
+    weapons: [WEAPON.SWORD, WEAPON.DAGGER],
     alternateWeapons: ['', ''],
     rune: 'Scholar',
     weaponSigils: normalizeWeaponSigils(DEFAULT_WEAPON_SIGILS),

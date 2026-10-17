@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
@@ -62,7 +63,7 @@ export function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantS
       at: runtime.time,
       source: 'revenant',
       sourceId: cast.skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       activationId: cast.id,

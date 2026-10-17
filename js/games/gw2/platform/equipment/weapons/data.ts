@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 /** Combines shared weapon-family strength with profession-owned weapon availability. */
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/weapons/types.js';
@@ -17,26 +18,26 @@ function weaponData(wielding: string, weaponStrengthProfileId: string): Readonly
 
 export const WEAPON_DATA: Readonly<Record<string, Readonly<Gw2WeaponDataEntry>>> = {
   // Broadly available in either hand; profession catalogs narrow these.
-  Axe: weaponData('mh+oh', 'weapon.axe'),
-  Dagger: weaponData('mh+oh', 'weapon.dagger'),
-  Mace: weaponData('mh+oh', 'weapon.mace'),
-  Scepter: weaponData('mh', 'weapon.scepter'),
+  [WEAPON.AXE]: weaponData('mh+oh', 'weapon.axe'),
+  [WEAPON.DAGGER]: weaponData('mh+oh', 'weapon.dagger'),
+  [WEAPON.MACE]: weaponData('mh+oh', 'weapon.mace'),
+  [WEAPON.SCEPTER]: weaponData('mh', 'weapon.scepter'),
   // Main-hand or off-hand
-  Sword: weaponData('mh+oh', 'weapon.sword'),
+  [WEAPON.SWORD]: weaponData('mh+oh', 'weapon.sword'),
   // Off-hand only
-  Focus: weaponData('oh', 'weapon.focus'),
-  Pistol: weaponData('mh+oh', 'weapon.pistol'),
-  Shield: weaponData('oh', 'weapon.shield'),
-  Torch: weaponData('oh', 'weapon.torch'),
-  Warhorn: weaponData('oh', 'weapon.warhorn'),
+  [WEAPON.FOCUS]: weaponData('oh', 'weapon.focus'),
+  [WEAPON.PISTOL]: weaponData('mh+oh', 'weapon.pistol'),
+  [WEAPON.SHIELD]: weaponData('oh', 'weapon.shield'),
+  [WEAPON.TORCH]: weaponData('oh', 'weapon.torch'),
+  [WEAPON.WARHORN]: weaponData('oh', 'weapon.warhorn'),
   // Two-handed
-  Greatsword: weaponData('2h', 'weapon.greatsword'),
-  Hammer: weaponData('2h', 'weapon.hammer'),
-  Longbow: weaponData('2h', 'weapon.longbow'),
-  Rifle: weaponData('2h', 'weapon.rifle'),
-  Shortbow: weaponData('2h', 'weapon.shortbow'),
-  Spear: weaponData('2h', 'weapon.spear'),
-  Staff: weaponData('2h', 'weapon.staff'),
+  [WEAPON.GREATSWORD]: weaponData('2h', 'weapon.greatsword'),
+  [WEAPON.HAMMER]: weaponData('2h', 'weapon.hammer'),
+  [WEAPON.LONGBOW]: weaponData('2h', 'weapon.longbow'),
+  [WEAPON.RIFLE]: weaponData('2h', 'weapon.rifle'),
+  [WEAPON.SHORTBOW]: weaponData('2h', 'weapon.shortbow'),
+  [WEAPON.SPEAR]: weaponData('2h', 'weapon.spear'),
+  [WEAPON.STAFF]: weaponData('2h', 'weapon.staff'),
   // Special / internal
   Unequipped: weaponData('-', 'nonweapon.unequipped'),
   'Profession mechanic': weaponData('-', 'nonweapon.profession-mechanic')

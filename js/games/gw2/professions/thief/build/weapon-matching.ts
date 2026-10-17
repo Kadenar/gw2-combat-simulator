@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
@@ -14,7 +15,7 @@ function matchesThiefVariant(skill: ThiefSkill, context: ThiefWeaponMatcherConte
   const professionState = flattenProfessionState(context.professionState) as unknown as Partial<ThiefState>;
 
   if (
-    skill.weapon === 'Rifle' &&
+    skill.weapon === WEAPON.RIFLE &&
     !skill.stealthAttack &&
     Boolean(skill.kneelSkill) !== Boolean(professionState.kneeling)
   )

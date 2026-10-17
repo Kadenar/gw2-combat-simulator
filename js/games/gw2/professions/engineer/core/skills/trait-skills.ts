@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Core Engineer skills created by trait procs and trait-triggered actions.
  * Trait triggers own selection and invocation; these skills own their payload and delivery.
@@ -22,8 +21,8 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Lesser Grenade Barrage',
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         weapon: 'Unequipped',
         damageKind: 'explosion'
       }
@@ -68,8 +67,8 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         coefficient: 0.33,
         hits: 1,
         name: 'Static Discharge',
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         weapon: 'Unequipped',
         weaponStrengthProfileId: 'nonweapon.unequipped'
       }
@@ -84,7 +83,7 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         coefficient: 1.75,
         hits: 1,
         name: 'Drop Mine',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -103,14 +102,14 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         coefficient: 0.95,
         hits: 1,
         name: 'Bunker Down (trait skill)',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 6,
         duration: 8,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -121,7 +120,7 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 4,
         stacks: 1
@@ -152,8 +151,8 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         atMs: 40,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         weapon: 'Unequipped',
         weaponStrengthProfileId: 'nonweapon.unequipped',
         damageKind: 'explosion'
@@ -184,11 +183,13 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         atMs: 2000,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         weapon: 'Unequipped',
         weaponStrengthProfileId: 'nonweapon.unequipped',
-        comboFinishers: [{ ownerId: 'engineer', finisherType: 'Blast', chance: 1, ambiguousFieldSelection: 'oldest' }]
+        comboFinishers: [
+          { ownerId: 'engineer', finisherType: COMBO_FINISHER.BLAST, chance: 1, ambiguousFieldSelection: 'oldest' }
+        ]
       }
     ]
   },
@@ -201,7 +202,7 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         condition: CONDITION.VULNERABILITY,
         stacks: 10,
         duration: 8,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
@@ -220,8 +221,8 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         coefficient: 1.25,
         hits: 1,
         name: 'Explosive Entrance',
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         weapon: 'Unequipped',
         weaponStrengthProfileId: 'nonweapon.unequipped',
         damageKind: 'explosion'

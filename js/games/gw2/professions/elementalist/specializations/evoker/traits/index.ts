@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { type ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { elementalistMightStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -386,7 +386,7 @@ function applyEvocationBurning(context: ElementalistRuntime, event: SimulationEv
         attribution: {
           source: 'Fire Familiar',
           sourceId: sourceId,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillName: 'Fire Familiar',
           skillId: elementalistEventSkill(context, 'Fire Familiar', sourceId).id,
           name: 'Fire Familiar'
@@ -459,7 +459,7 @@ function applyElementalDynamoEntry(context: ElementalistRuntime, event: Simulati
       at: event.at,
       source: 'Elemental Dynamo',
       sourceId: event.sourceId,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillName: 'Elemental Dynamo',
       kind: 'evoker-charges',
       value: state.familiarCharges.value,
@@ -543,8 +543,8 @@ function applyAltruisticAspect(context: ElementalistRuntime, cast: RuntimeCast<E
       attribution: {
         source: skill.name,
         sourceId: skill.id,
-        actorType: 'player',
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         skillName: skill.name,
         skillId: skill.id,
         name: skill.name
@@ -575,7 +575,7 @@ function grantFamiliarProwess(context: ElementalistRuntime, cast: RuntimeCast<El
         at,
         source: "Familiar's Prowess",
         sourceId: skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: "Familiar's Prowess",
         kind: 'familiars-prowess',
         stacks: 1,
@@ -604,10 +604,10 @@ function grantFamiliarBlessing(context: ElementalistRuntime, cast: RuntimeCast<E
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.FAMILIARS_BLESSING,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: "Familiar's Blessing",
         priority: 0,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     });
   }

@@ -1,20 +1,21 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import {
+  boonKey,
   advanceDurationStack,
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   isStandardBoon,
   normalizeBoonDuration,
   recordBuffApplication,
-  remainingDurationStackSeconds
+  remainingDurationStackSeconds,
+  applyBoonExtension,
+  type Gw2TimedBuffApplication,
+  standardBoonPresentation
 } from '#gw2/platform/combat/boons.js';
-import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { observeBuffState } from '#gw2/platform/combat/effect-state.js';
-import { standardBoonPresentation } from '#gw2/platform/combat/boons.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -99,7 +100,7 @@ export function buildBoonGeneration(
     .filter(
       (event) =>
         !event.cancelled &&
-        event.actorType !== 'environment' &&
+        event.actorType !== ACTOR.ENVIRONMENT &&
         (event.type === 'buff' || event.type === 'boon_extension')
     )
     .map((event) =>
@@ -188,7 +189,7 @@ export function buildBoonGeneration(
         credit(kind, stacks * Math.max(0, event.duration || 0));
       }
 
-      applyBoonExtension(boons, { ...event, extensionAudience: 'self' });
+      applyBoonExtension(boons, { ...event, extensionAudience: RECIPIENT.SELF });
     }
 
     for (const [kind, values] of amounts) {

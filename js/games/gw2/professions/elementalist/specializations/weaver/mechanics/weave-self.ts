@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { type AvailabilityResult, denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -74,7 +75,7 @@ export function handleWeaveSelfActivation(
         at,
         source: 'Weave Self',
         sourceId,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         kind: `weave self ${core.primaryAttunement.toLowerCase()}`,
         stacks: 1,
         duration,
@@ -110,7 +111,7 @@ export function applyWeaveSelfAttunement(
         at,
         source,
         sourceId,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         kind: `weave self ${target.toLowerCase()}`,
         stacks: 1,
         duration: remaining,
@@ -132,7 +133,7 @@ export function applyWeaveSelfAttunement(
         at,
         source,
         sourceId,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         kind,
         stacks: 1,
         duration: perfectWeaveDuration,

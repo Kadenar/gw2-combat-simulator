@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Hammer weapon-skill mechanics owned by the Weaver module.
  *
@@ -31,7 +31,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Dual Orbits: Fire and Water',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -50,7 +50,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Dual Orbits: Fire and Air',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -69,7 +69,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Dual Orbits: Fire and Earth',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -88,7 +88,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Dual Orbits: Water and Air',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -107,7 +107,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Dual Orbits: Water and Earth',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -126,7 +126,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     name: 'Dual Orbits: Air and Earth',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 0,

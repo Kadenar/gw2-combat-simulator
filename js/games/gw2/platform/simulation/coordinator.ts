@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { PacketIdentity } from '#gw2/platform/events/identity.js';
 import type { RuntimeDriverContext } from '#gw2/platform/execution/driver-contract.js';
 import { gw2ResolverPhase } from '#gw2/platform/resolver/event-phase.js';
@@ -65,7 +66,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     if (!cause || causeOrder == null || SHARED_PULSE_TYPES.has(event.type)) return undefined;
 
     // Summons own their scheduled attack loops; only direct reactions (a pet hit's bleed) record a cause.
-    if (causeIsScheduled && event.actorType === 'summon') return undefined;
+    if (causeIsScheduled && event.actorType === ACTOR.SUMMON) return undefined;
 
     const activationId = typeof event.activationId === 'string' ? event.activationId : undefined;
 
@@ -139,7 +140,8 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     const summonOwners = new Set(executed.flatMap((event) => (event.summonOwner == null ? [] : [event.summonOwner])));
     return queue.pending().flatMap((event) => {
       if (!isRuntimeWork(event)) {
-        if (event.actorType === 'summon' || event.summonOwner != null || SHARED_PULSE_TYPES.has(event.type)) return [];
+        if (event.actorType === ACTOR.SUMMON || event.summonOwner != null || SHARED_PULSE_TYPES.has(event.type))
+          return [];
 
         return [{ at: event.at, cause: event }];
       }

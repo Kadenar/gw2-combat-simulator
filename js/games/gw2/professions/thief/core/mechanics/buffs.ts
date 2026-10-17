@@ -1,3 +1,4 @@
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
@@ -26,11 +27,11 @@ export function replaceThiefBuff(
       stacks: 1,
       source,
       sourceId,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: sourceId,
       name,
       skillName: name,
-      audience: { recipients: 'self' }
+      audience: { recipients: RECIPIENT.SELF }
     }
   });
 }

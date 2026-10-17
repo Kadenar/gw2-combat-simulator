@@ -1,3 +1,4 @@
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import {
   fromProfile,
   tooltipSeconds,
@@ -54,12 +55,12 @@ export const mirageTooltips = {
                 [
                   {
                     ...effect,
-                    actorType: clone ? 'summon' : 'player',
+                    actorType: clone ? ACTOR.SUMMON : ACTOR.PLAYER,
                     applications: (effect.applications ?? 1) * (repeated ? playerPackets : 1),
                     ...(effect.type === 'boon'
                       ? {
                           audience: {
-                            recipients: clone || selected.id === ID.CHAOS_VORTEX ? 'party' : 'self',
+                            recipients: clone || selected.id === ID.CHAOS_VORTEX ? RECIPIENT.PARTY : RECIPIENT.SELF,
                             ...(clone || selected.id === ID.CHAOS_VORTEX ? { maximumRecipients: 5 } : {})
                           }
                         }
@@ -143,7 +144,11 @@ export const mirageTooltips = {
       'Distortion opens an ambush window and creates Mirage Mirrors according to the clones spent.',
       [['resourceGain', 'Mirrors per clone spent']]
     ),
-    [TRAIT.MIRAGE_MANTLE]: traitTooltip('Player ambush attacks grant alacrity to the party.', () => [], 'party'),
+    [TRAIT.MIRAGE_MANTLE]: traitTooltip(
+      'Player ambush attacks grant alacrity to the party.',
+      () => [],
+      RECIPIENT.PARTY
+    ),
     [TRAIT.PHANTOM_PAIN]: traitTooltip(
       'Shattering grants damage stacks for yourself and each clone spent. Stacks increase personal strike damage and condition damage.',
       [

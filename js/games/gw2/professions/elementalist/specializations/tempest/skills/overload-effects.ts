@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Static skill-catalog tick tables for the channeled overloads.
  *
@@ -35,7 +34,7 @@ function boon(name: string, stacks: number, duration: number): SkillEffect {
     boon: name,
     stacks,
     duration,
-    audience: { recipients: 'party' as const, maximumRecipients: 5 },
+    audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
     metadata: {}
   };
 }
@@ -59,7 +58,7 @@ function overloadFireEffects(): readonly SkillEffect[] {
             comboFinishers: [
               {
                 ownerId: 'elementalist',
-                finisherType: 'Whirl',
+                finisherType: COMBO_FINISHER.WHIRL,
                 // Keep the singleton timeline's combo identity after lifting its payload onto the impact.
                 attemptGroup: `effect:${index * 3 + 1}:tick:1`,
                 ...(index < 3 ? { applications: 2 } : {}),
@@ -100,7 +99,7 @@ function overloadEarthEffects(): readonly SkillEffect[] {
               comboFinishers: [
                 {
                   ownerId: 'elementalist',
-                  finisherType: 'Blast',
+                  finisherType: COMBO_FINISHER.BLAST,
                   // Four effects per earlier pulse, plus the opening Stability, precede this strike.
                   attemptGroup: `effect:${index * 4 + 2}:tick:1`,
                   ambiguousFieldSelection: 'oldest'

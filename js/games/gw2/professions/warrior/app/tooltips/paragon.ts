@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import {
   fromProfile,
   outsideScopeTooltip,
@@ -61,7 +61,7 @@ const chantTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
           : 'Freedom pulses swiftness, adds resolution at higher tiers, and adds protection at the highest tier.'),
     facts: [
       ...simulationEffectFacts(
-        opening.map((effect) => ({ ...effect, audience: { recipients: 'party' as const } })),
+        opening.map((effect) => ({ ...effect, audience: { recipients: RECIPIENT.PARTY } })),
         'on activation'
       ).facts,
       ...simulationEffectFacts(

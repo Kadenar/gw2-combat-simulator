@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -31,7 +32,7 @@ function reactToAmalgamDamage(context: EngineerRuntime, event: EngineerResolverE
   const cooldown = balanceProfileNumber(rapaciousStrainProfile, 'internalCooldown');
 
   if (
-    event.actorType !== 'summon' &&
+    event.actorType !== ACTOR.SUMMON &&
     event.sourceId !== 'engineer.rapacious-strain' &&
     (amalgamState.from(context).evolvedUntil || 0) > event.at &&
     (amalgamState.from(context).rapaciousUntil || 0) > event.at &&
@@ -49,13 +50,13 @@ function reactToAmalgamDamage(context: EngineerRuntime, event: EngineerResolverE
           name: 'Rapacious Strain',
           coefficient: Number(strike.coefficient),
           sourceId: 'engineer.rapacious-strain',
-          actorType: 'effect',
-          ownerActorType: 'player'
+          actorType: ACTOR.EFFECT,
+          ownerActorType: ACTOR.PLAYER
         })
       });
 
       context.effects.emit({
-        attribution: { source: 'Trait', sourceId: PROFILE.rapaciousStrain, actorType: 'effect' },
+        attribution: { source: 'Trait', sourceId: PROFILE.rapaciousStrain, actorType: ACTOR.EFFECT },
         kind: 'announcement',
         cause: event,
         announcement: {

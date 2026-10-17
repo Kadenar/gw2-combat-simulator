@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -32,7 +32,7 @@ export const NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, 
         reactions: [
           {
             on: 'condition.applied',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => event.sourceId === event.skillId,
             do: lifeForceGrant({ id: 'life-force', unit: 'application', grant: { percent: 11 } })

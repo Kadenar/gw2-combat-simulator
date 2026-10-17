@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
@@ -89,21 +88,21 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Liquid State',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.POISONED,
         stacks: 4,
         duration: 12,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CRIPPLED,
         stacks: 4,
         duration: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -117,7 +116,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
         coefficient: 2,
         hits: 1,
         name: 'Flux State — Packet 1',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       ...impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
         {
@@ -126,7 +125,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
           // it also prevents exact-boundary distortion for 0.5-second ICDs.
           ticks: Array.from({ length: 12 }, (_, index) => ({ atMs: 520 + index * 520, coefficient: 9 / 12 })),
           name: 'Storm Damage',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
@@ -136,13 +135,13 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
             stacks: 1,
             duration: 5
           })),
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]),
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'pull'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.PULL
       }
     ]
   },
@@ -155,12 +154,12 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
         coefficient: 3,
         hits: 1,
         name: 'Solid State',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'stun'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.STUN
       },
       {
         type: 'boon',
@@ -192,12 +191,12 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
         type: 'strike',
         ticks: [440, 800].map((atMs) => ({ atMs, coefficient: 2.25 })),
         name: 'Plasmatic State',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         ticks: [440, 800].map((atMs) => ({ atMs, condition: CONDITION.BURNING, stacks: 2, duration: 5 })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -232,7 +231,7 @@ export function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamM
         at,
         source: 'engineer',
         sourceId: effect.sourceId,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: effect.name,
         name: effect.name,
         controlKind: effect.controlKind
@@ -257,7 +256,7 @@ export function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamM
         at,
         source: 'engineer',
         sourceId: effect.sourceId,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: effect.name,
         name: effect.name,
         kind: String(effect.boon || effect.kind).toLowerCase(),

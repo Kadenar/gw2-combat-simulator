@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { RECIPIENT, ACTOR, CONTROL, COMBO_FINISHER, COMBO_FIELD, BOON } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { gadgeteerMineVariant } from '#gw2/professions/engineer/core/traits/tools/toolbelt.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -28,7 +28,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 3,
         stacks: 1
@@ -44,12 +44,12 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 1,
         hits: 1,
         name: 'Supply Crate',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'control',
-        actorType: 'summon',
-        controlKind: 'stun'
+        actorType: ACTOR.SUMMON,
+        controlKind: CONTROL.STUN
       }
     ]
   },
@@ -76,13 +76,13 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
         comboFinishers: [
           {
             ownerId: 'engineer',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
         damageKind: 'explosion',
         name: 'Detonate Healing Turret',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -104,7 +104,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     comboFields: [
       {
         ownerId: 'engineer',
-        fieldType: 'Water',
+        fieldType: COMBO_FIELD.WATER,
         duration: 3,
         startAnchor: 'castEnd'
       }
@@ -112,7 +112,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1
@@ -145,18 +145,18 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
         comboFinishers: [
           {
             ownerId: 'engineer',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
         damageKind: 'explosion',
         name: 'Detonate (engineer skill)',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'stun'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.STUN
       }
     ]
   },
@@ -169,12 +169,12 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 1.65,
         hits: 1,
         name: 'Deploy Mine',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'stun'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.STUN
       }
     ]
   },
@@ -192,7 +192,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 2,
         hits: 1,
         name: 'Detonate Supply Crate Turrets',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -210,12 +210,12 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 3,
         hits: 1,
         name: 'Throw Mine',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'stun'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.STUN
       }
     ]
   },
@@ -228,12 +228,12 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 1.65,
         hits: 1,
         name: 'Deploy Mine',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'stun'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.STUN
       }
     ]
   }

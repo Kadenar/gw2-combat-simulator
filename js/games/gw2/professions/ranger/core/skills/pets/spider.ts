@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FIELD, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
@@ -32,13 +32,13 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         comboFields: [
           {
             ownerId: 'ranger',
-            ownerActorType: 'summon',
-            fieldType: 'Poison',
+            ownerActorType: ACTOR.SUMMON,
+            fieldType: COMBO_FIELD.POISON,
             duration: 4
           }
         ],
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIDER_POISON_GAS]!.castTimeMs,
@@ -52,7 +52,7 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         coefficient: 0.5,
         source: 'ranger-pet',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         projectile: true
       },
       {
@@ -61,7 +61,7 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIDER_ENTANGLING_WEB]!.castTimeMs,
@@ -76,7 +76,7 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 2,
         duration: 6,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 333,
@@ -91,8 +91,8 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         duration: 20,
         stacks: 1,
         source: 'ranger-pet',
-        actorType: 'summon',
-        audience: { recipients: 'self' }
+        actorType: ACTOR.SUMMON,
+        audience: { recipients: RECIPIENT.SELF }
       }
     ],
     quicknessCastTimeMs: 333,
@@ -106,7 +106,7 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 5,
         duration: 10,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -114,7 +114,7 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 5,
         duration: 6,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -122,7 +122,7 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 333,
@@ -135,7 +135,7 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.57,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIT]!.quicknessCastTimeMs,
@@ -163,7 +163,7 @@ export function consumeParalyzingVenom(context: RangerResolverContext, event: Gw
     attribution: {
       source: 'ranger-pet',
       sourceId: ID.PARALYZING_VENOM,
-      actorType: 'summon',
+      actorType: ACTOR.SUMMON,
       skillId: ID.PARALYZING_VENOM,
       skillName: 'Paralyzing Venom',
       activationId: event.activationId

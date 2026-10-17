@@ -1,6 +1,7 @@
+import { ACTOR } from '#gw2/platform/constants.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createCombatEngagement, type CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
 import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createProcRegistry, type ProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import type { Gw2CombatQuery, Gw2CriticalResult } from '#gw2/platform/combat-calculation/combat-query.js';
 import { createGw2ComboRuntimeState } from '#gw2/platform/combos/resolution.js';
@@ -127,7 +128,7 @@ export function createGw2ResolverRuntimeState({
         ? `${source.actorType}:${source.summonKind}`
         : (source?.actorType ?? source?.source ?? '');
       // Named summons keep separate contributions even when both pets use the same skill.
-      const entityName = source?.actorType === 'summon' ? source.entityName || '' : '';
+      const entityName = source?.actorType === ACTOR.SUMMON ? source.entityName || '' : '';
       const key = source ? `${String(identityId)}|${actorIdentity}|${parentSkill}|${name}|${entityName}` : name;
       const current: Gw2DamageBreakdownEntry = this.breakdown.get(key) || {
         name,

@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -107,7 +107,7 @@ const singleEdgeCutters = defineTrait({
         condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 3,
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]
   },
@@ -128,7 +128,7 @@ const jadeDynamo = defineTrait({
       when: (_runtime, cast) => isEngineerMechCommand(cast.skill),
       emit: TRAIT.MECH_CORE_JADE_DYNAMO,
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.QUICKNESS),
-      attribution: { actorType: 'player', name: 'Jade Dynamo — quickness' }
+      attribution: { actorType: ACTOR.PLAYER, name: 'Jade Dynamo — quickness' }
     }
   ],
   rechargeRules: [
@@ -165,7 +165,7 @@ const barrierEngine = defineTrait({
         kind: 'barrier',
         stacks: 1,
         duration: 5,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
   },
@@ -245,7 +245,7 @@ function applySingleEdgeCutters(context: EngineerRuntime, { cause: event }: Mech
     attribution: {
       source: 'engineer',
       sourceId: TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
-      actorType: 'summon',
+      actorType: ACTOR.SUMMON,
       skillId: undefined,
       activationId: undefined,
       skillName: 'Mech Arms: Single-Edge Cutters',
@@ -267,7 +267,7 @@ function applySingleEdgeCutters(context: EngineerRuntime, { cause: event }: Mech
   });
 
   context.effects.emit({
-    attribution: { source: 'Trait', sourceId: TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, actorType: ACTOR.EFFECT },
     kind: 'announcement',
     cause: event,
     announcement: {
@@ -294,8 +294,8 @@ function applyHighImpactDrivers(context: EngineerRuntime, { cause: event }: Mech
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS,
-      actorType: 'effect',
-      audience: { recipients: 'party', maximumRecipients: 5 },
+      actorType: ACTOR.EFFECT,
+      audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
       skillId: undefined,
       activationId: undefined,
       skillName: 'Mech Arms: High-Impact Drivers',
@@ -312,7 +312,7 @@ function applyHighImpactDrivers(context: EngineerRuntime, { cause: event }: Mech
   });
 
   context.effects.emit({
-    attribution: { source: 'Trait', sourceId: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, actorType: ACTOR.EFFECT },
     kind: 'announcement',
     cause: event,
     announcement: {
@@ -338,7 +338,7 @@ function applyJadeCannonsVulnerability(context: EngineerRuntime, { cause: event 
       attribution: {
         source: 'engineer',
         sourceId: TRAIT.MECH_ARMS_JADE_CANNONS,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         skillId: undefined,
         activationId: undefined,
         skillName: 'Mech Arms: Jade Cannons',
@@ -372,7 +372,7 @@ function emitRocketPunch(context: EngineerRuntime, skill: EngineerSkill, at: num
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.MECH_FIGHTER,
-      actorType: 'summon',
+      actorType: ACTOR.SUMMON,
       skillId: punch.id,
       skillName: punch.name,
       activationId: 'engineer.rocket-punch:' + at,
@@ -428,7 +428,7 @@ function pulseBarrierEngine(runtime: EngineerRuntime): void {
       source: 'Trait',
       sourceId: profile.id,
       skillName: profile.name,
-      actorType: 'summon',
+      actorType: ACTOR.SUMMON,
       metadata: { engineerMech: true }
     },
     preserveName: true
@@ -440,7 +440,7 @@ function pulseBarrierEngine(runtime: EngineerRuntime): void {
 function channelBarrierAlacrity(runtime: EngineerRuntime, event: EngineerResolverEvent): void {
   if (
     event.kind !== 'barrier' ||
-    (event.actorType !== 'player' && event.ownerActorType !== 'player' && event.summonOwner !== 'engineer.mech')
+    (event.actorType !== ACTOR.PLAYER && event.ownerActorType !== ACTOR.PLAYER && event.summonOwner !== 'engineer.mech')
   )
     return;
 
@@ -464,13 +464,13 @@ function channelBarrierAlacrity(runtime: EngineerRuntime, event: EngineerResolve
   };
 
   const recipients = [
-    ...(audience.includesSelf ? [{ key: 'self', audience: { recipients: 'self' as const } }] : []),
+    ...(audience.includesSelf ? [{ key: RECIPIENT.SELF, audience: { recipients: RECIPIENT.SELF } }] : []),
     ...Array.from({ length: audience.alliedPlayerCount }, (_, index) => {
       const ally = audience.alliedPlayerIndex ?? index + 1;
       return {
         key: `ally:${ally}`,
         audience: {
-          recipients: 'party' as const,
+          recipients: RECIPIENT.PARTY,
           affectsSelf: false,
           alliedPlayerIndex: ally,
           maximumRecipients: 1,
@@ -480,7 +480,7 @@ function channelBarrierAlacrity(runtime: EngineerRuntime, event: EngineerResolve
     }),
     ...audience.companionIds.map((id) => ({
       key: `companion:${id}`,
-      audience: { recipients: 'summons' as const, affectsSelf: false, maximumRecipients: 1, eligibleCompanionIds: [id] }
+      audience: { recipients: RECIPIENT.SUMMONS, affectsSelf: false, maximumRecipients: 1, eligibleCompanionIds: [id] }
     }))
   ];
   for (const recipient of recipients) {
@@ -492,7 +492,7 @@ function channelBarrierAlacrity(runtime: EngineerRuntime, event: EngineerResolve
         sourceId: profile.id,
         skillName: profile.name,
         skillId: undefined,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       transform: (packet) => ({ ...packet, audience: recipient.audience }),
       preserveName: true

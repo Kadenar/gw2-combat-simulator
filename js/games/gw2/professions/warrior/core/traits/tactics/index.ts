@@ -1,7 +1,6 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 
@@ -217,15 +216,15 @@ function empowerPulse(runtime: WarriorRuntime): void {
       runtime,
       TRAIT.EMPOWER_ALLIES,
       TRAIT.EMPOWER_ALLIES,
-      { sourceId: TRAIT.EMPOWER_ALLIES, actorType: 'effect' },
+      { sourceId: TRAIT.EMPOWER_ALLIES, actorType: ACTOR.EFFECT },
       {
-        attribution: { source: 'Trait', sourceId: TRAIT.EMPOWER_ALLIES, actorType: 'effect' },
+        attribution: { source: 'Trait', sourceId: TRAIT.EMPOWER_ALLIES, actorType: ACTOR.EFFECT },
         transform: (packet) => ({
           ...packet,
           name: traitProfile.name,
           stacks: 1 * Number(packet.stacks),
           priority: 0,
-          audience: { recipients: 'party' }
+          audience: { recipients: RECIPIENT.PARTY }
         }),
         effects: (candidate) => candidate === might
       }
@@ -262,7 +261,7 @@ function emitSoldierFocusReward(runtime: WarriorRuntime, event: Gw2ResolverEvent
     attribution: {
       source: 'Trait',
       sourceId: traitId,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: event.skillId,
       skillName: event.skillName
     },
@@ -271,7 +270,7 @@ function emitSoldierFocusReward(runtime: WarriorRuntime, event: Gw2ResolverEvent
       priority: 5,
       name: traitProfile.name,
       stacks: Number(packet.stacks),
-      audience: { recipients: 'party' }
+      audience: { recipients: RECIPIENT.PARTY }
     }),
     effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
   });

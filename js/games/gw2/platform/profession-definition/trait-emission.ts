@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -83,7 +84,7 @@ export function emitTraitProfile(
   const baseAttribution = {
     source: 'Trait',
     sourceId: trait,
-    actorType: 'effect' as const,
+    actorType: ACTOR.EFFECT,
     skillId: options.skillId === undefined ? cause?.skillId : options.skillId,
     skillName: options.skillName ?? cause?.skillName,
     activationId: options.activationId ?? cause?.activationId ?? options.cast?.activationId
@@ -169,8 +170,8 @@ export function invokeTraitSkill(
     cause,
     attribution: (effect) => ({
       source: 'Trait',
-      actorType: 'effect',
-      ownerActorType: options.ownerActorType ?? 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: options.ownerActorType ?? ACTOR.PLAYER,
       offTarget: cause.offTarget,
       ...(typeof options.attribution === 'function' ? options.attribution(effect) : options.attribution),
       sourceId: skill.id,
@@ -199,7 +200,7 @@ export function invokeTraitSkill(
     runtime.effects.emit({
       kind: 'announcement',
       log: options.logAnnouncement,
-      attribution: { source: 'Trait', sourceId: trait, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: trait, actorType: ACTOR.EFFECT },
       cause,
       announcement: {
         type: 'trait',

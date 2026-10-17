@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, COMBO_FIELD, CONDITION } from '#gw2/platform/constants.js';
 /** Core Engineer Grenade Kit skill mechanics. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -31,14 +31,14 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         type: 'strike',
         ticks: [400, 440, 440].map((atMs) => ({ atMs, coefficient: 0.75 })),
         name: 'Poison Grenade',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion',
         projectile: true
       },
       {
         type: 'condition',
         ticks: [400, 440, 440].map((atMs) => ({ atMs, condition: CONDITION.POISONED, stacks: 3, duration: 8 })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     kitId: ID.GRENADE_KIT
@@ -55,14 +55,14 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         type: 'strike',
         ticks: [400, 440, 440].map((atMs) => ({ atMs, coefficient: 0.63 })),
         name: 'Shrapnel Grenade',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion',
         projectile: true
       },
       {
         type: 'condition',
         ticks: [400, 440, 440].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 1, duration: 7 })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     kitId: ID.GRENADE_KIT
@@ -83,7 +83,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Flash Grenade',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion',
         projectile: true
       },
@@ -92,7 +92,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     kitId: ID.GRENADE_KIT
@@ -109,14 +109,14 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         type: 'strike',
         ticks: [400, 440, 440].map((atMs) => ({ atMs, coefficient: 0.75 })),
         name: 'Freeze Grenade',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion',
         projectile: true
       },
       {
         type: 'condition',
         ticks: [400, 440, 440].map((atMs) => ({ atMs, condition: CONDITION.CHILLED, stacks: 1, duration: 2 })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     kitId: ID.GRENADE_KIT
@@ -135,7 +135,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         timingScale: 'fixed',
         name: 'Grenade Barrage',
         weapon: 'Profession mechanic',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion'
       }
     ],
@@ -150,9 +150,9 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Projectile',
+        finisherType: COMBO_FINISHER.PROJECTILE,
         chance: 0.2,
-        preferredFieldTypes: ['Fire'],
+        preferredFieldTypes: [COMBO_FIELD.FIRE],
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -169,7 +169,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
         name: 'Grenade',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion',
         projectile: true
       }

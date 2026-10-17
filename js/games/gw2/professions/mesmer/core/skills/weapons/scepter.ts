@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -29,8 +29,8 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Par
           { atMs: 1840, coefficient: 0.76 }
         ],
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'scepter',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SCEPTER.toLowerCase(),
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -65,8 +65,8 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         ticks: [{ atMs: 400, coefficient: 0.5 }],
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'scepter',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SCEPTER.toLowerCase(),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -87,8 +87,8 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         ticks: [{ atMs: 480, coefficient: 0.5 }],
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'scepter',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SCEPTER.toLowerCase(),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -111,18 +111,18 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Par
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (runtime, { event }) => Number(event.coefficient) > 0 && atCloneLimit(runtime),
             do: {
               type: 'emitProfile',
               profileId: PROFILE.etherClone,
-              attribution: { source: 'Player', sourceId: ID.ETHER_CLONE, actorType: 'player', name: 'Ether Clone' }
+              attribution: { source: 'Player', sourceId: ID.ETHER_CLONE, actorType: ACTOR.PLAYER, name: 'Ether Clone' }
             }
           },
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (runtime, { event }) => Number(event.coefficient) > 0 && !atCloneLimit(runtime),
             do: { type: 'mesmer.illusion-gain', amount: 1 }
@@ -130,8 +130,8 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Par
         ],
         ticks: [{ atMs: 440, coefficient: 0.75 }],
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'scepter',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SCEPTER.toLowerCase(),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

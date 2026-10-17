@@ -1,3 +1,4 @@
+import { WEAPON, ACTOR } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -69,7 +70,7 @@ export function weaverHammerAvailability(
   context: MechanicQueriesOf<ElementalistRuntime>,
   skill: Skill
 ): AvailabilityResult | null {
-  if (skillWeapon(skill) !== 'Hammer') return null;
+  if (skillWeapon(skill) !== WEAPON.HAMMER) return null;
 
   const elements = weaverDualAttunements(skill);
 
@@ -249,7 +250,7 @@ const weaverPistolSideEffects: RuntimeProfession<ElementalistRuntimeState, Eleme
           at,
           source: skill.name,
           sourceId: skill.id,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillName: skill.name,
           skillId: skill.id,
           controlKind: 'crowd-control'

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONTROL, COMBO_FINISHER, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Rifle packets use close-range cast-start offsets so projectile travel does not inflate their timing. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -21,7 +20,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'control',
-        controlKind: 'knockback'
+        controlKind: CONTROL.KNOCKBACK
       }
     ])
   },
@@ -29,7 +28,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: 'Projectile',
+        finisherType: COMBO_FINISHER.PROJECTILE,
         chance: 0.2,
         ambiguousFieldSelection: 'oldest'
       }
@@ -58,7 +57,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: 'Projectile',
+        finisherType: COMBO_FINISHER.PROJECTILE,
         chance: 0.2,
         ambiguousFieldSelection: 'oldest'
       }
@@ -73,7 +72,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 5,
         stacks: 1
@@ -110,7 +109,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: 'Projectile',
+        finisherType: COMBO_FINISHER.PROJECTILE,
         chance: 1,
         ambiguousFieldSelection: 'oldest'
       }

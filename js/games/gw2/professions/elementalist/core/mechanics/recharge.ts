@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -64,7 +65,7 @@ export function reserveElementalistRecharge(context: ElementalistRuntime, skill:
 
   const state = professionCoreState(context);
 
-  if (state.spearNextRechargeReduction && skillWeapon(skill) === 'Spear') {
+  if (state.spearNextRechargeReduction && skillWeapon(skill) === WEAPON.SPEAR) {
     state.spearNextRechargeReduction = false;
     return duration * balanceNumberFromContext(context, PROFILE.spearEmpowerments, 'rechargeMultiplier');
   }

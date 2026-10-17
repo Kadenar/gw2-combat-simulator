@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';

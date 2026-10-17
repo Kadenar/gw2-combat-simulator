@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -52,7 +51,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
         boon: BOON.MIGHT,
         duration: 5,
         stacks: 1,
-        audience: { recipients: 'summons' as const, affectsSelf: false, maximumRecipients: 1 }
+        audience: { recipients: RECIPIENT.SUMMONS, affectsSelf: false, maximumRecipients: 1 }
       }
     ]),
     castTimeMs: 600,
@@ -69,7 +68,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Leap',
+            finisherType: COMBO_FINISHER.LEAP,
             ambiguousFieldSelection: 'oldest'
           }
         ]
@@ -107,7 +106,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Leap',
+            finisherType: COMBO_FINISHER.LEAP,
             ambiguousFieldSelection: 'oldest'
           }
         ]

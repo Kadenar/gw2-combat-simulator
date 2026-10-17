@@ -1,6 +1,7 @@
+import { ACTOR, type ComboFieldType } from '#gw2/platform/constants.js';
+import type { ComboFieldEvent } from '#gw2/platform/combos/types.js';
 import { createProfessionAssumptionControls } from '#gw2/platform/builds/assumptions.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
-import type { ComboFieldEvent, ComboFieldType } from '#gw2/platform/combos/types.js';
 import { COMBO_FIELD_TYPES } from '#gw2/platform/combos/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
@@ -53,13 +54,13 @@ export function permanentComboFieldAssumption(
     at,
     source: 'Permanent combo field assumption',
     sourceId: 'assumption.permanent-combo-field',
-    actorType: 'effect',
+    actorType: ACTOR.EFFECT,
     skillName: 'Permanent combo field assumption',
     fieldId,
     fieldType: fieldType as ComboFieldType,
     expiresAt: ASSUMED_FIELD_EXPIRES_AT,
     ownerId,
-    ownerActorType: 'player',
+    ownerActorType: ACTOR.PLAYER,
     // Priority 1 ensures this assumption field wins over any zero-priority real fields when both overlap.
     comboBindingPriority: 1
   };

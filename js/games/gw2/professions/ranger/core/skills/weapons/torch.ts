@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FIELD, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -37,7 +37,7 @@ export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<
     comboFields: [
       {
         ownerId: 'ranger',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 8,
         startAnchor: 'castEnd'
       }

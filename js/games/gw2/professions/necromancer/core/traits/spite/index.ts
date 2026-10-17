@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -36,7 +36,7 @@ export const reapersMight = defineTrait({
   triggers: [
     onTriggerPoint(necromancerStrike, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
-        input.event.actorType !== 'effect' && Number(input.event.coefficient) > 0,
+        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
         applyReapersMight(runtime, input.event, input.firstHit, input.shroudSkillOne)
     })
@@ -51,7 +51,7 @@ export const reapersMight = defineTrait({
         boon: BOON.MIGHT,
         stacks: 1,
         duration: 15,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -62,7 +62,7 @@ export const siphonedPower = defineTrait({
   triggers: [
     onTriggerPoint(necromancerStrike, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
-        input.event.actorType !== 'effect' && Number(input.event.coefficient) > 0,
+        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
         applySiphonedPower(runtime, input.event)
     })
@@ -79,7 +79,7 @@ export const siphonedPower = defineTrait({
         boon: BOON.MIGHT,
         stacks: 3,
         duration: 8,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -94,7 +94,7 @@ export const chillOfDeath = defineTrait({
     }),
     onTriggerPoint(necromancerStrike, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
-        input.event.actorType !== 'effect' && Number(input.event.coefficient) > 0,
+        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
         applyChillOfDeath(runtime, input.event)
     })
@@ -262,7 +262,7 @@ export const spitefulSpirit = defineTrait({
         type: 'strike',
         coefficient: 1,
         hits: 1,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   }
@@ -356,7 +356,7 @@ function applyReapersMight(
       skillName: "Reaper's Might",
       source: 'Trait',
       sourceId: TRAIT.REAPERS_MIGHT,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       triggeredBy: event.skillName,
       name: "Reaper's Might"
     }
@@ -388,7 +388,7 @@ function applySiphonedPower(context: NecromancerResolverContext, event: Necroman
       skillName: 'Siphoned Power',
       source: 'Trait',
       sourceId: TRAIT.SIPHONED_POWER,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       triggeredBy: event.skillName,
       name: 'Siphoned Power'
     }
@@ -429,7 +429,7 @@ function queueChillOfDeathCondition(context: NecromancerResolverContext, event: 
 
 /** Queue Chill from the resolved trait strike so sibling strikes keep their pre-Chill state. */
 function applyChillOfDeathCondition(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (event.actorType !== 'effect' || event.skillId !== ID.LESSER_SPINAL_SHIVERS) return;
+  if (event.actorType !== ACTOR.EFFECT || event.skillId !== ID.LESSER_SPINAL_SHIVERS) return;
 
   queueChillOfDeathCondition(context, event);
 }
@@ -473,7 +473,7 @@ function applyBitterChill(context: NecromancerResolverContext, event: Necromance
       skillName: 'Bitter Chill',
       source: 'Trait',
       sourceId: TRAIT.BITTER_CHILL,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       triggeredBy: event.skillName
     }
   });
@@ -498,11 +498,11 @@ function applyDreadWindow(context: NecromancerResolverContext, event: Necromance
         stacks: 1,
         source: 'Trait',
         sourceId: TRAIT.DREAD,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         name: 'Dread',
         skillName: 'Dread',
-        audience: { recipients: 'self' }
+        audience: { recipients: RECIPIENT.SELF }
       }
     });
   }

@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FIELD, ACTOR, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -46,9 +46,9 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<S
         type: 'strike',
         ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: 560 + index * 1000, coefficient: 2.4 / 6 })),
         intervalTimingScale: 'fixed',
-        comboFields: [{ ownerId: 'engineer', fieldType: 'Lightning', duration: 5, startAnchor: 'event' }],
+        comboFields: [{ ownerId: 'engineer', fieldType: COMBO_FIELD.LIGHTNING, duration: 5, startAnchor: 'event' }],
         name: 'Superconducting Signet',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -59,7 +59,7 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<S
         intervalTimingScale: 'fixed',
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -70,7 +70,7 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<S
         intervalTimingScale: 'fixed',
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -81,7 +81,7 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<S
         intervalTimingScale: 'fixed',
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -94,12 +94,12 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<S
         coefficient: 1,
         hits: 1,
         name: 'Force Signet',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'knockback'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.KNOCKBACK
       }
     ]
   },

@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, COMBO_FIELD, ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -11,8 +11,8 @@ export const steamshrieker = defineRelic({
   combo(ctx, state, event) {
     if (
       !isGw2PlayerActorEvent(event) ||
-      event.fieldType !== 'Water' ||
-      !['Blast', 'Leap'].includes(String(event.finisherType || ''))
+      event.fieldType !== COMBO_FIELD.WATER ||
+      ![COMBO_FINISHER.BLAST, COMBO_FINISHER.LEAP].some((finisher) => finisher === event.finisherType)
     ) {
       return;
     }
@@ -31,8 +31,8 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
       at: event.at,
       source: 'Relic',
       sourceId: `relic.${RELIC_IDS.STEAMSHRIEKER}`,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       skillName: 'Relic of Steamshrieker',
       name: 'Relic of Steamshrieker — Burning',
       condition: CONDITION.BURNING,

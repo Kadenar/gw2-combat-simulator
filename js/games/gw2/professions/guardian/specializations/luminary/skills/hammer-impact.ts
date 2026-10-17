@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
@@ -51,7 +51,7 @@ export function hammerImpact(runtime: GuardianRuntime, data: unknown): void {
         at: canonicalTime(runtime.time + effectNumber(profile, condition, 'atMs') / 1000),
         source: 'guardian',
         sourceId: cast.skill.id,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: cast.skill.id,
         skillName: cast.skill.name,
         condition: CONDITION.VULNERABILITY,

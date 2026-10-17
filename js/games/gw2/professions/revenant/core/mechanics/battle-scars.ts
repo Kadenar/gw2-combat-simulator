@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { consumeNewestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   effectNumber,
@@ -40,7 +41,7 @@ export function emitBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEvent
       at: runtime.time,
       source: 'revenant',
       sourceId: 'revenant.battle-scars',
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: 'revenant.battle-scars',
       skillName: 'Battle Scars',
       // Several grants feed the same scar pool, whose siphon is independent of the consuming attack.

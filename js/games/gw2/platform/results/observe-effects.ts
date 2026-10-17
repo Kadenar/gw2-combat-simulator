@@ -1,8 +1,4 @@
-import {
-  conditionStackLimit,
-  permanentTargetConditionStacks,
-  canonicalTargetConditionName
-} from '#gw2/platform/combat/state/targets.js';
+import { ACTOR, STATUS, RECIPIENT } from '#gw2/platform/constants.js';
 import {
   GW2_STANDARD_BOONS,
   standardBoonPresentation,
@@ -10,6 +6,11 @@ import {
   buffMatchesAudience,
   type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
+import {
+  conditionStackLimit,
+  permanentTargetConditionStacks,
+  canonicalTargetConditionName
+} from '#gw2/platform/combat/state/targets.js';
 import {
   observeBuffState,
   type BuffStatePolicy,
@@ -82,7 +83,7 @@ function observeGenericBuff(
   for (const id of companions)
     states.push(
       observeBuffState(kind, applications, at, policy, `companion:${id}`, (application) =>
-        buffMatchesAudience(application, 'summon', id)
+        buffMatchesAudience(application, ACTOR.SUMMON, id)
       )
     );
 
@@ -126,7 +127,7 @@ const sharedPolicies: ReadonlyMap<string, BuffStatePolicy> = new Map([
     kind,
     { kind, maximumStacks: standardBoonPresentation(kind)?.maximumStacks }
   ]),
-  ...['stealth', 'superspeed'].map((kind): [string, BuffStatePolicy] => [kind, { kind, maximumStacks: 1 }])
+  ...[STATUS.STEALTH, STATUS.SUPERSPEED].map((kind): [string, BuffStatePolicy] => [kind, { kind, maximumStacks: 1 }])
 ]);
 
 /** Visit complete kind scopes; native observations replace only their own generic recipients. */
@@ -300,7 +301,7 @@ function observeAssumptions(runtime: Gw2Runtime): EffectState[] {
     result.push({
       kind,
       category: 'boon',
-      recipient: 'self',
+      recipient: RECIPIENT.SELF,
       origin: 'assumption',
       countLimit: standardBoonPresentation(kind)?.maximumStacks ?? 1,
       durationLimit: null,

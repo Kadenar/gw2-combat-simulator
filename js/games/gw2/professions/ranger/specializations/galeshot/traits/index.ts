@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { STATUS, ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -217,7 +218,7 @@ const birdOfPrey = defineTrait({
       // Either movement buff activates the player bonus, including generated buffs until they expire.
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        (boonActive(context, boonKey(BOON.SWIFTNESS)) || buffActive(context, 'superspeed'))
+        (boonActive(context, boonKey(BOON.SWIFTNESS)) || buffActive(context, STATUS.SUPERSPEED))
     }
   ]
 });
@@ -264,8 +265,8 @@ function applyShrike(context: RangerRuntime, event: Gw2ResolverEvent): void {
           at: at,
           source: 'Trait',
           sourceId: TRAIT.SHRIKE,
-          actorType: 'effect',
-          ownerActorType: 'player',
+          actorType: ACTOR.EFFECT,
+          ownerActorType: ACTOR.PLAYER,
           skillId: TRAIT.SHRIKE,
           skillName: 'Shrike',
           name: 'Shrike',
@@ -315,7 +316,7 @@ function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEvent): vo
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.WUTHERING_WIND,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: ID.WUTHERING_WIND,
       skillName: 'Wuthering Wind'
     },
@@ -327,8 +328,8 @@ function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEvent): vo
         at: at,
         source: 'Trait',
         sourceId: TRAIT.WUTHERING_WIND,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         skillId: ID.WUTHERING_WIND,
         skillName: 'Wuthering Wind',
         name: 'Wuthering Wind',
@@ -352,7 +353,7 @@ function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEvent): vo
 
 /** Accepted controls refund arrows at the trait's own cooldown boundary. */
 function reactToGaleshotControl(context: RangerRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' && event.actorType !== 'summon') return;
+  if (event.actorType !== ACTOR.PLAYER && event.actorType !== ACTOR.SUMMON) return;
 
   if (!context.procs.claim(TRAIT.THRILL_OF_THE_CATCH, 'ranger.galeshot.thrillOfTheCatch', context.time)) {
     return;
@@ -385,10 +386,10 @@ function completeGaleshotSkill(context: RangerRuntime, skill: RangerSkill): void
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.FLOCK_TOGETHER,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: TRAIT.FLOCK_TOGETHER,
       skillName: 'Flock Together',
-      audience: { recipients: 'party' as const, maximumRecipients: 5 },
+      audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
       triggeredBy: skill.name,
       name: 'Flock Together'
     }
@@ -414,7 +415,7 @@ function applyGaleForce(context: RangerRuntime, skill: RangerSkill): void {
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.GALE_FORCE,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillId: TRAIT.GALE_FORCE,
           skillName: 'Gale Force',
           triggeredBy: skill.name,
@@ -450,7 +451,7 @@ function emitCloudburstBoons(context: RangerRuntime, skill: RangerSkill): void {
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.CLOUDBURST,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: TRAIT.CLOUDBURST,
         skillName: 'Cloudburst',
         triggeredBy: skill.name
@@ -459,7 +460,7 @@ function emitCloudburstBoons(context: RangerRuntime, skill: RangerSkill): void {
         ...packet,
         name: 'Cloudburst - ' + packet.kind,
         boon: packet.kind,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       })
     });
   }

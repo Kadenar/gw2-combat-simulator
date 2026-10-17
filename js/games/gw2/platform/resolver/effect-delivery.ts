@@ -1,5 +1,6 @@
-import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import { isStandardBoon, normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import {
   isCombatEntryEvent,
@@ -240,7 +241,7 @@ export function createEffectDelivery<T extends object>(
       ...request.attribution,
       source: request.attribution?.source ?? announcement.type,
       sourceId: request.attribution?.sourceId ?? announcement.name,
-      actorType: request.attribution?.actorType ?? 'effect',
+      actorType: request.attribution?.actorType ?? ACTOR.EFFECT,
       type: 'proc',
       procType: announcement.type,
       name: announcement.name,

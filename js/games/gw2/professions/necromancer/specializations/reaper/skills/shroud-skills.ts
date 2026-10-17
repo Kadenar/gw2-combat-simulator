@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, COMBO_FIELD, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /**
  * Owns Reaper Shroud entry, exit, and weapon skill fragments.
@@ -87,7 +87,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 1.5 } })
@@ -117,7 +117,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         comboFinishers: [
           {
             ownerId: 'necromancer',
-            finisherType: 'Whirl',
+            finisherType: COMBO_FINISHER.WHIRL,
             applications: 4,
             ambiguousFieldSelection: 'oldest'
           }
@@ -155,13 +155,13 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
           weaponStrengthProfileId: 'transform.reaper-shroud',
           type: 'strike',
           coefficient: 4,
-          comboFields: [{ ownerId: 'necromancer', fieldType: 'Ice', duration: 4 }],
+          comboFields: [{ ownerId: 'necromancer', fieldType: COMBO_FIELD.ICE, duration: 4 }],
           coefficientModifiers: [
             { kind: 'target-health-below', threshold: 0.25, multiplier: 2 },
             { kind: 'target-health-below', threshold: 0.5, multiplier: 1.5 }
           ]
         },
-        { type: 'control', controlKind: 'stun' }
+        { type: 'control', controlKind: CONTROL.STUN }
       ]),
       {
         type: 'condition',

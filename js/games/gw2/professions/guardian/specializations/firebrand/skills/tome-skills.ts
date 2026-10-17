@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FIELD, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -22,7 +21,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     comboFields: [
       {
         ownerId: 'guardian',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 4,
         startMs: scorchedAftermathApplicationMs,
         startAnchor: 'castStart'
@@ -93,13 +92,13 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.RESISTANCE,
         duration: 1
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.RESISTANCE,
         duration: 1,
         atMs: 1240,
@@ -108,7 +107,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.RESISTANCE,
         duration: 1,
         atMs: 2240,
@@ -117,7 +116,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.RESISTANCE,
         duration: 1,
         atMs: 3240,
@@ -201,7 +200,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.RESOLUTION,
         duration: 3
       }
@@ -215,13 +214,13 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.SWIFTNESS,
         duration: 5
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.SWIFTNESS,
         duration: 5,
         atMs: 1240,
@@ -230,7 +229,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.SWIFTNESS,
         duration: 5,
         atMs: 2240,
@@ -239,7 +238,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.SWIFTNESS,
         duration: 5,
         atMs: 3240,
@@ -248,7 +247,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.SWIFTNESS,
         duration: 5,
         atMs: 4240,
@@ -285,7 +284,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'control',
-        controlKind: 'pull'
+        controlKind: CONTROL.PULL
       }
     ]
   },
@@ -315,13 +314,13 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.PROTECTION,
         duration: 2
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.SWIFTNESS,
         duration: 6
       }
@@ -350,19 +349,19 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.PROTECTION,
         duration: 5
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.STABILITY,
         duration: 5
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.AEGIS,
         duration: 4
       }
@@ -383,19 +382,19 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.VIGOR,
         duration: 5
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 6
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.SWIFTNESS,
         duration: 5
       }

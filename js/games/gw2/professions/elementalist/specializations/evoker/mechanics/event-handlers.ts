@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import {
   evokerEntryObserved,
   evokerEventAccepted
@@ -20,7 +20,8 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 
 /** Accepted player disables trigger the equipped Earth familiar's personal boon at most once per interval. */
 export function applyCalcifyProtection(context: ElementalistRuntime, event: SimulationEvent): void {
-  if (event.type !== 'control' || event.actorType !== 'player' || evokerState.from(context).element !== 'Earth') return;
+  if (event.type !== 'control' || event.actorType !== ACTOR.PLAYER || evokerState.from(context).element !== 'Earth')
+    return;
 
   const profile = requireBalanceProfileFromContext(context, PROFILE.calcify);
 
@@ -47,7 +48,7 @@ export function onAcceptedEvent(context: ElementalistRuntime, event: SimulationE
   context.fireTrigger(evokerEventAccepted, { event });
 
   // Spend an enchantment only after the shared runtime accepts this player hit.
-  if (event.type === 'damage' && event.actorType === 'player' && Number(event.coefficient) > 0) {
+  if (event.type === 'damage' && event.actorType === ACTOR.PLAYER && Number(event.coefficient) > 0) {
     consumeElectricEnchantment(context, event);
   }
 

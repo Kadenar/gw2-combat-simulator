@@ -1,9 +1,9 @@
+import { ACTOR, type SimulationActorType } from '#gw2/platform/constants.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 
 import { normalizeEffectMetadata } from '#gw2/platform/effects/audience-metadata-validation.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -15,7 +15,7 @@ import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 /** Player events are the default; explicit summon metadata keeps ownership independent of display labels. */
 function ownership(actorType: SimulationActorType | undefined, summonKind: string | undefined) {
   return {
-    actorType: actorType ?? (summonKind ? 'summon' : 'player'),
+    actorType: actorType ?? (summonKind ? ACTOR.SUMMON : ACTOR.PLAYER),
     ...(summonKind ? { summonKind } : {})
   };
 }
@@ -108,7 +108,7 @@ export function buildMesmerStrikes(
   const baseOwnership = ownership(group.actorType ?? extra.actorType, group.summonKind ?? extra.summonKind);
   const explicit = group.weapon || '';
   const normalized = explicit.charAt(0).toUpperCase() + explicit.slice(1).toLowerCase();
-  const strength = baseOwnership.actorType === 'summon' ? MESMER_CORE_WEAPON_STRENGTH[normalized] : undefined;
+  const strength = baseOwnership.actorType === ACTOR.SUMMON ? MESMER_CORE_WEAPON_STRENGTH[normalized] : undefined;
   const fields = supplementalFields({ ...group, ...extra }, [
     'actorType',
     'atMs',

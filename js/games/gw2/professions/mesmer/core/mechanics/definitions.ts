@@ -1,21 +1,22 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 /**
  * Core weapon-strength defaults used by shared packet construction.
  */
 
 export const MESMER_CORE_WEAPON_STRENGTH: Readonly<Record<string, number>> = Object.freeze({
-  Axe: 1000,
-  Dagger: 1000,
-  Focus: 900,
-  Greatsword: 1100,
-  Hammer: 1100,
-  Pistol: 1000,
-  Rifle: 1150,
-  Scepter: 1000,
-  Shield: 900,
-  Spear: 1000,
-  Staff: 1100,
-  Sword: 1000,
-  Torch: 900,
+  [WEAPON.AXE]: 1000,
+  [WEAPON.DAGGER]: 1000,
+  [WEAPON.FOCUS]: 900,
+  [WEAPON.GREATSWORD]: 1100,
+  [WEAPON.HAMMER]: 1100,
+  [WEAPON.PISTOL]: 1000,
+  [WEAPON.RIFLE]: 1150,
+  [WEAPON.SCEPTER]: 1000,
+  [WEAPON.SHIELD]: 900,
+  [WEAPON.SPEAR]: 1000,
+  [WEAPON.STAFF]: 1100,
+  [WEAPON.SWORD]: 1000,
+  [WEAPON.TORCH]: 900,
   Utility: 690.5,
   Unequipped: 690.5,
   'Phantasm high': 2877,

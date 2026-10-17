@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { strikeTimeline } from '#gw2/platform/effects/authoring.js';
@@ -32,7 +31,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
           reactions: [
             {
               on: 'damage.resolved',
-              actor: 'player',
+              actor: ACTOR.PLAYER,
               packets: 'each',
               do: lifeForceGrant({ id: 'life-force', unit: 'pulse', grant: { percent: 1.5 } })
             }
@@ -48,7 +47,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
         boon: BOON.SWIFTNESS,
         stacks: 1,
         duration: 15,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
   }

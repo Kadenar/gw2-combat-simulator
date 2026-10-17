@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Phoenix family.
@@ -15,7 +15,7 @@ export const RANGER_CORE_PHOENIX_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         coefficient: 0.43,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -23,7 +23,7 @@ export const RANGER_CORE_PHOENIX_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PHOENIX_WICKED_BITE]!.castTimeMs,
@@ -37,7 +37,7 @@ export const RANGER_CORE_PHOENIX_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         coefficient: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PHOENIX_DASH]!.castTimeMs,
@@ -51,14 +51,14 @@ export const RANGER_CORE_PHOENIX_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         coefficient: 0.8,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'control',
-        controlKind: 'launch',
+        controlKind: CONTROL.LAUNCH,
         duration: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PHOENIX_WING_BUFFET]!.castTimeMs,
@@ -72,7 +72,7 @@ export const RANGER_CORE_PHOENIX_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         coefficient: 0.8,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 667,

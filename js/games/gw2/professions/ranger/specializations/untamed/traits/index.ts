@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
@@ -75,7 +75,7 @@ const naturalFortitude = defineTrait({
         emitTraitProfile(runtime, TRAIT.NATURAL_FORTITUDE, TRAIT.NATURAL_FORTITUDE, event, {
           at: event.at,
           effect: { type: 'strike', name: 'Natural Fortitude' },
-          attribution: { actorType: 'player', source: event.source, offTarget: event.offTarget }
+          attribution: { actorType: ACTOR.PLAYER, source: event.source, offTarget: event.offTarget }
         });
       }
     }
@@ -111,7 +111,7 @@ const letLoose = defineTrait({
     },
 
     onTriggerPoint(untamedStrike, {
-      when: (_runtime, input: TriggerPointInput<typeof untamedStrike>) => input.event.actorType === 'player',
+      when: (_runtime, input: TriggerPointInput<typeof untamedStrike>) => input.event.actorType === ACTOR.PLAYER,
       run: (runtime, input: TriggerPointInput<typeof untamedStrike>) => triggerLetLoose(runtime, input.event)
     })
   ],
@@ -157,7 +157,7 @@ const blindingOutburst = defineTrait({
       emit: TRAIT.BLINDING_OUTBURST,
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.BLINDNESS,
       attribution: (_runtime, event) => ({
-        ownerActorType: 'player',
+        ownerActorType: ACTOR.PLAYER,
         skillId: TRAIT.BLINDING_OUTBURST,
         skillName: 'Blinding Outburst',
         name: 'Blinding Outburst - Blindness',
@@ -193,7 +193,7 @@ const ferociousSymbiosis = defineTrait({
       amount: (context) => {
         const state = untamedModifierState(context);
         const companion = readProfessionCoreState<RangerCoreState>(context.runtime?.profession).pet;
-        const pet = context.event?.actorType === 'summon' && companion?.id === context.event.summonOwner;
+        const pet = context.event?.actorType === ACTOR.SUMMON && companion?.id === context.event.summonOwner;
         // Damage ownership selects the pool: Ranger-owned pet skills such as Poisonous Cloud use player stacks.
         const stacks = activeRefreshedStacks(
           pet ? companion?.ferociousSymbiosis : state.ferociousSymbiosisPlayer,
@@ -241,7 +241,7 @@ const debilitatingBlows = defineTrait({
         skillId: TRAIT.DEBILITATING_BLOWS,
         skillName: 'Debilitating Blows',
         name: `Debilitating Blows - Poisoned`,
-        ownerActorType: 'player',
+        ownerActorType: ACTOR.PLAYER,
         triggeredBy: event.skillName
       })
     },
@@ -264,7 +264,7 @@ const debilitatingBlows = defineTrait({
         skillId: TRAIT.DEBILITATING_BLOWS,
         skillName: 'Debilitating Blows',
         name: `Debilitating Blows - Slow`,
-        ownerActorType: 'player',
+        ownerActorType: ACTOR.PLAYER,
         triggeredBy: event.skillName
       })
     }
@@ -394,7 +394,7 @@ function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2Res
       maximumStacks,
       'exclusive'
     );
-  } else if (isPetStrike(event) && event.actorType === 'summon' && event.summonOwner === pet.id) {
+  } else if (isPetStrike(event) && event.actorType === ACTOR.SUMMON && event.summonOwner === pet.id) {
     if (!context.procs.claim(TRAIT.FEROCIOUS_SYMBIOSIS, 'ranger.untamed.ferociousSymbiosisPlayer', event.at)) return;
 
     // A pet hit builds Player stacks (cross-buff: pet hits power the player).
@@ -430,7 +430,7 @@ function triggerLetLoose(context: RangerResolverContext, event: Gw2ResolverEvent
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.LET_LOOSE,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: TRAIT.LET_LOOSE,
       skillName: 'Let Loose',
       triggeredBy: event.skillName
@@ -439,7 +439,7 @@ function triggerLetLoose(context: RangerResolverContext, event: Gw2ResolverEvent
       ...packet,
       name: 'Let Loose - ' + packet.kind,
       audience: {
-        recipients: 'party',
+        recipients: RECIPIENT.PARTY,
         maximumRecipients: 5,
         eligibleCompanionIds: context.profession.core.pet ? [rangerPetCompanionId(context)] : []
       }

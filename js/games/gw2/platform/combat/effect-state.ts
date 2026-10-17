@@ -1,5 +1,6 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import {
+  boonKey,
   buffApplicationStacks,
   type Gw2TimedBuffApplication,
   isDurationStackingBoon,
@@ -48,7 +49,7 @@ export function timedEffectState(
   return {
     kind,
     category: 'buff',
-    recipient: 'self',
+    recipient: RECIPIENT.SELF,
     origin: 'simulated',
     countLimit,
     durationLimit: null,
@@ -85,7 +86,7 @@ export function observeBuffState(
   applications: readonly Gw2TimedBuffApplication[],
   at: number,
   policy: BuffStatePolicy,
-  recipient = 'self',
+  recipient: string = RECIPIENT.SELF,
   includes = (application: Gw2TimedBuffApplication) => application.resolvedAudience.includesSelf
 ): EffectState {
   const duration = isDurationStackingBoon(kind);

@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -217,7 +217,7 @@ function triggerThermalReleaseValve(context: EngineerRuntime<HolosmithSkill>, sk
     at: at,
     effect: { type: 'boon', name: boonKey(BOON.VIGOR) },
     attribution: {
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name,
       name: 'Thermal Release Valve \u2014 vigor'
@@ -235,7 +235,7 @@ function emitEnhancedCapacityMight(context: EngineerRuntime<HolosmithSkill>, at:
   emitTraitProfile(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, undefined, {
     at: at,
     effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
-    attribution: { actorType: 'player', name: 'Enhanced Capacity Storage Unit \u2014 might' },
+    attribution: { actorType: ACTOR.PLAYER, name: 'Enhanced Capacity Storage Unit \u2014 might' },
     transform: (event) => ({ ...event, applicationIndex: undefined, totalApplications: undefined })
   });
 }
@@ -278,7 +278,7 @@ function emitPhotonicBlastingModuleEffects(
   emitTraitProfile(context, TRAIT.PHOTONIC_BLASTING_MODULE, TRAIT.PHOTONIC_BLASTING_MODULE, undefined, {
     at: blastAt!,
     skillWeaponFallback: 'Unequipped',
-    attribution: { actorType: 'player', skillName: 'Photonic Blasting Module' },
+    attribution: { actorType: ACTOR.PLAYER, skillName: 'Photonic Blasting Module' },
     transform: (event) =>
       event.type === 'damage'
         ? {
@@ -286,7 +286,9 @@ function emitPhotonicBlastingModuleEffects(
             name: 'Photonic Blasting Module',
             canCrit: undefined,
             explosion: true,
-            comboFinishers: [{ ownerId: 'engineer', finisherType: 'Blast', ambiguousFieldSelection: 'oldest' }]
+            comboFinishers: [
+              { ownerId: 'engineer', finisherType: COMBO_FINISHER.BLAST, ambiguousFieldSelection: 'oldest' }
+            ]
           }
         : {
             ...event,
@@ -314,7 +316,7 @@ function grantSolarFocusingLens(
       at: overheat ? (blastAt ?? at) : at,
       source: 'Trait',
       sourceId: TRAIT.SOLAR_FOCUSING_LENS,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       stacks: balanceProfileNumber(solarFocusingLensProfile, overheat ? 'maximumStacks' : 'minimumStacks'),
       duration: balanceProfileNumber(solarFocusingLensProfile, 'durationMultiplier')
     }
@@ -337,7 +339,7 @@ function consumeSolarFocusingLens(
   event: HolosmithResolverEvent
 ): { solarFocusingLens: true } | void {
   if (
-    event.actorType !== 'player' ||
+    event.actorType !== ACTOR.PLAYER ||
     !(Number(event.coefficient) > 0) ||
     !hasTrait(context.traits, TRAIT.SOLAR_FOCUSING_LENS)
   )
@@ -357,7 +359,7 @@ function consumeSolarFocusingLens(
     at: event.at,
     effect: { type: 'condition', name: CONDITION.BURNING },
     attribution: {
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: event.skillId,
       skillName: event.skillName,
       name: 'Solar Focusing Lens \u2014 Burning'

@@ -1,3 +1,4 @@
+import { RECIPIENT, ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
@@ -113,7 +114,7 @@ function grantWeaponSpell(
   const allyStacks = wieldersBoonCharges(runtime, effect);
   const audience = gw2AlliedEffectRecipients(runtime.config, {
     ...effect.audience,
-    recipients: 'party',
+    recipients: RECIPIENT.PARTY,
     eligibleCompanionIds: necromancerActiveMinionCompanionIds(runtime)
   });
   const recipients: Record<string, ChargeGrant> = { player: grantCharges(Number(effect.stacks ?? 0), expiresAt) };
@@ -137,7 +138,7 @@ function grantWeaponSpell(
       at: runtime.time,
       source: 'necromancer',
       sourceId: cast.skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       activationId: cast.id,
@@ -179,7 +180,7 @@ function grantAlliedWeaponSpell(
               at: opportunity.at,
               source: 'Weapon Spell',
               sourceId: active.skillId!,
-              actorType: 'effect',
+              actorType: ACTOR.EFFECT,
               skillId: active.skillId,
               skillName: active.skillName,
               activationId: opportunity.activationId,
@@ -247,7 +248,7 @@ export function emitPainfulBond(runtime: NecromancerRuntime, event: Gw2ResolverE
         sourceId: 'ritualist.painful-bond',
         // Bond retains the creating summon's artwork without borrowing its damage identity.
         icon: event.icon,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillName: 'Painful Bond',
         // Bond's shared cadence belongs to the profession mechanic rather than its latest spirit summon.
         procType: 'profession',

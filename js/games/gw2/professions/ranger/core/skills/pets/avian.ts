@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Core Ranger pet skill fragments for the Avian family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -17,7 +16,7 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'strike',
         ticks: [280, 360].map((atMs) => ({ atMs, coefficient: 0.38 })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BIRD_SLASH]!.castTimeMs,
@@ -31,8 +30,8 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'strike',
         coefficient: 0.66,
         source: 'ranger-pet',
-        actorType: 'summon',
-        comboFinishers: [{ ownerId: 'ranger', finisherType: 'Leap', ambiguousFieldSelection: 'oldest' }]
+        actorType: ACTOR.SUMMON,
+        comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.LEAP, ambiguousFieldSelection: 'oldest' }]
       },
       {
         type: 'condition',
@@ -40,7 +39,7 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         stacks: 1,
         duration: 6,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BIRD_SWOOP]!.castTimeMs,
@@ -56,8 +55,8 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         duration: 10,
         stacks: 1,
         source: 'ranger-pet',
-        actorType: 'summon',
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        actorType: ACTOR.SUMMON,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.QUICKENING_SCREECH_PET]!.castTimeMs,
@@ -72,7 +71,7 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         hits: 2,
         atMs: 0,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 333,
@@ -86,7 +85,7 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         hits: 2,
         atMs: 0,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -94,7 +93,7 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 333,
@@ -108,7 +107,7 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         hits: 2,
         atMs: 0,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -116,7 +115,7 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 333,
@@ -129,13 +128,13 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'strike',
         ticks: [280, 360].map((atMs) => ({ atMs, coefficient: 1 })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
         ticks: [280, 360].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 3, duration: 15 })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.LACERATING_SLASH]!.castTimeMs,

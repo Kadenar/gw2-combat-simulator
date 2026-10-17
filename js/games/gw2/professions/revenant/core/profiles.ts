@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 
 export const REVENANT_CORE_BALANCE_PROFILE_IDS = Object.freeze({
@@ -27,7 +28,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         kind: 'battle-scars',
         duration: 10,
         stacks: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'strike',
@@ -37,7 +38,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         flatStrikeBase: 117,
         flatStrikePowerCoeff: 0.006,
         name: 'Battle Scars — Life Siphon',
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   }

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
@@ -163,7 +162,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial
       },
       {
         type: 'control',
-        controlKind: 'knockdown'
+        controlKind: CONTROL.KNOCKDOWN
       }
     ]),
     castTimeMs: 960
@@ -178,7 +177,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial
         },
         {
           type: 'control',
-          controlKind: 'daze'
+          controlKind: CONTROL.DAZE
         }
       ]),
       ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -190,7 +189,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial
         {
           type: 'control',
           sourceId: ID.OVERBEARING_SMASH_SECOND_STRIKE,
-          controlKind: 'daze'
+          controlKind: CONTROL.DAZE
         }
       ])
     ],

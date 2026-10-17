@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
 import { SIGIL_IDS, SIGIL_PROCS, SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
@@ -119,7 +120,7 @@ export function applyRuntimeSigils(
           duration: proc.duration,
           source: 'Sigil',
           sourceId: `sigil.${SIGIL_IDS.SEVERANCE}`,
-          actorType: 'effect'
+          actorType: ACTOR.EFFECT
         }
       });
 

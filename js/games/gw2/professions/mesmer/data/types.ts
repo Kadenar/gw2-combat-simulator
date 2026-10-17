@@ -1,8 +1,8 @@
+import type { SimulationActorType } from '#gw2/platform/constants.js';
 /** Declarative Mesmer skill records shared by generated data and runtime consumers. */
 import type { ConditionEffect, SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { EffectMetadata } from '#gw2/platform/events/events.js';
-import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 
 export type MesmerSummonKind = 'clone' | 'phantasm';
 

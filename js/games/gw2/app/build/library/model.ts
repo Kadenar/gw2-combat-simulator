@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { BuildTemplatePreset, BuildTemplateSection } from '#gw2/app/build/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 

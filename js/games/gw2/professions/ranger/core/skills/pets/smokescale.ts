@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, COMBO_FIELD, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Smokescale family.
@@ -16,7 +15,7 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
         type: 'strike',
         coefficient: 0.56,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -24,7 +23,7 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SMOKESCALE_BITE]!.castTimeMs,
@@ -38,7 +37,7 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
         type: 'strike',
         coefficient: 0.5,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -46,7 +45,7 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SMOKESCALE_TAKEDOWN]!.castTimeMs,
@@ -62,7 +61,7 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
         hits: 5,
         atMs: 0,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'boon',
@@ -70,10 +69,10 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
         duration: 8,
         stacks: 5,
         audience: {
-          recipients: 'self'
+          recipients: RECIPIENT.SELF
         },
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SMOKESCALE_SMOKE_ASSAULT]!.castTimeMs,
@@ -83,7 +82,13 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
   [ID.SMOKE_CLOUD]: {
     // The pet's persistent field lets ranger leap/blast finishers grant ordinary stealth.
     comboFields: [
-      { ownerId: 'ranger', ownerActorType: 'summon', fieldType: 'Smoke', duration: 5, startAnchor: 'castEnd' }
+      {
+        ownerId: 'ranger',
+        ownerActorType: ACTOR.SUMMON,
+        fieldType: COMBO_FIELD.SMOKE,
+        duration: 5,
+        startAnchor: 'castEnd'
+      }
     ],
     effects: [],
     quicknessCastTimeMs: 500,

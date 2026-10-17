@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONTROL, COMBO_FINISHER, RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Explicit PvE skill mechanics owned by the Druid Ranger module. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -61,11 +60,11 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: impactEffects({ atMs: LUNAR_IMPACT_HIT_MS, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'control',
-        controlKind: 'daze',
+        controlKind: CONTROL.DAZE,
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ]
@@ -93,7 +92,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ],
     castTimeMs: 480
@@ -138,8 +137,8 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         interruptCommitMs: 2040,
         persistsAfterInterrupt: true,
         skillName: 'Black Hole',
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         canCrit: false,
         ticks: [2640, 4160, 5680, 7200].map((atMs) => ({
           atMs,
@@ -155,8 +154,8 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         sourceId: ID.BLACK_HOLE,
         interruptCommitMs: 2040,
         persistsAfterInterrupt: true,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         applications: 4,
         atMs: 2640,
         intervalMs: 1520,
@@ -171,7 +170,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         duration: 10,
         stacks: 1,
         atMs,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }))
     ]),
 

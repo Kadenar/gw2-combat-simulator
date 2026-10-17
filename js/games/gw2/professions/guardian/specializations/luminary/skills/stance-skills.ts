@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { COMBO_FIELD, COMBO_FINISHER, CONTROL, RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
@@ -38,11 +38,11 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         ticks: [{ atMs: 680, coefficient: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 5 }],
+        comboFields: [{ ownerId: 'guardian', fieldType: COMBO_FIELD.LIGHT, duration: 5 }],
         comboFinishers: [
           {
             ownerId: 'guardian',
-            finisherType: 'Leap',
+            finisherType: COMBO_FINISHER.LEAP,
             // The leap can combo with an existing field, but not the field this cast creates.
             excludeOwnField: true,
             ambiguousFieldSelection: 'oldest'
@@ -73,7 +73,7 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: CONTROL.DAZE
       }
     ])
   },
@@ -84,8 +84,8 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     castTimeMs: 200,
     // Activation grants the stance's defensive boons to nearby allies.
     effects: [
-      { type: 'boon', boon: BOON.STABILITY, stacks: 5, duration: 4, audience: { recipients: 'party' } },
-      { type: 'boon', boon: BOON.PROTECTION, duration: 4, audience: { recipients: 'party' } }
+      { type: 'boon', boon: BOON.STABILITY, stacks: 5, duration: 4, audience: { recipients: RECIPIENT.PARTY } },
+      { type: 'boon', boon: BOON.PROTECTION, duration: 4, audience: { recipients: RECIPIENT.PARTY } }
     ]
   }
 });

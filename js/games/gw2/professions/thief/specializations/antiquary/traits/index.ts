@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -368,11 +368,11 @@ function applyPossessiveHoarder(runtime: ThiefRuntime, { cast, slot }: ArtifactA
       attribution: {
         source: 'thief',
         sourceId: 'Possessive Hoarder',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: cast.skill.id,
         skillName: cast.skill.name,
         name: 'Possessive Hoarder',
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
       transform: (packet) => ({ ...packet, boon: packet.kind, fixedDuration: false })
     });
@@ -411,7 +411,7 @@ function applyMeticulousChakShield(runtime: ThiefRuntime, { cast }: ArtifactActi
     attribution: {
       source: 'thief',
       sourceId: cast.skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       name: 'Chak Shield'
@@ -423,7 +423,7 @@ function applyMeticulousChakShield(runtime: ThiefRuntime, { cast }: ArtifactActi
 // excluding its declarative condition-only packets.
 function applyMeticulousSunCrystal(context: ThiefResolverContext, { cause: event }: AntiquaryStrike): void {
   if (
-    event.actorType !== 'player' ||
+    event.actorType !== ACTOR.PLAYER ||
     event.skillId !== ID.ZEPHYRITE_SUN_CRYSTAL ||
     event.coefficient == null // condition-only packets have no coefficient; burning fires on the strike hit
   )
@@ -443,7 +443,7 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, { cause: event
     attribution: {
       source: 'thief',
       sourceId: ID.ZEPHYRITE_SUN_CRYSTAL,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: ID.ZEPHYRITE_SUN_CRYSTAL,
       skillName: 'Zephyrite Sun Crystal',
       name: 'Zephyrite Sun Crystal - Meticulous Burning',

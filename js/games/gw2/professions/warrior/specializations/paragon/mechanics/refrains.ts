@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -107,14 +108,14 @@ function pulseRefrain(runtime: WarriorRuntime): void {
     attribution: {
       source: 'Paragon',
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name
     },
     transform: (event) => ({
       ...event,
       name: `${skill.name} — ${event.kind}`,
-      audience: { recipients: 'party' },
+      audience: { recipients: RECIPIENT.PARTY },
       stacks:
         event.kind === boonKey(BOON.MIGHT)
           ? Number(event.stacks) * level * enduringRefrainMultiplier(runtime)
@@ -159,7 +160,7 @@ function activateChant(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>)
     attribution: {
       source: 'Paragon',
       sourceId: cast.skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       activationId: cast.id
@@ -167,7 +168,7 @@ function activateChant(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>)
     transform: (event) => ({
       ...event,
       name: cast.skill.name + ' — ' + event.kind,
-      audience: { recipients: 'party' }
+      audience: { recipients: RECIPIENT.PARTY }
     })
   });
 

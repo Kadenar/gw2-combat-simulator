@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -315,7 +315,7 @@ function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerShatterRe
     const traitSource = {
       source: 'Trait',
       sourceId: TRAIT.DEADLY_BLADES,
-      actorType: 'player' as const,
+      actorType: ACTOR.PLAYER,
       skillId: TRAIT.DEADLY_BLADES,
       skillName: traitProfile.name
     };
@@ -325,7 +325,7 @@ function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerShatterRe
         ...resolution.delivery,
         kind: 'announcement',
         log: true,
-        attribution: { ...traitSource, actorType: 'effect' },
+        attribution: { ...traitSource, actorType: ACTOR.EFFECT },
         announcement: { type: 'trait', name: traitProfile.name, at: at, sourceSkill: resolution.skill.name, detail: '' }
       });
       for (const grant of grants)
@@ -385,7 +385,7 @@ function applyBladeCritical(
 
   if ((!event.metadata?.blade && !skill?.blade) || event.canCrit === false) return;
 
-  if (id === TRAIT.DEADLY_BLADES && event.actorType !== 'player') return;
+  if (id === TRAIT.DEADLY_BLADES && event.actorType !== ACTOR.PLAYER) return;
 
   const effect = requireEffect(requireBalanceProfileFromContext(runtime, id), 'condition', condition);
 
@@ -413,8 +413,8 @@ function applyBladeCritical(
         duration: Number(payload.duration),
         source: id === TRAIT.DEADLY_BLADES ? 'Trait' : event.source,
         sourceId: id,
-        actorType: id === TRAIT.DEADLY_BLADES ? 'effect' : event.actorType,
-        ...(id === TRAIT.DEADLY_BLADES ? { ownerActorType: 'player' as const } : {})
+        actorType: id === TRAIT.DEADLY_BLADES ? ACTOR.EFFECT : event.actorType,
+        ...(id === TRAIT.DEADLY_BLADES ? { ownerActorType: ACTOR.PLAYER } : {})
       })
   });
 
@@ -422,7 +422,7 @@ function applyBladeCritical(
     runtime.effects.emit({
       kind: 'announcement',
       log: true,
-      attribution: { source: 'Trait', sourceId: id, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: id, actorType: ACTOR.EFFECT },
       announcement: { type: 'trait', name: name, at: runtime.time, sourceSkill: event.skillName, detail: '' }
     });
 }

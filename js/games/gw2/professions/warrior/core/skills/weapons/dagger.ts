@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, CONTROL, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -23,7 +22,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event, details }) =>
               Number(event.coefficient) > 0 &&
@@ -39,7 +38,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 5,
         stacks: 1
@@ -103,7 +102,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: CONTROL.DAZE
       }
     ])
   },
@@ -123,7 +122,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: CONTROL.DAZE
       }
     ])
   },
@@ -136,7 +135,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: 'Leap',
+        finisherType: COMBO_FINISHER.LEAP,
         fieldSelectionAnchor: 'castStart',
         ambiguousFieldSelection: 'oldest'
       }

@@ -1,11 +1,10 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 /** Shackles relic rules. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
-import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/events/actors.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const shackles = defineRelic({
@@ -16,7 +15,7 @@ export const shackles = defineRelic({
 
     if (
       application.condition !== CONDITION.IMMOBILIZED ||
-      (actorType !== GW2_EVENT_ACTOR_TYPES.PLAYER && actorType !== GW2_EVENT_ACTOR_TYPES.SUMMON) ||
+      (actorType !== ACTOR.PLAYER && actorType !== ACTOR.SUMMON) ||
       !isInternalCooldownReady(application.at, state.readyAt)
     ) {
       return;
@@ -53,7 +52,7 @@ function emitDamagePayload(
     kind: 'announcement',
     log: true,
     cause: application,
-    attribution: { source: 'Relic', sourceId: `relic.${RELIC_IDS.SHACKLES}`, actorType: 'effect' },
+    attribution: { source: 'Relic', sourceId: `relic.${RELIC_IDS.SHACKLES}`, actorType: ACTOR.EFFECT },
     announcement: {
       type: 'relic',
       name: 'Relic of the Shackles',
@@ -76,8 +75,8 @@ function emitDamagePayload(
       totalHits: 1,
       source: 'Relic',
       sourceId: `relic.${RELIC_IDS.SHACKLES}`,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       skillWeapon: 'Unequipped',
       canCrit: true,
       triggeredBy: application.skillName
@@ -91,10 +90,10 @@ function emitDamagePayload(
       at: application.at + 5,
       name: 'Relic of the Shackles',
       skillName: 'Relic of the Shackles',
-      controlKind: 'stun',
+      controlKind: CONTROL.STUN,
       source: 'Relic',
       sourceId: `relic.${RELIC_IDS.SHACKLES}`,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       triggeredBy: application.skillName
     }
   });

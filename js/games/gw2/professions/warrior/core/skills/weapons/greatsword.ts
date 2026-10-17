@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 /** Core Warrior greatsword packets use nearest-40 ms offsets to remove false timing precision. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -91,7 +91,7 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 1,
             ambiguousFieldSelection: 'oldest'
           }

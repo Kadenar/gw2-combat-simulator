@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type {
   ActionContext,
   ResourceGrantAmount,
@@ -110,7 +111,7 @@ export function applySideEffect<TContext extends SideEffectServices>(
         attribution: {
           source: 'Trait',
           sourceId: action.profileId,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillId: context.kind === 'cast' ? context.skill.id : context.trigger.event.skillId,
           skillName: context.kind === 'cast' ? context.skill.name : context.trigger.event.skillName,
           activationId: context.kind === 'cast' ? context.cast.id : context.trigger.event.activationId,

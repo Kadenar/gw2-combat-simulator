@@ -1,3 +1,4 @@
+import { CONTROL } from '#gw2/platform/constants.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -98,7 +99,7 @@ test('Hilt Bash dazes normal targets, stuns defiant targets, and triggers player
     // The two conditional declarations are mutually exclusive and keep one control reaction.
     assert.deepEqual(
       enhanced.events.filter((event) => event.type === 'control').map((event) => event.controlKind),
-      [defiant ? 'Stun' : 'Daze']
+      [defiant ? CONTROL.STUN : CONTROL.DAZE]
     );
     const poison = (result) =>
       result.resolvedEvents.find((event) => event.type === 'condition' && event.sourceId === TRAIT.DEBILITATING_BLOWS);

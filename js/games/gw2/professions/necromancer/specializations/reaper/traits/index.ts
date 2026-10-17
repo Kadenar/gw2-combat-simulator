@@ -1,7 +1,7 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -34,7 +34,7 @@ const deathlyChill = defineTrait({
         condition: CONDITION.BLEEDING,
         stacks: 4,
         duration: 4,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   },
@@ -61,7 +61,7 @@ const chillingNova = defineTrait({
         type: 'strike',
         coefficient: 1.125,
         hits: 1,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       },
       {
         name: CONDITION.CHILLED,
@@ -69,7 +69,7 @@ const chillingNova = defineTrait({
         condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 2,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   },
@@ -77,7 +77,7 @@ const chillingNova = defineTrait({
     {
       on: 'damage.resolved',
       when: (runtime, event) =>
-        event.actorType === 'player' &&
+        event.actorType === ACTOR.PLAYER &&
         Number(event.coefficient) > 0 &&
         runtime.combat.targetHasCondition(CONDITION.CHILLED, event.at),
       // Preserve canonical critical sampling and cooldown claims within the selected producer.
@@ -133,7 +133,7 @@ const shiversOfDread = defineTrait({
         condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 2,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   },
@@ -156,7 +156,7 @@ const auguryOfDeath = defineTrait({
         // The simulator assumes melee range, doubling the base siphon and its power scaling.
         flatStrikeBase: 344,
         flatStrikePowerCoeff: 0.025,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         canCrit: false,
         damageKind: 'life-steal'
       }
@@ -194,7 +194,7 @@ const chillingVictory = defineTrait({
     {
       on: 'damage.resolved',
       when: (runtime, event) =>
-        event.actorType === 'player' &&
+        event.actorType === ACTOR.PLAYER &&
         Number(event.coefficient) > 0 &&
         runtime.combat.targetHasCondition(CONDITION.CHILLED, runtime.time),
       run(runtime) {
@@ -292,7 +292,7 @@ const reapersOnslaught = defineTrait({
     {
       on: 'damage.resolved',
       when: (_runtime, event) =>
-        event.actorType === 'player' && Number(event.coefficient) > 0 && event.skillId === ID.LIFE_REAP,
+        event.actorType === ACTOR.PLAYER && Number(event.coefficient) > 0 && event.skillId === ID.LIFE_REAP,
       run(runtime) {
         const reduction = balanceNumberFromContext(runtime, TRAIT.REAPERS_ONSLAUGHT, 'rechargeReduction');
         for (const skill of runtime.helpers.skillsById.values()) {
@@ -365,7 +365,7 @@ function queueChillingNovaChill(context: NecromancerResolverContext, event: Necr
 /** Finish an admitted Nova strike even when new trait producers are disabled or the trait is unselected. */
 function completeChillingNova(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   // The resolved Nova strike queues its condition after sibling strikes, preserving their pre-Chill state.
-  if (event.actorType === 'effect' && event.sourceId === TRAIT.CHILLING_NOVA) {
+  if (event.actorType === ACTOR.EFFECT && event.sourceId === TRAIT.CHILLING_NOVA) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.CHILLING_NOVA);
     const chill = requireEffect(profile, 'condition', CONDITION.CHILLED);
 
@@ -388,10 +388,10 @@ function applyDeathlyChill(context: NecromancerResolverContext, event: Necromanc
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.DEATHLY_CHILL,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillName: 'Deathly Chill',
         triggeredBy: event.skillName,
-        ownerActorType: 'player',
+        ownerActorType: ACTOR.PLAYER,
         name: 'Deathly Chill' + ' - ' + String(effect.condition)
       }
     });
@@ -417,7 +417,7 @@ function applyShiversOfDread(context: NecromancerResolverContext, event: Necroma
       name: 'Shivers of Dread — Chilled',
       source: 'Trait',
       sourceId: TRAIT.SHIVERS_OF_DREAD,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillName: 'Shivers of Dread'
     }
   });

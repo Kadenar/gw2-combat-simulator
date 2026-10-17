@@ -1,3 +1,5 @@
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
+
 // Resolve baseline and adjusted Might together while leaving the source attributes immutable.
 function notorietyAttributes(context, attributes) {
   const facts = attributeContext(context, { catalog: revenantCatalog, modifierRulesById: new Map() });
@@ -17,7 +19,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { renegadeModule } from '#gw2/professions/revenant/specializations/renegade/module.js';
 
 const renegadeModifierRules = renegadeModule.modifiers.modifierRules;

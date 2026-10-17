@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 import {
   createSkillSelectionContext,
@@ -95,7 +96,7 @@ export function createRotationDriver<T extends object>(
                 at: runtime.time,
                 source: 'Runtime',
                 sourceId: 'combat-start',
-                actorType: 'environment'
+                actorType: ACTOR.ENVIRONMENT
               }
             });
             cursor.consume();
@@ -121,7 +122,7 @@ export function createRotationDriver<T extends object>(
                 at: runtime.time,
                 source: 'platform',
                 sourceId: 'cooldown-reset',
-                actorType: 'environment',
+                actorType: ACTOR.ENVIRONMENT,
                 action: 'cooldown-reset',
                 name: 'Cooldown Reset'
               }

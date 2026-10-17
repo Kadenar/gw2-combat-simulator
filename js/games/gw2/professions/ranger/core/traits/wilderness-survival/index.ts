@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   isActivePetStrike,
@@ -101,7 +101,7 @@ export const arachnophobia = defineTrait({
   name: 'Arachnophobia',
   balance: {
     // Torment belongs to the triggering spider/devourer pet; pet damage is excluded from this preview.
-    damagePreviewAttribution: 'summon',
+    damagePreviewAttribution: ACTOR.SUMMON,
     attributeBonus: 150,
     weaponAttributeBonus: 225,
     effects: [{ name: CONDITION.TORMENT, type: 'condition', condition: CONDITION.TORMENT, duration: 3, stacks: 1 }]
@@ -189,7 +189,7 @@ export const ambidexterity = defineTrait({
   rechargeRules: [
     {
       order: 4,
-      when: (_runtime, skill) => ['Dagger', 'Torch'].includes(String(skill.weapon)),
+      when: (_runtime, skill) => [WEAPON.DAGGER, WEAPON.TORCH].some((member) => member === String(skill.weapon)),
       multiplier: { profile: TRAIT.AMBIDEXTERITY, field: 'rechargeMultiplier' }
     }
   ],
@@ -203,7 +203,7 @@ export const ambidexterity = defineTrait({
           amount: balanceNumberFromContext(
             profileContext,
             TRAIT.AMBIDEXTERITY,
-            weapons.some((weapon) => ['Dagger', 'Mace', 'Torch'].includes(weapon ?? ''))
+            weapons.some((weapon) => [WEAPON.DAGGER, WEAPON.MACE, WEAPON.TORCH].some((member) => member === weapon))
               ? 'weaponAttributeBonus'
               : 'attributeBonus'
           ),
@@ -251,7 +251,7 @@ function triggerChildOfEarth(context: RangerRuntime, skill: RangerSkill): void {
     at: context.time,
     skillId: skill.id,
     skillName: skill.name,
-    actorType: 'player'
+    actorType: ACTOR.PLAYER
   });
 }
 
@@ -270,7 +270,7 @@ function applyPoisonMasterBeastSkill(context: RangerRuntime, skill: RangerSkill)
         at: context.time,
         source: 'Trait',
         sourceId: TRAIT.POISON_MASTER,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         ...(petCommand ? { summonOwner: rangerPetCompanionId(context) } : {}),
         skillId: skill.id,
         skillName: skill.name
@@ -308,8 +308,8 @@ function triggerPoisonMaster(context: RangerResolverContext, event: Gw2ResolverE
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.POISON_MASTER,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       skillId: TRAIT.POISON_MASTER,
       skillName: 'Poison Master',
       name: 'Poison Master - Poisoned',
@@ -328,8 +328,8 @@ function triggerArachnophobia(context: RangerResolverContext, event: Gw2Resolver
     effect: { type: 'condition', name: CONDITION.TORMENT },
     attribution: {
       source: isPetStrike(event) ? 'ranger-pet' : 'Trait',
-      actorType: isPetStrike(event) ? 'summon' : 'effect',
-      ownerActorType: isPetStrike(event) ? undefined : 'player',
+      actorType: isPetStrike(event) ? ACTOR.SUMMON : ACTOR.EFFECT,
+      ownerActorType: isPetStrike(event) ? undefined : ACTOR.PLAYER,
       skillId: TRAIT.ARACHNOPHOBIA,
       skillName: 'Arachnophobia',
       triggeredBy: event.skillName

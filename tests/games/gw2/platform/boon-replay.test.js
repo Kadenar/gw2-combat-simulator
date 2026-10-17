@@ -1,6 +1,6 @@
+import { buffApplicationStacks, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buffApplicationStacks, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';

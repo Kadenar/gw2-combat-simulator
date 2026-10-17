@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, STATUS, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -42,7 +43,7 @@ export const lockOn = defineTrait({
   triggers: [
     {
       on: 'control.resolved',
-      when: (_runtime, event) => event.actorType === 'player',
+      when: (_runtime, event) => event.actorType === ACTOR.PLAYER,
       invoke: ID.CONTROLLED_ANALYSIS,
       cooldown: 'skill'
     }
@@ -80,7 +81,7 @@ export const optimizedActivation = defineTrait({
   triggers: [
     onTriggerPoint(toolbeltActivated, {
       emit: TRAIT.OPTIMIZED_ACTIVATION,
-      attribution: { actorType: 'player', name: 'Optimized Activation — vigor' }
+      attribution: { actorType: ACTOR.PLAYER, name: 'Optimized Activation — vigor' }
     })
   ]
 });
@@ -127,7 +128,7 @@ export const kineticBattery = defineTrait({
       { name: 'kinetic-battery', type: 'buff', kind: 'kinetic-battery', stacks: 1, duration: 5 },
       { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 5 },
       // Superspeed accompanies the fifth charge without boon-duration scaling.
-      { name: 'superspeed', type: 'buff', kind: 'superspeed', stacks: 1, duration: 5 }
+      { name: STATUS.SUPERSPEED, type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 5 }
     ]
   },
   modifierRules: [
@@ -247,8 +248,8 @@ function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSkill, at
     attribution: (effect) => ({
       source: 'Trait',
       sourceId: TRAIT.STREAMLINED_KITS,
-      actorType: effect.type === 'strike' ? 'effect' : 'player',
-      ...(effect.type === 'strike' ? { ownerActorType: 'player' } : {}),
+      actorType: effect.type === 'strike' ? ACTOR.EFFECT : ACTOR.PLAYER,
+      ...(effect.type === 'strike' ? { ownerActorType: ACTOR.PLAYER } : {}),
       skillId: skill.id,
       skillName: effect.type === 'strike' ? 'Drop Mine' : skill.name
     }),
@@ -282,7 +283,7 @@ function chargeKineticBattery(context: EngineerRuntime, { skill, at }: ToolbeltA
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.KINETIC_BATTERY,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: skill.id,
         skillName: skill.name
       },
@@ -303,7 +304,7 @@ function chargeKineticBattery(context: EngineerRuntime, { skill, at }: ToolbeltA
 function recordStaticDischargeProc(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   // Scheduled trait damage is not a rotation step, so expose it with its toolbelt trigger in Procs.
   context.effects.emit({
-    attribution: { source: 'Trait', sourceId: TRAIT.STATIC_DISCHARGE, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.STATIC_DISCHARGE, actorType: ACTOR.EFFECT },
     kind: 'announcement',
     announcement: {
       type: 'trait',

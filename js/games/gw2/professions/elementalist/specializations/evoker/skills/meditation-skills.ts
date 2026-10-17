@@ -1,11 +1,10 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey, buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 /**
  * Owns Evoker meditation heal, utility, and elite skill fragments.
  * Meditation trait reactions are registered by the Evoker module.
  */
-import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -48,7 +47,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
                 timingScale: 'cast' as const,
                 persistsAfterInterrupt: true,
                 source: cast.skill.name,
-                actorType: 'player' as const
+                actorType: ACTOR.PLAYER
               };
 
               if (effect.type === 'strike')
@@ -219,7 +218,7 @@ export const meditationBalanceProfiles: readonly BalanceProfile[] = Object.freez
         name: 'Toad Resistance',
         boon: BOON.RESISTANCE,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 4
       }

@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import {
   balanceProfileNumber,
@@ -25,9 +25,9 @@ function recipientKeys(event: NecromancerResolverEvent): string[] {
 
   if (event.summonOwner) return [event.summonOwner];
 
-  if (event.actorType === 'player') return ['player'];
+  if (event.actorType === ACTOR.PLAYER) return [ACTOR.PLAYER];
 
-  if (event.actorType !== 'summon') return [];
+  if (event.actorType !== ACTOR.SUMMON) return [];
 
   return [];
 }
@@ -69,7 +69,7 @@ export function queueNightmareWeapon(
 
         source: 'Weapon Spell',
         sourceId: ID.NIGHTMARE_WEAPON,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: ID.NIGHTMARE_WEAPON,
         skillWeapon: 'Unequipped',
         canCrit: false,
@@ -96,7 +96,7 @@ export function queueNightmareWeapon(
         duration: effectNumber(definition, vulnerability, 'duration'),
         source: 'Weapon Spell',
         sourceId: ID.NIGHTMARE_WEAPON,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         triggeredBy: event.skillName,
         // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
         ...(event.metadata?.triggeredByAlly == null
@@ -143,7 +143,7 @@ export function queueSplinterWeapon(
 
       source: 'Weapon Spell',
       sourceId: ID.SPLINTER_WEAPON,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: ID.SPLINTER_WEAPON,
       skillWeapon: 'Unequipped',
       triggeredBy: event.skillName,
@@ -172,8 +172,8 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
 
   // Splinter damage belongs to the caster even when an ally triggers it, so it spends the caster's Nightmare charges.
   // Other derived damage cannot chain weapon spells, and Nightmare's life steal never triggers Splinter.
-  if (event.actorType === 'effect') {
-    if (event.sourceId === ID.SPLINTER_WEAPON) triggerRitualistWeaponSpell(context, event, 'nightmare', ['player']);
+  if (event.actorType === ACTOR.EFFECT) {
+    if (event.sourceId === ID.SPLINTER_WEAPON) triggerRitualistWeaponSpell(context, event, 'nightmare', [ACTOR.PLAYER]);
 
     return;
   }
@@ -212,7 +212,7 @@ export function triggerRitualistWeaponSpell(
     if (!consumeCharge(active.recipients?.[key], event.at, internalCooldown)) continue;
 
     if (spell === 'nightmare')
-      queueNightmareWeapon(context, event, definition, key === 'player' ? 'personal' : 'shared');
+      queueNightmareWeapon(context, event, definition, key === ACTOR.PLAYER ? 'personal' : 'shared');
     else queueSplinterWeapon(context, event, definition);
   }
 }

@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, WEAPON, COMBO_FINISHER, STATUS, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -22,7 +22,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
           { atMs: 280, coefficient: 0.4 }
         ],
         name: 'Double Strike',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -59,12 +59,12 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         ticks: [{ atMs: 200, coefficient: 1.5 }],
         name: 'Front damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
     ],
-    requiredMainHand: 'Dagger',
+    requiredMainHand: WEAPON.DAGGER,
     stealthAttack: true
   },
   [ID.DEATH_BLOSSOM]: {
@@ -80,23 +80,23 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         ticks: [560, 640, 800].map((atMs) => ({ atMs, coefficient: 0.21 })),
         name: 'Death Blossom',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         ticks: [560, 640, 800].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 2, duration: 6 })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     comboFinishers: [
       {
         ownerId: 'thief',
-        finisherType: 'Whirl',
+        finisherType: COMBO_FINISHER.WHIRL,
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    requiredMainHand: 'Dagger',
-    requiredOffHand: 'Dagger'
+    requiredMainHand: WEAPON.DAGGER,
+    requiredOffHand: WEAPON.DAGGER
   },
   [ID.DANCING_DAGGER]: {
     // The supplied log places the projectile hit and both conditions at 280 ms within a 480 ms activation.
@@ -109,11 +109,11 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 0.9,
         hits: 1,
         name: 'Dancing Dagger',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -124,14 +124,14 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
         condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -146,13 +146,13 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 1.8 }],
         name: 'Shadow Shot',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -163,11 +163,11 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
-    requiredMainHand: 'Dagger',
-    requiredOffHand: 'Pistol'
+    requiredMainHand: WEAPON.DAGGER,
+    requiredOffHand: WEAPON.PISTOL
   },
   [ID.WILD_STRIKE]: {
     // Endurance is a commitment reward, independent of target contact.
@@ -186,21 +186,21 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 0.8,
         hits: 1,
         name: 'Wild Strike',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BLEEDING,
         stacks: 2,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
   [ID.HEARTSEEKER]: {
     movementSkill: true,
     // Resolve the leap at impact through the shared field-selection contract.
-    comboFinishers: [{ ownerId: 'thief', finisherType: 'Leap', ambiguousFieldSelection: 'oldest' }],
+    comboFinishers: [{ ownerId: 'thief', finisherType: COMBO_FINISHER.LEAP, ambiguousFieldSelection: 'oldest' }],
     castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 3,
@@ -209,7 +209,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 1 }],
         name: 'Heartseeker',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         coefficientModifiers: [
           {
             kind: 'target-health-below',
@@ -238,14 +238,14 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 1.2,
         hits: 1,
         name: 'Lotus Strike',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.POISONED,
         stacks: 2,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -258,19 +258,19 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         ticks: [200, 360].map((atMs) => ({ atMs, coefficient: 0.63 / 2 })),
         name: 'Twisting Fangs',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 0, condition: CONDITION.BLEEDING, stacks: 2, duration: 10 }],
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
     ],
-    requiredMainHand: 'Dagger',
+    requiredMainHand: WEAPON.DAGGER,
     requiredOffHand: false
   },
   [ID.CLOAK_AND_DAGGER]: {
@@ -287,11 +287,11 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
           coefficient: 1.6,
           hits: 1,
           name: 'Cloak and Dagger',
-          actorType: 'player',
-          reactions: [{ on: 'damage.resolved', actor: 'player', packets: 'first', do: { type: 'thief.stealth' } }]
+          actorType: ACTOR.PLAYER,
+          reactions: [{ on: 'damage.resolved', actor: ACTOR.PLAYER, packets: 'first', do: { type: 'thief.stealth' } }]
         },
-        { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 5, actorType: 'player' }
+        { type: 'buff', kind: STATUS.STEALTH, duration: 3, stacks: 1 },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 5, actorType: ACTOR.PLAYER }
       ]
     )
   }

@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { profession, createBuildContext, toApplicationBuild } from '#gw2/professions/thief/build/context.js';
 // Browser-facing Thief composition. It adds attribute calculation, runtime
 // config mapping, persistence metadata, and shared-shell adapter behavior to
@@ -14,8 +15,8 @@ export const thiefAppAdapter = defineProfessionApp({
   toApplicationBuild,
   resetPrompt: 'Reset the Thief build, assumptions, and rotation?',
   defaultOffhand({ mainHand, offHands = [] } = {}) {
-    if (['Dagger', 'Pistol'].includes(mainHand || '')) {
-      return offHands.includes('Pistol') ? 'Pistol' : offHands[0] || '';
+    if ([WEAPON.DAGGER, WEAPON.PISTOL].some((member) => member === mainHand)) {
+      return offHands.includes(WEAPON.PISTOL) ? WEAPON.PISTOL : offHands[0] || '';
     }
 
     return offHands[0] || '';

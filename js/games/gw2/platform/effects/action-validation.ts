@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { RESOURCE_KEYS, type ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -154,7 +155,7 @@ export function validateEffectReactions(catalog: CanonicalCatalog, skill: Skill,
             (effect.type === 'condition' && effect.ticks?.some((tick) => tick.comboFinishers?.length))
           )
         : rule.on !== stage) ||
-      !['player', 'summon', 'effect'].includes(rule.actor) ||
+      ![ACTOR.PLAYER, ACTOR.SUMMON, 'effect'].includes(rule.actor) ||
       !['each', 'first'].includes(rule.packets) ||
       (rule.when !== undefined && typeof rule.when !== 'function')
     )

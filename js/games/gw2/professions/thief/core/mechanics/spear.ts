@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
@@ -46,7 +46,7 @@ export function ashenAssaultLifecycle(
     onCastCancel: finish,
     reactions: {
       'damage.resolved'(runtime, event) {
-        if (event.skillId !== skillId || event.actorType !== 'player' || event.offTarget || event.procType) return;
+        if (event.skillId !== skillId || event.actorType !== ACTOR.PLAYER || event.offTarget || event.procType) return;
 
         const active = channels.get(runtime);
         const id = String(event.activationId);

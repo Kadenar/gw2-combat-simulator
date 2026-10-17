@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONTROL, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -95,7 +94,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       },
       {
         type: 'control',
-        controlKind: 'knockback'
+        controlKind: CONTROL.KNOCKBACK
       }
     ]
   },
@@ -114,7 +113,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
           comboFinishers: [
             {
               ownerId: 'guardian',
-              finisherType: 'Whirl' as const,
+              finisherType: COMBO_FINISHER.WHIRL,
               attemptGroup: `whirl:${atMs}`,
               // Overlapping fields compete by age, regardless of their combo outcome.
               ambiguousFieldSelection: 'oldest' as const

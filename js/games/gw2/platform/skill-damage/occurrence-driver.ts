@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
@@ -14,7 +15,7 @@ export function damageInputEvent(runtime: { readonly time: number }): Gw2Resolve
     at: runtime.time,
     source: 'Damage preview',
     sourceId: 'damage:occurrence',
-    actorType: 'effect',
+    actorType: ACTOR.EFFECT,
     activationId: 'damage:occurrence',
     skillName: 'Damage preview'
   };

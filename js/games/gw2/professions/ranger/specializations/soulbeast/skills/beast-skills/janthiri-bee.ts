@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONTROL, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Janthiri Bee family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -16,7 +16,7 @@ export const SOULBEAST_JANTHIRI_BEE_BEAST_SKILL_MECHANICS: Readonly<Record<numbe
         hits: 1
       },
       // The merged charge knocks down its target, enabling disable-triggered traits such as Twice as Vicious.
-      { type: 'control', controlKind: 'knockdown' }
+      { type: 'control', controlKind: CONTROL.KNOCKDOWN }
     ]
   },
   [ID.STINGING_SORROW]: {

@@ -1,3 +1,4 @@
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { effectFirstAtMs } from '#gw2/platform/effects/authoring.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
@@ -47,7 +48,7 @@ function applySelfCondition(
     at: runtime.time,
     source: 'necromancer',
     sourceId: skill.id,
-    actorType: 'player' as const,
+    actorType: ACTOR.PLAYER,
     skillId: skill.id,
     skillName: skill.name,
     condition,
@@ -112,7 +113,7 @@ export function transfer(
         at: runtime.time,
         source: 'necromancer',
         sourceId: skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: skill.id,
         skillName: skill.name,
         activationId: work.activationId,
@@ -128,7 +129,7 @@ export function transfer(
 
 /** Corruption self-conditions and boons share completion timing, independently of hostile skill packets. */
 export function isCorruptionCompletionEffect(effect: SkillEffect): boolean {
-  return (effect.type === 'condition' && effect.target === 'self') || effect.type === 'boon';
+  return (effect.type === 'condition' && effect.target === RECIPIENT.SELF) || effect.type === 'boon';
 }
 
 function corruption(runtime: NecromancerRuntime, data: unknown): void {
@@ -163,7 +164,7 @@ function corruption(runtime: NecromancerRuntime, data: unknown): void {
         at: runtime.time,
         source: 'necromancer',
         sourceId: skill.id,
-        actorType: 'player' as const,
+        actorType: ACTOR.PLAYER,
         skillId: skill.id,
         skillName: skill.name,
         activationId: work.activationId,
@@ -171,7 +172,7 @@ function corruption(runtime: NecromancerRuntime, data: unknown): void {
         duration: effectNumber(skill, effect, 'duration'),
         stacks: effectNumber(skill, effect, 'stacks'),
         audience:
-          effect.audience?.recipients === 'party'
+          effect.audience?.recipients === RECIPIENT.PARTY
             ? { ...effect.audience, eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime) }
             : effect.audience
       };
@@ -195,7 +196,7 @@ export function resolveNecromancerSkillConditions(
     const stacks = effectNumber(profile, effect, 'stacks');
     const duration = effectNumber(profile, effect, 'duration');
 
-    if (effect.target === 'self') applySelfCondition(runtime, skill, condition, stacks, duration);
+    if (effect.target === RECIPIENT.SELF) applySelfCondition(runtime, skill, condition, stacks, duration);
     else
       runtime.effects.emit({
         kind: 'packet',
@@ -204,7 +205,7 @@ export function resolveNecromancerSkillConditions(
           at: runtime.time,
           source: 'necromancer',
           sourceId: skill.id,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: skill.id,
           skillName: skill.name,
           condition,
@@ -272,7 +273,7 @@ function devouring(runtime: NecromancerRuntime, data: unknown): void {
     at: runtime.time,
     source: 'necromancer',
     sourceId: skill.id,
-    actorType: 'player' as const,
+    actorType: ACTOR.PLAYER,
     skillId: skill.id,
     skillName: skill.name,
     activationId: work.activationId,

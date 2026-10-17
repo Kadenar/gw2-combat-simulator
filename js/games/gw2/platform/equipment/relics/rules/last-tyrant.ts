@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -26,7 +26,7 @@ export const lastTyrant = defineRelic({
       missesTarget(application) ||
       !(
         isGw2PlayerActorEvent(application) ||
-        (application.actorType === 'effect' && application.ownerActorType === 'player')
+        (application.actorType === ACTOR.EFFECT && application.ownerActorType === ACTOR.PLAYER)
       ) ||
       !(Number(application.stacks) > 0)
     ) {
@@ -96,8 +96,8 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, applicat
       totalHits: 1,
       source: 'Relic',
       sourceId: `relic.${RELIC_IDS.LAST_TYRANT}`,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       skillWeapon: 'Unequipped',
       canCrit: true,
       triggeredBy: application.skillName
@@ -117,8 +117,8 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, applicat
       stacks: 2,
       source: 'Relic',
       sourceId: `relic.${RELIC_IDS.LAST_TYRANT}`,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       triggeredBy: application.skillName
     }
   });

@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -45,7 +45,7 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
     at: runtime.time,
     source: 'necromancer',
     sourceId: ID.MANIFEST_SAND_SHADE,
-    actorType: 'player' as const,
+    actorType: ACTOR.PLAYER,
     skillId: cast.skill.id,
     skillName: cast.skill.id === ID.NEFARIOUS_FAVOR ? 'Manifest Sand Shade' : 'Manifest Sand Shade (F1/F5)',
     parentSkillName: cast.skill.name

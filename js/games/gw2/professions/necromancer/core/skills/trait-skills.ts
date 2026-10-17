@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
@@ -73,7 +72,7 @@ export const NECROMANCER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
         stacks: 1,
         duration: 5,
         audience: {
-          recipients: 'party',
+          recipients: RECIPIENT.PARTY,
           maximumRecipients: 5
         }
       }
@@ -98,7 +97,7 @@ export const NECROMANCER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
         hits: 1,
         name: 'Lesser Spinal Shivers - No Boons',
         canCrit: false,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       },
       {
         name: CONDITION.CHILLED,
@@ -106,7 +105,7 @@ export const NECROMANCER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
         condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 5,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   },

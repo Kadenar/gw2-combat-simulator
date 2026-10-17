@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, CONTROL, WEAPON, COMBO_FIELD, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Berserker PvE packets use nearest-40 ms offsets to remove false timing precision. */
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -15,7 +14,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: 'Leap',
+        finisherType: COMBO_FINISHER.LEAP,
         fieldSelectionAnchor: 'castStart',
         ambiguousFieldSelection: 'oldest'
       }
@@ -79,7 +78,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: CONTROL.DAZE
       }
     ],
     castTimeMs: 500,
@@ -96,7 +95,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: CONTROL.DAZE
       },
       {
         type: 'condition',
@@ -123,7 +122,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     primalBurst: true
   },
   [ID.ARC_DIVIDER]: {
-    skillWeapon: 'Greatsword',
+    skillWeapon: WEAPON.GREATSWORD,
     effects: [
       {
         type: 'strike',
@@ -143,11 +142,11 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     primalBurst: true
   },
   [ID.SCORCHED_EARTH]: {
-    skillWeapon: 'Longbow',
+    skillWeapon: WEAPON.LONGBOW,
     comboFields: [
       {
         ownerId: 'warrior',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 4,
         startAnchor: 'castEnd'
       }
@@ -179,7 +178,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: CONTROL.DAZE
       },
       {
         type: 'boon',
@@ -322,7 +321,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'control',
-        controlKind: 'stun'
+        controlKind: CONTROL.STUN
       }
     ]),
     castTimeMs: 800,
@@ -349,7 +348,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     selfStunMs: 1000
   },
   [ID.FLAMING_FLURRY]: {
-    skillWeapon: 'Sword',
+    skillWeapon: WEAPON.SWORD,
     // Flaming Flurry safely commits by its final 1560ms packet; per-packet
     // interruptions retain only the strike and burning packets already fired.
     interruptCommitMs: 1560,
@@ -376,7 +375,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     primalBurst: true
   },
   [ID.DECAPITATE]: {
-    skillWeapon: 'Axe',
+    skillWeapon: WEAPON.AXE,
     cooldown: 0,
     effects: [
       {
@@ -399,7 +398,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
   },
   [ID.RUPTURING_SMASH]: {
     movementSkill: true,
-    skillWeapon: 'Hammer',
+    skillWeapon: WEAPON.HAMMER,
     cooldown: 5,
     effects: [
       {
@@ -409,7 +408,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -423,7 +422,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: CONTROL.DAZE
       }
     ],
     castTimeMs: 920,
@@ -454,7 +453,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1
@@ -468,7 +467,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
   },
   [ID.WILD_THROW]: {
     interruptMode: 'per-packet',
-    skillWeapon: 'Spear',
+    skillWeapon: WEAPON.SPEAR,
     effects: [
       {
         type: 'strike',

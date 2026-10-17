@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, COMBO_FINISHER, COMBO_FIELD, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -48,14 +47,14 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Flame Jet',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     kitId: ID.FLAMETHROWER
@@ -74,7 +73,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         // packet has a 0.5 coefficient and a matching Burning application.
         ticks: NAPALM_TICK_OFFSETS_MS.map((atMs) => ({ atMs, coefficient: 0.5 })),
         name: 'Napalm',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -84,7 +83,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
           stacks: 1,
           duration: 3.25
         })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     kitId: ID.FLAMETHROWER
@@ -98,12 +97,12 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         type: 'custom',
         eventType: 'engineer.air-blast',
         event: { condition: CONDITION.BURNING, stacks: 1, duration: 5, projectile: true },
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'knockback'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.KNOCKBACK
       }
     ],
     kitId: ID.FLAMETHROWER
@@ -124,11 +123,11 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
           hits: 1,
           name: 'Flame Blast',
           interruptCommitMs: 480,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           comboFinishers: [
             {
               ownerId: 'engineer',
-              finisherType: 'Blast',
+              finisherType: COMBO_FINISHER.BLAST,
               ambiguousFieldSelection: 'oldest'
             }
           ],
@@ -140,7 +139,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
           stacks: 1,
           duration: 6,
           interruptCommitMs: 480,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]
     ),
@@ -167,7 +166,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     toolbeltParentId: ID.FLAMETHROWER
@@ -178,7 +177,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
     comboFields: [
       {
         ownerId: 'engineer',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 1,
         startAnchor: 'castStart',
         startMs: 360,
@@ -193,7 +192,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         coefficient: 0.5,
         hits: 1,
         name: 'Stoke the Flames',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         // One authored total becomes independent Burning applications in the shared resolver.
@@ -201,7 +200,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         condition: CONDITION.BURNING,
         stacks: 2,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',

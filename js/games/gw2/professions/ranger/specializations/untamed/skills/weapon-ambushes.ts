@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -126,13 +126,13 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, Partial<Sk
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (runtime, { event }) => runtime.combat.targetHasCondition(CONDITION.POISONED, event.at),
             do: {
               type: 'emitProfile',
               profileId: PROFILE.toxicShotPoisoned,
-              attribution: { source: 'ranger', sourceId: ID.TOXIC_SHOT, actorType: 'player' }
+              attribution: { source: 'ranger', sourceId: ID.TOXIC_SHOT, actorType: ACTOR.PLAYER }
             }
           }
         ]

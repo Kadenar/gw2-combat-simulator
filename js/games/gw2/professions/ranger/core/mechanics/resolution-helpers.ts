@@ -1,3 +1,4 @@
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
 import type { ConditionEffect, StatusEffect } from '#gw2/platform/effects/types.js';
@@ -24,7 +25,7 @@ export function isPetStrike(event: { readonly source?: unknown } | null | undefi
 export function isPetActorEvent(
   event: { readonly source?: unknown; readonly actorType?: unknown } | null | undefined
 ): boolean {
-  return isPetStrike(event) && event?.actorType === 'summon';
+  return isPetStrike(event) && event?.actorType === ACTOR.SUMMON;
 }
 
 /** A landed strike from the current pet lifetime; retired pets and Ranger-owned pet effects never qualify. */
@@ -50,7 +51,7 @@ export function petDerivedConditionMetadata(
 }
 
 export function isPlayerStrike(event: Gw2ResolverEvent): boolean {
-  return event.actorType === 'player' && !isPetStrike(event);
+  return event.actorType === ACTOR.PLAYER && !isPetStrike(event);
 }
 
 export function targetHealthFraction(context: RangerResolverContext): number {
@@ -78,7 +79,7 @@ export function rangerProfileEffectRequest(
     attribution: {
       source: 'Trait',
       sourceId,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: sourceId,
       skillName: name,
       triggeredBy: event.skillName
@@ -91,7 +92,7 @@ export function rangerProfileEffectRequest(
             name,
             audience: triggeredByAlly
               ? {
-                  recipients: 'party',
+                  recipients: RECIPIENT.PARTY,
                   alliedPlayerIndex: triggeredByAlly,
                   affectsSelf: false,
                   maximumRecipients: 1,

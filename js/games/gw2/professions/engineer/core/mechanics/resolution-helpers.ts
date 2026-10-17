@@ -1,5 +1,9 @@
-import type { ComboFieldType, ComboFinisherType } from '#gw2/platform/combos/types.js';
-import type { SimulationActorType } from '#gw2/platform/events/actors.js';
+import {
+  ACTOR,
+  type ComboFieldType,
+  type ComboFinisherType,
+  type SimulationActorType
+} from '#gw2/platform/constants.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import {
@@ -71,7 +75,7 @@ export function buildEngineerStrike(
     coefficient,
     skillWeapon,
     sourceId = event.skillId,
-    actorType = 'player',
+    actorType = ACTOR.PLAYER,
     ownerActorType,
     explosion = false,
     comboFinisher
@@ -82,14 +86,14 @@ export function buildEngineerStrike(
     skillName: name,
     coefficient,
 
-    source: actorType === 'effect' ? 'Trait' : 'engineer',
+    source: actorType === ACTOR.EFFECT ? 'Trait' : 'engineer',
     sourceId: sourceId ?? event.skillId ?? event.sourceId,
     actorType,
     // Effect-owned strikes can inherit player modifiers without becoming player actors for proc eligibility.
     ...(ownerActorType == null ? {} : { ownerActorType }),
     // skillId only on player events — summon/effect damage should not carry the parent skill ID
-    skillId: actorType === 'player' ? event.skillId : undefined,
-    ...(actorType === 'player' ? { activationId: event.activationId, offTarget: event.offTarget } : {}),
+    skillId: actorType === ACTOR.PLAYER ? event.skillId : undefined,
+    ...(actorType === ACTOR.PLAYER ? { activationId: event.activationId, offTarget: event.offTarget } : {}),
     skillWeapon,
     canCrit: true,
     explosion,
@@ -125,7 +129,7 @@ export function buildEngineerBuff(
     duration,
     source: 'engineer',
     sourceId: event.skillId ?? event.sourceId,
-    actorType: 'player',
+    actorType: ACTOR.PLAYER,
     triggeredBy: event.skillName
   });
 }
@@ -139,7 +143,7 @@ export function buildEngineerCondition(
     stacks,
     duration,
     sourceId = event.skillId,
-    actorType = 'player',
+    actorType = ACTOR.PLAYER,
     ownerActorType,
     metadata = {},
     procCount
@@ -152,12 +156,12 @@ export function buildEngineerCondition(
     condition,
     stacks,
     duration,
-    source: actorType === 'effect' ? 'Trait' : 'engineer',
+    source: actorType === ACTOR.EFFECT ? 'Trait' : 'engineer',
     sourceId: sourceId ?? event.skillId ?? event.sourceId,
     actorType,
     offTarget: event.offTarget,
     // Derived summon conditions retain the triggering companion's concrete identity.
-    ...(actorType === 'summon'
+    ...(actorType === ACTOR.SUMMON
       ? { summonOwner: event.summonOwner, independentConditionOwner: event.independentConditionOwner }
       : {}),
     // Effect-owned conditions can inherit player modifiers without becoming player actors for proc eligibility.
@@ -169,7 +173,7 @@ export function buildEngineerCondition(
       ...(metadata.engineerMech == null ? {} : { engineerMech: metadata.engineerMech }),
       ...(procCount == null ? {} : { procCount })
     },
-    ...(actorType === 'summon' && metadata.engineerMech ? { summonInheritsAttributes: true } : {})
+    ...(actorType === ACTOR.SUMMON && metadata.engineerMech ? { summonInheritsAttributes: true } : {})
   });
   return application;
 }

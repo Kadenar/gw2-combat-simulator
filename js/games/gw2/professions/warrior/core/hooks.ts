@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
@@ -84,7 +84,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
           duration: 3600,
           source: 'Signet of Fury',
           sourceId: 'assumption.signet-of-fury',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       });
   },
@@ -114,7 +114,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     },
     'warrior.rifle-restock'(runtime, context) {
       for (const skill of runtime.helpers.skills) {
-        if (skill.weapon === 'Rifle' && skill.ammo) runtime.cooldownController.restoreAmmo(skill, 1, runtime.time);
+        if (skill.weapon === WEAPON.RIFLE && skill.ammo) runtime.cooldownController.restoreAmmo(skill, 1, runtime.time);
       }
 
       // Gun Flame exists only in Berserker's catalog; reset the available bursts through the shared action.
@@ -180,7 +180,10 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   reactions: {
     'damage.resolving': fierceBlowDamage,
     'damage.resolved'(runtime, event, details) {
-      if ((event.actorType === 'player' || event.canTriggerCriticalTraits === true) && Number(event.coefficient) > 0) {
+      if (
+        (event.actorType === ACTOR.PLAYER || event.canTriggerCriticalTraits === true) &&
+        Number(event.coefficient) > 0
+      ) {
         const firstBurst = firstBurstHit(runtime, event);
         resolveCriticalOpportunity(runtime, event, details.hitContext as Gw2HitResolutionContext, firstBurst);
       }
@@ -188,7 +191,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
       // Only adrenaline builds gain resource from ordinary player or Sigil strikes.
       if (
         runtime.profession.specialization.kind !== 'Bladesworn' &&
-        (event.actorType === 'player' || event.source === 'Sigil') &&
+        (event.actorType === ACTOR.PLAYER || event.source === 'Sigil') &&
         Number(event.coefficient) > 0
       )
         runtime.resourceController.grant('adrenaline', Math.max(1, event.hits ?? 1));
@@ -197,7 +200,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     },
 
     'control.resolved'(runtime, event) {
-      if (event.actorType === 'player') runtime.fireTrigger(controlAccepted, { event });
+      if (event.actorType === ACTOR.PLAYER) runtime.fireTrigger(controlAccepted, { event });
     },
     'condition.applied'(runtime, event) {
       if (event.condition === CONDITION.IMMOBILIZED) runtime.fireTrigger(immobilized, { event });

@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -66,8 +66,8 @@ function emitDamagePayload(
   const attribution = {
     source: 'Relic',
     sourceId: `relic.${RELIC_IDS.PEITHA}`,
-    actorType: 'effect' as const,
-    ownerActorType: 'player' as const,
+    actorType: ACTOR.EFFECT,
+    ownerActorType: ACTOR.PLAYER,
     activationId: event.activationId,
     skillName: 'Relic of Peitha',
     triggeredBy: event.skillName
@@ -97,7 +97,7 @@ function emitDamagePayload(
       kind: PEITHA_BUFF,
       duration: 4,
       stacks: 1,
-      audience: { recipients: 'self' }
+      audience: { recipients: RECIPIENT.SELF }
     }
   });
   ctx.effects.emit({

@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { effectStateAt, effectSummary, type EffectSource } from '#gw2/platform/results/effect-report.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { SkillHit } from '#gw2/app/results/charts/hit-timeline-model.js';
@@ -425,7 +426,7 @@ function buildEffectSeries(
 
       if (
         track.origin !== 'simulated' ||
-        !['self', 'target'].includes(track.recipient) ||
+        ![RECIPIENT.SELF, 'target'].includes(track.recipient) ||
         (!track.segments.length && !track.terminal.count)
       )
         continue;

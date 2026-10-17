@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -43,7 +42,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ]
@@ -89,7 +88,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'each',
             when: (runtime, { event }) =>
               Number(event.coefficient) > 0 &&
@@ -222,7 +221,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Leap',
+            finisherType: COMBO_FINISHER.LEAP,
             ambiguousFieldSelection: 'oldest'
           }
         ]
@@ -288,7 +287,7 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: G
       attribution: {
         ...POISONOUS_STRIKES_ATTRIBUTION,
         source: 'ranger-pet',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         triggeredBy: event.skillName
       },
       name: POISONOUS_STRIKES_NAME,
@@ -314,8 +313,8 @@ export function triggerMergedPoisonousStrikes(context: RangerResolverContext, ev
       attribution: {
         ...POISONOUS_STRIKES_ATTRIBUTION,
         source: 'ranger',
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         triggeredBy: event.skillName
       },
       name: POISONOUS_STRIKES_NAME
@@ -349,7 +348,7 @@ export function triggerStalkersStrike(context: RangerResolverContext, event: Gw2
     attribution: {
       source: 'ranger',
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name,
       activationId: event.activationId

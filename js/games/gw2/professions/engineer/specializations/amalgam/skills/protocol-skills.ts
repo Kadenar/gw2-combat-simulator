@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, COMBO_FIELD, ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Amalgam offensive and defensive protocol skill fragments across mechanic slots.
  * Evolved-state actions and persistent morph behavior live in their named owners.
@@ -27,8 +26,8 @@ const shred: Partial<Skill> = {
   comboFinishers: [
     {
       ownerId: 'engineer',
-      finisherType: 'Projectile',
-      preferredFieldTypes: ['Fire'],
+      finisherType: COMBO_FINISHER.PROJECTILE,
+      preferredFieldTypes: [COMBO_FIELD.FIRE],
       ambiguousFieldSelection: 'oldest'
     }
   ],
@@ -45,14 +44,14 @@ const shred: Partial<Skill> = {
       name: 'Offensive Protocol: Shred',
       // Each disk is a missile hit and can trigger Aim-Assisted Rocket.
       projectile: true,
-      actorType: 'player'
+      actorType: ACTOR.PLAYER
     },
     {
       type: 'condition',
       condition: CONDITION.IMMOBILIZED,
       stacks: 1,
       duration: 3,
-      actorType: 'player'
+      actorType: ACTOR.PLAYER
     }
   ]
 };
@@ -71,7 +70,7 @@ const thorns: Partial<Skill> = {
       coefficient: 1,
       hits: 1,
       name: 'Initial Damage',
-      actorType: 'player'
+      actorType: ACTOR.PLAYER
     }
   ]
 };
@@ -91,11 +90,11 @@ const demolish: Partial<Skill> = {
       timingAnchor: 'castStart',
       timingScale: 'fixed',
       name: 'Offensive Protocol: Demolish — Packet 1',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       comboFinishers: [
         {
           ownerId: 'engineer',
-          finisherType: 'Whirl',
+          finisherType: COMBO_FINISHER.WHIRL,
           ambiguousFieldSelection: 'oldest'
         }
       ]
@@ -106,11 +105,11 @@ const demolish: Partial<Skill> = {
       timingAnchor: 'castStart',
       timingScale: 'fixed',
       name: 'Smash Damage',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       comboFinishers: [
         {
           ownerId: 'engineer',
-          finisherType: 'Blast',
+          finisherType: COMBO_FINISHER.BLAST,
           ambiguousFieldSelection: 'oldest'
         }
       ]
@@ -129,14 +128,14 @@ const obliterate: Partial<Skill> = {
       coefficient: 2.88,
       hits: 1,
       name: 'Offensive Protocol: Obliterate',
-      actorType: 'player'
+      actorType: ACTOR.PLAYER
     },
     {
       type: 'condition',
       condition: CONDITION.BLEEDING,
       stacks: 8,
       duration: 6,
-      actorType: 'player'
+      actorType: ACTOR.PLAYER
     }
   ])
 };
@@ -165,19 +164,19 @@ const pierce: Partial<Skill> = {
       coefficient: 2.88,
       hits: 1,
       name: 'Offensive Protocol: Pierce',
-      actorType: 'player'
+      actorType: ACTOR.PLAYER
     },
     {
       type: 'condition',
       condition: CONDITION.VULNERABILITY,
       stacks: 8,
       duration: 8,
-      actorType: 'player'
+      actorType: ACTOR.PLAYER
     },
     {
       type: 'control',
-      actorType: 'player',
-      controlKind: 'stun'
+      actorType: ACTOR.PLAYER,
+      controlKind: CONTROL.STUN
     }
   ]
 };

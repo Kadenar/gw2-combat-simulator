@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import { normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { calculateSkillDamageAttributes } from '#gw2/app/build/buffed-attributes.js';
 import {

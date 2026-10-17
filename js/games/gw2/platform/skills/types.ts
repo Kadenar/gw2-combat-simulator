@@ -1,3 +1,4 @@
+import { RECIPIENT, ACTOR } from '#gw2/platform/constants.js';
 import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
@@ -84,7 +85,7 @@ export interface Skill extends CatalogEntity {
   readonly rechargeProgress?: number;
   readonly cooldown?: number;
   /** Which actor's active boons determine recharge-rate modifiers. */
-  readonly rechargeBuffAudience?: 'self' | 'summon';
+  readonly rechargeBuffAudience?: typeof RECIPIENT.SELF | typeof ACTOR.SUMMON;
   /** Recharge always runs at the base rate; Alacrity never changes it (for example, Revenant legend swap). */
   readonly rechargeIgnoresAlacrity?: boolean;
   /**
@@ -178,7 +179,7 @@ export interface BalanceProfile extends CatalogEntity {
   /** Proc claims use a fixed internalCooldown unless a captured companion owns summon recharge work. */
   readonly cooldownPolicy?: 'internal' | 'summonRecharge';
   /** Augmentations retain their skill/summon/shared owner instead of promising a separate trait proc row. */
-  readonly damagePreviewAttribution?: 'skill' | 'summon' | 'shared';
+  readonly damagePreviewAttribution?: 'skill' | typeof ACTOR.SUMMON | 'shared';
   /** Keep the selected source identifiable when a runtime passes only a profile lookup callback. */
   readonly balanceDataContext?: CanonicalCatalog['balanceDataContext'];
   /** Identity-only tombstones scoped to this profile; callbacks retain removal provenance. */

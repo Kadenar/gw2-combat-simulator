@@ -1,13 +1,16 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import {
+  boonKey,
+  type Gw2TimedBuffApplication,
+  GW2_STANDARD_BOONS,
+  isStandardBoon
+} from '#gw2/platform/combat/boons.js';
 import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
 import type { AttributePreviewState } from '#gw2/app/build/types.js';
 import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
-import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2NumericStatKey } from '#gw2/platform/combat/stats.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
@@ -43,7 +46,7 @@ export function calculateSkillDamageAttributes(
     const event: SimulationEvent = {
       type: 'action',
       at,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       source: 'Player',
       sourceId: 'stat-preview'
     };
@@ -144,7 +147,14 @@ function calculatePreview(
     // Preview grants use the same exclusive stores as accepted combat applications.
     (isStandardBoon(kind) ? previewBoons : previewBuffs).set(kind, [application]);
     // Preview events obey the same explicit player-ownership contract as simulated buffs.
-    events.push({ ...application, type: 'buff', kind, source: name, sourceId: 'stat-preview', actorType: 'player' });
+    events.push({
+      ...application,
+      type: 'buff',
+      kind,
+      source: name,
+      sourceId: 'stat-preview',
+      actorType: ACTOR.PLAYER
+    });
   };
 
   // A one-second sample avoids treating default zero-valued expiry timers as newly expired buffs.
@@ -180,7 +190,7 @@ function calculatePreview(
   const event: SimulationEvent = {
     type: 'action',
     at: 1,
-    actorType: 'player',
+    actorType: ACTOR.PLAYER,
     source: 'Player',
     sourceId: 'stat-preview',
     skillWeapon: queryOptions.skillWeapon

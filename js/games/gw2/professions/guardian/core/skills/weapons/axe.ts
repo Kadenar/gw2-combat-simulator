@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FIELD, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -12,7 +11,9 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
     castTimeMs: 800,
     interruptCommitMs: 760,
     // The Light field begins with the first symbol pulse and lasts through the fifth.
-    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 680, startAnchor: 'castStart' }],
+    comboFields: [
+      { ownerId: 'guardian', fieldType: COMBO_FIELD.LIGHT, duration: 4, startMs: 680, startAnchor: 'castStart' }
+    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
@@ -36,14 +37,14 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
       ]),
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.FURY,
         duration: 1.5
       },
       // Later symbol pulses repeat Fury at their fixed offsets after the initial application.
       ...[1680, 2680, 3680, 4680].map((atMs) => ({
         type: 'boon' as const,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.FURY,
         duration: 1.5,
         atMs,
@@ -53,7 +54,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
       })),
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: CONTROL.DAZE
       }
     ]
   },
@@ -118,7 +119,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
       ]),
       {
         type: 'control',
-        controlKind: 'pull'
+        controlKind: CONTROL.PULL
       }
     ]
   }

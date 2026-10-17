@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { clamp } from '#kernel/core/numeric.js';
@@ -44,7 +45,7 @@ export function createCooldownController({
 
   // Only received summon Alacrity can change a running recharge's projected deadline.
   const hasVariableRechargeRate = (skill: Skill): boolean =>
-    skill.rechargeBuffAudience === 'summon' && !skill.rechargeIgnoresAlacrity;
+    skill.rechargeBuffAudience === ACTOR.SUMMON && !skill.rechargeIgnoresAlacrity;
 
   if (typeof rechargeDuration !== 'function') {
     throw new TypeError('Cooldown controller requires rechargeDuration.');

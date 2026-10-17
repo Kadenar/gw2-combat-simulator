@@ -1,7 +1,7 @@
+import type { SimulationActorType } from '#gw2/platform/constants.js';
 import type { SkillEffect, StrikeEffect, StrikeTick } from '#gw2/platform/effects/types.js';
 import { effectApplicationCount, validateConditionExpansion } from '#gw2/platform/effects/expansion-budget.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
-import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 import type { EffectMetadata, SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 /**

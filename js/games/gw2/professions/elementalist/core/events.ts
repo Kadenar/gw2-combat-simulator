@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { normalizeEffectMetadata } from '#gw2/platform/effects/audience-metadata-validation.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -37,7 +38,7 @@ function fields(packet: Packet) {
   return {
     source: 'elementalist',
     sourceId: skill?.id ?? id,
-    actorType: 'player' as const,
+    actorType: ACTOR.PLAYER,
     skillId: skill?.id ?? id,
     skillName: name,
     ...rest,
@@ -53,7 +54,7 @@ export function elementalistStrikeRequest(
   },
   emissionCast?: EffectDelivery['cast']
 ): ProfileEmission {
-  if (packet.activationId == null && packet.actorType === 'effect')
+  if (packet.activationId == null && packet.actorType === ACTOR.EFFECT)
     packet = { ...packet, activationId: runtime.combat.allocateEffectActivation('elementalist.effect:') };
 
   const attribution = fields(packet);

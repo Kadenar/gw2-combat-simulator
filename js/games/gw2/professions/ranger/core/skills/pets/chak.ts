@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Chak family.
@@ -15,7 +15,7 @@ export const RANGER_CORE_CHAK_PET_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         coefficient: 0.425,
         source: 'ranger-pet',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         projectile: true
       }
     ],
@@ -30,7 +30,7 @@ export const RANGER_CORE_CHAK_PET_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         coefficient: 0.67,
         source: 'ranger-pet',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         projectile: true
       },
       {
@@ -39,7 +39,7 @@ export const RANGER_CORE_CHAK_PET_SKILL_MECHANICS: Readonly<Record<number, Parti
         stacks: 8,
         duration: 8,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CHAK_ELECTROCUTE]!.castTimeMs,
@@ -53,7 +53,7 @@ export const RANGER_CORE_CHAK_PET_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         coefficient: 1,
         source: 'ranger-pet',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         projectile: true
       },
       {
@@ -62,7 +62,7 @@ export const RANGER_CORE_CHAK_PET_SKILL_MECHANICS: Readonly<Record<number, Parti
         stacks: 1,
         duration: 2.5,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CHAK_SPIT_GOOP]!.castTimeMs,
@@ -76,7 +76,7 @@ export const RANGER_CORE_CHAK_PET_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 0.8,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 500,

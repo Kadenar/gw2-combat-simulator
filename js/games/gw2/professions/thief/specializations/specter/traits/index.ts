@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -103,7 +103,7 @@ const secondOpinion = defineTrait({
           to: 'Condition Damage',
           amount:
             balanceProfileNumber(secondOpinionProfile, 'attributeBonus') +
-            (weapons.includes('Scepter') ? balanceProfileNumber(secondOpinionProfile, 'attributePerStack') : 0),
+            (weapons.includes(WEAPON.SCEPTER) ? balanceProfileNumber(secondOpinionProfile, 'attributePerStack') : 0),
           feedsConversions: 'all'
         },
         {
@@ -138,9 +138,9 @@ const shadestep = defineTrait({
         cast.skill.id === ID.GRASPING_SHADOWS && Boolean(cast.skill.shadowShroudSkill) && !castWasInterrupted(cast),
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.ALACRITY),
       attribution: {
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: 'Shade Step - alacrity',
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     },
     {
@@ -150,9 +150,9 @@ const shadestep = defineTrait({
         cast.skill.id === ID.DAWNS_REPOSE && Boolean(cast.skill.shadowShroudSkill) && !castWasInterrupted(cast),
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.PROTECTION),
       attribution: {
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: 'Shade Step - protection',
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     },
     {
@@ -162,9 +162,9 @@ const shadestep = defineTrait({
         cast.skill.id === ID.MIND_SHOCK && Boolean(cast.skill.shadowShroudSkill) && !castWasInterrupted(cast),
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.AEGIS),
       attribution: {
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: 'Shade Step - aegis',
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     }
   ]
@@ -247,8 +247,8 @@ function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
       skillName: 'Dark Sentry',
       name: 'Rot Wallow Venom',
       icon: ROT_WALLOW_VENOM_ICON,
-      audience: { recipients: 'party', affectsSelf: false, maximumRecipients: allies.length },
-      actorType: 'player'
+      audience: { recipients: RECIPIENT.PARTY, affectsSelf: false, maximumRecipients: allies.length },
+      actorType: ACTOR.PLAYER
     },
     transform: (packet) => ({ ...packet, duration: venomDuration, fixedDuration: true })
   });
@@ -276,7 +276,7 @@ function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
             icon: ROT_WALLOW_VENOM_ICON,
             activationId: proc.activationId,
             metadata: { triggeredByAlly: proc.allyIndex },
-            actorType: 'player',
+            actorType: ACTOR.PLAYER,
             sourceId: TRAIT.DARK_SENTRY
           }
         });
@@ -293,7 +293,7 @@ function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
 function applyLarcenousTorment(runtime: ThiefRuntime, application: Gw2ResolverEvent): void {
   if (
     application.condition !== CONDITION.TORMENT ||
-    application.actorType !== 'player' ||
+    application.actorType !== ACTOR.PLAYER ||
     !hasTrait(runtime, TRAIT.LARCENOUS_TORMENT)
   )
     return;
@@ -313,8 +313,8 @@ function applyLarcenousTorment(runtime: ThiefRuntime, application: Gw2ResolverEv
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.LARCENOUS_TORMENT,
-          actorType: 'effect',
-          ownerActorType: 'player',
+          actorType: ACTOR.EFFECT,
+          ownerActorType: ACTOR.PLAYER,
           skillId: TRAIT.LARCENOUS_TORMENT,
           skillName: 'Larcenous Torment',
           name: 'Larcenous Torment - Life Siphon',

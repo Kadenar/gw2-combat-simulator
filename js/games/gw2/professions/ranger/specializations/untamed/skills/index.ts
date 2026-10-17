@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FIELD, CONTROL, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 /**
  * Owns Untamed Unleash, ambush, and specialization skill catalog fragments only.
  * Persistent Unleash state and transitions live under `mechanics/`.
@@ -32,7 +32,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           coefficient: 0.25
         })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -43,13 +43,13 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           duration: 1
         })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     comboFields: [
       {
         ownerId: 'ranger',
-        fieldType: 'Poison',
+        fieldType: COMBO_FIELD.POISON,
         duration: 5,
         startAnchor: 'castEnd'
       }
@@ -107,7 +107,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       {
         type: 'control',
         atMs: 1640,
-        controlKind: 'knockdown'
+        controlKind: CONTROL.KNOCKDOWN
       }
     ]),
     castTimeMs: 480
@@ -147,7 +147,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         coefficient: 1,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -155,7 +155,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         stacks: 3,
         duration: 8,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         // Capture defiant-target eligibility at acceptance while retaining pet ownership.
@@ -165,7 +165,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         stacks: 8,
         duration: 10,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ])
   },
@@ -178,11 +178,11 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         coefficient: 1.3,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ]
@@ -193,7 +193,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         stacks: 1,
         duration: 4,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ])
   },
@@ -275,7 +275,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         },
         {
           type: 'control',
-          controlKind: 'daze'
+          controlKind: CONTROL.DAZE
         }
       ]),
       ...impactEffects({ atMs: 2160, timingAnchor: 'castStart', timingScale: 'fixed' }, [

@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 /** Brawler relic rules. */

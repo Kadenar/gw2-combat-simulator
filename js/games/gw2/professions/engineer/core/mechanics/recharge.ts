@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
@@ -21,7 +22,7 @@ export function reduceEngineerRecharge(
       attribution: {
         source: sourceId === cast.skill.id ? 'engineer' : 'Trait',
         sourceId: sourceId,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       announcement: {
         name: name,

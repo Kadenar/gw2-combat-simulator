@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FIELD, COMBO_FINISHER, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Devourer family.
@@ -28,7 +28,7 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
           summonInheritsCriticalAttributes: true
         })),
         source: 'ranger-pet',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         // EVTC attributes both the command strike and its poison applications
@@ -41,7 +41,7 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
           duration: 6
         })),
         source: 'ranger',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     // The unquickened pet animation occupies 1.8 s
@@ -50,7 +50,7 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
     comboFields: [
       {
         ownerId: 'ranger',
-        fieldType: 'Poison',
+        fieldType: COMBO_FIELD.POISON,
         duration: 5,
         // The five-second field runs from the first fixed pulse through the sixth.
         startMs: POISONOUS_CLOUD_PULSE_TIMES_MS[0],
@@ -66,7 +66,7 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         coefficient: 0.65,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -74,7 +74,7 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         stacks: 4,
         duration: 6,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 1667,
@@ -88,7 +88,7 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         hits: 6,
         atMs: 0,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -96,7 +96,7 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         stacks: 6,
         duration: 8,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 2667,
@@ -109,11 +109,11 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'strike',
         ticks: [840, 920].map((atMs) => ({ atMs, coefficient: 0.15 })),
         source: 'ranger-pet',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2,
             ambiguousFieldSelection: 'oldest'
           }
@@ -129,7 +129,7 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
           duration: 4
         })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TWIN_DARTS]!.quicknessCastTimeMs,
@@ -141,13 +141,13 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'strike',
         coefficient: 0.5,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'control',
         source: 'ranger-pet',
-        actorType: 'summon',
-        controlKind: 'knockback'
+        actorType: ACTOR.SUMMON,
+        controlKind: CONTROL.KNOCKBACK
       }
     ]),
     quicknessCastTimeMs: 1280,

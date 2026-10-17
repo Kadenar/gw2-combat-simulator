@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -24,7 +24,7 @@ export const bloodstone = defineRelic({
   }),
   combo(ctx, state, event) {
     // The shared combo reaction now reaches leap finishers for Steamshrieker; Bloodstone remains blast-only.
-    if (event.finisherType !== 'Blast') return;
+    if (event.finisherType !== COMBO_FINISHER.BLAST) return;
 
     // Volatility cannot accumulate while Fervor is active.
     if (relicBuffActive(ctx, 'bloodstone-fervor', event.at)) return;
@@ -100,8 +100,8 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
       totalHits: 1,
       source: 'Relic',
       sourceId: `relic.${RELIC_IDS.BLOODSTONE}`,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       skillWeapon: 'Unequipped',
       canCrit: true,
       triggeredBy: event.skillName
@@ -119,8 +119,8 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
       stacks: 6,
       source: 'Relic',
       sourceId: `relic.${RELIC_IDS.BLOODSTONE}`,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       triggeredBy: event.skillName
     }
   });

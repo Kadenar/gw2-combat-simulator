@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 import { PRESENTATION_ALLIED_PLAYER_COUNT } from '#gw2/platform/results/boon-generation.js';
@@ -708,7 +708,7 @@ export function mountTimeSeriesCharts(
   );
   const phases = fightPhases(resolvedSeries, healthMarkers, resolvedOptions);
   let activePhaseId = 'full';
-  let boonAudience = 'self';
+  let boonAudience: string = RECIPIENT.SELF;
   const effectNames = [
     ...new Set([...Object.keys(resolvedSeries.effects), ...Object.keys(resolvedSeries.alliedEffects!)])
   ];
@@ -893,7 +893,7 @@ export function mountTimeSeriesCharts(
 
             const allied = alliedView.effects[name];
 
-            if (boon && allied && boonAudience !== 'self')
+            if (boon && allied && boonAudience !== RECIPIENT.SELF)
               lines.push({
                 name: `${name} (Allies avg)`,
                 effectName: name,

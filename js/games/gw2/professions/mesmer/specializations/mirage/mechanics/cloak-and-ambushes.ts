@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -214,7 +214,7 @@ export function createMirageActionController({
       buildMesmerConditions(state, pseudo.name, at, weakness, 'Player', '', {
         skillId: pseudo.id,
         sourceId: pseudo.id,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }).forEach((packet) => {
         state.effects.emit({
           kind: 'packet',
@@ -279,7 +279,7 @@ export function mirageAvailability(context: MechanicQueriesOf<MesmerRuntime>, sk
     .filter((event) => event.type === 'action')
     .some(
       (action) =>
-        action.actorType === 'player' &&
+        action.actorType === ACTOR.PLAYER &&
         action.at < state.ambushUntil &&
         action.at < context.time &&
         canonicalTime(Number(action.castLockoutEndsAt ?? action.endsAt)) >= context.time
@@ -352,7 +352,7 @@ export function executeMirageCloneAmbushPackets(
           sourceId: ambush.id,
           skillId: ambush.id,
           skillName: ambush.name,
-          actorType: 'summon',
+          actorType: ACTOR.SUMMON,
           summonKind: 'clone',
           metadata: { cloneId: clone.id }
         }
@@ -392,7 +392,7 @@ export function executeMirageCloneAmbushPackets(
         {
           metadata: { cloneId: clone.id },
           source: 'Clone',
-          actorType: 'summon',
+          actorType: ACTOR.SUMMON,
           summonKind: 'clone',
           name: `${ambush.name} — Clone`
         }
@@ -410,7 +410,7 @@ export function executeMirageCloneAmbushPackets(
       buildMesmerConditions(state, `${ambush.name} — Clone`, impactAt, condition, 'Clone', '', {
         metadata: { cloneId: clone.id },
         skillId: ambush.id,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'clone'
       }).forEach((packet) => {
         state.effects.emit({

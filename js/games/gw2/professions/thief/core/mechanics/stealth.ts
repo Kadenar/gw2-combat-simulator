@@ -1,3 +1,4 @@
+import { ACTOR, STATUS } from '#gw2/platform/constants.js';
 import { activeChargeCount, consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -85,7 +86,7 @@ function breakThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, at: number)
  * against.
  */
 export function reactThiefStealthBreakingStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player') return;
+  if (event.actorType !== ACTOR.PLAYER) return;
 
   const skill = thiefSkill(runtime, event.skillId);
 
@@ -136,7 +137,7 @@ export function selectThiefStealth(
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   const stealth = effects.filter(
-    (effect) => effect.type === 'buff' && effect.kind === 'stealth' && (!effect.when || effect.when(runtime, cast))
+    (effect) => effect.type === 'buff' && effect.kind === STATUS.STEALTH && (!effect.when || effect.when(runtime, cast))
   );
 
   if (stealth.length) {
@@ -153,7 +154,7 @@ export function selectThiefStealth(
     activations.add(cast.id);
   }
 
-  return effects.filter((effect) => effect.type !== 'buff' || effect.kind !== 'stealth');
+  return effects.filter((effect) => effect.type !== 'buff' || effect.kind !== STATUS.STEALTH);
 }
 
 /** A grant uses the accepted duration at its actual trigger; later damage can reveal the thief during aftercast. */
@@ -182,7 +183,7 @@ export function commitThiefStealth(runtime: ThiefRuntime, context: ActionContext
     attribution: {
       source: 'thief',
       sourceId: context.skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: context.skill.id,
       skillName: context.skill.name,
       activationId

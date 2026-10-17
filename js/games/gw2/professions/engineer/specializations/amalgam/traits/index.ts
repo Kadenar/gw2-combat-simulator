@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -262,7 +262,7 @@ function grantHardenedChrome(context: EngineerRuntime, durationField: 'minimumSt
       at: context.time,
       source: 'engineer',
       sourceId: TRAIT.HARDENED_CHROME,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillName: 'Hardened Chrome',
       name: 'Hardened Chrome',
       kind: boonKey(BOON.PROTECTION),
@@ -290,9 +290,9 @@ function grantNewGenes(context: EngineerRuntime, { morphKind, at }: AmalgamMorph
       at,
       effect: { type: 'boon', name },
       attribution: {
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         source: 'engineer',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: 'New Genes',
         name: 'New Genes'
       },
@@ -316,11 +316,11 @@ function resetMorphRecharge(context: EngineerRuntime): void {
 
 /** Carbolic accepts Amalgam skill hits and the Rapacious effect, while excluding summons. */
 function isAmalgamSkillHit(context: Pick<MechanicQueryContext, 'helpers'>, event: EngineerResolverEvent): boolean {
-  if (event.actorType === 'summon') return false;
+  if (event.actorType === ACTOR.SUMMON) return false;
 
   // Rapacious Strain fires as an "effect" actor after player hits. Allow it
   // through so Carbolic Composition also procs on Rapacious damage.
-  if (event.actorType === 'effect') {
+  if (event.actorType === ACTOR.EFFECT) {
     return event.sourceId === 'engineer.rapacious-strain';
   }
 
@@ -345,14 +345,14 @@ function applyCarbolicPoison(context: EngineerRuntime, { cause: event }: Amalgam
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.CARBOLIC_COMPOSITION,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: undefined,
         activationId: undefined,
         skillName: 'Carbolic Composition',
         triggeredBy: event.skillName,
         offTarget: event.offTarget,
         metadata: {},
-        ownerActorType: 'player'
+        ownerActorType: ACTOR.PLAYER
       },
       transform: (packet) => ({
         ...packet,
@@ -368,7 +368,7 @@ function applyCarbolicPoison(context: EngineerRuntime, { cause: event }: Amalgam
 
 /** Accepted non-summon control consumes its internal cooldown only when Evolve recharge actually decreases. */
 function reactToMercurialTendencies(context: EngineerRuntime, event: EngineerResolverEvent): void {
-  if (event.actorType === 'summon') return;
+  if (event.actorType === ACTOR.SUMMON) return;
 
   const at = event.at;
 
@@ -393,7 +393,7 @@ function reactToMercurialTendencies(context: EngineerRuntime, event: EngineerRes
   context.effects.emit({
     kind: 'announcement',
     log: true,
-    attribution: { source: 'Trait', sourceId: TRAIT.MERCURIAL_TENDENCIES, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.MERCURIAL_TENDENCIES, actorType: ACTOR.EFFECT },
     announcement: {
       name: 'Mercurial Tendencies',
       at: at,

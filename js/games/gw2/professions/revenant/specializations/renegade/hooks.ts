@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
@@ -124,7 +125,7 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
       };
     },
     'damage.resolved'(runtime, event, details) {
-      if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+      if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return;
 
       runtime.fireTrigger(renegadeStruck, {
         cause: event,

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Mace casts and impacts use observed timings rounded to the nearest 40 ms action tick. */
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -67,7 +66,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 1,
             ambiguousFieldSelection: 'oldest'
           }
@@ -77,7 +76,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
       {
         type: 'control',
         atMs: 440,
-        controlKind: 'knockdown'
+        controlKind: CONTROL.KNOCKDOWN
       }
     ])
   },
@@ -93,7 +92,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: CONTROL.DAZE
       }
     ])
   },

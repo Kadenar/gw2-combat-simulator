@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, CONDITION } from '#gw2/platform/constants.js';
 /** Sword weapon-skill mechanics owned by the Weaver module. */
 
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -11,7 +11,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     name: 'Twin Strike',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
     castTimeMs: 640,
@@ -33,7 +33,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     name: 'Pyro Vortex',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
     castTimeMs: 560,
@@ -83,7 +83,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     name: 'Lava Skin',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 400,
@@ -112,7 +112,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     name: 'Shearing Edge',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
     castTimeMs: 640,
@@ -129,7 +129,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     name: 'Natural Frenzy',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 1400,
@@ -183,7 +183,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     name: 'Gale Strike',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
     castTimeMs: 720,

@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
@@ -73,7 +74,7 @@ export const incensedResponse = defineTrait({
       attribution: {
         source: 'revenant',
         sourceId: TRAIT.INCENSED_RESPONSE,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: TRAIT.INCENSED_RESPONSE,
         skillName: 'Incensed Response',
         name: undefined
@@ -154,66 +155,66 @@ export const spiritBoon = defineTrait({
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 10,
         stacks: 2,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         metadata: { legendId: LEGEND.ASSASSIN }
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.RESISTANCE,
         duration: 2,
         stacks: 1,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         metadata: { legendId: LEGEND.DEMON }
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.STABILITY,
         duration: 3,
         stacks: 1,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         metadata: { legendId: LEGEND.DWARF }
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         metadata: { legendId: LEGEND.CENTAUR }
       },
       {
         metadata: { legendId: LEGEND.DRAGON },
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.PROTECTION,
         duration: 3,
         stacks: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         metadata: { legendId: LEGEND.RENEGADE },
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.RESOLUTION,
         duration: 4,
         stacks: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         metadata: { legendId: LEGEND.ALLIANCE },
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.VIGOR,
         duration: 4,
         stacks: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -229,7 +230,7 @@ function invokeInvokersRage(runtime: RevenantRuntime): void {
       activationId: `legend-invocation:${TRAIT.INVOKERS_RAGE}:${runtime.time}`,
       source: 'Trait',
       sourceId: TRAIT.INVOKERS_RAGE,
-      actorType: effect.actorType || 'player',
+      actorType: effect.actorType || ACTOR.PLAYER,
       skillId: invocationProfile.id,
       skillName: invocationProfile.name
     }),
@@ -255,7 +256,7 @@ function invokeSpiritBoon(runtime: RevenantRuntime): void {
         activationId: `legend-invocation:${TRAIT.SPIRIT_BOON}:${runtime.time}`,
         source: 'Trait',
         sourceId: TRAIT.SPIRIT_BOON,
-        actorType: effect.actorType || 'player',
+        actorType: effect.actorType || ACTOR.PLAYER,
         skillId: invocationProfile.id,
         skillName: invocationProfile.name
       }),
@@ -287,7 +288,7 @@ function invokeSongOfTheMists(runtime: RevenantRuntime): void {
           activationId: `legend-invocation:${TRAIT.SONG_OF_THE_MISTS}:${runtime.time}`,
           source: 'revenant',
           sourceId: TRAIT.SONG_OF_THE_MISTS,
-          actorType: effect.actorType || 'player',
+          actorType: effect.actorType || ACTOR.PLAYER,
           skillId: song.id,
           skillName: song.name
         }),

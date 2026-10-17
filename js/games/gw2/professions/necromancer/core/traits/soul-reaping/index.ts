@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -41,7 +41,7 @@ export const dhuumfire = defineTrait({
   triggers: [
     onTriggerPoint(necromancerStrike, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
-        input.event.actorType !== 'effect' && Number(input.event.coefficient) > 0,
+        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
         applyDhuumfire(runtime, input.event, input.dhuumfireDuration, input.shroudSkillOne)
     })
@@ -56,7 +56,7 @@ export const dhuumfire = defineTrait({
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 3,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   }
@@ -67,7 +67,7 @@ export const unyieldingBlast = defineTrait({
   triggers: [
     onTriggerPoint(necromancerStrike, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
-        input.event.actorType !== 'effect' && Number(input.event.coefficient) > 0,
+        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
         applyUnyieldingBlast(runtime, input.event, input.firstHit, input.shroudSkillOne)
     })
@@ -82,7 +82,7 @@ export const unyieldingBlast = defineTrait({
         condition: CONDITION.VULNERABILITY,
         stacks: 2,
         duration: 10,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   }
@@ -304,7 +304,7 @@ function applySoulBarbs(
       type: 'buff',
       at: runtime.time,
       ...attribution,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       kind: 'necromancer-soul-barbs',
       stacks: 1,
       duration: balanceNumberFromContext(runtime, TRAIT.SOUL_BARBS, 'duration')
@@ -361,7 +361,7 @@ function applyDhuumfire(
       at: event.at,
       effect: { type: 'condition', name: CONDITION.BURNING },
       settlement: 'reaction',
-      attribution: { skillName: 'Dhuumfire', triggeredBy: event.skillName, ownerActorType: 'player' },
+      attribution: { skillName: 'Dhuumfire', triggeredBy: event.skillName, ownerActorType: ACTOR.PLAYER },
       // Shroud skills may supply a duration variant; all remaining fields stay authored.
       transform: (packet) => ({ ...packet, name: 'Dhuumfire - ' + packet.condition, duration: effect.duration })
     }
@@ -397,7 +397,7 @@ function applyUnyieldingBlast(
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.UNYIELDING_BLAST,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillName: 'Unyielding Blast',
         triggeredBy: event.skillName,
         name: 'Unyielding Blast'
@@ -414,7 +414,7 @@ function applyUnyieldingBlast(
 function applyFearOfDeath(runtime: NecromancerRuntime, event: NecromancerResolverEvent): void {
   if (
     event.condition !== CONDITION.FEAR ||
-    event.actorType === 'summon' ||
+    event.actorType === ACTOR.SUMMON ||
     !runtime.procs.claim(TRAIT.FEAR_OF_DEATH, 'necromancer.core.fearOfDeath', runtime.time)
   )
     return;

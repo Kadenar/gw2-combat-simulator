@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Harbinger elixir skill fragments.
  * Impact hooks read Blight gain from the mapped empowered balance profile for both impact variants.

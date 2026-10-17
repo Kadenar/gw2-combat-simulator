@@ -1,3 +1,4 @@
+import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
@@ -17,7 +18,6 @@ import {
 } from '#gw2/app/results/skill-breakdown.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
-import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 
 const simulate = createObservedProfessionSimulator(rangerProfession, {
   primaryWeapon: 'Spear',

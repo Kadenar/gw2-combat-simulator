@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import { impactEffects, strikeTimeline, conditionTimeline } from '#gw2/platform/effects/authoring.js';
 
@@ -69,7 +69,7 @@ export const activePatchPreview: PatchPreview = {
     mesmer: {
       // Swap the phantasms' loadout roles only in the preview; their identities retain their summon mechanics.
       skills: {
-        '10267': { placement: { type: 'Weapon', weapon: 'Focus', slot: 'Weapon_5' } },
+        '10267': { placement: { type: 'Weapon', weapon: WEAPON.FOCUS, slot: 'Weapon_5' } },
         '10282': { placement: { type: 'Utility', weapon: '', slot: 'Utility' } }
       },
       // Apply the confirmed strike reduction independently of the still-pending condition-duration change.
@@ -779,7 +779,7 @@ export const activePatchPreview: PatchPreview = {
               stacks: 1,
               duration: 5,
               audience: {
-                recipients: 'party'
+                recipients: RECIPIENT.PARTY
               }
             },
             {
@@ -790,7 +790,7 @@ export const activePatchPreview: PatchPreview = {
               duration: 1,
               packetLabel: 'triggered',
               audience: {
-                recipients: 'party'
+                recipients: RECIPIENT.PARTY
               }
             }
           ]

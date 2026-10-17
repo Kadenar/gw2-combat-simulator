@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -38,7 +37,7 @@ const METAL_LEGION_GUITAR_SKILL: Partial<Skill> = {
       hits: 4,
       atMs: 0,
       name: 'Metal Legion Guitar — Packet 1',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       timingAnchor: 'castEnd',
       timingScale: 'fixed'
     },
@@ -48,7 +47,7 @@ const METAL_LEGION_GUITAR_SKILL: Partial<Skill> = {
       name: 'Final Smash',
       // Meticulous Custodian keys its separate final-hit factor on this packet identity, not the display label.
       metadata: { packetKind: 'thief.metal-legion-guitar-final-smash' },
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       timingAnchor: 'castEnd',
       timingScale: 'fixed'
     },
@@ -60,14 +59,14 @@ const METAL_LEGION_GUITAR_SKILL: Partial<Skill> = {
         stacks: 1,
         duration: 8
       })),
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       timingAnchor: 'castStart',
       timingScale: 'fixed'
     },
     {
       type: 'control',
-      actorType: 'player',
-      controlKind: 'stun'
+      actorType: ACTOR.PLAYER,
+      controlKind: CONTROL.STUN
     }
   ],
   artifactKind: 'offensive'
@@ -106,12 +105,12 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     effects: [
       {
         type: 'control',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         controlKind: CONDITION.TAUNT.toLowerCase()
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 8,
         stacks: 2
@@ -123,18 +122,18 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
           coefficient: 2,
           hits: 1,
           name: 'Holo-Dancer Decoy',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'boon',
-          audience: { recipients: 'party' as const, maximumRecipients: 5 },
+          audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
           boon: BOON.MIGHT,
           duration: 8,
           stacks: 4
         },
         {
           type: 'boon',
-          audience: { recipients: 'party' as const, maximumRecipients: 5 },
+          audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
           boon: BOON.FURY,
           duration: 8,
           stacks: 1
@@ -155,13 +154,13 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 1.5 }],
         name: 'Exalted Hammer',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.PROTECTION,
         duration: 5,
         stacks: 1
@@ -216,14 +215,14 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         coefficient: 1.2,
         hits: 1,
         name: 'Zephyrite Sun Crystal',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BURNING,
         stacks: 2,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     artifactKind: 'defensive'
@@ -241,7 +240,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         hits: 5,
         atMs: 0,
         name: 'Chak Shield',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -282,14 +281,14 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 1.2 }],
         name: 'Zephyrite Sun Crystal',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 400, condition: CONDITION.BURNING, stacks: 2, duration: 4 }],
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -298,7 +297,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     artifactKind: 'defensive'
@@ -316,14 +315,14 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 3 }],
         name: 'Unstable Skritt Bomb',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'knockback'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.KNOCKBACK
       }
     ]
   },
@@ -357,7 +356,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: Array.from({ length: 8 }, (_, index) => ({ atMs: 760 + index * 400, coefficient: 2.8 / 8 })),
         name: 'Summon Kryptis Turret',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -367,7 +366,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
           stacks: 1,
           duration: 4
         })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     artifactKind: 'offensive'
@@ -415,7 +414,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [520, 1520, 2520, 3520, 4520].map((atMs) => ({ atMs, coefficient: 2.5 / 5 })),
         name: 'Mistburn Mortar',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -425,7 +424,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
           stacks: 1,
           duration: 1.5
         })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     artifactKind: 'offensive'

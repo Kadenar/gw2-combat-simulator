@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
@@ -23,7 +23,7 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
         type: 'strike',
         coefficient: 0.31,
         source: 'ranger-pet',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         projectile: true
       }
     ],
@@ -40,10 +40,10 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
         duration: 30,
         stacks: 5,
         audience: {
-          recipients: 'self'
+          recipients: RECIPIENT.SELF
         },
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BRISTLEBACK_SHARPEN_SPINES]!.castTimeMs,
@@ -57,7 +57,7 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
         type: 'strike',
         coefficient: 0.5,
         source: 'ranger-pet',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         projectile: true
       },
       {
@@ -66,7 +66,7 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
         stacks: 2,
         duration: 5,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BRISTLEBACK_RAIN_OF_SPIKES]!.castTimeMs,
@@ -81,7 +81,7 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
         hits: 10,
         atMs: 0,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -89,7 +89,7 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
         stacks: 10,
         duration: 5,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 1333,
@@ -123,7 +123,7 @@ export function consumePetSharpenSpines(context: RangerResolverContext, event: G
     attribution: {
       source: 'ranger-pet',
       sourceId: ID.BRISTLEBACK_SHARPEN_SPINES,
-      actorType: 'summon',
+      actorType: ACTOR.SUMMON,
       skillId: ID.BRISTLEBACK_SHARPEN_SPINES,
       skillName: 'Sharpen Spines',
       activationId: event.activationId

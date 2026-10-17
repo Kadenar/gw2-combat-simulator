@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -6,7 +7,7 @@ import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.
 export const focusMastery = defineTrait({
   rechargeRules: [
     {
-      when: (_runtime, skill) => skill.weapon === 'Focus',
+      when: (_runtime, skill) => skill.weapon === WEAPON.FOCUS,
       multiplier: { profile: TRAIT.FOCUS_MASTERY, field: 'rechargeMultiplier' }
     }
   ],
@@ -33,7 +34,7 @@ export const stalwartDefender = defineTrait({
           to: 'Toughness',
           amount: balanceNumberFromContext(profileContext, TRAIT.STALWART_DEFENDER, 'attributeBonus'),
           feedsConversions: 'none',
-          enabled: offHand === 'Shield'
+          enabled: offHand === WEAPON.SHIELD
         }
       ]
     };

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, COMBO_FIELD, COMBO_FINISHER, RECIPIENT, STATUS, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Sword weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -41,7 +40,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Fire Strike',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -68,7 +67,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Fire Swipe',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -94,7 +93,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Searing Slash',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 680,
@@ -113,7 +112,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Flame Uprising',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 720,
@@ -121,7 +120,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 2,
         startAnchor: 'castEnd'
       }
@@ -136,7 +135,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
             {
               attemptGroup: 'effect:1:tick:1',
               ownerId: 'elementalist',
-              finisherType: 'Leap',
+              finisherType: COMBO_FINISHER.LEAP,
               ambiguousFieldSelection: 'oldest'
             }
           ],
@@ -167,7 +166,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Cauterizing Strike',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -182,7 +181,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Seiche',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -207,7 +206,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Clapotis',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -232,7 +231,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Breaking Wave',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 680,
@@ -258,7 +257,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Riptide',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 1080,
@@ -266,7 +265,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Water',
+        fieldType: COMBO_FIELD.WATER,
         duration: 4,
         startAnchor: 'castEnd'
       }
@@ -281,7 +280,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Aqua Siphon',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 680,
@@ -293,7 +292,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'boon',
         boon: BOON.REGENERATION,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 5,
         metadata: {}
@@ -304,7 +303,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Charged Strike',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -331,7 +330,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Polaric Slash',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -349,7 +348,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Call Lightning',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 760,
@@ -374,7 +373,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Polaric Leap',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -388,14 +387,14 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Leap',
+            finisherType: COMBO_FINISHER.LEAP,
             ambiguousFieldSelection: 'oldest'
           }
         ],
         metadata: {},
         canCrit: true
       },
-      { type: 'buff', kind: 'superspeed', stacks: 1, duration: 3, metadata: {} },
+      { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3, metadata: {} },
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3, metadata: {} },
       { type: 'control', applications: 1, controlKind: 'crowd-control' }
     ])
@@ -405,7 +404,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Quantum Strike',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 680,
@@ -428,7 +427,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Crystal Slash',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -444,7 +443,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Crystalline Strike',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -460,7 +459,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Crystalline Sunder',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 680,
@@ -477,7 +476,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Earthen Vortex',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 1000,
@@ -491,7 +490,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -506,7 +505,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Rust Frenzy',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 1400,

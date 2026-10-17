@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Avian family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -17,7 +16,7 @@ export const SOULBEAST_AVIAN_BEAST_SKILL_MECHANICS: Readonly<Record<number, Part
         duration: 10,
         stacks: 1,
         // Merging makes the ranger the boon source, retaining normal player duration scaling.
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
   },
@@ -29,7 +28,7 @@ export const SOULBEAST_AVIAN_BEAST_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 1.2,
         hits: 1,
         // The merged leap can finish the same fields as its pet counterpart.
-        comboFinishers: [{ ownerId: 'ranger', finisherType: 'Leap', ambiguousFieldSelection: 'oldest' }]
+        comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.LEAP, ambiguousFieldSelection: 'oldest' }]
       },
       {
         type: 'condition',

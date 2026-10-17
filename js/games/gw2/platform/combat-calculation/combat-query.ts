@@ -1,12 +1,10 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, CONDITION, BOON } from '#gw2/platform/constants.js';
+import { boonKey, type Gw2TimedBuffApplication, MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import { applyMightAttributes } from '#gw2/platform/builds/attribute-evaluation.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
-import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import {
   criticalChance,
   criticalDamageMultiplier,
@@ -114,12 +112,12 @@ function closeContributions(contributors: Gw2ModifierContribution[], total: numb
 
 /** Conditions use their owner's bonuses; summon strike profiles and original actor metadata stay intact. */
 function conditionOwnerEvent(event: SimulationEvent | null): SimulationEvent | null {
-  if (event?.actorType !== 'summon' || event.independentConditionOwner) return event;
+  if (event?.actorType !== ACTOR.SUMMON || event.independentConditionOwner) return event;
 
   return {
     ...event,
-    actorType: 'player',
-    ownerActorType: 'player',
+    actorType: ACTOR.PLAYER,
+    ownerActorType: ACTOR.PLAYER,
     summonKind: undefined,
     summonOwner: undefined,
     independentSummonStrike: false,
@@ -208,9 +206,9 @@ export function createGw2CombatQuery({
    * Explicitly inherited companion profiles retain their existing behavior.
    */
   const isBoonIsolatedSummonEvent = (event: SimulationEvent | null | undefined): boolean =>
-    gw2EventActorType(event) === 'summon' && event?.summonInheritsAttributes !== true && !isGw2PhantasmEvent(event);
+    gw2EventActorType(event) === ACTOR.SUMMON && event?.summonInheritsAttributes !== true && !isGw2PhantasmEvent(event);
   const summonCompanionId = (event: SimulationEvent | null | undefined): string | null => {
-    if (!event || gw2EventActorType(event) !== 'summon') return null;
+    if (!event || gw2EventActorType(event) !== ACTOR.SUMMON) return null;
 
     if (event.summonOwner) return String(event.summonOwner);
 
@@ -239,7 +237,7 @@ export function createGw2CombatQuery({
     // Nonnegative dynamic grants cannot change an already-capped permanent assumption.
     if (configured >= maximum) return maximum;
 
-    const dynamic = appliedEffectStacks({ runtime, timeline, time }, kind, maximum, { actor: 'player' }, 1);
+    const dynamic = appliedEffectStacks({ runtime, timeline, time }, kind, maximum, { actor: ACTOR.PLAYER }, 1);
     return clamp(configured + dynamic, 0, maximum);
   };
 
@@ -624,7 +622,8 @@ export function createGw2CombatQuery({
       const relicBonus = usesEquipmentModifiers ? relicOutgoingDamageBonus(relicContext, 'condition', time, event) : 0;
       const sigils = activeSigilSetAt(time, runtime);
       // Ordinary summon conditions use their player's bonuses; independent pet/mech owners never inherit Bursting.
-      const usesSigil = usesEquipmentModifiers && !(event?.actorType === 'summon' && event.independentConditionOwner);
+      const usesSigil =
+        usesEquipmentModifiers && !(event?.actorType === ACTOR.SUMMON && event.independentConditionOwner);
       const sigilFactor = usesSigil ? sigils.condition || 1 : 1;
       const sigilBonus = usesSigil
         ? Number.isFinite(Number(sigils.conditionAdd))
@@ -667,7 +666,8 @@ export function createGw2CombatQuery({
       const sigils = activeSigilSetAt(time, runtime);
       const usesEquipmentModifiers = event?.summonUsesEquipmentModifiers !== false;
       // Independent pet/mech conditions cannot inherit player duration sigils, just as they cannot inherit Bursting.
-      const usesSigil = usesEquipmentModifiers && !(event?.actorType === 'summon' && event.independentConditionOwner);
+      const usesSigil =
+        usesEquipmentModifiers && !(event?.actorType === ACTOR.SUMMON && event.independentConditionOwner);
       const sigilBonus = usesSigil
         ? ((sigils.conditionDurationBonus || 0) + (sigils.conditionDurationBonuses?.[name] || 0)) / 100
         : 0;

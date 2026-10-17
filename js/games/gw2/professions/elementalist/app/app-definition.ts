@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { profession, createBuildContext, toApplicationBuild } from '#gw2/professions/elementalist/build/context.js';
 import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
@@ -27,5 +28,5 @@ export const elementalistAppAdapter = defineProfessionApp({
   createBuildContext,
   toApplicationBuild,
   isSkillAvailable: isElementalistSkillAvailable,
-  defaultOffhand: preferOffhand('Dagger')
+  defaultOffhand: preferOffhand(WEAPON.DAGGER)
 });

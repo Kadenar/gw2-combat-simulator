@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   fromProfile,
   tooltipFactorChange,
@@ -96,7 +97,7 @@ export const galeshotTooltips = {
         fromProfile(TRAIT.FLOCK_TOGETHER, 'damageMultiplier', 'Feathered pet strike damage', tooltipFactorChange),
         ['internalCooldown', 'Quickness cooldown', tooltipSeconds]
       ],
-      'party'
+      RECIPIENT.PARTY
     ),
     [TRAIT.PERILOUS_SKIES]: traitTooltip("Replace Quarry's Peril with Pelt while using Cyclone Bow."),
     [TRAIT.THRILL_OF_THE_CATCH]: traitTooltip('Player or pet control effects restore wind arrows.', [

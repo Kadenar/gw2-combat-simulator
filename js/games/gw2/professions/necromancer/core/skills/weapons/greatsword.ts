@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, COMBO_FIELD, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -16,7 +16,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 2 } })
@@ -42,7 +42,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
           reactions: [
             {
               on: 'damage.resolved',
-              actor: 'player',
+              actor: ACTOR.PLAYER,
               packets: 'each',
               when: (_runtime, { event }) => Number(event.coefficient) > 0,
               do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 10 } })
@@ -51,7 +51,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
           coefficient: 1.3
         },
         { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 4 },
-        { type: 'control', controlKind: 'pull' }
+        { type: 'control', controlKind: CONTROL.PULL }
       ]
     )
   },
@@ -68,7 +68,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'pulse', grant: { percent: 7 } })
@@ -76,7 +76,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         ],
         // EVTC records four Quickness pulses at 560 ms and fixed one-second intervals.
         ticks: [560, 1560, 2560, 3560].map((atMs) => ({ atMs, coefficient: 4.6 / 4 })),
-        comboFields: [{ ownerId: 'necromancer', fieldType: 'Dark', duration: 3 }],
+        comboFields: [{ ownerId: 'necromancer', fieldType: COMBO_FIELD.DARK, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
@@ -117,14 +117,14 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 5 } })
           },
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: { type: 'rechargeReset', skillIds: [ID.GRAVEDIGGER] }
@@ -155,7 +155,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         comboFinishers: [
           {
             ownerId: 'necromancer',
-            finisherType: 'Whirl',
+            finisherType: COMBO_FINISHER.WHIRL,
             applications: 3,
             ambiguousFieldSelection: 'oldest'
           }
@@ -174,7 +174,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 2 } })
@@ -196,7 +196,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         comboFinishers: [
           {
             ownerId: 'necromancer',
-            finisherType: 'Whirl',
+            finisherType: COMBO_FINISHER.WHIRL,
             applications: 2,
             ambiguousFieldSelection: 'oldest'
           }

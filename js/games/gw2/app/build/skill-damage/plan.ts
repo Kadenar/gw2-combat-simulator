@@ -1,5 +1,5 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION, BOON } from '#gw2/platform/constants.js';
+import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { GameContentAddress } from '#browser/game/contracts.js';
 import { attributePreviewContext, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
@@ -13,7 +13,6 @@ import {
 } from '#gw2/app/rotation/palette/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
 import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-matcher.js';

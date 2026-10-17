@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Core Ranger pet skill fragments for the Aether Hunter family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -12,14 +12,14 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
   [ID.AETHER_HUNTER_BITE]: {
     // The measured Quickness contact pairs its strike and bleed; the pet timing profile restores the slower contact.
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 0.5, source: 'ranger-pet', actorType: 'summon' },
+      { type: 'strike', coefficient: 0.5, source: 'ranger-pet', actorType: ACTOR.SUMMON },
       {
         type: 'condition',
         condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 5,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_BITE]!.castTimeMs,
@@ -29,14 +29,14 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
   [ID.AETHER_HUNTER_LUNGE]: {
     // Lunge's early contact and motion remain unchanged by Quickness in the paired logs.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 0.8, source: 'ranger-pet', actorType: 'summon' },
+      { type: 'strike', coefficient: 0.8, source: 'ranger-pet', actorType: ACTOR.SUMMON },
       {
         type: 'condition',
         condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_LUNGE]!.castTimeMs,
@@ -50,7 +50,7 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
         type: 'strike',
         ticks: [0, 680, 1360, 2040, 2720].map((atMs) => ({ atMs, coefficient: 0.5 })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -61,7 +61,7 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
           duration: 8
         })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_LEY_LINE_VORTEX]!.castTimeMs,
@@ -77,9 +77,9 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
         coefficient: 0.7,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
-      { type: 'control', controlKind: 'launch', source: 'ranger-pet', actorType: 'summon' }
+      { type: 'control', controlKind: CONTROL.LAUNCH, source: 'ranger-pet', actorType: ACTOR.SUMMON }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.DIMENSION_BREACH]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.DIMENSION_BREACH]!.quicknessCastTimeMs,

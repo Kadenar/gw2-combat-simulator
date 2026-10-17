@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
@@ -95,7 +95,7 @@ const ambushCommander = defineTrait({
         kind: 'kallas-fervor',
         duration: 8,
         stacks: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -115,8 +115,8 @@ const ashenDemeanorTrait = defineTrait({
     cooldown: 10,
     fervorStacks: 3,
     effects: [
-      { type: 'boon', boon: BOON.MIGHT, duration: 6, stacks: 5, audience: { recipients: 'self' } },
-      { type: 'boon', boon: BOON.RESISTANCE, duration: 6, stacks: 1, audience: { recipients: 'self' } }
+      { type: 'boon', boon: BOON.MIGHT, duration: 6, stacks: 5, audience: { recipients: RECIPIENT.SELF } },
+      { type: 'boon', boon: BOON.RESISTANCE, duration: 6, stacks: 1, audience: { recipients: RECIPIENT.SELF } }
     ]
   }
 });
@@ -160,7 +160,7 @@ const boldReversal = defineTrait({
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.PROTECTION,
         duration: 1,
         stacks: 1,
@@ -168,7 +168,7 @@ const boldReversal = defineTrait({
         intervalMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -218,7 +218,7 @@ const brutalMomentum = defineTrait({
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.VIGOR),
       attribution: {
         source: 'revenant',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: PROFILE.brutalMomentum,
         skillName: 'Brutal Momentum',
         name: undefined
@@ -244,8 +244,8 @@ const endlessEnmity = defineTrait({
         boon: BOON.FURY,
         duration: 4,
         stacks: 1,
-        audience: { recipients: 'party' as const },
-        actorType: 'player'
+        audience: { recipients: RECIPIENT.PARTY },
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -255,7 +255,7 @@ const endlessEnmity = defineTrait({
       on: 'damage.resolved',
       cooldown: 'profile',
       when: (runtime, event, details) =>
-        event.actorType === 'player' &&
+        event.actorType === ACTOR.PLAYER &&
         Number(event.coefficient) > 0 &&
         Boolean(details.hitContext?.critEligible && details.hitContext.critical.didCrit) &&
         Boolean(
@@ -264,7 +264,7 @@ const endlessEnmity = defineTrait({
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.FURY),
       attribution: {
         source: 'revenant',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: TRAIT.ENDLESS_ENMITY,
         skillName: 'Endless Enmity',
         name: 'Endless Enmity \u2014 fury'
@@ -318,7 +318,7 @@ const lastingLegacy = defineTrait({
         kind: 'kallas-fervor',
         duration: 12,
         stacks: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -333,11 +333,11 @@ const lastingLegacy = defineTrait({
         {
           name: boonKey(BOON.MIGHT),
           type: 'boon',
-          audience: { recipients: 'party', maximumRecipients: 5 },
+          audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
           boon: BOON.MIGHT,
           duration: 8,
           stacks: 3,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]
     }
@@ -388,7 +388,7 @@ const righteousRebel = defineTrait({
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.ALACRITY,
         duration: 2,
         stacks: 1,
@@ -396,7 +396,7 @@ const righteousRebel = defineTrait({
         intervalMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -413,10 +413,10 @@ const vindication = defineTrait({
     skillFamily: 'Trait',
     effects: [
       {
-        name: 'daze',
+        name: CONTROL.DAZE,
         type: 'control',
-        actorType: 'player',
-        controlKind: 'daze'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.DAZE
       }
     ]
   },
@@ -425,11 +425,11 @@ const vindication = defineTrait({
       on: 'damage.resolved',
       when: (_runtime, event) => event.skillId === ID.CITADEL_BOMBARDMENT && Number(event.hitIndex || 1) === 1,
       emit: PROFILE.vindication,
-      effects: (effect) => effect.type === 'control' && effect.name === 'daze',
+      effects: (effect) => effect.type === 'control' && effect.name === CONTROL.DAZE,
       attribution: {
         source: 'revenant',
         sourceId: TRAIT.VINDICATION,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: TRAIT.VINDICATION,
         skillName: 'Vindication',
         name: 'Vindication — Daze'
@@ -484,10 +484,10 @@ function ashenDemeanor(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill
     effects: (effect) => effect.type === 'boon',
     attribution: (effect) => ({
       source: 'revenant',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: TRAIT.ASHEN_DEMEANOR,
       skillName: profile.name,
-      audience: effect.audience ?? { recipients: 'self' }
+      audience: effect.audience ?? { recipients: RECIPIENT.SELF }
     }),
     transform: (packet) => ({ ...packet, name: profile.name + ' — ' + packet.kind })
   });

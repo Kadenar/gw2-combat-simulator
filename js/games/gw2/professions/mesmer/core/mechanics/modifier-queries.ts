@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 
@@ -8,5 +9,5 @@ export function illusionSource(context: Gw2ModifierContext): boolean {
 
 export function timedStacks(context: Gw2ModifierContext, kind: string, duration: number, maximum: number): number {
   // Live state cannot borrow an unaccepted scheduled grant; isolated previews retain authored fallback durations.
-  return activeBuffStacks(context, kind, maximum, { actor: 'player' }, duration);
+  return activeBuffStacks(context, kind, maximum, { actor: ACTOR.PLAYER }, duration);
 }

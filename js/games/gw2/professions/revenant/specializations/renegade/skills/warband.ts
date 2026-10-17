@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
@@ -50,7 +50,7 @@ export function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<Re
         activationId: cast.id,
         source: 'revenant',
         sourceId: cast.skill.id,
-        actorType: effect.actorType || 'player',
+        actorType: effect.actorType || ACTOR.PLAYER,
         skillId: cast.skill.id,
         skillName: cast.skill.name
       }),
@@ -95,7 +95,7 @@ export function razorclawsRage(
           at: allied.at,
           source: 'revenant',
           sourceId: cast.skill.id,
-          actorType: bleed.actorType || 'player',
+          actorType: bleed.actorType || ACTOR.PLAYER,
           skillId: cast.skill.id,
           skillName: cast.skill.name,
           activationId: `${cast.id}:${allied.activationId}`,
@@ -135,7 +135,7 @@ export function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast
       activationId: cast.id,
       source: 'revenant',
       sourceId: window.id,
-      actorType: effect.actorType || 'player',
+      actorType: effect.actorType || ACTOR.PLAYER,
       skillId: window.id,
       skillName: window.name
     }),
@@ -175,7 +175,7 @@ export function razorclawProc(runtime: RevenantRuntime, event: Gw2ResolverEvent)
       at: runtime.time,
       source: 'revenant',
       sourceId: ID.RAZORCLAWS_RAGE,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: ID.RAZORCLAWS_RAGE,
       skillName: "Razorclaw's Rage",
       name: "Razorclaw's Rage — Bleeding",

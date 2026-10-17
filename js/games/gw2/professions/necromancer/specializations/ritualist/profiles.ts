@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
@@ -39,7 +39,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         type: 'strike',
         coefficient: 0.4,
         hits: 1,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         name: 'Anguish Autoattack'
       },
       {
@@ -56,7 +56,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: 'Anguish Initial Barrage'
       },
       {
@@ -65,7 +65,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         duration: 2,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: 'Summon Spirits - Anguish'
       },
       // Opening conditions are independently patchable and removable from the barrage.
@@ -86,7 +86,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         type: 'strike',
         coefficient: 0.4,
         hits: 1,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         name: 'Wanderlust Autoattack'
       },
       {
@@ -96,7 +96,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         atMs: 720,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: 'Wanderlust Initial Swing'
       },
       {
@@ -105,7 +105,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 2000 + index * 1000, coefficient: 0.42 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: 'Wanderlust Initial Field'
       },
       {
@@ -116,7 +116,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         duration: 1.8,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: 'Summon Spirits - Wanderlust'
       },
       // Offsets follow the field's first impact, including its travel delay.
@@ -154,7 +154,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         type: 'strike',
         coefficient: 0.3,
         hits: 1,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         name: 'Preservation Autoattack'
       }
     ]
@@ -173,7 +173,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         kind: 'necromancer-painful-bond',
         stacks: 1,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         name: 'Strike',
@@ -182,7 +182,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         hits: 1,
         flatStrikeBase: 200,
         flatStrikePowerCoeff: 0.4,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         canCrit: false
       }
     ]
@@ -201,7 +201,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         hits: 1,
         flatStrikeBase: 1200,
         flatStrikePowerCoeff: 0.05,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         canCrit: false,
         damageKind: 'life-steal'
       },
@@ -211,7 +211,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         condition: CONDITION.VULNERABILITY,
         stacks: 2,
         duration: 8,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   },
@@ -221,7 +221,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     profileKind: 'skill-variant',
     parentId: ID.SPLINTER_WEAPON,
     internalCooldown: 0.32,
-    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.4, hits: 1, actorType: 'effect' }]
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.4, hits: 1, actorType: ACTOR.EFFECT }]
   }
 ]);
 

@@ -1,6 +1,7 @@
+import { ACTOR } from '#gw2/platform/constants.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -60,9 +61,9 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
       runtime.companions.set(companionId, effects);
     },
     companionRetiredAt: (companionId: string): number | undefined => runtime.retiredCompanions.get(companionId),
-    activeBoonStacks: (kind: string, at: number, maximum = 25, recipient: EffectRecipient = { actor: 'player' }) =>
+    activeBoonStacks: (kind: string, at: number, maximum = 25, recipient: EffectRecipient = { actor: ACTOR.PLAYER }) =>
       activeBoonStacks({ config: runtime.config, runtime, time: at }, kind, maximum, recipient),
-    activeBuffStacks: (kind: string, at: number, maximum = 25, recipient: EffectRecipient = { actor: 'player' }) =>
+    activeBuffStacks: (kind: string, at: number, maximum = 25, recipient: EffectRecipient = { actor: ACTOR.PLAYER }) =>
       activeBuffStacks({ runtime, time: at }, kind, maximum, recipient),
     buffApplications: (kind: string): readonly Readonly<Gw2TimedBuffApplication>[] => runtime.buffs.get(kind) ?? [],
     targetHasCondition: (condition: string, at: number) => runtime.query.targetHasCondition(condition, at, runtime),
@@ -129,7 +130,7 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
 
           if (
             !application.independentConditionOwner ||
-            application.actorType !== 'summon' ||
+            application.actorType !== ACTOR.SUMMON ||
             application.summonOwner !== companionId
           )
             continue;

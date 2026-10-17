@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -37,9 +38,9 @@ export function avatarEffects(
           source: 'Trait',
           sourceId: TRAIT.GRACE_OF_THE_LAND,
           skillName: 'Grace of the Land',
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           // Grace of the Land is an allied area boon, so the active pet receives it and its Beast recharges speed up.
-          audience: { recipients: 'party', maximumRecipients: 5 },
+          audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
           timingAnchor: 'castStart',
           interruptCommitMs: 0,
           atMs
@@ -73,8 +74,8 @@ export function avatarEffects(
         source: 'Trait',
         sourceId: TRAIT.ECLIPSE,
         skillName: 'Eclipse',
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         interruptCommitMs: 0,
         // Eclipse belongs to the skill impact: the seed detonation or Lunar Impact's landed daze.
         timingAnchor: 'castStart',

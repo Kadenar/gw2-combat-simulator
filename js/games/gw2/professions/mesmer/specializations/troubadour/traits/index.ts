@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -76,7 +76,7 @@ const mayhem = defineTrait<MesmerSkill>({
         runtime.effects.emit({
           kind: 'announcement',
           log: true,
-          attribution: { source: 'Trait', sourceId: TRAIT.MAYHEM, actorType: 'effect' },
+          attribution: { source: 'Trait', sourceId: TRAIT.MAYHEM, actorType: ACTOR.EFFECT },
           announcement: { type: 'trait', name: 'Mayhem', at: runtime.time, sourceSkill: cast.skill.name, detail: '' }
         });
       }
@@ -308,7 +308,7 @@ export const syncopate = defineTrait<MesmerSkill>({
     effects: [
       { type: 'strike', name: 'Immediate wave', coefficient: 0.75, hits: 1 },
       { type: 'strike', name: 'Delayed wave', coefficient: 1, hits: 1 },
-      { type: 'control', name: 'Delayed daze', controlKind: 'daze' }
+      { type: 'control', name: 'Delayed daze', controlKind: CONTROL.DAZE }
     ]
   },
   lifetime: {
@@ -370,7 +370,7 @@ function applyMayhemInstrument(
   data: MesmerInstrument,
   damageAt: number,
   source: string,
-  actorType: 'player' | 'summon',
+  actorType: typeof ACTOR.PLAYER | typeof ACTOR.SUMMON,
   delivery: EffectDelivery = {}
 ): void {
   if (data.instrument === 'Flute') {
@@ -416,7 +416,7 @@ function applyLuteLifeOfTheParty(
       priority: 0,
       skillId: TRAIT.LIFE_OF_THE_PARTY,
       skillName: profile.name,
-      attribution: { actorType: 'player', audience: { recipients: 'party', maximumRecipients: 5 } },
+      attribution: { actorType: ACTOR.PLAYER, audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } },
       transform: (event) => ({ ...event, sourceSkill: skill.name })
     });
 }
@@ -432,12 +432,12 @@ function applyCallAndResponse(
 ): void {
   if (spent === balanceNumberFromContext(context, TRAIT.CALL_AND_RESPONSE, 'threshold')) {
     const afterimageAt = at + balanceNumberFromContext(context, TRAIT.CALL_AND_RESPONSE, 'initialDelay');
-    instrumentAttack(context, skill, data, afterimageAt, 'Afterimage', 'summon', delivery);
+    instrumentAttack(context, skill, data, afterimageAt, 'Afterimage', ACTOR.SUMMON, delivery);
     context.effects.emit({
       ...delivery,
       kind: 'announcement',
       log: true,
-      attribution: { source: 'Trait', sourceId: TRAIT.CALL_AND_RESPONSE, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: TRAIT.CALL_AND_RESPONSE, actorType: ACTOR.EFFECT },
       announcement: { type: 'trait', name: 'Call and Response', at: afterimageAt, sourceSkill: skill.name, detail: '' }
     });
   }
@@ -472,7 +472,7 @@ function triggerRaconteur(context: MesmerRuntime, skill: MesmerSkill, at: number
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.RACONTEUR,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: TRAIT.RACONTEUR,
       skillName: profile.name
     },
@@ -483,7 +483,7 @@ function triggerRaconteur(context: MesmerRuntime, skill: MesmerSkill, at: number
     effect: { type: 'boon', name: boonKey(BOON.PROTECTION) },
     skillId: TRAIT.RACONTEUR,
     skillName: profile.name,
-    attribution: { actorType: 'player', audience: { recipients: 'party', maximumRecipients: 5 } },
+    attribution: { actorType: ACTOR.PLAYER, audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } },
     transform: (event) => ({ ...event, sourceSkill: skill.name })
   });
 }
@@ -509,13 +509,13 @@ function observeSyncopateEvent(context: MesmerRuntime, event: SimulationEvent): 
       name: undefined,
       summonKind: undefined,
       source: 'Trait',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       // A proc caused by a surviving delayed disable inherits that packet's interruption protection.
       persistsAfterInterrupt: event.persistsAfterInterrupt === true,
       weapon: 'utility',
       weaponStrengthProfileId: 'nonweapon.unequipped'
     },
-    { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: 'player' }
+    { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: ACTOR.PLAYER }
   ).forEach((packet) => {
     context.effects.emit({
       kind: 'packet',
@@ -527,7 +527,7 @@ function observeSyncopateEvent(context: MesmerRuntime, event: SimulationEvent): 
   context.effects.emit({
     kind: 'announcement',
     log: true,
-    attribution: { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: ACTOR.EFFECT },
     announcement: { type: 'trait', name: 'Syncopate', at: event.at, sourceSkill: skillName, detail: '' }
   });
 }
@@ -557,7 +557,7 @@ function triggerMethodOfMadnessSyncopate(context: MesmerRuntime): void {
   context.effects.emit({
     kind: 'announcement',
     log: true,
-    attribution: { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: ACTOR.EFFECT },
     announcement: { type: 'trait', name: 'Syncopate', at: context.time, sourceSkill: 'Lesser Chaos Storm', detail: '' }
   });
 }
@@ -569,7 +569,7 @@ function scheduleSyncopateDrumWave(
   instrument: MesmerInstrument,
   damageAt: number,
   source: string,
-  actorType: 'player' | 'summon',
+  actorType: typeof ACTOR.PLAYER | typeof ACTOR.SUMMON,
   delivery: EffectDelivery = {}
 ): void {
   if (instrument.instrument !== 'Drum') return;
@@ -645,7 +645,7 @@ function scheduleSyncopateDrumWave(
     ...delivery,
     kind: 'announcement',
     log: true,
-    attribution: { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: ACTOR.EFFECT },
     announcement: {
       type: 'trait',
       name: 'Syncopate',
@@ -673,7 +673,7 @@ function grantCrescendoPartyBoons(
       priority: 0,
       skillId: TRAIT.LIFE_OF_THE_PARTY,
       skillName: profile.name,
-      attribution: { actorType: 'player', audience: { recipients: 'party', maximumRecipients: 5 } },
+      attribution: { actorType: ACTOR.PLAYER, audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } },
       transform: (event) => ({ ...event, sourceSkill: skill.name })
     });
 }
@@ -691,7 +691,7 @@ function resolveAlteredChord(
       ...delivery,
       kind: 'announcement',
       log: true,
-      attribution: { source: 'Trait', sourceId: TRAIT.ALTERED_CHORD, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: TRAIT.ALTERED_CHORD, actorType: ACTOR.EFFECT },
       announcement: { type: 'trait', name: 'Altered Chord', at: damageAt, sourceSkill: skill.name, detail: 'Lute' }
     });
     {
@@ -739,7 +739,7 @@ function resolveAlteredChord(
         ...delivery,
         kind: 'announcement',
         log: true,
-        attribution: { source: 'Trait', sourceId: TRAIT.ALTERED_CHORD, actorType: 'effect' },
+        attribution: { source: 'Trait', sourceId: TRAIT.ALTERED_CHORD, actorType: ACTOR.EFFECT },
         announcement: { type: 'trait', name: 'Altered Chord', at: damageAt, sourceSkill: skill.name, detail: 'Flute' }
       });
   } else if (lastInstrument === 'Drum') {
@@ -751,7 +751,7 @@ function resolveAlteredChord(
         skillName: skill.name,
         source: 'Player',
         sourceId: TRAIT.ALTERED_CHORD,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       });
       context.effects.emit({
         ...delivery,
@@ -766,7 +766,7 @@ function resolveAlteredChord(
       ...delivery,
       kind: 'announcement',
       log: true,
-      attribution: { source: 'Trait', sourceId: TRAIT.ALTERED_CHORD, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: TRAIT.ALTERED_CHORD, actorType: ACTOR.EFFECT },
       announcement: { type: 'trait', name: 'Altered Chord', at: damageAt, sourceSkill: skill.name, detail: 'Drum' }
     });
   }

@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { necromancerRuntimeSpecializationState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
@@ -59,7 +59,7 @@ const demonicLore = defineTrait({
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 1,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   },
@@ -89,7 +89,7 @@ const sandSavant = defineTrait({
         kind: 'active-shade',
         stacks: 1,
         duration: 8,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -127,8 +127,8 @@ const abrasiveGrit = defineTrait({
         boon: BOON.MIGHT,
         stacks: 2,
         duration: 6,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY }
       }
     ]
   }
@@ -156,8 +156,8 @@ const desertEmpowerment = defineTrait({
         boon: BOON.ALACRITY,
         stacks: 1,
         duration: 1.5,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY }
       }
     ]
   }
@@ -181,7 +181,7 @@ const sadisticSearing = defineTrait({
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -321,10 +321,10 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.DEMONIC_LORE,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillName: 'Demonic Lore',
         triggeredBy: event.skillName,
-        ownerActorType: 'player',
+        ownerActorType: ACTOR.PLAYER,
         name: 'Demonic Lore' + ' - ' + String(effect.condition)
       }
     }
@@ -363,8 +363,8 @@ function applySadisticSearing(runtime: NecromancerRuntime, cast: RuntimeCast<Nec
     effect: { type: 'condition', name: CONDITION.BURNING },
     activationId: cast.id,
     attribution: {
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       offTarget: cast.command.offTarget
@@ -387,7 +387,7 @@ function grantBarrierBoon(
     attribution: {
       source: 'necromancer',
       sourceId: cast.skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       audience: necromancerPartyAudience(runtime),

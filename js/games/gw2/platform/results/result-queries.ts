@@ -1,3 +1,4 @@
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2SimulationResult, Gw2SimulationPlanningState } from '#gw2/platform/results/types.js';
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
@@ -20,7 +21,7 @@ export function criticalChanceEventAt(
     const actor = gw2EventActorType(event);
 
     // Only effects explicitly owned by the player join player actors in this sample.
-    if (actor !== 'player' && (actor !== 'effect' || !isGw2PlayerModifierOwnedEvent(event))) continue;
+    if (actor !== ACTOR.PLAYER && (actor !== 'effect' || !isGw2PlayerModifierOwnedEvent(event))) continue;
 
     // Match combat-query's independent critical profile: attribution alone does not imply player stats.
     if (
@@ -57,7 +58,8 @@ export function criticalChanceEventAt(
 /** Read the inspected engine boundary directly; editor state remains available without chart histories. */
 export function planningBuffAt(state: Gw2SimulationPlanningState | null | undefined, kind: string) {
   const effect = state?.effects.find(
-    (effect) => effect.kind === kind.toLowerCase() && effect.recipient === 'self' && effect.origin === 'simulated'
+    (effect) =>
+      effect.kind === kind.toLowerCase() && effect.recipient === RECIPIENT.SELF && effect.origin === 'simulated'
   );
 
   if (!state || !effect) return null;

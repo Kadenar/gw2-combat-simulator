@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, COMBO_FIELD, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 // Name packets independently for patch deletion while preserving their shared attribution.
 /** Core Engineer Elixir Gun skill mechanics. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -25,9 +24,9 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Projectile',
+        finisherType: COMBO_FINISHER.PROJECTILE,
         chance: 0.2,
-        preferredFieldTypes: ['Fire'],
+        preferredFieldTypes: [COMBO_FIELD.FIRE],
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -38,21 +37,21 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         coefficient: 0.4,
         hits: 1,
         name: 'Tranquilizer Dart',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     kitId: ID.ELIXIR_GUN
@@ -67,25 +66,25 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         coefficient: 0.75,
         hits: 1,
         name: 'Glob Shot',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 3 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 3 },
         boon: BOON.SWIFTNESS,
         duration: 3,
         stacks: 1
@@ -99,7 +98,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
     comboFields: [
       {
         ownerId: 'engineer',
-        fieldType: 'Light',
+        fieldType: COMBO_FIELD.LIGHT,
         duration: 5,
         startAnchor: 'castEnd'
       }
@@ -111,11 +110,11 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         coefficient: 1.35,
         hits: 1,
         name: 'Acid Bomb - Impact',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         comboFinishers: [
           {
             ownerId: 'engineer',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ]
@@ -127,7 +126,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Acid Bomb - Pulses',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     kitId: ID.ELIXIR_GUN
@@ -138,7 +137,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
     comboFields: [
       {
         ownerId: 'engineer',
-        fieldType: 'Light',
+        fieldType: COMBO_FIELD.LIGHT,
         duration: 5,
         startAnchor: 'castEnd'
       }
@@ -156,7 +155,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         type: 'strike',
         ticks: [320, 600, 920, 1200, 1520].map((atMs) => ({ atMs, coefficient: 2 / 5 })),
         name: 'Fumigate',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -166,7 +165,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
           stacks: 1,
           duration: 2
         })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -176,7 +175,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
           stacks: 1,
           duration: 6
         })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     kitId: ID.ELIXIR_GUN
@@ -187,7 +186,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 10,
         stacks: 1

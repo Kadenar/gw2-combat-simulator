@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
@@ -27,7 +28,7 @@ export function emitElectricDischarge(
       activationId: context.combat.allocateEffectActivation('elementalist.effect:'),
       cast: emissionCast,
       skillWeaponFallback: 'Unequipped',
-      attribution: { source: 'Electric Discharge', sourceId, actorType: 'effect', ownerActorType: 'player' }
+      attribution: { source: 'Electric Discharge', sourceId, actorType: ACTOR.EFFECT, ownerActorType: ACTOR.PLAYER }
     });
   }
 
@@ -39,7 +40,7 @@ export function emitElectricDischarge(
       skillId: sourceId,
       skillName: 'Electric Discharge',
       cast: emissionCast,
-      attribution: { source: 'Electric Discharge', sourceId: sourceId, actorType: 'player', triggeredBy: '' },
+      attribution: { source: 'Electric Discharge', sourceId: sourceId, actorType: ACTOR.PLAYER, triggeredBy: '' },
       transform: (event) => ({ ...event, name: 'Electric Discharge' + ' \u2014 ' + event.condition }),
       receipt: true
     }).length > 0;

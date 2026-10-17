@@ -1,8 +1,8 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { boonKey, GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -131,8 +131,8 @@ const elevatedCompassion = defineTrait({
         boon: BOON.QUICKNESS,
         duration: 1.25,
         stacks: 1,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY }
       }
     ]
   }
@@ -215,8 +215,8 @@ const sharedEmpowerment = defineTrait({
         boon: BOON.MIGHT,
         duration: 8,
         stacks: 1,
-        actorType: 'effect',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 }
+        actorType: ACTOR.EFFECT,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
   },
@@ -312,11 +312,11 @@ function grantCompassion(runtime: RevenantRuntime): void {
     attribution: {
       source: 'revenant',
       sourceId: TRAIT.ELEVATED_COMPASSION,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: TRAIT.ELEVATED_COMPASSION,
       skillName: 'Elevated Compassion',
       name: 'Elevated Compassion - quickness',
-      audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
+      audience: effect.audience ?? { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
     }
   });
   runtime.procs.setDeadline(

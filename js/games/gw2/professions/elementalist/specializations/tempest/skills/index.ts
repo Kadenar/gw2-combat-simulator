@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FIELD, RECIPIENT, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Tempest overload and slot-skill catalog fragments only.
  * Persistent overload behavior lives in `hooks.ts`; aura reactions live under `mechanics/`.
@@ -44,7 +43,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 9,
         startAnchor: 'castEnd'
       }
@@ -108,7 +107,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Lightning',
+        fieldType: COMBO_FIELD.LIGHTNING,
         duration: 4,
         startAnchor: 'castEnd'
       }
@@ -183,7 +182,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         boon: BOON.FURY,
         stacks: 1,
         duration: 10,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         metadata: {}
       },
       {
@@ -191,7 +190,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         boon: BOON.MIGHT,
         stacks: 8,
         duration: 15,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         metadata: {}
       }
     ])
@@ -216,7 +215,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
           type: 'boon',
           boon: BOON.PROTECTION,
           // Share this support boon with affected allies within its recipient cap.
-          audience: { recipients: 'party' as const, maximumRecipients: 5 },
+          audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
           stacks: 1,
           duration: 5,
           metadata: {}
@@ -225,7 +224,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
           type: 'boon',
           boon: BOON.AEGIS,
           // Share this support boon with affected allies within its recipient cap.
-          audience: { recipients: 'party' as const, maximumRecipients: 5 },
+          audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
           stacks: 1,
           duration: 5,
           metadata: {}
@@ -239,7 +238,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
             {
               attemptGroup: 'effect:5:tick:1',
               ownerId: 'elementalist',
-              finisherType: 'Blast',
+              finisherType: COMBO_FINISHER.BLAST,
               ambiguousFieldSelection: 'oldest'
             }
           ],

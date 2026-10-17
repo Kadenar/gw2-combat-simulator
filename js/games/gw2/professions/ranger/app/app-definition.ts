@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { profession, createBuildContext, toApplicationBuild } from '#gw2/professions/ranger/build/context.js';
 import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
 import { rangerTooltips } from '#gw2/professions/ranger/app/tooltips.js';
@@ -34,5 +35,5 @@ export const rangerAppAdapter = defineProfessionApp({
 
     return true;
   },
-  defaultOffhand: preferOffhand('Axe')
+  defaultOffhand: preferOffhand(WEAPON.AXE)
 });

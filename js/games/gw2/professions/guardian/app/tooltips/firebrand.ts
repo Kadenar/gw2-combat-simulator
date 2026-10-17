@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   profileFact,
   simulationEffectFacts,
@@ -114,7 +115,7 @@ export const firebrandTooltips = {
               ...(effect.type === 'buff'
                 ? { stacks: tooltipNumber(tooltipProfile(balanceContext, FIREBRAND.ashes), 'maximumStacks') }
                 : {}),
-              audience: { recipients: 'party' as const }
+              audience: { recipients: RECIPIENT.PARTY }
             })),
           'party grant'
         ).facts,

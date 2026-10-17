@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -119,7 +120,7 @@ export function createIllusionRewardController({
       state.effects.emit({
         kind: 'announcement',
         log: true,
-        attribution: { source: 'Trait', sourceId: resourceTraitId, actorType: 'effect' },
+        attribution: { source: 'Trait', sourceId: resourceTraitId, actorType: ACTOR.EFFECT },
         announcement: {
           type: 'trait',
           name: cause.traitName || reason,

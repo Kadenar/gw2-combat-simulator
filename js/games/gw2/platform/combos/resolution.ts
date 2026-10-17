@@ -1,13 +1,13 @@
-import { timeKey } from '#kernel/core/clock.js';
-import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/definitions.js';
-import { normalizeComboFieldType } from '#gw2/platform/combos/validation.js';
+import type { ComboFieldType } from '#gw2/platform/constants.js';
 import type {
   ComboEvent,
   ComboFieldEvent,
-  ComboFieldType,
   ComboFinisherEvent,
   Gw2ComboRuntimeState
 } from '#gw2/platform/combos/types.js';
+import { timeKey } from '#kernel/core/clock.js';
+import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/definitions.js';
+import { normalizeComboFieldType } from '#gw2/platform/combos/validation.js';
 
 /**
  * Combo resolution rules: per-run field state, the shared field-window rule, field selection for a finisher, and

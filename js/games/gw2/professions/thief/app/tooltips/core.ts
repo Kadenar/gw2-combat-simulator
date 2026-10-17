@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   fromProfile,
@@ -110,14 +111,14 @@ const thievesGuildTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
               [
                 {
                   type: 'strike',
-                  actorType: 'summon',
+                  actorType: ACTOR.SUMMON,
                   coefficient: attack.coefficientPerHit * (attack.hits ?? 1),
                   hits: attack.hits ?? 1
                 },
                 ...(attack.conditions || []).map((condition): SkillEffect => ({
                   ...condition,
                   type: 'condition',
-                  actorType: 'summon'
+                  actorType: ACTOR.SUMMON
                 }))
               ],
               `${summon.name}${summon.variant ? ': core alternative' : ''} · ${attack.name}, per attack`

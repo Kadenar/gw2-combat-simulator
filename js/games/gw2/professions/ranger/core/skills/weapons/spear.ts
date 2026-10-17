@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, STATUS, WEAPON, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -39,7 +38,9 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
         projectile: true,
         coefficient: 1.95,
         hits: 1,
-        comboFinishers: [{ ownerId: 'ranger', finisherType: 'Projectile', ambiguousFieldSelection: 'oldest' }]
+        comboFinishers: [
+          { ownerId: 'ranger', finisherType: COMBO_FINISHER.PROJECTILE, ambiguousFieldSelection: 'oldest' }
+        ]
       },
       {
         type: 'condition',
@@ -60,7 +61,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
     effects: [
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1
       },
@@ -86,7 +87,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
         atMs: 840,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        comboFinishers: [{ ownerId: 'ranger', finisherType: 'Leap', ambiguousFieldSelection: 'oldest' }]
+        comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.LEAP, ambiguousFieldSelection: 'oldest' }]
       }
     ],
     castTimeMs: 960
@@ -154,7 +155,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     description: 'Stealth Attack. Slash enemies in front of you, then follow up with a powerful blow.',
     icon: 'https://render.guildwars2.com/file/E1550C4BB87B62B14AC39E3F2DB2AC4E07F55F91/3379175.png',
     type: 'Weapon',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     slot: 'Weapon_2',
     // Both EVTC animation segments are one attack; cancellation drops pending hits, not earlier contacts.
     castTimeMs: 1000,
@@ -188,7 +189,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     description: 'Stealth Attack. Reveal yourself and throw an unblockable, piercing spear.',
     icon: 'https://render.guildwars2.com/file/FBA45321DB6E98FB510AF8215EF0A19EB4FB4FC6/3379177.png',
     type: 'Weapon',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     slot: 'Weapon_3',
     castTimeMs: 500,
     interruptMode: 'per-packet',
@@ -207,7 +208,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ]
@@ -227,7 +228,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
       'Stealth Attack. Leap to a target location, dazing enemies. Deal increased damage to foes below the health threshold.',
     icon: 'https://render.guildwars2.com/file/2D36D9D30E372A750D700F3334A8CE697B4C3010/3379179.png',
     type: 'Weapon',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     slot: 'Weapon_4',
     castTimeMs: 960,
     interruptMode: 'per-packet',
@@ -248,14 +249,14 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: 'Leap',
+            finisherType: COMBO_FINISHER.LEAP,
             ambiguousFieldSelection: 'oldest'
           }
         ]
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: CONTROL.DAZE
       }
     ])
   },
@@ -265,7 +266,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     description: 'Stealth Attack. Throw a net that damages, immobilizes, and cripples enemies.',
     icon: 'https://render.guildwars2.com/file/1C6D1E0860B3B6C24136F1489F5AACD87D329EC7/3379181.png',
     type: 'Weapon',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     slot: 'Weapon_5',
     castTimeMs: 333,
     interruptMode: 'per-packet',
@@ -297,10 +298,10 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
       {
         // Spider's Web aids the active pet, not the ranger's own movement boons.
         type: 'buff',
-        kind: 'superspeed',
+        kind: STATUS.SUPERSPEED,
         stacks: 1,
         duration: 3,
-        audience: { recipients: 'summons', affectsSelf: false }
+        audience: { recipients: RECIPIENT.SUMMONS, affectsSelf: false }
       }
     ]
   }

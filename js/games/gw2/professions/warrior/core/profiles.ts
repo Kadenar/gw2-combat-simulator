@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
@@ -28,7 +27,7 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
       {
         name: BOON.MIGHT,
         type: 'boon',
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         stacks: 1,
         duration: 5

@@ -1,3 +1,4 @@
+import { ACTOR, WEAPON } from '#gw2/platform/constants.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -87,7 +88,7 @@ export function emitResource(
       at: cast.effectiveEnd,
       source: skill.name,
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillName: skill.name,
       kind: 'evoker-charges',
       value: state.familiarCharges.value,
@@ -113,7 +114,7 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pic
     Number(slot[1]) > 5 ||
     CONJURED_WEAPONS.has(skill.skillWeapon || skill.weapon || '') ||
     EVOKER_NO_CHARGE_SKILLS.has(skill.id) ||
-    (skill.weapon === 'Spear' && EVOKER_NO_CHARGE_SPEAR_SKILLS.has(skill.id))
+    (skill.weapon === WEAPON.SPEAR && EVOKER_NO_CHARGE_SPEAR_SKILLS.has(skill.id))
   ) {
     return 0;
   }
@@ -146,7 +147,7 @@ function applyWeaponSkillChargeGain(
       at: context.time,
       source: chargeGain.source,
       sourceId: chargeGain.sourceId,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillName: chargeGain.source,
       kind: 'evoker-charges',
       value: state.familiarCharges.value,

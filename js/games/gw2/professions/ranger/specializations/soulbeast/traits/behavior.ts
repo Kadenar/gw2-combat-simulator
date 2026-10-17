@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -39,7 +40,7 @@ export function essenceOfSpeedExtension(
     at: event.at,
     source: 'Trait',
     sourceId: TRAIT.ESSENCE_OF_SPEED,
-    actorType: 'effect',
+    actorType: ACTOR.EFFECT,
     skillId: TRAIT.ESSENCE_OF_SPEED,
     skillName: 'Essence of Speed',
     duration: balanceNumberFromContext(context, TRAIT.ESSENCE_OF_SPEED, 'duration'),

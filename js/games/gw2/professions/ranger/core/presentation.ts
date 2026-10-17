@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -141,7 +142,7 @@ function hasHammerEquipped(context: RangerUiContext): boolean {
     ...(context.build?.alternateWeapons || []),
     ...gw2ConfiguredWeaponSet(context.config, 1),
     ...gw2ConfiguredWeaponSet(context.config, 2)
-  ].includes('Hammer');
+  ].includes(WEAPON.HAMMER);
 }
 
 // Replace exactly one hammer variant pair in build state after validating the
@@ -303,7 +304,7 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
         const selected = selectedHammerSkillIds(context);
         groups.push({
           id: 'ranger-hammer-selection',
-          label: 'Hammer',
+          label: WEAPON.HAMMER,
           skillIds: [],
           selections: RANGER_HAMMER_VARIANT_PAIRS.map((pair, index) => ({
             skillId: selected[index],

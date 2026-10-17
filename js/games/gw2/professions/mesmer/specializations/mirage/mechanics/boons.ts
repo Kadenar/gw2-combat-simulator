@@ -1,3 +1,4 @@
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { StatusEffect } from '#gw2/platform/effects/types.js';
 
@@ -13,7 +14,7 @@ export function buildMirageCloneBoon(
     type: 'buff',
     at,
     source: 'Clone',
-    actorType: 'summon',
+    actorType: ACTOR.SUMMON,
     summonKind: 'clone',
     summonOwner: `mesmer.clone:${cloneId}`,
     metadata: { cloneId },
@@ -25,7 +26,7 @@ export function buildMirageCloneBoon(
     skillName: sourceSkill,
     sourceSkill,
     audience: {
-      recipients: 'party',
+      recipients: RECIPIENT.PARTY,
       maximumRecipients: 5
     }
   });

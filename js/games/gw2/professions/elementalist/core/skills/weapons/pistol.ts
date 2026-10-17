@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, COMBO_FINISHER, COMBO_FIELD, ACTOR, AURA, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type {
   ElementalistRuntime,
@@ -60,7 +59,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Scorching Shot',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 520,
@@ -86,7 +85,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Raging Ricochet',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 520,
@@ -113,7 +112,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Searing Salvo',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 680,
@@ -130,7 +129,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
             {
               attemptGroup: 'effect:1:tick:1',
               ownerId: 'elementalist',
-              finisherType: 'Blast',
+              finisherType: COMBO_FINISHER.BLAST,
               ambiguousFieldSelection: 'oldest'
             }
           ],
@@ -161,7 +160,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Soothing Splash',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 520,
@@ -190,7 +189,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 1000,
@@ -208,7 +207,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
             {
               ownerId: 'elementalist',
               attemptGroup: `frigid-flurry:${index + 1}`,
-              finisherType: 'Projectile',
+              finisherType: COMBO_FINISHER.PROJECTILE,
               chance: 0.2,
               ambiguousFieldSelection: 'oldest'
             }
@@ -239,7 +238,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Frozen Fusillade',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 520,
@@ -250,7 +249,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Ice',
+        fieldType: COMBO_FIELD.ICE,
         duration: 4,
         startAnchor: 'castStart',
         startMs: 320
@@ -269,7 +268,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Electric Exposure',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 520,
@@ -296,7 +295,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Dazing Discharge',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -324,7 +323,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Aerial Agility',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 520,
@@ -341,7 +340,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
             comboFinishers: [
               {
                 ownerId: 'elementalist',
-                finisherType: 'Leap',
+                finisherType: COMBO_FINISHER.LEAP,
                 ambiguousFieldSelection: 'oldest'
               }
             ],
@@ -358,7 +357,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Aerial Agility (chain)',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 480,
@@ -375,7 +374,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Aerial Agility (dash)',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 520,
@@ -390,7 +389,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Leap',
+            finisherType: COMBO_FINISHER.LEAP,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -404,7 +403,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Piercing Pebble',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 520,
@@ -429,7 +428,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Shattering Stone',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 520,
@@ -450,7 +449,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Boulder Blast',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -468,7 +467,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
             {
               attemptGroup: 'effect:1:tick:1',
               ownerId: 'elementalist',
-              finisherType: 'Projectile',
+              finisherType: COMBO_FINISHER.PROJECTILE,
               ambiguousFieldSelection: 'oldest'
             }
           ],
@@ -483,7 +482,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Elemental Explosion',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Pistol',
+    weapon: WEAPON.PISTOL,
     categories: ['Weapon skill'],
     castTimeMs: 520,
     // The explosion commits before its projectile packets, which persist after a 480 ms interruption.
@@ -588,11 +587,11 @@ export const pistolSideEffectHandlers: RuntimeProfession<
               at: detonationAt,
               source: skill.name,
               sourceId: skill.id,
-              actorType: 'player',
+              actorType: ACTOR.PLAYER,
               skillName: skill.name,
               skillId: skill.id,
               coefficient: effectNumber(frozenFusilladeProfile, frozenFusilladeWaterBulletStrike, 'coefficient'),
-              skillWeapon: 'Pistol'
+              skillWeapon: WEAPON.PISTOL
             },
             { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
           )
@@ -663,7 +662,7 @@ export const pistolSideEffectHandlers: RuntimeProfession<
           at,
           source: skill.name,
           sourceId: skill.id,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillName: skill.name,
           skillId: skill.id,
           coefficient: 0,
@@ -672,7 +671,7 @@ export const pistolSideEffectHandlers: RuntimeProfession<
           comboFinishers: [
             {
               ownerId: 'elementalist',
-              finisherType: 'Projectile',
+              finisherType: COMBO_FINISHER.PROJECTILE,
               ambiguousFieldSelection: 'oldest'
             }
           ]
@@ -689,7 +688,7 @@ export const pistolBalanceProfiles: readonly BalanceProfile[] = Object.freeze([
     effects: [{ type: 'boon', name: 'Fire', boon: BOON.MIGHT, stacks: 1, duration: 10 }]
   }),
   variant(PROFILE.searingSalvo, ID.SEARING_SALVO, 'Searing Salvo - Fire Bullet', {
-    effects: [{ type: 'buff', name: 'Fire', kind: 'Fire Aura', stacks: 1, duration: 4 }]
+    effects: [{ type: 'buff', name: 'Fire', kind: AURA.FIRE, stacks: 1, duration: 4 }]
   }),
   variant(PROFILE.frozenFusillade, ID.FROZEN_FUSILLADE, 'Frozen Fusillade - Water Bullet', {
     initialDelay: 4,
@@ -722,7 +721,7 @@ export function triggerShatteringStone(context: ElementalistResolverContext, eve
   const core = professionCoreState(context);
 
   if (
-    (event.actorType === 'player' || event.actorType === 'effect') &&
+    (event.actorType === ACTOR.PLAYER || event.actorType === ACTOR.EFFECT) &&
     Number(event.coefficient) > 0 &&
     consumeCharge(core.shatteringStone, event.at)
   ) {
@@ -738,7 +737,7 @@ export function triggerShatteringStone(context: ElementalistResolverContext, eve
           at: event.at,
           source: 'Shattering Stone',
           sourceId: ID.SHATTERING_STONE,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillName: 'Shattering Stone',
           condition: String(bleeding.condition),
           stacks: Number(bleeding.stacks),
@@ -756,7 +755,7 @@ export function reservePistolRecharge(context: ElementalistRuntime, skill: Skill
 
   const state = professionCoreState(context);
 
-  if (state.dazingDischargeUntil > context.time && skillWeapon(skill) === 'Pistol') {
+  if (state.dazingDischargeUntil > context.time && skillWeapon(skill) === WEAPON.PISTOL) {
     state.dazingDischargeUntil = 0;
     return duration * balanceNumberFromContext(context, PROFILE.dazingDischarge, 'rechargeMultiplier');
   }

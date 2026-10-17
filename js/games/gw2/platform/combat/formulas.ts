@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2ResolvedStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { boundedNumber, clamp } from '#kernel/core/numeric.js';
 

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, WEAPON, RECIPIENT, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 // Name packets independently for patch deletion while preserving their shared attribution.
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -21,14 +20,14 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 0.33,
         hits: 1,
         name: 'Shadow Bolt',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -49,7 +48,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
           coefficient: 2.31 / 7
         })),
         name: 'Endless Night',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -60,7 +59,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
           stacks: 1,
           duration: 1.5
         })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -70,11 +69,11 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
           stacks: 1,
           duration: 6
         })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
-    requiredMainHand: 'Scepter',
-    requiredOffHand: 'Pistol'
+    requiredMainHand: WEAPON.SCEPTER,
+    requiredOffHand: WEAPON.PISTOL
   },
   [ID.TRIPLE_BOLT]: {
     castTimeMs: 1080,
@@ -87,24 +86,24 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'strike',
         ticks: [{ atMs: 320, coefficient: 0.45 }],
         name: 'Triple Bolt - First Bolt',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'strike',
         ticks: [{ atMs: 640, coefficient: 0.45 }],
         name: 'Triple Bolt - Second Bolt',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'strike',
         ticks: [{ atMs: 1040, coefficient: 0.45 }],
         name: 'Triple Bolt - Third Bolt',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         ticks: [320, 640, 1040].map((atMs) => ({ atMs, condition: CONDITION.TORMENT, stacks: 1, duration: 5 })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -121,15 +120,15 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
           coefficient: 1.35 / 3
         })),
         name: 'Triple Threat',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         ticks: [320, 680, 1000].map((atMs) => ({ atMs, condition: CONDITION.TORMENT, stacks: 1, duration: 4 })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
-    requiredMainHand: 'Scepter',
+    requiredMainHand: WEAPON.SCEPTER,
     requiredOffHand: false
   },
   [ID.DOUBLE_BOLT]: {
@@ -143,18 +142,18 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'strike',
         ticks: [{ atMs: 320, coefficient: 0.375 }],
         name: 'Double Bolt - First Bolt',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'strike',
         ticks: [{ atMs: 600, coefficient: 0.375 }],
         name: 'Double Bolt - Second Bolt',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         ticks: [320, 600].map((atMs) => ({ atMs, condition: CONDITION.TORMENT, stacks: 1, duration: 4 })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -169,7 +168,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'strike',
         ticks: [{ atMs: 640, coefficient: 1 }],
         name: 'Initial Attack',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -177,7 +176,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'strike',
         ticks: [{ atMs: 800, coefficient: 0.5 }],
         name: 'Secondary Attack',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -187,26 +186,26 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
           condition: CONDITION.CHILLED,
           stacks: 1,
           duration: 3,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.POISONED,
           stacks: 1,
           duration: 5,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]),
       {
         type: 'condition',
         ticks: [{ atMs: 800, condition: CONDITION.TORMENT, stacks: 3, duration: 5 }],
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
     ]),
-    requiredMainHand: 'Scepter',
-    requiredOffHand: 'Dagger'
+    requiredMainHand: WEAPON.SCEPTER,
+    requiredOffHand: WEAPON.DAGGER
   },
   [ID.MEASURED_SHOT]: {
     // Expose the follow-up on commitment; its declaration owns the window.
@@ -232,21 +231,21 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
           coefficient: 0.33,
           hits: 1,
           name: 'Measured Shot',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.IMMOBILIZED,
           stacks: 1,
           duration: 1,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]
     ),
     movementSkill: true,
     shadowstepSkill: true,
-    requiredMainHand: 'Scepter',
-    requiredOffHand: 'Pistol'
+    requiredMainHand: WEAPON.SCEPTER,
+    requiredOffHand: WEAPON.PISTOL
   },
   [ID.SHADOWSQUALL]: {
     castTimeMs: 1960,
@@ -258,7 +257,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'strike',
         ticks: [240, 480, 720, 1000, 1240, 1480, 1720, 1960].map((atMs) => ({ atMs, coefficient: 1.6 / 8 })),
         name: 'Shadowsquall',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -268,10 +267,10 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
           stacks: 1,
           duration: 3
         })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
-    requiredMainHand: 'Scepter',
+    requiredMainHand: WEAPON.SCEPTER,
     stealthAttack: true
   },
   [ID.SHADOW_SAP]: {
@@ -283,20 +282,20 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 0.77 }],
         name: 'Shadow Sap',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 10,
         stacks: 5
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.PROTECTION,
         duration: 4,
         stacks: 1
@@ -305,7 +304,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
     comboFinishers: [
       {
         ownerId: 'thief',
-        finisherType: 'Blast',
+        finisherType: COMBO_FINISHER.BLAST,
         ambiguousFieldSelection: 'oldest'
       }
     ]

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -83,7 +82,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       {
         type: 'control',
         atMs: 600,
-        controlKind: 'launch'
+        controlKind: CONTROL.LAUNCH
       }
     ]),
     castTimeMs: 600,
@@ -321,7 +320,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: CONTROL.DAZE
       }
     ],
     arrowCost: 3,

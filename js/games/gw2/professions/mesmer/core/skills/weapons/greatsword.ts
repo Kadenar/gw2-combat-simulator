@@ -1,3 +1,4 @@
+import { WEAPON, ACTOR } from '#gw2/platform/constants.js';
 import { bountifulBladesMirrorBlade } from '#gw2/professions/mesmer/core/traits/domination/index.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -23,8 +24,8 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         ticks: [{ atMs: 200, coefficient: 1.8 }],
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'greatsword',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.GREATSWORD.toLowerCase(),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -45,7 +46,7 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
           { atMs: 680, coefficient: 0.8 / 3 }
         ],
         name: 'Minimum-range damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -58,7 +59,7 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'control',
         source: 'Player',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         atMs: 0,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
@@ -67,8 +68,8 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         ticks: [{ atMs: 400, coefficient: 0.3 }],
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'greatsword',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.GREATSWORD.toLowerCase(),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -109,7 +110,7 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
           { atMs: 1080, coefficient: 0.3 }
         ],
         name: 'One berserker',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         weapon: 'phantasm high'
       },
@@ -118,8 +119,8 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
         coefficient: 1.2,
         hits: 1,
         name: 'Greatsword damage',
-        actorType: 'player',
-        weapon: 'greatsword'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.GREATSWORD.toLowerCase()
       }
     ],
     castTimeMs: 560
@@ -143,8 +144,8 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
         ticks: [{ atMs: 600, coefficient: 2.5 }],
         name: 'Initial target hit',
         persistsAfterInterrupt: true,
-        actorType: 'player',
-        weapon: 'greatsword',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.GREATSWORD.toLowerCase(),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -153,8 +154,8 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
         ticks: [{ atMs: 760, coefficient: 0.1 }],
         name: 'Second target hit after one ally bounce',
         persistsAfterInterrupt: true,
-        actorType: 'player',
-        weapon: 'greatsword',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.GREATSWORD.toLowerCase(),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -163,8 +164,8 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
         ticks: [{ atMs: 920, coefficient: 0.004 }],
         name: 'Third target hit after two ally bounces',
         persistsAfterInterrupt: true,
-        actorType: 'player',
-        weapon: 'greatsword',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.GREATSWORD.toLowerCase(),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -174,8 +175,8 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
         ticks: [{ atMs: 1080, coefficient: 0.00016 }],
         name: 'Fourth target hit after three ally bounces',
         persistsAfterInterrupt: true,
-        actorType: 'player',
-        weapon: 'greatsword',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.GREATSWORD.toLowerCase(),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

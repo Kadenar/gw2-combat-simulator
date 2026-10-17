@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, COMBO_FIELD, ACTOR, CONTROL, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -29,7 +29,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
     comboFields: [
       {
         ownerId: 'mesmer',
-        fieldType: 'Ethereal',
+        fieldType: COMBO_FIELD.ETHEREAL,
         duration: 5,
         startAnchor: 'castEnd'
       }
@@ -40,14 +40,14 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         ticks: CHAOS_STORM_PULSES_MS.map((atMs) => ({ atMs, coefficient: 0.33 })),
         name: 'Six pulses',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         // Only the first impact dazes; subsequent field pulses do not repeat the CC.
         type: 'control',
-        controlKind: 'daze',
+        controlKind: CONTROL.DAZE,
         source: 'Player',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         atMs: CHAOS_STORM_PULSES_MS[0]
       }
     ]),
@@ -89,7 +89,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
           { atMs: 2800, coefficient: 0.15 }
         ],
         name: 'One warlock',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         weapon: 'Phantasm high',
         persistsAfterInterrupt: true
@@ -99,7 +99,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
         condition: CONDITION.TORMENT,
         duration: 4,
         stacks: 6,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         persistsAfterInterrupt: true
       }
@@ -117,8 +117,8 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
           { atMs: 640, coefficient: 0.3 }
         ],
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'staff',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.STAFF.toLowerCase(),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
@@ -152,7 +152,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
     comboFinishers: [
       {
         ownerId: 'mesmer',
-        finisherType: 'Leap',
+        finisherType: COMBO_FINISHER.LEAP,
         fieldSelectionAnchor: 'castStart',
         ambiguousFieldSelection: 'oldest'
       }
@@ -170,7 +170,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
         stacks: 1,
         duration: 5,
         source: 'Player',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',

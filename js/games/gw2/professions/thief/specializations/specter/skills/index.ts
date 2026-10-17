@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -27,7 +26,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         type: 'condition',
         ticks: [{ atMs: 0, condition: CONDITION.SLOW, stacks: 1, duration: 5 }],
         persistsAfterInterrupt: true,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -63,22 +62,22 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         type: 'strike',
         ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 360 + index * 320, coefficient: 3.5 / 2 })),
         name: 'Eternal Night',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         ticks: [{ atMs: 360, condition: CONDITION.CHILLED, stacks: 1, duration: 2 }],
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         ticks: [{ atMs: 680, condition: CONDITION.WEAKNESS, stacks: 1, duration: 4 }],
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         ticks: [360, 680].map((atMs) => ({ atMs, condition: CONDITION.POISONED, stacks: 2, duration: 4 })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     shadowShroudSkill: true
@@ -98,28 +97,28 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
           coefficient: 1.66,
           hits: 1,
           name: 'Grasping Shadows',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 3,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.TORMENT,
           stacks: 2,
           duration: 6,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]
     ),
     comboFinishers: [
       {
         ownerId: 'thief',
-        finisherType: 'Blast',
+        finisherType: COMBO_FINISHER.BLAST,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -142,20 +141,20 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         coefficient: 1,
         hits: 1,
         name: "Dawn's Repose",
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.FEAR,
         stacks: 1,
         duration: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     comboFinishers: [
       {
         ownerId: 'thief',
-        finisherType: 'Leap',
+        finisherType: COMBO_FINISHER.LEAP,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -169,8 +168,8 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: [
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'daze'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.DAZE
       }
     ]
   },
@@ -184,37 +183,37 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         type: 'strike',
         ticks: [{ atMs: 3000, coefficient: 2 }],
         name: 'Mind Shock',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ]
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.STABILITY,
         duration: 4,
         stacks: 3
       },
       {
         type: 'control',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         atMs: 3000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        controlKind: 'stun'
+        controlKind: CONTROL.STUN
       }
     ],
     comboFinishers: [
       {
         ownerId: 'thief',
-        finisherType: 'Blast',
+        finisherType: COMBO_FINISHER.BLAST,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -242,19 +241,19 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         type: 'strike',
         ticks: [120, 240, 360].map((atMs) => ({ atMs, coefficient: 4.5 / 3 })),
         name: 'Shadowfall',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'pull'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.PULL
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'pull'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.PULL
       }
     ]
   },
@@ -272,7 +271,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         type: 'strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 400 + index * 1000, coefficient: 1.11 / 5 })),
         name: 'Well of Sorrow',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -283,7 +282,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
           { atMs: 3400, condition: CONDITION.POISONED, stacks: 3, duration: 6 },
           { atMs: 4400, condition: CONDITION.TORMENT, stacks: 2, duration: 6 }
         ],
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -296,7 +295,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       {
         type: 'condition',
         ticks: [{ atMs: 0, condition: CONDITION.CRIPPLED, stacks: 1, duration: 2 }],
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -313,7 +312,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         type: 'strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 0 + index * 1000, coefficient: 5 / 5 })),
         name: 'Well of Tears',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -328,7 +327,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.STABILITY,
         duration: 5,
         stacks: 2,
@@ -338,7 +337,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 15,
         stacks: 8,
@@ -348,7 +347,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.FURY,
         duration: 5,
         stacks: 1,
@@ -358,7 +357,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.VIGOR,
         duration: 8,
         stacks: 1,
@@ -368,7 +367,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 12,
         stacks: 1,
@@ -393,19 +392,19 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
           coefficient: 1.075,
           hits: 1,
           name: 'Haunt Shot',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.TORMENT,
           stacks: 1,
           duration: 6,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]),
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 5,
         stacks: 1,

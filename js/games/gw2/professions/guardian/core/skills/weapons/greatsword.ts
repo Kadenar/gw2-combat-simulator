@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, COMBO_FIELD, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
@@ -27,7 +26,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
           comboFinishers: [
             {
               ownerId: 'guardian',
-              finisherType: 'Leap',
+              finisherType: COMBO_FINISHER.LEAP,
               ambiguousFieldSelection: 'oldest'
             }
           ]
@@ -117,7 +116,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     comboFields: [
       {
         ownerId: 'guardian',
-        fieldType: 'Light',
+        fieldType: COMBO_FIELD.LIGHT,
         duration: 4,
         startMs: 200,
         startAnchor: 'castStart',
@@ -129,7 +128,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       // Self Resolution follows each pulse even when the symbol misses.
       ...[200, 1200, 2200, 3200, 4200].map((atMs) => ({
         type: 'boon' as const,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.RESOLUTION,
         duration: 1,
         stacks: 1,

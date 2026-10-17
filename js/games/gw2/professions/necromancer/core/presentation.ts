@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import { necromancerSoulShardMaximum } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
@@ -137,7 +137,7 @@ export function necromancerCoreTargetHealthThresholds(context: NecromancerUiCont
   const traits = getActiveTraits(build.specializations || []);
   const hasHalfHealthTrait = traits.some((trait) => HALF_HEALTH_TRAITS.has(trait.name));
   const weapons = [...(build.weapons || []), ...(build.alternateWeapons || [])];
-  const hasThresholdWeapon = weapons.some((weapon) => weapon === 'Greatsword' || weapon === 'Spear');
+  const hasThresholdWeapon = weapons.some((weapon) => weapon === WEAPON.GREATSWORD || weapon === WEAPON.SPEAR);
   return hasHalfHealthTrait || hasThresholdWeapon ? [0.5] : [];
 }
 
@@ -151,7 +151,7 @@ export function necromancerSoulShardResourceViews(context: NecromancerUiContext)
     gw2PrimaryWeapon(context.config, 1),
     gw2PrimaryWeapon(context.config, 2)
   ];
-  return equippedWeapons.includes('Spear') || (state.soulShardGrant?.charges || 0) > 0
+  return equippedWeapons.includes(WEAPON.SPEAR) || (state.soulShardGrant?.charges || 0) > 0
     ? [
         {
           id: 'soul-shards',
@@ -210,7 +210,7 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
       preview.damageTargetHealth(preview.hasId(TRAIT.CLOSE_TO_DEATH));
 
       // Expose held combat bonuses to isolated damage calculations.
-      if (context.weapons.includes('Dagger'))
+      if (context.weapons.includes(WEAPON.DAGGER))
         preview.add({
           key: 'condition:Bleeding',
           label: 'Target Bleeding',

@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { petDerivedConditionMetadata } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
@@ -199,7 +199,7 @@ export const leadTheWind = defineTrait({
   rechargeRules: [
     {
       order: 3,
-      when: (_runtime, skill) => skill.weapon === 'Longbow',
+      when: (_runtime, skill) => skill.weapon === WEAPON.LONGBOW,
       multiplier: { profile: TRAIT.LEAD_THE_WIND, field: 'rechargeMultiplier' }
     }
   ]
@@ -308,7 +308,7 @@ function applyClarionBond(context: RangerRuntime, skill: RangerSkill): void {
     at: context.time,
     skillId: skill.id,
     skillName: skill.name,
-    actorType: 'player'
+    actorType: ACTOR.PLAYER
   });
 }
 
@@ -325,7 +325,7 @@ function applyWolfsong(context: RangerRuntime, skill: RangerSkill): void {
         effect: { type: 'condition', name: CONDITION.VULNERABILITY },
         attribution: {
           source: 'Trait',
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillId: TRAIT.WOLFSONG,
           skillName: 'Wolfsong',
           name: 'Wolfsong - Vulnerability',
@@ -369,7 +369,7 @@ function consumeOpeningStrike(context: RangerResolverContext, event: Gw2Resolver
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.OPENING_STRIKE,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: TRAIT.OPENING_STRIKE,
         skillName: 'Opening Strike',
         name: 'Opening Strike - Vulnerability',
@@ -406,7 +406,7 @@ function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEv
   if (!stacks || !context.procs.claim(TRAIT.HUNTERS_GAZE, 'ranger.core.huntersGaze', event.at)) return;
 
   context.effects.emit({
-    attribution: { source: 'Trait', sourceId: TRAIT.HUNTERS_GAZE, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.HUNTERS_GAZE, actorType: ACTOR.EFFECT },
     kind: 'announcement',
     announcement: {
       type: 'trait',
@@ -425,7 +425,7 @@ function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEv
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.HUNTERS_GAZE,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: TRAIT.HUNTERS_GAZE,
       skillName: "Hunter's Gaze",
       name: "Hunter's Gaze - Might",
@@ -454,8 +454,8 @@ function applyAlphaFocus(context: RangerResolverContext, event: Gw2ResolverEvent
     effect: { type: 'condition', name: CONDITION.CRIPPLED },
     attribution: {
       source: isPetStrike(event) ? 'ranger-pet' : 'Trait',
-      actorType: isPetStrike(event) ? 'summon' : 'effect',
-      ownerActorType: isPetStrike(event) ? undefined : 'player',
+      actorType: isPetStrike(event) ? ACTOR.SUMMON : ACTOR.EFFECT,
+      ownerActorType: isPetStrike(event) ? undefined : ACTOR.PLAYER,
       skillId: TRAIT.ALPHA_FOCUS,
       skillName: 'Alpha Focus',
       triggeredBy: event.skillName

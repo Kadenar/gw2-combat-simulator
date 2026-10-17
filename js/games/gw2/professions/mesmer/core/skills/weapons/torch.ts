@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -26,15 +26,15 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 0.19,
         hits: 1,
         name: 'Mesmer attack',
-        actorType: 'player',
-        weapon: 'torch'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.TORCH.toLowerCase()
       },
       {
         type: 'strike',
         coefficient: 0.5,
         hits: 1,
         name: 'Phantasm attack',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         // Backfire uses the phantasm's summon profile rather than the mesmer's equipped Torch strength.
         weapon: 'Phantasm medium'
@@ -44,14 +44,14 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Parti
         condition: CONDITION.BURNING,
         duration: 6,
         stacks: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BURNING,
         duration: 9,
         stacks: 1,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm'
       },
       {
@@ -59,7 +59,7 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Parti
         condition: CONDITION.CONFUSION,
         duration: 3,
         stacks: 3,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm'
       }
     ],
@@ -76,17 +76,17 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Parti
         stacks: 1,
         duration: 5,
         source: 'Player',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       ...impactEffects({ atMs: 3000, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
           type: 'strike',
           coefficient: 1,
           hits: 1,
-          comboFinishers: [{ ownerId: 'mesmer', finisherType: 'Blast' }],
+          comboFinishers: [{ ownerId: 'mesmer', finisherType: COMBO_FINISHER.BLAST }],
           name: 'Damage',
-          actorType: 'player',
-          weapon: 'torch'
+          actorType: ACTOR.PLAYER,
+          weapon: WEAPON.TORCH.toLowerCase()
         },
         { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 9 }
       ])

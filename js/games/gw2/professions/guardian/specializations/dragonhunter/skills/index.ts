@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -23,7 +22,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event, details }) =>
               Number(event.coefficient) > 0 && Number(details.hitContext?.damage) > 0,
@@ -80,7 +79,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         },
         {
           type: 'control',
-          controlKind: 'pull'
+          controlKind: CONTROL.PULL
         },
         {
           type: 'condition',
@@ -134,7 +133,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       {
         type: 'control',
-        controlKind: 'pull'
+        controlKind: CONTROL.PULL
       }
     ]
   }

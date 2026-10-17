@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   fromProfile,
   tooltipSeconds,
@@ -100,7 +101,7 @@ export const untamedTooltips = {
     [TRAIT.LET_LOOSE]: traitTooltip(
       'The first landed hit of an unleashed ambush grants might and quickness to the party. Weapon swapping can reset ambush availability.',
       [['internalCooldown', 'Weapon-swap reset cooldown', tooltipSeconds]],
-      'party'
+      RECIPIENT.PARTY
     ),
     [TRAIT.BIORHYTHM]: outsideScopeTooltip,
     [TRAIT.FEROCIOUS_SYMBIOSIS]: traitTooltip(

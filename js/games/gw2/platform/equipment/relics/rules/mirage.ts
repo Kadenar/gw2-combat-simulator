@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -49,8 +49,8 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, dodge: S
       at: dodge.at,
       source: 'Relic',
       sourceId: `relic.${RELIC_IDS.MIRAGE}`,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       triggeredBy: dodge.skillName,
       skillName: 'Relic of the Mirage',
       name: 'Relic of the Mirage ? Torment',

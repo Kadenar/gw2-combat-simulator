@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
@@ -60,7 +61,7 @@ const engineerTurretTasks: RuntimeProfession<EngineerRuntimeState, EngineerSkill
       endsAt: runtime.time,
       source: 'engineer',
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name,
       activationId,

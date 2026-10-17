@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
@@ -141,7 +141,7 @@ export const shadowSiphoning = defineTrait({
       on: 'damage.resolved',
       cooldown: 'profile',
       when: (runtime, event) =>
-        event.actorType === 'player' &&
+        event.actorType === ACTOR.PLAYER &&
         Number(event.coefficient) > 0 &&
         Boolean(runtime.helpers.skillsById.get(event.skillId!)?.stealthAttack) &&
         Boolean(
@@ -175,7 +175,7 @@ function enterCloakedInShadow(runtime: ThiefRuntime, { skill, at }: StealthTrans
     at,
     effect: { type: 'condition', name: CONDITION.BLINDNESS },
     attribution: {
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name,
       name: 'Cloaked in Shadow — Blindness'
@@ -215,7 +215,7 @@ function applyHiddenThief(runtime: ThiefRuntime, { cast }: StealAcceptance): voi
     at: runtime.time,
     activationId: cast.id,
     effects: (effect) => effect.type === 'condition',
-    attribution: { actorType: 'player', skillId: cast.skill.id, skillName: cast.skill.name },
+    attribution: { actorType: ACTOR.PLAYER, skillId: cast.skill.id, skillName: cast.skill.name },
     transform: (packet) => ({ ...packet, name: 'Hidden Thief - ' + packet.condition })
   });
 }

@@ -1,7 +1,7 @@
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { recordCompanionBuff } from '#gw2/platform/combat/state/companion.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import {
   activeBoonStacks,

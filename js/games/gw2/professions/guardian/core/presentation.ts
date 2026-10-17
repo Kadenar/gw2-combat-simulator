@@ -1,5 +1,5 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { WEAPON, CONDITION, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
@@ -142,7 +142,7 @@ export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSk
       preview.boon(boonKey(BOON.AEGIS), 'Unscathed Contender');
 
       // Illumination changes spear payloads only in this isolated damage preview.
-      if (context.weapons.includes('Spear'))
+      if (context.weapons.includes(WEAPON.SPEAR))
         preview.add({
           key: 'illuminated',
           label: 'Illuminated',

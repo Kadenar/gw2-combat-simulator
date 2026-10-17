@@ -1,3 +1,4 @@
+import { WEAPON, AURA } from '#gw2/platform/constants.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -54,10 +55,10 @@ const VIRTUE_IDS = Object.freeze([
   GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE
 ]);
 const RADIANT_ARMAMENT_NAMES: Readonly<Record<string, string>> = Object.freeze({
-  hammer: 'Hammer',
-  staff: 'Staff',
-  blade: 'Sword',
-  bulwark: 'Shield'
+  hammer: WEAPON.HAMMER,
+  staff: WEAPON.STAFF,
+  blade: WEAPON.SWORD,
+  bulwark: WEAPON.SHIELD
 });
 
 /** Read selected modifier values without running combat predicates; round away percentage arithmetic noise. */
@@ -85,7 +86,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   if (lightAuraRemaining > 0) {
     items.push({
       id: 'luminary-light-aura',
-      label: 'Light Aura',
+      label: AURA.LIGHT,
       value: formatSecondsRemaining(lightAuraRemaining),
       title: 'Time until Light Aura expires'
     });

@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -175,10 +176,10 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
         const damage = (details as NativeResolvedDamageDetails).hitContext?.damage ?? 0;
 
         // Weapon ignition precedes Zeal rewards, which precede Core passive Justice.
-        if (event.actorType === 'player' && Number(event.coefficient) > 0 && damage > 0)
+        if (event.actorType === ACTOR.PLAYER && Number(event.coefficient) > 0 && damage > 0)
           reactToSymbolOfIgnition(runtime, event);
 
-        if (event.actorType === 'player' && Number(event.coefficient) > 0 && damage > 0)
+        if (event.actorType === ACTOR.PLAYER && Number(event.coefficient) > 0 && damage > 0)
           runtime.fireTrigger(guardianStruck, { cause: event, damage });
 
         if (runtime.profession.specialization.kind !== 'Core') return;

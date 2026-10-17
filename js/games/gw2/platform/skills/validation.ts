@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
 import { INPUT_CONTROL_IDS } from '#gw2/platform/skills/input-controls.js';
 import { snapshotActionDeclaration } from '#gw2/platform/effects/action-declarations.js';
@@ -140,7 +140,7 @@ const SKILL_FIELDS = new Set([
   'petSkill',
   'phantasm',
   'phantasmSummonProgress',
-  'player',
+  ACTOR.PLAYER,
   'preservesStealth',
   'primalBurst',
   'pulseInterval',
@@ -187,7 +187,7 @@ const SKILL_FIELDS = new Set([
   'summonAttack',
   'summonDuration',
   'summonInterval',
-  'summons',
+  RECIPIENT.SUMMONS,
   'tags',
   'tasks',
   'tome',

@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -298,7 +299,7 @@ function castCause(runtime: MechanicContext, cast: RuntimeCast): Gw2ResolverEven
     at: runtime.time,
     source: 'Trait',
     sourceId: cast.skill.id,
-    actorType: 'player',
+    actorType: ACTOR.PLAYER,
     skillId: cast.skill.id,
     skillName: cast.skill.name,
     activationId: cast.id,

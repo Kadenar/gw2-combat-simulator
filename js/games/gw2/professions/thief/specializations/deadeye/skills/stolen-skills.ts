@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, STATUS, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -35,10 +34,10 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
     initiativeCost: 0,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Warmth', actorType: 'player' },
+      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Warmth', actorType: ACTOR.PLAYER },
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1,
         when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
@@ -48,9 +47,9 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
         boon: BOON.VIGOR,
         duration: 10,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
-      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3, actorType: 'player' }
+      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3, actorType: ACTOR.PLAYER }
     ])
   },
   [ID.STEAL_RESISTANCE]: {
@@ -65,10 +64,10 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
     initiativeCost: 0,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Resistance', actorType: 'player' },
+      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Resistance', actorType: ACTOR.PLAYER },
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1,
         when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
@@ -78,9 +77,9 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
         boon: BOON.RESISTANCE,
         duration: 5,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
-      { type: 'condition', condition: CONDITION.TORMENT, stacks: 3, duration: 8, actorType: 'player' }
+      { type: 'condition', condition: CONDITION.TORMENT, stacks: 3, duration: 8, actorType: ACTOR.PLAYER }
     ])
   },
   [ID.STEAL_PRECISION]: {
@@ -95,10 +94,10 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
     initiativeCost: 0,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Precision', actorType: 'player' },
+      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Precision', actorType: ACTOR.PLAYER },
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1,
         when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
@@ -108,14 +107,14 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
         boon: BOON.FURY,
         duration: 8,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
       {
         type: 'condition',
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -131,15 +130,15 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
     initiativeCost: 0,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Health', actorType: 'player' },
+      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Health', actorType: ACTOR.PLAYER },
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1,
         when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 5, duration: 8, actorType: 'player' }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 5, duration: 8, actorType: ACTOR.PLAYER }
     ])
   },
   [ID.STEAL_STRENGTH]: {
@@ -154,10 +153,10 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
     initiativeCost: 0,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Strength', actorType: 'player' },
+      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Strength', actorType: ACTOR.PLAYER },
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1,
         when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
@@ -167,9 +166,9 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
         boon: BOON.MIGHT,
         duration: 12,
         stacks: 5,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
-      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 8, actorType: 'player' }
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 8, actorType: ACTOR.PLAYER }
     ])
   },
   [ID.STEAL_TIME]: {
@@ -189,12 +188,12 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
         coefficient: 1,
         hits: 1,
         name: 'Steal Time',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         weaponStrengthProfileId: 'nonweapon.profession-mechanic'
       },
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1,
         when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
@@ -204,9 +203,9 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
         boon: BOON.QUICKNESS,
         duration: 5,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
-      { type: 'condition', condition: CONDITION.SLOW, stacks: 1, duration: 3, actorType: 'player' }
+      { type: 'condition', condition: CONDITION.SLOW, stacks: 1, duration: 3, actorType: ACTOR.PLAYER }
     ])
   },
   [ID.STEAL_DURABILITY]: {
@@ -221,10 +220,10 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
     initiativeCost: 0,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Durability', actorType: 'player' },
+      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Durability', actorType: ACTOR.PLAYER },
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1,
         when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
@@ -234,9 +233,9 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
         boon: BOON.PROTECTION,
         duration: 5,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
-      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 5, actorType: 'player' }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 5, actorType: ACTOR.PLAYER }
     ])
   },
   [ID.STEAL_DEFENSES]: {
@@ -251,10 +250,10 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
     initiativeCost: 0,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Defenses', actorType: 'player' },
+      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Defenses', actorType: ACTOR.PLAYER },
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1,
         when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
@@ -264,9 +263,9 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
         boon: BOON.AEGIS,
         duration: 5,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
-      { type: 'condition', condition: CONDITION.POISONED, stacks: 2, duration: 8, actorType: 'player' }
+      { type: 'condition', condition: CONDITION.POISONED, stacks: 2, duration: 8, actorType: ACTOR.PLAYER }
     ])
   },
   [ID.STEAL_MOBILITY]: {
@@ -281,15 +280,15 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
     initiativeCost: 0,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Mobility', actorType: 'player' },
+      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Mobility', actorType: ACTOR.PLAYER },
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1,
         when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
-      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1.5, actorType: 'player' }
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1.5, actorType: ACTOR.PLAYER }
     ])
   }
 });

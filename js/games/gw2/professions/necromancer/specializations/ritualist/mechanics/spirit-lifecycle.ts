@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -89,7 +90,7 @@ function auto(runtime: NecromancerRuntime, data: unknown): void {
         skillId: skill.id,
         skillName: `${skill.name} Autoattack`,
         icon: skill.icon,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         coefficient: spirit.attackCoefficient,
         skillWeapon: 'Unequipped',
         weaponStrength: spirit.attackWeaponStrength,

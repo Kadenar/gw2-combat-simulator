@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import {
@@ -38,8 +39,8 @@ export function createRangerBuildDefaults(): RangerCanonicalBuild {
     profession: RANGER_PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Berserker's"])),
     alternateWeaponPrefixes: ["Berserker's", "Berserker's"],
-    weapons: ['Hammer', ''],
-    alternateWeapons: ['Axe', 'Axe'],
+    weapons: [WEAPON.HAMMER, ''],
+    alternateWeapons: [WEAPON.AXE, WEAPON.AXE],
     rune: 'Scholar',
     weaponSigils: normalizeWeaponSigils([
       ['Force', 'Air'],

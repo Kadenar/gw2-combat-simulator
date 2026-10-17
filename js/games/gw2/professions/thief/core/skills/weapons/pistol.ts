@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/execution/cast-timing.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
@@ -21,11 +20,11 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 0.25,
         hits: 1,
         name: 'Bola Shot',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -36,14 +35,14 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 1.5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -58,7 +57,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 0.315 }],
         name: 'Shadow Strike — Packet 1',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
@@ -68,11 +67,11 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
           coefficient: 1.3125,
           hits: 1,
           name: 'Shot Damage',
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           comboFinishers: [
             {
               ownerId: 'thief',
-              finisherType: 'Projectile',
+              finisherType: COMBO_FINISHER.PROJECTILE,
               ambiguousFieldSelection: 'oldest'
             }
           ],
@@ -83,12 +82,12 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
           condition: CONDITION.TORMENT,
           stacks: 4,
           duration: 6,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ])
     ],
-    requiredMainHand: 'Pistol',
-    requiredOffHand: 'Dagger'
+    requiredMainHand: WEAPON.PISTOL,
+    requiredOffHand: WEAPON.DAGGER
   },
   [ID.UNLOAD]: {
     // The refund requires the final authored bullet, even when the remaining channel tail is cut short.
@@ -126,13 +125,13 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
           coefficient: 3.36 / 8
         })),
         name: 'Unload',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2,
             ambiguousFieldSelection: 'oldest'
           }
@@ -146,8 +145,8 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         stacks: 8
       }
     ],
-    requiredMainHand: 'Pistol',
-    requiredOffHand: 'Pistol'
+    requiredMainHand: WEAPON.PISTOL,
+    requiredOffHand: WEAPON.PISTOL
   },
   [ID.HEAD_SHOT]: {
     castTimeMs: 0,
@@ -158,13 +157,13 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 1 }],
         name: 'Head Shot',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -183,11 +182,11 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 0.575,
         hits: 1,
         name: 'Vital Shot',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2,
             ambiguousFieldSelection: 'oldest'
           }
@@ -199,7 +198,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -212,13 +211,13 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         ticks: [160, 320, 520, 680, 840].map((atMs) => ({ atMs, coefficient: 1.5 / 5 })),
         name: 'Repeater (offhand empty)',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2,
             ambiguousFieldSelection: 'oldest'
           }
@@ -228,12 +227,12 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
       {
         type: 'condition',
         ticks: [{ atMs: 0, condition: CONDITION.BLEEDING, stacks: 5, duration: 3 }],
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
     ],
-    requiredMainHand: 'Pistol',
+    requiredMainHand: WEAPON.PISTOL,
     requiredOffHand: false
   },
   [ID.BLACK_POWDER]: {
@@ -245,13 +244,13 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         ticks: [120, 240, 360].map((atMs) => ({ atMs, coefficient: 0.75 / 3 })),
         name: 'Black Powder',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -262,7 +261,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 2,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         applications: 3,
         atMs: 0,
         intervalMs: 2000,
@@ -280,13 +279,13 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         ticks: [120, 280, 400, 560, 680].map((atMs) => ({ atMs, coefficient: 1.8 / 5 })),
         name: 'Sneak Attack',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -295,12 +294,12 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
       {
         type: 'condition',
         ticks: [{ atMs: 0, condition: CONDITION.BLEEDING, stacks: 5, duration: 5 }],
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
     ],
-    requiredMainHand: 'Pistol',
+    requiredMainHand: WEAPON.PISTOL,
     stealthAttack: true
   },
   [ID.REPEATER_ID_59526]: {
@@ -314,13 +313,13 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         ticks: [160, 320, 520, 680, 840].map((atMs) => ({ atMs, coefficient: 7.5 / 5 })),
         name: 'Repeater',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2,
             ambiguousFieldSelection: 'oldest'
           }
@@ -330,12 +329,12 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
       {
         type: 'condition',
         ticks: [{ atMs: 0, condition: CONDITION.BLEEDING, stacks: 5, duration: 3 }],
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
     ],
-    requiredMainHand: 'Pistol',
-    requiredOffHand: 'Dagger'
+    requiredMainHand: WEAPON.PISTOL,
+    requiredOffHand: WEAPON.DAGGER
   }
 });

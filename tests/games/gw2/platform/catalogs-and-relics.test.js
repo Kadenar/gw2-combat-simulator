@@ -1,3 +1,4 @@
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { captureEffectEmissions, captureAcceptedBuffEmissions } from '#tests/helpers/effect-emission.js';
@@ -18,7 +19,6 @@ import {
   relicStrikeMultiplier
 } from '#gw2/platform/equipment/relics/query.js';
 import { severanceCriticalContribution } from '#gw2/platform/equipment/sigils/severance.js';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,

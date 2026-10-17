@@ -1,3 +1,4 @@
+import { COMBO_FINISHER } from '#gw2/platform/constants.js';
 /** Visionary relic rules. */
 import { isTimeInWindow } from '#kernel/core/clock.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
@@ -21,7 +22,7 @@ export const visionary = defineRelic({
     // Like Bloodstone, stacks cannot accumulate while Vloxx's Vision is active.
     if (windows.some((window) => isTimeInWindow(event.at, window.from, window.until))) return;
 
-    if (event.finisherType === 'Whirl') {
+    if (event.finisherType === COMBO_FINISHER.WHIRL) {
       if (!isInternalCooldownReady(event.at, state.whirlReadyAt || 0)) return;
 
       state.whirlReadyAt = event.at + VISIONARY_WHIRL_INTERNAL_COOLDOWN;

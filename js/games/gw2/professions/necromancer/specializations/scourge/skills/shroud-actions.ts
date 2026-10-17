@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -36,7 +36,7 @@ function emitShroudEffects(
       sourceId: cast.skill.id,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       activationId: cast.id
     },
     skillWeaponFallback: 'Unequipped',
@@ -88,7 +88,7 @@ const scourgeShroudActions = {
         at: runtime.time,
         source: 'necromancer',
         sourceId: context.skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: context.skill.id,
         skillName: context.skill.name
       };

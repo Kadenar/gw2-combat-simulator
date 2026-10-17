@@ -1,3 +1,4 @@
+import { ACTOR, COMBO_FIELD } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -44,7 +45,7 @@ export function emitTraitSymbol(
       attribution: {
         source: 'Trait',
         sourceId: symbolId,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: symbolId,
         skillName: symbol.name,
         activationId
@@ -54,7 +55,7 @@ export function emitTraitSymbol(
         ...event,
         triggeredBy: cause.skillName,
         ...(event.type === 'damage' && event.hitIndex === 1 && fieldDuration > 0
-          ? { comboFields: [{ ownerId: 'guardian', fieldType: 'Light' as const, duration: fieldDuration }] }
+          ? { comboFields: [{ ownerId: 'guardian', fieldType: COMBO_FIELD.LIGHT, duration: fieldDuration }] }
           : {})
       })
     });

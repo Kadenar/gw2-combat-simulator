@@ -1,5 +1,5 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, CONDITION, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
@@ -68,7 +68,7 @@ export function reactToDragonhunterJusticeHit(
           // The passive condition belongs to the accepted hit, including delayed impacts.
           activationId: event.activationId,
           causalOrder: event.causalOrder ?? event.eventOrder,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: ID.SPEAR_OF_JUSTICE,
           skillName: 'Spear of Justice',
           name: 'Spear of Justice — Passive Crippled',
@@ -111,7 +111,7 @@ const couragePulse = createPassiveCourageTask({
         at: runtime.time,
         source: 'guardian',
         sourceId: skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: skill.id,
         skillName: skill.name,
         name: 'Shield of Courage — Passive Aegis',
@@ -173,7 +173,7 @@ function tetherBurn(runtime: GuardianRuntime, data: unknown): void {
       at: runtime.time,
       source: 'guardian',
       sourceId: ID.SPEAR_OF_JUSTICE,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: ID.SPEAR_OF_JUSTICE,
       skillName: 'Spear of Justice',
       name: 'Spear of Justice — Active Burning',

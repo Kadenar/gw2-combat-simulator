@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, CONTROL, COMBO_FIELD, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -15,14 +15,14 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'strike',
         name: 'Bloodbane Path',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: [600, 720, 840].map((atMs) => ({ atMs, coefficient: 0.4 }))
       },
       {
         type: 'condition',
         // Each Bloodbane projectile owns its Bleeding so partial casts retain only landed packets.
         ticks: [600, 720, 840].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 1, duration: 6 })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -35,7 +35,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     comboFinishers: [
       {
         ownerId: 'revenant',
-        finisherType: 'Projectile',
+        finisherType: COMBO_FINISHER.PROJECTILE,
         chance: 0.2,
         ambiguousFieldSelection: 'oldest'
       }
@@ -49,7 +49,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
           coefficient: 0.65,
           hits: 1,
           name: 'Shattershot',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
@@ -57,7 +57,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
           condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 3,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]
     )
@@ -73,19 +73,19 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         coefficient: 1,
         hits: 1,
         name: 'Scorchrazor',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'knockdown'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.KNOCKDOWN
       }
     ])
   },
@@ -98,7 +98,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     comboFinishers: [
       {
         ownerId: 'revenant',
-        finisherType: 'Projectile',
+        finisherType: COMBO_FINISHER.PROJECTILE,
         chance: 0.2,
         ambiguousFieldSelection: 'oldest'
       }
@@ -108,12 +108,12 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'strike',
         name: 'Sevenshot',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: [0, 160, 200, 360, 400, 600, 600].map((atMs) => ({ atMs, coefficient: 0.31 }))
       },
       {
         type: 'condition',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: [0, 160, 200, 360, 400, 600, 600].map((atMs) => ({
           atMs,
           condition: CONDITION.TORMENT,
@@ -131,7 +131,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     comboFields: [
       {
         ownerId: 'revenant',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 3,
         startAnchor: 'castEnd'
       }
@@ -142,13 +142,13 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         ticks: [{ atMs: 1320, coefficient: 1.25 }],
         name: 'Initial Damage',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'strike',
         ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 2320 + index * 1000, coefficient: 0.75 / 3 })),
         name: 'Spiritcrush — Fire Field',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         metadata: {}
       },
       {
@@ -159,7 +159,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
           stacks: 1,
           duration: 3
         })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -169,7 +169,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
           stacks: 1,
           duration: 1.5
         })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   }

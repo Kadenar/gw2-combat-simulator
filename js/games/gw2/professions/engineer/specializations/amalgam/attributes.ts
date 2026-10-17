@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { Gw2AttributeContributionCalculator } from '#gw2/platform/builds/types.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {

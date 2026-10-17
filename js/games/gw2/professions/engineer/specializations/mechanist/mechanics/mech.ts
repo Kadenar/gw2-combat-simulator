@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { boonKey, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -16,7 +17,6 @@ import { jadeCannonsAttack } from '#gw2/professions/engineer/specializations/mec
 import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { GW2_QUICKNESS_ACTION_RATE, scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
@@ -126,7 +126,7 @@ function emitMechAttack(context: EngineerRuntime, skillId: SkillId, at: number):
     attribution: {
       source: 'engineer',
       sourceId: skillId,
-      actorType: 'summon',
+      actorType: ACTOR.SUMMON,
       skillId,
       skillName: skill.name,
       activationId: 'engineer.mech:' + skillId + ':' + at,
@@ -149,14 +149,14 @@ export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerRe
       at: event.at,
       source: 'engineer',
       sourceId: ID.SHIFT_SIGNET,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       name: `Shift Signet — ${event.kind}`,
       kind: String(event.kind),
       stacks: event.stacks || 1,
       duration: event.duration || 0,
       fixedDuration: true,
       audience: {
-        recipients: 'summons',
+        recipients: RECIPIENT.SUMMONS,
         affectsSelf: false,
         maximumRecipients: 1,
         eligibleCompanionIds: ['engineer.mech']
@@ -170,7 +170,7 @@ export function prepareEngineerMechEvent(context: EngineerRuntime, event: Simula
   // These grants explicitly exempt the active mech from the allied target cap.
   if (
     event.type === 'buff' &&
-    event.audience?.recipients === 'party' &&
+    event.audience?.recipients === RECIPIENT.PARTY &&
     (event.skillId === ID.BARRIER_BURST ||
       event.skillId === ID.CRISIS_ZONE ||
       event.sourceId === TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS)
@@ -188,7 +188,7 @@ export function prepareEngineerMechEvent(context: EngineerRuntime, event: Simula
     };
   }
 
-  if (event.actorType !== 'summon') return event;
+  if (event.actorType !== ACTOR.SUMMON) return event;
 
   // Native command fragments identify their skill; stamp ownership here before modifiers and reactions consume it.
   const skill = skillForEvent(context.helpers, event);
@@ -212,7 +212,7 @@ export function prepareEngineerMechEvent(context: EngineerRuntime, event: Simula
   // Support grants use player-first party selection; the mech receives them only when a target slot remains.
   if (
     event.type === 'buff' &&
-    event.audience?.recipients === 'party' &&
+    event.audience?.recipients === RECIPIENT.PARTY &&
     event.sourceId === TRAIT.MECH_CORE_BARRIER_ENGINE
   ) {
     updates.resolvedAudience = gw2AlliedEffectRecipients(
@@ -329,7 +329,7 @@ export function activateOverclockSignet(context: EngineerRuntime, skill: Enginee
     attribution: {
       source: 'engineer',
       sourceId: cannon.id,
-      actorType: 'summon',
+      actorType: ACTOR.SUMMON,
       skillId: cannon.id,
       skillName: cannon.name,
       activationId: 'engineer.jade-buster:' + at,

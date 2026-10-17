@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -53,8 +53,8 @@ export function detonate(runtime: WarriorRuntime, payload: { activationId: strin
     activationId: `${payload.activationId}:king-of-fires:${runtime.time}`,
     source: 'Trait',
     sourceId: TRAIT.KING_OF_FIRES,
-    actorType: 'effect' as const,
-    ownerActorType: 'player' as const,
+    actorType: ACTOR.EFFECT,
+    ownerActorType: ACTOR.PLAYER,
     skillId: skill.id,
     skillName: skill.name
   };
@@ -80,8 +80,8 @@ export function detonate(runtime: WarriorRuntime, payload: { activationId: strin
         activationId: `${payload.activationId}:king-of-fires:${runtime.time}`,
         source: 'Trait',
         sourceId: TRAIT.KING_OF_FIRES,
-        actorType: 'effect' as const,
-        ownerActorType: 'player' as const,
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         skillId: skill.id,
         skillName: skill.name,
         name: 'King of Fires — Fire Aura Detonation',
@@ -99,8 +99,8 @@ export function detonate(runtime: WarriorRuntime, payload: { activationId: strin
         activationId: `${payload.activationId}:king-of-fires:${runtime.time}`,
         source: 'Trait',
         sourceId: TRAIT.KING_OF_FIRES,
-        actorType: 'effect' as const,
-        ownerActorType: 'player' as const,
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         skillId: skill.id,
         skillName: skill.name,
         name: 'King of Fires — Burning'

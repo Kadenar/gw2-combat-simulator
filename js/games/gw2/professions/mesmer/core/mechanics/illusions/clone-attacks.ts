@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import {
   buildMesmerStrikes,
   mesmerPacketOwner,
@@ -81,7 +82,7 @@ export function createCloneAttackScheduler({
       {
         metadata: { cloneId: clone.id },
         source: 'Clone',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'clone',
         summonOwner: clone.ownerId
       }
@@ -97,7 +98,7 @@ export function createCloneAttackScheduler({
       buildMesmerConditions(state, skillName, impactAt, condition, 'Clone', '', {
         metadata: { cloneId: clone.id },
         skillId: step.id,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'clone',
         summonOwner: clone.ownerId
       }).forEach((packet) => {

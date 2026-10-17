@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { NON_HOLOSMITH_SWORD_SKILL_IDS } from '#gw2/professions/engineer/data/module-data.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -15,7 +16,8 @@ export function engineerWeaponSkillMatchesSet(
   if (specialization === 'Holosmith' && NON_HOLOSMITH_SWORD_SKILL_IDS.has(skill.id)) return false;
 
   // Other elites use Core's sword identities; heat-aware variants are absent from their runtime catalogs.
-  if (specialization !== 'Holosmith' && skill.weapon === 'Sword' && skill.specialization === 'Holosmith') return false;
+  if (specialization !== 'Holosmith' && skill.weapon === WEAPON.SWORD && skill.specialization === 'Holosmith')
+    return false;
 
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
 }

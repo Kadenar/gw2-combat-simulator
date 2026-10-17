@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { RECIPIENT, COMBO_FIELD, BOON } from '#gw2/platform/constants.js';
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -13,8 +13,8 @@ export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         hits: 1
       },
       // The modeled counterattack grants its boons alongside the strike.
-      { type: 'boon', boon: BOON.PROTECTION, duration: 3, stacks: 1, audience: { recipients: 'party' } },
-      { type: 'boon', boon: BOON.AEGIS, duration: 6, stacks: 1, audience: { recipients: 'party' } }
+      { type: 'boon', boon: BOON.PROTECTION, duration: 3, stacks: 1, audience: { recipients: RECIPIENT.PARTY } },
+      { type: 'boon', boon: BOON.AEGIS, duration: 6, stacks: 1, audience: { recipients: RECIPIENT.PARTY } }
     ]
   },
   [ID.FAITHFUL_STRIKE]: {
@@ -52,7 +52,9 @@ export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
     tags: ['symbol'],
     castTimeMs: 520,
     // The Light field begins with the first symbol pulse and lasts through the fifth.
-    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 760, startAnchor: 'castStart' }],
+    comboFields: [
+      { ownerId: 'guardian', fieldType: COMBO_FIELD.LIGHT, duration: 4, startMs: 760, startAnchor: 'castStart' }
+    ],
     effects: [
       {
         type: 'strike',
@@ -72,7 +74,7 @@ export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         intervalMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        audience: { recipients: 'party' }
+        audience: { recipients: RECIPIENT.PARTY }
       }
     ]
   }

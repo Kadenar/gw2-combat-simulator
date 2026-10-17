@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, COMBO_FINISHER, STATUS, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 /**
  * Hammer weapon-skill mechanics owned by the Core Elementalist module.
@@ -32,7 +31,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Singeing Strike',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -47,7 +46,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Surging Flames',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 880,
@@ -67,7 +66,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Flame Wheel',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -103,7 +102,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Triple Sear',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 560,
@@ -129,7 +128,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Molten End',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 760,
@@ -143,7 +142,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -159,7 +158,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Stream Strike',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 480,
@@ -184,7 +183,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Water Rush',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 640,
@@ -210,7 +209,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Chilling Crack',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -229,7 +228,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 920,
@@ -282,7 +281,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Icy Coil',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -318,7 +317,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Crashing Font',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 960,
@@ -334,7 +333,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
             comboFinishers: [
               {
                 ownerId: 'elementalist',
-                finisherType: 'Leap',
+                finisherType: COMBO_FINISHER.LEAP,
                 ambiguousFieldSelection: 'oldest'
               }
             ],
@@ -351,7 +350,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Cleansing Typhoon',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 480,
@@ -367,7 +366,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
             comboFinishers: [
               {
                 ownerId: 'elementalist',
-                finisherType: 'Whirl',
+                finisherType: COMBO_FINISHER.WHIRL,
                 ambiguousFieldSelection: 'oldest'
               }
             ],
@@ -384,7 +383,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Wind Slam',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 680,
@@ -411,7 +410,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 2080,
@@ -440,7 +439,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Crescent Wind',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -476,7 +475,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Wind Storm',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -484,7 +483,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.3, canCrit: true },
-      { type: 'buff', kind: 'superspeed', stacks: 1, duration: 3, metadata: {} },
+      { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3, metadata: {} },
       { type: 'control', applications: 1, controlKind: 'crowd-control' }
     ])
   },
@@ -493,7 +492,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Shock Blast',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 280,
@@ -519,7 +518,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
             {
               attemptGroup: 'effect:2:tick:1',
               ownerId: 'elementalist',
-              finisherType: 'Blast',
+              finisherType: COMBO_FINISHER.BLAST,
               ambiguousFieldSelection: 'oldest'
             }
           ],
@@ -535,7 +534,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Stonestrike',
     type: 'Weapon',
     slot: 'Weapon_1',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 560,
@@ -561,7 +560,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_2',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 1440,
@@ -597,7 +596,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Rocky Loop',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -633,7 +632,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Immutable Stone',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 1520,
@@ -645,7 +644,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Ground Pound',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 760,
@@ -659,7 +658,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -680,7 +679,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     name: 'Grand Finale',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: 'Hammer',
+    weapon: WEAPON.HAMMER,
     categories: ['Weapon skill'],
     castTimeMs: 680,
     cooldown: 0,
@@ -700,7 +699,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
           comboFinishers: [
             {
               ownerId: 'elementalist',
-              finisherType: 'Projectile',
+              finisherType: COMBO_FINISHER.PROJECTILE,
               ambiguousFieldSelection: 'oldest'
             }
           ]

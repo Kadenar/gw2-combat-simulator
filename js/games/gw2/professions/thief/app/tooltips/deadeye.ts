@@ -1,3 +1,4 @@
+import { RECIPIENT, STATUS } from '#gw2/platform/constants.js';
 import {
   fromProfile,
   fromModifier,
@@ -61,9 +62,9 @@ const deadeyeStolenSkillTooltip: DescribeSimulationTooltip = (balanceContext, en
     balanceContext.catalog.skillsById
       .get(entity.id)!
       .effects?.map((effect): SkillEffect =>
-        effect.type === 'boon' ? { ...effect, audience: { recipients: 'party' } } : effect
+        effect.type === 'boon' ? { ...effect, audience: { recipients: RECIPIENT.PARTY } } : effect
       )
-      .filter((effect) => !(effect.type === 'buff' && effect.kind === 'stealth'))
+      .filter((effect) => !(effect.type === 'buff' && effect.kind === STATUS.STEALTH))
   ).facts
 });
 
@@ -149,7 +150,7 @@ export const deadeyeTooltips = {
     [TRAIT.FIRE_FOR_EFFECT]: traitTooltip(
       'Replace stolen skill choices with Steal Time. Using a stolen skill grants might and fury to the party.',
       () => [],
-      'party'
+      RECIPIENT.PARTY
     )
   }
 } satisfies ProfessionTooltips;

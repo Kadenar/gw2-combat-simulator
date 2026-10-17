@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { NECROMANCER_SKILL_IDS as SKILL } from '#gw2/professions/necromancer/data/ids.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
@@ -25,8 +26,8 @@ export function createNecromancerBuildDefaults(): NecromancerCanonicalBuild {
     profession: NECROMANCER_PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Viper's"])),
     alternateWeaponPrefixes: ["Viper's", "Viper's"],
-    weapons: ['Scepter', 'Dagger'],
-    alternateWeapons: ['Pistol', 'Torch'],
+    weapons: [WEAPON.SCEPTER, WEAPON.DAGGER],
+    alternateWeapons: [WEAPON.PISTOL, WEAPON.TORCH],
     rune: 'Trapper',
     weaponSigils: normalizeWeaponSigils(DEFAULT_WEAPON_SIGILS),
     relic: 'Fractal',

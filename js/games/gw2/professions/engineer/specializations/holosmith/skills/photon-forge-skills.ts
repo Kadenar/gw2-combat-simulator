@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, COMBO_FIELD, ACTOR, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Photon Forge skill fragments, heat variants, and forge-only actions.
  * Persistent heat and forge state live under `mechanics/photon-forge.ts`.
@@ -33,9 +32,9 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Projectile',
+        finisherType: COMBO_FINISHER.PROJECTILE,
         chance: 0.2,
-        preferredFieldTypes: ['Fire'],
+        preferredFieldTypes: [COMBO_FIELD.FIRE],
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -47,7 +46,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Flash Cutter—Storm',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion',
         projectile: true
       }
@@ -66,9 +65,9 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Projectile',
+        finisherType: COMBO_FINISHER.PROJECTILE,
         chance: 0.2,
-        preferredFieldTypes: ['Fire'],
+        preferredFieldTypes: [COMBO_FIELD.FIRE],
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -81,7 +80,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
         name: 'Bright Slash—Storm',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion',
         projectile: true
       }
@@ -97,7 +96,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     cooldown: 15,
     heatGain: 25,
     // Shockwave always critically strikes and blasts the active combo field.
-    comboFinishers: [{ ownerId: 'engineer', finisherType: 'Blast' }],
+    comboFinishers: [{ ownerId: 'engineer', finisherType: COMBO_FINISHER.BLAST }],
     effects: [
       {
         weaponStrengthProfileId: 'transform.photon-forge',
@@ -106,12 +105,12 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         hits: 1,
         name: 'Holographic Shockwave',
         forceCrit: true,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'launch'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.LAUNCH
       }
     ],
     forgeSkill: true
@@ -143,11 +142,11 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         coefficient: 1.8,
         hits: 1,
         name: 'Holo Leap',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 3 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 3 },
         boon: BOON.SWIFTNESS,
         duration: 3,
         stacks: 1
@@ -166,7 +165,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         coefficient: 1.1,
         hits: 1,
         name: 'Vent Exhaust',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         canCrit: false
       },
       {
@@ -174,7 +173,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         condition: CONDITION.BURNING,
         stacks: 2,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -194,9 +193,9 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Projectile',
+        finisherType: COMBO_FINISHER.PROJECTILE,
         chance: 0.2,
-        preferredFieldTypes: ['Fire'],
+        preferredFieldTypes: [COMBO_FIELD.FIRE],
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -207,7 +206,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         coefficient: 1,
         hits: 1,
         name: 'Light Strike—Storm',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion',
         projectile: true
       }
@@ -236,7 +235,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
           type: 'strike',
           ticks: [{ atMs: 400, coefficient: 1.5 }],
           name: 'Initial Damage',
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           damageKind: 'explosion'
         },
         {
@@ -244,7 +243,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
           type: 'strike',
           ticks: [{ atMs: 1800, coefficient: 1.5 }],
           name: 'Explosion Damage',
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           damageKind: 'explosion'
         }
       ]),
@@ -253,14 +252,14 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         condition: CONDITION.VULNERABILITY,
         stacks: 8,
         duration: 8,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true
       },
       ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
         {
           type: 'condition',
           ticks: [400, 1800].map((atMs) => ({ atMs, condition: CONDITION.BURNING, stacks: 2, duration: 5 })),
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'boon',
@@ -319,7 +318,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
         name: 'Light Strike',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     forgeSkill: true
@@ -354,7 +353,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Bright Slash',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     forgeSkill: true
@@ -372,9 +371,9 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Projectile',
+        finisherType: COMBO_FINISHER.PROJECTILE,
         chance: 0.2,
-        preferredFieldTypes: ['Fire'],
+        preferredFieldTypes: [COMBO_FIELD.FIRE],
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -385,7 +384,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         type: 'strike',
         ticks: [240, 400, 480, 640, 720, 880, 960, 1120].map((atMs) => ({ atMs, coefficient: 0.64 })),
         name: 'Photon Blitz',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         projectile: true
       },
       {
@@ -396,7 +395,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
           stacks: 1,
           duration: 3
         })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     forgeSkill: true
@@ -419,7 +418,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Flash Cutter',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     forgeSkill: true

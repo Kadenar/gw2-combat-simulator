@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, COMBO_FINISHER, COMBO_FIELD, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
@@ -45,13 +45,13 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     minionKey: 'bone-minion',
     consumes: 1,
     effects: [
-      { type: 'strike', coefficient: 1, hits: 1, actorType: 'summon' },
+      { type: 'strike', coefficient: 1, hits: 1, actorType: ACTOR.SUMMON },
       {
         type: 'condition',
         condition: CONDITION.POISONED,
         stacks: 1,
         duration: 5,
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]
   },
@@ -89,7 +89,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         condition: CONDITION.BLEEDING,
         stacks: 2,
         duration: 10,
-        target: 'self'
+        target: RECIPIENT.SELF
       },
       {
         name: boonKey(BOON.MIGHT),
@@ -97,7 +97,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         boon: BOON.MIGHT,
         stacks: 5,
         duration: 20,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
   },
@@ -111,7 +111,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 1 } })
@@ -169,7 +169,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 4,
-        target: 'self'
+        target: RECIPIENT.SELF
       }
     ]
   },
@@ -278,7 +278,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 10,
-        target: 'self'
+        target: RECIPIENT.SELF
       }
     ]
   },
@@ -318,7 +318,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
             comboFinishers: [
               {
                 ownerId: 'necromancer',
-                finisherType: 'Projectile',
+                finisherType: COMBO_FINISHER.PROJECTILE,
                 chance: 1,
                 ambiguousFieldSelection: 'oldest'
               }
@@ -333,7 +333,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
             comboFinishers: [
               {
                 ownerId: 'necromancer',
-                finisherType: 'Projectile',
+                finisherType: COMBO_FINISHER.PROJECTILE,
                 chance: 1,
                 ambiguousFieldSelection: 'oldest'
               }
@@ -342,10 +342,10 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         ],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       // Each commanded projectile immobilizes for two seconds (wiki: Rigor_Mortis).
-      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2, actorType: 'summon' }
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2, actorType: ACTOR.SUMMON }
     ]
   },
   [ID.TASTE_OF_DEATH]: {
@@ -378,12 +378,12 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         coefficient: 0.4,
         hits: 1,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         // Only an accepted command strike grants Haunt life force.
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'summon',
+            actor: ACTOR.SUMMON,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 10 } })
@@ -395,21 +395,21 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
         condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 3,
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
         condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 5,
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]
   },
@@ -423,7 +423,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
       {
         type: 'strike',
         ticks: [280, 1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, coefficient: 0.8 })),
-        comboFields: [{ ownerId: 'necromancer', fieldType: 'Dark', duration: 5 }],
+        comboFields: [{ ownerId: 'necromancer', fieldType: COMBO_FIELD.DARK, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
@@ -466,7 +466,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         reactions: [
           {
             on: 'condition.applied',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => event.sourceId === event.skillId,
             do: lifeForceGrant({ id: 'life-force', unit: 'application', grant: { percent: 15 } })
@@ -512,11 +512,11 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     castTimeMs: 680,
     minionKey: 'flesh-golem',
     effects: [
-      { type: 'strike', coefficient: 1.5, hits: 1, actorType: 'summon' },
+      { type: 'strike', coefficient: 1.5, hits: 1, actorType: ACTOR.SUMMON },
       {
         type: 'control',
-        actorType: 'summon',
-        controlKind: 'knockdown'
+        actorType: ACTOR.SUMMON,
+        controlKind: CONTROL.KNOCKDOWN
       }
     ]
   },
@@ -544,7 +544,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 6,
-        target: 'self'
+        target: RECIPIENT.SELF
       }
     ]
   },
@@ -561,7 +561,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         name: 'Signet of Vampirism - Vampiric Mark',
         canCrit: false,
         damageKind: 'life-steal'
@@ -584,7 +584,7 @@ export function playerModifierContext(context: Gw2ModifierContext): boolean {
   // Eventless attribute queries describe the player; event queries follow explicit outgoing ownership.
   return context.event
     ? isGw2PlayerModifierOwnedEvent(context.event)
-    : context.actorType == null || context.actorType === 'player';
+    : context.actorType == null || context.actorType === ACTOR.PLAYER;
 }
 
 /** Equipped signets activate without a cast; their scheduler retains cadence through suppression and overflow. */
@@ -635,7 +635,7 @@ export function emitVampirismPassive(runtime: NecromancerRuntime): void {
         at: runtime.time,
         source: 'necromancer',
         sourceId: id,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: id,
         skillName: strike.name,
         // Periodic signet siphons are passive procs, not consequences of the currently measured cast.

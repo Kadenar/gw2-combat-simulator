@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { bladecallEffects } from '#gw2/professions/mesmer/core/skills/weapons/bladecall.js';
@@ -28,7 +29,7 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Part
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event, skill }) => event.sourceId === skill.id,
             do: { type: 'mesmer.tracked-hit' }
@@ -37,7 +38,7 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 0.5,
         hits: 1,
         name: 'Projectile',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         // Preserve the measured Quickness projectile while the shared scheduler scales slower casts.
         atMs: 320,
         timingAnchor: 'castStart',
@@ -49,7 +50,7 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Part
       duration: 5,
       skillId: ID.CUTTER_BURST,
       name: 'Cutter Burst',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       // A third landed projectile commits Cutter Burst even when Flying Cutter's remaining animation is interrupted.
       persistsAfterInterrupt: true,
       ticks: [
@@ -84,7 +85,7 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Part
           { atMs: 4160, coefficient: 0.25 }
         ],
         name: 'Storm pulses',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
@@ -98,7 +99,7 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Part
           { atMs: 4200, coefficient: 0.5 }
         ],
         name: 'Launched blades',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true

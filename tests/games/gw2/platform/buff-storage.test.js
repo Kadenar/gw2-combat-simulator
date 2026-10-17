@@ -1,7 +1,7 @@
+import { GW2_STANDARD_BOONS, isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { GW2_STANDARD_BOONS, isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import {
   activeBoonStacks,
   activeBuffStacks,

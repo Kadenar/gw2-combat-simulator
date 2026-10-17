@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { RECIPIENT, ACTOR, BOON } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
@@ -34,7 +34,7 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'relentless fire',
         duration: 5,
         stacks: 1,
-        audience: { recipients: 'self' },
+        audience: { recipients: RECIPIENT.SELF },
         when: (runtime) => !(catalystState.from(runtime).sphereExpiry.Fire > runtime.time)
       },
       {
@@ -43,7 +43,7 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'relentless fire',
         duration: 8,
         stacks: 1,
-        audience: { recipients: 'self' },
+        audience: { recipients: RECIPIENT.SELF },
         when: (runtime) => catalystState.from(runtime).sphereExpiry.Fire > runtime.time
       }
     ]
@@ -66,7 +66,7 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'shattering ice',
         duration: 5,
         stacks: 1,
-        audience: { recipients: 'self' },
+        audience: { recipients: RECIPIENT.SELF },
         when: (runtime) => !(catalystState.from(runtime).sphereExpiry.Water > runtime.time)
       },
       {
@@ -75,7 +75,7 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'shattering ice',
         duration: 8,
         stacks: 1,
-        audience: { recipients: 'self' },
+        audience: { recipients: RECIPIENT.SELF },
         when: (runtime) => catalystState.from(runtime).sphereExpiry.Water > runtime.time
       }
     ]
@@ -185,7 +185,7 @@ const catalystAugmentActions = {
       attribution: {
         source: 'elementalist',
         sourceId: skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: skill.id,
         skillName: skill.name,
         activationId: cast.id

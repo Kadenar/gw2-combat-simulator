@@ -1,3 +1,4 @@
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import type { ActionContext, SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
@@ -64,7 +65,7 @@ export function releaseElementalProcession(
         attribution: {
           source: familiar.name,
           sourceId: familiar.id,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           triggeredBy: sourceSkill.name,
           skillId: familiar.id,
           skillName: familiar.name
@@ -137,7 +138,7 @@ const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistRuntimeS
               at,
               source: skill.name,
               sourceId: skill.id,
-              actorType: 'player',
+              actorType: ACTOR.PLAYER,
               skillName: skill.name,
               // Use the declared identity so the policy and damage modifier observe this same window.
               kind: String(zap.kind),
@@ -200,7 +201,7 @@ const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistRuntimeS
               at,
               source: skill.name,
               sourceId: skill.id,
-              actorType: 'player',
+              actorType: ACTOR.PLAYER,
               kind: String(resistance.boon).toLowerCase(),
               stacks: Number(resistance.stacks),
               duration: resistance.duration,
@@ -244,9 +245,9 @@ const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistRuntimeS
               at,
               source: skill.name,
               sourceId: skill.id,
-              actorType: 'player',
+              actorType: ACTOR.PLAYER,
               skillName: skill.name,
-              audience: { recipients: 'party' as const, maximumRecipients: 5 },
+              audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
               ...boon
             },
             { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }

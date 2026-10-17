@@ -1,3 +1,4 @@
+import { CONTROL } from '#gw2/platform/constants.js';
 import { ritualistPartyBoonPolicy } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/party-boons.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -226,7 +227,7 @@ export const ritualistSpiritActions: NonNullable<
             ...attribution(cast),
             ...spiritFields(spirit.key, 'summon-spirits'),
             type: 'control',
-            controlKind: 'daze',
+            controlKind: CONTROL.DAZE,
             sourceId: `ritualist.${spirit.key}.summon-spirits`,
             at: canonicalTime(
               runtime.time + (spirit.activeTicks[0]?.atMs ?? 0) / 1000 + (cast.command.impactDelayMs ?? 0) / 1000

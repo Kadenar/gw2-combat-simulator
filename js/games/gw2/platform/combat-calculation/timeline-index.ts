@@ -1,7 +1,7 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
-import type { Gw2BuffAudience } from '#gw2/platform/combat/boons.js';
+import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import {
+  boonKey,
+  type Gw2BuffAudience,
   timedBuffApplicationsAt,
   buffApplicationStacks,
   buffMatchesAudience,
@@ -11,6 +11,7 @@ import {
   prepareBoonWindows,
   type BoonWindow
 } from '#gw2/platform/combat/boons.js';
+import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { GW2_ALACRITY_RECHARGE_RATE, gw2RechargeIntervals } from '#gw2/platform/combat/recharge.js';
@@ -87,7 +88,7 @@ export function createGw2TimelineIndex({
     if (cached) return cached;
 
     const retiredAt = retiredCompanions.get(companionId) ?? Infinity;
-    const windows = prepareBoonWindows(events, boonKey(BOON.ALACRITY), 'summon', companionId, resolved)
+    const windows = prepareBoonWindows(events, boonKey(BOON.ALACRITY), ACTOR.SUMMON, companionId, resolved)
       .filter((window) => window.start < retiredAt)
       .map((window) => ({ ...window, end: Math.min(window.end, retiredAt) }));
 
@@ -140,7 +141,7 @@ export function createGw2TimelineIndex({
       insertOrdered(bucket.all, event);
     }
 
-    if (buffMatchesAudience(event, 'summon')) {
+    if (buffMatchesAudience(event, ACTOR.SUMMON)) {
       insertOrdered(bucket.summon, event);
     }
   };
@@ -208,7 +209,7 @@ export function createGw2TimelineIndex({
     }
 
     const bucket = indexedBuffs.get((kind || '').toLowerCase());
-    const applications = audience === 'summon' ? bucket?.summon : bucket?.all;
+    const applications = audience === ACTOR.SUMMON ? bucket?.summon : bucket?.all;
 
     if (isDurationStackingBoon(kind)) {
       return buffApplicationStacks(applications || [], kind, time, maximum, {

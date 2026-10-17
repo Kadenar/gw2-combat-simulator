@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   fromProfile,
   outsideScopeTooltip,
@@ -62,7 +63,7 @@ export const evokerTooltips = {
         ...simulationEffectFacts(
           tooltipProfile(balanceContext, EVOKER.foxsFury)
             .effects?.filter((effect) => effect.name?.startsWith('Fox'))
-            .map((effect) => ({ ...effect, audience: { recipients: 'party' as const } })),
+            .map((effect) => ({ ...effect, audience: { recipients: RECIPIENT.PARTY } })),
           'Fire Bonus is additional only in Fire'
         ).facts
       ]

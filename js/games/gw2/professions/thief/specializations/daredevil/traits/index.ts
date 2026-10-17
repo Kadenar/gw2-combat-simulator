@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -209,7 +208,7 @@ const staffMaster = defineTrait({
           amount: balanceNumberFromContext(
             balanceContext,
             TRAIT.STAFF_MASTER,
-            weapons.includes('Staff') ? 'weaponAttributeBonus' : 'attributeBonus'
+            weapons.includes(WEAPON.STAFF) ? 'weaponAttributeBonus' : 'attributeBonus'
           ),
           feedsConversions: 'all'
         }
@@ -278,7 +277,7 @@ function refundStaffMaster(runtime: ThiefRuntime, { cast }: DaredevilCast): void
   const skill = cast.skill;
   const cost = skill.initiativeCost || 0;
 
-  if (cost > 0 && skill.weapon === 'Staff') {
+  if (cost > 0 && skill.weapon === WEAPON.STAFF) {
     const enduranceGain = cost * balanceNumberFromContext(runtime, TRAIT.STAFF_MASTER, 'resourceGain');
 
     if (enduranceGain > 0) runtime.endurance.grant(enduranceGain);
@@ -318,7 +317,7 @@ function weakeningStrike(runtime: ThiefRuntime, { cause: event }: DaredevilStrik
   if (
     !state.weakeningStrikeReady ||
     state.weakeningStrikeExpiresAt <= event.at ||
-    event.actorType !== 'player' ||
+    event.actorType !== ACTOR.PLAYER ||
     !(Number(event.coefficient) > 0) ||
     event.skillId === SHARED_SKILL_IDS.DODGE
   )
@@ -338,7 +337,7 @@ function weakeningStrike(runtime: ThiefRuntime, { cause: event }: DaredevilStrik
     settlement: 'reaction',
     attribution: {
       source: 'Trait',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: TRAIT.WEAKENING_STRIKES,
       skillName: 'Weakening Strikes',
       activationId: event.activationId,

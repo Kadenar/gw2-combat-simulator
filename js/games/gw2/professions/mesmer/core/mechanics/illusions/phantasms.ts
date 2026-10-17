@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
@@ -144,7 +145,7 @@ export function createPhantasmEffectController({
     {
       const packet = buildMesmerPacket({
         type: 'mesmer.phantasm-summoned',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         at: execution.summonAt,
         name: skill.name,
@@ -164,7 +165,7 @@ export function createPhantasmEffectController({
     {
       const packet = buildMesmerPacket({
         type: 'mesmer.phantasm-attack',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         at: damageAt,
         name: skill.name,
@@ -191,7 +192,7 @@ export function createPhantasmEffectController({
         ...execution.delivery,
         kind: 'announcement',
         log: true,
-        attribution: { source: 'Trait', sourceId: policy.bonusStrike.traitId, actorType: 'effect' },
+        attribution: { source: 'Trait', sourceId: policy.bonusStrike.traitId, actorType: ACTOR.EFFECT },
         announcement: {
           type: 'trait',
           name: policy.bonusStrike.traitName,
@@ -216,7 +217,7 @@ export function createPhantasmEffectController({
     {
       const packet = buildMesmerPacket({
         type: 'mesmer.phantasm-resummoned',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         at: execution.spawnAt,
         name: skill.name,
@@ -234,7 +235,7 @@ export function createPhantasmEffectController({
     {
       const packet = buildMesmerPacket({
         type: 'mesmer.phantasm-attack',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         at: repeatDamageAt,
         name: skill.name,
@@ -260,7 +261,7 @@ export function createPhantasmEffectController({
         ...execution.delivery,
         kind: 'announcement',
         log: true,
-        attribution: { source: 'Trait', sourceId: policy.bonusStrike.traitId, actorType: 'effect' },
+        attribution: { source: 'Trait', sourceId: policy.bonusStrike.traitId, actorType: ACTOR.EFFECT },
         announcement: {
           type: 'trait',
           name: policy.bonusStrike.traitName,
@@ -275,7 +276,7 @@ export function createPhantasmEffectController({
       ...execution.delivery,
       kind: 'announcement',
       log: true,
-      attribution: { source: 'Trait', sourceId: policy.repeat.traitId, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: policy.repeat.traitId, actorType: ACTOR.EFFECT },
       announcement: {
         type: 'trait',
         name: policy.repeat.traitName,

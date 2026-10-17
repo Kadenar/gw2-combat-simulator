@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -101,9 +101,15 @@ const noEscape = defineTrait({
 
       emit: TRAIT.NO_ESCAPE,
       when: (_runtime, event) =>
-        event.actorType === 'player' && ['daze', 'stun'].includes(String(event.controlKind).toLowerCase()),
+        event.actorType === ACTOR.PLAYER &&
+        [CONTROL.DAZE, CONTROL.STUN].some((member) => member === String(event.controlKind).toLowerCase()),
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.IMMOBILIZED,
-      attribution: { source: 'Trait', sourceId: TRAIT.NO_ESCAPE, actorType: 'effect', name: 'No Escape - Immobilized' }
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.NO_ESCAPE,
+        actorType: ACTOR.EFFECT,
+        name: 'No Escape - Immobilized'
+      }
     }
   ]
 });
@@ -142,7 +148,7 @@ const sunAndMoonStyle = defineTrait({
       factor: (context) => balanceNumberFromContext(context, TRAIT.SUN_AND_MOON_STYLE, 'damageMultiplier'),
       order: 100,
       when: (context) =>
-        gw2PrimaryWeapon(context.config, Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1) === 'Dagger'
+        gw2PrimaryWeapon(context.config, Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1) === WEAPON.DAGGER
     }
   ]
 });
@@ -164,7 +170,7 @@ export const warriorSpellbreakerTraits = [
 ] as const;
 
 function reactToSpellbreakerControl(context: WarriorRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType === 'player') {
+  if (event.actorType === ACTOR.PLAYER) {
     gainAttackersInsight(
       context,
       spellbreakerState.from(context),
@@ -177,7 +183,7 @@ function reactToSpellbreakerControl(context: WarriorRuntime, event: Gw2ResolverE
 // Trigger resolver-side Magebane Tether only from a qualifying player burst hit
 // and record the proc when its cooldown admits a new window.
 function reactToSpellbreakerDamage(context: WarriorRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) {
+  if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) {
     return;
   }
 

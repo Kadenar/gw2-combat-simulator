@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONTROL, ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -21,7 +21,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         coefficient: 1.4,
         hits: 1
       },
-      { type: 'control', controlKind: 'daze' }
+      { type: 'control', controlKind: CONTROL.DAZE }
     ],
     type: 'Profession',
     slot: 'Weapon_4',
@@ -51,7 +51,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 3 } })
@@ -64,7 +64,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         applications: 3,
         atMs: 760,
         intervalMs: 1000,
-        controlKind: 'float'
+        controlKind: CONTROL.FLOAT
       }
     ]),
     // Each accepted siphon funds the live pool only when its own strike arrives.

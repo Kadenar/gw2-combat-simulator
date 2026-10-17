@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { referenceCastTimeMs, strikePacketOffsets } from '#gw2/integrations/logs/shared/rotation/timing.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
@@ -68,7 +69,7 @@ export function createStrikePacketMatcher(
     const runtimeDurationMs = skill ? referenceCastTimeMs(skill) : 0;
     const packets: ExpectedStrikePacket[] = skill
       ? (skill.effects || []).flatMap((effect) => {
-          if (effect.type !== 'strike' || effect.actorType === 'summon') {
+          if (effect.type !== 'strike' || effect.actorType === ACTOR.SUMMON) {
             return [];
           }
 

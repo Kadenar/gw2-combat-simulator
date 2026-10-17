@@ -1,3 +1,4 @@
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
@@ -56,14 +57,14 @@ export function facetPulse(runtime: RevenantRuntime, data: unknown): void {
       at: runtime.time,
       source: 'revenant',
       sourceId: skill.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name,
       name: `${skill.name} - ${pulse.kind}`,
       kind: pulse.kind,
       duration: pulse.duration,
       stacks: pulse.stacks,
-      audience: { recipients: 'party' }
+      audience: { recipients: RECIPIENT.PARTY }
     }
   });
   const next = canonicalTime(runtime.time + canonicalInterval(skill.pulseInterval ?? 3));

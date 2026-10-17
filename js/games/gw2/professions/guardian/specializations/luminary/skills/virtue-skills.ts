@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
@@ -21,8 +21,8 @@ export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     castTimeMs: 0,
     // Courage's activation grants these boons to the player and nearby allies.
     effects: [
-      { type: 'boon', boon: BOON.AEGIS, duration: 20, audience: { recipients: 'party' } },
-      { type: 'boon', boon: BOON.RESISTANCE, duration: 4, audience: { recipients: 'party' } }
+      { type: 'boon', boon: BOON.AEGIS, duration: 20, audience: { recipients: RECIPIENT.PARTY } },
+      { type: 'boon', boon: BOON.RESISTANCE, duration: 4, audience: { recipients: RECIPIENT.PARTY } }
     ]
   },
   [ID.RADIANT_RESOLVE]: {

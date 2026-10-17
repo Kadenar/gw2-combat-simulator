@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
@@ -56,7 +56,7 @@ export const FIREBRAND_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'buff',
@@ -64,7 +64,7 @@ export const FIREBRAND_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         kind: 'ashes-of-the-just',
         stacks: 2,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
@@ -72,7 +72,7 @@ export const FIREBRAND_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         boon: BOON.MIGHT,
         stacks: 8,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },

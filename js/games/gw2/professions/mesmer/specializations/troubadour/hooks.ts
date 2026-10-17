@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { troubadourDodgeCompleted } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import { troubadourBuffPolicies } from '#gw2/professions/mesmer/specializations/troubadour/effect-state.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -32,7 +33,7 @@ export const troubadourHooks = composeRuntimeHooks<MesmerRuntimeState, MesmerSki
           instrument,
           source: 'Fortissimo',
           sourceId: 'assumption.instruments',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         });
       }
     },

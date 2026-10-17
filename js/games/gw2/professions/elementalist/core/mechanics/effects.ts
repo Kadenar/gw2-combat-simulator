@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { AnnouncementEmission, EffectDelivery, ProfileEmission } from '#gw2/platform/effects/emission.js';
@@ -75,7 +76,7 @@ export function elementalistProfiledBuffRequest(
     attribution: {
       source: profile.profileKind === 'trait' ? 'Trait' : source,
       sourceId: profile.profileKind === 'trait' ? profile.id : sourceId,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: source
     },
@@ -108,7 +109,7 @@ export function elementalistProfiledConditionRequest(
     at,
     fullEnd: at,
     cast: emissionCast,
-    attribution: { source, sourceId, actorType: 'player', skillId: skill.id, skillName: source, triggeredBy },
+    attribution: { source, sourceId, actorType: ACTOR.PLAYER, skillId: skill.id, skillName: source, triggeredBy },
     transform: (event) => ({ ...event, name: source + ' — ' + event.condition })
   };
 }
@@ -134,7 +135,7 @@ export function elementalistAnnouncement({
   return {
     kind: 'announcement',
     log: true,
-    attribution: { source: procType === 'trait' ? 'Trait' : name, sourceId, actorType: 'effect', skillName: name },
+    attribution: { source: procType === 'trait' ? 'Trait' : name, sourceId, actorType: ACTOR.EFFECT, skillName: name },
     announcement: { type: procType, name, at, sourceSkill, detail, icon }
   };
 }

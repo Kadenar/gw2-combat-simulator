@@ -1,3 +1,4 @@
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type {
   Gw2CombatQuery,
   Gw2ConditionSample,
@@ -5,7 +6,6 @@ import type {
   Gw2QueryRuntime
 } from '#gw2/platform/combat-calculation/combat-query.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';

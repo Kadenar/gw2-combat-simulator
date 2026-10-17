@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -125,7 +125,7 @@ export function resolveBladesong(
       attribution: {
         source: 'Player',
         sourceId: skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: skill.id,
         skillName: skill.name
       },

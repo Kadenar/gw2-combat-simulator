@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -41,12 +41,12 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'strike',
         name: 'Citadel Bombardment',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: BOMBARDMENT_IMPACT_MS.map((atMs) => ({ atMs, coefficient: 0.6 }))
       },
       {
         type: 'condition',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: BOMBARDMENT_IMPACT_MS.map((atMs) => ({
           atMs,
           condition: CONDITION.BURNING,
@@ -67,11 +67,11 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         name: boonKey(BOON.MIGHT),
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,
         duration: 8,
         stacks: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -84,7 +84,7 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.ALACRITY,
         duration: 2,
         stacks: 1,
@@ -92,7 +92,7 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         intervalMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }

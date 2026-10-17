@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -306,7 +306,7 @@ function applySteelPackedPowder(context: EngineerResolverContext, event: Enginee
       settlement: 'reaction',
       attribution: {
         sourceId: TRAIT.STEEL_PACKED_POWDER,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillName: 'Steel-Packed Powder',
         source: 'Trait',
         triggeredBy: event.skillName,
@@ -339,7 +339,7 @@ function applyShortFuse(context: EngineerResolverContext, event: EngineerResolve
       attribution: {
         name: 'Short Fuse',
         sourceId: TRAIT.SHORT_FUSE,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillName: 'Short Fuse',
         source: 'Trait',
         triggeredBy: event.skillName
@@ -347,7 +347,7 @@ function applyShortFuse(context: EngineerResolverContext, event: EngineerResolve
     });
 
     context.effects.emit({
-      attribution: { source: 'Trait', sourceId: TRAIT.SHORT_FUSE, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: TRAIT.SHORT_FUSE, actorType: ACTOR.EFFECT },
       kind: 'announcement',
       cause: event,
       announcement: { type: 'trait', name: 'Short Fuse', at: event.at, sourceSkill: event.skillName, icon: '' }
@@ -375,7 +375,7 @@ function applyExplosiveTemper(context: EngineerResolverContext, event: EngineerR
       attribution: {
         name: 'Explosive Temper',
         sourceId: TRAIT.EXPLOSIVE_TEMPER,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillName: 'Explosive Temper',
         source: 'Trait',
         triggeredBy: event.skillName
@@ -383,7 +383,7 @@ function applyExplosiveTemper(context: EngineerResolverContext, event: EngineerR
     });
 
     context.effects.emit({
-      attribution: { source: 'Trait', sourceId: TRAIT.EXPLOSIVE_TEMPER, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: TRAIT.EXPLOSIVE_TEMPER, actorType: ACTOR.EFFECT },
       kind: 'announcement',
       cause: event,
       announcement: { type: 'trait', name: 'Explosive Temper', at: event.at, sourceSkill: event.skillName, icon: '' }
@@ -402,7 +402,7 @@ function applyGrandEntrance(context: EngineerResolverContext, event: EngineerRes
     receipt: true,
     attribution: (effect) => ({
       source: 'Trait',
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillName: effect.type === 'boon' ? 'Grand Entrance — resistance' : 'Grand Entrance',
       triggeredBy: event.skillName
     }),
@@ -412,7 +412,7 @@ function applyGrandEntrance(context: EngineerResolverContext, event: EngineerRes
   if (emitted.length)
     context.effects.emit({
       kind: 'announcement',
-      attribution: { source: 'Trait', sourceId: TRAIT.GRAND_ENTRANCE, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: TRAIT.GRAND_ENTRANCE, actorType: ACTOR.EFFECT },
       cause: event,
       announcement: { type: 'trait', name: 'Grand Entrance', at: event.at, sourceSkill: event.skillName, icon: '' }
     });
@@ -442,8 +442,8 @@ function applyShrapnel(context: EngineerResolverContext, event: EngineerResolver
       settlement: 'reaction',
       attribution: {
         sourceId: TRAIT.SHRAPNEL,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         skillName: 'Shrapnel',
         source: 'Trait',
         triggeredBy: event.skillName,
@@ -465,8 +465,8 @@ function applyShrapnel(context: EngineerResolverContext, event: EngineerResolver
       settlement: 'reaction',
       attribution: {
         sourceId: TRAIT.SHRAPNEL,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         skillName: 'Shrapnel',
         source: 'Trait',
         triggeredBy: event.skillName,
@@ -479,7 +479,7 @@ function applyShrapnel(context: EngineerResolverContext, event: EngineerResolver
 
   if (shrapnelBleeding || shrapnelCrippled)
     context.effects.emit({
-      attribution: { source: 'Trait', sourceId: TRAIT.SHRAPNEL, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: TRAIT.SHRAPNEL, actorType: ACTOR.EFFECT },
       kind: 'announcement',
       cause: event,
       announcement: { type: 'trait', name: 'Shrapnel', at: event.at, sourceSkill: event.skillName, icon: '' }
@@ -492,7 +492,7 @@ function strikesWhileArmed(
   event: EngineerResolverEvent
 ): boolean {
   return (
-    Number(event.coefficient) > 0 && event.actorType === 'player' && !runtime.profession.core.explosiveEntranceFired
+    Number(event.coefficient) > 0 && event.actorType === ACTOR.PLAYER && !runtime.profession.core.explosiveEntranceFired
   );
 }
 
@@ -522,7 +522,7 @@ function isAimAssistedProjectile(
   context: Pick<EngineerResolverContext, 'helpers'>,
   event: EngineerResolverEvent
 ): boolean {
-  if (event.actorType !== 'player') return false;
+  if (event.actorType !== ACTOR.PLAYER) return false;
 
   if (event.projectile === true) return true;
 

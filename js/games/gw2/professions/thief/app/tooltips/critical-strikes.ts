@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   fromProfile,
   tooltipFactorChange,
@@ -21,7 +22,7 @@ export const thiefCriticalStrikesTooltips = {
   [TRAIT.UNRELENTING_STRIKES]: traitTooltip(
     'Eligible critical hits grant fury to the party.',
     [['internalCooldown', 'Internal cooldown', tooltipSeconds]],
-    'party'
+    RECIPIENT.PARTY
   ),
   [TRAIT.FEROCIOUS_STRIKES]: traitTooltip('Critical strikes deal increased damage against targets above half health.', [
     ['criticalDamage', 'Critical damage', tooltipFactorChange]

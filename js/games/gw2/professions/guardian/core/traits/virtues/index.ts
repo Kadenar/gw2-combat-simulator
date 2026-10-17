@@ -1,7 +1,6 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -69,7 +68,7 @@ export const inspiredVirtue = defineTrait({
         1 +
         Math.min(
           balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE, 'maximumBoons'),
-          countActiveBoons(context, { actor: 'player' }, (boon) => guardianBoonActive(context, boon))
+          countActiveBoons(context, { actor: ACTOR.PLAYER }, (boon) => guardianBoonActive(context, boon))
         ) *
           balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE, 'damagePerBoon')
     }
@@ -166,13 +165,13 @@ export const masterOfConsecrations = defineTrait({
         type: 'strike',
         name: 'Strike',
         ticks: [6320, 7320].map((atMs) => ({ atMs, coefficient: 0.2 })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         name: CONDITION.BURNING,
         ticks: [6320, 7320].map((atMs) => ({ atMs, condition: CONDITION.BURNING, stacks: 1, duration: 2 })),
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   }
@@ -258,8 +257,8 @@ function virtueBuff(
     attribution: {
       source: 'Trait',
       sourceId: trait,
-      actorType: 'player',
-      audience: { recipients: party ? 'party' : 'self' }
+      actorType: ACTOR.PLAYER,
+      audience: { recipients: party ? RECIPIENT.PARTY : RECIPIENT.SELF }
     },
     transform: (event) => ({ ...event, kind })
   });

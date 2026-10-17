@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   fromProfile,
   profileFact,
@@ -52,7 +53,7 @@ const summonMadnessTooltip: DescribeSimulationTooltip = (balanceContext, entity)
     description:
       'Summon temporary horrors in sequence. Each horror attacks and then explodes; the listed effects are for one horror.',
     facts: [
-      { name: 'Horrors summoned', detail: String(tooltipNumber(selected, 'summons')) },
+      { name: 'Horrors summoned', detail: String(tooltipNumber(selected, RECIPIENT.SUMMONS)) },
       { name: 'Interval between summons', detail: tooltipSeconds(tooltipNumber(selected, 'summonInterval')) },
       ...effects.facts
     ]

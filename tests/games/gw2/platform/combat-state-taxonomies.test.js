@@ -1,9 +1,8 @@
+import { GW2_STANDARD_BOONS, isStandardBoon, standardBoonPresentation, boonKey } from '#gw2/platform/combat/boons.js';
+import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { GW2_STANDARD_BOONS, isStandardBoon, standardBoonPresentation } from '#gw2/platform/combat/boons.js';
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import {
   canonicalTargetConditionName,
   CANONICAL_TARGET_CONDITIONS,

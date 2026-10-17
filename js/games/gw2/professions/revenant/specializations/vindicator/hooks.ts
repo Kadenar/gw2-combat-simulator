@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
@@ -49,7 +50,7 @@ function land(runtime: RevenantRuntime, data: unknown): void {
       attribution: {
         source: 'revenant',
         sourceId: skillId,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId,
         skillName: profile.name,
         activationId
@@ -75,7 +76,7 @@ function land(runtime: RevenantRuntime, data: unknown): void {
     attribution: {
       source: 'revenant',
       sourceId: profile.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: profile.id,
       skillName: profile.name,
       activationId

@@ -1,6 +1,6 @@
-import { ACTOR_TYPES, GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/events/actors.js';
+import { ACTOR, type SimulationActorType } from '#gw2/platform/constants.js';
+import { ACTOR_TYPES } from '#gw2/platform/events/actors.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 
 /** Reads explicit ownership; absent query events remain unknown and display labels never determine actors. */
 export function gw2EventActorType(event: Partial<SimulationEventBase> | null | undefined): SimulationActorType {
@@ -10,25 +10,24 @@ export function gw2EventActorType(event: Partial<SimulationEventBase> | null | u
     return explicit as SimulationActorType;
   }
 
-  return GW2_EVENT_ACTOR_TYPES.UNKNOWN;
+  return ACTOR.UNKNOWN;
 }
 
 export function isGw2PlayerActorEvent(event: Partial<SimulationEventBase> | null | undefined): boolean {
   // UNKNOWN is conservative: unclassified effects must not trigger player-only
   // sigils, food, or profession hit rules.
-  return gw2EventActorType(event) === GW2_EVENT_ACTOR_TYPES.PLAYER;
+  return gw2EventActorType(event) === ACTOR.PLAYER;
 }
 
 /** Phantasm inheritance follows summon identity, independently of the packet's display label. */
 export function isGw2PhantasmEvent(event: Partial<SimulationEventBase> | null | undefined): boolean {
-  return gw2EventActorType(event) === GW2_EVENT_ACTOR_TYPES.SUMMON && event?.summonKind === 'phantasm';
+  return gw2EventActorType(event) === ACTOR.SUMMON && event?.summonKind === 'phantasm';
 }
 
 /** Clone and phantasm critical policies apply only to explicitly identified illusion actors. */
 export function isGw2IllusionEvent(event: Partial<SimulationEventBase> | null | undefined): boolean {
   return (
-    gw2EventActorType(event) === GW2_EVENT_ACTOR_TYPES.SUMMON &&
-    (event?.summonKind === 'clone' || event?.summonKind === 'phantasm')
+    gw2EventActorType(event) === ACTOR.SUMMON && (event?.summonKind === 'clone' || event?.summonKind === 'phantasm')
   );
 }
 
@@ -48,7 +47,7 @@ export function gw2EventOwnerActorType(event: Partial<SimulationEventBase> | nul
 
 /** True when an event inherits the player's outgoing damage modifiers. */
 export function isGw2PlayerModifierOwnedEvent(event: Partial<SimulationEventBase> | null | undefined): boolean {
-  return gw2EventOwnerActorType(event) === GW2_EVENT_ACTOR_TYPES.PLAYER;
+  return gw2EventOwnerActorType(event) === ACTOR.PLAYER;
 }
 
 /**
@@ -56,5 +55,5 @@ export function isGw2PlayerModifierOwnedEvent(event: Partial<SimulationEventBase
  * the cast which triggered it, using explicit actor ownership only.
  */
 export function isGw2NonWeaponEffectEvent(event: Partial<SimulationEventBase> | null | undefined): boolean {
-  return event?.actorType === GW2_EVENT_ACTOR_TYPES.EFFECT || event?.actorType === GW2_EVENT_ACTOR_TYPES.ENVIRONMENT;
+  return event?.actorType === ACTOR.EFFECT || event?.actorType === ACTOR.ENVIRONMENT;
 }

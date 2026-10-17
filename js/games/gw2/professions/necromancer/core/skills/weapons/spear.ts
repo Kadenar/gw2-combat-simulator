@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
@@ -24,14 +23,14 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
           reactions: [
             {
               on: 'damage.resolved',
-              actor: 'player',
+              actor: ACTOR.PLAYER,
               packets: 'first',
               when: (_runtime, { event }) => Number(event.coefficient) > 0,
               do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 12 } })
             },
             {
               on: 'damage.resolved',
-              actor: 'player',
+              actor: ACTOR.PLAYER,
               packets: 'first',
               when: (_runtime, { event }) => Number(event.coefficient) > 0,
               do: { type: 'necromancer.soul-shards', amount: 2 }
@@ -41,7 +40,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
           comboFinishers: [
             {
               ownerId: 'necromancer',
-              finisherType: 'Whirl',
+              finisherType: COMBO_FINISHER.WHIRL,
               applications: 3,
               ambiguousFieldSelection: 'oldest'
             }
@@ -89,37 +88,37 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 10 } })
           },
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: {
               type: 'emitProfile',
               profileId: PROFILE.addleDaze,
-              attribution: { source: 'necromancer', sourceId: ID.ADDLE, actorType: 'player' }
+              attribution: { source: 'necromancer', sourceId: ID.ADDLE, actorType: ACTOR.PLAYER }
             }
           },
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) =>
               Number(event.coefficient) > 0 && Boolean(event.metadata?.necromancerAddleImmobilize),
             do: {
               type: 'emitProfile',
               profileId: PROFILE.addleImmobilize,
-              attribution: { source: 'necromancer', sourceId: ID.ADDLE, actorType: 'player' }
+              attribution: { source: 'necromancer', sourceId: ID.ADDLE, actorType: ACTOR.PLAYER }
             }
           },
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (runtime, { event }) =>
               Number(event.coefficient) > 0 &&
@@ -136,7 +135,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
           },
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (runtime, { event }) =>
               Number(event.coefficient) > 0 &&
@@ -160,7 +159,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: { type: 'necromancer.soul-shards', amount: 1 }
@@ -183,14 +182,14 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 5 } })
           },
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: { type: 'necromancer.soul-shards', amount: 1 }
@@ -212,7 +211,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: { type: 'necromancer.perforate' }

@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -34,9 +34,10 @@ export const dazzling = defineTrait<MesmerSkill>({
     {
       on: 'control.resolved',
       emit: TRAIT.DAZZLING,
-      when: (_runtime, event) => !missesTarget(event) && (event.actorType === 'player' || event.actorType === 'summon'),
+      when: (_runtime, event) =>
+        !missesTarget(event) && (event.actorType === ACTOR.PLAYER || event.actorType === ACTOR.SUMMON),
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.VULNERABILITY,
-      attribution: { source: 'Trait', sourceId: TRAIT.DAZZLING, actorType: 'effect', ownerActorType: 'player' }
+      attribution: { source: 'Trait', sourceId: TRAIT.DAZZLING, actorType: ACTOR.EFFECT, ownerActorType: ACTOR.PLAYER }
     }
   ]
 });
@@ -146,7 +147,7 @@ export const bountifulBlades = defineTrait<MesmerSkill>({
   name: 'Bountiful Blades',
   balance: {
     // Extra berserker entities retain summon ownership and the preview's summon exclusion.
-    damagePreviewAttribution: 'summon',
+    damagePreviewAttribution: ACTOR.SUMMON,
     summons: 2,
     damageMultiplier: 0.66,
     effects: [
@@ -234,7 +235,7 @@ function triggerRendingShatter(
         source: 'Trait',
         sourceId: TRAIT.RENDING_SHATTER,
         skillId: resolution.skill.id,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ).forEach((packet) => {
       context.effects.emit({
@@ -257,7 +258,7 @@ export function bountifulBladesSpawnModifiers(
   const bountifulBladesProfile = requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_BLADES);
   return {
     [ID.PHANTASMAL_BERSERKER]: {
-      countMultiplier: balanceProfileNumber(bountifulBladesProfile, 'summons'),
+      countMultiplier: balanceProfileNumber(bountifulBladesProfile, RECIPIENT.SUMMONS),
       damageMultiplier: balanceProfileNumber(bountifulBladesProfile, 'damageMultiplier')
     }
   };
@@ -275,7 +276,7 @@ export const bountifulBladesMirrorBlade: NonNullable<Skill['effectVariants']>[nu
         ...effect,
         source: 'Player',
         sourceId: TRAIT.BOUNTIFUL_BLADES,
-        actorType: 'player' as const,
+        actorType: ACTOR.PLAYER,
         name: 'Additional target hits from Bountiful Blades',
         persistsAfterInterrupt: true
       }))

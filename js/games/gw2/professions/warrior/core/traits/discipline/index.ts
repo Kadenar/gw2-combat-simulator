@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -49,7 +49,7 @@ export const crackShot = defineTrait({
     {
       on: 'damage.resolved',
       when: (_runtime, event) =>
-        event.actorType === 'player' && event.skillId === ID.DUAL_SHOT && Number(event.coefficient) > 0,
+        event.actorType === ACTOR.PLAYER && event.skillId === ID.DUAL_SHOT && Number(event.coefficient) > 0,
       emit: TRAIT.CRACK_SHOT
     }
   ]
@@ -113,7 +113,7 @@ export const axeMastery = defineTrait({
           amount: balanceNumberFromContext(
             context.balanceContext,
             TRAIT.AXE_MASTERY,
-            weapons.includes('Axe') ? 'weaponAttributeBonus' : 'attributeBonus'
+            weapons.includes(WEAPON.AXE) ? 'weaponAttributeBonus' : 'attributeBonus'
           ),
           // Both the base Ferocity and the equipped-axe bonus participate in conversions.
           feedsConversions: 'all',
@@ -124,7 +124,7 @@ export const axeMastery = defineTrait({
   },
   rechargeRules: [
     {
-      when: (_runtime, skill) => skill.weapon === 'Axe',
+      when: (_runtime, skill) => skill.weapon === WEAPON.AXE,
       multiplier: { profile: TRAIT.AXE_MASTERY, field: 'rechargeMultiplier' }
     }
   ]
@@ -192,7 +192,7 @@ export const warriorsSprint = defineTrait({
  */
 function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
   if (
-    event.actorType !== 'player' ||
+    event.actorType !== ACTOR.PLAYER ||
     !((event.coefficient || 0) > 0) ||
     !hasTrait(runtime, TRAIT.HEIGHTENED_FOCUS) ||
     !runtime.combat.targetHealthBelow(balanceNumberFromContext(runtime, TRAIT.HEIGHTENED_FOCUS, 'threshold')) ||
@@ -206,7 +206,7 @@ function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2ResolverEvent
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.HEIGHTENED_FOCUS,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: event.skillId,
         skillName: event.skillName
       },
@@ -255,7 +255,7 @@ function axeMasteryCritical(runtime: WarriorRuntime, event: Gw2ResolverEvent, cr
   if (criticals > 0) {
     const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
 
-    if ((skill?.skillWeapon || skill?.weapon || event.skillWeapon) === 'Axe')
+    if ((skill?.skillWeapon || skill?.weapon || event.skillWeapon) === WEAPON.AXE)
       grantWarriorResource(runtime, criticals * balanceNumberFromContext(runtime, TRAIT.AXE_MASTERY, 'resourceGain'));
   }
 }
@@ -280,7 +280,7 @@ function burstMasteryCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
           attribution: {
             source: 'Trait',
             sourceId: TRAIT.BURST_MASTERY,
-            actorType: 'effect',
+            actorType: ACTOR.EFFECT,
             skillId: cast.skill.id,
             skillName: cast.skill.name,
             activationId: cast.id
@@ -308,7 +308,7 @@ function burstMasteryDragonSlash(
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.BURST_MASTERY,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       activationId: cast.id

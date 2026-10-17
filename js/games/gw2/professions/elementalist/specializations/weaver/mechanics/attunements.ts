@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { type AvailabilityResult, denyCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
@@ -209,7 +210,7 @@ const weaverAttunementTasks = {
           priority: -20,
           source: skill.name,
           sourceId: skill.id,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: skill.id,
           skillName: skill.name,
           from: previousPrimary,
@@ -233,7 +234,7 @@ const weaverAttunementTasks = {
               at: cast.effectiveEnd,
               source: skill.name,
               sourceId: skill.id,
-              actorType: 'player',
+              actorType: ACTOR.PLAYER,
               name: skill.name,
               kind: boonKind,
               duration: profiledBoon.duration,

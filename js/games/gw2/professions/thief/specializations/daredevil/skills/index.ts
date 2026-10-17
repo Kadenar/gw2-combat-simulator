@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -22,14 +21,14 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 1.75 }],
         name: 'Impact Strike',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'daze'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.DAZE
       }
     ]
   },
@@ -42,7 +41,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 4 }],
         name: 'Finishing Blow',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -57,14 +56,14 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 2.25 }],
         name: 'Uppercut (Daredevil skill)',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'launch'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.LAUNCH
       }
     ]
   },
@@ -83,22 +82,22 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
           { atMs: 520, coefficient: 1 }
         ],
         name: 'Impairing Daggers',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         ticks: [{ atMs: 360, condition: CONDITION.POISONED, stacks: 3, duration: 10 }],
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         ticks: [{ atMs: 440, condition: CONDITION.SLOW, stacks: 1, duration: 5 }],
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         ticks: [{ atMs: 520, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }],
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -126,14 +125,14 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 0.75 }],
         name: 'Reflexive Strike',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'knockdown'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.KNOCKDOWN
       }
     ]
   },
@@ -148,14 +147,14 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 0.55 }],
         name: 'Distracting Daggers',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'daze'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.DAZE
       }
     ]
   },
@@ -177,7 +176,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 1.75 }],
         name: 'Palm Strike',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
@@ -187,15 +186,15 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         hits: 2,
         atMs: 2000,
         name: 'Pulmonary Impact',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         canCrit: false,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'stun'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.STUN
       }
     ]
   },
@@ -208,7 +207,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 3.28 }],
         name: 'Pulmonary Impact (trait skill)',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -237,12 +236,12 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [120, 280, 400, 560, 680].map((atMs) => ({ atMs, coefficient: 0.75 })),
         name: 'Fist Flurry',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         ticks: [{ atMs: 120, condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5 }],
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -255,7 +254,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 3.5 }],
         name: 'Bound',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -284,7 +283,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'strike',
         ticks: [200, 360, 520].map((atMs) => ({ atMs, coefficient: 0.1875 })),
         name: 'Impaling Lotus',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -308,13 +307,13 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
             duration: 3
           }
         ],
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     comboFinishers: [
       {
         ownerId: 'thief',
-        finisherType: 'Whirl',
+        finisherType: COMBO_FINISHER.WHIRL,
         ambiguousFieldSelection: 'oldest'
       }
     ]

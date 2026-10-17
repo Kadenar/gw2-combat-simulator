@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { RECIPIENT, ACTOR, BOON } from '#gw2/platform/constants.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -41,7 +41,7 @@ export const sereneRejuvenation = defineTrait({
         boon: BOON.VIGOR,
         duration: 2,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         metadata: { trigger: String(ID.NATURAL_HARMONY) }
       },
       {
@@ -49,7 +49,7 @@ export const sereneRejuvenation = defineTrait({
         boon: BOON.REGENERATION,
         duration: 3,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         metadata: { trigger: String(ID.PURIFYING_ESSENCE) }
       },
       {
@@ -57,7 +57,7 @@ export const sereneRejuvenation = defineTrait({
         boon: BOON.SWIFTNESS,
         duration: 5,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         metadata: { trigger: String(ID.PROTECTIVE_SOLACE) }
       },
       {
@@ -65,7 +65,7 @@ export const sereneRejuvenation = defineTrait({
         boon: BOON.RESISTANCE,
         duration: 4,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         metadata: { trigger: String(ID.ENERGY_EXPULSION) }
       }
     ]
@@ -91,7 +91,7 @@ function completeSereneRejuvenation(runtime: RevenantRuntime, { cast }: Revenant
         activationId: `legend-invocation:${TRAIT.SERENE_REJUVENATION}:${runtime.time}`,
         source: 'Trait',
         sourceId: TRAIT.SERENE_REJUVENATION,
-        actorType: effect.actorType || 'player',
+        actorType: effect.actorType || ACTOR.PLAYER,
         skillId: invocationProfile.id,
         skillName: invocationProfile.name
       }),

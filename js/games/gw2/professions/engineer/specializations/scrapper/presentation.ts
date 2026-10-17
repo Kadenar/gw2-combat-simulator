@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { STATUS, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -19,7 +20,7 @@ export function bindScrapperUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>
       const preview = createPreviewControls(context);
       preview.boon(boonKey(BOON.STABILITY), 'Object in Motion');
       preview.boon(boonKey(BOON.SWIFTNESS), 'Object in Motion');
-      preview.damageBuff('Object in Motion', 'superspeed', 'superspeed');
+      preview.damageBuff('Object in Motion', STATUS.SUPERSPEED, STATUS.SUPERSPEED);
       return preview.controls;
     },
     paletteGroups: (context: EngineerUiContext) => [

@@ -1,3 +1,4 @@
+import { WEAPON, ACTOR } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
@@ -126,9 +127,9 @@ function triggerChaoticInterruption(context: MesmerRuntime, event: SimulationEve
 
   let targetId: number | null = null;
 
-  if (mainhand === 'Staff') targetId = ID.PHANTASMAL_WARLOCK;
-  else if (offhand === 'Pistol') targetId = ID.PHANTASMAL_DUELIST;
-  else if (offhand === 'Torch') targetId = ID.PHANTASMAL_MAGE;
+  if (mainhand === WEAPON.STAFF) targetId = ID.PHANTASMAL_WARLOCK;
+  else if (offhand === WEAPON.PISTOL) targetId = ID.PHANTASMAL_DUELIST;
+  else if (offhand === WEAPON.TORCH) targetId = ID.PHANTASMAL_MAGE;
 
   if (targetId == null) return;
 
@@ -150,7 +151,7 @@ function triggerChaoticInterruption(context: MesmerRuntime, event: SimulationEve
   context.effects.emit({
     kind: 'announcement',
     log: true,
-    attribution: { source: 'Trait', sourceId: TRAIT.CHAOTIC_INTERRUPTION, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.CHAOTIC_INTERRUPTION, actorType: ACTOR.EFFECT },
     announcement: {
       type: 'trait',
       name: 'Chaotic Interruption',
@@ -178,7 +179,7 @@ function triggerIllusionaryMembrane(
   const traitSource = {
     source: 'Trait',
     sourceId: TRAIT.ILLUSIONARY_MEMBRANE,
-    actorType: 'player' as const,
+    actorType: ACTOR.PLAYER,
     skillId: TRAIT.ILLUSIONARY_MEMBRANE,
     skillName: profile.name
   };
@@ -187,7 +188,7 @@ function triggerIllusionaryMembrane(
     ...delivery,
     kind: 'announcement',
     log: true,
-    attribution: { ...traitSource, actorType: 'effect' },
+    attribution: { ...traitSource, actorType: ACTOR.EFFECT },
     announcement: { type: 'trait', name: profile.name, at, sourceSkill: skillName, detail: '' }
   });
   // This stack settles after the same-time shatter packets under its original causal announcement.
@@ -236,11 +237,11 @@ function triggerMethodOfMadness(
       sourceId: skill.id,
       skillId: skill.id,
       skillName: skill.name,
-      actorType: 'player'
+      actorType: ACTOR.PLAYER
     },
     {
       cast: delivery.cast,
-      attribution: { actorType: 'player' },
+      attribution: { actorType: ACTOR.PLAYER },
       announce: true,
       announcementName: 'Method of Madness',
       logAnnouncement: true

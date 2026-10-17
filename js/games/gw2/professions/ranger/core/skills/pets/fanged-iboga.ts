@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, COMBO_FIELD, CONDITION } from '#gw2/platform/constants.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { packAlphaPetRecharge } from '#gw2/professions/ranger/core/traits/beastmastery/pet-attributes.js';
@@ -21,7 +21,7 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         type: 'strike',
         coefficient: 0.2,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -29,13 +29,13 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         stacks: 1,
         duration: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'control',
         source: 'ranger-pet',
-        actorType: 'summon',
-        controlKind: 'pull'
+        actorType: ACTOR.SUMMON,
+        controlKind: CONTROL.PULL
       }
     ]),
     quicknessCastTimeMs: 1000,
@@ -49,7 +49,7 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 480,
@@ -61,7 +61,7 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         type: 'strike',
         coefficient: 0.3,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -69,7 +69,7 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         stacks: 4,
         duration: 8,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -77,7 +77,7 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         stacks: 3,
         duration: 10,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     quicknessCastTimeMs: 600,
@@ -93,7 +93,7 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
           coefficient: 0.1
         })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -104,14 +104,14 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
           duration: 8
         })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     quicknessCastTimeMs: 720,
     comboFields: [
       {
         ownerId: 'ranger',
-        fieldType: 'Ethereal',
+        fieldType: COMBO_FIELD.ETHEREAL,
         duration: 6,
         startAnchor: 'castEnd'
       }

@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, ACTOR, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -122,7 +122,7 @@ export const masterFencer = defineTrait<MesmerSkill>({
       {
         type: 'boon',
         name: 'Self Fury',
-        audience: { recipients: 'self' },
+        audience: { recipients: RECIPIENT.SELF },
         boon: BOON.FURY,
         duration: 8,
         stacks: 1
@@ -134,7 +134,7 @@ export const masterFencer = defineTrait<MesmerSkill>({
         duration: 4,
         stacks: 1,
         // Personal Fury is separate, leaving all four recipient slots for allies.
-        audience: { recipients: 'party', maximumRecipients: 4, affectsSelf: false }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 4, affectsSelf: false }
       }
     ]
   }
@@ -236,7 +236,7 @@ export const criticalInfusion = defineTrait<MesmerSkill>({
       emit: TRAIT.CRITICAL_INFUSION,
       cooldown: 'profile',
       when: (_runtime, event, details) =>
-        event.actorType === 'player' &&
+        event.actorType === ACTOR.PLAYER &&
         (details.hitContext?.damage ?? 0) > 0 &&
         Boolean(details.hitContext?.critEligible && details.hitContext.critical.didCrit)
     }
@@ -287,7 +287,7 @@ function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerR
         stacks: Number(payload.stacks) * count,
         source: 'Player',
         sourceId: TRAIT.INEPTITUDE,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       })
   });
 }
@@ -340,8 +340,8 @@ function triggerBlindingDissipation(
         name: 'Blinding Dissipation',
         source: 'Trait',
         sourceId: TRAIT.BLINDING_DISSIPATION,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         condition: CONDITION.BLINDNESS,
         stacks: Number(payload.stacks) * count,
         duration: Number(payload.duration)
@@ -352,7 +352,7 @@ function triggerBlindingDissipation(
     ...delivery,
     kind: 'announcement',
     log: true,
-    attribution: { source: 'Trait', sourceId: TRAIT.BLINDING_DISSIPATION, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.BLINDING_DISSIPATION, actorType: ACTOR.EFFECT },
     announcement: { type: 'trait', name: 'Blinding Dissipation', at: at, sourceSkill: skillName, detail: '' }
   });
 }
@@ -398,7 +398,7 @@ function triggerMasterFencer(context: MesmerRuntime, event: SimulationEvent, cha
     kind: 'announcement',
     cause: event,
     log: true,
-    attribution: { source: 'Trait', sourceId: TRAIT.MASTER_FENCER, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.MASTER_FENCER, actorType: ACTOR.EFFECT },
     announcement: { type: 'trait', at: event.at, name: masterFencerProfile.name, sourceSkill: event.skillName }
   });
   // Keep both recipient applications under one announcement while the profile owns their payloads.
@@ -410,10 +410,10 @@ function triggerMasterFencer(context: MesmerRuntime, event: SimulationEvent, cha
       at: event.at,
       source: 'Trait',
       sourceId: TRAIT.MASTER_FENCER,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: TRAIT.MASTER_FENCER,
       skillName: 'Master Fencer',
-      name: `Master Fencer — ${effect.audience?.recipients ?? 'self'} fury`,
+      name: `Master Fencer — ${effect.audience?.recipients ?? RECIPIENT.SELF} fury`,
       kind: boonKey(BOON.FURY),
       duration: payload.duration,
       stacks: Number(payload.stacks),
@@ -458,13 +458,13 @@ function triggerSharperImages(context: MesmerRuntime, event: SimulationEvent, ch
       stacks: procCount * Number(payload.stacks),
       source: 'Player',
       sourceId: TRAIT.SHARPER_IMAGES,
-      actorType: 'player'
+      actorType: ACTOR.PLAYER
     })
   });
   context.effects.emit({
     kind: 'announcement',
     log: true,
-    attribution: { source: 'Trait', sourceId: TRAIT.SHARPER_IMAGES, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.SHARPER_IMAGES, actorType: ACTOR.EFFECT },
     announcement: {
       type: 'trait',
       name: 'Sharper Images',
@@ -508,7 +508,7 @@ function triggerDeceptiveEvasion(runtime: MesmerRuntime, at: number): void {
 export const fencersFinesseRecharge = compileRechargeRules<MesmerRuntimeState, MesmerSkill>([
   {
     trait: TRAIT.FENCERS_FINESSE,
-    when: (_runtime, skill) => skill.weapon === 'Sword',
+    when: (_runtime, skill) => skill.weapon === WEAPON.SWORD,
     multiplier: { profile: TRAIT.FENCERS_FINESSE, field: 'rechargeMultiplier' }
   }
 ]);
@@ -517,13 +517,13 @@ export const fencersFinesseRecharge = compileRechargeRules<MesmerRuntimeState, M
 function applyFencersFinesse(runtime: MesmerRuntime, event: SimulationEvent): void {
   const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
 
-  if (!skill || skill.weapon !== 'Sword' || event.summonKind === 'clone') return;
+  if (!skill || skill.weapon !== WEAPON.SWORD || event.summonKind === 'clone') return;
 
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.FENCERS_FINESSE);
   const traitSource = {
     source: 'Trait',
     sourceId: TRAIT.FENCERS_FINESSE,
-    actorType: 'player' as const,
+    actorType: ACTOR.PLAYER,
     skillId: TRAIT.FENCERS_FINESSE,
     skillName: profile.name
   };
@@ -533,7 +533,7 @@ function applyFencersFinesse(runtime: MesmerRuntime, event: SimulationEvent): vo
           receipt: true,
           kind: 'announcement',
           log: true,
-          attribution: { ...traitSource, actorType: 'effect' },
+          attribution: { ...traitSource, actorType: ACTOR.EFFECT },
           announcement: { type: 'trait', name: profile.name, at: event.at, sourceSkill: skill.name, detail: '' }
         })
       : undefined;

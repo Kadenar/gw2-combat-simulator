@@ -1,7 +1,7 @@
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import {
   NECROMANCER_SKILL_IDS as NECRO_SKILL,
   NECROMANCER_TRAIT_IDS as NECRO

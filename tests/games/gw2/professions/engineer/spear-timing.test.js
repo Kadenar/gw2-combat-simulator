@@ -1,5 +1,5 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { skillFlipReady, armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';

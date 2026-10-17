@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, COMBO_FIELD, COMBO_FINISHER, CONTROL, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeBuff, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import {
@@ -57,7 +57,7 @@ function spiritShakes(boon: string, duration: number, stacks = 1): SkillEffect {
     intervalMs: 1000,
     timingAnchor: 'castEnd',
     timingScale: 'fixed',
-    audience: { recipients: 'party', maximumRecipients: 5 }
+    audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
   };
 }
 
@@ -86,7 +86,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 3,
         stacks: 6
@@ -139,7 +139,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     comboFields: [
       {
         ownerId: 'ranger',
-        fieldType: 'Ice',
+        fieldType: COMBO_FIELD.ICE,
         duration: 5,
         startMs: 880,
         startAnchor: 'castStart'
@@ -164,7 +164,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.AEGIS,
         duration: 5,
         stacks: 1
@@ -175,7 +175,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
           condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 6,
-          comboFinishers: [{ ownerId: 'ranger', finisherType: 'Blast' }]
+          comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.BLAST }]
         },
         { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 6 }
       ]),
@@ -209,7 +209,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     comboFields: [
       {
         ownerId: 'ranger',
-        fieldType: 'Poison',
+        fieldType: COMBO_FIELD.POISON,
         duration: 2,
         startMs: 1400,
         startAnchor: 'castStart'
@@ -220,7 +220,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.RESISTANCE,
         duration: 4,
         stacks: 1
@@ -231,7 +231,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
           type: 'custom',
           eventType: 'marker',
           event: { name: 'Cold Snap' },
-          comboFinishers: [{ ownerId: 'ranger', finisherType: 'Blast' }]
+          comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.BLAST }]
         }
       ]),
       spiritShakes(boonKey(BOON.RESOLUTION), 2)
@@ -276,7 +276,9 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         }))
       }
     ]),
-    comboFields: [{ ownerId: 'ranger', fieldType: 'Fire', duration: 3, startMs: 520, startAnchor: 'castEnd' }],
+    comboFields: [
+      { ownerId: 'ranger', fieldType: COMBO_FIELD.FIRE, duration: 3, startMs: 520, startAnchor: 'castEnd' }
+    ],
     castTimeMs: 333
   },
   [ID.MUDDY_TERRAIN]: {
@@ -312,21 +314,21 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         boon: BOON.FURY,
         duration: 12,
         stacks: 1,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
+        audience: { recipients: RECIPIENT.SUMMONS, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: BOON.STABILITY,
         duration: 8,
         stacks: 10,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
+        audience: { recipients: RECIPIENT.SUMMONS, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: BOON.SWIFTNESS,
         duration: 12,
         stacks: 1,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
+        audience: { recipients: RECIPIENT.SUMMONS, maximumRecipients: 2 }
       }
     ],
     // The command completes on the 840 ms action tick before its buffs and command traits apply.
@@ -399,7 +401,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Call_Lightning_(Ranger).png',
     // The spirit owns the slam formula; the Ranger supplies critical stats and outgoing modifiers.
     effects: [
-      { type: 'control', controlKind: 'daze' },
+      { type: 'control', controlKind: CONTROL.DAZE },
       {
         type: 'strike',
         coefficient: 2,
@@ -508,7 +510,7 @@ export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<Range
     .filter((effect) => effect.type === 'boon')
     .map((effect) => {
       const kind = String(effect.boon).toLowerCase();
-      const player = runtime.combat.boonSnapshot(kind, runtime.time, { actor: 'player' }).stacks;
+      const player = runtime.combat.boonSnapshot(kind, runtime.time, { actor: ACTOR.PLAYER }).stacks;
       return {
         kind,
         duration: Number(effect.duration),
@@ -525,7 +527,10 @@ export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<Range
     );
 
     if (pet > 0)
-      runtime.effects.emit({ kind: 'packet', event: { ...event, stacks: pet, audience: { recipients: 'self' } } });
+      runtime.effects.emit({
+        kind: 'packet',
+        event: { ...event, stacks: pet, audience: { recipients: RECIPIENT.SELF } }
+      });
 
     if (activePet && player > 0)
       runtime.effects.emit({
@@ -534,7 +539,7 @@ export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<Range
           ...event,
           stacks: player,
           audience: {
-            recipients: 'summons',
+            recipients: RECIPIENT.SUMMONS,
             affectsSelf: false,
             maximumRecipients: 1,
             eligibleCompanionIds: [activePet.id]
@@ -554,7 +559,7 @@ export function emitSunSpiritBurning(runtime: RangerRuntime, skill: Skill, at: n
     attribution: {
       source: 'ranger',
       sourceId: solarFlare.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: solarFlare.id,
       skillName: solarFlare.name,
       triggeredBy: skill.name
@@ -581,7 +586,7 @@ export function emitStormSpiritSlam(
     attribution: {
       source: 'ranger',
       sourceId: lightning.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: lightning.id,
       skillName: lightning.name,
       // Keep the summon activation so isolated previews and causal queries include its child damage.
@@ -613,12 +618,12 @@ export function activateSicEm(runtime: RangerRuntime, skill: Skill): void {
           audience:
             kind === 'sic-em-pet'
               ? {
-                  recipients: 'summons',
+                  recipients: RECIPIENT.SUMMONS,
                   affectsSelf: false,
                   maximumRecipients: 1,
                   eligibleCompanionIds: [rangerPetCompanionId(runtime)]
                 }
-              : { recipients: 'self' },
+              : { recipients: RECIPIENT.SELF },
           priority: -20,
           stacks: 1,
           duration: balanceNumberFromContext(runtime, PROFILE.sicEm, 'duration')
@@ -687,8 +692,8 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Gw
       attribution: {
         source: 'ranger',
         sourceId: ID.SHARPENING_STONE,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         skillId: ID.SHARPENING_STONE,
         skillName: 'Sharpening Stone',
         triggeredBy: event.skillName
@@ -749,7 +754,7 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
     attribution: {
       source: 'ranger',
       sourceId: ID.STRENGTH_OF_THE_PACK,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: ID.STRENGTH_OF_THE_PACK,
       skillName: '"Strength of the Pack!"',
       triggeredBy: event.skillName
@@ -757,9 +762,9 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
     name: '"Strength of the Pack!" - Might',
     fields: {
       audience: merged
-        ? { recipients: 'self' }
+        ? { recipients: RECIPIENT.SELF }
         : {
-            recipients: 'summons',
+            recipients: RECIPIENT.SUMMONS,
             affectsSelf: false,
             maximumRecipients: 5,
             eligibleCompanionIds: [pet!.id]

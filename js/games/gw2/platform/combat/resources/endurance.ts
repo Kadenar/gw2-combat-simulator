@@ -1,9 +1,9 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
+import { boonKey, boonIntervals } from '#gw2/platform/combat/boons.js';
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { GW2_ACTION_TICK_MS, gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 
 import { cappedResource, grantCapped, resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
-import { boonIntervals } from '#gw2/platform/combat/boons.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 

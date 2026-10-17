@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
@@ -22,7 +22,7 @@ export const DRAGONHUNTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -30,7 +30,7 @@ export const DRAGONHUNTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
         condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 1.5,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         packetLabel: 'passive'
       }
     ]

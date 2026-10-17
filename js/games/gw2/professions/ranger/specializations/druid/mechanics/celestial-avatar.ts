@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
@@ -120,8 +121,8 @@ export const celestialAvatarLifecycle: RuntimeHooks<RangerRuntimeState, RangerSk
       event.at > runtime.time &&
       !event.cancelled &&
       !event.offTarget &&
-      event.actorType !== 'summon' &&
-      event.ownerActorType !== 'summon' &&
+      event.actorType !== ACTOR.SUMMON &&
+      event.ownerActorType !== ACTOR.SUMMON &&
       !event.independentSummonStrike
     )
       druidState.from(runtime).pendingHitTimes.push(event.at);
@@ -170,8 +171,8 @@ export const celestialAvatarLifecycle: RuntimeHooks<RangerRuntimeState, RangerSk
     'damage.resolved'(runtime, event) {
       if (
         druidState.from(runtime).celestialAvatarActive ||
-        event.actorType === 'summon' ||
-        event.ownerActorType === 'summon' ||
+        event.actorType === ACTOR.SUMMON ||
+        event.ownerActorType === ACTOR.SUMMON ||
         isPetStrike(event) ||
         event.independentSummonStrike
       )

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { effectFirstAtMs } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -53,7 +52,7 @@ export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         atMs: 160,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
   },
@@ -67,7 +66,7 @@ export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         type: 'strike',
         ticks: [{ atMs: 160, coefficient: 3.3 }],
         name: 'Death Drop',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -76,7 +75,7 @@ export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -90,7 +89,7 @@ export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         type: 'strike',
         ticks: [{ atMs: 160, coefficient: 2 }],
         name: 'Imperial Impact',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -100,21 +99,21 @@ export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
         boon: BOON.MIGHT,
         duration: 10,
         stacks: 5,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
       {
         type: 'boon',
         boon: BOON.PROTECTION,
         duration: 5,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
   }

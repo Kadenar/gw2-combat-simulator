@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { ACTOR, CONTROL, RECIPIENT, BOON } from '#gw2/platform/constants.js';
 /** Owns Legendary Centaur Stance skill fragments and their alternate identities. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -35,12 +35,12 @@ export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: [
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'knockdown'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.KNOCKDOWN
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.STABILITY,
         duration: 5,
         stacks: 3

@@ -1,8 +1,8 @@
+import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import assert from 'node:assert/strict';
 import { canonicalTime } from '#kernel/core/clock.js';
 import test from 'node:test';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
-import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';

@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -20,7 +21,7 @@ export function gainCatalystEnergy(runtime: ElementalistRuntime, event: Simulati
   const state = catalystState.from(runtime);
 
   if (
-    event.actorType === 'summon' ||
+    event.actorType === ACTOR.SUMMON ||
     !(Number(event.coefficient) > 0) ||
     (runtime.time < state.sphereActiveUntil && !sphereSpecialistAllowsEnergy(runtime))
   )
@@ -42,7 +43,7 @@ export function gainCatalystEnergy(runtime: ElementalistRuntime, event: Simulati
         at: runtime.time,
         source: 'Catalyst Energy',
         sourceId: event.sourceId,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: event.skillName,
         kind: 'catalyst-energy',
         value: after,

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Owns Core legend-swap call skill fragments used by Song of the Mists. */
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -22,7 +21,7 @@ export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 0.75,
         hits: 1,
         name: 'Call of the Dwarf',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -30,7 +29,7 @@ export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Parti
         name: 'Call of the Dwarf',
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -44,7 +43,7 @@ export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 0.93,
         hits: 1,
         name: 'Call of the Assassin',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -52,7 +51,7 @@ export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Parti
         name: 'Call of the Assassin',
         stacks: 8,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
@@ -73,7 +72,7 @@ export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 0.9,
         hits: 1,
         name: 'Call of the Demon',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -82,7 +81,7 @@ export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Parti
         skillName: 'Call of the Demon',
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -91,7 +90,7 @@ export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Parti
         skillName: 'Call of the Demon',
         stacks: 2,
         duration: 8,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }

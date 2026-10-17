@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -24,7 +23,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
           coefficient: 3.9325 / 5
         })),
         name: 'Unrelenting Assault',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -52,7 +51,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         ticks: [{ atMs: 320, coefficient: 0.45 }],
         name: 'Deathstrike',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'strike',
@@ -61,7 +60,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         // Track the follow-up separately while retaining Deathstrike as the casting skill.
         damageBreakdownName: 'Deathstrike — Follow-up',
         sourceId: ID.DEATHSTRIKE_ID_28625,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
@@ -83,14 +82,14 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         ticks: [{ atMs: 640, coefficient: 1.2 }],
         name: 'Initial Damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'strike',
         name: 'Additional Strikes',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true,
         ticks: [
           { atMs: 720, coefficient: 0.4 },
@@ -110,14 +109,14 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
           condition: CONDITION.IMMOBILIZED,
           stacks: 1,
           duration: 1,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.VULNERABILITY,
           stacks: 8,
           duration: 5,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ])
     ]
@@ -136,7 +135,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         hits: 1,
         name: 'Deathstrike — Follow-up',
         damageBreakdownName: 'Deathstrike — Follow-up',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -150,7 +149,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         ticks: [{ atMs: 400, coefficient: 0.9 }],
         name: 'Rift Slash',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -161,7 +160,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         // The delayed rift has its own logged damage identity, separate from the sword attack.
         damageBreakdownName: 'Rift Slash — Rift',
         sourceId: 29073,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -182,14 +181,14 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.75,
         hits: 1,
         name: 'Preparation Thrust',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -205,20 +204,20 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         ticks: [{ atMs: 280, coefficient: 0.8 }],
         name: 'Chilling Isolation — Packet 1',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'strike',
         ticks: [{ atMs: 480, coefficient: 1.6 }],
         name: 'Isolated Damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true,
         metadata: {}
       },
       {
         type: 'condition',
         ticks: [{ atMs: 280, condition: CONDITION.CHILLED, stacks: 1, duration: 2 }],
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -234,14 +233,14 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.8,
         hits: 1,
         name: 'Brutal Blade',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 2,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   }

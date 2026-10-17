@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 import { bladecallEffects } from '#gw2/professions/mesmer/core/skills/weapons/bladecall.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
@@ -47,7 +47,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
           type: 'strike',
           coefficient: 0.5,
           hits: 1,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           weapon: 'unequipped'
         }
       ])
@@ -63,7 +63,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
         coefficient: 1.5,
         hits: 1,
         name: 'Damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         weapon: 'utility'
       },
       // The falling blade immobilizes at the same impact as its strike (wiki: Sword_of_Decimation, PvE).
@@ -90,7 +90,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
           type: 'strike',
           coefficient: 1.2,
           hits: 1,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           weapon: 'utility'
         },
         { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 3, duration: 10 }
@@ -107,7 +107,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
         hits: 2,
         atMs: 0,
         name: 'Damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         weapon: 'unequipped'
       }
     ]
@@ -160,8 +160,8 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
       {
         type: 'control',
         source: 'Player',
-        controlKind: 'daze',
-        actorType: 'player',
+        controlKind: CONTROL.DAZE,
+        actorType: ACTOR.PLAYER,
         atMs: 0,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'

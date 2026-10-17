@@ -1,8 +1,7 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, countActiveBoons, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
-import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/events/actors.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { isPetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
@@ -13,7 +12,7 @@ import type { RangerModifierContext, RangerPetDefinition } from '#gw2/profession
 
 /** Ranger chooses the attacking actor; shared queries own storage, recipients, and live visibility. */
 export function activeBuff(context: RangerModifierContext, kind: string): boolean {
-  return buffActive(context, kind, rangerPetEvent(context) ? petRecipient(context) : { actor: 'player' });
+  return buffActive(context, kind, rangerPetEvent(context) ? petRecipient(context) : { actor: ACTOR.PLAYER });
 }
 
 /** Delayed pet packets retain the incarnation that launched them, even after a swap. */
@@ -31,12 +30,12 @@ export function beastmodeActive(context: RangerModifierContext): boolean {
 
 export function rangerPetEvent(context: Gw2ModifierContext): boolean {
   // Pet modifiers require both canonical summon classification and Ranger-specific source ownership.
-  return gw2EventActorType(context.event) === GW2_EVENT_ACTOR_TYPES.SUMMON && isPetStrike(context.event);
+  return gw2EventActorType(context.event) === ACTOR.SUMMON && isPetStrike(context.event);
 }
 
 /** Player preview totals never replace the pet's own boon count. */
-export function rangerActiveBoonCount(context: Gw2ModifierContext, audience: 'player' | 'pet'): number {
-  return countActiveBoons(context, audience === 'pet' ? petRecipient(context) : { actor: 'player' });
+export function rangerActiveBoonCount(context: Gw2ModifierContext, audience: typeof ACTOR.PLAYER | 'pet'): number {
+  return countActiveBoons(context, audience === 'pet' ? petRecipient(context) : { actor: ACTOR.PLAYER });
 }
 
 export function rangerTargetImpaired(context: Gw2ModifierContext): boolean {

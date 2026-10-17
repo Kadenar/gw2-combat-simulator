@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -86,7 +87,7 @@ function rifleStanceAvailability(
   if (skill.id === ID.FREE_ACTION && !core.kneeling) return denySkillCast(skill, 'thief.not-kneeling', 'kneel first.');
 
   if (
-    skill.weapon === 'Rifle' &&
+    skill.weapon === WEAPON.RIFLE &&
     skill.id !== ID.KNEEL &&
     skill.id !== ID.FREE_ACTION &&
     !skill.stealthAttack &&

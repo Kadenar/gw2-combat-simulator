@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, AURA, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -160,7 +159,7 @@ export const rockSolid = defineTrait({
         name: BOON.STABILITY,
         boon: BOON.STABILITY,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 3
       }
@@ -180,9 +179,9 @@ export const writtenInStone = defineTrait({
   name: 'Written in Stone',
   balance: {
     effects: [
-      { type: 'buff', name: 'Restoration', kind: 'Frost Aura', stacks: 1, duration: 4 },
-      { type: 'buff', name: 'Fire', kind: 'Fire Aura', stacks: 1, duration: 4 },
-      { type: 'buff', name: 'Earth', kind: 'Magnetic Aura', stacks: 1, duration: 3 }
+      { type: 'buff', name: 'Restoration', kind: AURA.FROST, stacks: 1, duration: 4 },
+      { type: 'buff', name: 'Fire', kind: AURA.FIRE, stacks: 1, duration: 4 },
+      { type: 'buff', name: 'Earth', kind: AURA.MAGNETIC, stacks: 1, duration: 3 }
     ]
   }
 });
@@ -215,7 +214,7 @@ function applyEarthsEmbrace(context: ElementalistRuntime, { cast }: Elementalist
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.EARTHS_EMBRACE,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       name: "Earth's Embrace",
       priority: 0
     }
@@ -278,7 +277,7 @@ function applyStrengthOfStone(context: ElementalistResolverContext, event: Gw2Re
       attribution: {
         source: 'Strength of Stone',
         sourceId: 'Strength of Stone',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: 'Strength of Stone',
         triggeredBy: resolverSourceSkill(event)
       },
@@ -300,7 +299,7 @@ function applyResolverElementalShielding(context: MechanicCombatContext, event: 
     durationContext: event,
     effect: { type: 'boon', name: BOON.PROTECTION },
     attribution: {
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillName: requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_SHIELDING).name,
       triggeredBy: resolverSourceSkill(event),
       priority: Number(event.priority || 0)
@@ -352,6 +351,12 @@ function grantElementalistRockSolid(
     skillName: 'Rock Solid',
     cast: emissionCast,
     priority: 0,
-    attribution: { source: 'Trait', sourceId: TRAIT.ROCK_SOLID, actorType: 'player', name: 'Rock Solid', priority: 0 }
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.ROCK_SOLID,
+      actorType: ACTOR.PLAYER,
+      name: 'Rock Solid',
+      priority: 0
+    }
   });
 }

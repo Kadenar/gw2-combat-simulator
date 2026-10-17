@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -104,7 +104,7 @@ export function emitAshes(context: GuardianResolverContext, event: GuardianResol
       at: event.at,
       source: 'guardian',
       sourceId: 'guardian.ashes-of-the-just',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: ID.ASHES_OF_THE_JUST,
       skillName: 'Epilogue: Ashes of the Just',
       // The charge owns its burning; the triggering attack retains the causal activation only.
@@ -171,7 +171,7 @@ const courage = createPassiveCourageTask({
       at: runtime.time,
       source: 'guardian',
       sourceId: ID.TOME_OF_COURAGE,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: ID.TOME_OF_COURAGE,
       skillName: 'Tome of Courage',
       name: 'Tome of Courage — Passive Aegis'
@@ -182,7 +182,7 @@ const courage = createPassiveCourageTask({
       effects: [effect],
       attribution: boonCause,
       cause: boonCause,
-      transform: (event) => ({ ...boonCause, ...event, audience: { recipients: 'self' } })
+      transform: (event) => ({ ...boonCause, ...event, audience: { recipients: RECIPIENT.SELF } })
     });
   }
 });

@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
   ProfessionAttributePreviewContext,

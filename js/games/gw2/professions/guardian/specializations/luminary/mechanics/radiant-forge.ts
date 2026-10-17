@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
@@ -68,7 +69,7 @@ function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianSkill>):
       at: runtime.time,
       source: 'guardian',
       sourceId: exit.id,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: exit.id,
       skillName: exit.name,
       weaponSet: runtime.activeWeaponSet,

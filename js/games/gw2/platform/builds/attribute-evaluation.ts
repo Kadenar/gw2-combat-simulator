@@ -1,5 +1,5 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION, BOON } from '#gw2/platform/constants.js';
+import { boonKey, MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import { ATTRIBUTE_NAMES } from '#gw2/platform/builds/attribute-inputs.js';
 import { resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
 import type {
@@ -10,7 +10,6 @@ import type {
   Gw2AttributeLoadout,
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
-import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';

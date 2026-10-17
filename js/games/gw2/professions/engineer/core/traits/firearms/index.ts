@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -36,12 +36,15 @@ export const serratedSteel = defineTrait({
       on: 'damage.resolved',
       run: criticalProcHandler({
         id: 'engineer.core.serrated-steel',
-        actorTypes: ['player', 'effect', 'unknown'],
+        actorTypes: [ACTOR.PLAYER, ACTOR.EFFECT, ACTOR.UNKNOWN],
         when: (_context, event) => Number(event.coefficient) > 0,
         chanceOnCriticalHit: (context) => procChanceFromContext(context, TRAIT.SERRATED_STEEL),
         randomStream: 'engineer.serrated-steel',
         handler(context, event, _details, application) {
-          emitSerratedSteel(context, event, application.quantity, { actorType: 'effect', ownerActorType: 'player' });
+          emitSerratedSteel(context, event, application.quantity, {
+            actorType: ACTOR.EFFECT,
+            ownerActorType: ACTOR.PLAYER
+          });
         }
       })
     },
@@ -77,7 +80,7 @@ export const noScope = defineTrait({
       on: 'damage.resolved',
       run: criticalProcHandler({
         id: 'engineer.core.no-scope',
-        actorTypes: ['player'],
+        actorTypes: [ACTOR.PLAYER],
         when: (_context, event) => Number(event.coefficient) > 0,
         internalCooldown: {
           duration: (context) => balanceNumberFromContext(context, TRAIT.NO_SCOPE, 'internalCooldown'),
@@ -121,7 +124,7 @@ export const incendiaryPowder = defineTrait({
       on: 'damage.resolved',
       run: criticalProcHandler({
         id: 'engineer.core.incendiary-powder-player',
-        actorTypes: ['player'],
+        actorTypes: [ACTOR.PLAYER],
         when: (_context, event) => Number(event.coefficient) > 0,
         internalCooldown: {
           duration: (context) => balanceNumberFromContext(context, TRAIT.INCENDIARY_POWDER, 'internalCooldown'),
@@ -131,7 +134,7 @@ export const incendiaryPowder = defineTrait({
           }
         },
         handler(context, event) {
-          emitIncendiaryPowder(context, event, { actorType: 'effect', ownerActorType: 'player' });
+          emitIncendiaryPowder(context, event, { actorType: ACTOR.EFFECT, ownerActorType: ACTOR.PLAYER });
         }
       })
     },
@@ -352,7 +355,7 @@ export function selectedFirearmsDurationBonuses(context: Gw2ModifierContext): Re
 
 /** Opens or extends Thermal Vision's condition-damage window from player-owned Burning. */
 function applyThermalVision(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  if (event.condition !== CONDITION.BURNING || event.actorType === 'summon') {
+  if (event.condition !== CONDITION.BURNING || event.actorType === ACTOR.SUMMON) {
     return;
   }
 
@@ -368,7 +371,7 @@ function applyThermalVision(context: EngineerResolverContext, event: EngineerRes
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.THERMAL_VISION,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: undefined,
         activationId: event.activationId,
         skillName: 'Thermal Vision',
@@ -388,7 +391,7 @@ function applyThermalVision(context: EngineerResolverContext, event: EngineerRes
 
 /** Converts player-owned Bleeding applications into Sanguine Array might. */
 function applySanguineArray(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  if (event.condition !== CONDITION.BLEEDING || event.actorType === 'summon') {
+  if (event.condition !== CONDITION.BLEEDING || event.actorType === ACTOR.SUMMON) {
     return;
   }
 
@@ -403,7 +406,7 @@ function applySanguineArray(context: EngineerResolverContext, event: EngineerRes
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.SANGUINE_ARRAY,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: undefined,
         activationId: undefined,
         skillName: 'Sanguine Array',
@@ -420,7 +423,7 @@ function applySanguineArray(context: EngineerResolverContext, event: EngineerRes
     });
 
     context.effects.emit({
-      attribution: { source: 'Trait', sourceId: TRAIT.SANGUINE_ARRAY, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: TRAIT.SANGUINE_ARRAY, actorType: ACTOR.EFFECT },
       kind: 'announcement',
       cause: event,
       announcement: { type: 'trait', name: 'Sanguine Array', at: event.at, sourceSkill: event.skillName, icon: '' }
@@ -430,7 +433,7 @@ function applySanguineArray(context: EngineerResolverContext, event: EngineerRes
 
 /** Grants Hematic Focus fury from player-owned Bleeding when its cooldown is ready. */
 function applyHematicFocus(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  if (event.condition !== CONDITION.BLEEDING || event.actorType === 'summon') {
+  if (event.condition !== CONDITION.BLEEDING || event.actorType === ACTOR.SUMMON) {
     return;
   }
 
@@ -446,7 +449,7 @@ function applyHematicFocus(context: EngineerResolverContext, event: EngineerReso
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.HEMATIC_FOCUS,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: undefined,
         activationId: undefined,
         skillName: 'Hematic Focus',
@@ -463,7 +466,7 @@ function applyHematicFocus(context: EngineerResolverContext, event: EngineerReso
     });
 
     context.effects.emit({
-      attribution: { source: 'Trait', sourceId: TRAIT.HEMATIC_FOCUS, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: TRAIT.HEMATIC_FOCUS, actorType: ACTOR.EFFECT },
       kind: 'announcement',
       cause: event,
       announcement: { type: 'trait', name: 'Hematic Focus', at: event.at, sourceSkill: event.skillName, icon: '' }
@@ -484,7 +487,7 @@ function grantNoScope(context: EngineerResolverContext, event: EngineerResolverE
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.NO_SCOPE,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: undefined,
         activationId: undefined,
         skillName: 'No Scope',
@@ -495,14 +498,14 @@ function grantNoScope(context: EngineerResolverContext, event: EngineerResolverE
         applicationIndex: undefined,
         totalApplications: undefined,
         name: 'No Scope',
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: Number(noScopeFury.stacks),
         duration: noScopeFury.duration
       })
     });
 
     context.effects.emit({
-      attribution: { source: 'Trait', sourceId: TRAIT.NO_SCOPE, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: TRAIT.NO_SCOPE, actorType: ACTOR.EFFECT },
       kind: 'announcement',
       cause: event,
       announcement: { type: 'trait', name: 'No Scope', at: event.at, sourceSkill: event.skillName, icon: '' }
@@ -517,12 +520,12 @@ const mechSerratedSteel = criticalProcHandler<
   NativeResolvedDamageDetails
 >({
   id: 'engineer.mechanist.serrated-steel-mech',
-  actorTypes: ['summon'],
+  actorTypes: [ACTOR.SUMMON],
   chanceOnCriticalHit: (context) => procChanceFromContext(context, TRAIT.SERRATED_STEEL),
   randomStream: 'engineer.serrated-steel.mech',
   handler(context, event, _details, application) {
     emitSerratedSteel(context, event, application.quantity, {
-      actorType: 'summon',
+      actorType: ACTOR.SUMMON,
       metadata: { engineerMech: true }
     });
   }
@@ -534,7 +537,7 @@ const mechIncendiaryPowder = criticalProcHandler<
   NativeResolvedDamageDetails
 >({
   id: 'engineer.mechanist.incendiary-powder-mech',
-  actorTypes: ['summon'],
+  actorTypes: [ACTOR.SUMMON],
   internalCooldown: {
     duration: (context) => balanceNumberFromContext(context, TRAIT.INCENDIARY_POWDER, 'internalCooldown'),
     readyAt: (context) => context.procs.deadline('incendiaryPowder.mech') || 0,
@@ -543,13 +546,13 @@ const mechIncendiaryPowder = criticalProcHandler<
     }
   },
   handler(context, event) {
-    emitIncendiaryPowder(context, event, { actorType: 'summon', metadata: { engineerMech: true } });
+    emitIncendiaryPowder(context, event, { actorType: ACTOR.SUMMON, metadata: { engineerMech: true } });
   }
 });
 
 type FirearmsConditionOwner =
-  | { readonly actorType: 'effect'; readonly ownerActorType: 'player' }
-  | { readonly actorType: 'summon'; readonly metadata: { readonly engineerMech: true } };
+  | { readonly actorType: typeof ACTOR.EFFECT; readonly ownerActorType: typeof ACTOR.PLAYER }
+  | { readonly actorType: typeof ACTOR.SUMMON; readonly metadata: { readonly engineerMech: true } };
 
 /** Share trait tuning and emission order while callers explicitly retain player or companion ownership. */
 function emitFirearmsCondition(
@@ -572,14 +575,14 @@ function emitFirearmsCondition(
     effect: { type: 'condition', name: condition },
     settlement: 'reaction',
     attribution: {
-      source: owner.actorType === 'effect' ? 'Trait' : 'engineer',
+      source: owner.actorType === ACTOR.EFFECT ? 'Trait' : 'engineer',
       sourceId,
       skillName: name,
       ...owner,
       offTarget: event.offTarget,
       triggeredBy: event.skillName,
       metadata: {
-        ...(owner.actorType === 'summon' ? { engineerMech: true } : {}),
+        ...(owner.actorType === ACTOR.SUMMON ? { engineerMech: true } : {}),
         ...(procCount == null ? {} : { procCount })
       }
     },
@@ -589,7 +592,7 @@ function emitFirearmsCondition(
       totalApplications: undefined,
       name: name + ' \u2014 ' + packet.condition,
       stacks: Number(packet.stacks) * quantity,
-      ...(owner.actorType === 'summon'
+      ...(owner.actorType === ACTOR.SUMMON
         ? {
             summonOwner: event.summonOwner,
             independentConditionOwner: event.independentConditionOwner,
@@ -599,7 +602,7 @@ function emitFirearmsCondition(
     })
   });
   context.effects.emit({
-    attribution: { source: 'Trait', sourceId, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId, actorType: ACTOR.EFFECT },
     kind: 'announcement',
     cause: event,
     announcement: { type: 'trait', name, at: event.at, sourceSkill: event.skillName, icon: '' }
@@ -642,7 +645,11 @@ function chemicalRoundsEligible(context: Gw2ModifierContext): boolean {
   if (application?.source === 'Trait') return false;
 
   const skill = skillForEvent(context.profession?.catalog, context.event, context.skillId);
-  return event?.skillWeapon === 'Pistol' || event?.application?.skillWeapon === 'Pistol' || skill?.weapon === 'Pistol';
+  return (
+    event?.skillWeapon === WEAPON.PISTOL ||
+    event?.application?.skillWeapon === WEAPON.PISTOL ||
+    skill?.weapon === WEAPON.PISTOL
+  );
 }
 
 /** Selects Heavy Metal's critical bonus from the target's current health tier. */

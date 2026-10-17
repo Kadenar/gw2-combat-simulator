@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, ACTOR, COMBO_FINISHER, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Mirage axe, slot-skill, ambush, and simulator-action catalog data.
  * Mirage Cloak, mirror, and ambush runtime behavior lives under `mechanics/`.
@@ -27,8 +26,8 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Mes
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'axe'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.AXE.toLowerCase()
       },
       {
         type: 'condition',
@@ -47,7 +46,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Mes
     comboFinishers: [
       {
         ownerId: 'mesmer',
-        finisherType: 'Whirl',
+        finisherType: COMBO_FINISHER.WHIRL,
         applications: 2,
         ambiguousFieldSelection: 'oldest'
       }
@@ -65,8 +64,8 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Mes
         hits: 3,
         atMs: 0,
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'axe'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.AXE.toLowerCase()
       },
       {
         type: 'condition',
@@ -119,7 +118,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Mes
         coefficient: 2.4,
         hits: 6,
         name: 'Damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         weapon: 'utility'
       },
       {
@@ -137,8 +136,8 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Mes
       {
         type: 'control',
         source: 'Player',
-        controlKind: 'daze',
-        actorType: 'player',
+        controlKind: CONTROL.DAZE,
+        actorType: ACTOR.PLAYER,
         atMs: 0,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
@@ -150,7 +149,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Mes
         coefficient: 1.5,
         hits: 1,
         name: 'Damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         weapon: 'utility'
       }
     ]
@@ -190,7 +189,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Mes
         coefficient: 1,
         hits: 1,
         name: 'Damage',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         weapon: 'utility'
       },
       {
@@ -233,7 +232,7 @@ function playerAmbushEffects(profileId: string, party = false): NonNullable<Mesm
                   {
                     ...effect,
                     name: cast.skill.name,
-                    actorType: 'player',
+                    actorType: ACTOR.PLAYER,
                     source: 'Player',
                     timingAnchor: 'castStart',
                     timingScale: 'fixed'
@@ -252,7 +251,7 @@ function playerAmbushEffects(profileId: string, party = false): NonNullable<Mesm
                   (effect.type === 'strike' || (effect.type === 'condition' && !repeated) ? (effect.atMs ?? 0) : 0),
                 timingScale: 'fixed' as const,
                 source: 'Player',
-                actorType: 'player' as const,
+                actorType: ACTOR.PLAYER,
                 ...(effect.type === 'strike'
                   ? { name: cast.skill.name }
                   : effect.type === 'condition'
@@ -261,8 +260,8 @@ function playerAmbushEffects(profileId: string, party = false): NonNullable<Mesm
                 ...(effect.type === 'boon'
                   ? {
                       audience: party
-                        ? { recipients: 'party' as const, maximumRecipients: 5 }
-                        : { recipients: 'self' as const }
+                        ? { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+                        : { recipients: RECIPIENT.SELF }
                     }
                   : {})
               }));
@@ -275,7 +274,7 @@ function playerAmbushEffects(profileId: string, party = false): NonNullable<Mesm
 
 /** One skill record owns catalog metadata and both actor variants; profiles and runtime reuse it. */
 export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAttack>> = Object.freeze({
-  Axe: {
+  [WEAPON.AXE]: {
     id: ID.IMAGINARY_AXES,
     effectVariants: playerAmbushEffects('mesmer.mirage.imaginary-axes'),
     name: 'Imaginary Axes',
@@ -284,7 +283,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     castTimeMs: 440,
     cooldown: 1,
     type: 'Weapon',
-    weapon: 'Axe',
+    weapon: WEAPON.AXE,
     slot: 'Weapon_1',
     specialization: 'Mirage',
     ambush: true,
@@ -321,7 +320,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       ]
     }
   },
-  Dagger: {
+  [WEAPON.DAGGER]: {
     id: ID.PHANTOM_RAZOR,
     effectVariants: playerAmbushEffects('mesmer.mirage.phantom-razor'),
     name: 'Phantom Razor',
@@ -330,7 +329,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     castTimeMs: 600,
     cooldown: 1,
     type: 'Weapon',
-    weapon: 'Dagger',
+    weapon: WEAPON.DAGGER,
     slot: 'Weapon_1',
     specialization: 'Mirage',
     ambush: true,
@@ -375,7 +374,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       ]
     }
   },
-  Greatsword: {
+  [WEAPON.GREATSWORD]: {
     id: ID.SPLIT_SURGE,
     effectVariants: playerAmbushEffects('mesmer.mirage.split-surge'),
     name: 'Split Surge',
@@ -384,7 +383,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     castTimeMs: 960,
     cooldown: 0.5,
     type: 'Weapon',
-    weapon: 'Greatsword',
+    weapon: WEAPON.GREATSWORD,
     slot: 'Weapon_1',
     specialization: 'Mirage',
     ambush: true,
@@ -416,7 +415,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       stacks: 2
     }
   },
-  Rifle: {
+  [WEAPON.RIFLE]: {
     id: ID.EFFERVESCENCE,
     effectVariants: playerAmbushEffects('mesmer.mirage.effervescence'),
     name: 'Effervescence',
@@ -425,7 +424,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     castTimeMs: 166.666666667,
     cooldown: 1,
     type: 'Weapon',
-    weapon: 'Rifle',
+    weapon: WEAPON.RIFLE,
     slot: 'Weapon_1',
     specialization: 'Mirage',
     ambush: true,
@@ -449,7 +448,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       atMs: 0
     }
   },
-  Scepter: {
+  [WEAPON.SCEPTER]: {
     id: ID.ETHER_BARRAGE,
     effectVariants: playerAmbushEffects('mesmer.mirage.ether-barrage'),
     name: 'Ether Barrage',
@@ -458,7 +457,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     castTimeMs: 1000,
     cooldown: 1,
     type: 'Weapon',
-    weapon: 'Scepter',
+    weapon: WEAPON.SCEPTER,
     slot: 'Weapon_1',
     specialization: 'Mirage',
     ambush: true,
@@ -502,7 +501,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       ]
     }
   },
-  Spear: {
+  [WEAPON.SPEAR]: {
     id: ID.FRACTURED_GLASS,
     effectVariants: playerAmbushEffects('mesmer.mirage.fractured-glass'),
     name: 'Fractured Glass',
@@ -511,7 +510,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     castTimeMs: 880,
     cooldown: 1,
     type: 'Weapon',
-    weapon: 'Spear',
+    weapon: WEAPON.SPEAR,
     slot: 'Weapon_1',
     specialization: 'Mirage',
     ambush: true,
@@ -531,7 +530,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       stacks: 1
     }
   },
-  Staff: {
+  [WEAPON.STAFF]: {
     id: ID.CHAOS_VORTEX,
     effectVariants: playerAmbushEffects('mesmer.mirage.chaos-vortex', true),
     name: 'Chaos Vortex',
@@ -541,7 +540,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     castTimeMs: 720,
     cooldown: 1,
     type: 'Weapon',
-    weapon: 'Staff',
+    weapon: WEAPON.STAFF,
     slot: 'Weapon_1',
     specialization: 'Mirage',
     ambush: true,
@@ -625,7 +624,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       ]
     }
   },
-  Sword: {
+  [WEAPON.SWORD]: {
     id: ID.MIRAGE_THRUST,
     effectVariants: playerAmbushEffects('mesmer.mirage.mirage-thrust'),
     name: 'Mirage Thrust',
@@ -634,7 +633,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     castTimeMs: 500,
     cooldown: 1,
     type: 'Weapon',
-    weapon: 'Sword',
+    weapon: WEAPON.SWORD,
     slot: 'Weapon_1',
     specialization: 'Mirage',
     ambush: true,
@@ -642,8 +641,8 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       {
         type: 'control',
         source: 'Player',
-        controlKind: 'daze',
-        actorType: 'player',
+        controlKind: CONTROL.DAZE,
+        actorType: ACTOR.PLAYER,
         atMs: 0,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'

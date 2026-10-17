@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -18,7 +18,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: { type: 'necromancer.dark-pact' }
@@ -52,7 +52,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 4 } })
@@ -73,7 +73,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 8 } })
@@ -95,7 +95,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: { type: 'necromancer.transfer' }
@@ -136,7 +136,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: { type: 'necromancer.life-siphon' }

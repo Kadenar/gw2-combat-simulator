@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, COMBO_FINISHER, COMBO_FIELD, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import {
   requireBalanceProfileFromContext,
@@ -38,7 +37,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 4,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -60,7 +59,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         event: {
           name: 'Launch Wall'
         },
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -73,7 +72,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         coefficient: 3,
         hits: 1,
         name: 'Prime Light Beam — Packet 1',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion'
       },
       {
@@ -85,12 +84,12 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         event: {
           name: 'Prime Light Beam — field'
         },
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'launch'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.LAUNCH
       }
     ]
   },
@@ -108,7 +107,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         event: {
           name: 'Laser Disk'
         },
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -130,14 +129,14 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         hits: 1,
         name: 'Blade Burst',
         weapon: 'Profession mechanic',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ],
     toolbeltParentId: ID.LASER_DISK
@@ -159,12 +158,12 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         hits: 1,
         name: 'Particle Accelerator',
         weapon: 'Profession mechanic',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         comboFinishers: [
           {
             ownerId: 'engineer',
-            finisherType: 'Projectile',
-            preferredFieldTypes: ['Fire'],
+            finisherType: COMBO_FINISHER.PROJECTILE,
+            preferredFieldTypes: [COMBO_FIELD.FIRE],
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -175,11 +174,11 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.SWIFTNESS,
         duration: 3,
         stacks: 1
@@ -227,7 +226,7 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
           totalHits: packets,
           source: 'engineer',
           sourceId: event.skillId ?? event.sourceId,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: event.skillId,
           skillWeapon: 'Unequipped',
           damageKind: 'explosion',
@@ -250,7 +249,7 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
           totalApplications: packets,
           source: 'engineer',
           sourceId: event.skillId ?? event.sourceId,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: event.skillId,
           holosmithConditionBaseDurationFactor: conditionBaseDurationFactor
         })
@@ -290,7 +289,7 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
           totalHits: pulses,
           source: 'engineer',
           sourceId: event.skillId ?? event.sourceId,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: event.skillId,
           skillWeapon: 'Utility',
           holosmithStrikeFactor: strikeFactor
@@ -312,7 +311,7 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
           totalApplications: pulses,
           source: 'engineer',
           sourceId: event.skillId ?? event.sourceId,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: event.skillId
         })
       });
@@ -349,7 +348,7 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
           totalHits: walls,
           source: 'engineer',
           sourceId: event.skillId ?? event.sourceId,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: event.skillId,
           skillWeapon: 'Utility',
           damageKind: 'explosion',
@@ -372,7 +371,7 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
           totalApplications: walls,
           source: 'engineer',
           sourceId: event.skillId ?? event.sourceId,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: event.skillId
         })
       });
@@ -394,7 +393,7 @@ export function prepareHolosmithSlotEvent(
     };
   }
 
-  if (event.type !== 'damage' || event.actorType !== 'player') return event;
+  if (event.type !== 'damage' || event.actorType !== ACTOR.PLAYER) return event;
 
   const id = event.skillId ?? event.sourceId;
   const profile =

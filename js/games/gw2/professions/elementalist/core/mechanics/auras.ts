@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
@@ -26,7 +27,7 @@ export function applyElementalistAura(context: MechanicCombatContext, applicatio
       ...application,
       type: 'elementalist.aura',
       source: application.skillName,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       duration: smotheringAurasDuration(context, application.duration)
     }
   });

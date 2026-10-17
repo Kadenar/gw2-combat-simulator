@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -31,7 +32,7 @@ export function schedulePrimordialStance(
       effect: timing,
       start: cast.start,
       fullEnd: cast.fullEnd,
-      baseEvent: { source: 'elementalist', sourceId: skill.id, actorType: 'player' }
+      baseEvent: { source: 'elementalist', sourceId: skill.id, actorType: ACTOR.PLAYER }
     });
     for (const { at } of applications) {
       // Exclude only the canonical activation instant and coalesce coincident condition applications.
@@ -70,7 +71,7 @@ function emitPrimordialStancePulse(
           at,
           source: 'elementalist',
           sourceId,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           // Retain the casting variant for action counts while all variants share one displayed row.
           skillName: captured.skillName,
           damageBreakdownName: 'Primordial Stance',

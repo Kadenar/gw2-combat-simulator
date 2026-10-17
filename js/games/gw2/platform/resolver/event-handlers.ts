@@ -1,3 +1,5 @@
+import { isStandardBoon, recordBuffApplication, applyBoonExtension } from '#gw2/platform/combat/boons.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import { recordCompanionBuff } from '#gw2/platform/combat/state/companion.js';
 import type { Gw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
@@ -11,9 +13,7 @@ import {
   gw2BoonApplicationRecipients,
   gw2BuffApplicationRecipients
 } from '#gw2/platform/combat/state/allied-players.js';
-import { isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
-import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/events/actors.js';
 
 interface CreateGw2ResolverEventHandlersOptions {
   readonly hitResolution: Gw2HitResolution;
@@ -27,8 +27,6 @@ interface CreateGw2ResolverEventHandlersOptions {
   >;
   readonly reactions: Gw2ResolverReactionRegistry;
 }
-
-import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
 
 const noop = () => {};
 
@@ -124,7 +122,7 @@ export function createGw2ResolverEventHandlers({
     condition_tick(ctx, event) {
       // Environment ticks reduce target health but cannot enter any player or
       // equipment reaction pipeline.
-      if (event.actorType === GW2_EVENT_ACTOR_TYPES.ENVIRONMENT) {
+      if (event.actorType === ACTOR.ENVIRONMENT) {
         handleEnvironmentConditionTick(ctx, event);
         return;
       }

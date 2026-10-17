@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
@@ -25,7 +25,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 2,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         packetLabel: 'active'
       },
       {
@@ -34,7 +34,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 1.2,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         packetLabel: 'passive'
       }
     ]
@@ -71,7 +71,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         atMs: 1720,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'strike',
@@ -81,7 +81,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         atMs: 1920,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -99,7 +99,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         kind: 'guardian-spear-luminance',
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -116,7 +116,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 1,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'buff',
@@ -124,7 +124,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         kind: 'guardian-symbol-of-ignition-field',
         stacks: 1,
         duration: 4,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   },

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FIELD, RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /**
  * Scourge skill mechanics owned by the Scourge Necromancer module.
@@ -56,7 +55,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   },
   [ID.GHASTLY_BREACH]: {
     castTimeMs: 680,
-    comboFields: [{ ownerId: 'necromancer', fieldType: 'Dark', duration: 5, startAnchor: 'castEnd' }],
+    comboFields: [{ ownerId: 'necromancer', fieldType: COMBO_FIELD.DARK, duration: 5, startAnchor: 'castEnd' }],
     // Five fixed pulses share strike, condition, and ally-boon timing; boon-conversion Torment is not simulated.
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
@@ -86,7 +85,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         duration: 6,
         applications: 5,
         intervalMs: 1000,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ])
   },
@@ -99,7 +98,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 12 } })

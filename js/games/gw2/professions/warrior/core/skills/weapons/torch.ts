@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, COMBO_FIELD, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { conditionTimeline, impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -10,7 +10,7 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Part
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: 'Blast',
+        finisherType: COMBO_FINISHER.BLAST,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -47,7 +47,7 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Part
     comboFields: [
       {
         ownerId: 'warrior',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 5,
         startAnchor: 'castEnd'
       }

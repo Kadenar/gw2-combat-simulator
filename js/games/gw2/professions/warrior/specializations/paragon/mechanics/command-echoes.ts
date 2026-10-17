@@ -1,3 +1,4 @@
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -49,7 +50,7 @@ function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
       attribution: {
         source: 'Paragon',
         sourceId: skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: skill.id,
         skillName: skill.name,
         activationId
@@ -57,7 +58,7 @@ function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
       transform: (event) => ({
         ...event,
         name: `${skill.name} — ${event.type === 'buff' ? event.kind : event.name}`,
-        ...(event.type === 'buff' ? { audience: { recipients: 'party' } } : {})
+        ...(event.type === 'buff' ? { audience: { recipients: RECIPIENT.PARTY } } : {})
       })
     });
     runtime.resourceController.grant('adrenaline', balanceProfileNumber(payload, 'resourceGain'));

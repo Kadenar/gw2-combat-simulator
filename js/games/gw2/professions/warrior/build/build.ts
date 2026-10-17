@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { WARRIOR_SKILL_IDS as SKILL } from '#gw2/professions/warrior/data/ids.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
@@ -17,8 +18,8 @@ export function createWarriorBuildDefaults(): WarriorCanonicalBuild {
     profession: WARRIOR_PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Berserker's"])),
     alternateWeaponPrefixes: ["Berserker's", "Berserker's"],
-    weapons: ['Axe', 'Axe'],
-    alternateWeapons: ['Greatsword', ''],
+    weapons: [WEAPON.AXE, WEAPON.AXE],
+    alternateWeapons: [WEAPON.GREATSWORD, ''],
     rune: 'Scholar',
     weaponSigils: normalizeWeaponSigils(DEFAULT_WEAPON_SIGILS),
     relic: 'Thief',

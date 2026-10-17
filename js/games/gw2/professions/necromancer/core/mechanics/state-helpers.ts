@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -101,7 +102,7 @@ export function necromancerCreatureStrikeMultiplier(runtime: NecromancerRuntime)
 /** Shares party effects with up to five recipients, including only active minion companions. */
 export function necromancerPartyAudience(runtime: NecromancerRuntime) {
   return {
-    recipients: 'party' as const,
+    recipients: RECIPIENT.PARTY,
     maximumRecipients: 5,
     eligibleCompanionIds: necromancerActiveMinionCompanionIds(runtime)
   };

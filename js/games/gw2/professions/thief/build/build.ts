@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { THIEF_SKILL_IDS as SKILL } from '#gw2/professions/thief/data/ids.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
@@ -38,8 +39,8 @@ export function createThiefBuildDefaults(): ThiefCanonicalBuild {
     profession: THIEF_PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Berserker's"])),
     alternateWeaponPrefixes: ["Berserker's", "Berserker's"],
-    weapons: ['Rifle', ''],
-    alternateWeapons: ['Dagger', 'Pistol'],
+    weapons: [WEAPON.RIFLE, ''],
+    alternateWeapons: [WEAPON.DAGGER, WEAPON.PISTOL],
     rune: 'Scholar',
     weaponSigils: normalizeWeaponSigils(DEFAULT_WEAPON_SIGILS),
     relic: 'Thief',

@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { bloodReaction } from '#gw2/professions/warrior/specializations/berserker/traits/index.js';
 import { attackersInsight } from '#gw2/professions/warrior/specializations/spellbreaker/traits/index.js';

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -22,7 +21,7 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         applications: 3,
         atMs: 800,
         intervalMs: 1000,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -33,7 +32,7 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         applications: 3,
         atMs: 800,
         intervalMs: 1000,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -47,21 +46,21 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         boon: BOON.QUICKNESS,
         duration: 6,
         stacks: 1,
-        audience: { recipients: 'self' }
+        audience: { recipients: RECIPIENT.SELF }
       },
       {
         type: 'boon',
         boon: BOON.FURY,
         duration: 6,
         stacks: 1,
-        audience: { recipients: 'self' }
+        audience: { recipients: RECIPIENT.SELF }
       },
       {
         type: 'boon',
         boon: BOON.SWIFTNESS,
         duration: 6,
         stacks: 1,
-        audience: { recipients: 'self' }
+        audience: { recipients: RECIPIENT.SELF }
       }
     ]
   },
@@ -74,7 +73,7 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 2.5 }],
         name: 'Burst of Shadows',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
@@ -83,7 +82,7 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }

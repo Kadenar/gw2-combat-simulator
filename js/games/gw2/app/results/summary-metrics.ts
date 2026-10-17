@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverResult } from '#gw2/platform/results/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import { clamp } from '#kernel/core/numeric.js';
@@ -7,7 +8,7 @@ export interface ResultSummaryMetric {
   readonly label: string;
   readonly value: string;
   readonly className: string;
-  readonly group?: 'player' | 'target';
+  readonly group?: typeof ACTOR.PLAYER | 'target';
   readonly details?: readonly ResultSummaryMetricDetail[];
 }
 
@@ -73,8 +74,8 @@ export function baseResultSummaryMetrics(result: Gw2ResolverResult): ResultSumma
           }
         ];
   metrics.push(
-    { label: 'Player Damage', value: format(result.totalDamage), className: '', group: 'player' },
-    { label: 'Player DPS', value: format(result.dps), className: 'dps', group: 'player' },
+    { label: 'Player Damage', value: format(result.totalDamage), className: '', group: ACTOR.PLAYER },
+    { label: 'Player DPS', value: format(result.dps), className: 'dps', group: ACTOR.PLAYER },
     { label: 'Strike', value: format(result.strikeDamage), className: '' },
     {
       label: 'Condition',
@@ -89,7 +90,7 @@ export function baseResultSummaryMetrics(result: Gw2ResolverResult): ResultSumma
       {
         label: 'Environment Damage',
         value: format(result.environmentDamage),
-        className: 'environment',
+        className: ACTOR.ENVIRONMENT,
         group: 'target',
         details: [
           { label: 'Environment DPS', value: format(result.environmentDps) },
@@ -130,7 +131,7 @@ export function targetHealthBreakpointSnapshots(
   const startingPercent = Number.isFinite(configuredStartingPercent) ? clamp(configuredStartingPercent, 0, 100) : 100;
 
   const damageByTime = new Map<number, { player: number; environment: number }>();
-  const addDamage = (at: unknown, damage: unknown, owner: 'player' | 'environment'): void => {
+  const addDamage = (at: unknown, damage: unknown, owner: typeof ACTOR.PLAYER | typeof ACTOR.ENVIRONMENT): void => {
     const time = Number(at);
     const amount = Number(damage);
 
@@ -147,15 +148,15 @@ export function targetHealthBreakpointSnapshots(
         readonly at?: unknown;
         readonly damage?: unknown;
       }>;
-      for (const tick of ticks) addDamage(tick.at, tick.damage, 'player');
+      for (const tick of ticks) addDamage(tick.at, tick.damage, ACTOR.PLAYER);
     } else if (event.type === 'damage') {
-      addDamage(event.at, event.damage, 'player');
+      addDamage(event.at, event.damage, ACTOR.PLAYER);
     }
   }
 
   for (const condition of result?.environmentConditionBreakdown || []) {
     for (const tick of condition.damageTicks) {
-      addDamage(tick.at, tick.damage, 'environment');
+      addDamage(tick.at, tick.damage, ACTOR.ENVIRONMENT);
     }
   }
 

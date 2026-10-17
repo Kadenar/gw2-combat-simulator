@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/condition-profiles.js';
@@ -138,7 +138,7 @@ export function resolveCloneShatter(
       attribution: {
         source: 'Player',
         sourceId: skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: skill.id,
         skillName: skill.name
       },

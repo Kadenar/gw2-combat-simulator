@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   simulationEffectFacts,
   skillTooltip,
@@ -93,7 +94,7 @@ export const upkeepTooltip: DescribeSimulationTooltip = (balanceContext, entity)
                 boon: pulse.kind,
                 duration: pulse.duration,
                 stacks: pulse.stacks,
-                audience: { recipients: 'party', maximumRecipients: 5 }
+                audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
               }
             ],
             'per upkeep pulse'

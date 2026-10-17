@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -10,7 +11,7 @@ export const wardensFeedback = defineTrait<MesmerSkill>({
   balance: { rechargeMultiplier: 0.8 },
   rechargeRules: [
     {
-      when: (_runtime, skill) => skill.weapon === 'Focus',
+      when: (_runtime, skill) => skill.weapon === WEAPON.FOCUS,
       multiplier: { profile: TRAIT.WARDENS_FEEDBACK, field: 'rechargeMultiplier' }
     }
   ]

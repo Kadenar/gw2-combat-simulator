@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { STATUS, ACTOR, COMBO_FINISHER, COMBO_FIELD, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -19,7 +18,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: [
       {
         type: 'buff',
-        kind: 'stealth',
+        kind: STATUS.STEALTH,
         duration: 3,
         stacks: 1
       }
@@ -48,11 +47,11 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
         coefficient: 1.1,
         hits: 1,
         name: 'Deadly Aim',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2,
             ambiguousFieldSelection: 'oldest'
           }
@@ -64,14 +63,14 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
         condition: CONDITION.VULNERABILITY,
         stacks: 2,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     kneelSkill: true
@@ -106,11 +105,11 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
         coefficient: 0.75,
         hits: 1,
         name: 'Brutal Aim',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2,
             ambiguousFieldSelection: 'oldest'
           }
@@ -122,14 +121,14 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
         condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 6,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -144,11 +143,11 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
           coefficient: 1,
           hits: 1,
           name: "Skirmisher's Shot",
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           comboFinishers: [
             {
               ownerId: 'thief',
-              finisherType: 'Projectile',
+              finisherType: COMBO_FINISHER.PROJECTILE,
               ambiguousFieldSelection: 'oldest'
             }
           ],
@@ -159,7 +158,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
           condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 4,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]),
       {
@@ -180,12 +179,12 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
         coefficient: 0.3,
         hits: 1,
         name: "Death's Retreat",
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         // Retain a field crossed during the leap even when it expires before landing.
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Leap',
+            finisherType: COMBO_FINISHER.LEAP,
             fieldSelectionAnchor: 'castStart',
             ambiguousFieldSelection: 'oldest'
           }
@@ -197,7 +196,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
         condition: CONDITION.POISONED,
         stacks: 1,
         duration: 8,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -210,13 +209,13 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [400, 560].map((atMs) => ({ atMs, coefficient: 2.8 / 2 })),
         name: 'Double Tap',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2,
             ambiguousFieldSelection: 'oldest'
           }
@@ -242,11 +241,11 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
           coefficient: 1.3,
           hits: 1,
           name: "Spotter's Shot",
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           comboFinishers: [
             {
               ownerId: 'thief',
-              finisherType: 'Projectile',
+              finisherType: COMBO_FINISHER.PROJECTILE,
               ambiguousFieldSelection: 'oldest'
             }
           ],
@@ -257,9 +256,9 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
           condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 4,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
-        { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1, actorType: 'player' }
+        { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1, actorType: ACTOR.PLAYER }
       ]),
       {
         type: 'boon',
@@ -285,13 +284,13 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [400, 560, 720].map((atMs) => ({ atMs, coefficient: 2.25 / 3 })),
         name: 'Three Round Burst',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2,
             ambiguousFieldSelection: 'oldest'
           }
@@ -315,7 +314,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     cooldown: 0,
     initiativeCost: 4,
     // The smoke field lasts through the existing five-second Death's Advance follow-up window.
-    comboFields: [{ ownerId: 'thief', fieldType: 'Smoke', duration: 5, startAnchor: 'castEnd' }],
+    comboFields: [{ ownerId: 'thief', fieldType: COMBO_FIELD.SMOKE, duration: 5, startAnchor: 'castEnd' }],
     effects: [],
     kneelSkill: true
   },
@@ -328,13 +327,13 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 2.67 }],
         name: "Death's Judgment — Packet 1",
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: 'Projectile',
+            finisherType: COMBO_FINISHER.PROJECTILE,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -344,12 +343,12 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 1.32 }],
         name: 'Damage on Unmarked Foes',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
     ],
-    requiredMainHand: 'Rifle',
+    requiredMainHand: WEAPON.RIFLE,
     stealthAttack: true
   }
 });

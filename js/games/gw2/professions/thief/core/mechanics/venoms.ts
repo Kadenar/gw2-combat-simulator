@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 
 import {
@@ -77,7 +78,7 @@ export function addVenomCharges(
 
 /** Consumes one charge from every active venom on a player strike and applies each venom's complete proc packet. */
 export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefResolverEvent): number {
-  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return 0;
+  if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return 0;
 
   const state = professionCoreState(context);
   refreshVenomCharges(state, event.at);
@@ -107,7 +108,7 @@ export function emitVenom(context: ThiefResolverContext, event: ThiefResolverEve
         at: event.at,
         source: 'thief',
         sourceId: venom.skillId,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: venom.skillId,
         skillName: venom.skillName,
         // A venom charge owns its condition damage independently of the attack that consumes it.

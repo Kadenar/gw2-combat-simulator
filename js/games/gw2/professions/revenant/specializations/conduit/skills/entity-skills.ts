@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
@@ -202,7 +201,7 @@ const BEGUILING_HAZE_SKILL: Partial<Skill> = {
     {
       type: 'strike',
       name: 'Beguiling Haze',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       ticks: [{ atMs: 480, coefficient: 2.2 }],
       timingAnchor: 'castStart',
       timingScale: 'fixed'
@@ -222,7 +221,7 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
   comboFinishers: [
     {
       ownerId: 'revenant',
-      finisherType: 'Whirl',
+      finisherType: COMBO_FINISHER.WHIRL,
       applications: 2,
       effectDelay: 0.04,
       ambiguousFieldSelection: 'oldest'
@@ -234,17 +233,17 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
       type: 'strike',
       ticks: [{ atMs: 880, coefficient: 2.5 }],
       name: 'Twin Moon Sweep — Player',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       // Every resolved player packet earns affinity; fragments carry no such reaction.
       reactions: [
-        { on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'revenant.entity-hit-affinity' } }
+        { on: 'damage.resolved', actor: ACTOR.PLAYER, packets: 'each', do: { type: 'revenant.entity-hit-affinity' } }
       ]
     },
     {
       type: 'strike',
       ticks: [{ atMs: 880, coefficient: 2.5 }],
       name: 'Twin Moon Sweep — Fragment',
-      actorType: 'player'
+      actorType: ACTOR.PLAYER
     },
     {
       type: 'condition',
@@ -254,7 +253,7 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
         stacks: 2,
         duration: 3
       })),
-      actorType: 'player'
+      actorType: ACTOR.PLAYER
     },
     {
       type: 'boon',
@@ -268,7 +267,7 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
     {
       type: 'condition',
       ticks: [{ atMs: 880, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }],
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       metadata: { legendId: LEGEND.ASSASSIN },
       when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>
         runtime.profession.core.selectedLegendIds.includes(LEGEND.ASSASSIN)
@@ -279,7 +278,7 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
       hits: 2,
       atMs: 1400,
       name: 'Twin Moon Sweep — Shatter',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       metadata: { legendId: LEGEND.DEMON },
       when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>
         runtime.profession.core.selectedLegendIds.includes(LEGEND.DEMON)
@@ -292,7 +291,7 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
         stacks: 3,
         duration: 3
       })),
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       metadata: { legendId: LEGEND.DEMON },
       when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>
         runtime.profession.core.selectedLegendIds.includes(LEGEND.DEMON)
@@ -328,7 +327,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'strike',
         name: 'Hex-Eater Vortex',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: [440, 560, 680, 800, 920, 1040].map((atMs) => ({
           atMs,
           coefficient: 0.2
@@ -337,7 +336,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'condition',
         name: 'Hex-Eater Vortex',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         ticks: [440, 560, 680, 800, 920, 1040].map((atMs) => ({
           atMs,
           condition: CONDITION.TORMENT,
@@ -356,7 +355,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         transform: (_runtime, _cast, effects) =>
           effects.map((effect) =>
             effect.type === 'boon'
-              ? { ...effect, audience: { recipients: 'party' as const, maximumRecipients: 5 } }
+              ? { ...effect, audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } }
               : effect
           )
       }
@@ -376,14 +375,14 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         coefficient: 1.5,
         hits: 1,
         name: "Gladiator's Defense",
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       { type: 'boon', boon: BOON.RESOLUTION, duration: 3, stacks: 1 },
       { type: 'boon', boon: BOON.RESISTANCE, duration: 3, stacks: 1 }

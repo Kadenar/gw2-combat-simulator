@@ -1,7 +1,7 @@
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createCompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';

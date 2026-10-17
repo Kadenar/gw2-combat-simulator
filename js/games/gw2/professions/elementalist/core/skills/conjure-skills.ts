@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, STATUS, CONTROL, COMBO_FIELD, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Core Elementalist conjured-bundle weapon skill fragments.
  *
@@ -63,7 +62,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
           comboFinishers: [
             {
               ownerId: 'elementalist',
-              finisherType: 'Projectile',
+              finisherType: COMBO_FINISHER.PROJECTILE,
               ambiguousFieldSelection: 'oldest'
             }
           ],
@@ -247,7 +246,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -279,7 +278,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Leap',
+            finisherType: COMBO_FINISHER.LEAP,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -299,8 +298,8 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 680, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.33, canCrit: true },
-      { type: 'buff', kind: 'superspeed', stacks: 1, duration: 3, metadata: {} },
-      { type: 'control', applications: 1, controlKind: 'launch' }
+      { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3, metadata: {} },
+      { type: 'control', applications: 1, controlKind: CONTROL.LAUNCH }
     ])
   },
   [ID.INVOKE_LIGHTNING]: withSmallHitboxCap(
@@ -356,7 +355,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Lightning',
+        fieldType: COMBO_FIELD.LIGHTNING,
         duration: 4,
         startAnchor: 'castEnd'
       }
@@ -364,7 +363,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5, canCrit: true },
-      { type: 'control', applications: 1, controlKind: 'stun' }
+      { type: 'control', applications: 1, controlKind: CONTROL.STUN }
     ])
   },
   // --- Fiery Greatsword (conjure elite) ---------------------------------------
@@ -511,7 +510,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
             comboFinishers: [
               {
                 ownerId: 'elementalist',
-                finisherType: 'Whirl',
+                finisherType: COMBO_FINISHER.WHIRL,
                 ambiguousFieldSelection: 'oldest'
               }
             ]

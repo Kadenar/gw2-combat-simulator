@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { WEAVER_SPEAR_FOLLOWUPS } from '#gw2/professions/elementalist/specializations/weaver/skills/weapons/spear.js';
@@ -7,7 +8,7 @@ import type { ElementalistResolverContext } from '#gw2/professions/elementalist/
 export function triggerWeaverSpearFollowups(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (
     event.type !== 'damage' ||
-    (event.actorType !== 'player' && event.actorType !== 'effect') ||
+    (event.actorType !== ACTOR.PLAYER && event.actorType !== ACTOR.EFFECT) ||
     event.offTarget ||
     !(Number(event.coefficient) > 0 || Number(event.flatDamage) > 0 || Number(event.flatStrikeBase) > 0)
   )
@@ -48,7 +49,7 @@ export function triggerWeaverSpearFollowups(context: ElementalistResolverContext
       attribution: {
         source: 'elementalist',
         sourceId: id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: id,
         skillName: skill.name,
         activationId: grant.event?.activationId,

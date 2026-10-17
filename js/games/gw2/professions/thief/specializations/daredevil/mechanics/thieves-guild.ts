@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import type { ThiefGuildSummonProfile } from '#gw2/professions/thief/types.js';
 
 // Daredevil replaces the third Thieves Guild summon with its staff-wielding specialist.
@@ -9,7 +9,7 @@ export const DAREDEVIL_THIEVES_GUILD_PROFILE: ThiefGuildSummonProfile = Object.f
   name: 'Staff Daredevil',
   displayName: 'Daredevil',
   variant: 'Daredevil',
-  weapon: 'Staff',
+  weapon: WEAPON.STAFF,
   weaponStrengthProfileId: 'weapon.staff',
   attacks: [
     {

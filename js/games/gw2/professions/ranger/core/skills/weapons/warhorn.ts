@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { COMBO_FINISHER, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -25,28 +24,28 @@ export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, Partia
     castTimeMs: 1240
   },
   [ID.CALL_OF_THE_WILD]: {
-    comboFinishers: [{ ownerId: 'ranger', finisherType: 'Blast', ambiguousFieldSelection: 'oldest' }],
+    comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.BLAST, ambiguousFieldSelection: 'oldest' }],
     effects: [
       {
         type: 'boon',
         boon: BOON.FURY,
         duration: 12,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
       {
         type: 'boon',
         boon: BOON.MIGHT,
         duration: 12,
         stacks: 6,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
       {
         type: 'boon',
         boon: BOON.SWIFTNESS,
         duration: 12,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
       {
         type: 'condition',
@@ -56,7 +55,7 @@ export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: CONTROL.DAZE
       }
     ],
     castTimeMs: 600

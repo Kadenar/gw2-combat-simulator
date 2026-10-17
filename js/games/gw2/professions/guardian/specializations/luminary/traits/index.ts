@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -52,7 +52,7 @@ const shimmeringStances = defineTrait({
         name: boonKey(BOON.PROTECTION),
         boon: BOON.PROTECTION,
         duration: 3,
-        audience: { recipients: 'party' }
+        audience: { recipients: RECIPIENT.PARTY }
       },
       {
         type: 'condition',
@@ -257,7 +257,7 @@ function startRadiantArmaments(runtime: GuardianRuntime, { cast }: LuminaryCast)
     attribution: {
       source: cause.source,
       sourceId: cause.sourceId,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       metadata: { radiantWeapon: cast.skill.radiantWeapon },
       name: cast.skill.name
     }
@@ -313,10 +313,10 @@ function grantResplendentWeaponry(runtime: GuardianRuntime, { cast }: LuminaryCa
     effects: (effect) => effect.type === 'boon',
     attribution: {
       source: cause.source,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillName: 'Resplendent Weaponry',
       name: 'Resplendent Weaponry',
-      audience: { recipients: 'party' }
+      audience: { recipients: RECIPIENT.PARTY }
     }
   });
 }
@@ -388,8 +388,8 @@ function detonate(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
     attribution: {
       priority: -15,
       sourceId: ID.SOVEREIGN_OF_LIGHT_DAMAGE,
-      actorType: 'effect',
-      ownerActorType: 'player',
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
       skillId: ID.SOVEREIGN_OF_LIGHT_DAMAGE,
       skillName: 'Sovereign of Light',
       name: 'Sovereign of Light',

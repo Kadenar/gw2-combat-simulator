@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -59,7 +60,7 @@ function consumeElementalLightningJolt(context: ElementalistRuntime, strike: Ele
       at: context.time,
       source: `${strike.element} Elemental`,
       sourceId: charge.skillId,
-      actorType: 'summon',
+      actorType: ACTOR.SUMMON,
       skillId: charge.skillId,
       skillName: 'Lightning Jolt',
       name: 'Lightning Jolt',
@@ -120,8 +121,8 @@ const tempestLightningJoltActions = {
               at: cast.effectiveEnd,
               source: 'Lightning Jolt',
               sourceId: ID.LIGHTNING_JOLT,
-              actorType: 'effect',
-              ownerActorType: 'player',
+              actorType: ACTOR.EFFECT,
+              ownerActorType: ACTOR.PLAYER,
               skillId: ID.LIGHTNING_JOLT,
               skillName: 'Lightning Jolt',
               coefficient,

@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { attributeContext, resolveAttributeContributions } from '#gw2/platform/builds/attribute-evaluation.js';
 import { ATTRIBUTE_NAMES, attributeSeed, attributeSourcePool } from '#gw2/platform/builds/attribute-inputs.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -85,7 +86,7 @@ export function renewBaseEmpowerment(runtime: ElementalistRuntime): void {
         at: runtime.time,
         source: 'Trait',
         sourceId: TRAIT.ELEMENTAL_EMPOWERMENT,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: 'Elemental Empowerment',
         kind: 'elemental empowerment',
         stacks: balanceProfileNumber(profile, 'playerStacks'),

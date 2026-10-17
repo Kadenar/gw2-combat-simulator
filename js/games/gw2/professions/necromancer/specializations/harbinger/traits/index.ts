@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -64,7 +64,7 @@ const cascadingCorruption = defineTrait({
         kind: 'meltdown',
         stacks: 1,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         name: 'Strike',
@@ -73,7 +73,7 @@ const cascadingCorruption = defineTrait({
         hits: 1,
         // The explosion lands 17 action ticks after Meltdown activates.
         atMs: 680,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       },
       {
         name: CONDITION.TORMENT,
@@ -82,7 +82,7 @@ const cascadingCorruption = defineTrait({
         stacks: 6,
         duration: 6,
         atMs: 680,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   },
@@ -121,7 +121,7 @@ const septicCorruption = defineTrait({
         condition: CONDITION.POISONED,
         stacks: 1,
         duration: 3,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   },
@@ -158,7 +158,7 @@ const doomApproaches = defineTrait({
         condition: CONDITION.VULNERABILITY,
         stacks: 2,
         duration: 6,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   },
@@ -204,8 +204,8 @@ const deathlyHaste = defineTrait({
         boon: BOON.QUICKNESS,
         stacks: 1,
         duration: 4,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY }
       },
       {
         name: boonKey(BOON.FURY),
@@ -213,8 +213,8 @@ const deathlyHaste = defineTrait({
         boon: BOON.FURY,
         stacks: 1,
         duration: 4,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY }
       }
     ]
   }
@@ -249,7 +249,7 @@ const implacableFoe = defineTrait({
         boon: BOON.STABILITY,
         stacks: 3,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         name: 'implacable-foe',
@@ -257,7 +257,7 @@ const implacableFoe = defineTrait({
         kind: 'implacable-foe',
         stacks: 1,
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -291,7 +291,7 @@ const bolsteringBrew = defineTrait({
         boon: BOON.PROTECTION,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -379,7 +379,7 @@ const darkGunslinger = defineTrait({
     {
       order: 0,
 
-      when: (_runtime, skill) => skill.weapon === 'Pistol',
+      when: (_runtime, skill) => skill.weapon === WEAPON.PISTOL,
       multiplier: { profile: TRAIT.DARK_GUNSLINGER, field: 'rechargeMultiplier' }
     }
   ]
@@ -421,7 +421,7 @@ function applyDeathlyHaste(runtime: NecromancerRuntime, skill: Skill): void {
     preserveName: true,
     skillWeaponFallback: 'Unequipped',
     attribution: (effect) => ({
-      actorType: effect.actorType ?? (skill.type === 'Trait' ? 'effect' : 'player'),
+      actorType: effect.actorType ?? (skill.type === 'Trait' ? ACTOR.EFFECT : ACTOR.PLAYER),
       audience: necromancerPartyAudience(runtime)
     })
   });
@@ -458,7 +458,7 @@ function applyCascadingCorruption(
           attribution: {
             source: 'Trait',
             sourceId: TRAIT.CASCADING_CORRUPTION,
-            actorType: 'effect',
+            actorType: ACTOR.EFFECT,
             activationId: cast.id
           },
           announcement: {
@@ -514,14 +514,14 @@ function grantImplacableFoe(runtime: NecromancerRuntime, skill: Skill): void {
     skillName: skill.name,
     preserveName: true,
     skillWeaponFallback: 'Unequipped',
-    attribution: (effect) => ({ actorType: effect.actorType ?? (skill.type === 'Trait' ? 'effect' : 'player') })
+    attribution: (effect) => ({ actorType: effect.actorType ?? (skill.type === 'Trait' ? ACTOR.EFFECT : ACTOR.PLAYER) })
   });
 }
 
 /** Applies Harbinger traits triggered by eligible resolved player or summon strikes. */
 function applyDoomApproachesStrike(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   // Trait procs must not trigger from synthetic "effect" damage (e.g. Cascading Corruption Meltdown hits).
-  if (event.actorType === 'effect' || !(Number(event.coefficient) > 0)) return;
+  if (event.actorType === ACTOR.EFFECT || !(Number(event.coefficient) > 0)) return;
 
   const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
   // Doom Approaches Vulnerability applies only on the first hit of Tainted Bolts, not each chain projectile.
@@ -544,7 +544,7 @@ function applyDoomApproachesStrike(context: NecromancerResolverContext, event: N
           attribution: {
             source: 'Trait',
             sourceId: TRAIT.DOOM_APPROACHES,
-            actorType: 'effect',
+            actorType: ACTOR.EFFECT,
             skillName: 'Doom Approaches',
             triggeredBy: event.skillName,
             name: 'Doom Approaches'
@@ -561,7 +561,7 @@ function applyDoomApproachesStrike(context: NecromancerResolverContext, event: N
 
 /** Septic Corruption observes its shroud-slot packet after Doom Approaches. */
 function applySepticCorruptionStrike(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (event.actorType === 'effect' || !(Number(event.coefficient) > 0)) return;
+  if (event.actorType === ACTOR.EFFECT || !(Number(event.coefficient) > 0)) return;
 
   const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
 
@@ -584,10 +584,10 @@ function applySepticCorruptionStrike(context: NecromancerResolverContext, event:
           attribution: {
             source: 'Trait',
             sourceId: TRAIT.SEPTIC_CORRUPTION,
-            actorType: 'effect',
+            actorType: ACTOR.EFFECT,
             skillName: 'Septic Corruption',
             triggeredBy: event.skillName,
-            ownerActorType: 'player',
+            ownerActorType: ACTOR.PLAYER,
             name: 'Septic Corruption' + ' - ' + String(condition.condition)
           }
         }

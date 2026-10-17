@@ -1,3 +1,4 @@
+import { WEAPON, STATUS } from '#gw2/platform/constants.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { activeChargeCount } from '#gw2/platform/combat/resources/charges.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -57,7 +58,7 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   // Count at the insertion cursor's time so expired axes disappear even without another axe cast.
   const axes = (state.spinningAxes || []).filter((axe) => axe.expiresAt > at);
 
-  if (axes.length || [context.build?.weapons?.[0], context.build?.alternateWeapons?.[0]].includes('Axe')) {
+  if (axes.length || [context.build?.weapons?.[0], context.build?.alternateWeapons?.[0]].includes(WEAPON.AXE)) {
     items.push({
       id: 'thief-spinning-axes',
       label: 'Spinning Axes',
@@ -144,7 +145,7 @@ export const thiefCoreUi = Object.freeze({
     // Expose held combat bonuses to isolated damage calculations.
     preview.damageBuff('Fluid Strikes', 'fluidStrikes', 'fluid-strikes');
 
-    if (context.weapons.includes('Spear'))
+    if (context.weapons.includes(WEAPON.SPEAR))
       preview.add({
         key: 'distractingThrow',
         label: 'Distracting Throw',
@@ -166,7 +167,7 @@ export const thiefCoreUi = Object.freeze({
       });
 
     // The existing starting-axe field lets recall skills consume a declared stock without manufacturing hits.
-    if ([...context.weapons, ...context.build.alternateWeapons].includes('Axe'))
+    if ([...context.weapons, ...context.build.alternateWeapons].includes(WEAPON.AXE))
       preview.add({
         key: 'spinningAxes',
         label: 'Starting axes',
@@ -190,14 +191,14 @@ export const thiefCoreUi = Object.freeze({
       });
 
     preview.trait('Hidden Killer', {
-      key: 'stealth',
+      key: STATUS.STEALTH,
       kind: 'special',
       scope: ['attributes', 'damage'],
       description: 'Stealthed; Critical Chance'
     });
     preview.targetHealth(TRAIT.FEROCIOUS_STRIKES);
     // Unsuspecting Strike's health-dependent Bleeding is procedural, without a coefficient modifier to inspect.
-    preview.damageTargetHealth(preview.hasId(TRAIT.EXECUTIONER) || context.weapons.includes('Spear'));
+    preview.damageTargetHealth(preview.hasId(TRAIT.EXECUTIONER) || context.weapons.includes(WEAPON.SPEAR));
     preview.playerHealth(['Keen Observer', 'Twin Fangs'], preview.has('Keen Observer') ? 50 : 100);
 
     if (preview.has('Twin Fangs'))
@@ -242,7 +243,7 @@ export const thiefCoreUi = Object.freeze({
 
     if ('revealed' in context.values) core.revealedUntil = context.values.revealed ? 60 : 0;
 
-    if ('stealth' in context.values) core.stealthUntil = context.values.stealth ? 60 : 0;
+    if (STATUS.STEALTH in context.values) core.stealthUntil = context.values.stealth ? 60 : 0;
   },
 
   // Stealth owns weapon slot one even when initiative or another cast gate blocks the replacement.
@@ -308,7 +309,7 @@ export const thiefCoreUi = Object.freeze({
         context.build?.alternateWeapons?.[0],
         context.config?.primaryWeapon,
         context.config?.weaponSet2Primary
-      ].includes('Axe') || (context.build?.initialSpinningAxes ?? context.config?.initialSpinningAxes ?? 0) > 0
+      ].includes(WEAPON.AXE) || (context.build?.initialSpinningAxes ?? context.config?.initialSpinningAxes ?? 0) > 0
         ? [
             {
               id: 'spinning-axes',

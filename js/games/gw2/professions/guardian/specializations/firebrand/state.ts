@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createDiscreteResourceClock, type DiscreteResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import {

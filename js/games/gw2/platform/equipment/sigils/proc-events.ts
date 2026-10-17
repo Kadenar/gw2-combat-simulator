@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
@@ -43,8 +44,8 @@ function commonSigilEvent(
     skillName: `Sigil of ${SIGIL_BY_ID[id]?.name ?? id}`,
     source: 'Sigil',
     sourceId: `sigil.${id}`,
-    actorType: 'effect',
-    ownerActorType: 'player',
+    actorType: ACTOR.EFFECT,
+    ownerActorType: ACTOR.PLAYER,
     triggeredBy: sourceSkill
   };
 }

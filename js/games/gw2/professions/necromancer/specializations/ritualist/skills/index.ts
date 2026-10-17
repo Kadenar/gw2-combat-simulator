@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
@@ -35,21 +34,21 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         boon: BOON.AEGIS,
         duration: 3,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
       {
         type: 'boon',
         boon: BOON.RESISTANCE,
         duration: 4,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
       {
         type: 'boon',
         boon: BOON.STABILITY,
         duration: 5,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ],
     usableInShroud: true
@@ -78,14 +77,14 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         boon: BOON.PROTECTION,
         duration: 4,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
       {
         type: 'boon',
         boon: BOON.VIGOR,
         duration: 4,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ],
     type: 'Profession',
@@ -125,7 +124,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         duration: 10,
         stacks: 5,
         allyStacks: 3,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
   },
@@ -182,7 +181,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         duration: 10,
         stacks: 5,
         allyStacks: 3,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
   },
@@ -202,9 +201,15 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         boon: BOON.MIGHT,
         duration: 10,
         stacks: 8,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
-      { type: 'boon', boon: BOON.FURY, duration: 5, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } }
+      {
+        type: 'boon',
+        boon: BOON.FURY,
+        duration: 5,
+        stacks: 1,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      }
     ],
     usableInShroud: true
   },
@@ -272,7 +277,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         duration: 10,
         stacks: 5,
         allyStacks: 3,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
   }

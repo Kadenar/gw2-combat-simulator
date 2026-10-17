@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { COMBO_FINISHER, STATUS, ACTOR, CONTROL, RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
@@ -55,7 +56,7 @@ const speedOfSynergy = defineTrait<EngineerSkill>({
       {
         name: 'Healing skill superspeed',
         type: 'buff',
-        kind: 'superspeed',
+        kind: STATUS.SUPERSPEED,
         duration: 7,
         stacks: 1,
         maximumDuration: 10
@@ -63,7 +64,7 @@ const speedOfSynergy = defineTrait<EngineerSkill>({
       {
         name: 'Healing toolbelt superspeed',
         type: 'buff',
-        kind: 'superspeed',
+        kind: STATUS.SUPERSPEED,
         // Healing toolbelts grant five seconds; Med Kit combines this with the heal's seven below.
         duration: 5,
         stacks: 1,
@@ -72,7 +73,7 @@ const speedOfSynergy = defineTrait<EngineerSkill>({
       {
         name: 'Med Kit toolbelt superspeed',
         type: 'buff',
-        kind: 'superspeed',
+        kind: STATUS.SUPERSPEED,
         duration: 12,
         stacks: 1,
         maximumDuration: 10
@@ -85,7 +86,7 @@ const speedOfSynergy = defineTrait<EngineerSkill>({
       on: 'castCommit',
       when: (_runtime, cast) => healingSkill(cast.skill) && cast.skill.id !== ID.MED_KIT,
       effects: (effect) => effect.type === 'buff' && effect.name === 'Healing skill superspeed',
-      attribution: { actorType: 'player', name: 'Speed of Synergy \u2014 superspeed' }
+      attribution: { actorType: ACTOR.PLAYER, name: 'Speed of Synergy \u2014 superspeed' }
     },
     ...(['Healing toolbelt superspeed', 'Med Kit toolbelt superspeed'] as const).map<
       Extract<NonNullable<TraitDefinition<EngineerSkill>['triggers']>[number], { on: 'castCommit' }>
@@ -97,7 +98,7 @@ const speedOfSynergy = defineTrait<EngineerSkill>({
         healingSkill(runtime.helpers.skillsById.get(cast.skill.toolbeltParentId)) &&
         (cast.skill.toolbeltParentId === ID.MED_KIT) === (name === 'Med Kit toolbelt superspeed'),
       effects: (effect) => effect.type === 'buff' && effect.name === name,
-      attribution: { actorType: 'player' as const, name: 'Speed of Synergy \u2014 superspeed' }
+      attribution: { actorType: ACTOR.PLAYER, name: 'Speed of Synergy \u2014 superspeed' }
     }))
   ]
 });
@@ -107,7 +108,9 @@ const gyroscopicAcceleration = defineTrait<EngineerSkill>({
   id: TRAIT.GYROSCOPIC_ACCELERATION,
   name: 'Gyroscopic Acceleration',
   balance: {
-    effects: [{ name: 'superspeed', type: 'buff', kind: 'superspeed', stacks: 1, duration: 5, maximumDuration: 10 }]
+    effects: [
+      { name: STATUS.SUPERSPEED, type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 5, maximumDuration: 10 }
+    ]
   },
   triggers: [
     {
@@ -116,8 +119,8 @@ const gyroscopicAcceleration = defineTrait<EngineerSkill>({
       when: (_runtime, cast) =>
         cast.skill.id === ID.FUNCTION_GYRO ||
         Boolean(cast.skill.categories?.some((category) => category.toLowerCase() === 'well')),
-      effects: (effect) => effect.type === 'buff' && effect.name === 'superspeed',
-      attribution: { actorType: 'player', name: 'Gyroscopic Acceleration \u2014 superspeed' }
+      effects: (effect) => effect.type === 'buff' && effect.name === STATUS.SUPERSPEED,
+      attribution: { actorType: ACTOR.PLAYER, name: 'Gyroscopic Acceleration \u2014 superspeed' }
     }
   ]
 });
@@ -127,7 +130,7 @@ const systemShocker = defineTrait<EngineerSkill>({
   id: TRAIT.SYSTEM_SHOCKER,
   name: 'System Shocker',
   balance: {
-    effects: [{ name: 'System Shocker', type: 'control', controlKind: 'daze' }]
+    effects: [{ name: 'System Shocker', type: 'control', controlKind: CONTROL.DAZE }]
   },
   triggers: [
     {
@@ -184,7 +187,7 @@ const massMomentum = defineTrait<EngineerSkill>({
       {
         name: boonKey(BOON.STABILITY),
         type: 'boon',
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.STABILITY,
         stacks: 1,
         duration: 3
@@ -207,7 +210,7 @@ const massMomentum = defineTrait<EngineerSkill>({
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.MASS_MOMENTUM,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: 'Mass Momentum — stability'
       }
     }
@@ -274,9 +277,9 @@ const objectInMotion = defineTrait<EngineerSkill>({
       operation: 'multiply',
 
       factor: (context) => {
-        const count = [boonKey(BOON.STABILITY), boonKey(BOON.SWIFTNESS), 'superspeed'].filter(
+        const count = [boonKey(BOON.STABILITY), boonKey(BOON.SWIFTNESS), STATUS.SUPERSPEED].filter(
           (kind) =>
-            (kind === 'superspeed' ? activeBuffStacks(context, kind, 1) : modifierBoonStacks(context, kind, 1)) > 0
+            (kind === STATUS.SUPERSPEED ? activeBuffStacks(context, kind, 1) : modifierBoonStacks(context, kind, 1)) > 0
         ).length;
         return balanceNumberFromContext(context, TRAIT.OBJECT_IN_MOTION, 'damageMultiplier') ** count;
       },
@@ -317,7 +320,7 @@ function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEv
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.MASS_MOMENTUM,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillId: undefined,
           activationId: undefined,
           skillName: 'Mass Momentum',
@@ -334,7 +337,7 @@ function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEv
       });
 
       context.effects.emit({
-        attribution: { source: 'Trait', sourceId: TRAIT.MASS_MOMENTUM, actorType: 'effect' },
+        attribution: { source: 'Trait', sourceId: TRAIT.MASS_MOMENTUM, actorType: ACTOR.EFFECT },
         kind: 'announcement',
         cause: event,
         announcement: { type: 'trait', name: 'Mass Momentum', at: event.at, sourceSkill: event.skillName, icon: '' }
@@ -378,7 +381,7 @@ function reactToAppliedForceBuff(context: EngineerRuntime, event: EngineerResolv
           attribution: {
             source: 'Trait',
             sourceId: TRAIT.APPLIED_FORCE,
-            actorType: 'effect',
+            actorType: ACTOR.EFFECT,
             skillId: undefined,
             activationId: undefined,
             skillName: 'Applied Force',
@@ -395,7 +398,7 @@ function reactToAppliedForceBuff(context: EngineerRuntime, event: EngineerResolv
         });
 
         context.effects.emit({
-          attribution: { source: 'Trait', sourceId: TRAIT.APPLIED_FORCE, actorType: 'effect' },
+          attribution: { source: 'Trait', sourceId: TRAIT.APPLIED_FORCE, actorType: ACTOR.EFFECT },
           kind: 'announcement',
           cause: event,
           announcement: { type: 'trait', name: 'Applied Force', at: event.at, sourceSkill: event.skillName, icon: '' }
@@ -416,7 +419,7 @@ function applyKineticAcceleratorsCast(context: EngineerRuntime, cast: RuntimeCas
     at: context.time,
     source: 'engineer',
     sourceId: skill.id,
-    actorType: 'player',
+    actorType: ACTOR.PLAYER,
     skillId: skill.id,
     skillName: skill.name,
     name: 'Kinetic Accelerators — Function Gyro blast finisher',
@@ -424,7 +427,7 @@ function applyKineticAcceleratorsCast(context: EngineerRuntime, cast: RuntimeCas
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Blast',
+        finisherType: COMBO_FINISHER.BLAST,
         chance: 1,
         ambiguousFieldSelection: 'oldest'
       }
@@ -436,7 +439,7 @@ function reactToScrapperCombo(context: EngineerRuntime, event: EngineerResolverE
   if (!grantKineticAcceleratorBoons(context, event)) return;
 
   context.effects.emit({
-    attribution: { source: 'Trait', sourceId: TRAIT.KINETIC_ACCELERATORS, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.KINETIC_ACCELERATORS, actorType: ACTOR.EFFECT },
     kind: 'announcement',
     cause: event,
     announcement: { type: 'trait', name: 'Kinetic Accelerators', at: event.at, sourceSkill: event.skillName, icon: '' }
@@ -445,9 +448,15 @@ function reactToScrapperCombo(context: EngineerRuntime, event: EngineerResolverE
 
 /** Each accepted combo grants boons once, with a live Whirl-only internal cooldown. */
 function grantKineticAcceleratorBoons(context: EngineerResolverContext, event: SimulationEvent) {
-  if (event.type !== 'combo' || !['Blast', 'Leap', 'Whirl'].includes(String(event.finisherType))) return false;
+  if (
+    event.type !== 'combo' ||
+    ![COMBO_FINISHER.BLAST, COMBO_FINISHER.LEAP, COMBO_FINISHER.WHIRL].some(
+      (finisher) => finisher === event.finisherType
+    )
+  )
+    return false;
 
-  if (event.finisherType === 'Whirl') {
+  if (event.finisherType === COMBO_FINISHER.WHIRL) {
     // Only Whirl finishers claim an interval; Blast and Leap remain independent.
     if (!context.procs.claim(TRAIT.KINETIC_ACCELERATORS, 'engineer.scrapper.kineticAcceleratorsWhirl', event.at))
       return false;
@@ -461,13 +470,13 @@ function grantKineticAcceleratorBoons(context: EngineerResolverContext, event: S
       receipt: true,
       durationContext: event,
       attribution: {
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillId: event.skillId,
         skillName: event.skillName,
         activationId: event.activationId,
         name: 'Kinetic Accelerators \u2014 ' + kind,
         priority: Number(event.priority || 0),
-        audience: { recipients: 'party' }
+        audience: { recipients: RECIPIENT.PARTY }
       },
       transform: (packet) => ({
         ...packet,

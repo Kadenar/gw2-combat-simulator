@@ -1,6 +1,6 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { RECIPIENT, ACTOR, WEAPON, BOON } from '#gw2/platform/constants.js';
+import { boonKey, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { impactEffects, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -37,7 +37,7 @@ export const empoweringMight = defineTrait({
         boon: BOON.MIGHT,
         stacks: 1,
         duration: 8,
-        audience: { recipients: 'party' }
+        audience: { recipients: RECIPIENT.PARTY }
       }
     ]
   },
@@ -48,7 +48,7 @@ export const empoweringMight = defineTrait({
       on: 'damage.resolved',
       cooldown: 'profile',
       when: (_runtime, event, details) =>
-        event.actorType === 'player' &&
+        event.actorType === ACTOR.PLAYER &&
         Number(event.coefficient) > 0 &&
         (details.hitContext?.damage ?? 0) > 0 &&
         Boolean(details.hitContext?.critEligible && details.hitContext.critical.didCrit),
@@ -93,14 +93,14 @@ export const writOfPersistence = defineTrait({
           metadata: { guardianSymbol: true },
           // Writ adds four more spatial Smite packets during its two-second symbol extension.
           ticks: [4240, 4760, 5240, 5760].map((atMs) => ({ atMs, coefficient: 0.2 })),
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'strike',
           name: 'Symbol',
           metadata: { guardianSymbol: true },
           ticks: [5240, 6240].map((atMs) => ({ atMs, coefficient: 0.5 })),
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'boon',
@@ -111,14 +111,14 @@ export const writOfPersistence = defineTrait({
           applications: 2,
           atMs: 5240,
           intervalMs: 1000,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]),
       {
         type: 'buff',
         name: 'symbol-duration-extension',
         duration: 2,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }
@@ -151,7 +151,7 @@ export const invigoratedBulwark = defineTrait({
   balance: { rechargeMultiplier: 0.8, durationMultiplier: 1.33 },
   rechargeRules: [
     {
-      when: (_runtime, skill) => skill.weapon === 'Mace',
+      when: (_runtime, skill) => skill.weapon === WEAPON.MACE,
       multiplier: { profile: TRAIT.INVIGORATED_BULWARK, field: 'rechargeMultiplier' }
     }
   ],
@@ -163,7 +163,7 @@ export const invigoratedBulwark = defineTrait({
         !hasTrait(runtime, TRAIT.INVIGORATED_BULWARK) ||
         event.type !== 'buff' ||
         !isStandardBoon(String(event.kind)) ||
-        skill?.weapon !== 'Mace' ||
+        skill?.weapon !== WEAPON.MACE ||
         event.sourceId !== skill.id
       )
         return event;
@@ -212,8 +212,8 @@ function writOfPersistenceEffects(
 
     if (skill.id === ID.SYMBOL_OF_PUNISHMENT) {
       for (const effect of profile.effects ?? []) {
-        if (effect.type === 'strike') extra.push({ ...effect, name: skill.name, weapon: 'Scepter' });
-        else if (effect.type === 'boon') extra.push({ ...effect, audience: { recipients: 'party' } });
+        if (effect.type === 'strike') extra.push({ ...effect, name: skill.name, weapon: WEAPON.SCEPTER });
+        else if (effect.type === 'boon') extra.push({ ...effect, audience: { recipients: RECIPIENT.PARTY } });
       }
     } else {
       const window = requireEffect(profile, 'buff', 'symbol-duration-extension');

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, COMBO_FIELD, RECIPIENT, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Focus weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -26,7 +25,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Flamewall',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Focus',
+    weapon: WEAPON.FOCUS,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 560,
@@ -35,7 +34,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFields: [
       {
         ownerId: 'elementalist',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 8,
         startAnchor: 'castEnd'
       }
@@ -69,7 +68,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Fire Shield',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Focus',
+    weapon: WEAPON.FOCUS,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -86,7 +85,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Transmute Fire',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Focus',
+    weapon: WEAPON.FOCUS,
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 360,
@@ -103,7 +102,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
           type: 'boon',
           boon: BOON.MIGHT,
           // Share this support boon with affected allies within its recipient cap.
-          audience: { recipients: 'party' as const, maximumRecipients: 5 },
+          audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
           stacks: 5,
           duration: 6,
           metadata: {}
@@ -115,7 +114,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Freezing Gust',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Focus',
+    weapon: WEAPON.FOCUS,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 440,
@@ -131,7 +130,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Comet',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Focus',
+    weapon: WEAPON.FOCUS,
     attunement: 'Water',
     categories: ['Weapon skill'],
     castTimeMs: 680,
@@ -145,7 +144,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -160,7 +159,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Swirling Winds',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Focus',
+    weapon: WEAPON.FOCUS,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 680,
@@ -173,7 +172,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Gale',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Focus',
+    weapon: WEAPON.FOCUS,
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 560,
@@ -195,7 +194,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Magnetic Wave',
     type: 'Weapon',
     slot: 'Weapon_4',
-    weapon: 'Focus',
+    weapon: WEAPON.FOCUS,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 0,
@@ -209,7 +208,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -223,7 +222,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     name: 'Obsidian Flesh',
     type: 'Weapon',
     slot: 'Weapon_5',
-    weapon: 'Focus',
+    weapon: WEAPON.FOCUS,
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 3800,

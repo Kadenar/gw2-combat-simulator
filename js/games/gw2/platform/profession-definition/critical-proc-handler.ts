@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import {
   advanceCriticalProc,
@@ -14,7 +15,9 @@ export interface ResolvedCriticalHitOptions<
 > {
   readonly id: string;
   readonly chanceOnCriticalHit?: number | ((context: TContext) => number);
-  readonly actorTypes?: readonly ('player' | 'summon' | 'effect' | 'environment' | 'unknown')[];
+  readonly actorTypes?: readonly (
+    typeof ACTOR.PLAYER | typeof ACTOR.SUMMON | 'effect' | typeof ACTOR.ENVIRONMENT | 'unknown'
+  )[];
   readonly when?: (context: TContext, event: TEvent, details: TDetails) => boolean;
   readonly internalCooldown?: {
     readonly duration: number | ((context: TContext) => number);
@@ -48,7 +51,7 @@ export function criticalProcHandler<
     throw new TypeError('Critical proc requires id and handler.');
   }
 
-  const actorTypes = new Set(options.actorTypes || ['player']);
+  const actorTypes = new Set(options.actorTypes || [ACTOR.PLAYER]);
 
   return (context, event, details = {} as TDetails) => {
     // Reject ineligible actors and profession predicates before

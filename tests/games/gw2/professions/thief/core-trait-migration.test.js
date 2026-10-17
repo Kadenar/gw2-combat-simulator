@@ -1,9 +1,9 @@
+import { applyBoonExtension, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { applyBoonExtension, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';

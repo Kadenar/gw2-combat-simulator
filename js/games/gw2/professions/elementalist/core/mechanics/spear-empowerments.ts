@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -26,7 +27,7 @@ export function beginElementalistSpearCast(
 ): void {
   const state = professionCoreState(context);
 
-  if (skillWeapon(skill) !== 'Spear' || String(skill.slot || '') === 'Weapon_1') return;
+  if (skillWeapon(skill) !== WEAPON.SPEAR || String(skill.slot || '') === 'Weapon_1') return;
 
   const followup = {
     damage: state.spearNextDamageBonus,

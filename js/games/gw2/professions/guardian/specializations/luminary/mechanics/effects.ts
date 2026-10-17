@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, CONTROL, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -123,7 +124,7 @@ export function countEffulgentHit(runtime: GuardianRuntime, event: Gw2ResolverEv
 
   if (!(damage > 0) || !(Number(event.coefficient) > 0) || runtime.time >= state.effulgentActiveUntil) return;
 
-  if (!isGw2PlayerActorEvent(event) && !(event.source === 'guardian' && event.actorType === 'effect')) return;
+  if (!isGw2PlayerActorEvent(event) && !(event.source === 'guardian' && event.actorType === ACTOR.EFFECT)) return;
 
   const maximum = balanceNumberFromContext(runtime, PROFILE.effulgentStance, 'maximumStacks');
   state.effulgentStacks = Math.min(maximum, state.effulgentStacks + 1);
@@ -203,10 +204,10 @@ const luminaryEffectTasks = {
           priority: 6,
           source: 'guardian',
           sourceId: ID.EFFULGENT_STANCE_DAMAGE,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: ID.EFFULGENT_STANCE_DAMAGE,
           skillName: 'Effulgent Stance',
-          controlKind: 'daze',
+          controlKind: CONTROL.DAZE,
           offTarget: event.offTarget === true
         }
       });

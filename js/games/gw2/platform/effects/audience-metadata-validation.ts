@@ -1,7 +1,8 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { EffectAudience, EffectMetadata } from '#gw2/platform/events/events.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
-const RECIPIENT_SCOPES = new Set(['self', 'party', 'summons']);
+const RECIPIENT_SCOPES: ReadonlySet<string> = new Set(Object.values(RECIPIENT));
 
 const AUDIENCE_FIELDS = new Set([
   'recipients',
@@ -75,7 +76,7 @@ export function normalizeEffectAudience(value: unknown): EffectAudience | undefi
 
   if (
     alliedPlayerIndex != null &&
-    (audience.recipients !== 'party' ||
+    (audience.recipients !== RECIPIENT.PARTY ||
       typeof alliedPlayerIndex !== 'number' ||
       !Number.isInteger(alliedPlayerIndex) ||
       alliedPlayerIndex < 1 ||

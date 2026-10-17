@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 /** Owns Core Revenant supplemental skill identities that have no narrower catalog family. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -14,14 +14,14 @@ export const REVENANT_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 1,
         hits: 1,
         name: 'Invoke Torment',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -43,21 +43,21 @@ export const REVENANT_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 0.5,
         hits: 1,
         name: 'Blitz Mines',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.SLOW,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   }

@@ -1,8 +1,7 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -126,7 +125,7 @@ export const honedAxes = defineTrait({
   rechargeRules: [
     {
       order: 1,
-      when: (_runtime, skill) => skill.weapon === 'Axe',
+      when: (_runtime, skill) => skill.weapon === WEAPON.AXE,
       multiplier: { profile: TRAIT.HONED_AXES, field: 'rechargeMultiplier' }
     }
   ],
@@ -140,7 +139,7 @@ export const honedAxes = defineTrait({
           amount: balanceNumberFromContext(
             profileContext,
             TRAIT.HONED_AXES,
-            weapons.includes('Axe') ? 'weaponAttributeBonus' : 'attributeBonus'
+            weapons.includes(WEAPON.AXE) ? 'weaponAttributeBonus' : 'attributeBonus'
           ),
           feedsConversions: 'none'
         }
@@ -308,7 +307,7 @@ export const bestialRageControl = compileProfessionRules<RangerRuntimeState>({
         ...(event.metadata?.triggeredByAlly
           ? {
               audience: {
-                recipients: 'party' as const,
+                recipients: RECIPIENT.PARTY,
                 alliedPlayerIndex: event.metadata.triggeredByAlly,
                 affectsSelf: false,
                 maximumRecipients: 1,
@@ -333,7 +332,7 @@ function applyRangerCommandTraits(
 
   for (const kind of GW2_STANDARD_BOONS) {
     // The shared live query owns boon pools; this trait owns their unchanged-duration copy to the active pet.
-    const { stacks, duration } = context.combat.boonSnapshot(kind, at, { actor: 'player' });
+    const { stacks, duration } = context.combat.boonSnapshot(kind, at, { actor: ACTOR.PLAYER });
 
     if (!stacks) continue;
 
@@ -345,7 +344,7 @@ function applyRangerCommandTraits(
           at,
           source: 'Trait',
           sourceId: TRAIT.RESOUNDING_TIMBRE,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillId: TRAIT.RESOUNDING_TIMBRE,
           skillName: 'Resounding Timbre',
           name: `Resounding Timbre - ${kind}`,
@@ -354,7 +353,7 @@ function applyRangerCommandTraits(
           fixedDuration: true,
           stacks,
           audience: {
-            recipients: 'summons' as const,
+            recipients: RECIPIENT.SUMMONS,
             affectsSelf: false,
             maximumRecipients: 1,
             eligibleCompanionIds: [rangerPetCompanionId(context)]
@@ -386,7 +385,7 @@ function triggerGoForTheThroat(context: RangerRuntime, event: Gw2ResolverEvent):
   context.cooldownController.startRecharge(profile, context.time);
   const duration = effectNumber(profile, lesserSicEm, 'duration');
   context.effects.emit({
-    attribution: { source: 'Trait', sourceId: TRAIT.GO_FOR_THE_THROAT, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.GO_FOR_THE_THROAT, actorType: ACTOR.EFFECT },
     kind: 'announcement',
     announcement: {
       type: 'trait',
@@ -402,7 +401,7 @@ function triggerGoForTheThroat(context: RangerRuntime, event: Gw2ResolverEvent):
     durationContext: event,
     attribution: {
       audience: {
-        recipients: 'summons' as const,
+        recipients: RECIPIENT.SUMMONS,
         affectsSelf: false,
         maximumRecipients: 1,
         eligibleCompanionIds: [rangerPetCompanionId(context)]
@@ -423,7 +422,7 @@ function triggerMergedGoForTheThroat(context: RangerRuntime, event: Gw2ResolverE
     context.cooldownController.startRecharge(profile, context.time);
     const duration = effectNumber(profile, lesserSicEm, 'duration');
     context.effects.emit({
-      attribution: { source: 'Trait', sourceId: TRAIT.GO_FOR_THE_THROAT, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: TRAIT.GO_FOR_THE_THROAT, actorType: ACTOR.EFFECT },
       kind: 'announcement',
       announcement: {
         type: 'trait',
@@ -458,8 +457,8 @@ function triggerMergedGoForTheEyes(context: RangerResolverContext, event: Gw2Res
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.GO_FOR_THE_EYES,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         skillId: TRAIT.GO_FOR_THE_EYES,
         skillName: 'Go for the Eyes',
         triggeredBy: event.skillName

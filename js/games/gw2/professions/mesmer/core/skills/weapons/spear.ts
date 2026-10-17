@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, ACTOR, COMBO_FINISHER, CONTROL, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
 import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
@@ -29,21 +29,21 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 1,
         hits: 1,
         name: 'Mesmer attack',
-        actorType: 'player',
-        weapon: 'spear'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SPEAR.toLowerCase()
       },
       {
         type: 'strike',
         coefficient: 0.6,
         hits: 1,
         name: 'One lancer',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         weapon: 'phantasm medium',
         comboFinishers: [
           {
             ownerId: 'mesmer',
-            finisherType: 'Leap',
+            finisherType: COMBO_FINISHER.LEAP,
             ambiguousFieldSelection: 'oldest'
           }
         ]
@@ -53,7 +53,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
         condition: CONDITION.CRIPPLED,
         duration: 3,
         stacks: 1,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         phantasmEntityIndex: 0
       },
@@ -62,7 +62,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
         condition: CONDITION.IMMOBILIZED,
         duration: 2,
         stacks: 1,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         phantasmEntityIndex: 1
       }
@@ -90,8 +90,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
         // Only the initial impact stuns when this activation consumed Clarity.
         type: 'control',
         source: 'Player',
-        controlKind: 'stun',
-        actorType: 'player',
+        controlKind: CONTROL.STUN,
+        actorType: ACTOR.PLAYER,
         atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -109,12 +109,12 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'spear',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SPEAR.toLowerCase(),
         comboFinishers: [
           {
             ownerId: 'mesmer',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -135,8 +135,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'spear'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SPEAR.toLowerCase()
       }
     ]
   },
@@ -160,8 +160,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 1.92,
         hits: 1,
         name: 'Outer-edge damage',
-        actorType: 'player',
-        weapon: 'spear',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SPEAR.toLowerCase(),
         // The impact lands before the retained aftercast, alongside the clone gain.
         atMs: 520,
         timingAnchor: 'castStart',
@@ -174,7 +174,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
         name: 'Clarity',
         duration: 15,
         icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Clarity.png',
-        audience: { recipients: 'self' },
+        audience: { recipients: RECIPIENT.SELF },
         persistsAfterInterrupt: true
       }
     ]
@@ -191,8 +191,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 1.5,
         hits: 1,
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'spear'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SPEAR.toLowerCase()
       },
       {
         type: 'condition',
@@ -211,8 +211,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'strike',
         ticks: [{ atMs: 600, coefficient: 2.4 }],
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'spear',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SPEAR.toLowerCase(),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -232,8 +232,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Damage',
-        actorType: 'player',
-        weapon: 'spear'
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SPEAR.toLowerCase()
       }
     ],
     castTimeMs: 400

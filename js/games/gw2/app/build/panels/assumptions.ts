@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { optionHtml } from '#ui/shared/select-options.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
@@ -263,7 +264,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
             )}
             ${customAssumptionGroups}
             ${section(
-              'party',
+              RECIPIENT.PARTY,
               'Party',
               `
                 <label class="boon-control">Additional allied players <input id="allied-player-count" type="number" min="0" max="4" step="1" value="${Number(a.alliedPlayerCount || 0)}"></label>

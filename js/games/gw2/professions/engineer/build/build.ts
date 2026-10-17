@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import {
   AMALGAM_MORPH_KIND_BY_SKILL_ID,
   resolveAmalgamSkillId,
@@ -37,8 +38,8 @@ export function createEngineerBuildDefaults(): EngineerCanonicalBuild {
     profession: ENGINEER_PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Viper's"])),
     alternateWeaponPrefixes: ["Viper's", "Viper's"],
-    weapons: ['Rifle', ''],
-    alternateWeapons: ['Pistol', 'Shield'],
+    weapons: [WEAPON.RIFLE, ''],
+    alternateWeapons: [WEAPON.PISTOL, WEAPON.SHIELD],
     rune: 'Trapper',
     weaponSigils: normalizeWeaponSigils(DEFAULT_WEAPON_SIGILS),
     relic: 'Fractal',

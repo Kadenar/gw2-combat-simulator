@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -39,8 +40,8 @@ export function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2Reso
     skillName: proc.name,
     source: 'Food',
     sourceId: `food.${(proc.name || 'proc').toLowerCase()}`,
-    actorType: 'effect',
-    ownerActorType: 'player',
+    actorType: ACTOR.EFFECT,
+    ownerActorType: ACTOR.PLAYER,
     triggeredBy: event.skillName
   } as const;
   let foodEvent: Gw2ResolverEvent;

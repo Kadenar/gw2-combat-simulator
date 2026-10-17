@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 /** Owns selectable sigil names and groupings derived from the sigil table. */
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 

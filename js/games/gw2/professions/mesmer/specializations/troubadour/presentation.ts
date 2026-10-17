@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
@@ -80,7 +81,7 @@ export const troubadourUi: MesmerUiSlice = Object.freeze({
         expiresAt: 60,
         instrument: ['Lute', 'Flute', 'Harp', 'Drum'][index],
         source: 'Fortissimo',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         sourceId: 'stat-preview'
       });
   },

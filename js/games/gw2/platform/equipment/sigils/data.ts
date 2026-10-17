@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 
 /** Canonical exotic item IDs verified against the public GW2 items API. */
 export const SIGIL_IDS = Object.freeze({

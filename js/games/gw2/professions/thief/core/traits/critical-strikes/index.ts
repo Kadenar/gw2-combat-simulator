@@ -1,12 +1,12 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { WEAPON, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import {
+  boonKey,
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
   remainingDurationStackSeconds
 } from '#gw2/platform/combat/boons.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { playerHealthFraction, skillForEvent, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -96,7 +96,7 @@ export const deadlyAim = defineTrait({
       factor: (context) => balanceNumberFromContext(context, TRAIT.DEADLY_AIM, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === 'Pistol'
+        skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === WEAPON.PISTOL
     }
   ]
 });
@@ -326,7 +326,7 @@ function completeThiefStealthAttack(runtime: ThiefRuntime, { cast }: StealthAtta
       sourceId: TRAIT.SUNDERING_SHADE,
       activationId: cast.id,
       name: 'Sundering Shade — Vulnerability',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name
     }
@@ -351,7 +351,7 @@ function criticalBoonDefinition(context: unknown, traitId: SkillId) {
 function criticalBoonEligible(context: ThiefResolverContext, event: ThiefResolverEvent, traitId: SkillId): boolean {
   return (
     event.type === 'damage' &&
-    event.actorType === 'player' &&
+    event.actorType === ACTOR.PLAYER &&
     Number(event.coefficient) > 0 &&
     event.cancelled !== true &&
     !missesTarget(event) &&
@@ -365,7 +365,7 @@ function criticalBoonEligible(context: ThiefResolverContext, event: ThiefResolve
 
 const unrelentingStrikesCriticalReaction = Object.freeze({
   id: 'thief.unrelenting-strikes',
-  actorTypes: ['player'] as const,
+  actorTypes: [ACTOR.PLAYER] as const,
   when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: NativeResolvedDamageDetails) =>
     Boolean(details.hitContext?.critEligible) && criticalBoonEligible(context, event, TRAIT.UNRELENTING_STRIKES),
   internalCooldown: {
@@ -390,14 +390,14 @@ const unrelentingStrikesCriticalReaction = Object.freeze({
           at: event.at,
           source: 'Trait',
           sourceId: TRAIT.UNRELENTING_STRIKES,
-          actorType: 'effect',
+          actorType: ACTOR.EFFECT,
           skillId: TRAIT.UNRELENTING_STRIKES,
           skillName: 'Unrelenting Strikes',
           name: `Unrelenting Strikes - ${boon}`,
           kind: boon.toLowerCase(),
           duration,
           stacks,
-          audience: { recipients: 'party' },
+          audience: { recipients: RECIPIENT.PARTY },
           triggeredBy: event.skillName
         }),
         durationContext: event
@@ -424,7 +424,7 @@ function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEve
     at: event.at,
     source: 'Trait',
     sourceId: TRAIT.NO_QUARTER,
-    actorType: 'effect',
+    actorType: ACTOR.EFFECT,
     skillId: TRAIT.NO_QUARTER,
     skillName: 'No Quarter',
     kind: boonKey(BOON.FURY),
@@ -439,7 +439,7 @@ function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEve
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.NO_QUARTER,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: TRAIT.NO_QUARTER,
       skillName: 'No Quarter'
     },
@@ -455,7 +455,7 @@ function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEve
 
 const noQuarterCriticalReaction = Object.freeze({
   id: 'thief.no-quarter',
-  actorTypes: ['player'] as const,
+  actorTypes: [ACTOR.PLAYER] as const,
   when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: NativeResolvedDamageDetails) =>
     Boolean(details.hitContext?.critEligible) &&
     criticalBoonEligible(context, event, TRAIT.NO_QUARTER) &&

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, COMBO_FINISHER, CONTROL, COMBO_FIELD, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { warriorBurstRules } from '#gw2/professions/warrior/resource-rules.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -43,11 +42,11 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       }
     })),
     // The API omits the burst's weapon; axe critical traits still apply to this strike.
-    skillWeapon: 'Axe',
+    skillWeapon: WEAPON.AXE,
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: 'Leap',
+        finisherType: COMBO_FINISHER.LEAP,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -113,7 +112,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.EARTHSHAKER]: {
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
-    skillWeapon: 'Hammer',
+    skillWeapon: WEAPON.HAMMER,
     cooldown: 8,
     castTimeMs: 1000,
     adrenalineCost: 10,
@@ -126,7 +125,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: 'Blast',
+            finisherType: COMBO_FINISHER.BLAST,
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -134,7 +133,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'control',
-        controlKind: 'stun'
+        controlKind: CONTROL.STUN
       }
     ])
   },
@@ -153,11 +152,11 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         }
       }
     ],
-    skillWeapon: 'Rifle',
+    skillWeapon: WEAPON.RIFLE,
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: 'Projectile',
+        finisherType: COMBO_FINISHER.PROJECTILE,
         chance: 1,
         ambiguousFieldSelection: 'oldest'
       }
@@ -181,7 +180,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.SKULL_CRACK]: {
     // The burst's daze and damage share the observed impact before the animation ends.
-    skillWeapon: 'Mace',
+    skillWeapon: WEAPON.MACE,
     cooldown: 8,
     castTimeMs: 560,
     adrenalineCost: 10,
@@ -195,7 +194,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: CONTROL.DAZE
       }
     ])
   },
@@ -226,7 +225,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
                   {
                     ...timing,
                     type: 'strike' as const,
-                    weapon: 'Longbow',
+                    weapon: WEAPON.LONGBOW,
                     ticks: Array.from({ length: pulses }, (_, index) => ({
                       atMs: index * interval * 1000,
                       coefficient: effectNumber(profile, strike, 'coefficient')
@@ -255,7 +254,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     comboFields: [
       {
         ownerId: 'warrior',
-        fieldType: 'Fire',
+        fieldType: COMBO_FIELD.FIRE,
         duration: 3,
         startAnchor: 'castEnd'
       }
@@ -270,11 +269,11 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     movementSkill: true,
     // Keep commitment, damage, and boon removal together on the nearest 40 ms tick.
     interruptCommitMs: 760,
-    skillWeapon: 'Dagger',
+    skillWeapon: WEAPON.DAGGER,
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: 'Leap',
+        finisherType: COMBO_FINISHER.LEAP,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -307,7 +306,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1
@@ -326,7 +325,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1
@@ -346,7 +345,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1
@@ -434,7 +433,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         }
       }
     ],
-    skillWeapon: 'Sword',
+    skillWeapon: WEAPON.SWORD,
     castTimeMs: 520,
     dualWieldCastTimeMs: 400,
     adrenalineCost: 10,

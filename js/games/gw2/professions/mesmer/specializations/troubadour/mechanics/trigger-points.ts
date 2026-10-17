@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -10,7 +11,7 @@ interface InstrumentImpact {
   readonly data: MesmerInstrument;
   readonly damageAt: number;
   readonly source: string;
-  readonly actorType: 'player' | 'summon';
+  readonly actorType: typeof ACTOR.PLAYER | typeof ACTOR.SUMMON;
   readonly delivery: EffectDelivery;
 }
 

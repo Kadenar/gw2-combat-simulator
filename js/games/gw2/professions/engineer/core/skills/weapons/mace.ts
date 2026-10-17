@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, COMBO_FINISHER, COMBO_FIELD, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -15,14 +14,14 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 1.2,
         hits: 1,
         name: 'Mace Smash',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CONFUSION,
         stacks: 2,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -35,32 +34,32 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 1.85,
         hits: 1,
         name: 'Energizing Slam',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 3,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CONFUSION,
         stacks: 3,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.VIGOR,
         duration: 3,
         stacks: 1
       },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 3,
         stacks: 1
@@ -74,7 +73,7 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Leap',
+        finisherType: COMBO_FINISHER.LEAP,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -84,7 +83,7 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 1.4,
         hits: 1,
         name: 'Mace Blast',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion'
       },
       {
@@ -92,7 +91,7 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         condition: CONDITION.CONFUSION,
         stacks: 3,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -105,14 +104,14 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 1,
         hits: 1,
         name: 'Mace Strike',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CONFUSION,
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -125,13 +124,13 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 1.2,
         hits: 1,
         name: 'Rocket Fist Prototype',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         // The fist explodes on impact while the traveling fist is a physical projectile finisher.
         comboFinishers: [
           {
             ownerId: 'engineer',
-            finisherType: 'Projectile',
-            preferredFieldTypes: ['Fire'],
+            finisherType: COMBO_FINISHER.PROJECTILE,
+            preferredFieldTypes: [COMBO_FIELD.FIRE],
             ambiguousFieldSelection: 'oldest'
           }
         ],
@@ -143,12 +142,12 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'stun'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.STUN
       }
     ]
   }

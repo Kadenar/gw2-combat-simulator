@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, WEAPON, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -41,7 +41,7 @@ export const barbedPrecision = defineTrait({
   triggers: [
     onTriggerPoint(necromancerStrike, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
-        input.event.actorType !== 'effect' && Number(input.event.coefficient) > 0,
+        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
         necromancerBarbedPrecisionReaction(runtime, input.event, input.details)
     })
@@ -64,7 +64,7 @@ export const barbedPrecision = defineTrait({
         condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 3,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   },
@@ -97,7 +97,7 @@ export const chillingDarkness = defineTrait({
         condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 2,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   }
@@ -127,7 +127,7 @@ export const insidiousDisruption = defineTrait({
         condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 5,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   }
@@ -216,7 +216,7 @@ export const lingeringCurse = defineTrait({
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.LINGERING_CURSE, 'durationMultiplier'),
       when: (context) =>
-        skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === 'Scepter' &&
+        skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === WEAPON.SCEPTER &&
         context.event?.skillId !== ID.DEVOURING_DARKNESS
     }
   ],
@@ -257,7 +257,7 @@ export const masterOfCorruption = defineTrait({
         condition: CONDITION.TORMENT,
         stacks: 2,
         duration: 10,
-        target: 'self',
+        target: RECIPIENT.SELF,
         metadata: { trigger: String(ID.BLOOD_IS_POWER) },
         packetLabel: 'additional with Master of Corruption'
       },
@@ -267,7 +267,7 @@ export const masterOfCorruption = defineTrait({
         condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 4,
-        target: 'self',
+        target: RECIPIENT.SELF,
         metadata: { trigger: String(ID.CONSUME_CONDITIONS) },
         packetLabel: 'additional with Master of Corruption'
       },
@@ -277,7 +277,7 @@ export const masterOfCorruption = defineTrait({
         condition: CONDITION.POISONED,
         stacks: 1,
         duration: 4,
-        target: 'self',
+        target: RECIPIENT.SELF,
         metadata: { trigger: String(ID.PLAGUELANDS) },
         packetLabel: 'additional with Master of Corruption'
       },
@@ -287,7 +287,7 @@ export const masterOfCorruption = defineTrait({
         condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 2,
-        target: 'self',
+        target: RECIPIENT.SELF,
         metadata: { trigger: String(ID.CORROSIVE_POISON_CLOUD) },
         packetLabel: 'additional with Master of Corruption'
       }
@@ -347,11 +347,11 @@ const necromancerBarbedPrecisionReaction = criticalProcHandler<
   NativeResolvedDamageDetails
 >({
   id: 'necromancer.barbed-precision',
-  actorTypes: ['player', 'summon', 'unknown'],
+  actorTypes: [ACTOR.PLAYER, ACTOR.SUMMON, ACTOR.UNKNOWN],
   chanceOnCriticalHit: (context) => procChanceFromContext(context, TRAIT.BARBED_PRECISION),
   randomStream: 'necromancer.barbed-precision',
   when: (_context, event) =>
-    Number(event.coefficient) > 0 && (event.actorType !== 'summon' || event.summonKind === 'spirit'),
+    Number(event.coefficient) > 0 && (event.actorType !== ACTOR.SUMMON || event.summonKind === 'spirit'),
   handler: (context, event, _details, application) => {
     // Barbed Precision emits one condition application per threshold proc.
     for (let proc = 0; proc < application.quantity; proc += 1) {
@@ -373,10 +373,10 @@ const necromancerBarbedPrecisionReaction = criticalProcHandler<
           attribution: {
             source: 'Trait',
             sourceId: TRAIT.BARBED_PRECISION,
-            actorType: 'effect',
+            actorType: ACTOR.EFFECT,
             skillName: 'Barbed Precision',
             triggeredBy: event.skillName,
-            ownerActorType: 'player',
+            ownerActorType: ACTOR.PLAYER,
             name: 'Barbed Precision' + ' - ' + String(effect.condition),
             metadata: { procCount: 1 }
           }
@@ -412,10 +412,10 @@ function applyChillingDarkness(context: NecromancerResolverContext, event: Necro
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.CHILLING_DARKNESS,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillName: 'Chilling Darkness',
         triggeredBy: event.skillName,
-        ownerActorType: 'player',
+        ownerActorType: ACTOR.PLAYER,
         name: 'Chilling Darkness' + ' - ' + effect.condition || CONDITION.CHILLED
       }
     }
@@ -445,10 +445,10 @@ function applyInsidiousDisruption(context: NecromancerResolverContext, event: Ne
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.INSIDIOUS_DISRUPTION,
-        actorType: 'effect',
+        actorType: ACTOR.EFFECT,
         skillName: 'Insidious Disruption',
         triggeredBy: event.skillName,
-        ownerActorType: 'player',
+        ownerActorType: ACTOR.PLAYER,
         name: 'Insidious Disruption' + ' - ' + String(effect.condition)
       }
     }
@@ -487,7 +487,7 @@ function armPlagueSending(runtime: NecromancerRuntime, hasConditions: boolean): 
 }
 
 function reactToNecromancerConditions(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+  if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return;
 
   const skill = skillForEvent(runtime.helpers, event);
 

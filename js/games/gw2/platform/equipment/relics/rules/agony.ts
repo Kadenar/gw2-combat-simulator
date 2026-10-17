@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_BY_ID, RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
@@ -43,8 +44,8 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
         skillName: 'Relic of Agony',
         source: 'Relic',
         sourceId: `relic.${RELIC_IDS.AGONY}`,
-        actorType: 'effect',
-        ownerActorType: 'player',
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         triggeredBy: event.skillName,
         icon: RELIC_BY_ID[RELIC_IDS.AGONY].icon,
         flatDamage: 134.5,

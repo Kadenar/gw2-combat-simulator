@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { profession, createBuildContext, toApplicationBuild } from '#gw2/professions/mesmer/build/context.js';
 // Browser-facing Mesmer composition. It adds attribute calculation, runtime
 // config mapping, persistence metadata, and shared-shell adapter behavior to
@@ -25,6 +26,6 @@ export const mesmerAppAdapter = defineProfessionApp({
     return !skill.ambush || specialization === 'Mirage';
   },
   defaultOffhand() {
-    return 'Sword';
+    return WEAPON.SWORD;
   }
 });

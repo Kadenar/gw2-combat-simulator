@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, COMBO_FINISHER, COMBO_FIELD, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -17,14 +16,14 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         coefficient: 1,
         hits: 1,
         name: 'Negative Bash',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 8,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -38,14 +37,14 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Shock Shield',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 10,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -55,7 +54,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: 'Whirl',
+        finisherType: COMBO_FINISHER.WHIRL,
         ambiguousFieldSelection: 'oldest'
       }
     ],
@@ -66,7 +65,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Electro-whirl',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         damageKind: 'explosion'
       }
     ]
@@ -83,14 +82,14 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         coefficient: 1.4,
         hits: 1,
         name: 'Equalizing Blow',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 3,
         duration: 8,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
@@ -110,7 +109,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         coefficient: 0.7,
         hits: 1,
         name: 'Positive Strike',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
@@ -135,7 +134,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Rocket Charge',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -145,7 +144,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFields: [
       {
         ownerId: 'engineer',
-        fieldType: 'Lightning',
+        fieldType: COMBO_FIELD.LIGHTNING,
         duration: 5,
         startAnchor: 'castEnd',
         inclusiveExpiry: true
@@ -158,7 +157,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
           type: 'strike',
           ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 4 / 5 })),
           name: 'Thunderclap',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
@@ -168,16 +167,16 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
             stacks: 1,
             duration: 8
           })),
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]),
       {
         type: 'control',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         atMs: 760,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        controlKind: 'stun'
+        controlKind: CONTROL.STUN
       }
     ]
   }

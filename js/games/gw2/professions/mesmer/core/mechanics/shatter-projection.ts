@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';

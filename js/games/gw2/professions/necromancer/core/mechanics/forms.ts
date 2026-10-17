@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
@@ -48,7 +49,7 @@ function transition(runtime: NecromancerRuntime, entering: boolean, skill?: Necr
       at: runtime.time,
       source: 'necromancer',
       sourceId: entering ? 'necromancer.shroud-enter' : 'necromancer.shroud-exit',
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       weaponSet: runtime.activeWeaponSet
     }
   });

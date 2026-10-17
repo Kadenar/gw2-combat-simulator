@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Spinegazer family.
@@ -15,7 +15,7 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
         type: 'strike',
         coefficient: 0.45,
         source: 'ranger-pet',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         projectile: true
       },
       {
@@ -24,7 +24,7 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_EVIL_EYE]!.castTimeMs,
@@ -40,7 +40,7 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
         hits: 6,
         atMs: 0,
         source: 'ranger-pet',
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         projectile: true
       },
       {
@@ -49,7 +49,7 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
         stacks: 6,
         duration: 6,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_TORMENTING_VISIONS]!.castTimeMs,
@@ -63,7 +63,7 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
         type: 'strike',
         coefficient: 0.5,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -71,7 +71,7 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -79,7 +79,7 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
         stacks: 6,
         duration: 6,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_STARING_VOID]!.castTimeMs,
@@ -93,7 +93,7 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
         coefficient: 0.5,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 667,

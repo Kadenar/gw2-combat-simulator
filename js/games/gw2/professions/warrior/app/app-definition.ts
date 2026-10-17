@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { profession, createBuildContext, toApplicationBuild } from '#gw2/professions/warrior/build/context.js';
 import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
@@ -8,5 +9,5 @@ export const warriorAppAdapter = defineProfessionApp({
   profession,
   createBuildContext,
   toApplicationBuild,
-  defaultOffhand: preferOffhand('Axe')
+  defaultOffhand: preferOffhand(WEAPON.AXE)
 });

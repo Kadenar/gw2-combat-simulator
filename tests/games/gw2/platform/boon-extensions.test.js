@@ -1,6 +1,3 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
-import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import {
   applyBoonExtension,
   boonIntervals,
@@ -10,6 +7,9 @@ import {
   remainingDurationStackSeconds,
   timedBuffApplicationsAt
 } from '#gw2/platform/combat/boons.js';
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { assertSimulationEvent } from '#gw2/platform/events/events.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';

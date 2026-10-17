@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';

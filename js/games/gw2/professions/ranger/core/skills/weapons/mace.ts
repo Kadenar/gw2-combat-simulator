@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONTROL, RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -45,7 +45,7 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       {
         // The final slam disables its target, enabling control-triggered traits and relics.
         type: 'control',
-        controlKind: 'daze',
+        controlKind: CONTROL.DAZE,
         atMs: 1200,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -61,7 +61,7 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       { type: 'strike', coefficient: 1.4, hits: 1, reactions: [naturesStrengthReaction()] },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.VIGOR,
         duration: 3,
         stacks: 1
@@ -83,10 +83,10 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 2, hits: 1, reactions: [naturesStrengthReaction()] },
       // Resolve the leap's stun alongside its impact so control-triggered effects can activate.
-      { type: 'control', controlKind: 'stun' },
+      { type: 'control', controlKind: CONTROL.STUN },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.PROTECTION,
         duration: 4,
         stacks: 1
@@ -110,7 +110,7 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       { type: 'strike', coefficient: 1.275, hits: 1, atMs: 1480, name: 'Flourish - Delayed Damage' },
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 4,
         stacks: 1,
@@ -139,7 +139,7 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
 export function naturesStrengthReaction(stacks = 1): EffectReaction {
   return {
     on: 'damage.resolved',
-    actor: 'player',
+    actor: ACTOR.PLAYER,
     packets: 'first',
     when: (_runtime, { event }) => Number(event.coefficient) > 0,
     do: { type: 'ranger.natures-strength', amount: stacks }
@@ -153,8 +153,8 @@ export const rangerForceOfNatureModifier: Gw2ModifierRule = {
   operation: 'multiply',
   factor: 1.1,
   when: (context) =>
-    (context.event?.actorType === 'player' || context.event?.ownerActorType === 'player') &&
-    context.event.actorType !== 'summon' &&
+    (context.event?.actorType === ACTOR.PLAYER || context.event?.ownerActorType === ACTOR.PLAYER) &&
+    context.event.actorType !== ACTOR.SUMMON &&
     buffActive(context, FORCE_OF_NATURE)
 };
 
@@ -187,7 +187,7 @@ export const maceLifecycle = {
           at: runtime.time,
           source: 'ranger',
           sourceId: context.skill.id,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: context.skill.id,
           skillName: "Nature's Strength",
           triggeredBy: context.skill.name,
@@ -195,7 +195,7 @@ export const maceLifecycle = {
           kind: NATURES_STRENGTH,
           duration: 25,
           stacks: sideEffectAmount(runtime, action.amount),
-          audience: { recipients: 'self' }
+          audience: { recipients: RECIPIENT.SELF }
         })
       });
     }
@@ -228,7 +228,7 @@ export const maceLifecycle = {
             at,
             source: 'ranger',
             sourceId: event.skillId!,
-            actorType: 'player',
+            actorType: ACTOR.PLAYER,
             skillId: event.skillId,
             skillName: name,
             triggeredBy: event.triggeredBy,
@@ -236,7 +236,7 @@ export const maceLifecycle = {
             kind,
             duration,
             stacks,
-            audience: { recipients: 'self' }
+            audience: { recipients: RECIPIENT.SELF }
           })
         });
       }

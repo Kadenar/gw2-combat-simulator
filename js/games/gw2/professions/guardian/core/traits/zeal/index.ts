@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -55,7 +55,7 @@ export const symbolicExposure = defineTrait({
         condition: CONDITION.VULNERABILITY,
         stacks: 2,
         duration: 5,
-        actorType: 'effect'
+        actorType: ACTOR.EFFECT
       }
     ]
   },
@@ -75,7 +75,7 @@ export const symbolicExposure = defineTrait({
       emit: TRAIT.SYMBOLIC_EXPOSURE,
       on: 'damage.resolved',
       when: (_runtime, event, details) =>
-        event.actorType === 'player' &&
+        event.actorType === ACTOR.PLAYER &&
         Number(event.coefficient) > 0 &&
         (details.hitContext?.damage ?? 0) > 0 &&
         event.metadata?.guardianSymbol === true,
@@ -141,7 +141,7 @@ export const zealotsResolution = defineTrait({
 export const zealousBlade = defineTrait({
   rechargeRules: [
     {
-      when: (_runtime, skill) => skill.weapon === 'Greatsword',
+      when: (_runtime, skill) => skill.weapon === WEAPON.GREATSWORD,
       multiplier: { profile: TRAIT.ZEALOUS_BLADE, field: 'rechargeMultiplier' }
     }
   ],
@@ -173,7 +173,7 @@ export const zealousBlade = defineTrait({
             balanceProfileNumber(zealousBladeProfile, 'weaponAttributeBonus') -
             balanceProfileNumber(zealousBladeProfile, 'attributeBonus'),
           feedsConversions: 'all',
-          enabled: mainHand === 'Greatsword'
+          enabled: mainHand === WEAPON.GREATSWORD
         }
       ]
     };

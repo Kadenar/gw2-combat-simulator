@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';

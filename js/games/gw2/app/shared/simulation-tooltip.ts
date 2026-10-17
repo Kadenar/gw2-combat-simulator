@@ -1,11 +1,11 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { RECIPIENT, ACTOR, COMBO_FINISHER, BOON } from '#gw2/platform/constants.js';
+import { boonKey, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import type { BalanceProfile, CatalogEntity, Skill, SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
-import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 
 export interface SimulationTooltip {
@@ -267,20 +267,24 @@ function effectContext(effect: SkillEffect, factName: string): string {
   const audience = effect.audience;
   const parts: string[] = [];
 
-  if (effect.type === 'condition' && effect.target === 'self') parts.push('on yourself');
+  if (effect.type === 'condition' && effect.target === RECIPIENT.SELF) parts.push('on yourself');
 
-  if (audience?.recipients === 'party') {
-    parts.push(audience.maximumRecipients == null ? 'party' : `up to ${audience.maximumRecipients} party members`);
+  if (audience?.recipients === RECIPIENT.PARTY) {
+    parts.push(
+      audience.maximumRecipients == null ? RECIPIENT.PARTY : `up to ${audience.maximumRecipients} party members`
+    );
 
     if (audience.affectsSelf === false) parts.push('excluding yourself');
-  } else if (audience?.recipients === 'summons')
+  } else if (audience?.recipients === RECIPIENT.SUMMONS)
     parts.push(
-      audience.affectsSelf === false || effect.actorType === 'summon' ? 'your companions' : 'you and your companions'
+      audience.affectsSelf === false || effect.actorType === ACTOR.SUMMON
+        ? 'your companions'
+        : 'you and your companions'
     );
-  else if (audience?.recipients === 'self')
-    parts.push(effect.actorType === 'summon' ? 'on the companion' : 'on yourself');
+  else if (audience?.recipients === RECIPIENT.SELF)
+    parts.push(effect.actorType === ACTOR.SUMMON ? 'on the companion' : 'on yourself');
 
-  if (effect.actorType === 'summon') parts.push('companion effect');
+  if (effect.actorType === ACTOR.SUMMON) parts.push('companion effect');
 
   // Packet names distinguish variants, but repeating the displayed effect name adds no information.
   // Generic component keys address patches; only meaningful variant names belong in displayed facts.
@@ -446,7 +450,7 @@ function ordinarySkillDescription(skill: Skill): string {
       (sum, effect) => sum + (effect.ticks?.length ?? effect.hits ?? 1) * (effect.applications ?? 1),
       0
     );
-    const subject = strikes.every((effect) => effect.actorType === 'summon') ? 'Your companion strikes' : 'Strike';
+    const subject = strikes.every((effect) => effect.actorType === ACTOR.SUMMON) ? 'Your companion strikes' : 'Strike';
     sentences.push(`${subject} your target${hits > 1 ? ' repeatedly' : ''}.`);
   }
 
@@ -454,7 +458,7 @@ function ordinarySkillDescription(skill: Skill): string {
     const names = [
       ...new Set(
         effects
-          .filter((effect) => effect.type === 'condition' && (effect.target === 'self') === self)
+          .filter((effect) => effect.type === 'condition' && (effect.target === RECIPIENT.SELF) === self)
           .flatMap((effect) =>
             effect.type === 'condition'
               ? (effect.ticks || [effect]).flatMap((condition) =>
@@ -547,7 +551,7 @@ export function describeSimulationSkill(
   const finisherFacts = new Map<string, TooltipFact>();
   for (const finisher of comboFinishers) {
     // Only projectile finishers expose a chance; other finisher types are guaranteed by their type.
-    const detail = `${String(finisher.finisherType)}${finisher.finisherType === 'Projectile' && typeof finisher.chance === 'number' ? ` · ${tooltipDecimal(finisher.chance * 100)}% chance` : ''}`;
+    const detail = `${String(finisher.finisherType)}${finisher.finisherType === COMBO_FINISHER.PROJECTILE && typeof finisher.chance === 'number' ? ` · ${tooltipDecimal(finisher.chance * 100)}% chance` : ''}`;
     finisherFacts.set(detail, {
       name: 'Combo finisher',
       detail,

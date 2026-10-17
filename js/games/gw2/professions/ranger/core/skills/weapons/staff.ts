@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -10,7 +9,7 @@ export const RANGER_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1
@@ -25,14 +24,14 @@ export const RANGER_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<
         when: (runtime) => rangerMerged(runtime.profession),
         transform: (_runtime, _cast, effects) =>
           effects.map((effect) =>
-            effect.type === 'boon' ? { ...effect, audience: { recipients: 'self' as const } } : effect
+            effect.type === 'boon' ? { ...effect, audience: { recipients: RECIPIENT.SELF } } : effect
           )
       }
     ],
     effects: [
       {
         type: 'boon',
-        audience: { recipients: 'summons' as const, affectsSelf: false, maximumRecipients: 1 },
+        audience: { recipients: RECIPIENT.SUMMONS, affectsSelf: false, maximumRecipients: 1 },
         boon: BOON.PROTECTION,
         duration: 3,
         stacks: 1

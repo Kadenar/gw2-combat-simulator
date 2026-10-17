@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
@@ -81,7 +81,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 9 } })
@@ -230,14 +230,14 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       {
         type: 'strike',
         ticks: [{ atMs: 1000, coefficient: 0.33 }],
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         packetLabel: 'attack',
         name: 'Unstable Horror - Attack'
       },
       {
         type: 'strike',
         ticks: [{ atMs: 6000, coefficient: 1.25 }],
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         packetLabel: 'explosion',
         name: 'Unstable Horror - Explosion'
       }

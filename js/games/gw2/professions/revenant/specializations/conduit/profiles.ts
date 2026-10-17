@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 
 export const CONDUIT_BALANCE_PROFILE_IDS = Object.freeze({
@@ -38,7 +39,7 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
       {
         type: 'strike',
         name: 'Beguiling Haze — Follow-Up',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true,
         ticks: [{ atMs: 200, coefficient: 0.6 }],
         timingAnchor: 'castStart',

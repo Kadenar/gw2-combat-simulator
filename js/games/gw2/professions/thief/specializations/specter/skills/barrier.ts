@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
@@ -44,7 +45,7 @@ export function grantBarrier(
       kind: 'barrier',
       duration: effectNumber(profile, barrier, 'duration'),
       stacks: effectNumber(profile, barrier, 'stacks'),
-      audience: { recipients: 'party', affectsSelf, maximumRecipients: recipients },
+      audience: { recipients: RECIPIENT.PARTY, affectsSelf, maximumRecipients: recipients },
       fixedDuration: true
     })
   });

@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
@@ -36,7 +37,7 @@ export function reactDeadeyeMalice(
   event: Gw2ResolverEvent,
   hit?: Gw2HitResolutionContext
 ): void {
-  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || typeof event.activationId !== 'string')
+  if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0) || typeof event.activationId !== 'string')
     return;
 
   if (event.offTarget === true || !deadeyeMarked(runtime)) return;

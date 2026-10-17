@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { balanceProfileNumber, effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
@@ -70,7 +71,7 @@ export function grantKallasFervor(
         at: runtime.time,
         source: 'revenant',
         sourceId,
-        actorType: effect.actorType || 'player',
+        actorType: effect.actorType || ACTOR.PLAYER,
         skillId: sourceId,
         skillName: sourceName,
         name: `${sourceName} — Kalla's Fervor`,

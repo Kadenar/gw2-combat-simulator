@@ -1,4 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
+import { RECIPIENT, AURA, ACTOR, BOON } from '#gw2/platform/constants.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -61,7 +61,7 @@ const galeSong = defineTrait({
         name: BOON.PROTECTION,
         boon: BOON.PROTECTION,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 3
       }
@@ -86,7 +86,7 @@ const latentStamina = defineTrait({
         name: BOON.VIGOR,
         boon: BOON.VIGOR,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 3
       }
@@ -180,28 +180,28 @@ const unstableConduit = defineTrait({
       {
         type: 'buff',
         name: 'Fire',
-        kind: 'Fire Aura',
+        kind: AURA.FIRE,
         stacks: 1,
         duration: 4
       },
       {
         type: 'buff',
         name: 'Water',
-        kind: 'Frost Aura',
+        kind: AURA.FROST,
         stacks: 1,
         duration: 4
       },
       {
         type: 'buff',
         name: 'Air',
-        kind: 'Shocking Aura',
+        kind: AURA.SHOCKING,
         stacks: 1,
         duration: 4
       },
       {
         type: 'buff',
         name: 'Earth',
-        kind: 'Magnetic Aura',
+        kind: AURA.MAGNETIC,
         stacks: 1,
         duration: 4
       }
@@ -230,7 +230,7 @@ const hardyConduit = defineTrait({
         name: BOON.PROTECTION,
         boon: BOON.PROTECTION,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 3
       }
@@ -245,7 +245,7 @@ const hardyConduit = defineTrait({
       attribution: (_runtime, cast) => ({
         source: 'Hardy Conduit',
         sourceId: cast.skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: 'Hardy Conduit',
         name: 'Hardy Conduit',
         offTarget: cast.command.offTarget
@@ -273,7 +273,7 @@ const harmoniousConduit = defineTrait({
       attribution: (_runtime, cast) => ({
         source: 'Harmonious Conduit',
         sourceId: cast.skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: 'Harmonious Conduit',
         name: 'Harmonious Conduit',
         offTarget: cast.command.offTarget
@@ -316,7 +316,7 @@ const transcendentTempest = defineTrait({
       attribution: (_runtime, cast) => ({
         source: 'Transcendent Tempest',
         sourceId: cast.skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: cast.skill.id,
         skillName: 'Transcendent Tempest',
         priority: -10,
@@ -344,7 +344,7 @@ const lucidSingularity = defineTrait({
         name: 'Pulse Alacrity',
         boon: BOON.ALACRITY,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 1
       },
@@ -353,7 +353,7 @@ const lucidSingularity = defineTrait({
         name: 'Final Alacrity',
         boon: BOON.ALACRITY,
         // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
         duration: 4.5
       }
@@ -399,7 +399,7 @@ function applyTempestuousAria(context: ElementalistResolverContext, { cause: eve
         at: event.at,
         source: 'Trait',
         sourceId: TRAIT.TEMPESTUOUS_ARIA,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillName: requireBalanceProfileFromContext(context, TRAIT.TEMPESTUOUS_ARIA).name,
         kind: 'Tempestuous Aria'.toLowerCase(),
         stacks: 1,
@@ -440,7 +440,7 @@ function applyTempestAuraBoons(
     durationContext: event,
     effects: (effect) => effect.type === 'boon',
     attribution: {
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillName: requireBalanceProfileFromContext(context, traitId).name,
       triggeredBy: resolverSourceSkill(event),
       priority: Number(event.priority || 0)
@@ -474,10 +474,10 @@ function applyTempestShoutTraits(
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.TEMPESTUOUS_ARIA,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       name: skill.name,
       priority: 0,
-      audience: { recipients: 'party', maximumRecipients: 5 }
+      audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
     }
   });
 }
@@ -493,7 +493,13 @@ function applyGaleSong(context: ElementalistRuntime, cast: RuntimeCast<Elemental
       skillName: 'Gale Song',
       cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
       priority: 0,
-      attribution: { source: 'Trait', sourceId: TRAIT.GALE_SONG, actorType: 'player', name: 'Gale Song', priority: 0 }
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.GALE_SONG,
+        actorType: ACTOR.PLAYER,
+        name: 'Gale Song',
+        priority: 0
+      }
     });
 }
 
@@ -518,7 +524,7 @@ function applyLatentStamina(
           attribution: {
             source: 'Latent Stamina',
             sourceId: sourceId,
-            actorType: 'player',
+            actorType: ACTOR.PLAYER,
             skillName: 'Latent Stamina',
             skillId: elementalistEventSkill(context, 'Latent Stamina', sourceId).id,
             name: 'Latent Stamina'
@@ -543,7 +549,7 @@ function applyLucidSingularity(context: ElementalistRuntime, cast: RuntimeCast<E
         baseEvent: {
           source: 'elementalist',
           sourceId: skill.id,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           skillId: skill.id,
           skillName: skill.name,
           activationId: cast.id
@@ -573,7 +579,7 @@ function applyLucidSingularity(context: ElementalistRuntime, cast: RuntimeCast<E
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.LUCID_SINGULARITY,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         name: 'Lucid Singularity',
         priority: 0
       }
@@ -587,12 +593,12 @@ function applyUnstableConduit(context: ElementalistRuntime, cast: RuntimeCast<El
   {
     const aura =
       attunement === 'Fire'
-        ? 'Fire Aura'
+        ? AURA.FIRE
         : attunement === 'Water'
-          ? 'Frost Aura'
+          ? AURA.FROST
           : attunement === 'Air'
-            ? 'Shocking Aura'
-            : 'Magnetic Aura';
+            ? AURA.SHOCKING
+            : AURA.MAGNETIC;
     const unstableConduitProfile = requireBalanceProfileFromContext(context, TRAIT.UNSTABLE_CONDUIT);
     const unstableConduitAttunement = requireEffect(unstableConduitProfile, 'buff', attunement);
 

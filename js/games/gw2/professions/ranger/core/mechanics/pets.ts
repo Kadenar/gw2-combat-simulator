@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { ACTOR, BOON } from '#gw2/platform/constants.js';
+import { boonKey, gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { createRangerPetState, rangerPetInstanceId } from '#gw2/professions/ranger/core/mechanics/pet-state.js';
 import {
   RANGER_PET_SKILL_TIMINGS,
@@ -6,7 +7,6 @@ import {
 } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { gw2CooldownReadyAt, quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
-import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -178,7 +178,7 @@ function interruptPetAutoattack(context: RangerRuntime): void {
         at: context.time,
         source: 'ranger-pet',
         sourceId: state.activePet,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         activationId: state.pet!.autoAction.activationId,
         endsAt: context.time,
         interrupted: true
@@ -231,7 +231,7 @@ export function retireRangerPet(context: RangerRuntime, sourceId: SkillId): void
       at: context.time,
       source: 'ranger',
       sourceId,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       summonOwner: id
     }
   });
@@ -316,7 +316,7 @@ export function emitRangerPetSkill(
       continue;
 
     // Ranger-stat damage is independent; all other pending skill effects require the casting pet.
-    const rangerDamage = effect.actorType === 'player' && (effect.type === 'strike' || effect.type === 'condition');
+    const rangerDamage = effect.actorType === ACTOR.PLAYER && (effect.type === 'strike' || effect.type === 'condition');
     context.effects.emit({
       kind: 'profile',
       profile: skill,
@@ -334,7 +334,7 @@ export function emitRangerPetSkill(
         activationId,
         source: effect.source ?? (cast ? 'ranger' : 'ranger-pet'),
         sourceId: effect.sourceId ?? skill.id,
-        actorType: effect.actorType ?? (cast ? 'player' : 'summon'),
+        actorType: effect.actorType ?? (cast ? ACTOR.PLAYER : ACTOR.SUMMON),
         skillId: skill.id,
         skillName: skill.name
       },
@@ -435,7 +435,7 @@ const rangerPetTasks = {
           at: context.time,
           source: 'ranger-pet',
           sourceId: skill.id,
-          actorType: 'summon',
+          actorType: ACTOR.SUMMON,
           skillId: skill.id,
           skillName: skill.name,
           name: skill.name,
@@ -510,7 +510,7 @@ const rangerPetTasks = {
         at: context.time,
         source: 'ranger-pet',
         sourceId: cast.skill.id,
-        actorType: 'summon',
+        actorType: ACTOR.SUMMON,
         skillId: cast.skill.id,
         skillName: cast.skill.name,
         name: cast.skill.name,

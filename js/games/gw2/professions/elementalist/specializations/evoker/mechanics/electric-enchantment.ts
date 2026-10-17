@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 /** Electric Enchantment owns its shared identity, charge lifecycle, combat payload, and damage preview. */
 import { activeChargeGrants, consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
@@ -84,8 +84,8 @@ function emitElectricEnchantment(context: ElementalistRuntime, event: Simulation
   const attribution = {
     source: electricEnchantment.name,
     sourceId: electricEnchantment.sourceId,
-    actorType: 'effect' as const,
-    ownerActorType: 'player' as const,
+    actorType: ACTOR.EFFECT,
+    ownerActorType: ACTOR.PLAYER,
     skillName: electricEnchantment.name,
     icon: electricEnchantment.icon
   };

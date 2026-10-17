@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Ursine family.
@@ -15,7 +15,7 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         coefficient: 0.51,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.URSINE_SLASH]!.castTimeMs,
@@ -34,7 +34,7 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.1,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -42,7 +42,7 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 1,
         duration: 4,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 333,
@@ -55,7 +55,7 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.5,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -63,7 +63,7 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 1,
         duration: 4,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 833,
@@ -76,7 +76,7 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.5,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -84,7 +84,7 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 833,
@@ -98,7 +98,7 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         hits: 2,
         atMs: 0,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -106,7 +106,7 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 4,
         duration: 6,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 1167,

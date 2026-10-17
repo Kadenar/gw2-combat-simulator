@@ -1,3 +1,5 @@
+import { WEAPON } from '#gw2/platform/constants.js';
+
 /** Exact item icons from the GW2 v2/items API; keys match the selectable equipment catalogs. */
 export const EQUIPMENT_ICONS: Readonly<Record<string, string>> = {
   // The generic slaying potion uses the undead variant's icon to represent the shared effect.
@@ -139,23 +141,23 @@ export const GEAR_ICONS: Readonly<Record<string, string>> = {
   Accessory: 'https://render.guildwars2.com/file/741D3F520D1DFD7BB9A35AD50FC75152D2B3CA6B/1614709.png',
   Amulet: 'https://render.guildwars2.com/file/4944FD054FD80D805B0BFFB2DA60363A7DD31FDB/1614376.png',
   Back: 'https://render.guildwars2.com/file/66A65645BE085493A9E30EA659651715CDE91D07/1202361.png',
-  Greatsword: 'https://render.guildwars2.com/file/B1A52DB3FCD8A6C744144FD4770BCBE8F95A4CBA/631562.png',
-  Hammer: 'https://render.guildwars2.com/file/A3455EC1C59AC001E12C65740DE32DA12645EFA5/631576.png',
-  Longbow: 'https://render.guildwars2.com/file/773EB91B749EB947CBB277D3219090CC1BDCCAC4/631592.png',
-  Rifle: 'https://render.guildwars2.com/file/9D0F6CE0C16A43FD0E66C55E3E27CCDF260779ED/631616.png',
-  Shortbow: 'https://render.guildwars2.com/file/3D7A68807006A225D124A4315DDAFB10AA07CE0F/631634.png',
-  Staff: 'https://render.guildwars2.com/file/F86C3CD9FA20D20EE920590517993211C6F9B99C/631650.png',
-  Focus: 'https://render.guildwars2.com/file/3F2F9F46E00592FE966F0E976445A87536743513/631554.png',
-  Shield: 'https://render.guildwars2.com/file/59060CD4B67508090C0F5F436499F07B71080E1B/631632.png',
-  Torch: 'https://render.guildwars2.com/file/081557906F6FDA4160320E3AFD42D4B11FEDDC0B/631666.png',
-  Warhorn: 'https://render.guildwars2.com/file/F4407BC09091D6042078B05D4B0757037300A333/631683.png',
-  Axe: 'https://render.guildwars2.com/file/AE4909124900E1A3006CEA394670603D5B0C15EE/631536.png',
-  Dagger: 'https://render.guildwars2.com/file/2F94A543C87EAEE701BE28B26564C7B3D19C0977/631546.png',
-  Mace: 'https://render.guildwars2.com/file/6EA5EEBFDC1278F3F997A248362A6F9698CA09FD/631600.png',
-  Pistol: 'https://render.guildwars2.com/file/51217142E12EB2FE19B1DB1CAE4F1D275CC9EA03/631608.png',
-  Scepter: 'https://render.guildwars2.com/file/3832066C1A5B45F1C40930C703573C65CB53D73B/631624.png',
-  Sword: 'https://render.guildwars2.com/file/3C4AA1BD79DAB49201C81D934AC7567B286E711B/631658.png',
+  [WEAPON.GREATSWORD]: 'https://render.guildwars2.com/file/B1A52DB3FCD8A6C744144FD4770BCBE8F95A4CBA/631562.png',
+  [WEAPON.HAMMER]: 'https://render.guildwars2.com/file/A3455EC1C59AC001E12C65740DE32DA12645EFA5/631576.png',
+  [WEAPON.LONGBOW]: 'https://render.guildwars2.com/file/773EB91B749EB947CBB277D3219090CC1BDCCAC4/631592.png',
+  [WEAPON.RIFLE]: 'https://render.guildwars2.com/file/9D0F6CE0C16A43FD0E66C55E3E27CCDF260779ED/631616.png',
+  [WEAPON.SHORTBOW]: 'https://render.guildwars2.com/file/3D7A68807006A225D124A4315DDAFB10AA07CE0F/631634.png',
+  [WEAPON.STAFF]: 'https://render.guildwars2.com/file/F86C3CD9FA20D20EE920590517993211C6F9B99C/631650.png',
+  [WEAPON.FOCUS]: 'https://render.guildwars2.com/file/3F2F9F46E00592FE966F0E976445A87536743513/631554.png',
+  [WEAPON.SHIELD]: 'https://render.guildwars2.com/file/59060CD4B67508090C0F5F436499F07B71080E1B/631632.png',
+  [WEAPON.TORCH]: 'https://render.guildwars2.com/file/081557906F6FDA4160320E3AFD42D4B11FEDDC0B/631666.png',
+  [WEAPON.WARHORN]: 'https://render.guildwars2.com/file/F4407BC09091D6042078B05D4B0757037300A333/631683.png',
+  [WEAPON.AXE]: 'https://render.guildwars2.com/file/AE4909124900E1A3006CEA394670603D5B0C15EE/631536.png',
+  [WEAPON.DAGGER]: 'https://render.guildwars2.com/file/2F94A543C87EAEE701BE28B26564C7B3D19C0977/631546.png',
+  [WEAPON.MACE]: 'https://render.guildwars2.com/file/6EA5EEBFDC1278F3F997A248362A6F9698CA09FD/631600.png',
+  [WEAPON.PISTOL]: 'https://render.guildwars2.com/file/51217142E12EB2FE19B1DB1CAE4F1D275CC9EA03/631608.png',
+  [WEAPON.SCEPTER]: 'https://render.guildwars2.com/file/3832066C1A5B45F1C40930C703573C65CB53D73B/631624.png',
+  [WEAPON.SWORD]: 'https://render.guildwars2.com/file/3C4AA1BD79DAB49201C81D934AC7567B286E711B/631658.png',
   Speargun: 'https://render.guildwars2.com/file/5C473933354CB8F1542F9F0FF39A5B445877CC06/631642.png',
-  Spear: 'https://render.guildwars2.com/file/C427A73B00AB091FE8049AC2FD7EDEB4AF9A093F/631584.png',
+  [WEAPON.SPEAR]: 'https://render.guildwars2.com/file/C427A73B00AB091FE8049AC2FD7EDEB4AF9A093F/631584.png',
   Trident: 'https://render.guildwars2.com/file/434F5946A9020500C2EE2E1F0F38E2CF7F0654BC/631675.png'
 };

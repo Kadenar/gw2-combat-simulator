@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 /** Mechanic and skill-variant tuning for Catalyst; traits own their profiles under traits/. */
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';

@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Core Ranger pet skill fragments for the Jacaranda family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -27,8 +26,8 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         duration: 5,
         stacks: 1,
         source: 'ranger-pet',
-        actorType: 'summon',
-        audience: { recipients: 'self' }
+        actorType: ACTOR.SUMMON,
+        audience: { recipients: RECIPIENT.SELF }
       }
     ],
     castTimeMs: 750,
@@ -45,7 +44,7 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         ticks: [{ atMs: EMBRACE_STRIKE_MS, coefficient: 0.16 }],
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -54,14 +53,14 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
           { atMs: EMBRACE_STRIKE_MS, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1 }
         ],
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'strike',
         ticks: EMBRACE_VINE_PULSE_TIMES_MS.map((atMs) => ({ atMs, coefficient: EMBRACE_VINE_COEFFICIENT })),
         canCrit: false,
         source: 'ranger-pet',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -70,7 +69,7 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
           { atMs, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }
         ]),
         source: 'ranger-pet',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     // The pet's unquickened animation lasts 1.48 s; treating that measurement as Quickness inflated its lane occupancy.
@@ -87,7 +86,7 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 800,
@@ -105,7 +104,7 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
           coefficient: 0.5
         })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -116,7 +115,7 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
           duration: 6
         })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ]),
     quicknessCastTimeMs: 500,

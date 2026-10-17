@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Owns Legendary Alliance stance skill fragments. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -18,14 +17,14 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
         coefficient: 0.222,
         hits: 1,
         name: 'Selfish Spirit',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
@@ -46,7 +45,7 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'strike',
         ticks: [{ atMs: 800, coefficient: 4 }],
         name: "Nomad's Advance",
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -69,7 +68,7 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
         coefficient: 2.22,
         hits: 1,
         name: "Reaver's Rage",
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
@@ -85,8 +84,8 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'control',
-        actorType: 'player',
-        controlKind: 'daze'
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.DAZE
       }
     ],
     legendId: 'LegendaryAlliance'
@@ -105,14 +104,14 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
           coefficient: 5,
           hits: 1,
           name: 'Spear of Archemorus',
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.TORMENT,
           stacks: 5,
           duration: 8,
-          actorType: 'player'
+          actorType: ACTOR.PLAYER
         }
       ]
     ),
@@ -128,14 +127,14 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
         coefficient: 2.25,
         hits: 1,
         name: 'Scavenger Burst',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BURNING,
         stacks: 2,
         duration: 5,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',

@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
@@ -69,7 +70,7 @@ export function createHammerOrbs(
             at,
             source: skill.name,
             sourceId: skill.id,
-            actorType: 'player',
+            actorType: ACTOR.PLAYER,
             kind: `hammer ${element.toLowerCase()} orb`,
             stacks: 1,
             duration,

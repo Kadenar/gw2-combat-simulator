@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
@@ -134,7 +134,9 @@ const restorativeVirtues = defineTrait({
     onTriggerPoint(willbenderVirtueOpened, {
       when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'resolve',
       run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
-        grantVirtueBoon(runtime, TRAIT.RESTORATIVE_VIRTUES, boonKey(BOON.VIGOR), cause, () => ({ recipients: 'self' }))
+        grantVirtueBoon(runtime, TRAIT.RESTORATIVE_VIRTUES, boonKey(BOON.VIGOR), cause, () => ({
+          recipients: RECIPIENT.SELF
+        }))
     }),
     onTriggerPoint(willbenderVirtueTriggered, {
       run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) => reduceWeapons(runtime, cause)
@@ -174,7 +176,7 @@ const holyReckoning = defineTrait({
         boon: BOON.MIGHT,
         stacks: 1,
         duration: 15,
-        audience: { recipients: 'party' }
+        audience: { recipients: RECIPIENT.PARTY }
       },
       {
         type: 'boon',
@@ -182,7 +184,7 @@ const holyReckoning = defineTrait({
         boon: BOON.FURY,
         stacks: 1,
         duration: 3,
-        audience: { recipients: 'self' }
+        audience: { recipients: RECIPIENT.SELF }
       }
     ]
   },
@@ -190,11 +192,15 @@ const holyReckoning = defineTrait({
     onTriggerPoint(willbenderVirtueOpened, {
       when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'justice',
       run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
-        grantVirtueBoon(runtime, TRAIT.HOLY_RECKONING, boonKey(BOON.FURY), cause, () => ({ recipients: 'self' }))
+        grantVirtueBoon(runtime, TRAIT.HOLY_RECKONING, boonKey(BOON.FURY), cause, () => ({
+          recipients: RECIPIENT.SELF
+        }))
     }),
     onTriggerPoint(willbenderVirtueTriggered, {
       run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
-        grantVirtueBoon(runtime, TRAIT.HOLY_RECKONING, boonKey(BOON.MIGHT), cause, () => ({ recipients: 'party' }))
+        grantVirtueBoon(runtime, TRAIT.HOLY_RECKONING, boonKey(BOON.MIGHT), cause, () => ({
+          recipients: RECIPIENT.PARTY
+        }))
     })
   ]
 });
@@ -211,7 +217,7 @@ const phoenixProtocol = defineTrait({
         boon: BOON.ALACRITY,
         stacks: 1,
         duration: 5,
-        audience: { recipients: 'self' }
+        audience: { recipients: RECIPIENT.SELF }
       },
       {
         type: 'boon',
@@ -220,7 +226,7 @@ const phoenixProtocol = defineTrait({
         stacks: 1,
         duration: 1,
         packetLabel: 'triggered',
-        audience: { recipients: 'self' }
+        audience: { recipients: RECIPIENT.SELF }
       }
     ]
   },
@@ -290,11 +296,11 @@ const searingPact = defineTrait({
         Boolean(event.willbenderFlames) &&
         (details.hitContext?.damage ?? 0) > 0 &&
         Number(event.coefficient) > 0 &&
-        (event.actorType === 'player' || event.sourceId === `sigil.${SIGIL_IDS.AIR}`),
+        (event.actorType === ACTOR.PLAYER || event.sourceId === `sigil.${SIGIL_IDS.AIR}`),
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.BURNING,
       attribution: {
         source: 'guardian',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: TRAIT.SEARING_PACT,
         skillName: 'Searing Pact',
         name: 'Searing Pact \u2014 Burning',
@@ -339,7 +345,7 @@ function grantVirtueBoon(
     attribution: {
       source: 'guardian',
       sourceId: trait,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: trait,
       skillName: profile.name,
       activationId: cause.activationId,
@@ -357,7 +363,7 @@ function grantVirtueBoon(
 
 /** Authored sharing survives without Battle Presence; the trait can still share self-only live effects. */
 function phoenixAudience(runtime: GuardianRuntime): (authored: BoonAudience) => BoonAudience {
-  return (authored) => (battlePresenceSharesBoons(runtime) ? { ...authored, recipients: 'party' } : authored);
+  return (authored) => (battlePresenceSharesBoons(runtime) ? { ...authored, recipients: RECIPIENT.PARTY } : authored);
 }
 
 function gainLethalTempo(
@@ -392,7 +398,7 @@ function tempo(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
       at: runtime.time,
       source: 'guardian',
       sourceId: TRAIT.LETHAL_TEMPO,
-      actorType: 'player',
+      actorType: ACTOR.PLAYER,
       skillId: TRAIT.LETHAL_TEMPO,
       skillName: 'Lethal Tempo',
       name: 'Lethal Tempo',

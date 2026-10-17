@@ -1,3 +1,4 @@
+import { COMBO_FIELD, RECIPIENT } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -16,7 +17,7 @@ export function extendPersistingFlamesEffects(
   if (
     !hasTrait(context, TRAIT.PERSISTING_FLAMES) ||
     skill.type !== 'Weapon' ||
-    !skill.comboFields?.some((field) => field.fieldType === 'Fire')
+    !skill.comboFields?.some((field) => field.fieldType === COMBO_FIELD.FIRE)
   )
     return effects;
 
@@ -44,7 +45,7 @@ export function extendPersistingFlamesEffects(
   if (!last || !previous || last.at <= previous.at) return effects;
 
   const interval = last.at - previous.at;
-  const count = Math.max(0, Math.trunc(balanceNumberFromContext(context, TRAIT.PERSISTING_FLAMES, 'summons')));
+  const count = Math.max(0, Math.trunc(balanceNumberFromContext(context, TRAIT.PERSISTING_FLAMES, RECIPIENT.SUMMONS)));
   const extra: SkillEffect[] = [];
   for (let index = 1; index <= count; index++) {
     extra.push({
@@ -91,6 +92,6 @@ export function extendPersistingFlamesFields(
 
   const extension = balanceNumberFromContext(context, TRAIT.PERSISTING_FLAMES, 'durationPerTier');
   return fields?.map((field) =>
-    field.fieldType === 'Fire' ? { ...field, duration: Number(field.duration) + extension } : field
+    field.fieldType === COMBO_FIELD.FIRE ? { ...field, duration: Number(field.duration) + extension } : field
   );
 }

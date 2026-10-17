@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { RECIPIENT, ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
@@ -37,7 +36,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         boon: BOON.RESISTANCE,
-        audience: { recipients: 'party', maximumRecipients: 5 },
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         duration: 3,
         stacks: 1
       },
@@ -62,7 +61,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         type: 'strike',
         ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 400 + index * 120, coefficient: 1.2 / 3 })),
         name: 'Banish Enchantment',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         metadata: {}
       },
       {
@@ -74,7 +73,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
           duration: 1
         })),
         metadata: {},
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -85,7 +84,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
           duration: 3
         })),
         metadata: {},
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     legendId: 'LegendaryDemon'
@@ -107,7 +106,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
           coefficient: 1.2,
           hits: 1,
           name: 'Call to Anguish',
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           metadata: {}
         },
         {
@@ -115,13 +114,13 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
           condition: CONDITION.CHILLED,
           stacks: 1,
           duration: 2,
-          actorType: 'player',
+          actorType: ACTOR.PLAYER,
           metadata: {}
         },
         {
           type: 'control',
-          actorType: 'player',
-          controlKind: 'pull'
+          actorType: ACTOR.PLAYER,
+          controlKind: CONTROL.PULL
         }
       ]
     ),
@@ -162,7 +161,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Embrace the Darkness',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true
       },
       {
@@ -170,7 +169,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 5,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true
       },
       {
@@ -178,7 +177,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         condition: CONDITION.TORMENT,
         stacks: 2,
         duration: 5,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true,
         metadata: { trigger: 'empowered-upkeep-pulse' }
       }
@@ -199,28 +198,28 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         coefficient: 1,
         hits: 1,
         name: 'Unyielding Impact',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.TORMENT,
         stacks: 4,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.POISONED,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]),
     legendId: 'LegendaryDemon'
@@ -260,7 +259,7 @@ export function embracePulse(runtime: RevenantRuntime, skill: RevenantSkill, at:
     at,
     source: 'revenant',
     sourceId: skill.id,
-    actorType: 'player' as const,
+    actorType: ACTOR.PLAYER,
     skillId: skill.id,
     skillName: skill.name
   };

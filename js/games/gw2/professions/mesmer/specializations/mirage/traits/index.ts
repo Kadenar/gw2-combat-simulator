@@ -1,5 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -256,7 +256,7 @@ function renewingOasisCloak(
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.RENEWING_OASIS,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: TRAIT.RENEWING_OASIS,
       skillName: profile.name
     },
@@ -269,7 +269,7 @@ function renewingOasisCloak(
     effect: { type: 'boon', name: boonKey(BOON.REGENERATION) },
     skillId: TRAIT.RENEWING_OASIS,
     skillName: profile.name,
-    attribution: { actorType: 'player' },
+    attribution: { actorType: ACTOR.PLAYER },
     transform: (event) => ({ ...event, sourceSkill: source })
   });
 }
@@ -298,7 +298,7 @@ function reduceDuneCloakShatters(
     ...delivery,
     kind: 'announcement',
     log: true,
-    attribution: { source: 'Trait', sourceId: TRAIT.DUNE_CLOAK, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.DUNE_CLOAK, actorType: ACTOR.EFFECT },
     announcement: {
       type: 'trait',
       name: 'Dune Cloak',
@@ -343,7 +343,7 @@ function riddleAmbush(
       ...delivery,
       kind: 'announcement',
       log: true,
-      attribution: { source: 'Trait', sourceId: TRAIT.RIDDLE_OF_SAND, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: TRAIT.RIDDLE_OF_SAND, actorType: ACTOR.EFFECT },
       announcement: {
         type: 'trait',
         name: 'Riddle of Sand',
@@ -373,7 +373,7 @@ function mantleAmbush(
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.MIRAGE_MANTLE,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: TRAIT.MIRAGE_MANTLE,
       skillName: profile.name
     },
@@ -386,7 +386,7 @@ function mantleAmbush(
     effect: { type: 'boon', name: boonKey(BOON.ALACRITY) },
     skillId: TRAIT.MIRAGE_MANTLE,
     skillName: profile.name,
-    attribution: { actorType: 'player', audience: { recipients: 'party', maximumRecipients: 5 } },
+    attribution: { actorType: ACTOR.PLAYER, audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } },
     transform: (event) => ({ ...event, sourceSkill: ambush.name })
   });
 }
@@ -405,7 +405,7 @@ function infiniteHorizonAmbush(
     ...delivery,
     kind: 'announcement',
     log: true,
-    attribution: { source: 'Trait', sourceId: TRAIT.INFINITE_HORIZON, actorType: 'effect' },
+    attribution: { source: 'Trait', sourceId: TRAIT.INFINITE_HORIZON, actorType: ACTOR.EFFECT },
     announcement: {
       type: 'trait',
       name: 'Infinite Horizon',
@@ -479,7 +479,7 @@ function primeRiddleAfterShatter(
       ...delivery,
       kind: 'announcement',
       log: true,
-      attribution: { source: 'Trait', sourceId: TRAIT.RIDDLE_OF_SAND, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: TRAIT.RIDDLE_OF_SAND, actorType: ACTOR.EFFECT },
       announcement: { type: 'trait', name: 'Riddle of Sand', at: at, sourceSkill: skill.name, detail: 'ambush primed' }
     });
   }
@@ -505,7 +505,7 @@ function grantNomadsEndurance(
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.NOMADS_ENDURANCE,
-      actorType: 'effect',
+      actorType: ACTOR.EFFECT,
       skillId: TRAIT.NOMADS_ENDURANCE,
       skillName: profile.name
     },
@@ -518,7 +518,7 @@ function grantNomadsEndurance(
     effect: { type: 'boon', name: boonKey(BOON.VIGOR) },
     skillId: TRAIT.NOMADS_ENDURANCE,
     skillName: profile.name,
-    attribution: { actorType: 'player' },
+    attribution: { actorType: ACTOR.PLAYER },
     transform: (event) => ({ ...event, sourceSkill: skill.name })
   });
 }
@@ -548,7 +548,7 @@ function grantPhantomPain(
       const traitSource = {
         source: 'Trait',
         sourceId: TRAIT.PHANTOM_PAIN,
-        actorType: 'player' as const,
+        actorType: ACTOR.PLAYER,
         skillId: TRAIT.PHANTOM_PAIN,
         skillName: traitProfile.name
       };
@@ -558,7 +558,7 @@ function grantPhantomPain(
           ...delivery,
           kind: 'announcement',
           log: true,
-          attribution: { ...traitSource, actorType: 'effect' },
+          attribution: { ...traitSource, actorType: ACTOR.EFFECT },
           announcement: { type: 'trait', name: traitProfile.name, at: at, sourceSkill: skill.name, detail: '' }
         });
         for (const grant of grants)
@@ -590,7 +590,7 @@ function createDesertDistortionMirrors(
       ...delivery,
       kind: 'announcement',
       log: true,
-      attribution: { source: 'Trait', sourceId: TRAIT.DESERT_DISTORTION, actorType: 'effect' },
+      attribution: { source: 'Trait', sourceId: TRAIT.DESERT_DISTORTION, actorType: ACTOR.EFFECT },
       announcement: {
         type: 'trait',
         name: 'Desert Distortion',

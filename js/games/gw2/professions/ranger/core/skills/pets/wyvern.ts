@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Wyvern family.
@@ -17,7 +17,7 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         hits: 2,
         atMs: 0,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WYVERN_WING_SWIPE]!.castTimeMs,
@@ -31,7 +31,7 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         coefficient: 0.4,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -39,7 +39,7 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 1,
         duration: 6,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WYVERN_TAIL_LASH]!.castTimeMs,
@@ -55,14 +55,14 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         hits: 4,
         atMs: 0,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'control',
-        controlKind: 'launch',
+        controlKind: CONTROL.LAUNCH,
         duration: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WYVERN_WING_BUFFET]!.castTimeMs,
@@ -76,7 +76,7 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.6,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 333,
@@ -89,7 +89,7 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.2,
         hits: 1,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       },
       {
         type: 'condition',
@@ -97,7 +97,7 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: ACTOR.SUMMON
       }
     ],
     quicknessCastTimeMs: 1667,

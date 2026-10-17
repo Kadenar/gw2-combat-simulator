@@ -1,5 +1,4 @@
-import { BOON } from '#gw2/platform/effects/boons.js';
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -29,14 +28,14 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         coefficient: 0.8,
         hits: 1,
         name: 'Mist Slash',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -52,7 +51,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         type: 'strike',
         ticks: [{ atMs: 400, coefficient: 1.6 }],
         name: 'Mist Unleashed',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -61,7 +60,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         condition: CONDITION.VULNERABILITY,
         stacks: 3,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -79,21 +78,21 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         coefficient: 1.2,
         hits: 1,
         name: 'Arcing Mists',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 2,
         duration: 10,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ])
   },
@@ -109,7 +108,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         coefficient: 1.5,
         hits: 1,
         name: 'True Strike (vindicator) — Packet 1',
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       }
     ]
   },
@@ -128,14 +127,14 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         coefficient: 1.6,
         hits: 1,
         name: "Phantom's Onslaught",
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'boon',
@@ -158,7 +157,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         coefficient: 0.7,
         hits: 1,
         name: 'Mist Swing',
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true
       }
     ]
@@ -183,7 +182,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       {
         type: 'strike',
         name: "Eternity's Requiem",
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         // Committed impacts continue landing after the cast is interrupted.
@@ -205,7 +204,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       {
         type: 'strike',
         name: "Eternity's Requiem - Large Target",
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -242,7 +241,7 @@ function startRevenantImperialGuard(runtime: RevenantRuntime, cast: RuntimeCast<
         at: cast.start,
         source: 'revenant',
         sourceId: cast.skill.id,
-        actorType: 'player',
+        actorType: ACTOR.PLAYER,
         skillId: cast.skill.id,
         skillName: cast.skill.name,
         activationId: cast.id,

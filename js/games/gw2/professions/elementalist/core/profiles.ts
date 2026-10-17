@@ -1,3 +1,4 @@
+import { AURA } from '#gw2/platform/constants.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/core/profile-ids.js';
 /**
  * Balance profiles for Core Elementalist: the authored, patch-tunable numbers
@@ -81,10 +82,10 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     'Elemental Explosion - Attunement Aura',
     {
       effects: [
-        aura('Fire', 'Fire Aura', 4),
-        aura('Water', 'Frost Aura', 4),
-        aura('Air', 'Shocking Aura', 3),
-        aura('Earth', 'Magnetic Aura', 3)
+        aura('Fire', AURA.FIRE, 4),
+        aura('Water', AURA.FROST, 4),
+        aura('Air', AURA.SHOCKING, 3),
+        aura('Earth', AURA.MAGNETIC, 3)
       ]
     }
   ),

@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import type { MesmerCloneAttack } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { axeCloneAttack } from '#gw2/professions/mesmer/core/skills/weapons/axe-clone.js';
 
@@ -141,12 +141,12 @@ const swordCloneAttack = {
 
 /** Shared clone execution selects weapon-owned data without importing weapon execution modules. */
 export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttack>> = Object.freeze({
-  Axe: axeCloneAttack,
-  Dagger: daggerCloneAttack,
-  Greatsword: greatswordCloneAttack,
-  Rifle: rifleCloneAttack,
-  Scepter: scepterCloneAttack,
-  Spear: spearCloneAttack,
-  Staff: staffCloneAttack,
-  Sword: swordCloneAttack
+  [WEAPON.AXE]: axeCloneAttack,
+  [WEAPON.DAGGER]: daggerCloneAttack,
+  [WEAPON.GREATSWORD]: greatswordCloneAttack,
+  [WEAPON.RIFLE]: rifleCloneAttack,
+  [WEAPON.SCEPTER]: scepterCloneAttack,
+  [WEAPON.SPEAR]: spearCloneAttack,
+  [WEAPON.STAFF]: staffCloneAttack,
+  [WEAPON.SWORD]: swordCloneAttack
 });

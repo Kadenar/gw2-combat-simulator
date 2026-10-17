@@ -1,4 +1,4 @@
-import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { ACTOR, WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
@@ -20,7 +20,7 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Pa
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 12 / 8 } })
@@ -46,7 +46,7 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Pa
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: { type: 'necromancer.axe-health' }
@@ -73,7 +73,7 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Pa
         reactions: [
           {
             on: 'damage.resolved',
-            actor: 'player',
+            actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: { type: 'necromancer.axe-health' }
@@ -103,7 +103,7 @@ export const NECROMANCER_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         atMs: 520,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        weapon: 'Axe'
+        weapon: WEAPON.AXE
       }
     ]
   }
@@ -116,5 +116,5 @@ export const ghastlyClawsVulnerabilityModifier: Gw2ModifierRule = {
   target: MODIFIER_TARGET.STRIKE_DAMAGE,
   operation: 'multiply',
   factor: (context) => 1 + vulnerabilityStacks(context) * 0.01,
-  when: (context) => context.event?.skillId === ID.GHASTLY_CLAWS && context.event.actorType === 'player'
+  when: (context) => context.event?.skillId === ID.GHASTLY_CLAWS && context.event.actorType === ACTOR.PLAYER
 };

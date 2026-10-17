@@ -1,4 +1,5 @@
-import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
 import type { RangerConfig } from '#gw2/professions/ranger/types.js';

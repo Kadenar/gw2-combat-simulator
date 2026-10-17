@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { projectInputTrace } from '#gw2/platform/results/input-trace.js';
 import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -54,7 +55,7 @@ export function projectRuntimeResult<T extends object>(
       .filter(
         (event) =>
           event.type === 'action' &&
-          event.actorType === 'summon' &&
+          event.actorType === ACTOR.SUMMON &&
           event.activationId &&
           event.skillId != null &&
           profession.catalog.skillsById.get(event.skillId)?.independentCast
