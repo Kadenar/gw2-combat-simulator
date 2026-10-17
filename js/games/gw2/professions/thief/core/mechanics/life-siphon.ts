@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { isFlatLifeStealPacket } from '#gw2/platform/effects/packet-builders.js';
 import { leadAttacksSiphonMultiplier } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
@@ -12,7 +13,7 @@ export function modifyThiefLifeSiphon(context: ThiefResolverContext, event: Thie
   // Vampiric Slash samples live Vulnerability for its siphon only, independently of the packet's label.
   if (
     event.metadata?.packetKind === 'thief.vampiric-slash-life-siphon' &&
-    context.combat.targetHasCondition('Vulnerability', event.at)
+    context.combat.targetHasCondition(CONDITION.VULNERABILITY, event.at)
   )
     multiplier *= 1.5;
 

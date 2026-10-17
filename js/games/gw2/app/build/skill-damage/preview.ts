@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
 import { normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
@@ -19,7 +20,10 @@ export function createSkillDamagePreview(
 ) {
   const values = normalizeAttributePreview(controls, input);
   const boons = Object.fromEntries(
-    GW2_STANDARD_BOONS.map((kind) => [kind, kind === 'might' ? Number(values[kind] || 0) : Boolean(values[kind])])
+    GW2_STANDARD_BOONS.map((kind) => [
+      kind,
+      kind === boonKey(BOON.MIGHT) ? Number(values[kind] || 0) : Boolean(values[kind])
+    ])
   );
   const isolated = createIsolatedPreview(
     app,

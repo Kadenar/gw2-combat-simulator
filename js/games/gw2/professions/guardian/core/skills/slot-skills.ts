@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -15,8 +17,8 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ammoRecharge: 24,
     ammoCastLockout: 5,
     effects: [
-      { type: 'boon', boon: 'swiftness', duration: 20, audience: { recipients: 'party' } },
-      { type: 'boon', boon: 'aegis', duration: 20, audience: { recipients: 'party' } }
+      { type: 'boon', boon: BOON.SWIFTNESS, duration: 20, audience: { recipients: 'party' } },
+      { type: 'boon', boon: BOON.AEGIS, duration: 20, audience: { recipients: 'party' } }
     ]
   },
   [ID.HOLD_THE_LINE]: {
@@ -26,8 +28,8 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ammoRecharge: 20,
     ammoCastLockout: 5,
     effects: [
-      { type: 'boon', boon: 'protection', duration: 6, audience: { recipients: 'party' } },
-      { type: 'boon', boon: 'regeneration', duration: 6, audience: { recipients: 'party' } }
+      { type: 'boon', boon: BOON.PROTECTION, duration: 6, audience: { recipients: 'party' } },
+      { type: 'boon', boon: BOON.REGENERATION, duration: 6, audience: { recipients: 'party' } }
     ]
   },
   [ID.RECEIVE_THE_LIGHT]: {
@@ -84,13 +86,13 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 3,
         duration: 5
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 6
       }
@@ -132,7 +134,7 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
         // Every sword packet applies its own Vulnerability at the matching impact time.
         ticks: [1320, 1720, 2120, 2520].map((atMs) => ({
           atMs,
-          condition: 'Vulnerability',
+          condition: CONDITION.VULNERABILITY,
           stacks: 3,
           duration: 8
         }))
@@ -164,7 +166,7 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
       // Each field pulse applies the same Burning packet alongside its strike.
       ...[320, 1320, 2320, 3320, 4320, 5320].map((atMs) => ({
         type: 'condition' as const,
-        ticks: [{ atMs, condition: 'Burning', stacks: 1, duration: 2 }]
+        ticks: [{ atMs, condition: CONDITION.BURNING, stacks: 1, duration: 2 }]
       }))
     ])
   },
@@ -178,7 +180,7 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 8
       }
@@ -192,10 +194,10 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     castTimeMs: 400,
     cooldown: 30,
     effects: [
-      { type: 'boon', boon: 'quickness', duration: 3, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: BOON.QUICKNESS, duration: 3, audience: { recipients: 'party' as const } },
       // The party application includes the caster, so this supplement doubles only the caster's duration to six seconds.
-      { type: 'boon', boon: 'quickness', duration: 3, audience: { recipients: 'self' as const } },
-      { type: 'boon', boon: 'fury', duration: 10, audience: { recipients: 'party' as const } }
+      { type: 'boon', boon: BOON.QUICKNESS, duration: 3, audience: { recipients: 'self' as const } },
+      { type: 'boon', boon: BOON.FURY, duration: 10, audience: { recipients: 'party' as const } }
     ]
   }
 });

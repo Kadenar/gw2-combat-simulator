@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import {
   effectNumber,
@@ -28,7 +29,7 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
   if (!consumeCharge(state.mistburn, event.at)) return;
 
   const mistburnProcProfile = requireBalanceProfileFromContext(context, PROFILE.mistburnProc);
-  const burning = requireEffect(mistburnProcProfile, 'condition', 'Burning');
+  const burning = requireEffect(mistburnProcProfile, 'condition', CONDITION.BURNING);
 
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!burning) return;

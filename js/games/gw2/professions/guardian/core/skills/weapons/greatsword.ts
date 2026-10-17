@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
@@ -32,7 +34,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         },
         {
           type: 'condition',
-          condition: 'Blindness',
+          condition: CONDITION.BLINDNESS,
           stacks: 1,
           duration: 3
         }
@@ -128,7 +130,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       ...[200, 1200, 2200, 3200, 4200].map((atMs) => ({
         type: 'boon' as const,
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'resolution',
+        boon: BOON.RESOLUTION,
         duration: 1,
         stacks: 1,
         atMs,

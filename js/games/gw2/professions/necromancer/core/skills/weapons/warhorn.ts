@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { strikeTimeline } from '#gw2/platform/effects/authoring.js';
@@ -11,7 +13,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'condition',
-        condition: 'Fear',
+        condition: CONDITION.FEAR,
         stacks: 1,
         duration: 1
       }
@@ -43,7 +45,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
       ),
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         stacks: 1,
         duration: 15,
         audience: { recipients: 'party', maximumRecipients: 5 }

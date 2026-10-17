@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -64,7 +65,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     parentId: ID.SPIDER_VENOM,
     maximumStacks: 6,
     durationMultiplier: 24,
-    effects: [{ type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 1, duration: 3 }]
+    effects: [{ type: 'condition', name: CONDITION.POISONED, condition: CONDITION.POISONED, stacks: 1, duration: 3 }]
   },
   {
     id: THIEF_CORE_BALANCE_PROFILE_IDS.skaleVenomProc,
@@ -74,8 +75,8 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     maximumStacks: 4,
     durationMultiplier: 24,
     effects: [
-      { type: 'condition', name: 'Vulnerability', condition: 'Vulnerability', stacks: 1, duration: 10 },
-      { type: 'condition', name: 'Torment', condition: 'Torment', stacks: 1, duration: 3 }
+      { type: 'condition', name: CONDITION.VULNERABILITY, condition: CONDITION.VULNERABILITY, stacks: 1, duration: 10 },
+      { type: 'condition', name: CONDITION.TORMENT, condition: CONDITION.TORMENT, stacks: 1, duration: 3 }
     ]
   },
   {
@@ -85,7 +86,9 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     parentId: ID.DEVOURER_VENOM,
     maximumStacks: 2,
     durationMultiplier: 24,
-    effects: [{ type: 'condition', name: 'Immobilized', condition: 'Immobilized', stacks: 1, duration: 1 }]
+    effects: [
+      { type: 'condition', name: CONDITION.IMMOBILIZED, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1 }
+    ]
   },
   {
     id: THIEF_CORE_BALANCE_PROFILE_IDS.fallingSpiderEmpowered,

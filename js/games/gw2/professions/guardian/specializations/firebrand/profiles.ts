@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
@@ -50,8 +52,8 @@ export const FIREBRAND_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     effects: [
       {
         type: 'condition',
-        name: 'Burning',
-        condition: 'Burning',
+        name: CONDITION.BURNING,
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 2,
         actorType: 'player'
@@ -66,8 +68,8 @@ export const FIREBRAND_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       },
       {
         type: 'boon',
-        name: 'might',
-        boon: 'might',
+        name: boonKey(BOON.MIGHT),
+        boon: BOON.MIGHT,
         stacks: 8,
         duration: 10,
         actorType: 'player'
@@ -80,6 +82,6 @@ export const FIREBRAND_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Tome of Courage - Passive',
     profileKind: 'mechanic',
     pulseInterval: 40,
-    effects: [{ type: 'boon', name: 'aegis', boon: 'aegis', stacks: 1, duration: 40 }]
+    effects: [{ type: 'boon', name: boonKey(BOON.AEGIS), boon: BOON.AEGIS, stacks: 1, duration: 40 }]
   }
 ]);

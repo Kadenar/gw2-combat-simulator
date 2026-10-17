@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 
 export const ENGINEER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
@@ -17,7 +18,7 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     profileKind: 'skill-variant',
     effects: [
       { name: 'Lightning Rod Pulse', type: 'strike', coefficient: 0.17, hits: 1 },
-      { name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8 }
+      { name: CONDITION.VULNERABILITY, type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 8 }
     ]
   },
   {
@@ -26,7 +27,7 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     profileKind: 'skill-variant',
     effects: [
       { name: 'Focused Lightning Rod Pulse', type: 'strike', coefficient: 0.3, hits: 1 },
-      { name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 2, duration: 8 }
+      { name: CONDITION.VULNERABILITY, type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 2, duration: 8 }
     ]
   },
   {
@@ -36,7 +37,7 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     durationMultiplier: 10,
     effects: [
       { name: 'Conduit Surge', type: 'strike', coefficient: 1.2, hits: 1 },
-      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 7 }
+      { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 7 }
     ]
   },
   {
@@ -48,9 +49,9 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     burningDurationPerCharge: 0.25,
     effects: [
       { name: 'Electric Artillery', type: 'strike', coefficient: 1, hits: 1 },
-      { name: 'Immobilized', type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 },
-      { name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8 },
-      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 2, duration: 3 }
+      { name: CONDITION.IMMOBILIZED, type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 },
+      { name: CONDITION.VULNERABILITY, type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 8 },
+      { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 2, duration: 3 }
     ]
   },
   {
@@ -62,9 +63,9 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     burningDurationPerCharge: 0.5,
     effects: [
       { name: 'Focused Electric Artillery', type: 'strike', coefficient: 1.5, hits: 1 },
-      { name: 'Immobilized', type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 },
-      { name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8 },
-      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 2, duration: 3 }
+      { name: CONDITION.IMMOBILIZED, type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 },
+      { name: CONDITION.VULNERABILITY, type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 8 },
+      { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 2, duration: 3 }
     ]
   },
   {

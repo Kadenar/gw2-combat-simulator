@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
@@ -90,8 +91,8 @@ function mesmerAmbushProfile(id: string, attack: MesmerAmbushAttack): BalancePro
         ? [
             {
               type: 'condition' as const,
-              name: 'Vulnerability',
-              condition: 'Vulnerability',
+              name: CONDITION.VULNERABILITY,
+              condition: CONDITION.VULNERABILITY,
               duration: attack.vulnerability.duration,
               stacks: attack.vulnerability.stacks
             }
@@ -123,7 +124,7 @@ export function mesmerProfiledAmbush(
   const profile = requireBalanceProfileFromContext(context, balanceProfileId);
   const playerStrike = requireEffect(profile, 'strike', 'Player attack');
   const cloneStrike = requireEffect(profile, 'strike', 'Clone attack');
-  const vulnerability = attack.vulnerability ? requireEffect(profile, 'condition', 'Vulnerability') : undefined;
+  const vulnerability = attack.vulnerability ? requireEffect(profile, 'condition', CONDITION.VULNERABILITY) : undefined;
   return {
     ...attack,
     balanceProfileId,

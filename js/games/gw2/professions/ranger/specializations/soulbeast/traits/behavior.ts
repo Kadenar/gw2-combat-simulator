@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -25,7 +26,7 @@ export function essenceOfSpeedExtension(
   event: Gw2ResolverEvent
 ): Gw2ResolverEvent | null {
   if (
-    event.kind !== 'quickness' ||
+    event.kind !== boonKey(BOON.QUICKNESS) ||
     !event.resolvedAudience?.includesSelf ||
     !hasTrait(context, TRAIT.ESSENCE_OF_SPEED) ||
     !context.procs.claim(TRAIT.ESSENCE_OF_SPEED, 'ranger.soulbeast.essenceOfSpeed', event.at)
@@ -42,6 +43,6 @@ export function essenceOfSpeedExtension(
     skillId: TRAIT.ESSENCE_OF_SPEED,
     skillName: 'Essence of Speed',
     duration: balanceNumberFromContext(context, TRAIT.ESSENCE_OF_SPEED, 'duration'),
-    excludedKind: 'quickness'
+    excludedKind: boonKey(BOON.QUICKNESS)
   };
 }

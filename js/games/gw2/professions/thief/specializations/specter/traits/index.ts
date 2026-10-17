@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -46,7 +48,7 @@ const darkSentry = defineTrait({
         stacks: 1,
         duration: 10
       },
-      { type: 'condition', name: 'Torment', condition: 'Torment', stacks: 1, duration: 2 }
+      { type: 'condition', name: CONDITION.TORMENT, condition: CONDITION.TORMENT, stacks: 1, duration: 2 }
     ]
   },
   // Dark Sentry is an implicit minor; isolation suppresses admission while admitted ally venom still completes.
@@ -123,9 +125,9 @@ const shadestep = defineTrait({
   name: 'Shadestep',
   balance: {
     effects: [
-      { type: 'boon', name: 'alacrity', boon: 'alacrity', stacks: 1, duration: 5 },
-      { type: 'boon', name: 'protection', boon: 'protection', stacks: 1, duration: 5 },
-      { type: 'boon', name: 'aegis', boon: 'aegis', stacks: 1, duration: 4 }
+      { type: 'boon', name: boonKey(BOON.ALACRITY), boon: BOON.ALACRITY, stacks: 1, duration: 5 },
+      { type: 'boon', name: boonKey(BOON.PROTECTION), boon: BOON.PROTECTION, stacks: 1, duration: 5 },
+      { type: 'boon', name: boonKey(BOON.AEGIS), boon: BOON.AEGIS, stacks: 1, duration: 4 }
     ]
   },
   triggers: [
@@ -134,7 +136,7 @@ const shadestep = defineTrait({
       on: 'castCommit',
       when: (_runtime, cast) =>
         cast.skill.id === ID.GRASPING_SHADOWS && Boolean(cast.skill.shadowShroudSkill) && !castWasInterrupted(cast),
-      effects: (effect) => effect.type === 'boon' && effect.name === 'alacrity',
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.ALACRITY),
       attribution: {
         actorType: 'player',
         name: 'Shade Step - alacrity',
@@ -146,7 +148,7 @@ const shadestep = defineTrait({
       on: 'castCommit',
       when: (_runtime, cast) =>
         cast.skill.id === ID.DAWNS_REPOSE && Boolean(cast.skill.shadowShroudSkill) && !castWasInterrupted(cast),
-      effects: (effect) => effect.type === 'boon' && effect.name === 'protection',
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.PROTECTION),
       attribution: {
         actorType: 'player',
         name: 'Shade Step - protection',
@@ -158,7 +160,7 @@ const shadestep = defineTrait({
       on: 'castCommit',
       when: (_runtime, cast) =>
         cast.skill.id === ID.MIND_SHOCK && Boolean(cast.skill.shadowShroudSkill) && !castWasInterrupted(cast),
-      effects: (effect) => effect.type === 'boon' && effect.name === 'aegis',
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.AEGIS),
       attribution: {
         actorType: 'player',
         name: 'Shade Step - aegis',
@@ -180,7 +182,7 @@ const strengthOfShadows = defineTrait({
       // The Torment-specific bonus multiplies the additive Lead Attacks and Distracting Throw pool.
       operation: 'multiply',
       factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.STRENGTH_OF_SHADOWS, 'conditionDamageIncrease'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === 'Torment'
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === CONDITION.TORMENT
     }
   ],
   balance: {
@@ -232,7 +234,7 @@ function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
 
   if (!allies.length) return;
 
-  const torment = requireEffect(profile, 'condition', 'Torment');
+  const torment = requireEffect(profile, 'condition', CONDITION.TORMENT);
   const venomDuration = effectNumber(profile, venom, 'duration');
   emitTraitProfile(runtime, TRAIT.DARK_SENTRY, TRAIT.DARK_SENTRY, undefined, {
     at: runtime.time,
@@ -265,7 +267,7 @@ function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
         emitTraitProfile(runtime, TRAIT.DARK_SENTRY, TRAIT.DARK_SENTRY, undefined, {
           at: proc.at,
           fullEnd: proc.at,
-          effect: { type: 'condition', name: 'Torment' },
+          effect: { type: 'condition', name: CONDITION.TORMENT },
           attribution: {
             source: 'Trait',
             skillId: TRAIT.DARK_SENTRY,
@@ -290,7 +292,7 @@ function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
  */
 function applyLarcenousTorment(runtime: ThiefRuntime, application: Gw2ResolverEvent): void {
   if (
-    application.condition !== 'Torment' ||
+    application.condition !== CONDITION.TORMENT ||
     application.actorType !== 'player' ||
     !hasTrait(runtime, TRAIT.LARCENOUS_TORMENT)
   )

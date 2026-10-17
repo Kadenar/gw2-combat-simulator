@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import {
   EVTC_BLEEDING_SKILL_ID,
   EVTC_CRITICAL_RESULT,
@@ -114,7 +115,7 @@ export function analyzeRangerSharpenedEdgesObservation(
   const playerCriticalHits = criticalHitsFor(playerAddress);
   const staticPlayerDurationsMs = expectedConditionDurationsMs(
     baseDuration,
-    'Bleeding',
+    CONDITION.BLEEDING,
     config,
     observationAttributeSets(config, catalog, rangerProfession.attributeContributions)
   );
@@ -138,7 +139,7 @@ export function analyzeRangerSharpenedEdgesObservation(
 
     if (!criticalHits) return [];
 
-    const matchedDurationMs = expectedConditionDurationsMs(baseDuration, 'Bleeding', {}, [
+    const matchedDurationMs = expectedConditionDurationsMs(baseDuration, CONDITION.BLEEDING, {}, [
       { expertise: petExpertise(catalog, config, pet) }
     ])[0];
     return [

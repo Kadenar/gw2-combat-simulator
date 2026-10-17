@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Feline family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -27,7 +28,7 @@ export const SOULBEAST_FELINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 4,
         duration: 10
       }

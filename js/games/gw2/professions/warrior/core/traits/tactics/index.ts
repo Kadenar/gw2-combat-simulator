@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -51,7 +53,9 @@ export const legSpecialist = defineTrait({
   name: 'Leg Specialist',
   balance: {
     damageMultiplier: 1.05,
-    effects: [{ name: 'Immobilized', type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1 }]
+    effects: [
+      { name: CONDITION.IMMOBILIZED, type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1 }
+    ]
   },
   modifierRules: [
     {
@@ -61,7 +65,9 @@ export const legSpecialist = defineTrait({
       factor: (context) => balanceNumberFromContext(context, TRAIT.LEG_SPECIALIST, 'damageMultiplier'),
       order: 91,
       when: (context) =>
-        ['Crippled', 'Chilled', 'Immobilized'].some((condition) => targetConditionActive(context, condition))
+        [CONDITION.CRIPPLED, CONDITION.CHILLED, CONDITION.IMMOBILIZED].some((condition) =>
+          targetConditionActive(context, condition)
+        )
     }
   ],
   triggers: [
@@ -69,7 +75,7 @@ export const legSpecialist = defineTrait({
       order: 8,
 
       on: 'condition.applied',
-      when: (_runtime, event) => event.condition === 'Crippled',
+      when: (_runtime, event) => event.condition === CONDITION.CRIPPLED,
       emit: TRAIT.LEG_SPECIALIST,
       attribution: { priority: 5 }
     }
@@ -87,7 +93,7 @@ export const marchingOrders = defineTrait({
   name: 'Marching Orders',
   balance: {
     internalCooldown: 10,
-    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 3, duration: 15 }]
+    effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 15 }]
   }
 });
 
@@ -102,7 +108,7 @@ export const soldiersComfort = defineTrait({
   id: TRAIT.SOLDIERS_COMFORT,
   name: "Soldier's Comfort",
   balance: {
-    effects: [{ name: 'protection', type: 'boon', boon: 'protection', stacks: 1, duration: 4 }]
+    effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, stacks: 1, duration: 4 }]
   }
 });
 
@@ -119,7 +125,7 @@ export const martialCadence = defineTrait({
   id: TRAIT.MARTIAL_CADENCE,
   name: 'Martial Cadence',
   balance: {
-    effects: [{ name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 3 }]
+    effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 3 }]
   }
 });
 
@@ -130,7 +136,7 @@ export const empowerAllies = defineTrait({
   name: 'Empower Allies',
   balance: {
     pulseInterval: 10,
-    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 5, duration: 10 }]
+    effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 10 }]
   },
   lifetime: { tasks: { [EMPOWER_PULSE]: empowerPulse } }
 });
@@ -201,7 +207,7 @@ export const warriorsCunning = defineTrait({
 function empowerPulse(runtime: WarriorRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWER_ALLIES);
   const interval = balanceProfileNumber(profile, 'pulseInterval');
-  const might = requireEffect(profile, 'boon', 'might');
+  const might = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
   if (!hasTrait(runtime, TRAIT.EMPOWER_ALLIES) || interval <= 0 || !might) return;
 

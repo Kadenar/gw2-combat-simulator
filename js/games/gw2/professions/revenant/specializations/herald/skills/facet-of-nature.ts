@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { EffectAudience } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -91,7 +92,7 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'boon',
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 4,
         stacks: 2,
         audience: { recipients: 'party' as const, maximumRecipients: 5 }

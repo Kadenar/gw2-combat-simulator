@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -35,14 +36,14 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         },
         {
           type: 'condition',
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           stacks: 1,
           duration: 2,
           actorType: 'player'
         },
         {
           type: 'condition',
-          condition: 'Immobilized',
+          condition: CONDITION.IMMOBILIZED,
           stacks: 1,
           duration: 2,
           actorType: 'player'
@@ -95,14 +96,14 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         },
         {
           type: 'condition',
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 3,
           actorType: 'player'
         },
         {
           type: 'condition',
-          condition: 'Vulnerability',
+          condition: CONDITION.VULNERABILITY,
           stacks: 3,
           duration: 6,
           actorType: 'player'
@@ -131,14 +132,14 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 6,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         // Only the accepted base Bleeding can earn the high-health bonus application.
         reactions: [
           {
@@ -196,21 +197,21 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         },
         {
           type: 'condition',
-          condition: 'Vulnerability',
+          condition: CONDITION.VULNERABILITY,
           stacks: 5,
           duration: 8,
           actorType: 'player'
         },
         {
           type: 'condition',
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 3,
           duration: 4,
           actorType: 'player'
         },
         {
           type: 'condition',
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           stacks: 3,
           duration: 4,
           actorType: 'player'
@@ -237,14 +238,14 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 3,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 4,
         actorType: 'player'
@@ -288,7 +289,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         },
         {
           type: 'condition',
-          condition: 'Weakness',
+          condition: CONDITION.WEAKNESS,
           stacks: 1,
           duration: 3,
           actorType: 'player'
@@ -310,7 +311,8 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
           const profile = requireBalanceProfileFromContext(runtime, PROFILE.fallingSpiderEmpowered);
           const factor = balanceProfileNumber(profile, 'damageMultiplier');
           const extraStacks = balanceProfileNumber(profile, 'resourceGain');
-          const boosted = (condition: unknown) => ['Bleeding', 'Poisoned'].includes(String(condition));
+          const boosted = (condition: unknown) =>
+            [CONDITION.BLEEDING, CONDITION.POISONED].some((name) => name === String(condition));
           return (cast.skill.effects ?? []).map((effect) => {
             if (effect.type === 'strike')
               return effect.ticks?.length
@@ -349,21 +351,21 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 3.5,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 1,
         duration: 3.5,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 4,
         duration: 8,
         actorType: 'player'
@@ -387,7 +389,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 2.25,
         actorType: 'player'

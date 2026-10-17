@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import { necromancerSoulShardMaximum } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
@@ -215,7 +216,7 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
           label: 'Target Bleeding',
           group: 'Target conditions',
           kind: 'condition',
-          field: 'Bleeding',
+          field: CONDITION.BLEEDING,
           scope: ['damage'],
           description: 'Life Siphon damage bonus'
         });

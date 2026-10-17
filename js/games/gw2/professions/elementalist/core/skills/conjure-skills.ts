@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Core Elementalist conjured-bundle weapon skill fragments.
  *
@@ -72,7 +74,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
         type: 'condition',
         ticks: [360, 680, 1000, 1320, 1640].map((atMs) => ({
           atMs,
-          condition: 'Vulnerability',
+          condition: CONDITION.VULNERABILITY,
           stacks: 1,
           duration: 15
         })),
@@ -101,7 +103,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
       {
         type: 'condition',
         // Each projectile applies Chilled separately; author the shared payload once without merging applications.
-        ticks: Array.from({ length: 7 }, () => ({ atMs: 240, condition: 'Chilled', stacks: 1, duration: 1 })),
+        ticks: Array.from({ length: 7 }, () => ({ atMs: 240, condition: CONDITION.CHILLED, stacks: 1, duration: 1 })),
         metadata: {}
       }
     ])
@@ -152,7 +154,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
             3720, 3960, 4240, 4480, 4720
           ].map((atMs) => ({
             atMs,
-            condition: 'Bleeding',
+            condition: CONDITION.BLEEDING,
             stacks: 1,
             duration: 3
           }))
@@ -172,7 +174,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 1120, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.8, canCrit: true },
-      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 5, metadata: {} },
+      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 5, metadata: {} },
       { type: 'control', applications: 1, controlKind: 'crowd-control' }
     ])
   },
@@ -253,7 +255,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 3,
         applications: 1
@@ -283,7 +285,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
         ],
         metadata: {}
       },
-      { type: 'boon', boon: 'Quickness', stacks: 1, duration: 3, metadata: {} }
+      { type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 3, metadata: {} }
     ])
   },
   [ID.WIND_BLAST]: {
@@ -441,37 +443,37 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
         ticks: [
           {
             atMs: 720,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 3
           },
           {
             atMs: 1720,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 3
           },
           {
             atMs: 2720,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 3
           },
           {
             atMs: 3720,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 3
           },
           {
             atMs: 4720,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 3
           },
           {
             atMs: 5720,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 3
           }
@@ -518,7 +520,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
         conditionTimeline(
           [280, 400, 520, 640, 760, 880, 1000, 1120].map((atMs) => ({
             atMs,
-            condition: 'Crippled',
+            condition: CONDITION.CRIPPLED,
             stacks: 1,
             duration: 3
           }))

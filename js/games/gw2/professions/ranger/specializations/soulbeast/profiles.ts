@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
@@ -40,8 +42,8 @@ export const SOULBEAST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     duration: 6,
     internalCooldown: 0.25,
     effects: [
-      { name: 'Poisoned', type: 'condition', condition: 'Poisoned', duration: 4, stacks: 1 },
-      { name: 'might', type: 'boon', boon: 'might', duration: 4, stacks: 1 }
+      { name: CONDITION.POISONED, type: 'condition', condition: CONDITION.POISONED, duration: 4, stacks: 1 },
+      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 4, stacks: 1 }
     ]
   },
   {
@@ -49,7 +51,7 @@ export const SOULBEAST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     parentId: ID.WINTERS_BITE,
     name: "Winter's Bite - Beastmode Trigger",
     profileKind: 'skill-variant',
-    effects: [{ name: 'Weakness', type: 'condition', condition: 'Weakness', duration: 10, stacks: 1 }]
+    effects: [{ name: CONDITION.WEAKNESS, type: 'condition', condition: CONDITION.WEAKNESS, duration: 10, stacks: 1 }]
   },
   archetype(SOULBEAST_BALANCE_PROFILE_IDS.stoutArchetype, 'Stout', {
     attributeBonus: 200,

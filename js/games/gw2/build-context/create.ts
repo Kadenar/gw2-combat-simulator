@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
 import type { RangerConfig } from '#gw2/professions/ranger/types.js';
@@ -83,7 +84,7 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
 
     if (disabled?.type === 'Boon') {
       const key = disabled.name.toLowerCase();
-      build = { ...build, assumptions: { ...build.assumptions, [key]: key === 'might' ? 0 : false } };
+      build = { ...build, assumptions: { ...build.assumptions, [key]: key === boonKey(BOON.MIGHT) ? 0 : false } };
     } else if (disabled?.type === 'Food') build = { ...build, food: '' };
     else if (disabled?.type === 'Utility') build = { ...build, utility: '' };
 

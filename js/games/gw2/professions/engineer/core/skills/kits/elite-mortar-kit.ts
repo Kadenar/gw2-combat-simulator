@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Core Engineer Elite Mortar Kit skill mechanics. */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -33,7 +34,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
         actorType: 'player'
@@ -55,7 +56,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
       },
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 1,
         actorType: 'player'
@@ -139,7 +140,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         type: 'condition',
         ticks: Array.from({ length: 5 }, (_, index) => ({
           atMs: 0 + index * 1000,
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           stacks: 1,
           duration: 3
         })),

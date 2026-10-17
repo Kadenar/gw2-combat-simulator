@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -28,7 +29,7 @@ export const GUARDIAN_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 3
       }

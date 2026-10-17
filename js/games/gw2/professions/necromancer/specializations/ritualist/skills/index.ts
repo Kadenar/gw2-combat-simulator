@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
@@ -28,17 +30,23 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     // Commit grants life force, then the Innervate handler applies the party payload.
 
     effects: [
-      { type: 'boon', boon: 'aegis', duration: 3, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } },
       {
         type: 'boon',
-        boon: 'resistance',
+        boon: BOON.AEGIS,
+        duration: 3,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      },
+      {
+        type: 'boon',
+        boon: BOON.RESISTANCE,
         duration: 4,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 }
       },
       {
         type: 'boon',
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 5,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 }
@@ -67,12 +75,18 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'boon',
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 4,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 }
       },
-      { type: 'boon', boon: 'vigor', duration: 4, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } }
+      {
+        type: 'boon',
+        boon: BOON.VIGOR,
+        duration: 4,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
     ],
     type: 'Profession',
     slot: 'Weapon_4',
@@ -92,7 +106,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'condition',
-        condition: 'Fear',
+        condition: CONDITION.FEAR,
         stacks: 1,
         duration: 2
       }
@@ -183,8 +197,14 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
 
     effects: [
       { type: 'strike', coefficient: 1.3, hits: 1 },
-      { type: 'boon', boon: 'might', duration: 10, stacks: 8, audience: { recipients: 'party', maximumRecipients: 5 } },
-      { type: 'boon', boon: 'fury', duration: 5, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } }
+      {
+        type: 'boon',
+        boon: BOON.MIGHT,
+        duration: 10,
+        stacks: 8,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      },
+      { type: 'boon', boon: BOON.FURY, duration: 5, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } }
     ],
     usableInShroud: true
   },

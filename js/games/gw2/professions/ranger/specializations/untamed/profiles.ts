@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
@@ -15,7 +17,7 @@ export const UNTAMED_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     parentId: ID.TOXIC_SHOT,
     name: 'Toxic Shot - Poisoned Target',
     profileKind: 'skill-variant',
-    effects: [{ type: 'condition', condition: 'Torment', stacks: 4, duration: 6 }]
+    effects: [{ type: 'condition', condition: CONDITION.TORMENT, stacks: 4, duration: 6 }]
   },
   {
     id: UNTAMED_BALANCE_PROFILE_IDS.resources,
@@ -31,13 +33,13 @@ export const UNTAMED_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     parentId: ID.EXPLODING_SPORES,
     name: 'Exploding Spores - Ranger Unleashed',
     profileKind: 'skill-variant',
-    effects: [{ name: 'might', type: 'boon', boon: 'might', duration: 10, stacks: 8 }]
+    effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 10, stacks: 8 }]
   },
   {
     id: UNTAMED_BALANCE_PROFILE_IDS.explodingSporesPet,
     parentId: ID.EXPLODING_SPORES,
     name: 'Exploding Spores - Pet Unleashed',
     profileKind: 'skill-variant',
-    effects: [{ name: 'protection', type: 'boon', boon: 'protection', duration: 4, stacks: 1 }]
+    effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, duration: 4, stacks: 1 }]
   }
 ]);

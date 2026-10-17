@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -102,7 +103,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       },
       {
         type: 'condition',
-        ticks: [320, 600].map((atMs) => ({ atMs, condition: 'Torment', stacks: 1, duration: 3 }))
+        ticks: [320, 600].map((atMs) => ({ atMs, condition: CONDITION.TORMENT, stacks: 1, duration: 3 }))
       }
     ]),
     type: 'Profession',
@@ -127,7 +128,12 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       },
       {
         type: 'condition',
-        ticks: [600, 680, 680, 800, 800, 800].map((atMs) => ({ atMs, condition: 'Torment', stacks: 1, duration: 3 }))
+        ticks: [600, 680, 680, 800, 800, 800].map((atMs) => ({
+          atMs,
+          condition: CONDITION.TORMENT,
+          stacks: 1,
+          duration: 3
+        }))
       }
     ]),
     type: 'Profession',

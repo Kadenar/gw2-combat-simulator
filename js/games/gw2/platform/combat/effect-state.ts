@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import {
   buffApplicationStacks,
   type Gw2TimedBuffApplication,
@@ -93,7 +94,10 @@ export function observeBuffState(
     : 0;
   return {
     kind,
-    category: duration || ['might', 'stability', 'aegis'].includes(kind) ? 'boon' : 'buff',
+    category:
+      duration || [boonKey(BOON.MIGHT), boonKey(BOON.STABILITY), boonKey(BOON.AEGIS)].some((boon) => boon === kind)
+        ? 'boon'
+        : 'buff',
     name: policy.name,
     recipient,
     origin: 'simulated',

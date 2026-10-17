@@ -183,10 +183,10 @@ test('core steal removals preserve sibling conditions, boons, and initiative', (
   );
   assert.ok(conditions.some((event) => event.condition === 'Weakness'));
   assert.equal(
-    result.events.some((event) => event.kind === 'Vigor'),
+    result.events.some((event) => event.kind === 'vigor'),
     false
   );
-  assert.ok(result.events.some((event) => event.kind === 'Might'));
+  assert.ok(result.events.some((event) => event.kind === 'might'));
   assert.equal(packet(result, 'damage', TRAIT.MUG).length, 0);
   assert.equal(packet(result, 'control', TRAIT.SLEIGHT_OF_HAND).length, 0);
   assert.ok(result.planningState.profession.initiative.value >= 2);

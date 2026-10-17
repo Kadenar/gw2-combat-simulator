@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -49,7 +51,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 6
       }
@@ -82,14 +84,14 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         },
         {
           type: 'condition',
-          condition: 'Slow',
+          condition: CONDITION.SLOW,
           stacks: 1,
           duration: 4
         }
       ]),
       {
         type: 'boon',
-        boon: 'Might',
+        boon: BOON.MIGHT,
         stacks: 10,
         duration: 8,
         // Might is granted when the trap triggers, before the jaws deal damage.

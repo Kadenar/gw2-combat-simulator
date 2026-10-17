@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { applyAttributeContributions, attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
 import { attributeSeed } from '#gw2/platform/builds/attribute-inputs.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -32,7 +33,7 @@ export const mechanistAttributes: Gw2AttributeContributionCalculator = (context)
 
   // Inheritance excludes player boons; copied Might remains live and never mutates the cached base.
   const might = selectedSignet(context, ID.SHIFT_SIGNET)
-    ? activeBoonStacks(context, 'might') * MIGHT_ATTRIBUTE_BONUS_PER_STACK
+    ? activeBoonStacks(context, boonKey(BOON.MIGHT)) * MIGHT_ATTRIBUTE_BONUS_PER_STACK
     : 0;
   return [
     {

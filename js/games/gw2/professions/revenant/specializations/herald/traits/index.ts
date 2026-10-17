@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -125,9 +126,9 @@ const elevatedCompassion = defineTrait({
     threshold: 6,
     effects: [
       {
-        name: 'quickness',
+        name: boonKey(BOON.QUICKNESS),
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 1.25,
         stacks: 1,
         actorType: 'player',
@@ -209,9 +210,9 @@ const sharedEmpowerment = defineTrait({
     internalCooldown: 1,
     effects: [
       {
-        name: 'might',
+        name: boonKey(BOON.MIGHT),
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 8,
         stacks: 1,
         actorType: 'effect',
@@ -232,10 +233,10 @@ const sharedEmpowerment = defineTrait({
           requireEffect(
             requireBalanceProfileFromContext(runtime, HERALD_SHARED_EMPOWERMENT_PROFILE_ID),
             'boon',
-            'might'
+            boonKey(BOON.MIGHT)
           )
         ),
-      effects: (effect) => effect.type === 'boon' && effect.name === 'might',
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.MIGHT),
       attribution: {
         source: 'revenant',
         skillId: TRAIT.SHARED_EMPOWERMENT,
@@ -292,14 +293,14 @@ function elevatedCompassionActive(runtime: RevenantRuntime): boolean {
   return (
     hasTrait(runtime, TRAIT.ELEVATED_COMPASSION) &&
     upkeep >= threshold &&
-    Boolean(requireEffect(profile, 'boon', 'quickness'))
+    Boolean(requireEffect(profile, 'boon', boonKey(BOON.QUICKNESS)))
   );
 }
 
 /** Grants one Quickness pulse and reserves the next legal pulse so threshold re-entry cannot bypass the ICD. */
 function grantCompassion(runtime: RevenantRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, HERALD_ELEVATED_COMPASSION_PROFILE_ID);
-  const effect = requireEffect(profile, 'boon', 'quickness');
+  const effect = requireEffect(profile, 'boon', boonKey(BOON.QUICKNESS));
 
   // The cooldown gates only quickness, so a removed boon leaves the pulse ready.
   if (!effect) return;
@@ -307,7 +308,7 @@ function grantCompassion(runtime: RevenantRuntime): void {
   emitTraitProfile(runtime, HERALD_ELEVATED_COMPASSION_PROFILE_ID, HERALD_ELEVATED_COMPASSION_PROFILE_ID, undefined, {
     at: runtime.time,
     fullEnd: runtime.time,
-    effect: { type: 'boon', name: 'quickness' },
+    effect: { type: 'boon', name: boonKey(BOON.QUICKNESS) },
     attribution: {
       source: 'revenant',
       sourceId: TRAIT.ELEVATED_COMPASSION,

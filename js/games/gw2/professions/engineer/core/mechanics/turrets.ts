@@ -46,7 +46,7 @@ const engineerTurretTasks: RuntimeProfession<EngineerRuntimeState, EngineerSkill
           {
             at: runtime.time,
             activationId,
-            kind: String(effect.boon ?? effect.kind),
+            kind: String(effect.boon ?? effect.kind).toLowerCase(),
             stacks: Number(effect.stacks),
             duration: effect.duration
           },

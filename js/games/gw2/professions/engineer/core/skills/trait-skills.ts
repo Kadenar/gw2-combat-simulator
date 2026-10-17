@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Core Engineer skills created by trait procs and trait-triggered actions.
  * Trait triggers own selection and invocation; these skills own their payload and delivery.
@@ -33,25 +35,25 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 8,
         stacks: 1
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 8,
         stacks: 5
       },
       {
         type: 'boon',
-        boon: 'resolution',
+        boon: BOON.RESOLUTION,
         duration: 8,
         stacks: 1
       },
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 8,
         stacks: 1
       }
@@ -105,7 +107,7 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 6,
         duration: 8,
         actorType: 'player'
@@ -120,7 +122,7 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'Regeneration',
+        boon: BOON.REGENERATION,
         duration: 4,
         stacks: 1
       }
@@ -132,7 +134,7 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'boon',
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         duration: 3,
         stacks: 1
       }
@@ -164,7 +166,7 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'boon',
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 3,
         stacks: 1
       }
@@ -196,14 +198,14 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 10,
         duration: 8,
         actorType: 'player'
       },
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 5,
         stacks: 1
       }

@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
@@ -34,14 +36,14 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'boon',
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         audience: { recipients: 'party', maximumRecipients: 5 },
         duration: 3,
         stacks: 1
       },
       {
         type: 'boon',
-        boon: 'resolution',
+        boon: BOON.RESOLUTION,
         duration: 5,
         stacks: 1
       }
@@ -67,7 +69,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         type: 'condition',
         ticks: Array.from({ length: 3 }, (_, index) => ({
           atMs: 400 + index * 120,
-          condition: 'Chilled',
+          condition: CONDITION.CHILLED,
           stacks: 1,
           duration: 1
         })),
@@ -78,7 +80,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         type: 'condition',
         ticks: Array.from({ length: 3 }, (_, index) => ({
           atMs: 400 + index * 120,
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           stacks: 1,
           duration: 3
         })),
@@ -110,7 +112,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         },
         {
           type: 'condition',
-          condition: 'Chilled',
+          condition: CONDITION.CHILLED,
           stacks: 1,
           duration: 2,
           actorType: 'player',
@@ -132,7 +134,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 8,
         stacks: 1
       }
@@ -165,7 +167,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 5,
         actorType: 'player',
@@ -173,7 +175,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 2,
         duration: 5,
         actorType: 'player',
@@ -201,21 +203,21 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 3,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 4,
         duration: 3,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 1,
         duration: 3,
         actorType: 'player'
@@ -278,7 +280,7 @@ export function embracePulse(runtime: RevenantRuntime, skill: RevenantSkill, at:
       // Label empowered applications in chart attribution while keeping the shared skill identity.
       name: empowered ? `${skill.name} — Empowered Torment` : `${skill.name} — Torment`,
       ...(torment.metadata ? { metadata: torment.metadata } : {}),
-      condition: 'Torment',
+      condition: CONDITION.TORMENT,
       stacks: tick?.stacks || 0,
       duration: tick?.duration || 0
     })

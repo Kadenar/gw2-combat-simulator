@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import {
   fromProfile,
   modifierFact,
@@ -319,7 +321,7 @@ export const elementalistCoreTooltips = {
           { type: 'strike', coefficient: FIRE_ELEMENTAL.flameBarrage.explosionCoefficient, actorType: 'summon' },
           {
             type: 'condition',
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: FIRE_ELEMENTAL.flameBarrage.burningStacks,
             duration: FIRE_ELEMENTAL.flameBarrage.burningDuration,
             applications: FIRE_ELEMENTAL.flameBarrage.projectileImpacts.length,
@@ -334,19 +336,19 @@ export const elementalistCoreTooltips = {
           { type: 'strike', flatDamage: EARTH_ELEMENTAL.stomp.baseDamage, actorType: 'summon' },
           {
             type: 'condition',
-            condition: 'Crippled',
+            condition: CONDITION.CRIPPLED,
             duration: EARTH_ELEMENTAL.stomp.crippleDuration,
             actorType: 'player'
           },
           {
             type: 'condition',
-            condition: 'Immobilized',
+            condition: CONDITION.IMMOBILIZED,
             duration: EARTH_ELEMENTAL.stomp.immobilizeDuration,
             actorType: 'player'
           },
           {
             type: 'boon',
-            boon: 'Protection',
+            boon: BOON.PROTECTION,
             duration: EARTH_ELEMENTAL.stomp.protectionDuration,
             actorType: 'player',
             audience: { recipients: 'party', maximumRecipients: 5 }

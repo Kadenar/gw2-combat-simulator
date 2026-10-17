@@ -167,7 +167,7 @@ function corruption(runtime: NecromancerRuntime, data: unknown): void {
         skillId: skill.id,
         skillName: skill.name,
         activationId: work.activationId,
-        kind: String(effect.boon),
+        kind: String(effect.boon).toLowerCase(),
         duration: effectNumber(skill, effect, 'duration'),
         stacks: effectNumber(skill, effect, 'stacks'),
         audience:

@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -180,7 +181,7 @@ function reactToWillbenderHit(
     }
 
     if (virtue === 'courage')
-      for (const name of ['aegis', 'stability']) {
+      for (const name of [boonKey(BOON.AEGIS), boonKey(BOON.STABILITY)]) {
         const profile = requireBalanceProfileFromContext(runtime, PROFILE.courageTrigger);
         const effect = requireEffect(profile, 'boon', name);
 

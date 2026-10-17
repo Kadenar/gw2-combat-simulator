@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
@@ -49,7 +50,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         duration: 3,
         stacks: 1,
         actorType: 'summon',
@@ -58,7 +59,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         duration: 2,
         stacks: 1,
         actorType: 'summon',
@@ -195,7 +196,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 2
       }

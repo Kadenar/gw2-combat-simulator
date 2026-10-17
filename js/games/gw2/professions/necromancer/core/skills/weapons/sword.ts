@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -36,7 +38,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2.75 },
-      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 8 }
     ])
   },
   [ID.ENERVATION_ECHO]: {
@@ -59,7 +61,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 2
       }
@@ -139,8 +141,8 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
         timingScale: 'fixed'
       },
       ...impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
-        { type: 'condition', condition: 'Weakness', stacks: 1, duration: 4 },
-        { type: 'boon', boon: 'Might', duration: 8, stacks: 5 }
+        { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 4 },
+        { type: 'boon', boon: BOON.MIGHT, duration: 8, stacks: 5 }
       ])
     ]
   },
@@ -177,7 +179,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Fear',
+        condition: CONDITION.FEAR,
         stacks: 1,
         duration: 2
       }
@@ -190,8 +192,8 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2.5 },
-      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 5 },
-      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 }
+      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 5 },
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 8 }
     ])
   }
 });

@@ -309,7 +309,7 @@ const stealTraitCases = [
     TRAIT.THRILL_OF_THE_CRIME,
     (events) => events.filter((event) => event.type === 'buff').length === 3
   ],
-  ['Bountiful Theft', TRAIT.BOUNTIFUL_THEFT, (events) => events.some((event) => event.kind === 'Vigor')],
+  ['Bountiful Theft', TRAIT.BOUNTIFUL_THEFT, (events) => events.some((event) => event.kind === 'vigor')],
   ['Sleight of Hand', TRAIT.SLEIGHT_OF_HAND, (events) => events.some((event) => event.type === 'control')],
   [
     'Hidden Thief',

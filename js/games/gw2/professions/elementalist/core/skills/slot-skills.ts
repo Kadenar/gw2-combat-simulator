@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Canonical Core elementalist skill fragments grouped by their GW2 owner.
  *
@@ -73,7 +75,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     effects: [
       {
         type: 'boon',
-        boon: 'Might',
+        boon: BOON.MIGHT,
         stacks: 3,
         duration: 20,
         atMs: 680,
@@ -206,7 +208,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
       { type: 'strike', coefficient: 1.5 },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 3,
         duration: 6,
         metadata: {}
@@ -276,7 +278,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'condition',
         ticks: [880, 1880, 2880, 3880, 4880, 5880, 6880, 7880, 8880, 9880, 10880].map((atMs) => ({
           atMs,
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 2
         })),
@@ -321,7 +323,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
             1600, 1920, 2240, 2560, 2880, 3200, 3520, 3840, 4160, 4480, 4800, 5120, 5440, 5760, 6080, 6400, 6720, 7040
           ].map((atMs) => ({
             atMs,
-            condition: 'Chilled',
+            condition: CONDITION.CHILLED,
             stacks: 1,
             duration: 3
           }))
@@ -393,7 +395,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
           conditionTimeline(
             ticks.map(({ atMs }) => ({
               atMs,
-              condition: 'Vulnerability',
+              condition: CONDITION.VULNERABILITY,
               stacks: 2,
               duration: 8
             })),
@@ -407,7 +409,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
         // The single-packet layer shares an impact without splitting the earlier multi-packet layers.
         ...impactEffects({ atMs: 880, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
           { type: 'strike', coefficient: 0.7425 },
-          { type: 'condition', condition: 'Vulnerability', stacks: 2, duration: 8 }
+          { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 2, duration: 8 }
         ])
       ]
     },
@@ -438,7 +440,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'condition',
         ticks: [880, 1880, 2880, 3880, 4880, 5880, 6880, 7880, 8880, 9880, 10880].map((atMs) => ({
           atMs,
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 3
         })),
@@ -446,7 +448,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 3,
         atMs: 880,
@@ -471,7 +473,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
       { type: 'strike', coefficient: 0.5 },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 2,
         duration: 10,
         metadata: {}
@@ -490,8 +492,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Signet',
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5 },
-      { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 9, metadata: {} },
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 4, duration: 9, metadata: {} },
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 3, metadata: {} }
     ])
   },
   // --- Elites --------------------------------------------------------------------
@@ -509,7 +511,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Conjure',
     effects: impactEffects({ atMs: 1440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1 },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3, metadata: {} }
     ])
   },
   // The two Glyph of Elementals variants (Fire / Earth) share the elite slot and produce no
@@ -554,12 +556,12 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 2,
         duration: 6,
         metadata: {}
       },
-      { type: 'boon', boon: 'Might', stacks: 3, duration: 9, metadata: {} }
+      { type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 9, metadata: {} }
     ])
   }
 });

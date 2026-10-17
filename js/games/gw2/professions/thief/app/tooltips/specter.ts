@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import {
   fromProfile,
   tooltipSeconds,
@@ -62,11 +63,11 @@ const shadowShroudSkillTooltip: DescribeSimulationTooltip = (balanceContext, ent
   // Tooltips retain the same skill-to-boon identity as execution after a packet is removed.
   const boonName =
     entity.id === ID.GRASPING_SHADOWS
-      ? 'alacrity'
+      ? boonKey(BOON.ALACRITY)
       : entity.id === ID.DAWNS_REPOSE
-        ? 'protection'
+        ? boonKey(BOON.PROTECTION)
         : entity.id === ID.MIND_SHOCK
-          ? 'aegis'
+          ? boonKey(BOON.AEGIS)
           : null;
 
   if (boonName) {
@@ -151,9 +152,9 @@ export const specterTooltips = {
       description: 'Completing a supported Shadow Shroud skill grants its corresponding boon to the party.',
       // Match runtime boon identities so removing or reordering effects cannot move skill labels.
       facts: [
-        ['alacrity', 'Grasping Shadows · party'],
-        ['protection', "Dawn's Repose · party"],
-        ['aegis', 'Mind Shock · party']
+        [boonKey(BOON.ALACRITY), 'Grasping Shadows · party'],
+        [boonKey(BOON.PROTECTION), "Dawn's Repose · party"],
+        [boonKey(BOON.AEGIS), 'Mind Shock · party']
       ].flatMap(([name, label]) => {
         const effect = requireEffect(tooltipProfile(balanceContext, entity.id), 'boon', name);
         return effect ? simulationEffectFacts([effect], label).facts : [];

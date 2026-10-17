@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -55,7 +57,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'boon',
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 6,
         stacks: 1
       }
@@ -75,7 +77,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
         // Apply one bleed on placement, then ten more at one-second intervals.
         ticks: Array.from({ length: 11 }, (_, index) => ({
           atMs: index * 1000,
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 10
         }))
@@ -84,7 +86,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
         type: 'condition',
         ticks: Array.from({ length: 5 }, (_, index) => ({
           atMs: index * 1000,
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 2
         }))
@@ -117,7 +119,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
         actorType: 'player'
@@ -198,19 +200,19 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     effects: [
       {
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 6,
         stacks: 1
       },
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 6,
         stacks: 1
       },
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 6,
         stacks: 1
       }
@@ -267,12 +269,12 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
               initialDelay: 1.72,
               conditions: [
                 {
-                  condition: 'Poisoned',
+                  condition: CONDITION.POISONED,
                   stacks: 2,
                   duration: 10
                 },
                 {
-                  condition: 'Weakness',
+                  condition: CONDITION.WEAKNESS,
                   stacks: 1,
                   duration: 4
                 }
@@ -330,14 +332,14 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 2,
         duration: 7,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 2,
         actorType: 'player'
@@ -396,7 +398,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
           type: 'condition',
           ticks: PITFALL_PULSE_OFFSETS_MS.map((atMs) => ({
             atMs,
-            condition: 'Vulnerability',
+            condition: CONDITION.VULNERABILITY,
             stacks: 2,
             duration: 6
           })),
@@ -437,13 +439,13 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'condition',
-        ticks: [{ atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS, condition: 'Immobilized', stacks: 1, duration: 3 }]
+        ticks: [{ atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 3 }]
       },
       {
         type: 'condition',
         ticks: Array.from({ length: 5 }, (_, index) => ({
           atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS + index * 1000,
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           stacks: 1,
           duration: 8
         }))
@@ -452,7 +454,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
         type: 'condition',
         ticks: Array.from({ length: 5 }, (_, index) => ({
           atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS + index * 1000,
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 2,
           duration: 5
         }))
@@ -461,7 +463,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
         type: 'condition',
         ticks: Array.from({ length: 5 }, (_, index) => ({
           atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS + index * 1000,
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 2
         }))

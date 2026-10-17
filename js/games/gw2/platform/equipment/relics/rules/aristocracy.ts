@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Aristocracy relic rules. */
 import { isTimeInWindow, canonicalTime } from '#kernel/core/clock.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
@@ -41,7 +42,7 @@ function isAristocracyApplication(event: SimulationEvent): boolean {
     event.type === 'condition' &&
     !missesTarget(event) &&
     (isGw2PlayerActorEvent(event) || (event.actorType === 'effect' && event.ownerActorType === 'player')) &&
-    (event.condition === 'Weakness' || event.condition === 'Vulnerability') &&
+    (event.condition === CONDITION.WEAKNESS || event.condition === CONDITION.VULNERABILITY) &&
     event.stacks > 0 &&
     event.duration > 0
   );

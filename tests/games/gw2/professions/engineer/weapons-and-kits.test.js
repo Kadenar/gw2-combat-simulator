@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
@@ -341,7 +342,7 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
       ),
     [
       ['Crippled', 1, 4],
-      ['quickness', 1, 3]
+      [BOON.QUICKNESS, 1, 3]
     ]
   );
 

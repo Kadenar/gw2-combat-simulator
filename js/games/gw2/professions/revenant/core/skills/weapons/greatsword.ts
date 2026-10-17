@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -31,7 +33,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 10,
         actorType: 'player'
@@ -56,7 +58,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 3,
         duration: 10,
         actorType: 'player'
@@ -81,14 +83,14 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 3,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 2,
         duration: 10,
         actorType: 'player'
@@ -130,14 +132,14 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 3,
         actorType: 'player'
       },
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 3,
         stacks: 1
       }

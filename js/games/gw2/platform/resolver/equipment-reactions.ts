@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -162,7 +163,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         order: GW2_REACTION_ORDER.COMMON,
         handler(ctx, application, details = {}) {
           // Disable-triggered relics also accept Fear, once its condition is present on the target.
-          if (application.condition === 'Fear')
+          if (application.condition === CONDITION.FEAR)
             ctx.relic.rules.control?.(ctx, ctx.relic.state, application, conditionHelpers(ctx, details));
         }
       },

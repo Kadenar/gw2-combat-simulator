@@ -1,3 +1,5 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import type {
   ProfessionAttributePreviewContext,
@@ -227,10 +229,10 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
         (context.weapons.includes('Rifle') && !['Berserker', 'Bladesworn'].includes(context.specialization))
     );
     // Expose held combat bonuses to isolated damage calculations.
-    preview.boon('swiftness', "Warrior's Sprint");
-    preview.boon('stability', 'Stalwart Strength');
-    preview.condition('Weakness', 'Cull the Weak');
-    preview.condition('Crippled', 'Leg Specialist');
+    preview.boon(boonKey(BOON.SWIFTNESS), "Warrior's Sprint");
+    preview.boon(boonKey(BOON.STABILITY), 'Stalwart Strength');
+    preview.condition(CONDITION.WEAKNESS, 'Cull the Weak');
+    preview.condition(CONDITION.CRIPPLED, 'Leg Specialist');
 
     // Starting adrenaline selects the real burst tier; Bladesworn's charge ladder owns its separate Flow setup.
     if (!['Bladesworn', 'Spellbreaker'].includes(context.specialization))
@@ -278,7 +280,7 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
         description: 'Defiant-target critical bonuses'
       });
 
-    preview.condition('Bleeding', 'Deep Strikes');
+    preview.condition(CONDITION.BLEEDING, 'Deep Strikes');
     preview.passives(ID.SIGNET_OF_MIGHT);
 
     // The active Precision/Ferocity window replaces the ready-state Precision passive.

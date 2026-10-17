@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -27,7 +28,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
             { ownerId: 'thief', finisherType: 'Projectile', chance: 0.2, ambiguousFieldSelection: 'oldest' }
           ]
         },
-        { type: 'condition', condition: 'Poisoned', stacks: 3, duration: 2, actorType: 'player' }
+        { type: 'condition', condition: CONDITION.POISONED, stacks: 3, duration: 2, actorType: 'player' }
       ]
     )
   },
@@ -52,7 +53,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
         },
         {
           type: 'condition',
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 3,
           actorType: 'player'
@@ -123,7 +124,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
         },
         {
           type: 'condition',
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 3,
           actorType: 'player'
@@ -177,14 +178,14 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
         },
         {
           type: 'condition',
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 2,
           duration: 8,
           actorType: 'player'
         },
         {
           type: 'condition',
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 4,
           actorType: 'player'

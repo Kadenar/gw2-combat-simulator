@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Janthiri Bee family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -29,7 +30,7 @@ export const SOULBEAST_JANTHIRI_BEE_BEAST_SKILL_MECHANICS: Readonly<Record<numbe
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 5,
         duration: 7
       }

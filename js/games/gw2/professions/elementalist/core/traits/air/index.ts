@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -119,8 +121,8 @@ export const zephyrsBoon = defineTrait({
   name: "Zephyr's Boon",
   balance: {
     effects: [
-      { type: 'boon', name: 'Fury', boon: 'fury', stacks: 1, duration: 5 },
-      { type: 'boon', name: 'Swiftness', boon: 'swiftness', stacks: 1, duration: 5 }
+      { type: 'boon', name: BOON.FURY, boon: BOON.FURY, stacks: 1, duration: 5 },
+      { type: 'boon', name: BOON.SWIFTNESS, boon: BOON.SWIFTNESS, stacks: 1, duration: 5 }
     ]
   }
 });
@@ -182,7 +184,7 @@ export const electricDischarge = defineTrait({
         coefficient: 0.35,
         hits: 1
       },
-      { type: 'condition', name: 'Electric Discharge', condition: 'Vulnerability', stacks: 1, duration: 8 }
+      { type: 'condition', name: 'Electric Discharge', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 8 }
     ]
   },
   modifierRules: [
@@ -216,11 +218,11 @@ export const inscription = defineTrait({
   name: 'Inscription',
   balance: {
     effects: [
-      { type: 'boon', name: 'Fire', boon: 'might', stacks: 1, duration: 10 },
-      { type: 'boon', name: 'Water', boon: 'regeneration', stacks: 1, duration: 10 },
-      { type: 'boon', name: 'Air', boon: 'swiftness', stacks: 1, duration: 10 },
-      { type: 'boon', name: 'Earth', boon: 'protection', stacks: 1, duration: 3 },
-      { type: 'boon', name: 'Air Entry', boon: 'resistance', stacks: 1, duration: 3 }
+      { type: 'boon', name: 'Fire', boon: BOON.MIGHT, stacks: 1, duration: 10 },
+      { type: 'boon', name: 'Water', boon: BOON.REGENERATION, stacks: 1, duration: 10 },
+      { type: 'boon', name: 'Air', boon: BOON.SWIFTNESS, stacks: 1, duration: 10 },
+      { type: 'boon', name: 'Earth', boon: BOON.PROTECTION, stacks: 1, duration: 3 },
+      { type: 'boon', name: 'Air Entry', boon: BOON.RESISTANCE, stacks: 1, duration: 3 }
     ]
   }
 });
@@ -236,7 +238,8 @@ export const ragingStorm = defineTrait({
           amount: balanceNumberFromContext(context.balanceContext, TRAIT.RAGING_STORM, 'attributeBonus'),
           feedsConversions: 'none',
           enabled:
-            context.query?.furyActiveAt(context.time, context.runtime, context.event) ?? boonActive(context, 'fury')
+            context.query?.furyActiveAt(context.time, context.runtime, context.event) ??
+            boonActive(context, boonKey(BOON.FURY))
         }
       ]
     };
@@ -256,8 +259,8 @@ export const ragingStorm = defineTrait({
     effects: [
       {
         type: 'boon',
-        name: 'Fury',
-        boon: 'fury',
+        name: BOON.FURY,
+        boon: BOON.FURY,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
@@ -311,7 +314,7 @@ export const lightningRod = defineTrait({
   balance: {
     effects: [
       { name: 'Lightning Rod', type: 'strike', coefficient: 1.5, hits: 1 },
-      { type: 'condition', name: 'Lightning Rod', condition: 'Weakness', stacks: 1, duration: 4 }
+      { type: 'condition', name: 'Lightning Rod', condition: CONDITION.WEAKNESS, stacks: 1, duration: 4 }
     ]
   }
 });
@@ -452,13 +455,13 @@ export function aeromancersTrainingRecharge(
 /** Materializes Raging Storm after its registered critical-hit reaction succeeds. */
 function applyRagingStorm(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   const ragingStormProfile = requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM);
-  const fury = requireEffect(ragingStormProfile, 'boon', 'Fury');
+  const fury = requireEffect(ragingStormProfile, 'boon', BOON.FURY);
 
   if (fury) {
     emitTraitProfile(context, TRAIT.RAGING_STORM, TRAIT.RAGING_STORM, undefined, {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'boon', name: 'Fury' },
+      effect: { type: 'boon', name: BOON.FURY },
       durationContext: event,
       attribution: {
         source: 'Trait',

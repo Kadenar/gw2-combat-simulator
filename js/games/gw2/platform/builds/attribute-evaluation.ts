@@ -1,3 +1,5 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { ATTRIBUTE_NAMES } from '#gw2/platform/builds/attribute-inputs.js';
 import { resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
 import type {
@@ -23,31 +25,31 @@ class AttributeAssumptions {
   readonly [key: string]: unknown;
   constructor(private readonly context: Gw2ModifierContext) {}
   get fury() {
-    return boonActive(this.context, 'fury');
+    return boonActive(this.context, boonKey(BOON.FURY));
   }
   get quickness() {
-    return boonActive(this.context, 'quickness');
+    return boonActive(this.context, boonKey(BOON.QUICKNESS));
   }
   get alacrity() {
-    return boonActive(this.context, 'alacrity');
+    return boonActive(this.context, boonKey(BOON.ALACRITY));
   }
   get regeneration() {
-    return boonActive(this.context, 'regeneration');
+    return boonActive(this.context, boonKey(BOON.REGENERATION));
   }
   get protection() {
-    return boonActive(this.context, 'protection');
+    return boonActive(this.context, boonKey(BOON.PROTECTION));
   }
   get resolution() {
-    return boonActive(this.context, 'resolution');
+    return boonActive(this.context, boonKey(BOON.RESOLUTION));
   }
   get swiftness() {
-    return boonActive(this.context, 'swiftness');
+    return boonActive(this.context, boonKey(BOON.SWIFTNESS));
   }
   get vigor() {
-    return boonActive(this.context, 'vigor');
+    return boonActive(this.context, boonKey(BOON.VIGOR));
   }
   get aegis() {
-    return boonActive(this.context, 'aegis');
+    return boonActive(this.context, boonKey(BOON.AEGIS));
   }
 }
 
@@ -126,7 +128,7 @@ export function applyAttributeContributions(
       boonDurations[boon] = (boonDurations[boon] ?? 0) + amount;
     } else if (name.endsWith(' Duration')) {
       const condition = name.slice(0, -9);
-      const key = condition === 'Poison' ? 'Poisoned' : condition;
+      const key = condition === 'Poison' ? CONDITION.POISONED : condition;
       conditionDurations ??= { ...initial.conditionDurationBonuses };
       conditionDurations[key] = (conditionDurations[key] ?? 0) + amount;
     }

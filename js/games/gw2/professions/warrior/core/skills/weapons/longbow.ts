@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -23,7 +24,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 5
       }
@@ -74,13 +75,13 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 6,
         duration: 12
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 3
       }
@@ -108,7 +109,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5
       },
@@ -133,7 +134,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 3,
         duration: 3
       }

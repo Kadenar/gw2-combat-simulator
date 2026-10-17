@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import {
   EVTC_ACTIVATION,
   EVTC_STATE_CHANGE,
@@ -47,7 +48,7 @@ export function traitBalanceProfile(
 /** Missing Bleeding is optional discovery; a present packet must carry its authored duration. */
 export function bleedingDuration(profile: BalanceProfile): number {
   const bleeding = profile.effects?.find(
-    (effect) => effect.type === 'condition' && effect.condition?.toLowerCase() === 'bleeding'
+    (effect) => effect.type === 'condition' && effect.condition?.toLowerCase() === CONDITION.BLEEDING.toLowerCase()
   );
   return bleeding ? effectNumber(profile, bleeding, 'duration') : 0;
 }
@@ -177,7 +178,7 @@ export function analyzeCriticalBleedingProcObservation(
   const baseDurationSeconds = bleedingDuration(profile);
   // Temporary profession bonuses can produce multiple valid durations alongside the static build stats.
   const matchedDurationsMs = [
-    ...new Set(expectedConditionDurationsMs(baseDurationSeconds, 'Bleeding', config, attributes))
+    ...new Set(expectedConditionDurationsMs(baseDurationSeconds, CONDITION.BLEEDING, config, attributes))
   ].sort((left, right) => left - right);
 
   if (!(expectedProcChance > 0) || !matchedDurationsMs.length) return null;

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
@@ -10,10 +11,12 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     shatter: {
       balanceProfileId: 'mesmer.core.cry-of-frustration',
       slot: 2,
-      kind: 'confusion',
+      kind: CONDITION.CONFUSION.toLowerCase(),
       resolver: 'mesmer.core.clone-shatter',
       coefficients: [0.42, 0.84, 1.25, 1.67],
-      effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 3, stacks: 1 }]
+      effects: [
+        { name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 3, stacks: 1 }
+      ]
     },
     castTimeMs: 0,
     lockouts: [

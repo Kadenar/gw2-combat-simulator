@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import {
   balanceProfileNumber,
@@ -43,7 +45,7 @@ export function alliedAshes(
   source: { maximumAllies: number; priority: number; skillName: string; name: string }
 ): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.ashes);
-  const burn = requireEffect(profile, 'condition', 'Burning');
+  const burn = requireEffect(profile, 'condition', CONDITION.BURNING);
 
   if (!burn) return;
 
@@ -100,7 +102,7 @@ function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<Guardia
     activationId: cast.id
   };
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.ashes);
-  const might = requireEffect(profile, 'boon', 'might');
+  const might = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
   if (might)
     runtime.effects.emit({
@@ -108,7 +110,7 @@ function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<Guardia
       event: {
         ...event,
         at: runtime.time,
-        kind: 'might',
+        kind: boonKey(BOON.MIGHT),
         stacks: effectNumber(profile, might, 'stacks'),
         duration: effectNumber(profile, might, 'duration'),
         audience: { recipients: 'party' }
@@ -116,7 +118,7 @@ function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<Guardia
     });
 
   const buff = requireEffect(profile, 'buff', 'ashes-of-the-just');
-  const burn = requireEffect(profile, 'condition', 'Burning');
+  const burn = requireEffect(profile, 'condition', CONDITION.BURNING);
 
   if (!buff || !burn) return;
 

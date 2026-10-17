@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Core Warrior greatsword packets use nearest-40 ms offsets to remove false timing precision. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -14,7 +15,7 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 8
       }
@@ -30,7 +31,7 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 8
       }
@@ -101,8 +102,8 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
         // Both outgoing and returning impacts apply their own one-second immobilize.
         type: 'condition',
         ticks: [
-          { atMs: 520, condition: 'Immobilized', stacks: 1, duration: 1 },
-          { atMs: 1520, condition: 'Immobilized', stacks: 1, duration: 1 }
+          { atMs: 520, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1 },
+          { atMs: 1520, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed'

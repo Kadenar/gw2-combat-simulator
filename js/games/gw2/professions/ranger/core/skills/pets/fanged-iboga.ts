@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { packAlphaPetRecharge } from '#gw2/professions/ranger/core/traits/beastmastery/pet-attributes.js';
@@ -24,7 +25,7 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 1,
         source: 'ranger-pet',
@@ -64,7 +65,7 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
       },
       {
         type: 'condition',
-        condition: 'Confusion',
+        condition: CONDITION.CONFUSION,
         stacks: 4,
         duration: 8,
         source: 'ranger-pet',
@@ -72,7 +73,7 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 3,
         duration: 10,
         source: 'ranger-pet',
@@ -98,7 +99,7 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         type: 'condition',
         ticks: [720, 1720, 2720, 3720, 4720, 5720].map((atMs) => ({
           atMs,
-          condition: 'Confusion',
+          condition: CONDITION.CONFUSION,
           stacks: 1,
           duration: 8
         })),

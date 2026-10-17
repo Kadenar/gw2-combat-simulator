@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
@@ -24,10 +26,10 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     parentId: ID.KEEN_STRIKE,
     effects: [
       {
-        name: 'Might',
+        name: BOON.MIGHT,
         type: 'boon',
         audience: { recipients: 'party', maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         stacks: 1,
         duration: 5
       }
@@ -68,9 +70,9 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     profileKind: 'skill-variant',
     parentId: ID.BLOODTHIRSTER,
     effects: [
-      { name: 'Tier 1', type: 'condition', condition: 'Bleeding', stacks: 3, duration: 6 },
-      { name: 'Tier 2', type: 'condition', condition: 'Bleeding', stacks: 6, duration: 6 },
-      { name: 'Tier 3', type: 'condition', condition: 'Bleeding', stacks: 9, duration: 6 }
+      { name: 'Tier 1', type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 6 },
+      { name: 'Tier 2', type: 'condition', condition: CONDITION.BLEEDING, stacks: 6, duration: 6 },
+      { name: 'Tier 3', type: 'condition', condition: CONDITION.BLEEDING, stacks: 9, duration: 6 }
     ]
   },
   {
@@ -82,7 +84,7 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     durationPerTier: 3,
     effects: [
       { name: 'Strike', type: 'strike', coefficient: 0.5, hits: 1 },
-      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 5 }
+      { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5 }
     ]
   },
   {

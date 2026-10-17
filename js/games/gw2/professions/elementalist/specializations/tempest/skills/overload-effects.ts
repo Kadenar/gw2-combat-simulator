@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Static skill-catalog tick tables for the channeled overloads.
  *
@@ -69,8 +71,8 @@ function overloadFireEffects(): readonly SkillEffect[] {
         : {};
     return impactEffects({ atMs, timingAnchor: 'castStart', timingScale: 'cast' }, [
       strike(0.9, whirl),
-      condition('Burning', 1, 3),
-      boon('Might', 2, 16)
+      condition(CONDITION.BURNING, 1, 3),
+      boon(BOON.MIGHT, 2, 16)
     ]);
   });
 }
@@ -80,8 +82,8 @@ function overloadAirEffects(): readonly SkillEffect[] {
   return OVERLOAD_AIR_TICKS.flatMap((atMs) =>
     impactEffects({ atMs, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
       strike(0.85),
-      condition('Vulnerability', 1, 10),
-      boon('Fury', 1, 1)
+      condition(CONDITION.VULNERABILITY, 1, 10),
+      boon(BOON.FURY, 1, 1)
     ])
   );
 }
@@ -108,11 +110,11 @@ function overloadEarthEffects(): readonly SkillEffect[] {
             }
           : {}
       ),
-      condition('Bleeding', 1, 9),
-      condition('Crippled', 1, 3),
-      ...(index === 0 ? [boon('Stability', 3, 4)] : []),
-      ...(index === 4 ? [condition('Immobilized', 1, 4)] : []),
-      boon('Protection', 1, 1)
+      condition(CONDITION.BLEEDING, 1, 9),
+      condition(CONDITION.CRIPPLED, 1, 3),
+      ...(index === 0 ? [boon(BOON.STABILITY, 3, 4)] : []),
+      ...(index === 4 ? [condition(CONDITION.IMMOBILIZED, 1, 4)] : []),
+      boon(BOON.PROTECTION, 1, 1)
     ])
   );
 }

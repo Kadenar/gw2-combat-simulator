@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import {
   requireBalanceProfileFromContext,
@@ -33,7 +35,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     effects: [
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 4,
         actorType: 'player'
@@ -132,7 +134,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 6,
         actorType: 'player'
@@ -170,7 +172,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 3,
         actorType: 'player'
@@ -178,7 +180,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 3,
         stacks: 1
       }
@@ -204,7 +206,7 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
   const interval = Math.max(0, balanceProfileNumber(primeLightBeamHeatTierProfile, 'packetInterval'));
   const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.primeLightBeamHeatTier, snapshot);
   const strike = requireEffect(primeLightBeamHeatTierProfile, 'strike', 'Prime Light Beam Heat Tier');
-  const condition = requireEffect(primeLightBeamHeatTierProfile, 'condition', 'Burning');
+  const condition = requireEffect(primeLightBeamHeatTierProfile, 'condition', CONDITION.BURNING);
   const conditionBaseDurationFactor = enhancedCapacityTier
     ? balanceProfileNumber(primeLightBeamHeatTierProfile, 'enhancedConditionBaseDurationFactor')
     : 1;
@@ -270,7 +272,7 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
   const interval = Math.max(0, balanceProfileNumber(laserDiskHeatTierProfile, 'packetInterval'));
   const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.laserDiskHeatTier, snapshot);
   const strike = requireEffect(laserDiskHeatTierProfile, 'strike', 'Laser Disk Heat Tier');
-  const condition = requireEffect(laserDiskHeatTierProfile, 'condition', 'Bleeding');
+  const condition = requireEffect(laserDiskHeatTierProfile, 'condition', CONDITION.BLEEDING);
   // Expand the disk into paired strike and bleed packets on successive cadence boundaries.
   for (let pulse = 0; pulse < pulses; pulse += 1) {
     const at = event.at + (pulse + 1) * interval;
@@ -331,7 +333,7 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
   const at = event.at + Math.max(0, balanceProfileNumber(launchWallHeatTierProfile, 'initialDelay'));
   const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.launchWallHeatTier, snapshot);
   const strike = requireEffect(launchWallHeatTierProfile, 'strike', 'Launch Wall Heat Tier');
-  const condition = requireEffect(launchWallHeatTierProfile, 'condition', 'Vulnerability');
+  const condition = requireEffect(launchWallHeatTierProfile, 'condition', CONDITION.VULNERABILITY);
   // Every wall lands together and owns one explosion plus one vulnerability application.
   for (let wall = 0; wall < walls; wall += 1) {
     if (strike) {

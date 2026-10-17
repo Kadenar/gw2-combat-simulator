@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -73,7 +74,7 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'bleeding',
+        condition: CONDITION.BLEEDING,
         duration: 4,
         stacks: 8,
         actorType: 'summon',
@@ -113,7 +114,7 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'confusion',
+        condition: CONDITION.CONFUSION,
         duration: 5,
         stacks: 3
       }

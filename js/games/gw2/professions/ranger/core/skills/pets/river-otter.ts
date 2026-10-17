@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Core Ranger pet skill fragments for the River Otter family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -10,7 +11,7 @@ export const RANGER_CORE_RIVER_OTTER_PET_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',

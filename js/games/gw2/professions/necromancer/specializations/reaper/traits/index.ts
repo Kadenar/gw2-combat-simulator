@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
@@ -28,9 +29,9 @@ const deathlyChill = defineTrait({
   balance: {
     effects: [
       {
-        name: 'Bleeding',
+        name: CONDITION.BLEEDING,
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 4,
         duration: 4,
         actorType: 'effect'
@@ -38,7 +39,11 @@ const deathlyChill = defineTrait({
     ]
   },
   triggers: [
-    { on: 'condition.applied', when: (_runtime, event) => event.condition === 'Chilled', run: applyDeathlyChill }
+    {
+      on: 'condition.applied',
+      when: (_runtime, event) => event.condition === CONDITION.CHILLED,
+      run: applyDeathlyChill
+    }
   ]
 });
 
@@ -59,9 +64,9 @@ const chillingNova = defineTrait({
         actorType: 'effect'
       },
       {
-        name: 'Chilled',
+        name: CONDITION.CHILLED,
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 2,
         actorType: 'effect'
@@ -74,7 +79,7 @@ const chillingNova = defineTrait({
       when: (runtime, event) =>
         event.actorType === 'player' &&
         Number(event.coefficient) > 0 &&
-        runtime.combat.targetHasCondition('Chilled', event.at),
+        runtime.combat.targetHasCondition(CONDITION.CHILLED, event.at),
       // Preserve canonical critical sampling and cooldown claims within the selected producer.
       run: criticalProcHandler<NecromancerResolverContext, NecromancerResolverEvent, NativeResolvedDamageDetails>({
         id: 'necromancer.chilling-nova',
@@ -90,7 +95,7 @@ const chillingNova = defineTrait({
           // Chilling Nova is a discrete strike-and-chill package for each materialized proc.
           const profile = requireBalanceProfileFromContext(context, TRAIT.CHILLING_NOVA);
           const strike = requireEffect(profile, 'strike', 'Strike');
-          const chill = requireEffect(profile, 'condition', 'Chilled');
+          const chill = requireEffect(profile, 'condition', CONDITION.CHILLED);
           for (let proc = 0; proc < application.quantity; proc += 1) {
             if (strike) {
               // Trait payloads and their timeline annotation share the same emission boundary.
@@ -123,9 +128,9 @@ const shiversOfDread = defineTrait({
   balance: {
     effects: [
       {
-        name: 'Chilled',
+        name: CONDITION.CHILLED,
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 2,
         actorType: 'effect'
@@ -133,7 +138,7 @@ const shiversOfDread = defineTrait({
     ]
   },
   triggers: [
-    { on: 'condition.applied', when: (_runtime, event) => event.condition === 'Fear', run: applyShiversOfDread }
+    { on: 'condition.applied', when: (_runtime, event) => event.condition === CONDITION.FEAR, run: applyShiversOfDread }
   ]
 });
 
@@ -191,7 +196,7 @@ const chillingVictory = defineTrait({
       when: (runtime, event) =>
         event.actorType === 'player' &&
         Number(event.coefficient) > 0 &&
-        runtime.combat.targetHasCondition('Chilled', runtime.time),
+        runtime.combat.targetHasCondition(CONDITION.CHILLED, runtime.time),
       run(runtime) {
         const profile = requireBalanceProfileFromContext(runtime, TRAIT.CHILLING_VICTORY);
 
@@ -246,8 +251,13 @@ const decimateDefenses = defineTrait({
           Math.min(
             balanceProfileNumber(decimateDefensesProfile, 'maximumStacks'),
             context.query?.targetConditionStacks
-              ? context.query.targetConditionStacks('Vulnerability', context.time, context.runtime)
-              : configuredTargetConditionStacks(context.config || {}, 'Vulnerability', context.time, context.runtime)
+              ? context.query.targetConditionStacks(CONDITION.VULNERABILITY, context.time, context.runtime)
+              : configuredTargetConditionStacks(
+                  context.config || {},
+                  CONDITION.VULNERABILITY,
+                  context.time,
+                  context.runtime
+                )
           ) * balanceProfileNumber(decimateDefensesProfile, 'criticalChancePerStack')
         );
       }
@@ -307,7 +317,7 @@ export const coldShoulder = defineTrait({
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.COLD_SHOULDER, 'damageMultiplier'),
       // Share the target's canonical Chilled lifetime with Chilling Nova eligibility.
-      when: (context) => targetConditionActive(context, 'Chilled')
+      when: (context) => targetConditionActive(context, CONDITION.CHILLED)
     }
   ]
 });
@@ -347,7 +357,7 @@ function queueChillingNovaChill(context: NecromancerResolverContext, event: Necr
   // The accepted strike owns delivery order; the live named Chill owns its payload.
   emitTraitProfile(context, TRAIT.CHILLING_NOVA, TRAIT.CHILLING_NOVA, undefined, {
     at: event.at,
-    effect: { type: 'condition', name: 'Chilled' },
+    effect: { type: 'condition', name: CONDITION.CHILLED },
     attribution: { skillName: 'Chilling Nova', name: 'Chilling Nova — Chilled' }
   });
 }
@@ -357,7 +367,7 @@ function completeChillingNova(context: NecromancerResolverContext, event: Necrom
   // The resolved Nova strike queues its condition after sibling strikes, preserving their pre-Chill state.
   if (event.actorType === 'effect' && event.sourceId === TRAIT.CHILLING_NOVA) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.CHILLING_NOVA);
-    const chill = requireEffect(profile, 'condition', 'Chilled');
+    const chill = requireEffect(profile, 'condition', CONDITION.CHILLED);
 
     if (chill) queueChillingNovaChill(context, event);
   }
@@ -366,14 +376,14 @@ function completeChillingNova(context: NecromancerResolverContext, event: Necrom
 /** Converts Chilled applications into Deathly Chill's configured condition packet. */
 function applyDeathlyChill(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.DEATHLY_CHILL);
-  const effect = requireEffect(profile, 'condition', 'Bleeding');
+  const effect = requireEffect(profile, 'condition', CONDITION.BLEEDING);
 
   if (effect) {
     // Trait payloads and their timeline annotation share the same emission boundary.
     emitTraitProfile(context, TRAIT.DEATHLY_CHILL, TRAIT.DEATHLY_CHILL, undefined, {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'condition', name: 'Bleeding' },
+      effect: { type: 'condition', name: CONDITION.BLEEDING },
       settlement: 'reaction',
       attribution: {
         source: 'Trait',
@@ -395,14 +405,14 @@ function applyDeathlyChill(context: NecromancerResolverContext, event: Necromanc
 /** Emits the Chill reward admitted by the compiled Fear trigger. */
 function applyShiversOfDread(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.SHIVERS_OF_DREAD);
-  const chill = requireEffect(profile, 'condition', 'Chilled');
+  const chill = requireEffect(profile, 'condition', CONDITION.CHILLED);
 
   if (!chill) return;
 
   emitTraitProfile(context, TRAIT.SHIVERS_OF_DREAD, TRAIT.SHIVERS_OF_DREAD, undefined, {
     at: event.at,
     fullEnd: event.at,
-    effect: { type: 'condition', name: 'Chilled' },
+    effect: { type: 'condition', name: CONDITION.CHILLED },
     attribution: {
       name: 'Shivers of Dread — Chilled',
       source: 'Trait',

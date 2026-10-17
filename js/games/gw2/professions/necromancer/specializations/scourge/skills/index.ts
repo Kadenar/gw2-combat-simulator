@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /**
  * Scourge skill mechanics owned by the Scourge Necromancer module.
@@ -40,13 +42,13 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 1,
         duration: 10
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 3,
         duration: 8
       }
@@ -63,7 +65,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       },
       {
         type: 'condition',
-        condition: 'Slow',
+        condition: CONDITION.SLOW,
         stacks: 1,
         duration: 2,
         applications: 5,
@@ -71,7 +73,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 2,
         applications: 5,
@@ -79,7 +81,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         stacks: 2,
         duration: 6,
         applications: 5,
@@ -108,7 +110,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 3,
         duration: 8
       }
@@ -121,7 +123,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 3,
         duration: 8
       }

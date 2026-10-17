@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -30,7 +31,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 4,
         actorType: 'player'
@@ -52,7 +53,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 1, duration: 3 }],
+        ticks: [{ atMs: 0, condition: CONDITION.POISONED, stacks: 1, duration: 3 }],
         actorType: 'player',
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
@@ -71,7 +72,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: [
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
         actorType: 'player'
@@ -103,7 +104,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 4,
         actorType: 'player'
@@ -127,7 +128,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 4 }],
+        ticks: [{ atMs: 0, condition: CONDITION.BLEEDING, stacks: 1, duration: 4 }],
         actorType: 'player',
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
@@ -156,7 +157,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 2,
         actorType: 'player'
@@ -185,14 +186,14 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 3,
         duration: 5,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 2,
         actorType: 'player'

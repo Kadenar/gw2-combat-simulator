@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 /** Owns Legendary Centaur Stance skill fragments and their alternate identities. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -40,7 +41,7 @@ export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 5,
         stacks: 3
       }

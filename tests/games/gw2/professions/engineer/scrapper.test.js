@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -408,7 +409,7 @@ test('Medic Gyro and Reconstruction Field expose their water fields', () => {
   assert.deepEqual(reconstructionField.effects[0], {
     audience: { recipients: 'party', maximumRecipients: 5 },
     type: 'boon',
-    boon: 'protection',
+    boon: BOON.PROTECTION,
     duration: 2,
     stacks: 1
   });

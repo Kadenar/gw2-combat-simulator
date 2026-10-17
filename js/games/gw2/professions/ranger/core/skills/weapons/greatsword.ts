@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -48,7 +49,7 @@ const maul: Partial<Skill> = {
         }
       ]
     },
-    { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 }
+    { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 8 }
   ],
   castTimeMs: 840
 };

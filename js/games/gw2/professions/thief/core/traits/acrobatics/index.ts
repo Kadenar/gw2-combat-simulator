@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -19,7 +20,9 @@ export const pumpingUp = defineTrait({
   id: TRAIT.PUMPING_UP,
   name: 'Pumping Up',
   balance: {
-    effects: [{ type: 'boon', name: 'Might', boon: 'might', stacks: 3, duration: 20, audience: { recipients: 'self' } }]
+    effects: [
+      { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 3, duration: 20, audience: { recipients: 'self' } }
+    ]
   },
   triggers: [
     {

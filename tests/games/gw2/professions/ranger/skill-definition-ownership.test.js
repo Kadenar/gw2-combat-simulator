@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
@@ -123,7 +124,7 @@ test('We Heal As One copies only surviving duration-menu entries', () => {
           catalog: withSkill(native.catalog, ID.WE_HEAL_AS_ONE, {
             effects: native.catalog.skillsById
               .get(ID.WE_HEAL_AS_ONE)
-              .effects.filter((effect) => effect.boon !== 'might')
+              .effects.filter((effect) => effect.boon !== BOON.MIGHT)
           })
         };
       }

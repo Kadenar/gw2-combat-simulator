@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
@@ -181,7 +182,7 @@ export const mesmerCoreUi: MesmerUiSlice = Object.freeze({
       description: `${resource.plural} before setup; resource gains and spending follow the runtime`
     });
 
-    preview.boon('regeneration', 'Chaotic Persistence');
+    preview.boon(boonKey(BOON.REGENERATION), 'Chaotic Persistence');
     preview.buff("Fencer's Finesse", 'fencer', 'fencer', 'Ferocity', true);
     preview.targetHealth(TRAIT.SUPERIORITY_COMPLEX);
     preview.damageTargetHealth(preview.hasId(TRAIT.EGOTISM));

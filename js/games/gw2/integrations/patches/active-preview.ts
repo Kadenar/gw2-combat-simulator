@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import { impactEffects, strikeTimeline, conditionTimeline } from '#gw2/platform/effects/authoring.js';
 
@@ -183,7 +185,7 @@ export const activePatchPreview: PatchPreview = {
           effects: [
             {
               type: 'condition',
-              condition: 'Burning',
+              condition: CONDITION.BURNING,
               duration: {
                 from: 6,
                 to: 8
@@ -258,7 +260,7 @@ export const activePatchPreview: PatchPreview = {
           effects: [
             {
               type: 'condition',
-              condition: 'Burning',
+              condition: CONDITION.BURNING,
               stacks: {
                 from: 2,
                 to: 1
@@ -270,7 +272,7 @@ export const activePatchPreview: PatchPreview = {
           effects: [
             {
               type: 'condition',
-              condition: 'Burning',
+              condition: CONDITION.BURNING,
               tickIndex: 'all',
               stacks: {
                 from: 2,
@@ -283,7 +285,7 @@ export const activePatchPreview: PatchPreview = {
           effects: [
             {
               type: 'condition',
-              condition: 'Torment',
+              condition: CONDITION.TORMENT,
               tickIndex: 'all',
               duration: {
                 from: 4,
@@ -331,7 +333,7 @@ export const activePatchPreview: PatchPreview = {
             {
               type: 'condition',
               name: 'Bomb',
-              condition: 'Burning',
+              condition: CONDITION.BURNING,
               duration: {
                 from: 3.5,
                 to: 1
@@ -344,7 +346,7 @@ export const activePatchPreview: PatchPreview = {
             {
               type: 'condition',
               name: 'Bomb',
-              condition: 'Burning',
+              condition: CONDITION.BURNING,
               duration: {
                 from: 4.5,
                 to: 2
@@ -441,7 +443,7 @@ export const activePatchPreview: PatchPreview = {
           removeEffects: [
             {
               type: 'condition',
-              condition: 'Vulnerability'
+              condition: CONDITION.VULNERABILITY
             }
           ]
         },
@@ -449,7 +451,7 @@ export const activePatchPreview: PatchPreview = {
           effects: [
             {
               type: 'condition',
-              condition: 'Bleeding',
+              condition: CONDITION.BLEEDING,
               duration: {
                 from: 4,
                 to: 3
@@ -462,7 +464,7 @@ export const activePatchPreview: PatchPreview = {
             {
               type: 'condition',
               name: 'Seed of Life',
-              condition: 'Poisoned',
+              condition: CONDITION.POISONED,
               duration: {
                 from: 8,
                 to: 6
@@ -471,7 +473,7 @@ export const activePatchPreview: PatchPreview = {
             {
               type: 'condition',
               name: 'Natural Convergence',
-              condition: 'Burning',
+              condition: CONDITION.BURNING,
               duration: {
                 from: 5,
                 to: 4
@@ -480,7 +482,7 @@ export const activePatchPreview: PatchPreview = {
             {
               type: 'condition',
               name: 'Natural Convergence final pulse',
-              condition: 'Burning',
+              condition: CONDITION.BURNING,
               duration: {
                 from: 5,
                 to: 4
@@ -646,7 +648,7 @@ export const activePatchPreview: PatchPreview = {
           effects: [
             {
               type: 'boon',
-              boon: 'alacrity',
+              boon: BOON.ALACRITY,
               duration: {
                 from: 1.5,
                 to: 2
@@ -658,7 +660,7 @@ export const activePatchPreview: PatchPreview = {
           effects: [
             {
               type: 'boon',
-              boon: 'might',
+              boon: BOON.MIGHT,
               duration: {
                 from: 6,
                 to: 8
@@ -670,7 +672,7 @@ export const activePatchPreview: PatchPreview = {
           effects: [
             {
               type: 'condition',
-              condition: 'Torment',
+              condition: CONDITION.TORMENT,
               stacks: {
                 from: 6,
                 to: 3
@@ -762,7 +764,7 @@ export const activePatchPreview: PatchPreview = {
           removeEffects: [
             {
               type: 'boon',
-              name: 'alacrity'
+              name: boonKey(BOON.ALACRITY)
             },
             {
               type: 'boon',
@@ -772,8 +774,8 @@ export const activePatchPreview: PatchPreview = {
           addEffects: [
             {
               type: 'boon',
-              name: 'alacrity',
-              boon: 'alacrity',
+              name: boonKey(BOON.ALACRITY),
+              boon: BOON.ALACRITY,
               stacks: 1,
               duration: 5,
               audience: {
@@ -783,7 +785,7 @@ export const activePatchPreview: PatchPreview = {
             {
               type: 'boon',
               name: 'alacrity (triggered)',
-              boon: 'alacrity',
+              boon: BOON.ALACRITY,
               stacks: 1,
               duration: 1,
               packetLabel: 'triggered',
@@ -819,18 +821,23 @@ export const activePatchPreview: PatchPreview = {
           // Replace the overlapping offensive pulses while retaining the independent Resistance grant.
           removeEffects: [
             { type: 'strike' },
-            { type: 'condition', condition: 'Bleeding' },
-            { type: 'condition', condition: 'Blindness', all: true }
+            { type: 'condition', condition: CONDITION.BLEEDING },
+            { type: 'condition', condition: CONDITION.BLINDNESS, all: true }
           ],
           addEffects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
             strikeTimeline(DUST_STORM_PREVIEW_TICKS.map((tick) => ({ ...tick, coefficient: 0.3 }))),
             conditionTimeline(
-              DUST_STORM_PREVIEW_TICKS.map((tick) => ({ ...tick, condition: 'Bleeding', stacks: 2, duration: 10 }))
+              DUST_STORM_PREVIEW_TICKS.map((tick) => ({
+                ...tick,
+                condition: CONDITION.BLEEDING,
+                stacks: 2,
+                duration: 10
+              }))
             ),
             ...DUST_STORM_PREVIEW_TICKS.map((tick) => ({
               ...tick,
               type: 'condition' as const,
-              condition: 'Blindness',
+              condition: CONDITION.BLINDNESS,
               stacks: 1,
               duration: 2,
               applications: 1
@@ -841,7 +848,7 @@ export const activePatchPreview: PatchPreview = {
           effects: [
             {
               type: 'condition',
-              condition: 'Burning',
+              condition: CONDITION.BURNING,
               tickIndex: 'all',
               duration: {
                 from: 3,
@@ -1032,13 +1039,13 @@ export const activePatchPreview: PatchPreview = {
             }
           },
           boons: {
-            fury: {
+            [BOON.FURY]: {
               duration: {
                 from: 25,
                 to: 10
               }
             },
-            might: {
+            [BOON.MIGHT]: {
               duration: {
                 from: 25,
                 to: 10
@@ -1048,7 +1055,7 @@ export const activePatchPreview: PatchPreview = {
                 to: 20
               }
             },
-            swiftness: {
+            [BOON.SWIFTNESS]: {
               duration: {
                 from: 25,
                 to: 10

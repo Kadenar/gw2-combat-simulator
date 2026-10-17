@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -44,9 +46,9 @@ export const reapersMight = defineTrait({
   balance: {
     effects: [
       {
-        name: 'might',
+        name: boonKey(BOON.MIGHT),
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         stacks: 1,
         duration: 15,
         actorType: 'player'
@@ -72,9 +74,9 @@ export const siphonedPower = defineTrait({
     cooldown: 1,
     effects: [
       {
-        name: 'might',
+        name: boonKey(BOON.MIGHT),
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         stacks: 3,
         duration: 8,
         actorType: 'player'
@@ -107,7 +109,8 @@ export const awakenThePain = defineTrait({
   // The trait portion of Might follows the queried actor, with build assumptions before runtime exists.
   attributes(context) {
     const might =
-      context.query?.mightStacksAt(context.time, context.runtime, context.event) ?? activeBoonStacks(context, 'might');
+      context.query?.mightStacksAt(context.time, context.runtime, context.event) ??
+      activeBoonStacks(context, boonKey(BOON.MIGHT));
     return {
       attributeEffects: [
         {
@@ -130,7 +133,16 @@ export const awakenThePain = defineTrait({
   id: TRAIT.AWAKEN_THE_PAIN,
   name: 'Awaken the Pain',
   balance: {
-    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 5, duration: 5, packetLabel: 'on shroud entry' }],
+    effects: [
+      {
+        name: boonKey(BOON.MIGHT),
+        type: 'boon',
+        boon: BOON.MIGHT,
+        stacks: 5,
+        duration: 5,
+        packetLabel: 'on shroud entry'
+      }
+    ],
     attributePerStack: 10
   }
 });
@@ -211,7 +223,9 @@ export const bitterChill = defineTrait({
   id: TRAIT.BITTER_CHILL,
   name: 'Bitter Chill',
   balance: {
-    effects: [{ name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 3, duration: 8 }]
+    effects: [
+      { name: CONDITION.VULNERABILITY, type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 3, duration: 8 }
+    ]
   }
 });
 
@@ -259,7 +273,7 @@ export const dread = defineTrait({
   triggers: [
     onTriggerPoint(necromancerConditionApplied, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
-        input.event.condition === 'Fear',
+        input.event.condition === CONDITION.FEAR,
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
         applyDreadWindow(runtime, input.event)
     })
@@ -328,7 +342,7 @@ function applyReapersMight(
   if (!firstHit || !shroudSkillOne) return;
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.REAPERS_MIGHT);
-  const effect = requireEffect(profile, 'boon', 'might');
+  const effect = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
   // The proc record reports only a delivered boon.
   if (!effect) return;
@@ -336,7 +350,7 @@ function applyReapersMight(
   emitTraitProfile(context, TRAIT.REAPERS_MIGHT, TRAIT.REAPERS_MIGHT, undefined, {
     at: event.at,
     fullEnd: event.at,
-    effect: { type: 'boon', name: 'might' },
+    effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
     durationContext: event,
     attribution: {
       skillName: "Reaper's Might",
@@ -358,7 +372,7 @@ function applySiphonedPower(context: NecromancerResolverContext, event: Necroman
 
   if (!context.combat.targetHealthBelow(balanceProfileNumber(profile, 'threshold'))) return;
 
-  const effect = requireEffect(profile, 'boon', 'might');
+  const effect = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
   // Claim only after local eligibility, before conditions, resources or queued strikes; the cooldown gates only
   // might, so a removed boon leaves it ready.
@@ -368,7 +382,7 @@ function applySiphonedPower(context: NecromancerResolverContext, event: Necroman
   emitTraitProfile(context, TRAIT.SIPHONED_POWER, TRAIT.SIPHONED_POWER, undefined, {
     at: event.at,
     fullEnd: event.at,
-    effect: { type: 'boon', name: 'might' },
+    effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
     durationContext: event,
     attribution: {
       skillName: 'Siphoned Power',
@@ -391,7 +405,7 @@ function applyChillOfDeath(context: NecromancerRuntime, event: NecromancerResolv
 
   const skill = context.helpers.skillsById.get(ID.LESSER_SPINAL_SHIVERS)!;
   const strike = requireEffect(skill, 'strike', 'Lesser Spinal Shivers - No Boons');
-  const chilled = requireEffect(skill, 'condition', 'Chilled');
+  const chilled = requireEffect(skill, 'condition', CONDITION.CHILLED);
 
   if ((!strike && !chilled) || context.cooldownController.isOnCooldown(skill.id, context.time)) return;
 
@@ -409,7 +423,7 @@ function applyChillOfDeath(context: NecromancerRuntime, event: NecromancerResolv
 function queueChillOfDeathCondition(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   // Chill follows the accepted strike, or applies directly if the strike was removed by a patch.
   invokeTraitSkill(context, TRAIT.CHILL_OF_DEATH, ID.LESSER_SPINAL_SHIVERS, event, {
-    effect: { type: 'condition', name: 'Chilled' }
+    effect: { type: 'condition', name: CONDITION.CHILLED }
   });
 }
 
@@ -443,17 +457,17 @@ function enterSpitefulSpirit(runtime: NecromancerRuntime, cast: RuntimeCast<Necr
 }
 
 function applyBitterChill(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (event.condition !== 'Chilled') return;
+  if (event.condition !== CONDITION.CHILLED) return;
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.BITTER_CHILL);
-  const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+  const vulnerability = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 
   if (!vulnerability) return;
 
   emitTraitProfile(context, TRAIT.BITTER_CHILL, TRAIT.BITTER_CHILL, undefined, {
     at: event.at,
     fullEnd: event.at,
-    effect: { type: 'condition', name: 'Vulnerability' },
+    effect: { type: 'condition', name: CONDITION.VULNERABILITY },
     attribution: {
       name: 'Bitter Chill',
       skillName: 'Bitter Chill',
@@ -471,7 +485,7 @@ function applyBitterChill(context: NecromancerResolverContext, event: Necromance
 
 /** Fear refreshes the existing observation window; Dread's selected modifier decides whether it contributes. */
 function applyDreadWindow(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (event.condition === 'Fear') {
+  if (event.condition === CONDITION.FEAR) {
     context.effects.emit({
       kind: 'packet',
       cause: event,

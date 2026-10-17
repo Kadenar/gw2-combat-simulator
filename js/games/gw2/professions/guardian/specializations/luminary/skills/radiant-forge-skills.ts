@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 
@@ -114,7 +116,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
       ...[440, 1440, 2440, 3440].map((atMs) => ({
         type: 'boon' as const,
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'resolution',
+        boon: BOON.RESOLUTION,
         duration: 1,
         stacks: 1,
         atMs
@@ -122,7 +124,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
       // The initial staff impact grants Protection independently of the symbol's Resolution pulses.
       {
         type: 'boon',
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 4,
         atMs: 440,
         audience: { recipients: 'party' }
@@ -255,7 +257,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: [
       {
         type: 'boon',
-        boon: 'aegis',
+        boon: BOON.AEGIS,
         duration: 4,
         atMs: 0,
         timingAnchor: 'castStart',
@@ -280,14 +282,14 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
         // Once launched, the hammer's impact, boons and blast combo survive cancellation of its remaining animation.
         {
           type: 'boon',
-          boon: 'might',
+          boon: BOON.MIGHT,
           stacks: 8,
           duration: 8,
           audience: { recipients: 'party' }
         },
         {
           type: 'boon',
-          boon: 'fury',
+          boon: BOON.FURY,
           duration: 6,
           audience: { recipients: 'party' }
         },
@@ -350,7 +352,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
         },
         {
           type: 'condition',
-          condition: 'Blindness',
+          condition: CONDITION.BLINDNESS,
           stacks: 1,
           duration: 3
         }
@@ -361,7 +363,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
 
 export const HAMMER = 'guardian.luminary.hammer';
 
-export const BOON = 'guardian.luminary.weapon-boon';
+export const WEAPON_BOON = 'guardian.luminary.weapon-boon';
 
 export const BLADE_IMMOBILIZE = 'guardian.luminary.blade-immobilize';
 
@@ -386,7 +388,7 @@ export function glaringBurstDetail(context: CastDetailContext<GuardianRuntimeSta
   const state = specialization.state;
   const label =
     state.radiantWeapon === 'blade'
-      ? `Sword (${state.glaringBurstSwordSlow ? 'slow' : 'fast'})`
+      ? `Sword (${state.glaringBurstSwordSlow ? CONDITION.SLOW.toLowerCase() : 'fast'})`
       : { hammer: 'Hammer', staff: 'Staff', bulwark: 'Shield' }[state.radiantWeapon];
   return label ? `Variant: ${label}` : undefined;
 }
@@ -413,7 +415,7 @@ function burstEffects(
   const vulnerability = requireEffect(
     requireBalanceProfileFromContext(runtime, PROFILE.glaringBurstVulnerability),
     'condition',
-    'Vulnerability'
+    CONDITION.VULNERABILITY
   );
   return [...effects, ...(vulnerability ? [vulnerability] : [])].map((effect) => ({
     ...effect,
@@ -441,7 +443,7 @@ const luminaryWeaponActions: RuntimeProfession<GuardianRuntimeState, GuardianSki
     // Capture the consumed entitlement now, but apply its condition only if the blade reaches impact.
     runtime.scheduleForCast(BLADE_IMMOBILIZE, luminaryImpactAt(context.cast), context.cast);
     runtime.scheduleForCast(
-      BOON,
+      WEAPON_BOON,
       luminaryImpactAt(context.cast),
       context.cast,
       { kind: 'guardian-radiant-courage-sword', duration: 0.001 },
@@ -457,8 +459,8 @@ const luminaryWeaponActions: RuntimeProfession<GuardianRuntimeState, GuardianSki
     if (!state.radiantResolveArmed) return;
 
     state.radiantResolveArmed = false;
-    runtime.scheduleForCast(BOON, luminaryImpactAt(context.cast), context.cast, {
-      kind: 'regeneration',
+    runtime.scheduleForCast(WEAPON_BOON, luminaryImpactAt(context.cast), context.cast, {
+      kind: boonKey(BOON.REGENERATION),
       duration: 4,
       party: true
     });

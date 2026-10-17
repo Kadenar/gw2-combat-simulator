@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
@@ -50,16 +51,34 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
     effects: [{ type: 'control', name: 'Daze', controlKind: 'daze' }]
   }),
   variant(NECROMANCER_CORE_BALANCE_PROFILE_IDS.addleImmobilize, ID.ADDLE, 'Addle Immobilized', {
-    effects: [{ type: 'condition', name: 'Immobilized', condition: 'Immobilized', stacks: 1, duration: 1.5 }]
+    effects: [
+      { type: 'condition', name: CONDITION.IMMOBILIZED, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1.5 }
+    ]
   }),
   variant(NECROMANCER_CORE_BALANCE_PROFILE_IDS.darkPactOnHit, ID.DARK_PACT, 'Dark Pact — First Hit', {
     effects: [
-      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10, target: 'self' },
-      { name: 'Immobilized', type: 'condition', condition: 'Immobilized', stacks: 1, duration: 6 }
+      {
+        name: CONDITION.BLEEDING,
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 2,
+        duration: 10,
+        target: 'self'
+      },
+      { name: CONDITION.IMMOBILIZED, type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 6 }
     ]
   }),
   variant(NECROMANCER_CORE_BALANCE_PROFILE_IDS.lifeSiphonOnHit, ID.LIFE_SIPHON, 'Life Siphon — First Hit', {
-    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8, target: 'self' }]
+    effects: [
+      {
+        name: CONDITION.BLEEDING,
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 1,
+        duration: 8,
+        target: 'self'
+      }
+    ]
   }),
   {
     id: NECROMANCER_CORE_BALANCE_PROFILE_IDS.soulShards,
@@ -233,9 +252,9 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         comboFinishers: [MINION_PROJECTILE_FINISHER]
       },
       {
-        name: 'Crippled',
+        name: CONDITION.CRIPPLED,
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 2,
         applications: 2,

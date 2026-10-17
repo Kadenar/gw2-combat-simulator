@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 // Name packets independently for patch deletion while preserving their shared attribution.
 /** Core Engineer Elixir Gun skill mechanics. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -40,14 +42,14 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 4,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 1,
         actorType: 'player'
@@ -69,14 +71,14 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 3,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 2,
         actorType: 'player'
@@ -84,7 +86,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 3 },
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 3,
         stacks: 1
       }
@@ -158,14 +160,19 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
       },
       {
         type: 'condition',
-        ticks: [320, 600, 920, 1200, 1520].map((atMs) => ({ atMs, condition: 'Poisoned', stacks: 1, duration: 2 })),
+        ticks: [320, 600, 920, 1200, 1520].map((atMs) => ({
+          atMs,
+          condition: CONDITION.POISONED,
+          stacks: 1,
+          duration: 2
+        })),
         actorType: 'player'
       },
       {
         type: 'condition',
         ticks: [320, 600, 920, 1200, 1520].map((atMs) => ({
           atMs,
-          condition: 'Vulnerability',
+          condition: CONDITION.VULNERABILITY,
           stacks: 1,
           duration: 6
         })),
@@ -181,7 +188,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 10,
         stacks: 1
       }

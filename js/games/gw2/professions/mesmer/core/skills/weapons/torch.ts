@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -40,14 +41,14 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         duration: 6,
         stacks: 1,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         duration: 9,
         stacks: 1,
         actorType: 'summon',
@@ -55,7 +56,7 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'confusion',
+        condition: CONDITION.CONFUSION,
         duration: 3,
         stacks: 3,
         actorType: 'summon',
@@ -71,7 +72,7 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Parti
       // Blind on activation; the later burning explosion performs the blast finisher.
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
         source: 'Player',
@@ -87,7 +88,7 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Parti
           actorType: 'player',
           weapon: 'torch'
         },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 9 }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 9 }
       ])
     ]
   }

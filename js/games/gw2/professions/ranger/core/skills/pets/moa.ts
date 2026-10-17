@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Moa family.
@@ -34,7 +36,7 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 8,
         duration: 10,
         source: 'ranger-pet',
@@ -50,7 +52,7 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, Partia
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 4,
         stacks: 1,
         source: 'ranger-pet',
@@ -91,7 +93,7 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, Partia
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 15,
         stacks: 1,
         source: 'ranger-pet',

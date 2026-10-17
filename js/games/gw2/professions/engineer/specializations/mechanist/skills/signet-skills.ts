@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -51,7 +52,7 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<S
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         atMs: 560,
         applications: 6,
         intervalMs: 1000,
@@ -62,7 +63,7 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<S
       },
       {
         type: 'condition',
-        condition: 'Confusion',
+        condition: CONDITION.CONFUSION,
         atMs: 560,
         applications: 6,
         intervalMs: 1000,
@@ -73,7 +74,7 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<S
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         atMs: 560,
         applications: 6,
         intervalMs: 1000,

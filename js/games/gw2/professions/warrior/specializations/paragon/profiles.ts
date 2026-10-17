@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 
 export const PARAGON_BALANCE_PROFILE_IDS = Object.freeze({
@@ -16,12 +18,12 @@ export const PARAGON_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     name: 'Paragon Refrains',
     profileKind: 'mechanic',
     effects: [
-      { name: 'might', type: 'boon', boon: 'might', stacks: 1, duration: 8 },
-      { name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 5 },
-      { name: 'regeneration', type: 'boon', boon: 'regeneration', stacks: 1, duration: 3 },
-      { name: 'swiftness', type: 'boon', boon: 'swiftness', stacks: 1, duration: 3 },
-      { name: 'resolution', type: 'boon', boon: 'resolution', stacks: 1, duration: 3 },
-      { name: 'protection', type: 'boon', boon: 'protection', stacks: 1, duration: 3 }
+      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 1, duration: 8 },
+      { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 5 },
+      { name: boonKey(BOON.REGENERATION), type: 'boon', boon: BOON.REGENERATION, stacks: 1, duration: 3 },
+      { name: boonKey(BOON.SWIFTNESS), type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 3 },
+      { name: boonKey(BOON.RESOLUTION), type: 'boon', boon: BOON.RESOLUTION, stacks: 1, duration: 3 },
+      { name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, stacks: 1, duration: 3 }
     ]
   },
   {
@@ -40,10 +42,10 @@ export const PARAGON_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     profileKind: 'mechanic',
     resourceGain: 4,
     effects: [
-      { name: 'might', type: 'boon', boon: 'might', stacks: 5, duration: 8 },
-      { name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 5 },
-      { name: 'vigor', type: 'boon', boon: 'vigor', stacks: 1, duration: 5 },
-      { name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 3 }
+      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 8 },
+      { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 5 },
+      { name: boonKey(BOON.VIGOR), type: 'boon', boon: BOON.VIGOR, stacks: 1, duration: 5 },
+      { name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 3 }
     ]
   },
   {
@@ -51,7 +53,7 @@ export const PARAGON_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     name: 'Find Their Weakness - Echo',
     profileKind: 'mechanic',
     resourceGain: 3,
-    effects: [{ type: 'boon', name: 'might', boon: 'might', duration: 10, stacks: 7 }]
+    effects: [{ type: 'boon', name: boonKey(BOON.MIGHT), boon: BOON.MIGHT, duration: 10, stacks: 7 }]
   },
   {
     id: PARAGON_BALANCE_PROFILE_IDS.onYourKneesEcho,
@@ -60,7 +62,7 @@ export const PARAGON_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     resourceGain: 0,
     effects: [
       { type: 'strike', name: 'Echo Damage', coefficient: 1.5, hits: 1 },
-      { type: 'condition', name: 'Echo Immobilized', condition: 'Immobilized', duration: 2, stacks: 1 }
+      { type: 'condition', name: 'Echo Immobilized', condition: CONDITION.IMMOBILIZED, duration: 2, stacks: 1 }
     ]
   },
   {

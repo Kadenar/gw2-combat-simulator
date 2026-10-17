@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Rifle packets use close-range cast-start offsets so projectile travel does not inflate their timing. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -72,7 +74,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 5,
         stacks: 1
       }
@@ -90,13 +92,13 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 5
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 10,
         duration: 10
       }
@@ -122,13 +124,13 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 1.5
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 8,
         duration: 12
       }

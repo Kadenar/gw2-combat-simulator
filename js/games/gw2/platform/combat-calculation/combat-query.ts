@@ -1,3 +1,5 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import { applyMightAttributes } from '#gw2/platform/builds/attribute-evaluation.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
@@ -245,7 +247,7 @@ export function createGw2CombatQuery({
     time: number,
     runtime: Gw2QueryRuntime | null | undefined,
     event: SimulationEvent | null | undefined
-  ): number => boonStacksAt('might', time, 25, runtime, event);
+  ): number => boonStacksAt(boonKey(BOON.MIGHT), time, 25, runtime, event);
 
   const furyActiveAt = (
     time: number,
@@ -268,14 +270,14 @@ export function createGw2CombatQuery({
 
     if (illusionEvent || (isolatedSummon && !inheritsOwnerCriticalState)) {
       return (
-        appliedEffectStacks({ runtime, timeline, time }, 'fury', 1, {
+        appliedEffectStacks({ runtime, timeline, time }, boonKey(BOON.FURY), 1, {
           actor: 'companion',
           companionId: summonCompanionId(event)
         }) > 0
       );
     }
 
-    return appliedEffectStacks({ runtime, timeline, time }, 'fury', 1) > 0;
+    return appliedEffectStacks({ runtime, timeline, time }, boonKey(BOON.FURY), 1) > 0;
   };
 
   /**
@@ -288,7 +290,7 @@ export function createGw2CombatQuery({
   ): number => {
     if (event?.summonIgnoresBoons === true) return 0;
 
-    return appliedEffectStacks({ runtime, timeline, time }, 'might', 25, {
+    return appliedEffectStacks({ runtime, timeline, time }, boonKey(BOON.MIGHT), 25, {
       actor: 'companion',
       companionId: summonCompanionId(event)
     });
@@ -299,7 +301,7 @@ export function createGw2CombatQuery({
     targetConditionStacks(config, condition, time, runtime, configuredTargetConditionStacks(condition));
 
   const vulnerabilityStacksAt = (time: number, runtime: Gw2QueryRuntime | null | undefined): number =>
-    targetConditionStacksAt('Vulnerability', time, runtime);
+    targetConditionStacksAt(CONDITION.VULNERABILITY, time, runtime);
 
   const activeWeaponSetAt = (time: number, runtime: Gw2QueryRuntime | null | undefined): number => {
     const runtimeSet = Number(runtime?.activeWeaponSet);
@@ -481,7 +483,7 @@ export function createGw2CombatQuery({
 
       if (furyActive) {
         chance += 0.25;
-        addContributor('fury', 'Fury', 0.25);
+        addContributor(boonKey(BOON.FURY), BOON.FURY, 0.25);
       }
 
       const professionContributors: Gw2CriticalChanceContributor[] = [];
@@ -562,7 +564,7 @@ export function createGw2CombatQuery({
             : base;
 
         if (contributors) {
-          traceFactor(contributors, 'target.vulnerability', 'Vulnerability', vulnerability);
+          traceFactor(contributors, 'target.vulnerability', CONDITION.VULNERABILITY, vulnerability);
           closeContributions(contributors, total);
         }
 
@@ -598,7 +600,7 @@ export function createGw2CombatQuery({
 
       if (contributors) {
         // Query-owned factors sit outside the profession hook; any untraced remainder stays visible as one entry.
-        traceFactor(contributors, 'target.vulnerability', 'Vulnerability', vulnerability);
+        traceFactor(contributors, 'target.vulnerability', CONDITION.VULNERABILITY, vulnerability);
         traceFactor(contributors, 'equipment.night', 'Night sigil', timeOfDayMultiplier);
         traceFactor(contributors, 'equipment.sigil-multiplier', 'Sigils', sigils.strikeMultiplier || 1);
         traceFactor(contributors, 'equipment.utility', 'Utility', utilityMultiplier);
@@ -646,7 +648,7 @@ export function createGw2CombatQuery({
       );
 
       if (contributors) {
-        traceFactor(contributors, 'target.vulnerability', 'Vulnerability', vulnerability);
+        traceFactor(contributors, 'target.vulnerability', CONDITION.VULNERABILITY, vulnerability);
         traceFactor(contributors, 'config.condition', 'Configured modifier', config.modifiers?.condition || 1);
         closeContributions(contributors, total);
       }

@@ -4,6 +4,7 @@
  */
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';
 
 const HOSTILE_TARGET_EVENT_TYPES = new Set(['damage', 'condition', 'condition_tick', 'control']);
@@ -33,28 +34,15 @@ export function missesTarget(event: SimulationEvent): boolean {
 
 // Producers and consumers share runtime condition names without spelling aliases.
 export const GW2_DAMAGING_CONDITIONS = Object.freeze([
-  'Bleeding',
-  'Burning',
-  'Confusion',
-  'Poisoned',
-  'Torment'
+  CONDITION.BLEEDING,
+  CONDITION.BURNING,
+  CONDITION.CONFUSION,
+  CONDITION.POISONED,
+  CONDITION.TORMENT
 ] as const);
 const DAMAGING_CONDITION_SET = new Set<string>(GW2_DAMAGING_CONDITIONS);
 
-export const CANONICAL_TARGET_CONDITIONS = Object.freeze(
-  [
-    ...GW2_DAMAGING_CONDITIONS,
-    'Blindness',
-    'Chilled',
-    'Crippled',
-    'Fear',
-    'Immobilized',
-    'Slow',
-    'Taunt',
-    'Vulnerability',
-    'Weakness'
-  ].sort()
-);
+export const CANONICAL_TARGET_CONDITIONS: readonly string[] = Object.freeze(Object.values(CONDITION).sort());
 
 const canonicalConditionNames = new Map<string, string>();
 
@@ -83,7 +71,7 @@ export function isDamagingCondition(value: unknown): boolean {
 
 /** Effective intensity belongs to combat: non-damaging conditions represent presence, except Vulnerability. */
 export function conditionStackLimit(name: string): number | null {
-  return isDamagingCondition(name) ? null : canonicalTargetConditionName(name) === 'Vulnerability' ? 25 : 1;
+  return isDamagingCondition(name) ? null : canonicalTargetConditionName(name) === CONDITION.VULNERABILITY ? 25 : 1;
 }
 
 function normalizeTargetConditions(

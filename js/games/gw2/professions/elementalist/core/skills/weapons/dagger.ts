@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Dagger weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -74,7 +76,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'condition',
         ticks: DRAKES_BREATH_TICK_OFFSETS_MS.map((atMs) => ({
           atMs,
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 4
         })),
@@ -105,7 +107,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     effects: [
       ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 3 },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2, metadata: {} }
       ]),
       // The trail shares timing defaults while retaining its separate multi-packet field timelines.
       ...impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -121,7 +123,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
           type: 'condition',
           ticks: BURNING_SPEED_FIELD_TICK_OFFSETS_MS.map((atMs) => ({
             atMs,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 2
           })),
@@ -155,7 +157,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
       { type: 'strike', coefficient: 2 },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 2,
         duration: 4,
         metadata: {}
@@ -203,11 +205,11 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     effects: [
       ...impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.33 },
-        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6, metadata: {} }
       ]),
       ...impactEffects({ atMs: 1360, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.33 },
-        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6, metadata: {} }
       ])
     ]
   },
@@ -302,7 +304,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         ],
         metadata: {}
       },
-      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3, metadata: {} }
     ])
   },
   // Instant aura grant that flips the slot to Transmute Frost; `aura: 'Frost|10'` is the aura/duration
@@ -339,7 +341,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
       { type: 'strike', coefficient: 0.5 },
       {
         type: 'boon',
-        boon: 'Regeneration',
+        boon: BOON.REGENERATION,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
@@ -425,8 +427,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         ],
         metadata: {}
       },
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3, metadata: {} },
-      { type: 'boon', boon: 'Fury', stacks: 1, duration: 2.5, metadata: {} }
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3, metadata: {} },
+      { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 2.5, metadata: {} }
     ])
   },
   // Air-attunement counterpart of the Frost Aura pair: grants the aura and flips to Transmute Lightning.
@@ -509,7 +511,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'strike',
         coefficient: 0
       },
-      { type: 'boon', boon: 'Swiftness', stacks: 1, duration: 10, metadata: {} },
+      { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 10, metadata: {} },
       { type: 'control', applications: 1, controlKind: 'crowd-control' }
     ])
   },
@@ -526,7 +528,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.77 },
-      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 10, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 10, metadata: {} }
     ])
   },
   // Two impacts within one cast — the small initial hit and the larger delayed one — each carrying its
@@ -544,13 +546,13 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     effects: [
       ...impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.33 },
-        { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 6, metadata: {} },
-        { type: 'condition', condition: 'Crippled', stacks: 1, duration: 2, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 6, metadata: {} },
+        { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 2, metadata: {} }
       ]),
       ...impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1.9 },
-        { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 6, metadata: {} },
-        { type: 'condition', condition: 'Crippled', stacks: 1, duration: 2, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 6, metadata: {} },
+        { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 2, metadata: {} }
       ])
     ]
   },
@@ -578,7 +580,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         ],
         metadata: {}
       },
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2, metadata: {} }
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2, metadata: {} }
     ])
   },
   [ID.EARTHQUAKE]: {
@@ -646,8 +648,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
       },
       ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         { type: 'strike', coefficient: 3 },
-        { type: 'condition', condition: 'Bleeding', stacks: 10, duration: 8, metadata: {} },
-        { type: 'condition', condition: 'Crippled', stacks: 1, duration: 4, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 10, duration: 8, metadata: {} },
+        { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 4, metadata: {} }
       ])
     ]
   }

@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -31,10 +33,10 @@ function mapPoisonDurations(effects: readonly SkillEffect[], scaled: (duration: 
         ? {
             ...effect,
             ticks: effect.ticks.map((tick) =>
-              tick.condition === 'Poisoned' ? { ...tick, duration: scaled(tick.duration) } : tick
+              tick.condition === CONDITION.POISONED ? { ...tick, duration: scaled(tick.duration) } : tick
             )
           }
-        : effect.condition === 'Poisoned'
+        : effect.condition === CONDITION.POISONED
           ? { ...effect, duration: scaled(effect.duration) }
           : effect
   );
@@ -78,14 +80,14 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 3,
         duration: 5,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 2,
         actorType: 'player'
@@ -121,7 +123,12 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
       ...impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
         {
           type: 'condition',
-          ticks: [120, 280, 400, 560, 680].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 5 })),
+          ticks: [120, 280, 400, 560, 680].map((atMs) => ({
+            atMs,
+            condition: CONDITION.BLEEDING,
+            stacks: 1,
+            duration: 5
+          })),
           actorType: 'player'
         }
         // Malice-scaled Torment is emitted from its removable balance profile at completion.
@@ -162,7 +169,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
       { type: 'strike', coefficient: 2, hits: 1, name: 'Malicious Tactical Strike', actorType: 'player' },
       { type: 'control', actorType: 'player', controlKind: 'daze' },
       { type: 'control', actorType: 'player', controlKind: 'daze' },
-      { type: 'condition', condition: 'Vulnerability', stacks: 10, duration: 5, actorType: 'player' }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 5, actorType: 'player' }
     ]),
     requiredMainHand: 'Sword',
     stealthAttack: true,
@@ -198,7 +205,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         type: 'condition',
         ticks: [200, 440, 640, 840, 1040, 1280, 1480, 1680].map((atMs) => ({
           atMs,
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           stacks: 1,
           duration: 3
         })),
@@ -220,8 +227,8 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
           const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
           return effects.flatMap((effect): SkillEffect[] => {
             const quickness =
-              (effect.type === 'boon' && String(effect.boon).toLowerCase() === 'quickness') ||
-              (effect.type === 'buff' && effect.kind === 'quickness');
+              (effect.type === 'boon' && String(effect.boon).toLowerCase() === boonKey(BOON.QUICKNESS)) ||
+              (effect.type === 'buff' && effect.kind === boonKey(BOON.QUICKNESS));
             return !quickness ? [effect] : malice > 0 ? [{ ...effect, duration: (effect.duration || 0) * malice }] : [];
           });
         }
@@ -242,7 +249,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 0.75,
         stacks: 1
       },
@@ -273,7 +280,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
 
           // Without consumed malice the outgoing axe has no poison application; recall uses the base packet.
           if (malice === 0)
-            return effects.filter((effect) => effect.type !== 'condition' || effect.condition !== 'Poisoned');
+            return effects.filter((effect) => effect.type !== 'condition' || effect.condition !== CONDITION.POISONED);
 
           const scaled = (duration: unknown) => Number(duration || 0) * malice;
           return mapPoisonDurations(effects, scaled);
@@ -311,21 +318,21 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 8,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 1,
         duration: 1,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 4,
         actorType: 'player'
@@ -365,7 +372,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
 
           if (malice <= 0 || final?.type !== 'strike') return scaled;
 
-          const torment = requireEffect(profile, 'condition', 'Torment');
+          const torment = requireEffect(profile, 'condition', CONDITION.TORMENT);
 
           if (!torment) return scaled;
 
@@ -380,7 +387,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
               [
                 {
                   type: 'condition',
-                  condition: 'Torment',
+                  condition: CONDITION.TORMENT,
                   name: 'Malicious Ashen Assault — Torment',
                   source: 'Trait',
                   actorType: 'player',
@@ -425,21 +432,21 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         },
         {
           type: 'condition',
-          condition: 'Vulnerability',
+          condition: CONDITION.VULNERABILITY,
           stacks: 5,
           duration: 8,
           actorType: 'player'
         },
         {
           type: 'condition',
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 3,
           duration: 4,
           actorType: 'player'
         },
         {
           type: 'condition',
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           stacks: 3,
           duration: 4,
           actorType: 'player'
@@ -504,7 +511,7 @@ export function refundMaliciousTacticalStrike(runtime: ThiefRuntime, event: Gw2R
 /** Pistol Torment scales with the malice the channel was cast with. */
 function maliceTorment(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>, malice: number) {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.maliciousSneakAttack);
-  const torment = requireEffect(profile, 'condition', 'Torment');
+  const torment = requireEffect(profile, 'condition', CONDITION.TORMENT);
 
   if (!torment) return;
 

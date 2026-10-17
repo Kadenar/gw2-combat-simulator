@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -60,11 +62,11 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'vigor',
+        boon: BOON.VIGOR,
         duration: 3,
         stacks: 1
       },
-      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 2 }
+      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 2 }
     ]),
     castTimeMs: 920
   },
@@ -72,7 +74,7 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     interruptCommitMs: 240,
     effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 1.2, hits: 1, reactions: [naturesStrengthReaction()] },
-      { type: 'boon', boon: 'stability', duration: 1, stacks: 1 }
+      { type: 'boon', boon: BOON.STABILITY, duration: 1, stacks: 1 }
     ]),
     castTimeMs: 280
   },
@@ -85,7 +87,7 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 4,
         stacks: 1
       }
@@ -109,7 +111,7 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 4,
         stacks: 1,
         atMs: 480
@@ -217,7 +219,7 @@ export const maceLifecycle = {
       for (const skillId of RESET_SKILLS) runtime.cooldownController.clear(skillId);
       for (const [kind, name, at, duration, stacks] of [
         [FORCE_OF_NATURE, 'Force of Nature', runtime.time, 5, 1],
-        ['stability', 'Force of Nature', runtime.time, 5, 5],
+        [boonKey(BOON.STABILITY), 'Force of Nature', runtime.time, 5, 5],
         [TAPPED_OUT, 'Tapped Out', runtime.time + 5, 10, 1]
       ] as const) {
         runtime.effects.emit({

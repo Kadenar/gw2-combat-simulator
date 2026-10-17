@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 /**
  * Hammer weapon-skill mechanics owned by the Core Elementalist module.
@@ -38,7 +40,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.69 },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 1.5, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 1.5, metadata: {} }
     ])
   },
   [ID.SURGING_FLAMES]: {
@@ -53,7 +55,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2.07 },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3, metadata: {} }
     ])
   },
   // Fire orb creator. The near-zero-coefficient packets represent the orb's repeated contact damage; the
@@ -86,7 +88,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'condition',
         ticks: HAMMER_ORB_PACKET_OFFSETS_MS.map((atMs) => ({
           atMs,
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 0.75
         })),
@@ -110,15 +112,15 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     effects: [
       ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1 },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 4, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 4, metadata: {} }
       ]),
       ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1 },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 4, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 4, metadata: {} }
       ]),
       ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1 },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 4, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 4, metadata: {} }
       ])
     ]
   },
@@ -147,8 +149,8 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
         ],
         metadata: {}
       },
-      { type: 'boon', boon: 'Fury', stacks: 1, duration: 10, metadata: {} },
-      { type: 'boon', boon: 'Might', stacks: 6, duration: 10, metadata: {} }
+      { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 10, metadata: {} },
+      { type: 'boon', boon: BOON.MIGHT, stacks: 6, duration: 10, metadata: {} }
     ])
   },
   // First link of the Water auto-attack chain: Stream Strike -> Water Rush -> Chilling Crack -> back to
@@ -217,7 +219,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.38 },
-      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 1.5, metadata: {} }
+      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 1.5, metadata: {} }
     ])
   },
   // Four-hit channel where only the final blow applies Chilled; `per-packet` interruption keeps just the
@@ -269,7 +271,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
       },
       ...impactEffects({ atMs: 880, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.575 },
-        { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3, metadata: {} }
+        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3, metadata: {} }
       ])
     ]
   },
@@ -301,7 +303,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'condition',
         ticks: HAMMER_ORB_PACKET_OFFSETS_MS.map((atMs) => ({
           atMs,
-          condition: 'Vulnerability',
+          condition: CONDITION.VULNERABILITY,
           stacks: 1,
           duration: 6
         })),
@@ -423,7 +425,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
       conditionTimeline(
         HURRICANE_OF_PAIN_TICKS.map((atMs) => ({
           atMs,
-          condition: 'Vulnerability',
+          condition: CONDITION.VULNERABILITY,
           stacks: 1,
           duration: 10
         })),
@@ -459,7 +461,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'condition',
         ticks: HAMMER_ORB_PACKET_OFFSETS_MS.map((atMs) => ({
           atMs,
-          condition: 'Weakness',
+          condition: CONDITION.WEAKNESS,
           stacks: 1,
           duration: 1.5
         })),
@@ -568,23 +570,23 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     effects: [
       ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.84 },
-        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6, metadata: {} }
       ]),
       ...impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.84 },
-        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6, metadata: {} }
       ]),
       ...impactEffects({ atMs: 960, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.84 },
-        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6, metadata: {} }
       ]),
       ...impactEffects({ atMs: 1200, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.84 },
-        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6, metadata: {} }
       ]),
       ...impactEffects({ atMs: 1400, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.84 },
-        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6, metadata: {} }
       ])
     ]
   },
@@ -616,7 +618,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'condition',
         ticks: HAMMER_ORB_PACKET_OFFSETS_MS.map((atMs) => ({
           atMs,
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 2.5
         })),
@@ -663,8 +665,8 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
         ],
         metadata: {}
       },
-      { type: 'condition', condition: 'Bleeding', stacks: 5, duration: 6, metadata: {} },
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 5, duration: 6, metadata: {} },
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 3, metadata: {} }
     ])
   },
   // Snapshot each active orb at acceptance so consuming it at completion does not erase its delayed projectile.
@@ -685,10 +687,10 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Weapon skill',
     effects: (
       [
-        ['Fire', 'Burning', 2, 5],
-        ['Water', 'Vulnerability', 6, 10],
-        ['Air', 'Weakness', 1, 5],
-        ['Earth', 'Bleeding', 4, 5]
+        ['Fire', CONDITION.BURNING, 2, 5],
+        ['Water', CONDITION.VULNERABILITY, 6, 10],
+        ['Air', CONDITION.WEAKNESS, 1, 5],
+        ['Earth', CONDITION.BLEEDING, 4, 5]
       ] as const
     ).flatMap(([element, condition, stacks, duration]) =>
       impactEffects({ atMs: 680, timingAnchor: 'castEnd', timingScale: 'fixed' }, [

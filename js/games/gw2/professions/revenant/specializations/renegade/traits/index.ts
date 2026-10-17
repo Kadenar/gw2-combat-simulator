@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
@@ -113,8 +115,8 @@ const ashenDemeanorTrait = defineTrait({
     cooldown: 10,
     fervorStacks: 3,
     effects: [
-      { type: 'boon', boon: 'might', duration: 6, stacks: 5, audience: { recipients: 'self' } },
-      { type: 'boon', boon: 'resistance', duration: 6, stacks: 1, audience: { recipients: 'self' } }
+      { type: 'boon', boon: BOON.MIGHT, duration: 6, stacks: 5, audience: { recipients: 'self' } },
+      { type: 'boon', boon: BOON.RESISTANCE, duration: 6, stacks: 1, audience: { recipients: 'self' } }
     ]
   }
 });
@@ -144,7 +146,7 @@ const bloodFury = defineTrait({
       operation: 'add',
       amount: (context) => balanceNumberFromContext(context, RENEGADE_PROFILE_IDS.bloodFury, 'conditionDurationBonus'),
       // Blood Fury shares the chronological player-Fury query used by Core Revenant modifiers.
-      when: (context) => context.condition === 'Bleeding' && boonActive(context, 'fury')
+      when: (context) => context.condition === CONDITION.BLEEDING && boonActive(context, boonKey(BOON.FURY))
     }
   ]
 });
@@ -159,7 +161,7 @@ const boldReversal = defineTrait({
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 1,
         stacks: 1,
         applications: 6,
@@ -200,7 +202,7 @@ const brutalMomentum = defineTrait({
     criticalChance: 0.1,
     fullEnduranceCriticalChance: 0.33,
     internalCooldown: 8,
-    effects: [{ name: 'vigor', type: 'boon', boon: 'vigor', duration: 6, stacks: 1 }]
+    effects: [{ name: boonKey(BOON.VIGOR), type: 'boon', boon: BOON.VIGOR, duration: 6, stacks: 1 }]
   },
   triggers: [
     {
@@ -208,10 +210,12 @@ const brutalMomentum = defineTrait({
       on: 'buff.applied',
       cooldown: 'profile',
       when: (runtime, event) =>
-        (event.kind || '').toLowerCase() === 'fury' &&
+        (event.kind || '').toLowerCase() === boonKey(BOON.FURY) &&
         gw2BoonApplicationRecipients(runtime.config, event).includesSelf &&
-        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.brutalMomentum), 'boon', 'vigor')),
-      effects: (effect) => effect.type === 'boon' && effect.name === 'vigor',
+        Boolean(
+          requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.brutalMomentum), 'boon', boonKey(BOON.VIGOR))
+        ),
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.VIGOR),
       attribution: {
         source: 'revenant',
         actorType: 'player',
@@ -235,9 +239,9 @@ const endlessEnmity = defineTrait({
     internalCooldown: 8,
     effects: [
       {
-        name: 'fury',
+        name: boonKey(BOON.FURY),
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 4,
         stacks: 1,
         audience: { recipients: 'party' as const },
@@ -254,8 +258,10 @@ const endlessEnmity = defineTrait({
         event.actorType === 'player' &&
         Number(event.coefficient) > 0 &&
         Boolean(details.hitContext?.critEligible && details.hitContext.critical.didCrit) &&
-        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.endlessEnmity), 'boon', 'fury')),
-      effects: (effect) => effect.type === 'boon' && effect.name === 'fury',
+        Boolean(
+          requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.endlessEnmity), 'boon', boonKey(BOON.FURY))
+        ),
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.FURY),
       attribution: {
         source: 'revenant',
         actorType: 'player',
@@ -280,7 +286,8 @@ const heartpiercer = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.HEARTPIERCER, 'damageMultiplier'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Bleeding')
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.BLEEDING)
     },
     {
       id: 'revenant.heartpiercer-bleeding',
@@ -288,7 +295,7 @@ const heartpiercer = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.HEARTPIERCER, 'conditionDamageMultiplier'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.condition === 'Bleeding'
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.condition === CONDITION.BLEEDING
     }
   ]
 });
@@ -324,10 +331,10 @@ const lastingLegacy = defineTrait({
       variantBadge: 'Lasting Legacy',
       effects: [
         {
-          name: 'might',
+          name: boonKey(BOON.MIGHT),
           type: 'boon',
           audience: { recipients: 'party', maximumRecipients: 5 },
-          boon: 'might',
+          boon: BOON.MIGHT,
           duration: 8,
           stacks: 3,
           actorType: 'player'
@@ -382,7 +389,7 @@ const righteousRebel = defineTrait({
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'alacrity',
+        boon: BOON.ALACRITY,
         duration: 2,
         stacks: 1,
         applications: 6,
@@ -488,7 +495,7 @@ function ashenDemeanor(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill
 
 /** Received Fury advances Blood Fury's Fervor on its own cooldown. */
 function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if ((event.kind || '').toLowerCase() !== 'fury') return;
+  if ((event.kind || '').toLowerCase() !== boonKey(BOON.FURY)) return;
 
   // The Fury trigger claims its interval even if Fervor is already capped.
   if (

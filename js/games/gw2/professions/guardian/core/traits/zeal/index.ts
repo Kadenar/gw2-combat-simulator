@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -50,8 +51,8 @@ export const symbolicExposure = defineTrait({
     effects: [
       {
         type: 'condition',
-        name: 'Vulnerability',
-        condition: 'Vulnerability',
+        name: CONDITION.VULNERABILITY,
+        condition: CONDITION.VULNERABILITY,
         stacks: 2,
         duration: 5,
         actorType: 'effect'
@@ -65,7 +66,7 @@ export const symbolicExposure = defineTrait({
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.SYMBOLIC_EXPOSURE, 'damageMultiplier'),
       order: 100,
-      when: (context) => targetConditionActive(context, 'Vulnerability')
+      when: (context) => targetConditionActive(context, CONDITION.VULNERABILITY)
     }
   ],
   triggers: [
@@ -78,7 +79,7 @@ export const symbolicExposure = defineTrait({
         Number(event.coefficient) > 0 &&
         (details.hitContext?.damage ?? 0) > 0 &&
         event.metadata?.guardianSymbol === true,
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Vulnerability',
+      effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.VULNERABILITY,
       attribution: {
         source: 'guardian',
         skillId: TRAIT.SYMBOLIC_EXPOSURE,
@@ -220,7 +221,7 @@ export const fieryWrath = defineTrait({
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.FIERY_WRATH, 'damageMultiplier'),
       order: 100,
-      when: (context) => targetConditionActive(context, 'Burning')
+      when: (context) => targetConditionActive(context, CONDITION.BURNING)
     }
   ]
 });

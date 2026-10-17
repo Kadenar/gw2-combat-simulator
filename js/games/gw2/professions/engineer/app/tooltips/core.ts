@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   tooltipSeconds,
@@ -75,7 +76,7 @@ const electricArtilleryTooltip: DescribeSimulationTooltip = (balanceContext) => 
         (effect) =>
           simulationEffectFacts(
             [effect],
-            `${qualifier}${effect.type === 'condition' && effect.condition === 'Vulnerability' ? ' · per complete charge group' : effect.type === 'condition' && effect.condition === 'Burning' ? ' · base duration before charges' : ''}`
+            `${qualifier}${effect.type === 'condition' && effect.condition === CONDITION.VULNERABILITY ? ' · per complete charge group' : effect.type === 'condition' && effect.condition === CONDITION.BURNING ? ' · base duration before charges' : ''}`
           ).facts
       ),
       profileFact(balanceContext, id, 'maximumStacks', `Maximum charges counted ${qualifier}`),

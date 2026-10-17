@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Spinegazer family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -17,13 +18,13 @@ export const SOULBEAST_SPINEGAZER_BEAST_SKILL_MECHANICS: Readonly<Record<number,
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 8,
         duration: 6
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 4,
         duration: 6
       }
@@ -39,7 +40,7 @@ export const SOULBEAST_SPINEGAZER_BEAST_SKILL_MECHANICS: Readonly<Record<number,
       },
       {
         type: 'condition',
-        condition: 'Confusion',
+        condition: CONDITION.CONFUSION,
         stacks: 6,
         duration: 6
       }

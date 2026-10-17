@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -59,7 +61,7 @@ const carbolicComposition = defineTrait({
   name: 'Carbolic Composition',
   balance: {
     conditionDurationBonus: 0.33,
-    effects: [{ name: 'Poisoned', type: 'condition', condition: 'Poisoned', stacks: 1, duration: 3 }]
+    effects: [{ name: CONDITION.POISONED, type: 'condition', condition: CONDITION.POISONED, stacks: 1, duration: 3 }]
   },
   triggers: [
     onTriggerPoint(amalgamStruck, {
@@ -174,15 +176,36 @@ const newGenes = defineTrait({
   name: 'New Genes',
   balance: {
     effects: [
-      { name: 'alacrity', type: 'boon', boon: 'alacrity', stacks: 1, duration: 5 },
-      { name: 'might', type: 'boon', boon: 'might', stacks: 4, duration: 12 },
-      { name: 'cleanse', type: 'boon', boon: 'aegis', stacks: 1, duration: 4, metadata: { trigger: 'cleanse' } },
-      { name: 'protect', type: 'boon', boon: 'protection', stacks: 1, duration: 4, metadata: { trigger: 'protect' } },
-      { name: 'thorns', type: 'boon', boon: 'stability', stacks: 2, duration: 4, metadata: { trigger: 'thorns' } },
-      { name: 'demolish', type: 'boon', boon: 'swiftness', stacks: 1, duration: 6, metadata: { trigger: 'demolish' } },
-      { name: 'obliterate', type: 'boon', boon: 'might', stacks: 5, duration: 12, metadata: { trigger: 'obliterate' } },
-      { name: 'pierce', type: 'boon', boon: 'vigor', stacks: 1, duration: 4, metadata: { trigger: 'pierce' } },
-      { name: 'shred', type: 'boon', boon: 'fury', stacks: 1, duration: 6, metadata: { trigger: 'shred' } }
+      { name: boonKey(BOON.ALACRITY), type: 'boon', boon: BOON.ALACRITY, stacks: 1, duration: 5 },
+      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 4, duration: 12 },
+      { name: 'cleanse', type: 'boon', boon: BOON.AEGIS, stacks: 1, duration: 4, metadata: { trigger: 'cleanse' } },
+      {
+        name: 'protect',
+        type: 'boon',
+        boon: BOON.PROTECTION,
+        stacks: 1,
+        duration: 4,
+        metadata: { trigger: 'protect' }
+      },
+      { name: 'thorns', type: 'boon', boon: BOON.STABILITY, stacks: 2, duration: 4, metadata: { trigger: 'thorns' } },
+      {
+        name: 'demolish',
+        type: 'boon',
+        boon: BOON.SWIFTNESS,
+        stacks: 1,
+        duration: 6,
+        metadata: { trigger: 'demolish' }
+      },
+      {
+        name: 'obliterate',
+        type: 'boon',
+        boon: BOON.MIGHT,
+        stacks: 5,
+        duration: 12,
+        metadata: { trigger: 'obliterate' }
+      },
+      { name: 'pierce', type: 'boon', boon: BOON.VIGOR, stacks: 1, duration: 4, metadata: { trigger: 'pierce' } },
+      { name: 'shred', type: 'boon', boon: BOON.FURY, stacks: 1, duration: 6, metadata: { trigger: 'shred' } }
     ]
   },
   triggers: [onTriggerPoint(amalgamMorphed, { run: grantNewGenes })]
@@ -242,7 +265,7 @@ function grantHardenedChrome(context: EngineerRuntime, durationField: 'minimumSt
       actorType: 'player',
       skillName: 'Hardened Chrome',
       name: 'Hardened Chrome',
-      kind: 'protection',
+      kind: boonKey(BOON.PROTECTION),
       duration: balanceNumberFromContext(context, TRAIT.HARDENED_CHROME, durationField),
       stacks: 1
     },
@@ -257,7 +280,7 @@ function grantMorphStrain(context: EngineerRuntime, { morphKind, at }: AmalgamMo
 
 /** New Genes combines universal boons with one protocol-specific boon; each survives patches independently. */
 function grantNewGenes(context: EngineerRuntime, { morphKind, at }: AmalgamMorph): void {
-  for (const name of ['alacrity', 'might', ...(morphKind ? [morphKind] : [])]) {
+  for (const name of [boonKey(BOON.ALACRITY), boonKey(BOON.MIGHT), ...(morphKind ? [morphKind] : [])]) {
     const newGenesProfile = requireBalanceProfileFromContext(context, TRAIT.NEW_GENES);
     const boon = requireEffect(newGenesProfile, 'boon', name);
 
@@ -312,12 +335,12 @@ function isAmalgamSkillHit(context: Pick<MechanicQueryContext, 'helpers'>, event
 /** Eligible Amalgam and Rapacious hits apply trait-owned Poison before Rapacious checks its own proc. */
 function applyCarbolicPoison(context: EngineerRuntime, { cause: event }: AmalgamStrike): void {
   const carbolicCompositionProfile = requireBalanceProfileFromContext(context, TRAIT.CARBOLIC_COMPOSITION);
-  const poison = requireEffect(carbolicCompositionProfile, 'condition', 'Poisoned');
+  const poison = requireEffect(carbolicCompositionProfile, 'condition', CONDITION.POISONED);
 
   if (poison) {
     emitTraitProfile(context, TRAIT.CARBOLIC_COMPOSITION, TRAIT.CARBOLIC_COMPOSITION, undefined, {
       at: event.at,
-      effect: { type: 'condition', name: 'Poisoned' },
+      effect: { type: 'condition', name: CONDITION.POISONED },
       settlement: 'reaction',
       attribution: {
         source: 'Trait',

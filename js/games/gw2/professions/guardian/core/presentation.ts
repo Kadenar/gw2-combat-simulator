@@ -1,3 +1,5 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
@@ -137,7 +139,7 @@ export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSk
       const preview = createPreviewControls(context);
       // Expose held combat bonuses to isolated damage calculations.
       preview.damageBuff('Inspiring Virtue', 'inspiringVirtue', 'guardian-inspiring-virtue');
-      preview.boon('aegis', 'Unscathed Contender');
+      preview.boon(boonKey(BOON.AEGIS), 'Unscathed Contender');
 
       // Illumination changes spear payloads only in this isolated damage preview.
       if (context.weapons.includes('Spear'))
@@ -161,8 +163,8 @@ export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSk
           description: 'Starting symbol-earned damage stacks'
         });
 
-      preview.boon('resolution', 'Righteous Instincts', 'Retribution');
-      preview.condition('Burning', 'Radiant Power', 'Fiery Wrath');
+      preview.boon(boonKey(BOON.RESOLUTION), 'Righteous Instincts', 'Retribution');
+      preview.condition(CONDITION.BURNING, 'Radiant Power', 'Fiery Wrath');
       preview.passives(ID.BANE_SIGNET, ID.SIGNET_OF_WRATH);
       return preview.controls;
     },

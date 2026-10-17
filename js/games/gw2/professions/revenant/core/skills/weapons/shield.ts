@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -17,14 +18,14 @@ export const REVENANT_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Pa
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 3,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'aegis',
+        boon: BOON.AEGIS,
         duration: 4,
         stacks: 1
       }

@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Core Ranger pet skill fragments for the Avian family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -34,7 +36,7 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 6,
         source: 'ranger-pet',
@@ -50,7 +52,7 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 10,
         stacks: 1,
         source: 'ranger-pet',
@@ -88,7 +90,7 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
@@ -110,7 +112,7 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
@@ -131,7 +133,7 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        ticks: [280, 360].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 3, duration: 15 })),
+        ticks: [280, 360].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 3, duration: 15 })),
         source: 'ranger-pet',
         actorType: 'summon'
       }

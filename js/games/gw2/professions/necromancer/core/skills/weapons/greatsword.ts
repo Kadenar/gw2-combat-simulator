@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -49,7 +50,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
           ],
           coefficient: 1.3
         },
-        { type: 'condition', condition: 'Chilled', stacks: 1, duration: 4 },
+        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 4 },
         { type: 'control', controlKind: 'pull' }
       ]
     )
@@ -83,7 +84,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
       ...impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         {
           type: 'condition',
-          condition: 'Blindness',
+          condition: CONDITION.BLINDNESS,
           stacks: 1,
           duration: 3,
           applications: 4,
@@ -93,7 +94,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         },
         {
           type: 'condition',
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 2,
           applications: 4,
@@ -131,7 +132,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         ],
         coefficient: 1.8
       },
-      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 2 }
+      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 2 }
     ])
   },
   [ID.GRAVEDIGGER]: {
@@ -215,7 +216,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         duration: 10,
         stacks: 12
       }

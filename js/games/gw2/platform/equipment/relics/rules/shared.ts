@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
@@ -128,7 +129,7 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
           name,
           triggeredBy: event.skillName,
           offTarget: Boolean(event.offTarget),
-          condition: 'Vulnerability',
+          condition: CONDITION.VULNERABILITY,
           stacks: 8,
           duration: 8
         }
@@ -165,7 +166,7 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
       const active = relicBuffActive(ctx, kind, event.at);
       return active &&
         isGw2PlayerModifierOwnedEvent(event) &&
-        (!director || targetHasCondition(ctx.config, 'Vulnerability', event.at, ctx))
+        (!director || targetHasCondition(ctx.config, CONDITION.VULNERABILITY, event.at, ctx))
         ? director
           ? 1.1
           : 1.15

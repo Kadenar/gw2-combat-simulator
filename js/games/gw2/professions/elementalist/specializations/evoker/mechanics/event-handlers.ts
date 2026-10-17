@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import {
   evokerEntryObserved,
   evokerEventAccepted
@@ -23,7 +24,7 @@ export function applyCalcifyProtection(context: ElementalistRuntime, event: Simu
 
   const profile = requireBalanceProfileFromContext(context, PROFILE.calcify);
 
-  if (!requireEffect(profile, 'boon', 'Protection')) return;
+  if (!requireEffect(profile, 'boon', BOON.PROTECTION)) return;
 
   if (
     !context.procs.claimCooldown(
@@ -35,7 +36,7 @@ export function applyCalcifyProtection(context: ElementalistRuntime, event: Simu
     return;
 
   context.effects.emit(
-    elementalistProfiledBuffRequest(context, event.at, PROFILE.calcify, 'Protection', 'Calcify', ID.CALCIFY)
+    elementalistProfiledBuffRequest(context, event.at, PROFILE.calcify, BOON.PROTECTION, 'Calcify', ID.CALCIFY)
   );
 }
 

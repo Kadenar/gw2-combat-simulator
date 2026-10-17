@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Devourer family.
@@ -35,7 +36,7 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'condition',
         ticks: POISONOUS_CLOUD_PULSE_TIMES_MS.map((atMs) => ({
           atMs,
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           stacks: 1,
           duration: 6
         })),
@@ -69,7 +70,7 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 4,
         duration: 6,
         source: 'ranger-pet',
@@ -91,7 +92,7 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 6,
         duration: 8,
         source: 'ranger-pet',
@@ -123,7 +124,7 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'condition',
         ticks: [840, 920].map((atMs) => ({
           atMs,
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 4
         })),

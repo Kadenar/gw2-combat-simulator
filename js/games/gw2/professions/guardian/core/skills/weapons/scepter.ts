@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -40,7 +42,7 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
       },
       ...[240, 1240, 2240, 3240, 4240].map((atMs) => ({
         type: 'boon' as const,
-        boon: 'might',
+        boon: BOON.MIGHT,
         stacks: 4,
         duration: 5,
         audience: { recipients: 'party' as const },
@@ -72,7 +74,7 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
       {
         // Chains of Light applies a duration condition, not a hard disable (wiki: Chains_of_Light).
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 5
       }

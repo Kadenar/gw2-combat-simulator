@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Core Ranger pet skill fragments for the Aether Hunter family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -12,7 +13,14 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
     // The measured Quickness contact pairs its strike and bleed; the pet timing profile restores the slower contact.
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.5, source: 'ranger-pet', actorType: 'summon' },
-      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 5, source: 'ranger-pet', actorType: 'summon' }
+      {
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 1,
+        duration: 5,
+        source: 'ranger-pet',
+        actorType: 'summon'
+      }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_BITE]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_BITE]!.quicknessCastTimeMs,
@@ -22,7 +30,14 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
     // Lunge's early contact and motion remain unchanged by Quickness in the paired logs.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.8, source: 'ranger-pet', actorType: 'summon' },
-      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 3, source: 'ranger-pet', actorType: 'summon' }
+      {
+        type: 'condition',
+        condition: CONDITION.CRIPPLED,
+        stacks: 1,
+        duration: 3,
+        source: 'ranger-pet',
+        actorType: 'summon'
+      }
     ]),
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_LUNGE]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_LUNGE]!.quicknessCastTimeMs,
@@ -39,7 +54,12 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'condition',
-        ticks: [0, 680, 1360, 2040, 2720].map((atMs) => ({ atMs, condition: 'Torment', stacks: 1, duration: 8 })),
+        ticks: [0, 680, 1360, 2040, 2720].map((atMs) => ({
+          atMs,
+          condition: CONDITION.TORMENT,
+          stacks: 1,
+          duration: 8
+        })),
         source: 'ranger-pet',
         actorType: 'summon'
       }

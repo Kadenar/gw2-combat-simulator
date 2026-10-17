@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -43,8 +44,14 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Parti
     comboFields: [{ ownerId: 'mesmer', fieldType: 'Ethereal', duration: 2, startAnchor: 'castEnd' }],
     tasks: [{ type: 'mesmer.core.imagery-expire', atMs: 2000, timingAnchor: 'castEnd' }],
     effects: [
-      { type: 'boon', boon: 'might', stacks: 12, duration: 9, audience: { recipients: 'party', maximumRecipients: 5 } },
-      { type: 'boon', boon: 'fury', duration: 9, audience: { recipients: 'party', maximumRecipients: 5 } }
+      {
+        type: 'boon',
+        boon: BOON.MIGHT,
+        stacks: 12,
+        duration: 9,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      },
+      { type: 'boon', boon: BOON.FURY, duration: 9, audience: { recipients: 'party', maximumRecipients: 5 } }
     ]
   },
   [ID.PHANTASMAL_SHARPSHOOTER]: {

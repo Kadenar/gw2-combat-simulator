@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
@@ -61,7 +62,7 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 2,
         duration: 5,
         source: 'ranger-pet',
@@ -84,7 +85,7 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 10,
         duration: 5,
         source: 'ranger-pet',

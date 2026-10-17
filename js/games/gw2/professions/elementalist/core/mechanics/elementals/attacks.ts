@@ -1,3 +1,5 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/combat/recharge.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
@@ -45,12 +47,12 @@ const ELEMENTAL_IMPACT_TASK = 'elementalist.elemental-impact';
 
 // Only Alacrity received by this elemental accelerates its autonomous recharge.
 function rechargeRate(context: ElementalistRuntime, at: number): number {
-  return elementalBoonActive(context, 'alacrity', at) ? GW2_ALACRITY_RECHARGE_RATE : 1;
+  return elementalBoonActive(context, boonKey(BOON.ALACRITY), at) ? GW2_ALACRITY_RECHARGE_RATE : 1;
 }
 
 // Quickness speeds up the elemental's animations 50% (divides all timing offsets).
 function actionRate(context: ElementalistRuntime, at: number): number {
-  return elementalBoonActive(context, 'quickness', at) ? 1.5 : 1;
+  return elementalBoonActive(context, boonKey(BOON.QUICKNESS), at) ? 1.5 : 1;
 }
 
 /** Summons read only applications addressed to their current companion identity. */
@@ -310,7 +312,7 @@ function emitFlameBurstMight(context: ElementalistRuntime, payload: ElementalImp
       skillId: profile.skillId,
       skillName: 'Flame Burst',
       name: 'Flame Burst — Might',
-      kind: 'might',
+      kind: boonKey(BOON.MIGHT),
       stacks: profile.mightStacks,
       duration: profile.mightDuration,
       audience: { recipients: 'party' as const, maximumRecipients: 5 }
@@ -335,7 +337,7 @@ function emitStompProtection(context: ElementalistRuntime, payload: ElementalImp
       skillId: profile.skillId,
       skillName: 'Stomp',
       name: 'Stomp — Protection',
-      kind: 'protection',
+      kind: boonKey(BOON.PROTECTION),
       stacks: 1,
       duration: profile.protectionDuration,
       audience: { recipients: 'party' as const, maximumRecipients: 5 }
@@ -370,7 +372,7 @@ function handleElementalImpactTask(context: ElementalistRuntime, payload: Elemen
       payload,
       profile.skillId,
       'Flame Burst',
-      'Burning',
+      CONDITION.BURNING,
       profile.burningDuration,
       profile.burningStacks
     );
@@ -398,7 +400,7 @@ function handleElementalImpactTask(context: ElementalistRuntime, payload: Elemen
       payload,
       profile.skillId,
       'Flame Barrage',
-      'Burning',
+      CONDITION.BURNING,
       profile.burningDuration,
       profile.burningStacks
     );
@@ -436,7 +438,7 @@ function handleElementalImpactTask(context: ElementalistRuntime, payload: Elemen
       payload,
       profile.skillId,
       'Enervating Punch',
-      'Weakness',
+      CONDITION.WEAKNESS,
       profile.weaknessDuration
     );
     return;
@@ -445,8 +447,15 @@ function handleElementalImpactTask(context: ElementalistRuntime, payload: Elemen
   // All other impact variants returned above; the remaining command is Stomp.
   const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
   emitStrike(context, payload, profile.skillId, 'Stomp', profile.baseDamage, 1, 1);
-  emitPlayerOwnedCondition(context, payload, profile.skillId, 'Stomp', 'Crippled', profile.crippleDuration);
-  emitPlayerOwnedCondition(context, payload, profile.skillId, 'Stomp', 'Immobilized', profile.immobilizeDuration);
+  emitPlayerOwnedCondition(context, payload, profile.skillId, 'Stomp', CONDITION.CRIPPLED, profile.crippleDuration);
+  emitPlayerOwnedCondition(
+    context,
+    payload,
+    profile.skillId,
+    'Stomp',
+    CONDITION.IMMOBILIZED,
+    profile.immobilizeDuration
+  );
   emitStompProtection(context, payload);
 }
 

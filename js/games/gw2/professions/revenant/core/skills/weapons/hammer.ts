@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 // Name packets independently for patch deletion while preserving their shared attribution.
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
@@ -40,7 +42,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'boon',
-        boon: 'aegis',
+        boon: BOON.AEGIS,
         duration: 2,
         stacks: 1
       }
@@ -69,7 +71,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 2,
         actorType: 'player'

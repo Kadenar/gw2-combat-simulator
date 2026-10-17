@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -83,7 +84,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        ticks: [560, 640, 800].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 2, duration: 6 })),
+        ticks: [560, 640, 800].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 2, duration: 6 })),
         actorType: 'player'
       }
     ]),
@@ -120,14 +121,14 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 3,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 6,
         actorType: 'player'
@@ -159,7 +160,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
         actorType: 'player'
@@ -189,7 +190,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 2,
         duration: 3,
         actorType: 'player'
@@ -241,7 +242,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 2,
         duration: 5,
         actorType: 'player'
@@ -263,7 +264,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 2, duration: 10 }],
+        ticks: [{ atMs: 0, condition: CONDITION.BLEEDING, stacks: 2, duration: 10 }],
         actorType: 'player',
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
@@ -290,7 +291,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
           reactions: [{ on: 'damage.resolved', actor: 'player', packets: 'first', do: { type: 'thief.stealth' } }]
         },
         { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
-        { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 5, actorType: 'player' }
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 5, actorType: 'player' }
       ]
     )
   }

@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -17,7 +19,7 @@ export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, Partia
       {
         type: 'condition',
         // Each bird hit adds its own stack so Vulnerability builds over the attack sequence.
-        ticks: huntersCallHitTimes.map((atMs) => ({ atMs, condition: 'Vulnerability', stacks: 1, duration: 5 }))
+        ticks: huntersCallHitTimes.map((atMs) => ({ atMs, condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5 }))
       }
     ]),
     castTimeMs: 1240
@@ -27,28 +29,28 @@ export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: [
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 12,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 }
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 12,
         stacks: 6,
         audience: { recipients: 'party', maximumRecipients: 5 }
       },
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 12,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 }
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 5
       },

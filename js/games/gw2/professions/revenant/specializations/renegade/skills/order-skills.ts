@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -47,7 +49,7 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         actorType: 'player',
         ticks: BOMBARDMENT_IMPACT_MS.map((atMs) => ({
           atMs,
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 1
         }))
@@ -63,10 +65,10 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     energyCost: 10,
     effects: [
       {
-        name: 'might',
+        name: boonKey(BOON.MIGHT),
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 8,
         stacks: 2,
         actorType: 'player'
@@ -83,7 +85,7 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'alacrity',
+        boon: BOON.ALACRITY,
         duration: 2,
         stacks: 1,
         applications: 4,

@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
@@ -54,7 +56,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 4
       }
@@ -75,19 +77,19 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: [
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 25,
         stacks: 1
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 25,
         stacks: 5
       },
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 25,
         stacks: 1
       }
@@ -105,7 +107,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'boon',
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 6,
         stacks: 1
       },
@@ -121,7 +123,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: [
       {
         type: 'boon',
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         duration: 6,
         stacks: 1
       }
@@ -160,7 +162,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: [
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 6,
         stacks: 10
       }
@@ -172,7 +174,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 10,
         stacks: 2
       },
@@ -193,7 +195,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 4,
         stacks: 1
       },
@@ -204,13 +206,13 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 3,
         duration: 8
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 10
       }
@@ -244,21 +246,21 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 12,
         stacks: 2
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 6,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 12,
         stacks: 1
       }
@@ -269,13 +271,13 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: [
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 3,
         stacks: 1
       },
       {
         type: 'boon',
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 3,
         stacks: 2
       }

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Hammer weapon-skill mechanics owned by the Weaver module.
  *
@@ -40,8 +41,8 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 0.75, metadata: {} },
-      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 0.75, metadata: {} },
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6, metadata: {} }
     ]),
     specialization: 'Weaver'
   },
@@ -59,8 +60,8 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 0.75, metadata: {} },
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 1.5, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 0.75, metadata: {} },
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 1.5, metadata: {} }
     ]),
     specialization: 'Weaver'
   },
@@ -78,8 +79,8 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 0.75, metadata: {} },
-      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2.5, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 0.75, metadata: {} },
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 2.5, metadata: {} }
     ]),
     specialization: 'Weaver'
   },
@@ -97,8 +98,8 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
-      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} },
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 1.5, metadata: {} }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6, metadata: {} },
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 1.5, metadata: {} }
     ]),
     specialization: 'Weaver'
   },
@@ -116,8 +117,8 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
-      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2.5, metadata: {} },
-      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 2.5, metadata: {} },
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6, metadata: {} }
     ]),
     specialization: 'Weaver'
   },
@@ -135,8 +136,8 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
-      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2.5, metadata: {} },
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 1.5, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 2.5, metadata: {} },
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 1.5, metadata: {} }
     ]),
     specialization: 'Weaver'
   }

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -20,7 +21,7 @@ export const lastTyrant = defineRelic({
   condition(ctx, state, application, _helpers) {
     // The explosion's own burning cannot feed Tyrant's Fury.
     if (
-      application.condition !== 'Burning' ||
+      application.condition !== CONDITION.BURNING ||
       application.sourceId === `relic.${RELIC_IDS.LAST_TYRANT}` ||
       missesTarget(application) ||
       !(
@@ -111,7 +112,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, applicat
       at: application.at,
       name: 'Relic of the Last Tyrant — Burning',
       skillName: 'Relic of the Last Tyrant',
-      condition: 'Burning',
+      condition: CONDITION.BURNING,
       duration: 8,
       stacks: 2,
       source: 'Relic',

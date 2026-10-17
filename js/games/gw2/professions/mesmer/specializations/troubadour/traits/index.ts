@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -96,7 +98,7 @@ const mayhem = defineTrait<MesmerSkill>({
   name: 'Mayhem',
   balance: {
     rechargeReduction: 1.5,
-    effects: [{ name: 'Torment', type: 'condition', condition: 'Torment', duration: 5, stacks: 4 }]
+    effects: [{ name: CONDITION.TORMENT, type: 'condition', condition: CONDITION.TORMENT, duration: 5, stacks: 4 }]
   }
 });
 
@@ -111,7 +113,7 @@ const raconteur = defineTrait<MesmerSkill>({
   id: TRAIT.RACONTEUR,
   name: 'Raconteur',
   balance: {
-    effects: [{ name: 'protection', type: 'boon', boon: 'protection', duration: 3, stacks: 1 }]
+    effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, duration: 3, stacks: 1 }]
   }
 });
 
@@ -162,35 +164,35 @@ const lifeOfTheParty = defineTrait<MesmerSkill>({
       {
         type: 'boon',
         name: 'Lute Quickness',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 6,
         stacks: 1
       },
       {
         type: 'boon',
         name: 'Lute Might',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 8,
         stacks: 5
       },
       {
         type: 'boon',
         name: 'Crescendo Quickness',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 8,
         stacks: 1
       },
       {
         type: 'boon',
         name: 'Crescendo Might',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 15,
         stacks: 8
       },
       {
         type: 'boon',
         name: 'Crescendo Fury',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 8,
         stacks: 1
       }
@@ -268,7 +270,7 @@ const alteredChord = defineTrait<MesmerSkill>({
     damageIncrease: 0.25,
     rechargeReduction: 2,
     durationMultiplier: 10,
-    effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 8, stacks: 5 }]
+    effects: [{ name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 8, stacks: 5 }]
   },
   modifierRules: [
     {
@@ -372,7 +374,7 @@ function applyMayhemInstrument(
   delivery: EffectDelivery = {}
 ): void {
   if (data.instrument === 'Flute') {
-    const condition = mesmerConditionFromProfile(context, TRAIT.MAYHEM, 'Torment');
+    const condition = mesmerConditionFromProfile(context, TRAIT.MAYHEM, CONDITION.TORMENT);
 
     if (condition)
       buildMesmerConditions(context, skill.name, damageAt, condition, source, 'Mayhem — Torment', {
@@ -461,7 +463,7 @@ function reduceAlteredChordRecharge(context: MesmerRuntime, spent: number, at: n
 function triggerRaconteur(context: MesmerRuntime, skill: MesmerSkill, at: number): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.RACONTEUR);
 
-  if (!requireEffect(profile, 'boon', 'protection')) return;
+  if (!requireEffect(profile, 'boon', boonKey(BOON.PROTECTION))) return;
 
   const proc = context.effects.emit({
     receipt: true,
@@ -478,7 +480,7 @@ function triggerRaconteur(context: MesmerRuntime, skill: MesmerSkill, at: number
   });
   emitTraitProfile(context, TRAIT.RACONTEUR, TRAIT.RACONTEUR, proc, {
     at,
-    effect: { type: 'boon', name: 'protection' },
+    effect: { type: 'boon', name: boonKey(BOON.PROTECTION) },
     skillId: TRAIT.RACONTEUR,
     skillName: profile.name,
     attribution: { actorType: 'player', audience: { recipients: 'party', maximumRecipients: 5 } },
@@ -717,7 +719,7 @@ function resolveAlteredChord(
       });
     }
   } else if (lastInstrument === 'Flute') {
-    const condition = mesmerConditionFromProfile(context, TRAIT.ALTERED_CHORD, 'Confusion');
+    const condition = mesmerConditionFromProfile(context, TRAIT.ALTERED_CHORD, CONDITION.CONFUSION);
 
     if (condition)
       buildMesmerConditions(context, skill.name, damageAt, condition, 'Player', 'Altered Chord — Confusion', {

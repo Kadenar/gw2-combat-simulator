@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
@@ -23,7 +24,7 @@ export function hammerImpact(runtime: GuardianRuntime, data: unknown): void {
   const cause = guardianCastCause(runtime, cast);
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.radiantJusticeImpact);
   const strike = requireEffect(profile, 'strike', 'Strike');
-  const condition = requireEffect(profile, 'condition', 'Vulnerability');
+  const condition = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 
   if (strike)
     runtime.effects.emit({
@@ -53,7 +54,7 @@ export function hammerImpact(runtime: GuardianRuntime, data: unknown): void {
         actorType: 'effect',
         skillId: cast.skill.id,
         skillName: cast.skill.name,
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: effectNumber(profile, condition, 'stacks'),
         duration: effectNumber(profile, condition, 'duration'),
         offTarget: cast.command.offTarget === true

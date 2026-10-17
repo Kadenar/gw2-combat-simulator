@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Untamed Unleash, ambush, and specialization skill catalog fragments only.
  * Persistent Unleash state and transitions live under `mechanics/`.
@@ -36,7 +38,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         type: 'condition',
         ticks: [0, 1000, 2000, 3000, 4000, 5000].map((atMs) => ({
           atMs,
-          condition: 'Chilled',
+          condition: CONDITION.CHILLED,
           stacks: 1,
           duration: 1
         })),
@@ -72,8 +74,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     // Capture Unleash at acceptance, adding the selected live boon to the skill's hostile packets.
     effectVariants: (
       [
-        [true, PROFILE.explodingSporesRanger, 'might'],
-        [false, PROFILE.explodingSporesPet, 'protection']
+        [true, PROFILE.explodingSporesRanger, boonKey(BOON.MIGHT)],
+        [false, PROFILE.explodingSporesPet, boonKey(BOON.PROTECTION)]
       ] as const
     ).map<NonNullable<Skill['effectVariants']>[number]>(([unleashed, profileId, boon]) => ({
       when: (runtime) => untamedState.from(runtime).rangerUnleashed === unleashed,
@@ -97,7 +99,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         type: 'condition',
         ticks: Array.from({ length: 6 }, () => ({
           atMs: 1640,
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           stacks: 1,
           duration: 5
         }))
@@ -114,19 +116,19 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       {
         type: 'boon',
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 6,
         stacks: 10
       },
       {
         type: 'boon',
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         duration: 6,
         stacks: 1
       },
       {
         type: 'boon',
-        boon: 'resolution',
+        boon: BOON.RESOLUTION,
         duration: 6,
         stacks: 1
       }
@@ -149,7 +151,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 3,
         duration: 8,
         source: 'ranger-pet',
@@ -159,7 +161,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         // Capture defiant-target eligibility at acceptance while retaining pet ownership.
         type: 'condition',
         when: (runtime) => Boolean(runtime.config.target?.defiant),
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 8,
         duration: 10,
         source: 'ranger-pet',
@@ -187,7 +189,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       },
       {
         type: 'condition',
-        condition: 'Slow',
+        condition: CONDITION.SLOW,
         stacks: 1,
         duration: 4,
         source: 'ranger-pet',
@@ -226,7 +228,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       },
       {
         type: 'boon',
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 3,
         stacks: 2,
         atMs: 360,
@@ -251,7 +253,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           sourceId: ID.EXPLODING_SPORE,
           name: 'Exploding Spore - Poisoned',
           damageBreakdownName: 'Exploding Spore',
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           stacks: 2,
           duration: 5,
           skillName: 'Exploding Spore',
@@ -291,7 +293,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           sourceId: ID.EXPLODING_SPORE,
           name: 'Exploding Spore - Poisoned',
           damageBreakdownName: 'Exploding Spore',
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           stacks: 2,
           duration: 5,
           skillName: 'Exploding Spore',

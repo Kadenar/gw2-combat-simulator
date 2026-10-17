@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
@@ -65,7 +66,7 @@ export function createPreviewControls(context: ProfessionAttributePreviewContext
           group: 'Target conditions',
           kind: 'condition',
           field: name,
-          max: name === 'Vulnerability' ? 25 : undefined,
+          max: name === CONDITION.VULNERABILITY ? 25 : undefined,
           description: required.filter((name) => has(name)).join(', ')
         });
     },

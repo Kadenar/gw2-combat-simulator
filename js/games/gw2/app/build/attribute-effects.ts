@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import type { AttributePreviewState } from '#gw2/app/build/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 import {
@@ -25,16 +26,16 @@ export function attributePreviewContext(
 export function attributeEffectControls(app: AttributePreviewState): PreviewControl[] {
   const controls: PreviewControl[] = [
     {
-      key: 'might',
-      label: 'Might',
+      key: boonKey(BOON.MIGHT),
+      label: BOON.MIGHT,
       group: 'Boons',
       kind: 'boon',
       max: 25,
       description: 'stacks; Power / Condition Damage'
     },
     {
-      key: 'fury',
-      label: 'Fury',
+      key: boonKey(BOON.FURY),
+      label: BOON.FURY,
       group: 'Boons',
       kind: 'boon',
       description: '+25% Critical Chance; selected Fury traits'

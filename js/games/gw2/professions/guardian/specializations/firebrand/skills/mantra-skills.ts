@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
@@ -18,8 +20,8 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ammoCastLockout: 1,
     tags: ['specialization-managed-flip'],
     effects: [
-      { type: 'boon', boon: 'stability', duration: 5, audience: { recipients: 'party' as const } },
-      { type: 'boon', boon: 'resolution', duration: 5, audience: { recipients: 'party' as const } }
+      { type: 'boon', boon: BOON.STABILITY, duration: 5, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: BOON.RESOLUTION, duration: 5, audience: { recipients: 'party' as const } }
     ]
   },
   [ID.MANTRA_OF_POTENCE]: {
@@ -43,8 +45,8 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ammoCastLockout: 1,
     tags: ['specialization-managed-flip'],
     effects: [
-      { type: 'boon', boon: 'protection', duration: 2, audience: { recipients: 'party' as const } },
-      { type: 'boon', boon: 'resolution', duration: 2, audience: { recipients: 'party' as const } }
+      { type: 'boon', boon: BOON.PROTECTION, duration: 2, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: BOON.RESOLUTION, duration: 2, audience: { recipients: 'party' as const } }
     ]
   },
   [ID.MANTRA_OF_SOLACE]: {
@@ -64,8 +66,8 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
     effects: [
-      { type: 'boon', boon: 'quickness', duration: 5, audience: { recipients: 'party' as const } },
-      { type: 'boon', boon: 'might', stacks: 8, duration: 10, audience: { recipients: 'party' as const } }
+      { type: 'boon', boon: BOON.QUICKNESS, duration: 5, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: BOON.MIGHT, stacks: 8, duration: 10, audience: { recipients: 'party' as const } }
     ]
   },
   [ID.ECHO_OF_TRUTH]: {
@@ -91,8 +93,8 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ammoCastLockout: 1,
     tags: ['specialization-managed-flip'],
     effects: [
-      { type: 'boon', boon: 'quickness', duration: 2.5, audience: { recipients: 'party' as const } },
-      { type: 'boon', boon: 'might', stacks: 5, duration: 6, audience: { recipients: 'party' as const } }
+      { type: 'boon', boon: BOON.QUICKNESS, duration: 2.5, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 6, audience: { recipients: 'party' as const } }
     ]
   },
   [ID.MANTRA_OF_LIBERATION]: {
@@ -129,7 +131,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 12
       }
@@ -159,7 +161,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 3,
         duration: 12
       }
@@ -172,9 +174,9 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
     effects: [
-      { type: 'boon', boon: 'aegis', duration: 2, audience: { recipients: 'party' as const } },
-      { type: 'boon', boon: 'protection', duration: 3, audience: { recipients: 'party' as const } },
-      { type: 'boon', boon: 'resolution', duration: 3, audience: { recipients: 'party' as const } }
+      { type: 'boon', boon: BOON.AEGIS, duration: 2, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: BOON.PROTECTION, duration: 3, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: BOON.RESOLUTION, duration: 3, audience: { recipients: 'party' as const } }
     ]
   },
   [ID.UNHINDERED_DELIVERY]: {
@@ -184,9 +186,9 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
     effects: [
-      { type: 'boon', boon: 'resolution', duration: 8, audience: { recipients: 'party' as const } },
-      { type: 'boon', boon: 'stability', stacks: 5, duration: 8, audience: { recipients: 'party' as const } },
-      { type: 'boon', boon: 'swiftness', duration: 5, audience: { recipients: 'party' as const } }
+      { type: 'boon', boon: BOON.RESOLUTION, duration: 8, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: BOON.STABILITY, stacks: 5, duration: 8, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: BOON.SWIFTNESS, duration: 5, audience: { recipients: 'party' as const } }
     ]
   }
 });

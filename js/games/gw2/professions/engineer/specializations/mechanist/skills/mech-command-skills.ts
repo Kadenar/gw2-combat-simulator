@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns user-issued mech command skill fragments.
  * Persistent mech state and autonomous behavior remain under `mechanics/mech.ts`.
@@ -39,7 +41,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 3,
         duration: 6,
         actorType: 'summon'
@@ -67,13 +69,13 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
         },
         {
           type: 'boon',
-          boon: 'might',
+          boon: BOON.MIGHT,
           duration: 20,
           stacks: 2
         },
         {
           type: 'boon',
-          boon: 'fury',
+          boon: BOON.FURY,
           duration: 3,
           stacks: 1
         }
@@ -134,7 +136,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
           name: 'Missile Damage',
           actorType: 'summon'
         },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 5, actorType: 'summon' }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5, actorType: 'summon' }
       ]),
       ...impactEffects({ atMs: 1320, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1.2, hits: 1, name: 'Landing Damage', actorType: 'summon' },
@@ -150,28 +152,28 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'aegis',
+        boon: BOON.AEGIS,
         duration: 3,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 6,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 6,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'alacrity',
+        boon: BOON.ALACRITY,
         duration: 6,
         stacks: 1
       }
@@ -192,7 +194,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 4,
         duration: 8,
         actorType: 'summon'
@@ -235,7 +237,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 5,
         actorType: 'summon'
@@ -258,7 +260,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
         type: 'condition',
         ticks: Array.from({ length: 5 }, (_, index) => ({
           atMs: (index + 1) * 1000,
-          condition: 'Slow',
+          condition: CONDITION.SLOW,
           stacks: 1,
           duration: 2
         })),
@@ -268,7 +270,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
         type: 'condition',
         ticks: Array.from({ length: 5 }, (_, index) => ({
           atMs: (index + 1) * 1000,
-          condition: 'Confusion',
+          condition: CONDITION.CONFUSION,
           stacks: 2,
           duration: 3
         })),
@@ -278,7 +280,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
         type: 'condition',
         ticks: Array.from({ length: 5 }, (_, index) => ({
           atMs: (index + 1) * 1000,
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 3
         })),

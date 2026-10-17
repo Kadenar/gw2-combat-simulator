@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { Gw2ResolvedStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { boundedNumber, clamp } from '#kernel/core/numeric.js';
 
@@ -73,7 +74,7 @@ export function conditionTickDamage(
 
   if (!formula) return 0;
 
-  if (condition === 'Torment' && options.stationary !== false) {
+  if (condition === CONDITION.TORMENT && options.stationary !== false) {
     return (formula.stationaryBase || 0) + (formula.stationaryScaling || 0) * Math.max(0, conditionDamage);
   }
 

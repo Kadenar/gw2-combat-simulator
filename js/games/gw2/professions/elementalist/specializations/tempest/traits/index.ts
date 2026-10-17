@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -57,8 +58,8 @@ const galeSong = defineTrait({
     effects: [
       {
         type: 'boon',
-        name: 'Protection',
-        boon: 'protection',
+        name: BOON.PROTECTION,
+        boon: BOON.PROTECTION,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
@@ -82,8 +83,8 @@ const latentStamina = defineTrait({
     effects: [
       {
         type: 'boon',
-        name: 'Vigor',
-        boon: 'vigor',
+        name: BOON.VIGOR,
+        boon: BOON.VIGOR,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
@@ -111,7 +112,7 @@ const tempestuousAria = defineTrait({
     // seconds past the triggering aura; `Shout Might` is the separate shout-completion payload.
     maximumStacks: 10,
     durationMultiplier: 5,
-    effects: [{ type: 'boon', name: 'Shout Might', boon: 'might', stacks: 2, duration: 10 }]
+    effects: [{ type: 'boon', name: 'Shout Might', boon: BOON.MIGHT, stacks: 2, duration: 10 }]
   },
   modifierRules: [
     {
@@ -142,8 +143,8 @@ const invigoratingTorrents = defineTrait({
   name: 'Invigorating Torrents',
   balance: {
     effects: [
-      { type: 'boon', name: 'Vigor', boon: 'vigor', stacks: 1, duration: 5 },
-      { type: 'boon', name: 'Regeneration', boon: 'regeneration', stacks: 1, duration: 5 }
+      { type: 'boon', name: BOON.VIGOR, boon: BOON.VIGOR, stacks: 1, duration: 5 },
+      { type: 'boon', name: BOON.REGENERATION, boon: BOON.REGENERATION, stacks: 1, duration: 5 }
     ]
   }
 });
@@ -158,7 +159,7 @@ const elementalBastion = defineTrait({
   id: TRAIT.ELEMENTAL_BASTION,
   name: 'Elemental Bastion',
   balance: {
-    effects: [{ type: 'boon', name: 'Alacrity', boon: 'alacrity', stacks: 1, duration: 4 }]
+    effects: [{ type: 'boon', name: BOON.ALACRITY, boon: BOON.ALACRITY, stacks: 1, duration: 4 }]
   }
 });
 
@@ -226,8 +227,8 @@ const hardyConduit = defineTrait({
     effects: [
       {
         type: 'boon',
-        name: 'Protection',
-        boon: 'protection',
+        name: BOON.PROTECTION,
+        boon: BOON.PROTECTION,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
@@ -240,7 +241,7 @@ const hardyConduit = defineTrait({
       on: 'castStart',
       when: (_runtime, cast) => Boolean(cast.skill.overload),
       emit: TRAIT.HARDY_CONDUIT,
-      effects: (effect) => effect.type === 'boon' && ['Protection'].some((name) => name === effect.name),
+      effects: (effect) => effect.type === 'boon' && [BOON.PROTECTION].some((name) => name === effect.name),
       attribution: (_runtime, cast) => ({
         source: 'Hardy Conduit',
         sourceId: cast.skill.id,
@@ -258,8 +259,8 @@ const harmoniousConduit = defineTrait({
   name: 'Harmonious Conduit',
   balance: {
     effects: [
-      { type: 'boon', name: 'Swiftness', boon: 'swiftness', stacks: 1, duration: 8 },
-      { type: 'boon', name: 'Stability', boon: 'stability', stacks: 1, duration: 4 }
+      { type: 'boon', name: BOON.SWIFTNESS, boon: BOON.SWIFTNESS, stacks: 1, duration: 8 },
+      { type: 'boon', name: BOON.STABILITY, boon: BOON.STABILITY, stacks: 1, duration: 4 }
     ]
   },
   triggers: [
@@ -267,7 +268,8 @@ const harmoniousConduit = defineTrait({
       on: 'castStart',
       when: (_runtime, cast) => Boolean(cast.skill.overload),
       emit: TRAIT.HARMONIOUS_CONDUIT,
-      effects: (effect) => effect.type === 'boon' && ['Swiftness', 'Stability'].some((name) => name === effect.name),
+      effects: (effect) =>
+        effect.type === 'boon' && [BOON.SWIFTNESS, BOON.STABILITY].some((name) => name === effect.name),
       attribution: (_runtime, cast) => ({
         source: 'Harmonious Conduit',
         sourceId: cast.skill.id,
@@ -340,7 +342,7 @@ const lucidSingularity = defineTrait({
       {
         type: 'boon',
         name: 'Pulse Alacrity',
-        boon: 'alacrity',
+        boon: BOON.ALACRITY,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
@@ -349,7 +351,7 @@ const lucidSingularity = defineTrait({
       {
         type: 'boon',
         name: 'Final Alacrity',
-        boon: 'alacrity',
+        boon: BOON.ALACRITY,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
@@ -486,7 +488,7 @@ function applyGaleSong(context: ElementalistRuntime, cast: RuntimeCast<Elemental
     emitTraitProfile(context, TRAIT.GALE_SONG, TRAIT.GALE_SONG, undefined, {
       at: cast.effectiveEnd,
       fullEnd: cast.effectiveEnd,
-      effect: { type: 'boon', name: 'Protection' },
+      effect: { type: 'boon', name: BOON.PROTECTION },
       skillId: skill.id,
       skillName: 'Gale Song',
       cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
@@ -504,14 +506,14 @@ function applyLatentStamina(
   if (event.type === 'elementalist.attunement' && event.to === 'Water') {
     if (context.procs.claim(TRAIT.LATENT_STAMINA, 'elementalist.tempest.latentStamina', event.at)) {
       const latentStaminaProfile = requireBalanceProfileFromContext(context, TRAIT.LATENT_STAMINA);
-      const vigor = requireEffect(latentStaminaProfile, 'boon', 'Vigor');
+      const vigor = requireEffect(latentStaminaProfile, 'boon', BOON.VIGOR);
       const sourceId = event.skillId ?? event.sourceId;
 
       if (vigor) {
         emitTraitProfile(context, TRAIT.LATENT_STAMINA, TRAIT.LATENT_STAMINA, undefined, {
           at: event.at,
           fullEnd: event.at,
-          effect: { type: 'boon', name: 'Vigor' },
+          effect: { type: 'boon', name: BOON.VIGOR },
           cast: emissionCast,
           attribution: {
             source: 'Latent Stamina',

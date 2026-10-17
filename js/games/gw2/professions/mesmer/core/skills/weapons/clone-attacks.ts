@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { MesmerCloneAttack } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { axeCloneAttack } from '#gw2/professions/mesmer/core/skills/weapons/axe-clone.js';
 
@@ -47,7 +48,7 @@ const scepterCloneAttack = {
   conditions: [
     {
       type: 'condition',
-      condition: 'Torment',
+      condition: CONDITION.TORMENT,
       duration: 4,
       stacks: 1
     }
@@ -96,13 +97,13 @@ const staffCloneAttack = {
   conditions: [
     {
       type: 'condition',
-      condition: 'Torment',
+      condition: CONDITION.TORMENT,
       duration: 2,
       stacks: 1
     },
     {
       type: 'condition',
-      condition: 'Confusion',
+      condition: CONDITION.CONFUSION,
       duration: 2,
       stacks: 1
     }

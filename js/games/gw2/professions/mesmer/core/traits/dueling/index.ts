@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -38,7 +40,7 @@ import type {
 } from '#gw2/professions/mesmer/types.js';
 
 function superiorityComplexTargetControlled(context: Gw2ModifierContext): boolean {
-  return ['Fear', 'Taunt'].some((condition) => targetConditionActive(context, condition));
+  return [CONDITION.FEAR, CONDITION.TAUNT].some((condition) => targetConditionActive(context, condition));
 }
 
 function superiorityComplexFactor(context: Gw2ModifierContext): number {
@@ -87,7 +89,7 @@ export const ineptitude = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerConditionApplied, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof mesmerConditionApplied>) =>
-        input.event.condition === 'Blindness',
+        input.event.condition === CONDITION.BLINDNESS,
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerConditionApplied>) =>
         triggerIneptitudeFromBlind(runtime, input.event)
     }),
@@ -100,7 +102,7 @@ export const ineptitude = defineTrait<MesmerSkill>({
   name: 'Ineptitude',
   balance: {
     internalCooldown: 3,
-    effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 5, stacks: 2 }]
+    effects: [{ name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 5, stacks: 2 }]
   }
 });
 
@@ -121,14 +123,14 @@ export const masterFencer = defineTrait<MesmerSkill>({
         type: 'boon',
         name: 'Self Fury',
         audience: { recipients: 'self' },
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 8,
         stacks: 1
       },
       {
         type: 'boon',
         name: 'Allied Fury',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 4,
         stacks: 1,
         // Personal Fury is separate, leaving all four recipient slots for allies.
@@ -149,7 +151,7 @@ export const sharperImages = defineTrait<MesmerSkill>({
   id: TRAIT.SHARPER_IMAGES,
   name: 'Sharper Images',
   balance: {
-    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration: 5, stacks: 1 }]
+    effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, duration: 5, stacks: 1 }]
   }
 });
 
@@ -204,7 +206,7 @@ export const blindingDissipation = defineTrait<MesmerSkill>({
   id: TRAIT.BLINDING_DISSIPATION,
   name: 'Blinding Dissipation',
   balance: {
-    effects: [{ name: 'Blindness', type: 'condition', condition: 'Blindness', stacks: 1, duration: 3 }]
+    effects: [{ name: CONDITION.BLINDNESS, type: 'condition', condition: CONDITION.BLINDNESS, stacks: 1, duration: 3 }]
   }
 });
 
@@ -226,7 +228,7 @@ export const criticalInfusion = defineTrait<MesmerSkill>({
   name: 'Critical Infusion',
   balance: {
     internalCooldown: 10,
-    effects: [{ type: 'boon', name: 'vigor', boon: 'vigor', duration: 5, stacks: 1 }]
+    effects: [{ type: 'boon', name: boonKey(BOON.VIGOR), boon: BOON.VIGOR, duration: 5, stacks: 1 }]
   },
   triggers: [
     {
@@ -255,7 +257,7 @@ export const virtuosoPhantasmalFuryRule: Gw2ModifierRule = {
 function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerResolverEvent, detail: string): void {
   const count = Math.max(1, Math.trunc(event.count || 1));
   const ineptitudeProfile = requireBalanceProfileFromContext(context, TRAIT.INEPTITUDE);
-  const effect = requireEffect(ineptitudeProfile, 'condition', 'Confusion');
+  const effect = requireEffect(ineptitudeProfile, 'condition', CONDITION.CONFUSION);
 
   if (!effect) return;
 
@@ -274,7 +276,7 @@ function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerR
   emitTraitProfile(context, TRAIT.INEPTITUDE, TRAIT.INEPTITUDE, undefined, {
     at: event.at,
     settlement: 'reaction',
-    effect: { type: 'condition', name: 'Confusion' },
+    effect: { type: 'condition', name: CONDITION.CONFUSION },
     transform: (payload) =>
       buildResolverCondition({
         at: event.at,
@@ -297,7 +299,7 @@ function triggerIneptitudeFromInterrupt(context: MesmerResolverContext, event: M
   const ineptitudeProfile = requireBalanceProfileFromContext(context, TRAIT.INEPTITUDE);
 
   // A removed Confusion packet owns no interrupt cooldown.
-  if (!requireEffect(ineptitudeProfile, 'condition', 'Confusion')) return;
+  if (!requireEffect(ineptitudeProfile, 'condition', CONDITION.CONFUSION)) return;
 
   const defiant = Boolean(context.config.target.defiant);
 
@@ -321,7 +323,7 @@ function triggerBlindingDissipation(
   delivery: EffectDelivery = {}
 ): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.BLINDING_DISSIPATION);
-  const effect = requireEffect(profile, 'condition', 'Blindness');
+  const effect = requireEffect(profile, 'condition', CONDITION.BLINDNESS);
 
   if (!effect) return;
 
@@ -330,7 +332,7 @@ function triggerBlindingDissipation(
     ...delivery,
     at,
     priority: 0,
-    effect: { type: 'condition', name: 'Blindness' },
+    effect: { type: 'condition', name: CONDITION.BLINDNESS },
     transform: (payload) =>
       buildResolverCondition({
         at,
@@ -340,7 +342,7 @@ function triggerBlindingDissipation(
         sourceId: TRAIT.BLINDING_DISSIPATION,
         actorType: 'effect',
         ownerActorType: 'player',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: Number(payload.stacks) * count,
         duration: Number(payload.duration)
       })
@@ -412,7 +414,7 @@ function triggerMasterFencer(context: MesmerRuntime, event: SimulationEvent, cha
       skillId: TRAIT.MASTER_FENCER,
       skillName: 'Master Fencer',
       name: `Master Fencer — ${effect.audience?.recipients ?? 'self'} fury`,
-      kind: 'fury',
+      kind: boonKey(BOON.FURY),
       duration: payload.duration,
       stacks: Number(payload.stacks),
       audience: effect.audience
@@ -427,7 +429,7 @@ function triggerSharperImages(context: MesmerRuntime, event: SimulationEvent, ch
   }
 
   const sharperImagesProfile = requireBalanceProfileFromContext(context, TRAIT.SHARPER_IMAGES);
-  const effect = requireEffect(sharperImagesProfile, 'condition', 'Bleeding');
+  const effect = requireEffect(sharperImagesProfile, 'condition', CONDITION.BLEEDING);
 
   if (!effect) return;
 
@@ -445,13 +447,13 @@ function triggerSharperImages(context: MesmerRuntime, event: SimulationEvent, ch
 
   emitTraitProfile(context, TRAIT.SHARPER_IMAGES, TRAIT.SHARPER_IMAGES, event, {
     at: event.at,
-    effect: { type: 'condition', name: 'Bleeding' },
+    effect: { type: 'condition', name: CONDITION.BLEEDING },
     transform: (payload) => ({
       type: 'condition',
       at: event.at,
       name: `${event.name} — Sharper Images`,
       skillName: event.skillName,
-      condition: 'Bleeding',
+      condition: CONDITION.BLEEDING,
       duration: Number(payload.duration),
       stacks: procCount * Number(payload.stacks),
       source: 'Player',

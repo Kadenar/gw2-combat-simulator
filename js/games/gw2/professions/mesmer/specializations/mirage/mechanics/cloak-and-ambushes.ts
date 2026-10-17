@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -207,7 +208,7 @@ export function createMirageActionController({
       });
 
     // Only a consumed, available mirror applies its authored Weakness.
-    const weakness = requireEffect(mechanicsProfile, 'condition', 'Weakness');
+    const weakness = requireEffect(mechanicsProfile, 'condition', CONDITION.WEAKNESS);
 
     if (weakness)
       buildMesmerConditions(state, pseudo.name, at, weakness, 'Player', '', {

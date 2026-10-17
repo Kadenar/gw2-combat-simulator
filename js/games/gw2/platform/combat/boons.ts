@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import type { ResolvedEffectAudience, SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
@@ -29,21 +30,27 @@ const GW2_BOON_DURATION_CAP_SECONDS = 30;
 const GW2_SWIFTNESS_DURATION_CAP_SECONDS = 60;
 // Standard metadata is shared by combat queries and effect reporting.
 const STANDARD_BOON_DEFINITIONS: Readonly<Record<string, StandardBoonPresentation>> = Object.freeze({
-  aegis: Object.freeze({ name: 'Aegis', maximumStacks: 1 }),
-  alacrity: Object.freeze({ name: 'Alacrity', maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
-  fury: Object.freeze({ name: 'Fury', maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
-  might: Object.freeze({ name: 'Might', maximumStacks: 25 }),
-  protection: Object.freeze({ name: 'Protection', maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
-  quickness: Object.freeze({ name: 'Quickness', maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
-  regeneration: Object.freeze({ name: 'Regeneration', maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
-  resistance: Object.freeze({ name: 'Resistance', maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
-  resolution: Object.freeze({ name: 'Resolution', maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
-  stability: Object.freeze({ name: 'Stability' }),
-  swiftness: Object.freeze({ name: 'Swiftness', maximumDuration: GW2_SWIFTNESS_DURATION_CAP_SECONDS }),
-  vigor: Object.freeze({ name: 'Vigor', maximumDuration: GW2_BOON_DURATION_CAP_SECONDS })
+  [boonKey(BOON.AEGIS)]: Object.freeze({ name: BOON.AEGIS, maximumStacks: 1 }),
+  [boonKey(BOON.ALACRITY)]: Object.freeze({ name: BOON.ALACRITY, maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
+  [boonKey(BOON.FURY)]: Object.freeze({ name: BOON.FURY, maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
+  [boonKey(BOON.MIGHT)]: Object.freeze({ name: BOON.MIGHT, maximumStacks: 25 }),
+  [boonKey(BOON.PROTECTION)]: Object.freeze({ name: BOON.PROTECTION, maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
+  [boonKey(BOON.QUICKNESS)]: Object.freeze({ name: BOON.QUICKNESS, maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
+  [boonKey(BOON.REGENERATION)]: Object.freeze({
+    name: BOON.REGENERATION,
+    maximumDuration: GW2_BOON_DURATION_CAP_SECONDS
+  }),
+  [boonKey(BOON.RESISTANCE)]: Object.freeze({ name: BOON.RESISTANCE, maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
+  [boonKey(BOON.RESOLUTION)]: Object.freeze({ name: BOON.RESOLUTION, maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
+  [boonKey(BOON.STABILITY)]: Object.freeze({ name: BOON.STABILITY }),
+  [boonKey(BOON.SWIFTNESS)]: Object.freeze({
+    name: BOON.SWIFTNESS,
+    maximumDuration: GW2_SWIFTNESS_DURATION_CAP_SECONDS
+  }),
+  [boonKey(BOON.VIGOR)]: Object.freeze({ name: BOON.VIGOR, maximumDuration: GW2_BOON_DURATION_CAP_SECONDS })
 });
 
-export const GW2_STANDARD_BOONS = Object.freeze(Object.keys(STANDARD_BOON_DEFINITIONS));
+export const GW2_STANDARD_BOONS = Object.freeze(Object.values(BOON).map((name) => name.toLowerCase()));
 const STANDARD_BOON_SET = new Set(GW2_STANDARD_BOONS);
 const DURATION_STACKING_BOON_CAPS = new Map(
   Object.entries(STANDARD_BOON_DEFINITIONS).flatMap(([kind, definition]) =>

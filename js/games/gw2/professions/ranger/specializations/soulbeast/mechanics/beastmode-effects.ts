@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -142,8 +144,8 @@ function queueStanceProc(
   }
 
   const profile = requireBalanceProfileFromContext(context, PROFILE.vultureStance);
-  const poison = requireEffect(profile, 'condition', 'Poisoned');
-  const might = requireEffect(profile, 'boon', 'might');
+  const poison = requireEffect(profile, 'condition', CONDITION.POISONED);
+  const might = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
   if (!poison && !might) return;
 
@@ -260,7 +262,7 @@ export function reactToRangerWinterBite(context: RangerResolverContext, event: G
 
   core.winterBiteReady = false;
   const profile = requireBalanceProfileFromContext(context, PROFILE.wintersBite);
-  const weakness = requireEffect(profile, 'condition', 'Weakness');
+  const weakness = requireEffect(profile, 'condition', CONDITION.WEAKNESS);
 
   if (weakness)
     context.effects.emit(rangerProfileEffectRequest(event, profile, weakness, ID.WINTERS_BITE, "Winter's Bite"));

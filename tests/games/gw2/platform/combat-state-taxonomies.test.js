@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { GW2_STANDARD_BOONS, isStandardBoon, standardBoonPresentation } from '#gw2/platform/combat/boons.js';
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import {
   canonicalTargetConditionName,
   CANONICAL_TARGET_CONDITIONS,
@@ -31,9 +33,11 @@ test('standard boon taxonomy recognizes every canonical boon and rejects unknown
     'swiftness',
     'vigor'
   ]);
-  for (const boon of GW2_STANDARD_BOONS) {
+  for (const boon of Object.values(BOON)) {
     assert.equal(isStandardBoon(boon), true, boon);
     assert.equal(isStandardBoon(boon.toUpperCase()), true, boon);
+    assert.equal(GW2_STANDARD_BOONS.includes(boonKey(boon)), true, boon);
+    assert.equal(standardBoonPresentation(boonKey(boon)).name, boon);
   }
 
   assert.equal(isStandardBoon('superspeed'), false);
@@ -47,7 +51,8 @@ test('condition taxonomy normalizes casing and whitespace without spelling alias
     assert.equal(isDamagingCondition(condition.toLowerCase()), true, condition);
   }
 
-  for (const condition of CANONICAL_TARGET_CONDITIONS) {
+  assert.deepEqual(CANONICAL_TARGET_CONDITIONS, Object.values(CONDITION).sort());
+  for (const condition of Object.values(CONDITION)) {
     assert.equal(canonicalTargetConditionName(` ${condition.toUpperCase()} `), condition);
   }
 

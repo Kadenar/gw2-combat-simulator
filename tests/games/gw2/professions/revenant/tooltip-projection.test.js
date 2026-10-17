@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
@@ -81,7 +82,7 @@ test('Vindicator trait facts follow the selected patch landing payload', () => {
             effects: [
               {
                 type: 'boon',
-                boon: 'alacrity',
+                boon: BOON.ALACRITY,
                 duration: 7,
                 stacks: 1,
                 audience: { recipients: 'party', maximumRecipients: 5 }

@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
@@ -91,14 +93,14 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 4,
         duration: 12,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 4,
         duration: 1,
         actorType: 'player'
@@ -130,7 +132,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
           type: 'condition',
           ticks: [520, 1040, 1560, 2080, 2600, 3120, 3640, 4160, 4680, 5200, 5720, 6240].map((atMs) => ({
             atMs,
-            condition: 'Bleeding',
+            condition: CONDITION.BLEEDING,
             stacks: 1,
             duration: 5
           })),
@@ -162,7 +164,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
       },
       {
         type: 'boon',
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 5,
         stacks: 5
       }
@@ -194,7 +196,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
       },
       {
         type: 'condition',
-        ticks: [440, 800].map((atMs) => ({ atMs, condition: 'Burning', stacks: 2, duration: 5 })),
+        ticks: [440, 800].map((atMs) => ({ atMs, condition: CONDITION.BURNING, stacks: 2, duration: 5 })),
         actorType: 'player'
       }
     ])
@@ -258,7 +260,7 @@ export function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamM
         actorType: 'player',
         skillName: effect.name,
         name: effect.name,
-        kind: String(effect.boon || effect.kind),
+        kind: String(effect.boon || effect.kind).toLowerCase(),
         duration: effect.duration,
         stacks: effect.stacks
       },

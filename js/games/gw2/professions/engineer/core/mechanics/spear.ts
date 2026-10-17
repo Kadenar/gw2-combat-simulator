@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -162,7 +163,7 @@ export function handleLightningRodPulse(context: EngineerResolverContext, event:
     isFocused ? PROFILE.focusedLightningRod : PROFILE.lightningRod
   );
   const idProfile = requireBalanceProfileFromContext(context, profile.id);
-  const condition = requireEffect(idProfile, 'condition', 'Vulnerability');
+  const condition = requireEffect(idProfile, 'condition', CONDITION.VULNERABILITY);
   const strike = requireEffect(idProfile, 'strike', profile.name);
 
   if (strike)
@@ -192,7 +193,7 @@ export function handleLightningRodPulse(context: EngineerResolverContext, event:
 function handleConduitSurge(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, PROFILE.conduitSurge);
   const idProfile = requireBalanceProfileFromContext(context, profile.id);
-  const burning = requireEffect(idProfile, 'condition', 'Burning');
+  const burning = requireEffect(idProfile, 'condition', CONDITION.BURNING);
 
   // Independent accepted target windows preserve a longer Focused grant without a duplicate deadline.
   if (!event.offTarget && context.engagement.hostileEffectsAllowed(event.at))
@@ -260,9 +261,9 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
     isFocused ? PROFILE.focusedElectricArtillery : PROFILE.electricArtillery
   );
   const idProfile = requireBalanceProfileFromContext(context, profile.id);
-  const immobilize = requireEffect(idProfile, 'condition', 'Immobilized');
-  const vulnerability = requireEffect(idProfile, 'condition', 'Vulnerability');
-  const burning = requireEffect(idProfile, 'condition', 'Burning');
+  const immobilize = requireEffect(idProfile, 'condition', CONDITION.IMMOBILIZED);
+  const vulnerability = requireEffect(idProfile, 'condition', CONDITION.VULNERABILITY);
+  const burning = requireEffect(idProfile, 'condition', CONDITION.BURNING);
   // charges accumulate from Lightning Rod hits (max 12); Math.trunc discards partial charges
   const charges = boundedInteger(event.charges || 0, 0, 0, balanceProfileNumber(idProfile, 'maximumStacks'));
   const strike = requireEffect(idProfile, 'strike', profile.name);
@@ -318,7 +319,7 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
         at: event.at,
         name: 'Electric Artillery — Burning',
         skillName: 'Electric Artillery',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: Number(burning.stacks),
         duration: Number(burning.duration) + charges * balanceProfileNumber(idProfile, 'burningDurationPerCharge'),
         source: 'engineer',

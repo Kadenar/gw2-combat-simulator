@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -35,7 +37,11 @@ export const inspiredVirtue = defineTrait({
           runtime,
           cast,
           GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
-          virtue === 'justice' ? 'might' : virtue === 'resolve' ? 'regeneration' : 'protection',
+          virtue === 'justice'
+            ? boonKey(BOON.MIGHT)
+            : virtue === 'resolve'
+              ? boonKey(BOON.REGENERATION)
+              : boonKey(BOON.PROTECTION),
           true
         )
     })
@@ -45,9 +51,9 @@ export const inspiredVirtue = defineTrait({
     damagePerBoon: 0.005,
     maximumBoons: GW2_STANDARD_BOONS.length,
     effects: [
-      { type: 'boon', name: 'might', boon: 'might', stacks: 3, duration: 5 },
-      { type: 'boon', name: 'regeneration', boon: 'regeneration', stacks: 1, duration: 5 },
-      { type: 'boon', name: 'protection', boon: 'protection', stacks: 1, duration: 5 }
+      { type: 'boon', name: boonKey(BOON.MIGHT), boon: BOON.MIGHT, stacks: 3, duration: 5 },
+      { type: 'boon', name: boonKey(BOON.REGENERATION), boon: BOON.REGENERATION, stacks: 1, duration: 5 },
+      { type: 'boon', name: boonKey(BOON.PROTECTION), boon: BOON.PROTECTION, stacks: 1, duration: 5 }
     ]
   },
   modifierRules: [
@@ -75,7 +81,9 @@ export const virtueOfResolution = defineTrait({
   hooks: {
     /** Resolution samples this multiplier once when the shared service applies a boon. */
     boonDuration(runtime, event, _baseDuration, scaledDuration) {
-      return event.kind === 'resolution' ? scaledDuration * guardianResolutionMultiplier(runtime) : scaledDuration;
+      return event.kind === boonKey(BOON.RESOLUTION)
+        ? scaledDuration * guardianResolutionMultiplier(runtime)
+        : scaledDuration;
     }
   },
 
@@ -83,13 +91,13 @@ export const virtueOfResolution = defineTrait({
   triggers: [
     onTriggerPoint(virtueActivated, {
       run: (runtime: GuardianRuntime, { cast }: VirtueActivation) =>
-        virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION, 'resolution')
+        virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION, boonKey(BOON.RESOLUTION))
     })
   ],
   name: 'Virtue of Resolution',
   balance: {
     durationMultiplier: 1.25,
-    effects: [{ type: 'boon', name: 'resolution', boon: 'resolution', stacks: 1, duration: 3 }]
+    effects: [{ type: 'boon', name: boonKey(BOON.RESOLUTION), boon: BOON.RESOLUTION, stacks: 1, duration: 3 }]
   }
 });
 
@@ -134,13 +142,13 @@ export const indomitableCourage = defineTrait({
     onTriggerPoint(virtueActivated, {
       when: (_runtime, { virtue }: VirtueActivation) => virtue === 'courage',
       run: (runtime: GuardianRuntime, { cast }: VirtueActivation) =>
-        virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE, 'stability', true)
+        virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE, boonKey(BOON.STABILITY), true)
     })
   ],
   name: 'Indomitable Courage',
   balance: {
     pulseInterval: 30,
-    effects: [{ type: 'boon', name: 'stability', boon: 'stability', stacks: 3, duration: 4 }]
+    effects: [{ type: 'boon', name: boonKey(BOON.STABILITY), boon: BOON.STABILITY, stacks: 3, duration: 4 }]
   }
 });
 
@@ -162,8 +170,8 @@ export const masterOfConsecrations = defineTrait({
       },
       {
         type: 'condition',
-        name: 'Burning',
-        ticks: [6320, 7320].map((atMs) => ({ atMs, condition: 'Burning', stacks: 1, duration: 2 })),
+        name: CONDITION.BURNING,
+        ticks: [6320, 7320].map((atMs) => ({ atMs, condition: CONDITION.BURNING, stacks: 1, duration: 2 })),
         actorType: 'player'
       }
     ])
@@ -219,7 +227,7 @@ export const unscathedContender = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: (context) => balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER, 'damageIncrease'),
-      when: (context) => guardianBoonActive(context, 'aegis')
+      when: (context) => guardianBoonActive(context, boonKey(BOON.AEGIS))
     }
   ]
 });

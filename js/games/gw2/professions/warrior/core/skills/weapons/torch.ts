@@ -1,6 +1,7 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { conditionTimeline, impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -28,13 +29,13 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Part
         },
         {
           type: 'condition',
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 6
         },
         {
           type: 'condition',
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 3
         }
@@ -52,52 +53,27 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Part
       }
     ],
     castTimeMs: 520,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    // Group identical Burning pulses separately from the explosion's stronger, longer Burning.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 5480, coefficient: 1 }]
+        atMs: 5480,
+        coefficient: 1
       },
+      conditionTimeline(
+        [480, 1480, 2480, 3480, 4480].map((atMs) => ({
+          atMs,
+          condition: CONDITION.BURNING,
+          stacks: 1,
+          duration: 2
+        }))
+      ),
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 480,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 1480,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 2480,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 3480,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 4480,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 5480,
-            condition: 'Burning',
-            stacks: 2,
-            duration: 6
-          }
-        ]
+        atMs: 5480,
+        condition: CONDITION.BURNING,
+        stacks: 2,
+        duration: 6
       }
     ])
   }

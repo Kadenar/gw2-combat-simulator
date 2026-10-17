@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -30,7 +32,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 2
       }
@@ -47,7 +49,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 5,
         stacks: 1,
         audience: { recipients: 'summons' as const, affectsSelf: false, maximumRecipients: 1 }
@@ -74,19 +76,19 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 3
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 1,
         duration: 6
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 3
       }
@@ -112,7 +114,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'boon',
-        boon: 'vigor',
+        boon: BOON.VIGOR,
         duration: 3,
         stacks: 1
       }

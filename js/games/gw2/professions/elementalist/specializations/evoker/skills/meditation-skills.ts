@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 /**
  * Owns Evoker meditation heal, utility, and elite skill fragments.
@@ -25,9 +27,15 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
         transform: (runtime, cast, effects) => {
           const might = runtime.config.boons?.might
             ? Number(runtime.config.boons.might)
-            : buffApplicationStacks(runtime.combat.boonApplications('might'), 'might', cast.start, 25, {
-                includes: (application) => application.resolvedAudience.includesSelf
-              });
+            : buffApplicationStacks(
+                runtime.combat.boonApplications(boonKey(BOON.MIGHT)),
+                boonKey(BOON.MIGHT),
+                cast.start,
+                25,
+                {
+                  includes: (application) => application.resolvedAudience.includesSelf
+                }
+              );
           const profile = requireBalanceProfileFromContext(runtime, PROFILE.foxsFury);
           const threshold = balanceProfileNumber(profile, 'threshold');
           const tier = might >= threshold * 2 ? 3 : might >= threshold ? 2 : 1;
@@ -94,7 +102,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
 
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.4 },
-      { type: 'boon', boon: 'Swiftness', stacks: 1, duration: 10, metadata: {} }
+      { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 10, metadata: {} }
     ])
   },
   [ID.TOADS_FORTITUDE]: {
@@ -118,7 +126,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
 
     effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.5 },
-      { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 10, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 4, duration: 10, metadata: {} }
     ])
   },
   [ID.ELEMENTAL_PROCESSION]: {
@@ -162,14 +170,14 @@ export const meditationBalanceProfiles: readonly BalanceProfile[] = Object.freez
     threshold: 10,
     // API tier values multiply Fox's Fury's 1.5 baseline: https://api.guildwars2.com/v2/skills/77282?lang=en
     effects: [
-      { type: 'boon', name: 'Fox Might', boon: 'might', stacks: 8, duration: 10 },
-      { type: 'boon', name: 'Fox Fire Bonus', boon: 'might', stacks: 3, duration: 10 },
-      { type: 'boon', name: 'Fox Fury', boon: 'fury', stacks: 1, duration: 10 },
+      { type: 'boon', name: 'Fox Might', boon: BOON.MIGHT, stacks: 8, duration: 10 },
+      { type: 'boon', name: 'Fox Fire Bonus', boon: BOON.MIGHT, stacks: 3, duration: 10 },
+      { type: 'boon', name: 'Fox Fury', boon: BOON.FURY, stacks: 1, duration: 10 },
       { type: 'strike', name: 'Tier 1', coefficient: 1.5, hits: 1 },
       {
         type: 'condition',
         name: 'Tier 1',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 3
       },
@@ -177,7 +185,7 @@ export const meditationBalanceProfiles: readonly BalanceProfile[] = Object.freez
       {
         type: 'condition',
         name: 'Tier 2',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 2,
         duration: 5
       },
@@ -185,7 +193,7 @@ export const meditationBalanceProfiles: readonly BalanceProfile[] = Object.freez
       {
         type: 'condition',
         name: 'Tier 3',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 3,
         // PvE's high-Might burn lasts five seconds before condition-duration bonuses.
         duration: 5
@@ -209,7 +217,7 @@ export const meditationBalanceProfiles: readonly BalanceProfile[] = Object.freez
       {
         type: 'boon',
         name: 'Toad Resistance',
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,

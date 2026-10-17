@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
@@ -32,7 +33,7 @@ export const cloakedInShadow = defineTrait({
   balance: {
     effects: [
       // Entry Blind and the on-Blind siphon are separate authored components.
-      { type: 'condition', name: 'Blindness', condition: 'Blindness', stacks: 1, duration: 5 },
+      { type: 'condition', name: CONDITION.BLINDNESS, condition: CONDITION.BLINDNESS, stacks: 1, duration: 5 },
       {
         type: 'strike',
         name: 'Cloaked in Shadow',
@@ -52,7 +53,7 @@ export const cloakedInShadow = defineTrait({
     {
       emit: TRAIT.CLOAKED_IN_SHADOW,
       on: 'condition.applied',
-      when: (_runtime, event) => event.condition === 'Blindness',
+      when: (_runtime, event) => event.condition === CONDITION.BLINDNESS,
       effects: (effect) => effect.type === 'strike' && effect.name === 'Cloaked in Shadow',
       attribution: (_runtime, event) => ({
         skillId: TRAIT.CLOAKED_IN_SHADOW,
@@ -71,8 +72,8 @@ export const hiddenThief = defineTrait({
   balance: {
     internalCooldown: 2,
     effects: [
-      { type: 'condition', name: 'Blindness', condition: 'Blindness', stacks: 1, duration: 3 },
-      { type: 'condition', name: 'Weakness', condition: 'Weakness', stacks: 1, duration: 3 }
+      { type: 'condition', name: CONDITION.BLINDNESS, condition: CONDITION.BLINDNESS, stacks: 1, duration: 3 },
+      { type: 'condition', name: CONDITION.WEAKNESS, condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 }
     ]
   }
 });
@@ -172,7 +173,7 @@ function enterCloakedInShadow(runtime: ThiefRuntime, { skill, at }: StealthTrans
   // Stealth entry supplies skill identity; the profile owns the independently removable blind.
   emitTraitProfile(runtime, TRAIT.CLOAKED_IN_SHADOW, TRAIT.CLOAKED_IN_SHADOW, undefined, {
     at,
-    effect: { type: 'condition', name: 'Blindness' },
+    effect: { type: 'condition', name: CONDITION.BLINDNESS },
     attribution: {
       actorType: 'player',
       skillId: skill.id,

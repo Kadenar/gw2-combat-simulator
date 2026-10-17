@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
@@ -47,7 +48,7 @@ export const ferociousAggression = defineTrait({
       operation: 'damage-additive',
       amount: (context) => balanceNumberFromContext(context, TRAIT.FEROCIOUS_AGGRESSION, 'damageIncrease'),
       // Grant the bonus only while permanent or simulated Fury affects the player.
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, 'fury')
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, boonKey(BOON.FURY))
     }
   ]
 });
@@ -57,18 +58,18 @@ export const incensedResponse = defineTrait({
   id: TRAIT.INCENSED_RESPONSE,
   name: 'Incensed Response',
   balance: {
-    effects: [{ name: 'might', type: 'boon', boon: 'might', duration: 8, stacks: 5 }]
+    effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 8, stacks: 5 }]
   },
   triggers: [
     {
       on: 'buff.applied',
       when: (runtime, event) =>
-        event.kind === 'fury' &&
+        event.kind === boonKey(BOON.FURY) &&
         runtime.engagement.combatMechanicsAllowed() &&
         isGw2PlayerModifierOwnedEvent(event) &&
         gw2BoonApplicationRecipients(runtime.config, event).includesSelf,
       emit: TRAIT.INCENSED_RESPONSE,
-      effects: (effect) => effect.type === 'boon' && effect.name === 'might',
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.MIGHT),
       attribution: {
         source: 'revenant',
         sourceId: TRAIT.INCENSED_RESPONSE,
@@ -87,7 +88,7 @@ export const invokersRage = defineTrait({
   id: TRAIT.INVOKERS_RAGE,
   name: "Invoker's Rage",
   balance: {
-    effects: [{ type: 'boon', boon: 'fury', duration: 5, stacks: 1 }]
+    effects: [{ type: 'boon', boon: BOON.FURY, duration: 5, stacks: 1 }]
   }
 });
 
@@ -123,7 +124,7 @@ export const roilingMists = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) => balanceNumberFromContext(context, TRAIT.ROILING_MISTS, 'criticalChance'),
-      when: (context) => boonActive(context, 'fury')
+      when: (context) => boonActive(context, boonKey(BOON.FURY))
     }
   ]
 });
@@ -154,7 +155,7 @@ export const spiritBoon = defineTrait({
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 10,
         stacks: 2,
         actorType: 'player',
@@ -163,7 +164,7 @@ export const spiritBoon = defineTrait({
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         duration: 2,
         stacks: 1,
         actorType: 'player',
@@ -172,7 +173,7 @@ export const spiritBoon = defineTrait({
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 3,
         stacks: 1,
         actorType: 'player',
@@ -181,7 +182,7 @@ export const spiritBoon = defineTrait({
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1,
         actorType: 'player',
@@ -191,7 +192,7 @@ export const spiritBoon = defineTrait({
         metadata: { legendId: LEGEND.DRAGON },
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 3,
         stacks: 1,
         actorType: 'player'
@@ -200,7 +201,7 @@ export const spiritBoon = defineTrait({
         metadata: { legendId: LEGEND.RENEGADE },
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'resolution',
+        boon: BOON.RESOLUTION,
         duration: 4,
         stacks: 1,
         actorType: 'player'
@@ -209,7 +210,7 @@ export const spiritBoon = defineTrait({
         metadata: { legendId: LEGEND.ALLIANCE },
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'vigor',
+        boon: BOON.VIGOR,
         duration: 4,
         stacks: 1,
         actorType: 'player'

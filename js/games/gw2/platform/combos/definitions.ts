@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ComboEvent, ComboFieldType, ComboFinisherType } from '#gw2/platform/combos/types.js';
@@ -153,40 +155,40 @@ const definitions: readonly ComboDefinition[] = [
   {
     fieldType: 'Ethereal',
     finisherType: 'Projectile',
-    outcome: condition('Confusion', 'Confusion', 1, 5)
+    outcome: condition(CONDITION.CONFUSION, CONDITION.CONFUSION, 1, 5)
   },
   {
     fieldType: 'Ethereal',
     finisherType: 'Whirl',
-    outcome: condition('Confounding Bolts', 'Confusion', 1, 5)
+    outcome: condition('Confounding Bolts', CONDITION.CONFUSION, 1, 5)
   },
   {
     fieldType: 'Fire',
     finisherType: 'Blast',
-    outcome: boon('Area Might', 'Might', 3, 20)
+    outcome: boon('Area Might', BOON.MIGHT, 3, 20)
   },
   { fieldType: 'Fire', finisherType: 'Leap', outcome: aura('Fire Aura', 5) },
   {
     fieldType: 'Fire',
     finisherType: 'Projectile',
-    outcome: condition('Burning', 'Burning', 1, 1)
+    outcome: condition(CONDITION.BURNING, CONDITION.BURNING, 1, 1)
   },
   {
     fieldType: 'Fire',
     finisherType: 'Whirl',
-    outcome: condition('Burning Bolts', 'Burning', 1, 1)
+    outcome: condition('Burning Bolts', CONDITION.BURNING, 1, 1)
   },
   { fieldType: 'Ice', finisherType: 'Blast', outcome: aura('Frost Aura', 3) },
   { fieldType: 'Ice', finisherType: 'Leap', outcome: aura('Frost Aura', 5) },
   {
     fieldType: 'Ice',
     finisherType: 'Projectile',
-    outcome: condition('Chilled', 'Chilled', 1, 1)
+    outcome: condition(CONDITION.CHILLED, CONDITION.CHILLED, 1, 1)
   },
   {
     fieldType: 'Ice',
     finisherType: 'Whirl',
-    outcome: condition('Chilling Bolts', 'Chilled', 1, 1)
+    outcome: condition('Chilling Bolts', CONDITION.CHILLED, 1, 1)
   },
   {
     fieldType: 'Light',
@@ -207,7 +209,7 @@ const definitions: readonly ComboDefinition[] = [
   {
     fieldType: 'Lightning',
     finisherType: 'Blast',
-    outcome: boon('Area Swiftness', 'Swiftness', 1, 10)
+    outcome: boon('Area Swiftness', BOON.SWIFTNESS, 1, 10)
   },
   {
     fieldType: 'Lightning',
@@ -221,32 +223,32 @@ const definitions: readonly ComboDefinition[] = [
   {
     fieldType: 'Lightning',
     finisherType: 'Projectile',
-    outcome: condition('Vulnerability', 'Vulnerability', 2, 5)
+    outcome: condition(CONDITION.VULNERABILITY, CONDITION.VULNERABILITY, 2, 5)
   },
   {
     fieldType: 'Lightning',
     finisherType: 'Whirl',
-    outcome: condition('Brutal Bolts', 'Vulnerability', 2, 5)
+    outcome: condition('Brutal Bolts', CONDITION.VULNERABILITY, 2, 5)
   },
   {
     fieldType: 'Poison',
     finisherType: 'Blast',
-    outcome: condition('Area Weakness', 'Weakness', 1, 3)
+    outcome: condition('Area Weakness', CONDITION.WEAKNESS, 1, 3)
   },
   {
     fieldType: 'Poison',
     finisherType: 'Leap',
-    outcome: condition('Weakness', 'Weakness', 1, 8)
+    outcome: condition(CONDITION.WEAKNESS, CONDITION.WEAKNESS, 1, 8)
   },
   {
     fieldType: 'Poison',
     finisherType: 'Projectile',
-    outcome: condition('Poisoned', 'Poisoned', 1, 2)
+    outcome: condition(CONDITION.POISONED, CONDITION.POISONED, 1, 2)
   },
   {
     fieldType: 'Poison',
     finisherType: 'Whirl',
-    outcome: condition('Poison Bolts', 'Poisoned', 1, 2)
+    outcome: condition('Poison Bolts', CONDITION.POISONED, 1, 2)
   },
   {
     fieldType: 'Smoke',
@@ -259,8 +261,8 @@ const definitions: readonly ComboDefinition[] = [
     finisherType: 'Projectile',
     outcome: Object.freeze({
       kind: 'condition',
-      name: 'Blindness',
-      condition: 'Blindness',
+      name: CONDITION.BLINDNESS,
+      condition: CONDITION.BLINDNESS,
       stacks: 1,
       duration: 3
     })
@@ -271,7 +273,7 @@ const definitions: readonly ComboDefinition[] = [
     outcome: Object.freeze({
       kind: 'condition',
       name: 'Blinding Bolts',
-      condition: 'Blindness',
+      condition: CONDITION.BLINDNESS,
       stacks: 1,
       duration: 3
     })
@@ -289,12 +291,12 @@ const definitions: readonly ComboDefinition[] = [
   {
     fieldType: 'Water',
     finisherType: 'Projectile',
-    outcome: boon('Regeneration', 'Regeneration', 1, 2)
+    outcome: boon(BOON.REGENERATION, BOON.REGENERATION, 1, 2)
   },
   {
     fieldType: 'Water',
     finisherType: 'Whirl',
-    outcome: boon('Healing Bolts', 'Regeneration', 1, 2)
+    outcome: boon('Healing Bolts', BOON.REGENERATION, 1, 2)
   }
 ].map((definition) => Object.freeze(definition) as ComboDefinition);
 

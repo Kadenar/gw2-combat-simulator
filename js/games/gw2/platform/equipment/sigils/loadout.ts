@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
@@ -139,10 +140,10 @@ export function aggregateSigilSet(sigilNames: readonly string[] | null | undefin
     boonDurationBonus: 0
   };
   const durationFields: Readonly<Record<string, string>> = {
-    bleedingDuration: 'Bleeding',
-    burningDuration: 'Burning',
-    poisonDuration: 'Poisoned',
-    tormentDuration: 'Torment'
+    bleedingDuration: CONDITION.BLEEDING,
+    burningDuration: CONDITION.BURNING,
+    poisonDuration: CONDITION.POISONED,
+    tormentDuration: CONDITION.TORMENT
   };
 
   for (const name of new Set(sigilNames || [])) {

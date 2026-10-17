@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -138,7 +139,7 @@ export function recallThiefAxes(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSk
         at,
         activationId: cast.id,
         offTarget: cast.command.offTarget,
-        condition: torment ? 'Torment' : 'Weakness',
+        condition: torment ? CONDITION.TORMENT : CONDITION.WEAKNESS,
         stacks: 1,
         duration: torment ? 2 : 1
       })
@@ -152,7 +153,7 @@ export function recallThiefAxes(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSk
           at,
           activationId: cast.id,
           offTarget: cast.command.offTarget,
-          condition: 'Immobilized',
+          condition: CONDITION.IMMOBILIZED,
           stacks: 1,
           duration: 1.5
         })

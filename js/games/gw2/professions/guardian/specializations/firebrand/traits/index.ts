@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -54,7 +56,7 @@ export const swiftScholar = defineTrait({
   balance: {
     minimumStacks: 3,
     resourceGain: 1,
-    effects: [{ type: 'boon', name: 'quickness', boon: 'quickness', stacks: 1, duration: 3 }]
+    effects: [{ type: 'boon', name: boonKey(BOON.QUICKNESS), boon: BOON.QUICKNESS, stacks: 1, duration: 3 }]
   },
   // The minor needs no explicit selection, but its rewards still obey trigger isolation; pages remain mechanic-owned.
   triggers: [
@@ -127,9 +129,9 @@ const legendaryLore = defineTrait({
   name: 'Legendary Lore',
   balance: {
     effects: [
-      { type: 'boon', name: 'might', boon: 'might', stacks: 2, duration: 10 },
-      { type: 'boon', name: 'regeneration', boon: 'regeneration', stacks: 1, duration: 6 },
-      { type: 'boon', name: 'protection', boon: 'protection', stacks: 1, duration: 4 }
+      { type: 'boon', name: boonKey(BOON.MIGHT), boon: BOON.MIGHT, stacks: 2, duration: 10 },
+      { type: 'boon', name: boonKey(BOON.REGENERATION), boon: BOON.REGENERATION, stacks: 1, duration: 6 },
+      { type: 'boon', name: boonKey(BOON.PROTECTION), boon: BOON.PROTECTION, stacks: 1, duration: 4 }
     ]
   },
   triggers: [
@@ -144,7 +146,11 @@ const legendaryLore = defineTrait({
         const selectedBoon = requireEffect(
           boonProfile,
           'boon',
-          skill.tome === 'justice' ? 'might' : skill.tome === 'resolve' ? 'regeneration' : 'protection'
+          skill.tome === 'justice'
+            ? boonKey(BOON.MIGHT)
+            : skill.tome === 'resolve'
+              ? boonKey(BOON.REGENERATION)
+              : boonKey(BOON.PROTECTION)
         );
         const boonCause = {
           ...guardianCastCause(runtime, cast),
@@ -189,7 +195,7 @@ export const liberatorsVow = defineTrait({
   name: "Liberator's Vow",
   balance: {
     internalCooldown: 7,
-    effects: [{ type: 'boon', name: 'quickness', boon: 'quickness', stacks: 1, duration: 2 }]
+    effects: [{ type: 'boon', name: boonKey(BOON.QUICKNESS), boon: BOON.QUICKNESS, stacks: 1, duration: 2 }]
   },
   triggers: [
     {
@@ -200,7 +206,7 @@ export const liberatorsVow = defineTrait({
         if (skill.type !== 'Heal') return;
 
         const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.LIBERATORS_VOW);
-        const selectedBoon = requireEffect(boonProfile, 'boon', 'quickness');
+        const selectedBoon = requireEffect(boonProfile, 'boon', boonKey(BOON.QUICKNESS));
 
         if (
           !selectedBoon ||
@@ -222,7 +228,7 @@ export const liberatorsVow = defineTrait({
             name: "Liberator's Vow",
             at: runtime.time,
             sourceSkill: skill.name,
-            detail: 'Quickness',
+            detail: BOON.QUICKNESS,
             icon: guardianTraitIcon(TRAIT.LIBERATORS_VOW)
           }
         });
@@ -237,7 +243,7 @@ const weightyTerms = defineTrait({
   name: 'Weighty Terms',
   balance: {
     resourceGain: 2,
-    effects: [{ type: 'condition', name: 'Slow', condition: 'Slow', stacks: 1, duration: 1.5 }]
+    effects: [{ type: 'condition', name: CONDITION.SLOW, condition: CONDITION.SLOW, stacks: 1, duration: 1.5 }]
   },
   triggers: [
     onTriggerPoint(finalMantraChargeUsed, { run: grantWeightyTerms }),
@@ -273,12 +279,12 @@ const stalwartSpeed = defineTrait({
   name: 'Stalwart Speed',
   balance: {
     internalCooldown: 7,
-    effects: [{ type: 'boon', name: 'quickness', boon: 'quickness', stacks: 1, duration: 2 }]
+    effects: [{ type: 'boon', name: boonKey(BOON.QUICKNESS), boon: BOON.QUICKNESS, stacks: 1, duration: 2 }]
   },
   triggers: [
     onTriggerPoint(firebrandBuffApplied, {
       when: (_runtime, { cause }: FirebrandBuffApplication) =>
-        sharedDelivery(cause) && (cause.kind === 'aegis' || cause.kind === 'stability'),
+        sharedDelivery(cause) && (cause.kind === boonKey(BOON.AEGIS) || cause.kind === boonKey(BOON.STABILITY)),
       run: grantStalwartSpeed
     })
   ]
@@ -290,8 +296,8 @@ const stoicDemeanor = defineTrait({
   name: 'Stoic Demeanor',
   balance: {
     effects: [
-      { type: 'boon', name: 'resistance', boon: 'resistance', stacks: 1, duration: 2 },
-      { type: 'boon', name: 'might', boon: 'might', stacks: 3, duration: 10 }
+      { type: 'boon', name: boonKey(BOON.RESISTANCE), boon: BOON.RESISTANCE, stacks: 1, duration: 2 },
+      { type: 'boon', name: boonKey(BOON.MIGHT), boon: BOON.MIGHT, stacks: 3, duration: 10 }
     ]
   },
   triggers: [
@@ -310,8 +316,8 @@ const unrelentingCriticism = defineTrait({
     effects: [
       {
         type: 'condition',
-        name: 'Bleeding',
-        condition: 'Bleeding',
+        name: CONDITION.BLEEDING,
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 4.5
       }
@@ -344,7 +350,8 @@ export const quickfire = defineTrait({
   },
   triggers: [
     onTriggerPoint(firebrandBuffApplied, {
-      when: (_runtime, { cause }: FirebrandBuffApplication) => sharedDelivery(cause) && cause.kind === 'quickness',
+      when: (_runtime, { cause }: FirebrandBuffApplication) =>
+        sharedDelivery(cause) && cause.kind === boonKey(BOON.QUICKNESS),
       run: grantQuickfireAshes
     })
   ]
@@ -397,7 +404,7 @@ function openSwiftScholarSession(runtime: GuardianRuntime, { cast, virtue, ready
   if (!ready) return;
 
   const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.SWIFT_SCHOLAR);
-  const selectedBoon = requireEffect(boonProfile, 'boon', 'quickness');
+  const selectedBoon = requireEffect(boonProfile, 'boon', boonKey(BOON.QUICKNESS));
   const boonCause = guardianCastCause(runtime, cast);
 
   if (!selectedBoon) return;
@@ -485,7 +492,7 @@ function grantQuickfireAshes(runtime: GuardianRuntime, { cause: event }: Firebra
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.QUICKFIRE);
   const buff = requireEffect(profile, 'buff', 'ashes-of-the-just');
   const ashes = requireBalanceProfileFromContext(runtime, PROFILE.ashes);
-  const burn = requireEffect(ashes, 'condition', 'Burning');
+  const burn = requireEffect(ashes, 'condition', CONDITION.BURNING);
 
   if (!buff || !burn || !runtime.procs.claim(TRAIT.QUICKFIRE, 'guardian.firebrand.quickfire', runtime.time)) return;
 
@@ -555,7 +562,7 @@ function applyUnrelentingCriticism(runtime: GuardianRuntime, { cause: event }: F
   // Keep axe ownership and reaction settlement while the profile owns Bleeding's authored fields.
   emitTraitProfile(runtime, TRAIT.UNRELENTING_CRITICISM, TRAIT.UNRELENTING_CRITICISM, undefined, {
     at: runtime.time,
-    effect: { type: 'condition', name: 'Bleeding' },
+    effect: { type: 'condition', name: CONDITION.BLEEDING },
     settlement: 'reaction',
     attribution: {
       ...attribution(event),

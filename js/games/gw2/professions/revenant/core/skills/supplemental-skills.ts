@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Owns Core Revenant supplemental skill identities that have no narrower catalog family. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -17,7 +18,7 @@ export const REVENANT_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 10,
         actorType: 'player'
@@ -46,14 +47,14 @@ export const REVENANT_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Slow',
+        condition: CONDITION.SLOW,
         stacks: 1,
         duration: 3,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 3,
         actorType: 'player'

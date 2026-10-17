@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -81,7 +82,7 @@ export const cryOfPain = defineTrait<MesmerSkill>({
   balance: {
     // This replaces the shatter's confusion package rather than emitting an independently owned proc.
     damagePreviewAttribution: 'skill',
-    effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 4, stacks: 2 }]
+    effects: [{ name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 4, stacks: 2 }]
   }
 });
 
@@ -96,7 +97,7 @@ export const maimTheDisillusioned = defineTrait<MesmerSkill>({
   id: TRAIT.MAIM_THE_DISILLUSIONED,
   name: 'Maim the Disillusioned',
   balance: {
-    effects: [{ name: 'Torment', type: 'condition', condition: 'Torment', duration: 6, stacks: 1 }]
+    effects: [{ name: CONDITION.TORMENT, type: 'condition', condition: CONDITION.TORMENT, duration: 6, stacks: 1 }]
   }
 });
 
@@ -129,9 +130,9 @@ export const masterOfFragmentation = defineTrait<MesmerSkill>({
     durationMultiplier: 1,
     damageIncreasePerStack: 0.3,
     effects: [
-      { name: 'Crippled', type: 'condition', condition: 'Crippled', duration: 3, stacks: 1 },
+      { name: CONDITION.CRIPPLED, type: 'condition', condition: CONDITION.CRIPPLED, duration: 3, stacks: 1 },
       // provisional 3s Weakness; replace when Deafening Drum's trait duration is confirmed.
-      { name: 'Weakness', type: 'condition', condition: 'Weakness', duration: 3, stacks: 1 }
+      { name: CONDITION.WEAKNESS, type: 'condition', condition: CONDITION.WEAKNESS, duration: 3, stacks: 1 }
     ]
   },
   modifierRules: [
@@ -152,7 +153,7 @@ export const masterOfFragmentation = defineTrait<MesmerSkill>({
   ],
   triggers: [
     // Native shatter impacts inherit their triggering skill while selecting only the matching condition.
-    ...(['Weakness', 'Crippled'] as const).map<
+    ...([CONDITION.WEAKNESS, CONDITION.CRIPPLED] as const).map<
       Extract<NonNullable<TraitDefinition['triggers']>[number], { on: 'damage.resolved' }>
     >((condition) => ({
       on: 'damage.resolved' as const,
@@ -161,7 +162,7 @@ export const masterOfFragmentation = defineTrait<MesmerSkill>({
         isGw2PlayerActorEvent(event) &&
         event.sourceId === event.skillId &&
         !missesTarget(event) &&
-        (condition === 'Weakness'
+        (condition === CONDITION.WEAKNESS
           ? event.skillId === ID.DEAFENING_DRUM
           : [ID.CRY_OF_FRUSTRATION, ID.REWINDER, ID.BLADESONG_SORROW, ID.FLUSTERING_FLUTE].some(
               (id) => id === event.skillId
@@ -205,7 +206,7 @@ export const thePledge = defineTrait<MesmerSkill>({
   id: TRAIT.THE_PLEDGE,
   name: 'The Pledge',
   balance: {
-    effects: [{ name: 'Burning', type: 'condition', condition: 'Burning', duration: 3, stacks: 2 }]
+    effects: [{ name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, duration: 3, stacks: 2 }]
   }
 });
 
@@ -235,7 +236,7 @@ export const phantasmalForce = defineTrait<MesmerSkill>({
 function triggerThePledge(context: MesmerRuntime, event: SimulationEvent): void {
   if (
     event.type !== 'condition' ||
-    event.condition !== 'Burning' ||
+    event.condition !== CONDITION.BURNING ||
     !isGw2PlayerActorEvent(event) ||
     event.sourceId !== event.skillId ||
     (event.skillId !== ID.PHANTASMAL_MAGE && event.skillId !== ID.THE_PRESTIGE)
@@ -243,13 +244,13 @@ function triggerThePledge(context: MesmerRuntime, event: SimulationEvent): void 
     return;
 
   const thePledgeProfile = requireBalanceProfileFromContext(context, TRAIT.THE_PLEDGE);
-  const effect = requireEffect(thePledgeProfile, 'condition', 'Burning');
+  const effect = requireEffect(thePledgeProfile, 'condition', CONDITION.BURNING);
 
   if (!effect) return;
 
   emitTraitProfile(context, TRAIT.THE_PLEDGE, TRAIT.THE_PLEDGE, event, {
     at: event.at,
-    effect: { type: 'condition', name: 'Burning' },
+    effect: { type: 'condition', name: CONDITION.BURNING },
     transform: (payload) =>
       buildResolverCondition({
         actorType: 'player',
@@ -258,7 +259,7 @@ function triggerThePledge(context: MesmerRuntime, event: SimulationEvent): void 
         sourceId: TRAIT.THE_PLEDGE,
         skillId: event.skillId,
         skillName: event.skillName,
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         duration: Number(payload.duration),
         stacks: Number(payload.stacks)
       })
@@ -273,7 +274,7 @@ export function cryOfPainConfusion(
   if (!hasTrait(context, TRAIT.CRY_OF_PAIN)) return condition;
 
   const cryOfPainProfile = requireBalanceProfileFromContext(context, TRAIT.CRY_OF_PAIN);
-  const effect = requireEffect(cryOfPainProfile, 'condition', 'Confusion');
+  const effect = requireEffect(cryOfPainProfile, 'condition', CONDITION.CONFUSION);
   return effect ?? condition;
 }
 
@@ -337,7 +338,7 @@ function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: MesmerS
   if (!resolution.traitHits.length) return;
 
   const maimTheDisillusionedProfile = requireBalanceProfileFromContext(context, TRAIT.MAIM_THE_DISILLUSIONED);
-  const effect = requireEffect(maimTheDisillusionedProfile, 'condition', 'Torment');
+  const effect = requireEffect(maimTheDisillusionedProfile, 'condition', CONDITION.TORMENT);
 
   if (!effect) return;
 

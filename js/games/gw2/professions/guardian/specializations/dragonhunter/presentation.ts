@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -44,7 +45,7 @@ export function bindDragonhunterUi(catalog: Readonly<CanonicalCatalog<GuardianSk
         scope: ['damage'],
         description: 'Target tethered by Spear of Justice'
       });
-      preview.condition('Crippled', "Zealot's Aggression");
+      preview.condition(CONDITION.CRIPPLED, "Zealot's Aggression");
       return preview.controls;
     },
     rotationStateSnapshot: dragonhunterStateSnapshot,

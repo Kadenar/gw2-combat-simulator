@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Bristleback family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -16,7 +17,7 @@ export const SOULBEAST_BRISTLEBACK_BEAST_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 2,
         duration: 5
       }
@@ -27,7 +28,7 @@ export const SOULBEAST_BRISTLEBACK_BEAST_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 5
       }

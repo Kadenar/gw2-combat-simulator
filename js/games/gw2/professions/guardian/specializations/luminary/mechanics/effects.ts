@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -95,7 +96,8 @@ function initialState(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>
 
   if (restoreLuminaryArmaments(runtime, cast, duration)) return;
 
-  if (id === INITIAL.resolution) runtime.effects.emit({ kind: 'packet', event: { ...event, kind: 'resolution' } });
+  if (id === INITIAL.resolution)
+    runtime.effects.emit({ kind: 'packet', event: { ...event, kind: boonKey(BOON.RESOLUTION) } });
 }
 
 /** Schedule finite activation effects; all state mutations happen when their boundary executes. */

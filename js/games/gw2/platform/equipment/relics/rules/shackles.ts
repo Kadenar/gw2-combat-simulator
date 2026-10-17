@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -14,7 +15,7 @@ export const shackles = defineRelic({
     const actorType = gw2EventActorType(application);
 
     if (
-      application.condition !== 'Immobilized' ||
+      application.condition !== CONDITION.IMMOBILIZED ||
       (actorType !== GW2_EVENT_ACTOR_TYPES.PLAYER && actorType !== GW2_EVENT_ACTOR_TYPES.SUMMON) ||
       !isInternalCooldownReady(application.at, state.readyAt)
     ) {

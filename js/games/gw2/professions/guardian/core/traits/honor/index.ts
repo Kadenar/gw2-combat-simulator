@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { impactEffects, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
@@ -29,7 +30,16 @@ export const empoweringMight = defineTrait({
   name: 'Empowering Might',
   balance: {
     internalCooldown: 1,
-    effects: [{ type: 'boon', name: 'might', boon: 'might', stacks: 1, duration: 8, audience: { recipients: 'party' } }]
+    effects: [
+      {
+        type: 'boon',
+        name: boonKey(BOON.MIGHT),
+        boon: BOON.MIGHT,
+        stacks: 1,
+        duration: 8,
+        audience: { recipients: 'party' }
+      }
+    ]
   },
   triggers: [
     {
@@ -94,8 +104,8 @@ export const writOfPersistence = defineTrait({
         },
         {
           type: 'boon',
-          name: 'might',
-          boon: 'might',
+          name: boonKey(BOON.MIGHT),
+          boon: BOON.MIGHT,
           stacks: 4,
           duration: 5,
           applications: 2,
@@ -249,7 +259,7 @@ function writOfPersistenceEffects(
       for (const tick of strikeEffectTicks(effect))
         selected.push({
           type: 'boon',
-          boon: skill.id === ID.SYMBOL_OF_FAITH ? 'regeneration' : 'resolution',
+          boon: skill.id === ID.SYMBOL_OF_FAITH ? BOON.REGENERATION : BOON.RESOLUTION,
           duration: balanceNumberFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE, 'boonDuration'),
           stacks: balanceNumberFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE, 'boonStacks'),
           atMs: tick.atMs,

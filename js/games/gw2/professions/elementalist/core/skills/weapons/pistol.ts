@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type {
   ElementalistRuntime,
@@ -70,7 +72,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
       { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 1.5, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 1.5, metadata: {} }
       ]
     )
   },
@@ -95,8 +97,8 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
       { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 0.8 },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 8, metadata: {} },
-        { type: 'boon', boon: 'Might', stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8, metadata: {} },
+        { type: 'boon', boon: BOON.MIGHT, stacks: 1, duration: 6, metadata: {} }
       ]
     )
   },
@@ -134,23 +136,23 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
           ],
           metadata: {}
         },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 7, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 7, metadata: {} }
       ]),
       ...impactEffects({ atMs: 1440, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         { type: 'strike', coefficient: 0.25 },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2, metadata: {} }
       ]),
       ...impactEffects({ atMs: 1440, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         { type: 'strike', coefficient: 0.25 },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2, metadata: {} }
       ]),
       ...impactEffects({ atMs: 1440, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         { type: 'strike', coefficient: 0.25 },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2, metadata: {} }
       ]),
       ...impactEffects({ atMs: 1440, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         { type: 'strike', coefficient: 0.25 },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2, metadata: {} }
       ])
     ]
   },
@@ -216,7 +218,12 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
       },
       {
         type: 'condition',
-        ticks: FRIGID_FLURRY_SHOT_OFFSETS_MS.map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 7 })),
+        ticks: FRIGID_FLURRY_SHOT_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: CONDITION.BLEEDING,
+          stacks: 1,
+          duration: 7
+        })),
         metadata: {}
       }
     ])
@@ -253,7 +260,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
       { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 0.75 },
-        { type: 'condition', condition: 'Chilled', stacks: 1, duration: 1.5, metadata: {} }
+        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 1.5, metadata: {} }
       ]
     )
   },
@@ -274,7 +281,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
       { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 0.33 },
-        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6, metadata: {} }
       ]
     )
   },
@@ -302,7 +309,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
       { atMs: 280, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 0.75, canCrit: true },
-        { type: 'condition', condition: 'Vulnerability', stacks: 8, duration: 10, metadata: {} },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 8, duration: 10, metadata: {} },
         { type: 'control', applications: 1, controlKind: 'crowd-control' }
       ]
     )
@@ -360,7 +367,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.8 },
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3, metadata: {} }
     ])
   },
   [ID.AERIAL_AGILITY_DASH]: {
@@ -389,7 +396,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
         ],
         metadata: {}
       },
-      { type: 'boon', boon: 'Aegis', stacks: 1, duration: 3, metadata: {} }
+      { type: 'boon', boon: BOON.AEGIS, stacks: 1, duration: 3, metadata: {} }
     ])
   },
   [ID.PIERCING_PEBBLE]: {
@@ -409,7 +416,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
       { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 0.35 },
-        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 5, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5, metadata: {} }
       ]
     )
   },
@@ -431,7 +438,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.8 },
-      { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 10, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 10, metadata: {} }
     ])
   },
   [ID.BOULDER_BLAST]: {
@@ -467,8 +474,8 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
           ],
           metadata: {}
         },
-        { type: 'condition', condition: 'Bleeding', stacks: 5, duration: 8, metadata: {} },
-        { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1.5, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 5, duration: 8, metadata: {} },
+        { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1.5, metadata: {} }
       ]
     )
   },
@@ -495,7 +502,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
         { type: 'strike', coefficient: 0.2 },
         {
           type: 'condition',
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 2,
           duration: 6,
           metadata: {}
@@ -503,15 +510,15 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
       ]),
       ...impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         { type: 'strike', coefficient: 0.2 },
-        { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 4, duration: 6, metadata: {} }
       ]),
       ...impactEffects({ atMs: 680, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         { type: 'strike', coefficient: 0.2 },
-        { type: 'condition', condition: 'Vulnerability', stacks: 4, duration: 10, metadata: {} }
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 4, duration: 10, metadata: {} }
       ]),
       ...impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         { type: 'strike', coefficient: 0.2 },
-        { type: 'condition', condition: 'Crippled', stacks: 1, duration: 4, metadata: {} }
+        { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 4, metadata: {} }
       ])
     ]
   }
@@ -679,7 +686,7 @@ export const pistolSideEffectHandlers: RuntimeProfession<
 /** Bullet enhancements retain independent patchable profiles beside their owning skills. */
 export const pistolBalanceProfiles: readonly BalanceProfile[] = Object.freeze([
   variant(PROFILE.ragingRicochet, ID.RAGING_RICOCHET, 'Raging Ricochet - Fire Bullet', {
-    effects: [{ type: 'boon', name: 'Fire', boon: 'Might', stacks: 1, duration: 10 }]
+    effects: [{ type: 'boon', name: 'Fire', boon: BOON.MIGHT, stacks: 1, duration: 10 }]
   }),
   variant(PROFILE.searingSalvo, ID.SEARING_SALVO, 'Searing Salvo - Fire Bullet', {
     effects: [{ type: 'buff', name: 'Fire', kind: 'Fire Aura', stacks: 1, duration: 4 }]
@@ -688,7 +695,7 @@ export const pistolBalanceProfiles: readonly BalanceProfile[] = Object.freeze([
     initialDelay: 4,
     effects: [
       { type: 'strike', name: 'Water Bullet', coefficient: 0.75, hits: 1 },
-      { type: 'condition', name: 'Water Bullet', condition: 'Bleeding', stacks: 5, duration: 8 }
+      { type: 'condition', name: 'Water Bullet', condition: CONDITION.BLEEDING, stacks: 5, duration: 8 }
     ]
   }),
   variant(PROFILE.dazingDischarge, ID.DAZING_DISCHARGE, 'Dazing Discharge - Air Bullet', {
@@ -698,7 +705,7 @@ export const pistolBalanceProfiles: readonly BalanceProfile[] = Object.freeze([
   variant(PROFILE.shatteringStone, ID.SHATTERING_STONE, 'Shattering Stone - Earth Bullet', {
     maximumStacks: 3,
     durationMultiplier: 10,
-    effects: [{ type: 'condition', name: 'Triggered Bleeding', condition: 'Bleeding', stacks: 1, duration: 5 }]
+    effects: [{ type: 'condition', name: 'Triggered Bleeding', condition: CONDITION.BLEEDING, stacks: 1, duration: 5 }]
   })
 ]);
 

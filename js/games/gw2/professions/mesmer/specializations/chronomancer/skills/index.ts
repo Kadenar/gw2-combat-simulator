@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 /**
  * Owns Chronomancer well, profession-skill, and Continuum action catalog data.
@@ -18,7 +20,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
     effects: [
       {
         type: 'boon',
-        boon: 'aegis',
+        boon: BOON.AEGIS,
         audience: { recipients: 'party', maximumRecipients: 5 },
         duration: 3,
         applications: 3,
@@ -27,11 +29,11 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
         timingScale: 'fixed'
       },
       // The immediate stun-break stability is personal; the well's later grant protects allies.
-      { type: 'boon', boon: 'stability', stacks: 1, duration: 1, audience: { recipients: 'self' } },
+      { type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 1, audience: { recipients: 'self' } },
       ...impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
         {
           type: 'boon',
-          boon: 'stability',
+          boon: BOON.STABILITY,
           stacks: 3,
           audience: { recipients: 'party', maximumRecipients: 5 },
           duration: 5,
@@ -158,7 +160,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
         type: 'condition',
         ticks: [560, 1560, 2560, 3560].map((atMs) => ({
           atMs,
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 2
         }))
@@ -167,7 +169,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
         type: 'condition',
         ticks: [560, 1560, 2560, 3560].map((atMs) => ({
           atMs,
-          condition: 'Weakness',
+          condition: CONDITION.WEAKNESS,
           stacks: 1,
           duration: 2
         }))
@@ -233,7 +235,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
-      { type: 'condition', condition: 'Slow', stacks: 1, duration: 2 }
+      { type: 'condition', condition: CONDITION.SLOW, stacks: 1, duration: 2 }
     ]
   },
   [ID.REWINDER]: {
@@ -242,11 +244,13 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
     shatter: {
       balanceProfileId: 'mesmer.chronomancer.rewinder',
       slot: 2,
-      kind: 'confusion',
+      kind: CONDITION.CONFUSION.toLowerCase(),
       resolver: 'mesmer.core.clone-shatter',
       coefficients: [0.38, 0.76, 1.14, 1.52],
       rechargeReductionPerSource: 3,
-      effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 3, stacks: 1 }]
+      effects: [
+        { name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 3, stacks: 1 }
+      ]
     },
     castTimeMs: 0,
     lockouts: [

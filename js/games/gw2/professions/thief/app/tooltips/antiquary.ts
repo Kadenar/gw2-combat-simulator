@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import {
   fromProfile,
   tooltipFactorChange,
@@ -275,9 +276,9 @@ export const antiquaryTooltips = {
         'Using an artifact grants alacrity to you and nearby allies, up to five targets. Offensive artifacts also grant might; defensive artifacts grant protection instead.',
       // Artifact categories follow the same named boons selected by combat.
       facts: [
-        ['might', 'offensive artifact'],
-        ['protection', 'defensive artifact'],
-        ['alacrity', 'any artifact']
+        [boonKey(BOON.MIGHT), 'offensive artifact'],
+        [boonKey(BOON.PROTECTION), 'defensive artifact'],
+        [boonKey(BOON.ALACRITY), 'any artifact']
       ].flatMap(([name, label]) => {
         const effect = requireEffect(tooltipProfile(balanceContext, entity.id), 'boon', name);
         return effect ? simulationEffectFacts([effect], label).facts : [];

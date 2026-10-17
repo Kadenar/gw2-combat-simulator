@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { elementalEmpowermentAttributes } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
@@ -116,7 +118,7 @@ const elementalSynergy = defineTrait({
   balance: {
     internalCooldown: 10,
     resourceGain: 50,
-    effects: [boon('Fire', 'might', 6, 10), boon('Earth', 'stability', 2, 6)]
+    effects: [boon('Fire', boonKey(BOON.MIGHT), 6, 10), boon('Earth', boonKey(BOON.STABILITY), 2, 6)]
   }
 });
 /** Shares the existing Elemental Empowerment profile's scaling fields without duplicating patch targets. */
@@ -174,7 +176,7 @@ export const viciousEmpowerment = defineTrait({
         stacks: 2,
         duration: 15
       },
-      boon('Might', 'might', 2, 10)
+      boon(BOON.MIGHT, boonKey(BOON.MIGHT), 2, 10)
     ]
   }
 });
@@ -196,7 +198,7 @@ const energizedElements = defineTrait({
   name: 'Energized Elements',
   balance: {
     resourceGain: 2,
-    effects: [boon('Fury', 'fury', 1, 2)]
+    effects: [boon(BOON.FURY, boonKey(BOON.FURY), 1, 2)]
   }
 });
 /** Owns Spectacular Sphere tuning and its existing execution behavior. */
@@ -211,11 +213,11 @@ const spectacularSphere = defineTrait({
   name: 'Spectacular Sphere',
   balance: {
     effects: [
-      boon('Quickness', 'quickness', 1, 2),
-      boon('Fire', 'might', 5, 10),
-      boon('Water', 'vigor', 1, 5),
-      boon('Air', 'fury', 1, 5),
-      boon('Earth', 'aegis', 1, 3)
+      boon(BOON.QUICKNESS, boonKey(BOON.QUICKNESS), 1, 2),
+      boon('Fire', boonKey(BOON.MIGHT), 5, 10),
+      boon('Water', boonKey(BOON.VIGOR), 1, 5),
+      boon('Air', boonKey(BOON.FURY), 1, 5),
+      boon('Earth', boonKey(BOON.AEGIS), 1, 3)
     ]
   }
 });
@@ -253,13 +255,13 @@ function applySphereStartTraits(
 
   const durationMultiplier = sphereSpecialistDuration(context);
   const spectacularSphereProfile = requireBalanceProfileFromContext(context, TRAIT.SPECTACULAR_SPHERE);
-  const quickness = requireEffect(spectacularSphereProfile, 'boon', 'Quickness');
+  const quickness = requireEffect(spectacularSphereProfile, 'boon', BOON.QUICKNESS);
 
   if (quickness) {
     emitTraitProfile(context, TRAIT.SPECTACULAR_SPHERE, TRAIT.SPECTACULAR_SPHERE, undefined, {
       at: cast.start,
       fullEnd: cast.start,
-      effect: { type: 'boon', name: 'Quickness' },
+      effect: { type: 'boon', name: BOON.QUICKNESS },
       // Sphere traits scale the authored base duration before the live boon-duration transaction.
       transform: (packet) => ({ ...packet, duration: Number(packet.duration) * durationMultiplier }),
       cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
@@ -307,13 +309,13 @@ function applyEnergizedElements(context: ElementalistRuntime, event: SimulationE
     // Report only the capped gain while preserving energy, Fury, then resource-observation ordering.
     context.resourceController.grant('catalystEnergy', energyGain);
     const after = context.resourceController.value('catalystEnergy');
-    const fury = requireEffect(energizedElementsProfile, 'boon', 'Fury');
+    const fury = requireEffect(energizedElementsProfile, 'boon', BOON.FURY);
 
     if (fury) {
       emitTraitProfile(context, TRAIT.ENERGIZED_ELEMENTS, TRAIT.ENERGIZED_ELEMENTS, undefined, {
         at: event.at,
         fullEnd: event.at,
-        effect: { type: 'boon', name: 'Fury' },
+        effect: { type: 'boon', name: BOON.FURY },
         attribution: {
           source: 'Energized Elements',
           sourceId: event.sourceId,
@@ -518,7 +520,7 @@ function elementalEpitomeAura(context: unknown, attunement: ElementalistAttuneme
  * before combat start.
  */
 function applyViciousEmpowerment(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
-  const immobilize = event.condition === 'Immobilized';
+  const immobilize = event.condition === CONDITION.IMMOBILIZED;
 
   if (
     event.actorType !== 'player' ||

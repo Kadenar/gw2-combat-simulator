@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 /**
  * Scrapper Engineer skill mechanics.
  *
@@ -24,7 +25,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 2,
         stacks: 1
       }
@@ -106,7 +107,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'Might',
+        boon: BOON.MIGHT,
         duration: 15,
         stacks: 2
       }

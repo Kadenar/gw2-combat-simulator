@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -20,7 +21,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'condition',
         // Each Bloodbane projectile owns its Bleeding so partial casts retain only landed packets.
-        ticks: [600, 720, 840].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 6 })),
+        ticks: [600, 720, 840].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 1, duration: 6 })),
         actorType: 'player'
       }
     ])
@@ -53,7 +54,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         {
           type: 'condition',
           // Shattershot's Bleeding lands with the projectile on its 400 ms commit frame.
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 3,
           actorType: 'player'
@@ -76,7 +77,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 4,
         actorType: 'player'
@@ -113,7 +114,12 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'condition',
         actorType: 'player',
-        ticks: [0, 160, 200, 360, 400, 600, 600].map((atMs) => ({ atMs, condition: 'Torment', stacks: 1, duration: 4 }))
+        ticks: [0, 160, 200, 360, 400, 600, 600].map((atMs) => ({
+          atMs,
+          condition: CONDITION.TORMENT,
+          stacks: 1,
+          duration: 4
+        }))
       }
     ])
   },
@@ -149,7 +155,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'condition',
         ticks: Array.from({ length: 4 }, (_, index) => ({
           atMs: 1320 + index * 1000,
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 3
         })),
@@ -159,7 +165,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'condition',
         ticks: Array.from({ length: 4 }, (_, index) => ({
           atMs: 1320 + index * 1000,
-          condition: 'Slow',
+          condition: CONDITION.SLOW,
           stacks: 1,
           duration: 1.5
         })),

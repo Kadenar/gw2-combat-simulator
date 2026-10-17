@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -38,7 +39,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Par
         // Confusion applies once per channel pulse, independently of the strike packet cadence.
         ticks: [280, 560, 840, 1080, 1360, 1640, 1920].map((atMs) => ({
           atMs,
-          condition: 'confusion',
+          condition: CONDITION.CONFUSION,
           duration: 7,
           stacks: 1
         })),
@@ -71,7 +72,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'torment',
+        condition: CONDITION.TORMENT,
         duration: 4,
         stacks: 1
       }
@@ -93,7 +94,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         duration: 6,
         stacks: 1
       }

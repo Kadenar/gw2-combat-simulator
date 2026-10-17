@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -33,7 +34,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         },
         {
           type: 'condition',
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 6,
           interruptCommitMs: 360,
@@ -58,7 +59,12 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        ticks: [160, 320, 520, 680, 840].map((atMs) => ({ atMs, condition: 'Poisoned', stacks: 1, duration: 7 })),
+        ticks: [160, 320, 520, 680, 840].map((atMs) => ({
+          atMs,
+          condition: CONDITION.POISONED,
+          stacks: 1,
+          duration: 7
+        })),
         actorType: 'player'
       }
     ])
@@ -77,14 +83,14 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        condition: 'Confusion',
+        condition: CONDITION.CONFUSION,
         stacks: 3,
         duration: 5,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 3,
         actorType: 'player'
@@ -114,10 +120,10 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
       {
         type: 'condition',
         ticks: [
-          { atMs: 0, condition: 'Crippled', stacks: 1, duration: 2 },
-          { atMs: 1000, condition: 'Crippled', stacks: 1, duration: 2 },
-          { atMs: 2000, condition: 'Crippled', stacks: 1, duration: 2 },
-          { atMs: 3000, condition: 'Crippled', stacks: 1, duration: 2 }
+          { atMs: 0, condition: CONDITION.CRIPPLED, stacks: 1, duration: 2 },
+          { atMs: 1000, condition: CONDITION.CRIPPLED, stacks: 1, duration: 2 },
+          { atMs: 2000, condition: CONDITION.CRIPPLED, stacks: 1, duration: 2 },
+          { atMs: 3000, condition: CONDITION.CRIPPLED, stacks: 1, duration: 2 }
         ],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
@@ -125,7 +131,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 1.5,
         actorType: 'player'
@@ -151,7 +157,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
       // Each Burning stack is a separate application and can trigger its own relic check.
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 3,
         duration: 4.5,
         actorType: 'player'

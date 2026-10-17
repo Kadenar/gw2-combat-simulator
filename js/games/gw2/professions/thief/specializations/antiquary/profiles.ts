@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { ANTIQUARY_THIEVES_GUILD_PROFILE } from '#gw2/professions/thief/specializations/antiquary/mechanics/thieves-guild.js';
 
@@ -58,9 +59,9 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     maximumDuration: 13,
     effects: [
       { type: 'strike', name: 'Dash', coefficient: 2.4, hits: 1 },
-      { type: 'condition', name: 'Dash', condition: 'Burning', stacks: 1, duration: 6 },
+      { type: 'condition', name: 'Dash', condition: CONDITION.BURNING, stacks: 1, duration: 6 },
       { type: 'strike', name: 'Bomb', coefficient: 1.2, hits: 1 },
-      { type: 'condition', name: 'Bomb', condition: 'Burning', stacks: 1, duration: 3.5 }
+      { type: 'condition', name: 'Bomb', condition: CONDITION.BURNING, stacks: 1, duration: 3.5 }
     ]
   },
   {
@@ -81,8 +82,8 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       // Burning owns its application timing so deleting the strike does not delete this packet.
       {
         type: 'condition',
-        name: 'Burning',
-        condition: 'Burning',
+        name: CONDITION.BURNING,
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 3,
         applications: 3,
@@ -103,8 +104,8 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       { type: 'strike', name: 'Stone Summit Cannon - Backfire', coefficient: 3, hits: 1 },
       {
         type: 'condition',
-        name: 'Burning',
-        condition: 'Burning',
+        name: CONDITION.BURNING,
+        condition: CONDITION.BURNING,
         // Backfire applies the total at one impact; resolution expands its stacks.
         stacks: 3,
         duration: 4
@@ -116,6 +117,6 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Mistburn Mortar - Charged Strike',
     profileKind: 'skill-variant',
     parentId: ID.MISTBURN_MORTAR,
-    effects: [{ type: 'condition', name: 'Burning', condition: 'Burning', stacks: 1, duration: 1 }]
+    effects: [{ type: 'condition', name: CONDITION.BURNING, condition: CONDITION.BURNING, stacks: 1, duration: 1 }]
   }
 ]);

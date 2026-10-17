@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
@@ -46,7 +48,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
       { type: 'strike', coefficient: 1, hits: 1, actorType: 'summon' },
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 1,
         duration: 5,
         actorType: 'summon'
@@ -78,14 +80,21 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       ...impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.5 },
-        { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 15 }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 4, duration: 15 }
       ]),
       // Opening application owns self-conditions and boons independently of hostile target acceptance.
-      { name: 'Self Bleeding', type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10, target: 'self' },
       {
-        name: 'might',
+        name: 'Self Bleeding',
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 2,
+        duration: 10,
+        target: 'self'
+      },
+      {
+        name: boonKey(BOON.MIGHT),
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         stacks: 5,
         duration: 20,
         audience: { recipients: 'party', maximumRecipients: 5 }
@@ -128,7 +137,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'condition',
         ticks: [280, 1280, 2280, 3280, 4280, 5280].map((atMs) => ({
           atMs,
-          condition: 'Vulnerability',
+          condition: CONDITION.VULNERABILITY,
           stacks: 2,
           duration: 5
         }))
@@ -157,7 +166,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
       {
         name: 'Self Vulnerability',
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 4,
         target: 'self'
@@ -188,7 +197,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
           type: 'condition',
           ticks: Array.from({ length: 9 }, (_, index) => ({
             atMs: 1000 + index * 1000,
-            condition: 'Bleeding',
+            condition: CONDITION.BLEEDING,
             stacks: 1,
             duration: 8
           }))
@@ -197,7 +206,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
           type: 'condition',
           ticks: Array.from({ length: 8 }, (_, index) => ({
             atMs: 2000 + index * 1000,
-            condition: 'Poisoned',
+            condition: CONDITION.POISONED,
             stacks: 1,
             duration: 5
           }))
@@ -206,7 +215,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
           type: 'condition',
           ticks: Array.from({ length: 7 }, (_, index) => ({
             atMs: 3000 + index * 1000,
-            condition: 'Torment',
+            condition: CONDITION.TORMENT,
             stacks: 1,
             duration: 5
           }))
@@ -216,7 +225,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
           // Vulnerability starts on pulse four and repeats through the final pulse.
           ticks: Array.from({ length: 6 }, (_, index) => ({
             atMs: 4000 + index * 1000,
-            condition: 'Vulnerability',
+            condition: CONDITION.VULNERABILITY,
             stacks: 1,
             duration: 8
           }))
@@ -225,7 +234,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
           type: 'condition',
           ticks: Array.from({ length: 5 }, (_, index) => ({
             atMs: 5000 + index * 1000,
-            condition: 'Crippled',
+            condition: CONDITION.CRIPPLED,
             stacks: 1,
             duration: 2
           }))
@@ -234,14 +243,14 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
           type: 'condition',
           ticks: Array.from({ length: 4 }, (_, index) => ({
             atMs: 6000 + index * 1000,
-            condition: 'Weakness',
+            condition: CONDITION.WEAKNESS,
             stacks: 1,
             duration: 3
           }))
         },
         {
           type: 'condition',
-          condition: 'Blindness',
+          condition: CONDITION.BLINDNESS,
           stacks: 1,
           duration: 3,
           applications: 3,
@@ -252,18 +261,25 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
           type: 'condition',
           ticks: Array.from({ length: 2 }, (_, index) => ({
             atMs: 8000 + index * 1000,
-            condition: 'Chilled',
+            condition: CONDITION.CHILLED,
             stacks: 1,
             duration: 2
           }))
         },
         {
           type: 'condition',
-          ticks: [{ atMs: 9000, condition: 'Burning', stacks: 1, duration: 10 }]
+          ticks: [{ atMs: 9000, condition: CONDITION.BURNING, stacks: 1, duration: 10 }]
         }
       ]),
       // Corruption completion owns self-conditions and boons independently of hostile impacts.
-      { name: 'Self Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 10, target: 'self' }
+      {
+        name: 'Self Bleeding',
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 1,
+        duration: 10,
+        target: 'self'
+      }
     ]
   },
   [ID.LICH_FORM]: {
@@ -329,7 +345,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         actorType: 'summon'
       },
       // Each commanded projectile immobilizes for two seconds (wiki: Rigor_Mortis).
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2, actorType: 'summon' }
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2, actorType: 'summon' }
     ]
   },
   [ID.TASTE_OF_DEATH]: {
@@ -376,21 +392,21 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
         actorType: 'summon'
       },
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 3,
         actorType: 'summon'
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 5,
         actorType: 'summon'
@@ -415,7 +431,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
       ...impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         {
           type: 'condition',
-          condition: 'Blindness',
+          condition: CONDITION.BLINDNESS,
           stacks: 1,
           duration: 3,
           applications: 6,
@@ -425,7 +441,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         },
         {
           type: 'condition',
-          condition: 'Chilled',
+          condition: CONDITION.CHILLED,
           stacks: 1,
           duration: 2,
           applications: 6,
@@ -456,7 +472,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
             do: lifeForceGrant({ id: 'life-force', unit: 'application', grant: { percent: 15 } })
           }
         ],
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 4
       }
@@ -467,18 +483,18 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1 },
-      { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10 },
-      { type: 'condition', condition: 'Poisoned', stacks: 2, duration: 10 },
-      { type: 'condition', condition: 'Torment', stacks: 2, duration: 6 },
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 10 },
+      { type: 'condition', condition: CONDITION.POISONED, stacks: 2, duration: 10 },
+      { type: 'condition', condition: CONDITION.TORMENT, stacks: 2, duration: 6 },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5
       },
-      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 10 },
-      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 10 },
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 10 }
+      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 10 },
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 10 },
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 10 }
     ])
   },
   [ID.SUMMON_FLESH_GOLEM]: {
@@ -517,12 +533,19 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 4,
         duration: 2
       },
       // Corruption completion owns self-conditions and boons independently of hostile impacts.
-      { name: 'Self Weakness', type: 'condition', condition: 'Weakness', stacks: 1, duration: 6, target: 'self' }
+      {
+        name: 'Self Weakness',
+        type: 'condition',
+        condition: CONDITION.WEAKNESS,
+        stacks: 1,
+        duration: 6,
+        target: 'self'
+      }
     ]
   },
   [ID.SIGNET_OF_VAMPIRISM]: {

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the River Otter family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -16,7 +17,7 @@ export const SOULBEAST_RIVER_OTTER_BEAST_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 3
       }

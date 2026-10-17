@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
@@ -21,7 +22,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
       {
         type: 'condition',
         name: 'Burning (active)',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 2,
         actorType: 'player',
@@ -30,7 +31,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
       {
         type: 'condition',
         name: 'Burning (passive)',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 1.2,
         actorType: 'player',
@@ -111,8 +112,8 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     effects: [
       {
         type: 'condition',
-        name: 'Burning',
-        condition: 'Burning',
+        name: CONDITION.BURNING,
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 1,
         actorType: 'player'

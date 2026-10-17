@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -84,7 +85,7 @@ const feverishPulse = defineTrait({
   name: 'Feverish Pulse',
   balance: {
     rechargeReduction: 2,
-    effects: [{ name: 'alacrity', type: 'boon', boon: 'alacrity', stacks: 1, duration: 6 }]
+    effects: [{ name: boonKey(BOON.ALACRITY), type: 'boon', boon: BOON.ALACRITY, stacks: 1, duration: 6 }]
   },
   triggers: [
     onTriggerPoint(chantActivated, {
@@ -96,7 +97,7 @@ const feverishPulse = defineTrait({
       emit: TRAIT.FEVERISH_PULSE,
       on: 'castCommit',
       when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Chant')),
-      effects: (effect) => effect.type === 'boon' && effect.boon === 'alacrity',
+      effects: (effect) => effect.type === 'boon' && effect.boon === BOON.ALACRITY,
       attribution: (_runtime, cast) => ({
         source: 'Paragon',
         sourceId: cast.skill.id,

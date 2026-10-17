@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Canine family.
@@ -39,7 +41,7 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 5,
         source: 'ranger-pet',
@@ -83,7 +85,7 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         // Pet-owned immobilize follows the attack's applications and uses pet condition duration.
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 2,
         applications: 1,
@@ -105,7 +107,7 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
@@ -120,7 +122,7 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 6,
         stacks: 1,
         source: 'ranger-pet',

@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -65,7 +66,7 @@ export const REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'boon',
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1,
         metadata: { legendId: LEGEND.CENTAUR },
@@ -74,7 +75,7 @@ export const REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
       },
       {
         type: 'boon',
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         duration: 3,
         stacks: 1,
         metadata: { legendId: LEGEND.DEMON },

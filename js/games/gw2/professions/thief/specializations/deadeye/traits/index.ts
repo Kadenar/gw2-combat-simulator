@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -44,14 +45,14 @@ const beQuickOrBeKilled = defineTrait({
           to: 'Power',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
           feedsConversions: 'none',
-          enabled: boonActive(context, 'quickness')
+          enabled: boonActive(context, boonKey(BOON.QUICKNESS))
         },
         {
           kind: 'flat',
           to: 'Precision',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
           feedsConversions: 'none',
-          enabled: boonActive(context, 'quickness')
+          enabled: boonActive(context, boonKey(BOON.QUICKNESS))
         }
       ]
     };
@@ -62,7 +63,7 @@ const beQuickOrBeKilled = defineTrait({
   name: 'Be Quick or Be Killed',
   balance: {
     attributeBonus: 200,
-    effects: [{ type: 'boon', name: 'Quickness', boon: 'Quickness', stacks: 1, duration: 4 }]
+    effects: [{ type: 'boon', name: BOON.QUICKNESS, boon: BOON.QUICKNESS, stacks: 1, duration: 4 }]
   }
 });
 
@@ -73,8 +74,8 @@ const fireForEffect = defineTrait({
   name: 'Fire for Effect',
   balance: {
     effects: [
-      { type: 'boon', name: 'Might', boon: 'Might', stacks: 8, duration: 12 },
-      { type: 'boon', name: 'Fury', boon: 'Fury', stacks: 1, duration: 12 }
+      { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 8, duration: 12 },
+      { type: 'boon', name: BOON.FURY, boon: BOON.FURY, stacks: 1, duration: 12 }
     ]
   }
 });
@@ -106,12 +107,12 @@ const maleficentSeven = defineTrait({
     maximumStacks: 7,
     resourceGain: 7,
     effects: [
-      { type: 'boon', name: 'Might', boon: 'Might', stacks: 10, duration: 10 },
-      { type: 'boon', name: 'Fury', boon: 'Fury', stacks: 1, duration: 10 },
-      { type: 'boon', name: 'Protection', boon: 'Protection', stacks: 1, duration: 5 },
-      { type: 'boon', name: 'Regeneration', boon: 'Regeneration', stacks: 1, duration: 10 },
-      { type: 'boon', name: 'Swiftness', boon: 'Swiftness', stacks: 1, duration: 10 },
-      { type: 'boon', name: 'Vigor', boon: 'Vigor', stacks: 1, duration: 10 }
+      { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 10, duration: 10 },
+      { type: 'boon', name: BOON.FURY, boon: BOON.FURY, stacks: 1, duration: 10 },
+      { type: 'boon', name: BOON.PROTECTION, boon: BOON.PROTECTION, stacks: 1, duration: 5 },
+      { type: 'boon', name: BOON.REGENERATION, boon: BOON.REGENERATION, stacks: 1, duration: 10 },
+      { type: 'boon', name: BOON.SWIFTNESS, boon: BOON.SWIFTNESS, stacks: 1, duration: 10 },
+      { type: 'boon', name: BOON.VIGOR, boon: BOON.VIGOR, stacks: 1, duration: 10 }
     ]
   }
 });
@@ -232,7 +233,7 @@ export const deadeyeTraits = Object.freeze([
 
 /** Trait listeners retain deferred rewards and the malice-cycle claim at their owning definitions. */
 function grantBeQuickOrBeKilled(runtime: ThiefRuntime, { cast }: DeadeyeCast): void {
-  traitBoons(runtime, cast, 'Be Quick or Be Killed', TRAIT.BE_QUICK_OR_BE_KILLED, false, 'Quickness');
+  traitBoons(runtime, cast, 'Be Quick or Be Killed', TRAIT.BE_QUICK_OR_BE_KILLED, false, BOON.QUICKNESS);
 }
 
 function traitBoons(

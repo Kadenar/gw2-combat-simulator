@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Mistburn relic rules. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
@@ -10,7 +11,7 @@ import type { Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 function mistburnGrant(state: Gw2RelicState, event: SimulationEvent): SimulationEvent | null {
   if (
     event.type !== 'buff' ||
-    (event.kind || '').toLowerCase() !== 'might' ||
+    (event.kind || '').toLowerCase() !== boonKey(BOON.MIGHT) ||
     !isGw2PlayerActorEvent(event) ||
     !event.resolvedAudience?.includesSelf ||
     !(Number(event.duration) > 0) ||
@@ -29,7 +30,7 @@ function mistburnGrant(state: Gw2RelicState, event: SimulationEvent): Simulation
     triggeredBy: event.skillName,
     name: 'Relic of Mistburn - Might',
     skillName: 'Relic of Mistburn',
-    kind: 'might',
+    kind: boonKey(BOON.MIGHT),
     duration: 8,
     stacks: 1,
     source: 'Relic',

@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Explicit PvE skill mechanics owned by the Spellbreaker Warrior module. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -70,7 +72,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       },
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 8,
         stacks: 1
       }
@@ -89,7 +91,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 2,
         duration: 5
       }
@@ -113,7 +115,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 5,
         stacks: 5
       },
@@ -162,7 +164,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1
       }
@@ -175,7 +177,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 6
       },

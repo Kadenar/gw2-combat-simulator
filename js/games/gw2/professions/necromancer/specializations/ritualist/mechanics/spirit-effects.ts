@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import {
   balanceProfileNumber,
@@ -46,7 +47,7 @@ export function queueNightmareWeapon(
   // Attribute damage to the consumed grant: ally-triggered Splinter can still spend a personal Nightmare charge.
   const breakdownName = `Nightmare Weapon (${recipient === 'personal' ? 'Personal' : 'Shared'})`;
   const strike = requireEffect(definition, 'strike', 'Strike');
-  const vulnerability = requireEffect(definition, 'condition', 'Vulnerability');
+  const vulnerability = requireEffect(definition, 'condition', CONDITION.VULNERABILITY);
 
   // Materialize both components at the triggering strike's timestamp before recording the combined proc; each
   // survives the other's removal.
@@ -202,7 +203,7 @@ export function triggerRitualistWeaponSpell(
   // A removed proc retains its charges; the surviving component of Nightmare can still consume one.
   const hasOutput =
     requireEffect(definition, 'strike', 'Strike') !== undefined ||
-    (spell === 'nightmare' && requireEffect(definition, 'condition', 'Vulnerability') !== undefined);
+    (spell === 'nightmare' && requireEffect(definition, 'condition', CONDITION.VULNERABILITY) !== undefined);
 
   if (!hasOutput) return;
 

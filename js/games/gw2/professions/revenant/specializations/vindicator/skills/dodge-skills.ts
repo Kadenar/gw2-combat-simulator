@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { effectFirstAtMs } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -45,7 +47,7 @@ export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: [
       {
         type: 'boon',
-        boon: 'alacrity',
+        boon: BOON.ALACRITY,
         duration: 4,
         stacks: 1,
         atMs: 160,
@@ -71,7 +73,7 @@ export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 10,
         actorType: 'player'
@@ -95,21 +97,21 @@ export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       // The landing chills foes and shares both boons with the party; tooltips read these same packets.
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 2,
         actorType: 'player'
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 10,
         stacks: 5,
         audience: { recipients: 'party', maximumRecipients: 5 }
       },
       {
         type: 'boon',
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 5,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 }

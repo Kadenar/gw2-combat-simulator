@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /**
  * Owns supplemental Core Mesmer fragments for flip and alternate skill identities.
@@ -37,7 +38,7 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
       // Apply the live debuff with the instant strike so reconstructed Mantra casts update target state.
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         duration: 8,
         stacks: 5
       }
@@ -60,7 +61,7 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
         source: 'Player',
@@ -76,7 +77,7 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
       },
       {
         type: 'condition',
-        condition: 'Confusion',
+        condition: CONDITION.CONFUSION,
         stacks: 5,
         duration: 7
       }
@@ -96,7 +97,7 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
       }
     ],
     // Swapping applies immobilize when the instant follow-up completes (wiki: Swap).
-    effects: [{ type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 }]
+    effects: [{ type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }]
   },
   [ID.COUNTER_BLADE]: {
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.COUNTER_BLADE } }],
@@ -162,8 +163,8 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
         actorType: 'player',
         weapon: 'rifle'
       },
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 5 },
-      { type: 'condition', condition: 'Blindness', stacks: 1, duration: 5 }
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 5 },
+      { type: 'condition', condition: CONDITION.BLINDNESS, stacks: 1, duration: 5 }
     ]
   }
 });

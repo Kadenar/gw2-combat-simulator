@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -48,7 +50,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     effects: [
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
         source: 'Player',
@@ -115,7 +117,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 1,
         applications: 6,
         intervalMs: 1000
@@ -129,7 +131,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
       },
       {
         type: 'condition',
-        condition: 'Slow',
+        condition: CONDITION.SLOW,
         stacks: 1,
         duration: 1,
         applications: 6,
@@ -154,13 +156,13 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
       ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
         {
           type: 'control',
-          controlKind: 'taunt',
+          controlKind: CONDITION.TAUNT.toLowerCase(),
           source: 'Player',
           actorType: 'player'
         },
         {
           type: 'condition',
-          condition: 'Taunt',
+          condition: CONDITION.TAUNT,
           stacks: 1,
           duration: 3,
           actorType: 'player'

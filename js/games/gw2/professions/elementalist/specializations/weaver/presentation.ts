@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
   ProfessionAttributePreviewContext,
@@ -432,7 +433,7 @@ export const weaverUi: ElementalistUiSlice = Object.freeze({
       options: ['None', 'Fire', 'Water', 'Air', 'Earth'],
       description: 'Elemental Polyphony'
     });
-    preview.condition('Weakness', 'Superior Elements');
+    preview.condition(CONDITION.WEAKNESS, 'Superior Elements');
     return preview.controls;
   },
   /** Seed only the detached attribute query; combat state and saved builds remain untouched. */

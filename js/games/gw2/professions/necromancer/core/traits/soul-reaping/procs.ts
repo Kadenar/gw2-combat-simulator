@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,
@@ -14,7 +15,7 @@ export function dhuumfireProjection(
   skillDuration?: unknown
 ) {
   const profile = requireBalanceProfileFromContext(context, TRAIT.DHUUMFIRE);
-  const burning = requireEffect(profile, 'condition', 'Burning');
+  const burning = requireEffect(profile, 'condition', CONDITION.BURNING);
   const duration = source.dhuumfireDuration ?? skillDuration;
   return {
     interval: source.dhuumfireInterval ?? 0,

@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Archetype family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -20,15 +22,20 @@ export const SOULBEAST_ARCHETYPE_BEAST_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        ticks: PRIMAL_CRY_PULSES_MS.map((atMs) => ({ atMs, condition: 'Poisoned', stacks: 1, duration: 6 }))
+        ticks: PRIMAL_CRY_PULSES_MS.map((atMs) => ({ atMs, condition: CONDITION.POISONED, stacks: 1, duration: 6 }))
       },
       {
         type: 'condition',
-        ticks: PRIMAL_CRY_PULSES_MS.map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 6 }))
+        ticks: PRIMAL_CRY_PULSES_MS.map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 1, duration: 6 }))
       },
       {
         type: 'condition',
-        ticks: PRIMAL_CRY_PULSES_MS.map((atMs) => ({ atMs, condition: 'Vulnerability', stacks: 3, duration: 6 }))
+        ticks: PRIMAL_CRY_PULSES_MS.map((atMs) => ({
+          atMs,
+          condition: CONDITION.VULNERABILITY,
+          stacks: 3,
+          duration: 6
+        }))
       }
     ]),
     castTimeMs: 840
@@ -58,7 +65,7 @@ export const SOULBEAST_ARCHETYPE_BEAST_SKILL_MECHANICS: Readonly<Record<number, 
         hits: 1
       },
       // The lash binds the target on impact in PvE (wiki: Prelude_Lash).
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 }
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }
     ],
     castTimeMs: 167
   },
@@ -67,7 +74,7 @@ export const SOULBEAST_ARCHETYPE_BEAST_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         duration: 3,
         stacks: 1
       }

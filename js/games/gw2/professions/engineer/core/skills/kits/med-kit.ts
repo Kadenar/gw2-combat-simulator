@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 /** Core Engineer Med Kit skill mechanics. */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -32,7 +33,7 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
     effects: [
       {
         type: 'boon',
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 3,
         stacks: 1
       }
@@ -87,21 +88,21 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 10,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'vigor',
+        boon: BOON.VIGOR,
         duration: 10,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 10,
         stacks: 1
       }

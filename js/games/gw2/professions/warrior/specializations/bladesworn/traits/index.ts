@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
@@ -71,7 +73,7 @@ const sharpAsTheWind = defineTrait({
   balance: {
     internalCooldown: 4,
     effects: [
-      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 3 },
+      { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3 },
       { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 2, duration: 5 }
     ]
   },
@@ -91,7 +93,7 @@ const riversFlow = defineTrait({
   balance: {
     internalCooldown: 4,
     effects: [
-      { name: 'might', type: 'boon', boon: 'might', stacks: 2, duration: 8 },
+      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 2, duration: 8 },
       { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 2, duration: 5 }
     ]
   }
@@ -102,7 +104,7 @@ const dragonscaleDefense = defineTrait({
   id: TRAIT.DRAGONSCALE_DEFENSE,
   name: 'Dragonscale Defense',
   balance: {
-    effects: [{ name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 3 }]
+    effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 3 }]
   },
   triggers: [
     {
@@ -176,9 +178,9 @@ const daringDragon = defineTrait({
     coefficientMultiplier: 0.65,
     effects: [
       {
-        name: 'alacrity',
+        name: boonKey(BOON.ALACRITY),
         type: 'boon',
-        boon: 'alacrity',
+        boon: BOON.ALACRITY,
         stacks: 1,
         duration: 10,
         audience: { recipients: 'party' },
@@ -321,13 +323,13 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
       announcement: { name: 'Unseen Sword', sourceSkill: cast.skill.name, type: 'trait', at: event.at }
     });
   } else if (trait === TRAIT.SHARP_AS_THE_WIND) {
-    const burning = requireEffect(profile, 'condition', 'Burning');
+    const burning = requireEffect(profile, 'condition', CONDITION.BURNING);
 
     if (burning)
       emitTraitProfile(runtime, trait, trait, undefined, {
         at: runtime.time,
         fullEnd: runtime.time,
-        effect: { type: 'condition', name: 'Burning' },
+        effect: { type: 'condition', name: CONDITION.BURNING },
         attribution: {
           source: 'Trait',
           sourceId: trait,
@@ -340,13 +342,13 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
         }
       });
   } else {
-    const might = requireEffect(profile, 'boon', 'might');
+    const might = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
     if (might)
       emitTraitProfile(runtime, trait, trait, undefined, {
         at: runtime.time,
         fullEnd: runtime.time,
-        effect: { type: 'boon', name: 'might' },
+        effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
         attribution: {
           source: 'Trait',
           sourceId: trait,

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
 import { INPUT_CONTROL_IDS } from '#gw2/platform/skills/input-controls.js';
 import { snapshotActionDeclaration } from '#gw2/platform/effects/action-declarations.js';
@@ -202,7 +203,7 @@ const SKILL_FIELDS = new Set([
   'usableInShroud',
   'usableWhileRecharging',
   'variantBadge',
-  'vulnerability',
+  CONDITION.VULNERABILITY.toLowerCase(),
   'weapon',
   'weaponBarChainRootId',
   'weaponBarChainStep',

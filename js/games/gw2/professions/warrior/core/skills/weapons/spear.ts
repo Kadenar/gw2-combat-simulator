@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Core Warrior spear packets use nearest-40 ms offsets to remove false timing precision. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -47,7 +48,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 3
       }
@@ -106,7 +107,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 2
       },

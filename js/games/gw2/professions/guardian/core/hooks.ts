@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -186,7 +187,7 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
         reactToJusticeHitWithOptions(runtime, event, details);
       },
       'buff.applied'(runtime, event) {
-        if (event.kind === 'alacrity') refreshGuardianVirtues(runtime);
+        if (event.kind === boonKey(BOON.ALACRITY)) refreshGuardianVirtues(runtime);
 
         runtime.fireTrigger(guardianBuffApplied, { cause: event });
       },

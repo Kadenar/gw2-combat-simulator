@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -44,7 +46,7 @@ const nomadsEndurance = defineTrait<MesmerSkill>({
   balance: {
     damageIncrease: 0.1,
     conditionDamageIncrease: 0.05,
-    effects: [{ name: 'vigor', type: 'boon', boon: 'vigor', duration: 3, stacks: 1 }]
+    effects: [{ name: boonKey(BOON.VIGOR), type: 'boon', boon: BOON.VIGOR, duration: 3, stacks: 1 }]
   },
   modifierRules: [
     {
@@ -75,7 +77,7 @@ const renewingOasis = defineTrait<MesmerSkill>({
   id: TRAIT.RENEWING_OASIS,
   name: 'Renewing Oasis',
   balance: {
-    effects: [{ name: 'regeneration', type: 'boon', boon: 'regeneration', duration: 4, stacks: 1 }]
+    effects: [{ name: boonKey(BOON.REGENERATION), type: 'boon', boon: BOON.REGENERATION, duration: 4, stacks: 1 }]
   }
 });
 
@@ -96,7 +98,7 @@ const riddleOfSand = defineTrait<MesmerSkill>({
   id: TRAIT.RIDDLE_OF_SAND,
   name: 'Riddle of Sand',
   balance: {
-    effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 4, stacks: 2 }]
+    effects: [{ name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 4, stacks: 2 }]
   }
 });
 
@@ -125,7 +127,7 @@ const mirageMantle = defineTrait<MesmerSkill>({
   id: TRAIT.MIRAGE_MANTLE,
   name: 'Mirage Mantle',
   balance: {
-    effects: [{ name: 'alacrity', type: 'boon', boon: 'alacrity', duration: 4, stacks: 1 }]
+    effects: [{ name: boonKey(BOON.ALACRITY), type: 'boon', boon: BOON.ALACRITY, duration: 4, stacks: 1 }]
   }
 });
 
@@ -244,7 +246,7 @@ function renewingOasisCloak(
 ): void {
   const profile = requireBalanceProfileFromContext(state, TRAIT.RENEWING_OASIS);
 
-  if (!requireEffect(profile, 'boon', 'regeneration')) return;
+  if (!requireEffect(profile, 'boon', boonKey(BOON.REGENERATION))) return;
 
   const proc = state.effects.emit({
     receipt: true,
@@ -264,7 +266,7 @@ function renewingOasisCloak(
   emitTraitProfile(state, TRAIT.RENEWING_OASIS, TRAIT.RENEWING_OASIS, proc, {
     ...delivery,
     at: at,
-    effect: { type: 'boon', name: 'regeneration' },
+    effect: { type: 'boon', name: boonKey(BOON.REGENERATION) },
     skillId: TRAIT.RENEWING_OASIS,
     skillName: profile.name,
     attribution: { actorType: 'player' },
@@ -322,7 +324,7 @@ function riddleAmbush(
   { ambush, impactAt, delivery }: TriggerPointInput<typeof mirageAmbushAccepted>
 ): void {
   const riddleOfSand = mirageState.from(state).riddleOfSandReady
-    ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', 'Confusion')
+    ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', CONDITION.CONFUSION)
     : undefined;
 
   if (riddleOfSand) {
@@ -361,7 +363,7 @@ function mantleAmbush(
 ): void {
   const profile = requireBalanceProfileFromContext(state, TRAIT.MIRAGE_MANTLE);
 
-  if (!requireEffect(profile, 'boon', 'alacrity')) return;
+  if (!requireEffect(profile, 'boon', boonKey(BOON.ALACRITY))) return;
 
   const proc = state.effects.emit({
     receipt: true,
@@ -381,7 +383,7 @@ function mantleAmbush(
   emitTraitProfile(state, TRAIT.MIRAGE_MANTLE, TRAIT.MIRAGE_MANTLE, proc, {
     ...delivery,
     at: impactAt,
-    effect: { type: 'boon', name: 'alacrity' },
+    effect: { type: 'boon', name: boonKey(BOON.ALACRITY) },
     skillId: TRAIT.MIRAGE_MANTLE,
     skillName: profile.name,
     attribution: { actorType: 'player', audience: { recipients: 'party', maximumRecipients: 5 } },
@@ -435,7 +437,9 @@ function initializeRiddle(state: MesmerRuntime): void {
   // Riddle of Sand starts armed only for the active Mirage runtime and is re-armed by Mirage shatters.
   mirageState.from(state).riddleOfSandReady =
     hasTrait(state, TRAIT.RIDDLE_OF_SAND) &&
-    Boolean(requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', 'Confusion'));
+    Boolean(
+      requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', CONDITION.CONFUSION)
+    );
 }
 
 /** Preserve self deception at its accepted mechanic boundary. */
@@ -469,7 +473,7 @@ function primeRiddleAfterShatter(
 
   const { skill, at, delivery } = resolution;
 
-  if (requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', 'Confusion')) {
+  if (requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', CONDITION.CONFUSION)) {
     mirageState.from(state).riddleOfSandReady = true;
     state.effects.emit({
       ...delivery,
@@ -491,7 +495,7 @@ function grantNomadsEndurance(
   const { skill, at, delivery } = resolution;
   const profile = requireBalanceProfileFromContext(state, TRAIT.NOMADS_ENDURANCE);
 
-  if (!requireEffect(profile, 'boon', 'vigor')) return;
+  if (!requireEffect(profile, 'boon', boonKey(BOON.VIGOR))) return;
 
   const proc = state.effects.emit({
     receipt: true,
@@ -511,7 +515,7 @@ function grantNomadsEndurance(
   emitTraitProfile(state, TRAIT.NOMADS_ENDURANCE, TRAIT.NOMADS_ENDURANCE, proc, {
     ...delivery,
     at: at,
-    effect: { type: 'boon', name: 'vigor' },
+    effect: { type: 'boon', name: boonKey(BOON.VIGOR) },
     skillId: TRAIT.NOMADS_ENDURANCE,
     skillName: profile.name,
     attribution: { actorType: 'player' },

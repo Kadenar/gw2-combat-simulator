@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -16,8 +17,8 @@ export function bindScrapperUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>
     /** Expose held combat bonuses without changing the saved build or simulation. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
-      preview.boon('stability', 'Object in Motion');
-      preview.boon('swiftness', 'Object in Motion');
+      preview.boon(boonKey(BOON.STABILITY), 'Object in Motion');
+      preview.boon(boonKey(BOON.SWIFTNESS), 'Object in Motion');
       preview.damageBuff('Object in Motion', 'superspeed', 'superspeed');
       return preview.controls;
     },

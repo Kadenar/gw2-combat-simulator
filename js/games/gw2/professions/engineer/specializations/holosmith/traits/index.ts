@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -40,7 +42,7 @@ const thermalReleaseValve = defineTrait({
   name: 'Thermal Release Valve',
   balance: {
     // The trait owns the dodge boon; the invoked Vent Exhaust skill owns its damage and heat loss.
-    effects: [{ name: 'vigor', type: 'boon', boon: 'vigor', stacks: 1, duration: 3 }]
+    effects: [{ name: boonKey(BOON.VIGOR), type: 'boon', boon: BOON.VIGOR, stacks: 1, duration: 3 }]
   },
   // Dodge admission controls both the boon and vent; existing heat and charge lifetimes remain independent.
   triggers: [
@@ -67,7 +69,7 @@ const enhancedCapacityStorageUnit = defineTrait({
     maximumStacks: 150,
     threshold: 100,
     pulseInterval: 1,
-    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 2, duration: 6 }]
+    effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 2, duration: 6 }]
   },
   triggers: [
     onTriggerPoint(heatInitialized, { run: seedEnhancedCapacityMight }),
@@ -112,7 +114,7 @@ const photonicBlastingModule = defineTrait({
     cooldown: 5,
     effects: [
       { name: 'Photonic Blasting Module', type: 'strike', coefficient: 5, hits: 1 },
-      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 7, duration: 6 }
+      { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 7, duration: 6 }
     ]
   },
   triggers: [
@@ -178,7 +180,7 @@ export const solarFocusingLens = defineTrait({
     minimumStacks: 2,
     maximumStacks: 6,
     durationMultiplier: 4,
-    effects: [{ name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 3 }]
+    effects: [{ name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3 }]
   },
   modifierRules: [
     {
@@ -213,7 +215,7 @@ function triggerThermalReleaseValve(context: EngineerRuntime<HolosmithSkill>, sk
   const state = holosmithState.from(context);
   emitTraitProfile(context, TRAIT.THERMAL_RELEASE_VALVE, TRAIT.THERMAL_RELEASE_VALVE, undefined, {
     at: at,
-    effect: { type: 'boon', name: 'vigor' },
+    effect: { type: 'boon', name: boonKey(BOON.VIGOR) },
     attribution: {
       actorType: 'player',
       skillId: skill.id,
@@ -232,7 +234,7 @@ function triggerThermalReleaseValve(context: EngineerRuntime<HolosmithSkill>, sk
 function emitEnhancedCapacityMight(context: EngineerRuntime<HolosmithSkill>, at: number): void {
   emitTraitProfile(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, undefined, {
     at: at,
-    effect: { type: 'boon', name: 'might' },
+    effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
     attribution: { actorType: 'player', name: 'Enhanced Capacity Storage Unit \u2014 might' },
     transform: (event) => ({ ...event, applicationIndex: undefined, totalApplications: undefined })
   });
@@ -343,7 +345,7 @@ function consumeSolarFocusingLens(
 
   const state = holosmithState.from(context);
   const solarFocusingLensProfile = requireBalanceProfileFromContext(context, TRAIT.SOLAR_FOCUSING_LENS);
-  const condition = requireEffect(solarFocusingLensProfile, 'condition', 'Burning');
+  const condition = requireEffect(solarFocusingLensProfile, 'condition', CONDITION.BURNING);
 
   if (!condition) return;
 
@@ -353,7 +355,7 @@ function consumeSolarFocusingLens(
 
   emitTraitProfile(context, TRAIT.SOLAR_FOCUSING_LENS, TRAIT.SOLAR_FOCUSING_LENS, undefined, {
     at: event.at,
-    effect: { type: 'condition', name: 'Burning' },
+    effect: { type: 'condition', name: CONDITION.BURNING },
     attribution: {
       actorType: 'player',
       skillId: event.skillId,

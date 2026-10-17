@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 // Name packets independently for patch deletion while preserving their shared attribution.
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -23,7 +25,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 4,
         actorType: 'player'
@@ -54,7 +56,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
         // Every beam pulse applies Slow alongside its Torment packet.
         ticks: [280, 560, 840, 1080, 1360, 1640, 1920].map((atMs) => ({
           atMs,
-          condition: 'Slow',
+          condition: CONDITION.SLOW,
           stacks: 1,
           duration: 1.5
         })),
@@ -64,7 +66,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'condition',
         ticks: [280, 560, 840, 1080, 1360, 1640, 1920].map((atMs) => ({
           atMs,
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           stacks: 1,
           duration: 6
         })),
@@ -101,7 +103,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        ticks: [320, 640, 1040].map((atMs) => ({ atMs, condition: 'Torment', stacks: 1, duration: 5 })),
+        ticks: [320, 640, 1040].map((atMs) => ({ atMs, condition: CONDITION.TORMENT, stacks: 1, duration: 5 })),
         actorType: 'player'
       }
     ])
@@ -123,7 +125,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        ticks: [320, 680, 1000].map((atMs) => ({ atMs, condition: 'Torment', stacks: 1, duration: 4 })),
+        ticks: [320, 680, 1000].map((atMs) => ({ atMs, condition: CONDITION.TORMENT, stacks: 1, duration: 4 })),
         actorType: 'player'
       }
     ]),
@@ -151,7 +153,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        ticks: [320, 600].map((atMs) => ({ atMs, condition: 'Torment', stacks: 1, duration: 4 })),
+        ticks: [320, 600].map((atMs) => ({ atMs, condition: CONDITION.TORMENT, stacks: 1, duration: 4 })),
         actorType: 'player'
       }
     ])
@@ -182,14 +184,14 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
       ...impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
         {
           type: 'condition',
-          condition: 'Chilled',
+          condition: CONDITION.CHILLED,
           stacks: 1,
           duration: 3,
           actorType: 'player'
         },
         {
           type: 'condition',
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           stacks: 1,
           duration: 5,
           actorType: 'player'
@@ -197,7 +199,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
       ]),
       {
         type: 'condition',
-        ticks: [{ atMs: 800, condition: 'Torment', stacks: 3, duration: 5 }],
+        ticks: [{ atMs: 800, condition: CONDITION.TORMENT, stacks: 3, duration: 5 }],
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -234,7 +236,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
         },
         {
           type: 'condition',
-          condition: 'Immobilized',
+          condition: CONDITION.IMMOBILIZED,
           stacks: 1,
           duration: 1,
           actorType: 'player'
@@ -262,7 +264,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'condition',
         ticks: [240, 480, 720, 1000, 1240, 1480, 1720, 1960].map((atMs) => ({
           atMs,
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           stacks: 1,
           duration: 3
         })),
@@ -288,14 +290,14 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 10,
         stacks: 5
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 4,
         stacks: 1
       }

@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import {
   buffApplicationStacks,
   buffMatchesAudience,
@@ -59,7 +60,7 @@ export function liveBoonSnapshot(
   const audience = recipient.actor === 'player' ? 'all' : 'summon';
   const companionId = recipient.actor === 'companion' ? recipient.companionId : undefined;
   const configured = recipient.actor === 'player' ? Number(config.boons?.[kind] || 0) : 0;
-  const maximum = kind === 'might' || kind === 'stability' ? 25 : 1;
+  const maximum = kind === boonKey(BOON.MIGHT) || kind === boonKey(BOON.STABILITY) ? 25 : 1;
   const permanent = Math.max(0, Math.min(maximum, configured));
   const stacks = Math.min(
     maximum,

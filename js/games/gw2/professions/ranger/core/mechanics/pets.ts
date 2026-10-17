@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { createRangerPetState, rangerPetInstanceId } from '#gw2/professions/ranger/core/mechanics/pet-state.js';
 import {
   RANGER_PET_SKILL_TIMINGS,
@@ -112,7 +113,7 @@ function rangerPetCastDurationMs(context: MechanicQueriesOf<RangerRuntime>, skil
       ? rangerPetSkillTiming(petName, skill.id)
       : undefined;
   return quantizeGw2ActionDurationUp(
-    petBoonActive(context, 'quickness')
+    petBoonActive(context, boonKey(BOON.QUICKNESS))
       ? (timing?.quicknessCastTimeMs ?? summonQuicknessCastTimeMs(skill))
       : (timing?.castTimeMs ?? skill.castTimeMs ?? 0)
   );
@@ -143,7 +144,7 @@ function petCommandRecovery(context: RangerRuntime, cast: RuntimeCast<RangerSkil
       context.profession.core.activePet,
       skillId,
       special?.recovery ?? 0,
-      petBoonActive(context, 'quickness')
+      petBoonActive(context, boonKey(BOON.QUICKNESS))
     );
 
   return (
@@ -300,7 +301,7 @@ export function emitRangerPetSkill(
   const companionId = rangerPetCompanionId(context);
   const entityName = context.profession.core.activePet;
   const timing = rangerPetSkillTiming(entityName, skill.id);
-  const quickness = petBoonActive(context, 'quickness');
+  const quickness = petBoonActive(context, boonKey(BOON.QUICKNESS));
   for (const effect of skill.effects ?? []) {
     // Pet-owned emission must retain the same acceptance checks as the standard cast pipeline.
     if (cast && effect.when && !effect.when(context.queries, cast)) continue;
@@ -412,7 +413,7 @@ const rangerPetTasks = {
     if (!profile) return;
 
     const opening = state.pet.openingBasic;
-    const quickness = petBoonActive(context, 'quickness');
+    const quickness = petBoonActive(context, boonKey(BOON.QUICKNESS));
     const selected = autonomousSkill(context, profile);
     const skill = context.helpers.skillsById.get(selected.id);
     const recovery = petRecovery(state.activePet, selected.id, selected.recovery, quickness);

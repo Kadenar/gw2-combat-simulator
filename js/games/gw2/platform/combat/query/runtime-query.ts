@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { appliedEffectStacks, type EffectRecipient } from '#gw2/platform/combat/query/effect-stacks.js';
 import { isDurationStackingBoon, isStandardBoon, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
@@ -120,7 +121,7 @@ export function targetConditionCount(context: Gw2ModifierContext): number {
 /** Reads target Vulnerability through the shared combat-query stack calculation. */
 export function vulnerabilityStacks(context: Gw2ModifierContext): number {
   return (
-    context.query?.targetConditionStacks('Vulnerability', context.time, context.runtime) ??
+    context.query?.targetConditionStacks(CONDITION.VULNERABILITY, context.time, context.runtime) ??
     context.query?.vulnerabilityStacksAt(context.time, context.runtime) ??
     0
   );

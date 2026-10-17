@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -154,10 +155,10 @@ const songOfArboreum = defineTrait({
     resourceGain: 40,
     effects: [
       {
-        name: 'vigor',
+        name: boonKey(BOON.VIGOR),
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'vigor',
+        boon: BOON.VIGOR,
         duration: 9,
         stacks: 1,
         actorType: 'player'
@@ -174,7 +175,7 @@ const songOfArboreum = defineTrait({
       emit: TRAIT.SONG_OF_ARBOREUM,
       on: 'castCommit',
       when: (_runtime, cast) => ENERGY_MELD_IDS.has(cast.skill.id),
-      effects: (effect) => effect.type === 'boon' && effect.name === 'vigor',
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.VIGOR),
       attribution: (_runtime, cast) => ({
         source: 'revenant',
         actorType: 'player',

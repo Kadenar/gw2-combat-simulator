@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -26,8 +28,8 @@ export function shortbowConditionDuration(context: Gw2ModifierContext) {
   let intrinsic = 0;
 
   if (qualifiesForFlankingBonuses(context)) {
-    if (skill?.id === ID.CROSSFIRE && context.condition === 'Bleeding') intrinsic = 1;
-    else if (skill?.id === ID.POISON_VOLLEY && context.condition === 'Poisoned') intrinsic = 2;
+    if (skill?.id === ID.CROSSFIRE && context.condition === CONDITION.BLEEDING) intrinsic = 1;
+    else if (skill?.id === ID.POISON_VOLLEY && context.condition === CONDITION.POISONED) intrinsic = 2;
   }
 
   return { skillId: skill?.id, base, intrinsic };
@@ -64,7 +66,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
         },
         {
           type: 'condition',
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           // One application per arrow preserves per-application poison reactions.
           applications: 5,
           intervalMs: 0,
@@ -99,7 +101,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
         },
         {
           type: 'condition',
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 2
         }
@@ -130,13 +132,13 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
         },
         {
           type: 'condition',
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 4
         },
         {
           type: 'condition',
-          condition: 'Immobilized',
+          condition: CONDITION.IMMOBILIZED,
           // Defiance is the simulation's supported proxy for the flank/behind bonus.
           when: (runtime) => Boolean(runtime.config.target?.defiant),
           stacks: 1,
@@ -201,7 +203,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
         },
         {
           type: 'boon',
-          boon: 'swiftness',
+          boon: BOON.SWIFTNESS,
           // Swiftness is self-applied at launch, independently of the later projectile hit.
           atMs: 280,
           duration: 9,

@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { isPetStrike, petDerivedConditionMetadata } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
@@ -66,9 +68,9 @@ export const lightOnYourFeet = defineTrait({
     effects: [
       { name: 'light-on-your-feet', type: 'buff', kind: 'light-on-your-feet', duration: 6, stacks: 1 },
       {
-        name: 'Vulnerability',
+        name: CONDITION.VULNERABILITY,
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         duration: 10,
         stacks: 10
       }
@@ -98,9 +100,9 @@ export const lightOnYourFeet = defineTrait({
 
         const { skillId } = shortbowConditionDuration(context);
         return (
-          (skillId === ID.CROSSFIRE && context.condition === 'Bleeding') ||
-          (skillId === ID.POISON_VOLLEY && context.condition === 'Poisoned') ||
-          (skillId === ID.CRIPPLING_SHOT && context.condition === 'Immobilized')
+          (skillId === ID.CROSSFIRE && context.condition === CONDITION.BLEEDING) ||
+          (skillId === ID.POISON_VOLLEY && context.condition === CONDITION.POISONED) ||
+          (skillId === ID.CRIPPLING_SHOT && context.condition === CONDITION.IMMOBILIZED)
         );
       }
     },
@@ -141,7 +143,7 @@ export const tailWind = defineTrait({
   name: 'Tail Wind',
   balance: {
     internalCooldown: 9,
-    effects: [{ name: 'swiftness', type: 'boon', boon: 'swiftness', duration: 9, stacks: 1 }]
+    effects: [{ name: boonKey(BOON.SWIFTNESS), type: 'boon', boon: BOON.SWIFTNESS, duration: 9, stacks: 1 }]
   }
 });
 
@@ -158,7 +160,7 @@ export const quickDraw = defineTrait({
     internalCooldown: 9,
     duration: 5,
     rechargeMultiplier: 0.34,
-    effects: [{ name: 'quickness', type: 'boon', boon: 'quickness', duration: 3, stacks: 1 }]
+    effects: [{ name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 3, stacks: 1 }]
   },
   rechargeRules: [
     {
@@ -192,7 +194,7 @@ export const furiousGrip = defineTrait({
   name: 'Furious Grip',
   balance: {
     internalCooldown: 9,
-    effects: [{ name: 'fury', type: 'boon', boon: 'fury', duration: 5, stacks: 1 }]
+    effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, duration: 5, stacks: 1 }]
   }
 });
 
@@ -208,7 +210,7 @@ export const sharpenedEdges = defineTrait({
   name: 'Sharpened Edges',
   balance: {
     criticalChance: 0.33,
-    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration: 3, stacks: 1 }]
+    effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, duration: 3, stacks: 1 }]
   }
 });
 
@@ -247,9 +249,9 @@ export const trappersExpertise = defineTrait({
     coefficientMultiplier: 1.66,
     effects: [
       {
-        name: 'Crippled',
+        name: CONDITION.CRIPPLED,
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         duration: 3,
         stacks: 1
       }
@@ -311,7 +313,7 @@ export const viciousQuarry = defineTrait({
       operation: 'add',
       amount: (context) => balanceNumberFromContext(context, TRAIT.VICIOUS_QUARRY, 'criticalChance'),
       // Vicious Quarry improves the ranger's Fury; the pet retains its own independent critical chance.
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, 'fury')
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, boonKey(BOON.FURY))
     }
   ],
   attributes: ({ balanceContext: profileContext, loadout }) => {
@@ -371,7 +373,7 @@ export const hiddenBarbs = defineTrait({
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.HIDDEN_BARBS, 'conditionDamageMultiplier'),
       // Hidden Barbs boosts the Ranger's bleeding, including owned effects, without amplifying pet bleeds.
-      when: (context) => context.condition === 'Bleeding' && isGw2PlayerModifierOwnedEvent(context.event)
+      when: (context) => context.condition === CONDITION.BLEEDING && isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
 });
@@ -393,7 +395,7 @@ const rangerCoreCriticalReactions = Object.freeze({
   handler(context, event, _details, application): void {
     // Reuse this invocation's authored effect, emitting one bleeding application per threshold proc.
     const profile = requireBalanceProfileFromContext(context, TRAIT.SHARPENED_EDGES);
-    const bleeding = requireEffect(profile, 'condition', 'Bleeding');
+    const bleeding = requireEffect(profile, 'condition', CONDITION.BLEEDING);
 
     if (!bleeding) return;
 
@@ -403,7 +405,7 @@ const rangerCoreCriticalReactions = Object.freeze({
     for (let proc = 0; proc < application.quantity; proc += 1)
       emitTraitProfile(context, TRAIT.SHARPENED_EDGES, TRAIT.SHARPENED_EDGES, undefined, {
         at: event.at,
-        effect: { type: 'condition', name: 'Bleeding' },
+        effect: { type: 'condition', name: CONDITION.BLEEDING },
         attribution: {
           source: petOwned ? 'ranger-pet' : 'Trait',
           actorType: petOwned ? 'summon' : 'effect',
@@ -459,14 +461,14 @@ function tailWindSwap(context: RangerRuntime, skill: RangerSkill, at: number): v
 
   if (inCombat) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.TAIL_WIND);
-    const effect = requireEffect(profile, 'boon', 'swiftness');
+    const effect = requireEffect(profile, 'boon', boonKey(BOON.SWIFTNESS));
 
     // The cooldown gates only swiftness, so a removed boon leaves it ready.
     if (effect && context.procs.claim(TRAIT.TAIL_WIND, 'ranger.core.tailWind', at)) {
       emitTraitProfile(context, TRAIT.TAIL_WIND, TRAIT.TAIL_WIND, undefined, {
         at: at,
         fullEnd: at,
-        effect: { type: 'boon', name: 'swiftness' },
+        effect: { type: 'boon', name: boonKey(BOON.SWIFTNESS) },
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.TAIL_WIND,
@@ -487,7 +489,7 @@ function quickDrawSwap(context: RangerRuntime, skill: RangerSkill, at: number): 
 
   if (inCombat && context.procs.claim(TRAIT.QUICK_DRAW, 'ranger.core.quickDraw', at)) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.QUICK_DRAW);
-    const effect = requireEffect(profile, 'boon', 'quickness');
+    const effect = requireEffect(profile, 'boon', boonKey(BOON.QUICKNESS));
     // The recharge window is trait-owned, so it and its cooldown survive a removed quickness packet.
     state.quickDraw = grantCharges(1, at + balanceProfileNumber(profile, 'duration'));
 
@@ -495,7 +497,7 @@ function quickDrawSwap(context: RangerRuntime, skill: RangerSkill, at: number): 
       emitTraitProfile(context, TRAIT.QUICK_DRAW, TRAIT.QUICK_DRAW, undefined, {
         at: at,
         fullEnd: at,
-        effect: { type: 'boon', name: 'quickness' },
+        effect: { type: 'boon', name: boonKey(BOON.QUICKNESS) },
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.QUICK_DRAW,
@@ -514,14 +516,14 @@ function furiousGripSwap(context: RangerRuntime, skill: RangerSkill, at: number)
 
   if (inCombat) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.FURIOUS_GRIP);
-    const effect = requireEffect(profile, 'boon', 'fury');
+    const effect = requireEffect(profile, 'boon', boonKey(BOON.FURY));
 
     // The cooldown gates only fury, so a removed boon leaves it ready.
     if (effect && context.procs.claim(TRAIT.FURIOUS_GRIP, 'ranger.core.furiousGrip', at)) {
       emitTraitProfile(context, TRAIT.FURIOUS_GRIP, TRAIT.FURIOUS_GRIP, undefined, {
         at: at,
         fullEnd: at,
-        effect: { type: 'boon', name: 'fury' },
+        effect: { type: 'boon', name: boonKey(BOON.FURY) },
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.FURIOUS_GRIP,
@@ -542,7 +544,7 @@ function triggerTrappersExpertise(context: RangerResolverContext, event: Gw2Reso
 
   if (skill?.categories?.includes('Trap') && event.activationId) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.TRAPPERS_EXPERTISE);
-    const cripple = requireEffect(profile, 'condition', 'Crippled');
+    const cripple = requireEffect(profile, 'condition', CONDITION.CRIPPLED);
 
     if (!cripple) return;
 
@@ -551,7 +553,7 @@ function triggerTrappersExpertise(context: RangerResolverContext, event: Gw2Reso
     emitTraitProfile(context, TRAIT.TRAPPERS_EXPERTISE, TRAIT.TRAPPERS_EXPERTISE, undefined, {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'condition', name: 'Crippled' },
+      effect: { type: 'condition', name: CONDITION.CRIPPLED },
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.TRAPPERS_EXPERTISE,
@@ -573,13 +575,13 @@ function triggerLightOnYourFeet(context: RangerResolverContext, event: Gw2Resolv
   // Crossfire gains duration through the base-duration hook, never an additional bleed stack.
   if (skill?.id === ID.CONCUSSION_SHOT) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET);
-    const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+    const vulnerability = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 
     if (vulnerability)
       emitTraitProfile(context, TRAIT.LIGHT_ON_YOUR_FEET, TRAIT.LIGHT_ON_YOUR_FEET, undefined, {
         at: event.at,
         fullEnd: event.at,
-        effect: { type: 'condition', name: 'Vulnerability' },
+        effect: { type: 'condition', name: CONDITION.VULNERABILITY },
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.LIGHT_ON_YOUR_FEET,

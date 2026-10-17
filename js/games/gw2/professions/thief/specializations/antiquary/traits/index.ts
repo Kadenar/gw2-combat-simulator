@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -158,10 +160,10 @@ const meticulousCustodian = defineTrait({
             ? {
                 ...effect,
                 ticks: effect.ticks.map((tick) =>
-                  tick.condition === 'Torment' ? { ...tick, duration: tick.duration * multiplier } : tick
+                  tick.condition === CONDITION.TORMENT ? { ...tick, duration: tick.duration * multiplier } : tick
                 )
               }
-            : effect.condition === 'Torment'
+            : effect.condition === CONDITION.TORMENT
               ? { ...effect, duration: Number(effect.duration) * multiplier }
               : effect
       );
@@ -177,9 +179,9 @@ const meticulousCustodian = defineTrait({
       effects: [
         { type: 'strike', name: 'Dash', coefficient: 2.8, hits: 1 },
         // Meticulous replaces the dash burn with one eight-second stack before expertise.
-        { type: 'condition', name: 'Dash', condition: 'Burning', stacks: 1, duration: 8 },
+        { type: 'condition', name: 'Dash', condition: CONDITION.BURNING, stacks: 1, duration: 8 },
         { type: 'strike', name: 'Bomb', coefficient: 1.4, hits: 1 },
-        { type: 'condition', name: 'Bomb', condition: 'Burning', stacks: 1, duration: 4.5 }
+        { type: 'condition', name: 'Bomb', condition: CONDITION.BURNING, stacks: 1, duration: 4.5 }
       ]
     },
     {
@@ -187,7 +189,7 @@ const meticulousCustodian = defineTrait({
       name: 'Zephyrite Sun Crystal - Meticulous',
       profileKind: 'skill-variant',
       parentId: ID.ZEPHYRITE_SUN_CRYSTAL,
-      effects: [{ type: 'condition', name: 'Burning', condition: 'Burning', stacks: 1, duration: 5 }]
+      effects: [{ type: 'condition', name: CONDITION.BURNING, condition: CONDITION.BURNING, stacks: 1, duration: 5 }]
     }
   ],
   modifierRules: [
@@ -211,7 +213,7 @@ const meticulousCustodian = defineTrait({
         balanceNumberFromContext(context, TRAIT.METICULOUS_CUSTODIAN, 'mortarBurningDurationMultiplier'),
       when: (context) =>
         context.event?.skillId === ID.MISTBURN_MORTAR &&
-        context.event.condition === 'Burning' &&
+        context.event.condition === CONDITION.BURNING &&
         context.event.triggeredBy == null // the Charged Strike bonus burn (applied by the landed strike) must not have its duration doubled a second time
     },
     {
@@ -223,7 +225,7 @@ const meticulousCustodian = defineTrait({
         balanceNumberFromContext(context, TRAIT.METICULOUS_CUSTODIAN, 'sunCrystalBurningDurationMultiplier'),
       when: (context) =>
         context.event?.skillId === ID.ZEPHYRITE_SUN_CRYSTAL &&
-        context.event.condition === 'Burning' &&
+        context.event.condition === CONDITION.BURNING &&
         context.event.triggeredBy == null // only the base skill packet needs enhancement
     }
   ],
@@ -252,9 +254,9 @@ const possessiveHoarder = defineTrait({
   triggers: [onTriggerPoint(artifactActivated, { run: applyPossessiveHoarder })],
   balance: {
     effects: [
-      { type: 'boon', name: 'might', boon: 'might', stacks: 10, duration: 12 },
-      { type: 'boon', name: 'protection', boon: 'protection', stacks: 1, duration: 5 },
-      { type: 'boon', name: 'alacrity', boon: 'alacrity', stacks: 1, duration: 5 }
+      { type: 'boon', name: boonKey(BOON.MIGHT), boon: BOON.MIGHT, stacks: 10, duration: 12 },
+      { type: 'boon', name: boonKey(BOON.PROTECTION), boon: BOON.PROTECTION, stacks: 1, duration: 5 },
+      { type: 'boon', name: boonKey(BOON.ALACRITY), boon: BOON.ALACRITY, stacks: 1, duration: 5 }
     ]
   }
 });
@@ -354,9 +356,9 @@ function applyExhilaratingEphemera(runtime: ThiefRuntime): void {
 function applyPossessiveHoarder(runtime: ThiefRuntime, { cast, slot }: ArtifactActivation): void {
   // Artifact family chooses its boon, then Alacrity; each selected component remains independently removable.
   const names = [
-    ...(slot?.kind === 'offensive' ? ['might'] : []),
-    ...(slot?.kind === 'defensive' ? ['protection'] : []),
-    'alacrity'
+    ...(slot?.kind === 'offensive' ? [boonKey(BOON.MIGHT)] : []),
+    ...(slot?.kind === 'defensive' ? [boonKey(BOON.PROTECTION)] : []),
+    boonKey(BOON.ALACRITY)
   ];
   for (const name of names)
     emitTraitProfile(runtime, TRAIT.POSSESSIVE_HOARDER, TRAIT.POSSESSIVE_HOARDER, undefined, {
@@ -428,7 +430,7 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, { cause: event
     return;
 
   const sunCrystalMeticulousProfile = requireBalanceProfileFromContext(context, PROFILE.sunCrystalMeticulous);
-  const burning = requireEffect(sunCrystalMeticulousProfile, 'condition', 'Burning');
+  const burning = requireEffect(sunCrystalMeticulousProfile, 'condition', CONDITION.BURNING);
 
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!burning) return;
@@ -436,7 +438,7 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, { cause: event
   emitTraitProfile(context, PROFILE.sunCrystalMeticulous, PROFILE.sunCrystalMeticulous, undefined, {
     at: event.at,
     fullEnd: event.at,
-    effect: { type: 'condition', name: 'Burning' },
+    effect: { type: 'condition', name: CONDITION.BURNING },
     settlement: 'reaction',
     attribution: {
       source: 'thief',

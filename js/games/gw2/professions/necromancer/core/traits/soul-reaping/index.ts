@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -49,9 +51,9 @@ export const dhuumfire = defineTrait({
   balance: {
     effects: [
       {
-        name: 'Burning',
+        name: CONDITION.BURNING,
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 3,
         actorType: 'effect'
@@ -75,9 +77,9 @@ export const unyieldingBlast = defineTrait({
   balance: {
     effects: [
       {
-        name: 'Vulnerability',
+        name: CONDITION.VULNERABILITY,
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 2,
         duration: 10,
         actorType: 'effect'
@@ -199,7 +201,14 @@ export const eternalLife = defineTrait({
     threshold: 0.66,
     pulseInterval: 1,
     effects: [
-      { name: 'protection', type: 'boon', boon: 'protection', stacks: 1, duration: 3, packetLabel: 'on shroud entry' }
+      {
+        name: boonKey(BOON.PROTECTION),
+        type: 'boon',
+        boon: BOON.PROTECTION,
+        stacks: 1,
+        duration: 3,
+        packetLabel: 'on shroud entry'
+      }
     ]
   }
 });
@@ -229,7 +238,14 @@ export const speedOfShadows = defineTrait({
   name: 'Speed of Shadows',
   balance: {
     effects: [
-      { name: 'swiftness', type: 'boon', boon: 'swiftness', stacks: 1, duration: 10, packetLabel: 'on shroud entry' }
+      {
+        name: boonKey(BOON.SWIFTNESS),
+        type: 'boon',
+        boon: BOON.SWIFTNESS,
+        stacks: 1,
+        duration: 10,
+        packetLabel: 'on shroud entry'
+      }
     ]
   }
 });
@@ -343,7 +359,7 @@ function applyDhuumfire(
     undefined,
     {
       at: event.at,
-      effect: { type: 'condition', name: 'Burning' },
+      effect: { type: 'condition', name: CONDITION.BURNING },
       settlement: 'reaction',
       attribution: { skillName: 'Dhuumfire', triggeredBy: event.skillName, ownerActorType: 'player' },
       // Shroud skills may supply a duration variant; all remaining fields stay authored.
@@ -365,7 +381,7 @@ function applyUnyieldingBlast(
   if (!firstHit || !shroudSkillOne) return;
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.UNYIELDING_BLAST);
-  const effect = requireEffect(profile, 'condition', 'Vulnerability');
+  const effect = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 
   if (!effect) return;
 
@@ -377,7 +393,7 @@ function applyUnyieldingBlast(
     {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'condition', name: 'Vulnerability' },
+      effect: { type: 'condition', name: CONDITION.VULNERABILITY },
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.UNYIELDING_BLAST,
@@ -397,7 +413,7 @@ function applyUnyieldingBlast(
 /** Accepted non-summon fear grants life force under one cooldown; missed and travelling packets grant nothing. */
 function applyFearOfDeath(runtime: NecromancerRuntime, event: NecromancerResolverEvent): void {
   if (
-    event.condition !== 'Fear' ||
+    event.condition !== CONDITION.FEAR ||
     event.actorType === 'summon' ||
     !runtime.procs.claim(TRAIT.FEAR_OF_DEATH, 'necromancer.core.fearOfDeath', runtime.time)
   )

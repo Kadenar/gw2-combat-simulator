@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { fervorProfile } from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
@@ -33,7 +34,7 @@ export function heroicCommand(runtime: RevenantRuntime, cast: RuntimeCast<Revena
   if (!stacks) return;
 
   const source = heroicCommandProfile(runtime, cast);
-  const might = requireEffect(source, 'boon', 'might');
+  const might = requireEffect(source, 'boon', boonKey(BOON.MIGHT));
 
   if (!might) return;
 

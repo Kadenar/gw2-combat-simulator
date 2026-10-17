@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { notifyToolbeltActivation } from '#gw2/professions/engineer/core/mechanics/toolbelt.js';
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
@@ -30,11 +32,11 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         when: (runtime) => !runtime.engagement.boundaryPending,
         type: 'condition',
         ticks: [
-          { atMs: 0, condition: 'Crippled', stacks: 1, duration: 2.5 },
-          { atMs: 0, condition: 'Crippled', stacks: 1, duration: 2.5 },
-          { atMs: 0, condition: 'Crippled', stacks: 1, duration: 2.5 },
-          { atMs: 0, condition: 'Crippled', stacks: 1, duration: 2.5 },
-          { atMs: 0, condition: 'Crippled', stacks: 1, duration: 2.5 }
+          { atMs: 0, condition: CONDITION.CRIPPLED, stacks: 1, duration: 2.5 },
+          { atMs: 0, condition: CONDITION.CRIPPLED, stacks: 1, duration: 2.5 },
+          { atMs: 0, condition: CONDITION.CRIPPLED, stacks: 1, duration: 2.5 },
+          { atMs: 0, condition: CONDITION.CRIPPLED, stacks: 1, duration: 2.5 },
+          { atMs: 0, condition: CONDITION.CRIPPLED, stacks: 1, duration: 2.5 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -58,7 +60,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 2.5,
         actorType: 'player'
@@ -81,7 +83,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 3,
         stacks: 2
       }

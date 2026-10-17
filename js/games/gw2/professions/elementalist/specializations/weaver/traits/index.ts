@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { type ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { primaryAttunement } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -109,8 +111,8 @@ const superiorElements = defineTrait({
     effects: [
       {
         type: 'condition',
-        name: 'Weakness',
-        condition: 'Weakness',
+        name: CONDITION.WEAKNESS,
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 5
       }
@@ -122,7 +124,8 @@ const superiorElements = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) => balanceNumberFromContext(context, TRAIT.SUPERIOR_ELEMENTS, 'criticalChance'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Weakness')
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.WEAKNESS)
     }
   ]
 });
@@ -131,14 +134,14 @@ const elementalPursuit = defineTrait({
   id: TRAIT.ELEMENTAL_PURSUIT,
   name: 'Elemental Pursuit',
   balance: {
-    effects: [{ type: 'boon', name: 'Swiftness', boon: 'swiftness', stacks: 1, duration: 3 }]
+    effects: [{ type: 'boon', name: BOON.SWIFTNESS, boon: BOON.SWIFTNESS, stacks: 1, duration: 3 }]
   },
   triggers: [
     {
       emit: TRAIT.ELEMENTAL_PURSUIT,
       on: 'control.resolved',
       when: (_runtime, event) => event.type === 'control' && event.actorType === 'player',
-      effects: (effect) => effect.type === 'boon' && effect.name === 'Swiftness',
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.SWIFTNESS,
       attribution: (runtime, event) => ({
         source: 'Elemental Pursuit',
         sourceId: event.skillId ?? event.sourceId,
@@ -161,7 +164,7 @@ const weaversProwess = defineTrait({
   id: TRAIT.WEAVERS_PROWESS,
   name: "Weaver's Prowess",
   balance: {
-    effects: [{ type: 'boon', name: 'Resistance', boon: 'resistance', stacks: 1, duration: 3 }]
+    effects: [{ type: 'boon', name: BOON.RESISTANCE, boon: BOON.RESISTANCE, stacks: 1, duration: 3 }]
   }
 });
 
@@ -172,8 +175,8 @@ const swiftRevenge = defineTrait({
   balance: {
     resourceGain: 25,
     effects: [
-      { type: 'boon', name: 'Fire', boon: 'might', stacks: 3, duration: 5 },
-      { type: 'boon', name: 'Air', boon: 'swiftness', stacks: 1, duration: 5 }
+      { type: 'boon', name: 'Fire', boon: BOON.MIGHT, stacks: 3, duration: 5 },
+      { type: 'boon', name: 'Air', boon: BOON.SWIFTNESS, stacks: 1, duration: 5 }
     ]
   }
 });
@@ -183,7 +186,7 @@ const bolsteredElements = defineTrait({
   id: TRAIT.BOLSTERED_ELEMENTS,
   name: 'Bolstered Elements',
   balance: {
-    effects: [{ type: 'boon', name: 'Protection', boon: 'protection', stacks: 1, duration: 3 }]
+    effects: [{ type: 'boon', name: BOON.PROTECTION, boon: BOON.PROTECTION, stacks: 1, duration: 3 }]
   }
 });
 
@@ -312,13 +315,13 @@ function applyWeaversProwess(context: ElementalistRuntime, event: SimulationEven
 
   if (unravelActive || target === previous) {
     const weaversProwessProfile = requireBalanceProfileFromContext(context, TRAIT.WEAVERS_PROWESS);
-    const resistance = requireEffect(weaversProwessProfile, 'boon', 'Resistance');
+    const resistance = requireEffect(weaversProwessProfile, 'boon', BOON.RESISTANCE);
 
     if (resistance) {
       emitTraitProfile(context, TRAIT.WEAVERS_PROWESS, TRAIT.WEAVERS_PROWESS, undefined, {
         at: at,
         fullEnd: at,
-        effect: { type: 'boon', name: 'Resistance' },
+        effect: { type: 'boon', name: BOON.RESISTANCE },
         attribution: {
           source: "Weaver's Prowess",
           sourceId: sourceId,
@@ -341,7 +344,7 @@ function applyBolsteredElements(context: ElementalistRuntime, { cast }: WeaverCa
     emitTraitProfile(context, TRAIT.BOLSTERED_ELEMENTS, TRAIT.BOLSTERED_ELEMENTS, undefined, {
       at: at,
       fullEnd: at,
-      effect: { type: 'boon', name: 'Protection' },
+      effect: { type: 'boon', name: BOON.PROTECTION },
       skillId: skill.id,
       skillName: skill.name,
       cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
@@ -414,7 +417,7 @@ function applySuperiorElements(context: ElementalistRuntime, { cast, dualAttunem
     emitTraitProfile(context, TRAIT.SUPERIOR_ELEMENTS, TRAIT.SUPERIOR_ELEMENTS, undefined, {
       at: at,
       fullEnd: at,
-      effect: { type: 'condition', name: 'Weakness' },
+      effect: { type: 'condition', name: CONDITION.WEAKNESS },
       skillId: skill.id,
       skillName: skill.name,
       cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },

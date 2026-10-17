@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Smokescale family.
@@ -18,7 +20,7 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
@@ -40,7 +42,7 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
@@ -64,7 +66,7 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 8,
         stacks: 5,
         audience: {

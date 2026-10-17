@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
@@ -62,7 +63,7 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 3,
         actorType: 'player'
@@ -97,7 +98,7 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 4,
         actorType: 'player'

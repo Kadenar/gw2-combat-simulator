@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { necromancerRuntimeSpecializationState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
@@ -52,9 +54,9 @@ const demonicLore = defineTrait({
     cooldown: 3,
     effects: [
       {
-        name: 'Burning',
+        name: CONDITION.BURNING,
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 1,
         actorType: 'effect'
@@ -68,7 +70,7 @@ const demonicLore = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.DEMONIC_LORE, 'conditionDamageMultiplier'),
-      when: (context) => context.condition === 'Torment'
+      when: (context) => context.condition === CONDITION.TORMENT
     }
   ]
 });
@@ -108,11 +110,11 @@ const abrasiveGrit = defineTrait({
     onTriggerPoint(scourgeShadeManifested, {
       when: (runtime: MechanicQueriesOf<NecromancerRuntime>) => hasTrait(runtime, TRAIT.DESERT_EMPOWERMENT),
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeShadeManifested>) =>
-        grantBarrierBoon(runtime, input.cast, TRAIT.ABRASIVE_GRIT, 'might')
+        grantBarrierBoon(runtime, input.cast, TRAIT.ABRASIVE_GRIT, boonKey(BOON.MIGHT))
     }),
     onTriggerPoint(scourgeBarrierApplied, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeBarrierApplied>) =>
-        grantBarrierBoon(runtime, input.cast, TRAIT.ABRASIVE_GRIT, 'might')
+        grantBarrierBoon(runtime, input.cast, TRAIT.ABRASIVE_GRIT, boonKey(BOON.MIGHT))
     })
   ],
   id: TRAIT.ABRASIVE_GRIT,
@@ -120,9 +122,9 @@ const abrasiveGrit = defineTrait({
   balance: {
     effects: [
       {
-        name: 'might',
+        name: boonKey(BOON.MIGHT),
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         stacks: 2,
         duration: 6,
         actorType: 'player',
@@ -137,11 +139,11 @@ const desertEmpowerment = defineTrait({
   triggers: [
     onTriggerPoint(scourgeShadeManifested, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeShadeManifested>) =>
-        grantBarrierBoon(runtime, input.cast, TRAIT.DESERT_EMPOWERMENT, 'alacrity')
+        grantBarrierBoon(runtime, input.cast, TRAIT.DESERT_EMPOWERMENT, boonKey(BOON.ALACRITY))
     }),
     onTriggerPoint(scourgeBarrierApplied, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeBarrierApplied>) =>
-        grantBarrierBoon(runtime, input.cast, TRAIT.DESERT_EMPOWERMENT, 'alacrity')
+        grantBarrierBoon(runtime, input.cast, TRAIT.DESERT_EMPOWERMENT, boonKey(BOON.ALACRITY))
     })
   ],
   id: TRAIT.DESERT_EMPOWERMENT,
@@ -149,9 +151,9 @@ const desertEmpowerment = defineTrait({
   balance: {
     effects: [
       {
-        name: 'alacrity',
+        name: boonKey(BOON.ALACRITY),
         type: 'boon',
-        boon: 'alacrity',
+        boon: BOON.ALACRITY,
         stacks: 1,
         duration: 1.5,
         actorType: 'player',
@@ -174,9 +176,9 @@ const sadisticSearing = defineTrait({
   balance: {
     effects: [
       {
-        name: 'Burning',
+        name: CONDITION.BURNING,
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 4,
         actorType: 'player'
@@ -200,7 +202,7 @@ const fellBeacon = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.FELL_BEACON, 'conditionDamageMultiplier'),
-      when: (context) => context.condition === 'Burning'
+      when: (context) => context.condition === CONDITION.BURNING
     }
   ],
   attributes: traitAttributeEffects(TRAIT.FELL_BEACON, [
@@ -289,12 +291,12 @@ export const necromancerScourgeTraits = [
 // Convert eligible Torment applications into Demonic Lore burns while enforcing its resolver-owned cooldown.
 function reactToCondition(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   // Only Torment triggers Demonic Lore — all other conditions are ignored here
-  if (event.condition !== 'Torment') {
+  if (event.condition !== CONDITION.TORMENT) {
     return;
   }
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.DEMONIC_LORE);
-  const effect = requireEffect(profile, 'condition', 'Burning');
+  const effect = requireEffect(profile, 'condition', CONDITION.BURNING);
 
   // The cooldown gates only Burning, so a removed packet leaves it ready.
   if (!effect) return;
@@ -314,7 +316,7 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
     {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'condition', name: 'Burning' },
+      effect: { type: 'condition', name: CONDITION.BURNING },
       settlement: 'reaction',
       attribution: {
         source: 'Trait',
@@ -335,7 +337,7 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
 
 /** Burning rewards follow Demonic Lore at the same accepted condition boundary. */
 function applyNourishingAshes(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
-  if (event.condition !== 'Burning') return;
+  if (event.condition !== CONDITION.BURNING) return;
 
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.NOURISHING_ASHES);
 
@@ -358,7 +360,7 @@ function applySadisticSearing(runtime: NecromancerRuntime, cast: RuntimeCast<Nec
 
   emitTraitProfile(runtime, TRAIT.SADISTIC_SEARING, TRAIT.SADISTIC_SEARING, undefined, {
     at: canonicalTime(runtime.time + (cast.command.impactDelayMs ?? 0) / 1000),
-    effect: { type: 'condition', name: 'Burning' },
+    effect: { type: 'condition', name: CONDITION.BURNING },
     activationId: cast.id,
     attribution: {
       actorType: 'effect',

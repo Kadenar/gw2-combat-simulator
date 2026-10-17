@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Warclaw family.
@@ -32,7 +33,7 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 4,
         source: 'ranger-pet',

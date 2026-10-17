@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Turtle family.
@@ -70,7 +71,7 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 2,
         stacks: 1,
         source: 'ranger-pet',

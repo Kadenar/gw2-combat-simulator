@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Warhorn weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -74,8 +76,8 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 30,
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'boon', boon: 'Fury', stacks: 1, duration: 10, metadata: {} },
-      { type: 'boon', boon: 'Might', stacks: 3, duration: 10, metadata: {} }
+      { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 10, metadata: {} },
+      { type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 10, metadata: {} }
     ])
   },
   // Lays an 8s fire field and burns through seven packets, plus two packets on large targets.
@@ -111,7 +113,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       conditionTimeline(
         WILDFIRE_TICKS.map((tick) => ({
           ...tick,
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 3
         })),
@@ -182,7 +184,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       { type: 'strike', coefficient: 0.9, canCrit: true },
       {
         type: 'boon',
-        boon: 'Swiftness',
+        boon: BOON.SWIFTNESS,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 3 },
         stacks: 1,
@@ -211,7 +213,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         conditionTimeline(
           ticks.map(({ atMs }) => ({
             atMs,
-            condition: 'Vulnerability',
+            condition: CONDITION.VULNERABILITY,
             stacks: 1,
             duration: 10
           })),
@@ -243,7 +245,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'boon',
-        boon: 'Protection',
+        boon: BOON.PROTECTION,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
@@ -278,7 +280,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         conditionTimeline(
           DUST_STORM_TICK_OFFSETS_MS.map((atMs) => ({
             atMs,
-            condition: 'Bleeding',
+            condition: CONDITION.BLEEDING,
             stacks: 2,
             duration: 10
           })),
@@ -286,7 +288,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         ),
         ...DUST_STORM_TICK_OFFSETS_MS.map((atMs) => ({
           type: 'condition' as const,
-          condition: 'Blindness',
+          condition: CONDITION.BLINDNESS,
           stacks: 1,
           duration: 2,
           atMs,
@@ -294,7 +296,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         })),
         {
           type: 'boon',
-          boon: 'Resistance',
+          boon: BOON.RESISTANCE,
           // Share this support boon with affected allies within its recipient cap.
           audience: { recipients: 'party' as const, maximumRecipients: 5 },
           stacks: 1,
@@ -315,7 +317,7 @@ export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2Resolv
     event.skillId !== ID.HEAT_SYNC ||
     event.actorType !== 'player' ||
     !event.resolvedAudience?.includesSelf ||
-    (event.kind !== 'might' && event.kind !== 'fury')
+    (event.kind !== boonKey(BOON.MIGHT) && event.kind !== boonKey(BOON.FURY))
   )
     return;
 
@@ -329,7 +331,7 @@ export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2Resolv
 
   // Fury adds durations into one capped pool; Might stacks retain their individual remaining lifetimes.
   const copies =
-    kind === 'fury'
+    kind === boonKey(BOON.FURY)
       ? [
           {
             stacks: 1,
@@ -345,7 +347,7 @@ export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2Resolv
           .sort((left, right) => right.duration - left.duration);
 
   // At the Might cap, copy the longest-lived stacks rather than extending shorter stacks to match them.
-  let remainingStacks = kind === 'might' ? 25 : 1;
+  let remainingStacks = kind === boonKey(BOON.MIGHT) ? 25 : 1;
   for (const copy of copies) {
     const stacks = Math.min(remainingStacks, copy.stacks);
 

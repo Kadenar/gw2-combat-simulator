@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -21,13 +23,13 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 6
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 1
       }
@@ -47,7 +49,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 6
       }
@@ -67,7 +69,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 6
       }
@@ -99,13 +101,13 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
         },
         {
           type: 'condition',
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 3
         },
         {
           type: 'condition',
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 3,
           duration: 5
         }
@@ -141,13 +143,13 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 5,
         duration: 8
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 1,
         applications: 5,
@@ -174,7 +176,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 5,
         stacks: 10
       }
@@ -212,14 +214,14 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Immobilized', stacks: 1, duration: 2 }]
+        ticks: [{ atMs: 440, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }]
       },
       {
         type: 'condition',
         atMs: -80,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 6,
         duration: 6
       }

@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type {
   NativePatchAuthoringMetadata,
@@ -170,12 +172,12 @@ export function createEffectTemplate(type: string): SkillEffect {
     case 'condition':
       return {
         type,
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 1
       };
     case 'boon':
-      return { type, boon: 'Might', stacks: 1, duration: 1 };
+      return { type, boon: BOON.MIGHT, stacks: 1, duration: 1 };
     case 'buff':
       return { type, kind: 'buff', stacks: 1, duration: 1 };
     case 'control':

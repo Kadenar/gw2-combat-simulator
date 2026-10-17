@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import type { BalanceProfile, CatalogEntity, Skill, SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
@@ -383,7 +384,9 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
 
       const stacks = effect.stacks ?? 1;
       // Only intensity-stacking boons need stack counts; other boons show their duration and recipients.
-      const showStacks = !isStandardBoon(name) || ['might', 'stability'].includes(name.toLowerCase());
+      const showStacks =
+        !isStandardBoon(name) ||
+        [boonKey(BOON.MIGHT), boonKey(BOON.STABILITY)].some((boon) => boon === name.toLowerCase());
       // Attribute buffs store their point bonus in stacks; presenting those points as stack counts is misleading.
       const attribute =
         effect.type === 'buff' &&

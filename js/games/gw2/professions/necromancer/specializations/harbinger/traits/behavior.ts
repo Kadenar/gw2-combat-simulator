@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -15,7 +16,7 @@ export function doomApproachesControl(runtime: NecromancerRuntime, effect: Skill
 
   const fields = { ...effect };
   delete fields.controlKind;
-  return { ...fields, type: 'condition', condition: 'Fear', stacks: 1, duration: 1 };
+  return { ...fields, type: 'condition', condition: CONDITION.FEAR, stacks: 1, duration: 1 };
 }
 
 /** The trait selects the pulse amount; the mechanic still accrues and expires stacks. */

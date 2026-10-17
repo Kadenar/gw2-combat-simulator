@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { RangerSkill, RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -31,7 +33,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 5,
         stacks: 1
       }
@@ -58,7 +60,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 5,
         duration: 6
       }
@@ -78,13 +80,13 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 3,
         duration: 12
       },
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 4
       }
@@ -139,7 +141,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
           type: 'condition',
           ticks: WHIRLING_DEFENSE_TICK_OFFSETS_MS.map((atMs) => ({
             atMs,
-            condition: 'Vulnerability',
+            condition: CONDITION.VULNERABILITY,
             stacks: 1,
             duration: 10
           }))
@@ -147,7 +149,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       ]),
       {
         type: 'boon',
-        boon: 'resolution',
+        boon: BOON.RESOLUTION,
         duration: 4,
         stacks: 1
       }

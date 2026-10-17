@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -45,7 +46,7 @@ export function detonate(runtime: WarriorRuntime, payload: { activationId: strin
   state.fireAuraUntil = 0;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.KING_OF_FIRES);
   const strike = requireEffect(profile, 'strike', 'Strike');
-  const burning = requireEffect(profile, 'condition', 'Burning');
+  const burning = requireEffect(profile, 'condition', CONDITION.BURNING);
   const fields = {
     at: runtime.time,
     // The detonation and its condition packets share one trait activation, separate from the triggering cast.
@@ -93,7 +94,7 @@ export function detonate(runtime: WarriorRuntime, payload: { activationId: strin
     emitTraitProfile(runtime, TRAIT.KING_OF_FIRES, TRAIT.KING_OF_FIRES, undefined, {
       at: runtime.time,
       fullEnd: runtime.time,
-      effect: { type: 'condition', name: 'Burning' },
+      effect: { type: 'condition', name: CONDITION.BURNING },
       attribution: {
         activationId: `${payload.activationId}:king-of-fires:${runtime.time}`,
         source: 'Trait',

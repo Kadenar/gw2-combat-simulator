@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -31,7 +33,7 @@ export const crackShot = defineTrait({
   name: 'Crack Shot',
   balance: {
     damageMultiplier: 1.1,
-    effects: [{ name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 1 }]
+    effects: [{ name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 1 }]
   },
   modifierRules: [
     {
@@ -71,7 +73,7 @@ export const burstMastery = defineTrait({
     damageMultiplier: 1.15,
     resourceGain: 0.33,
     bladeswornResourceGain: 0.2,
-    effects: [{ name: 'swiftness', type: 'boon', boon: 'swiftness', stacks: 1, duration: 3 }]
+    effects: [{ name: boonKey(BOON.SWIFTNESS), type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 3 }]
   },
   modifierRules: [
     {
@@ -157,7 +159,7 @@ export const heightenedFocus = defineTrait({
   balance: {
     threshold: 0.5,
     internalCooldown: 12,
-    effects: [{ name: 'quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 5 }]
+    effects: [{ name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 5 }]
   },
   triggers: [{ on: 'damage.resolved', run: triggerHeightenedFocus }],
   lifetime: {
@@ -178,7 +180,7 @@ export const warriorsSprint = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: (context) => balanceNumberFromContext(context, TRAIT.WARRIORS_SPRINT, 'damageIncrease'),
-      when: (context) => warriorBoonActive(context, 'swiftness')
+      when: (context) => warriorBoonActive(context, boonKey(BOON.SWIFTNESS))
     }
   ]
 });
@@ -270,7 +272,7 @@ function burstMasteryCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
     // The refund is live now; Swiftness resolves after same-time burst damage, preserving reward ordering.
     {
       const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY);
-      const selectedEffect = requireEffect(traitProfile, 'boon', 'swiftness');
+      const selectedEffect = requireEffect(traitProfile, 'boon', boonKey(BOON.SWIFTNESS));
 
       if (selectedEffect)
         emitTraitProfile(runtime, TRAIT.BURST_MASTERY, TRAIT.BURST_MASTERY, undefined, {

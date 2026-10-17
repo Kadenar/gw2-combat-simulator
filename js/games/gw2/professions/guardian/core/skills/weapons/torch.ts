@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -24,7 +25,7 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 2520, condition: 'Burning', stacks: 2, duration: 4 }]
+        ticks: [{ atMs: 2520, condition: CONDITION.BURNING, stacks: 2, duration: 4 }]
       }
     ])
   },
@@ -49,7 +50,7 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Par
         },
         {
           type: 'condition',
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 3,
           duration: 3
         }
@@ -73,7 +74,7 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'condition',
         ticks: Array.from({ length: 4 }, (_, index) => ({
           atMs: 0 + index * 1000,
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 3
         })),

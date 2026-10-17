@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Mirage axe, slot-skill, ambush, and simulator-action catalog data.
  * Mirage Cloak, mirror, and ambush runtime behavior lives under `mechanics/`.
@@ -30,7 +32,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Mes
       },
       {
         type: 'condition',
-        condition: 'confusion',
+        condition: CONDITION.CONFUSION,
         duration: 6,
         stacks: 5,
         atMs: -80
@@ -68,13 +70,13 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Mes
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         duration: 4,
         stacks: 3
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         duration: 1,
         stacks: 3
       }
@@ -122,7 +124,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Mes
       },
       {
         type: 'condition',
-        condition: 'confusion',
+        condition: CONDITION.CONFUSION,
         stacks: 6,
         duration: 4
       }
@@ -141,7 +143,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Mes
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
-      { type: 'condition', condition: 'Blindness', stacks: 1, duration: 5 },
+      { type: 'condition', condition: CONDITION.BLINDNESS, stacks: 1, duration: 5 },
 
       {
         type: 'strike',
@@ -193,7 +195,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Mes
       },
       {
         type: 'condition',
-        condition: 'confusion',
+        condition: CONDITION.CONFUSION,
         duration: 6,
         stacks: 3
       }
@@ -218,9 +220,9 @@ function playerAmbushEffects(profileId: string, party = false): NonNullable<Mesm
         return [
           ...(cast.skill.effects ?? []),
           ...effects
-            .filter((effect) => effect.source === 'Player' || effect.name === 'Vulnerability')
+            .filter((effect) => effect.source === 'Player' || effect.name === CONDITION.VULNERABILITY)
             .flatMap((effect): SkillEffect[] => {
-              const repeated = effect.type === 'boon' || effect.name === 'Vulnerability';
+              const repeated = effect.type === 'boon' || effect.name === CONDITION.VULNERABILITY;
               const times =
                 repeated && statusAtMs?.length
                   ? statusAtMs.map((atMs) => ({ timingAnchor: 'castStart' as const, atMs }))
@@ -297,7 +299,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       conditions: [
         {
           type: 'condition',
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           duration: 3.5,
           stacks: 3,
           applications: 2
@@ -312,7 +314,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       conditions: [
         {
           type: 'condition',
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           duration: 4,
           stacks: 1
         }
@@ -340,13 +342,13 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       conditions: [
         {
           type: 'condition',
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           duration: 5,
           stacks: 2
         },
         {
           type: 'condition',
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           duration: 5,
           stacks: 2
         }
@@ -360,13 +362,13 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       conditions: [
         {
           type: 'condition',
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           duration: 7,
           stacks: 1
         },
         {
           type: 'condition',
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           duration: 7,
           stacks: 1
         }
@@ -398,7 +400,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       boons: [
         {
           type: 'boon',
-          boon: 'Might',
+          boon: BOON.MIGHT,
           duration: 5,
           stacks: 2
         }
@@ -435,7 +437,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       boons: [
         {
           type: 'boon',
-          boon: 'Vigor',
+          boon: BOON.VIGOR,
           duration: 4,
           stacks: 1
         }
@@ -468,13 +470,13 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       conditions: [
         {
           type: 'condition',
-          condition: 'Confusion',
+          condition: CONDITION.CONFUSION,
           duration: 4,
           stacks: 2
         },
         {
           type: 'condition',
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           duration: 4,
           stacks: 3
         }
@@ -487,13 +489,13 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       conditions: [
         {
           type: 'condition',
-          condition: 'Confusion',
+          condition: CONDITION.CONFUSION,
           duration: 2,
           stacks: 2
         },
         {
           type: 'condition',
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           duration: 2,
           stacks: 3
         }
@@ -551,19 +553,19 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       conditions: [
         {
           type: 'condition',
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           duration: 10,
           stacks: 1
         },
         {
           type: 'condition',
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           duration: 10,
           stacks: 1
         },
         {
           type: 'condition',
-          condition: 'Confusion',
+          condition: CONDITION.CONFUSION,
           duration: 10,
           stacks: 1
         }
@@ -571,13 +573,13 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       boons: [
         {
           type: 'boon',
-          boon: 'Might',
+          boon: BOON.MIGHT,
           duration: 15,
           stacks: 2
         },
         {
           type: 'boon',
-          boon: 'Fury',
+          boon: BOON.FURY,
           duration: 2,
           stacks: 1
         }
@@ -590,19 +592,19 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       conditions: [
         {
           type: 'condition',
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           duration: 4,
           stacks: 1
         },
         {
           type: 'condition',
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           duration: 4,
           stacks: 1
         },
         {
           type: 'condition',
-          condition: 'Confusion',
+          condition: CONDITION.CONFUSION,
           duration: 3,
           stacks: 1
         }
@@ -610,13 +612,13 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       boons: [
         {
           type: 'boon',
-          boon: 'Might',
+          boon: BOON.MIGHT,
           duration: 15,
           stacks: 2
         },
         {
           type: 'boon',
-          boon: 'Fury',
+          boon: BOON.FURY,
           duration: 2,
           stacks: 1
         }
@@ -714,5 +716,5 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze(
 // Only a successful mirror pickup materializes this patchable intrinsic payload.
 export const MIRAGE_MIRROR_EFFECTS: readonly SkillEffect[] = [
   { name: 'Strike', type: 'strike', coefficient: 0.6, hits: 1 },
-  { name: 'Weakness', type: 'condition', condition: 'Weakness', stacks: 1, duration: 4 }
+  { name: CONDITION.WEAKNESS, type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 4 }
 ];

@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type {
@@ -31,7 +33,7 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
         ],
         coefficient: 1.2
       },
-      { type: 'condition', condition: 'Torment', stacks: 2, duration: 9 },
+      { type: 'condition', condition: CONDITION.TORMENT, stacks: 2, duration: 9 },
       { type: 'control', controlKind: 'control' }
     ])
   },
@@ -53,8 +55,8 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
         ],
         coefficient: 0.8
       },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 8 },
-      { type: 'condition', condition: 'Torment', stacks: 2, duration: 6 }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8 },
+      { type: 'condition', condition: CONDITION.TORMENT, stacks: 2, duration: 6 }
     ])
   }
 });
@@ -74,7 +76,7 @@ function resolveOppressiveCollapse(runtime: NecromancerRuntime, event: Gw2Resolv
     skillId: ID.OPPRESSIVE_COLLAPSE,
     skillName: event.skillName,
     activationId: event.activationId,
-    kind: 'might',
+    kind: boonKey(BOON.MIGHT),
     stacks,
     duration: 8,
     audience: {

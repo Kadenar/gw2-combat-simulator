@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Mechanic and skill-variant tuning for Catalyst; traits own their profiles under traits/. */
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
@@ -27,7 +28,7 @@ export const CATALYST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     internalCooldown: 1,
     effects: [
       { name: 'Shattering Ice - Triggered Packet', type: 'strike', coefficient: 0.6, hits: 1 },
-      { name: 'Chilled', type: 'condition', condition: 'Chilled', stacks: 1, duration: 1 }
+      { name: CONDITION.CHILLED, type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 1 }
     ]
   }
 ]);

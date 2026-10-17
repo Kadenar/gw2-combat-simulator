@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -114,7 +115,10 @@ function pulseRefrain(runtime: WarriorRuntime): void {
       ...event,
       name: `${skill.name} — ${event.kind}`,
       audience: { recipients: 'party' },
-      stacks: event.kind === 'might' ? Number(event.stacks) * level * enduringRefrainMultiplier(runtime) : event.stacks
+      stacks:
+        event.kind === boonKey(BOON.MIGHT)
+          ? Number(event.stacks) * level * enduringRefrainMultiplier(runtime)
+          : event.stacks
     })
   });
 

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { MesmerCloneAttack } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
@@ -14,13 +15,13 @@ export const axeCloneAttack = {
   conditions: [
     {
       type: 'condition',
-      condition: 'Bleeding',
+      condition: CONDITION.BLEEDING,
       duration: 1,
       stacks: 1
     },
     {
       type: 'condition',
-      condition: 'Torment',
+      condition: CONDITION.TORMENT,
       duration: 1,
       stacks: 1
     }

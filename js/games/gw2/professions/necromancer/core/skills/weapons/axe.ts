@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
@@ -55,7 +56,7 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        ticks: [400, 640].map((atMs) => ({ atMs, condition: 'Vulnerability', duration: 7, stacks: 1 }))
+        ticks: [400, 640].map((atMs) => ({ atMs, condition: CONDITION.VULNERABILITY, duration: 7, stacks: 1 }))
       }
     ])
   },
@@ -81,7 +82,7 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Pa
         coefficient: 2.5,
         hits: 1
       },
-      { type: 'condition', condition: 'Crippled', duration: 5, stacks: 1 }
+      { type: 'condition', condition: CONDITION.CRIPPLED, duration: 5, stacks: 1 }
     ])
   }
 });

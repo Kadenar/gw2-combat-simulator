@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /**
  * Owns Reaper Shroud entry, exit, and weapon skill fragments.
@@ -50,7 +51,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'condition',
-        condition: 'Fear',
+        condition: CONDITION.FEAR,
         stacks: 1,
         duration: 1
       }
@@ -130,7 +131,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         type: 'condition',
         ticks: [240, 440, 560, 760, 880, 1080, 1200, 1400, 1520, 1720, 1840, 2040].map((atMs) => ({
           atMs,
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           stacks: 1,
           duration: 2
         }))
@@ -166,7 +167,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         type: 'condition',
         ticks: [840, 1840, 2840, 3840, 4840].map((atMs) => ({
           atMs,
-          condition: 'Chilled',
+          condition: CONDITION.CHILLED,
           stacks: 1,
           duration: 1
         })),
@@ -224,7 +225,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         },
         {
           type: 'condition',
-          condition: 'Blindness',
+          condition: CONDITION.BLINDNESS,
           stacks: 1,
           duration: 3
         }

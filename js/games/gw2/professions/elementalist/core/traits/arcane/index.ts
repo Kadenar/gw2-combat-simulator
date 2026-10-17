@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -60,7 +62,7 @@ export const arcaneProwess = defineTrait({
   id: TRAIT.ARCANE_PROWESS,
   name: 'Arcane Prowess',
   balance: {
-    effects: [{ type: 'boon', name: 'Might', boon: 'might', stacks: 1, duration: 8 }]
+    effects: [{ type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 1, duration: 8 }]
   }
 });
 
@@ -77,10 +79,10 @@ export const arcanePrecision = defineTrait({
     procChance: 0.33,
     internalCooldown: 3,
     effects: [
-      { type: 'condition', name: 'Fire', condition: 'Burning', stacks: 1, duration: 1.5 },
-      { type: 'condition', name: 'Water', condition: 'Vulnerability', stacks: 1, duration: 10 },
-      { type: 'condition', name: 'Air', condition: 'Weakness', stacks: 1, duration: 3 },
-      { type: 'condition', name: 'Earth', condition: 'Bleeding', stacks: 1, duration: 5 }
+      { type: 'condition', name: 'Fire', condition: CONDITION.BURNING, stacks: 1, duration: 1.5 },
+      { type: 'condition', name: 'Water', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 10 },
+      { type: 'condition', name: 'Air', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 },
+      { type: 'condition', name: 'Earth', condition: CONDITION.BLEEDING, stacks: 1, duration: 5 }
     ]
   }
 });
@@ -96,7 +98,7 @@ export const renewingStamina = defineTrait({
   name: 'Renewing Stamina',
   balance: {
     internalCooldown: 10,
-    effects: [{ type: 'boon', name: 'Vigor', boon: 'vigor', stacks: 1, duration: 5 }]
+    effects: [{ type: 'boon', name: BOON.VIGOR, boon: BOON.VIGOR, stacks: 1, duration: 5 }]
   }
 });
 
@@ -116,7 +118,7 @@ export const elementalAttunement = defineTrait({
       {
         type: 'boon',
         name: 'Fire',
-        boon: 'might',
+        boon: BOON.MIGHT,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
@@ -125,7 +127,7 @@ export const elementalAttunement = defineTrait({
       {
         type: 'boon',
         name: 'Water',
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
@@ -134,7 +136,7 @@ export const elementalAttunement = defineTrait({
       {
         type: 'boon',
         name: 'Air',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
@@ -143,7 +145,7 @@ export const elementalAttunement = defineTrait({
       {
         type: 'boon',
         name: 'Earth',
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
@@ -164,10 +166,10 @@ export const elementalLockdown = defineTrait({
   balance: {
     internalCooldown: 1,
     effects: [
-      { type: 'boon', name: 'Fire', boon: 'might', stacks: 5, duration: 5 },
-      { type: 'boon', name: 'Water', boon: 'regeneration', stacks: 1, duration: 10 },
-      { type: 'boon', name: 'Air', boon: 'fury', stacks: 1, duration: 5 },
-      { type: 'boon', name: 'Earth', boon: 'protection', stacks: 1, duration: 4 }
+      { type: 'boon', name: 'Fire', boon: BOON.MIGHT, stacks: 5, duration: 5 },
+      { type: 'boon', name: 'Water', boon: BOON.REGENERATION, stacks: 1, duration: 10 },
+      { type: 'boon', name: 'Air', boon: BOON.FURY, stacks: 1, duration: 5 },
+      { type: 'boon', name: 'Earth', boon: BOON.PROTECTION, stacks: 1, duration: 4 }
     ]
   }
 });
@@ -226,10 +228,10 @@ export const arcaneLightning = defineTrait({
         stacks: 1,
         duration: 15
       },
-      { type: 'boon', name: 'Arcane Brilliance', boon: 'protection', stacks: 1, duration: 3.5 },
-      { type: 'condition', name: 'Arcane Wave', condition: 'Immobilized', stacks: 1, duration: 2 },
-      { type: 'boon', name: 'Arcane Echo', boon: 'quickness', stacks: 1, duration: 4 },
-      { type: 'condition', name: 'Arcane Blast', condition: 'Blindness', stacks: 1, duration: 5 }
+      { type: 'boon', name: 'Arcane Brilliance', boon: BOON.PROTECTION, stacks: 1, duration: 3.5 },
+      { type: 'condition', name: 'Arcane Wave', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 },
+      { type: 'boon', name: 'Arcane Echo', boon: BOON.QUICKNESS, stacks: 1, duration: 4 },
+      { type: 'condition', name: 'Arcane Blast', condition: CONDITION.BLINDNESS, stacks: 1, duration: 5 }
     ]
   }
 });
@@ -252,7 +254,7 @@ export const bountifulPower = defineTrait({
     damageIncrease: 0.2,
     threshold: 5,
     effects: [
-      { type: 'boon', name: 'Quickness', boon: 'quickness', stacks: 1, duration: 5 },
+      { type: 'boon', name: BOON.QUICKNESS, boon: BOON.QUICKNESS, stacks: 1, duration: 5 },
       {
         type: 'buff',
         name: 'Damage Window',
@@ -495,13 +497,13 @@ function applyArcanePrecision(context: ElementalistResolverContext, event: Gw2Re
 /** Materializes Renewing Stamina after its registered critical-hit reaction succeeds. */
 function applyRenewingStamina(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   const renewingStaminaProfile = requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA);
-  const vigor = requireEffect(renewingStaminaProfile, 'boon', 'Vigor');
+  const vigor = requireEffect(renewingStaminaProfile, 'boon', BOON.VIGOR);
 
   if (vigor) {
     emitTraitProfile(context, TRAIT.RENEWING_STAMINA, TRAIT.RENEWING_STAMINA, undefined, {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'boon', name: 'Vigor' },
+      effect: { type: 'boon', name: BOON.VIGOR },
       durationContext: event,
       attribution: {
         source: 'Trait',
@@ -567,7 +569,7 @@ function applyArcaneProwess(
   emitTraitProfile(context, TRAIT.ARCANE_PROWESS, TRAIT.ARCANE_PROWESS, undefined, {
     at: at,
     fullEnd: at,
-    effect: { type: 'boon', name: 'Might' },
+    effect: { type: 'boon', name: BOON.MIGHT },
     skillId: sourceId,
     skillName: 'Arcane Prowess',
     cast: emissionCast,
@@ -632,7 +634,7 @@ function triggerBountifulPower(
   emitTraitProfile(context, TRAIT.BOUNTIFUL_POWER, TRAIT.BOUNTIFUL_POWER, undefined, {
     at: at,
     fullEnd: at,
-    effect: { type: 'boon', name: 'Quickness' },
+    effect: { type: 'boon', name: BOON.QUICKNESS },
     skillId: sourceId,
     skillName: 'Bountiful Power',
     cast: emissionCast,

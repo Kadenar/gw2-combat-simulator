@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
@@ -40,9 +42,9 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       effects: [
         { name: 'Strike', type: 'strike', coefficient: 1.6, hits: 1, actorType: 'player' },
         {
-          name: 'Poisoned',
+          name: CONDITION.POISONED,
           type: 'condition',
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           stacks: 3,
           duration: 10,
           actorType: 'player'
@@ -56,33 +58,33 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     effects: [
       { name: 'Strike', type: 'strike', coefficient: 4, hits: 1, actorType: 'player' },
       {
-        name: 'Torment',
+        name: CONDITION.TORMENT,
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 3,
         duration: 10,
         actorType: 'player'
       },
       {
-        name: 'Weakness',
+        name: CONDITION.WEAKNESS,
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 10,
         actorType: 'player'
       },
       {
-        name: 'might',
+        name: boonKey(BOON.MIGHT),
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         stacks: 10,
         duration: 10,
         actorType: 'player'
       },
       {
-        name: 'fury',
+        name: boonKey(BOON.FURY),
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         stacks: 1,
         duration: 10,
         actorType: 'player'
@@ -114,25 +116,25 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       effects: [
         { name: 'Strike', type: 'strike', coefficient: 2, hits: 1, actorType: 'player' },
         {
-          name: 'Crippled',
+          name: CONDITION.CRIPPLED,
           type: 'condition',
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 10,
           actorType: 'player'
         },
         {
-          name: 'quickness',
+          name: boonKey(BOON.QUICKNESS),
           type: 'boon',
-          boon: 'quickness',
+          boon: BOON.QUICKNESS,
           stacks: 1,
           duration: 10,
           actorType: 'player'
         },
         {
-          name: 'swiftness',
+          name: boonKey(BOON.SWIFTNESS),
           type: 'boon',
-          boon: 'swiftness',
+          boon: BOON.SWIFTNESS,
           stacks: 1,
           duration: 20,
           actorType: 'player'
@@ -159,33 +161,33 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
           actorType: 'player' as const
         })),
         {
-          name: 'might',
+          name: boonKey(BOON.MIGHT),
           type: 'boon',
-          boon: 'might',
+          boon: BOON.MIGHT,
           stacks: 25,
           duration: 5,
           actorType: 'player'
         },
         {
-          name: 'fury',
+          name: boonKey(BOON.FURY),
           type: 'boon',
-          boon: 'fury',
+          boon: BOON.FURY,
           stacks: 1,
           duration: 5,
           actorType: 'player'
         },
         {
-          name: 'quickness',
+          name: boonKey(BOON.QUICKNESS),
           type: 'boon',
-          boon: 'quickness',
+          boon: BOON.QUICKNESS,
           stacks: 1,
           duration: 5,
           actorType: 'player'
         },
         {
-          name: 'alacrity',
+          name: boonKey(BOON.ALACRITY),
           type: 'boon',
-          boon: 'alacrity',
+          boon: BOON.ALACRITY,
           stacks: 1,
           duration: 5,
           actorType: 'player'
@@ -198,9 +200,9 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     effects: [
       { name: 'Strike', type: 'strike', coefficient: 2, hits: 1, actorType: 'player' },
       {
-        name: 'Torment',
+        name: CONDITION.TORMENT,
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 5,
         duration: 5,
         actorType: 'player'
@@ -212,9 +214,9 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     effects: [
       { name: 'Strike', type: 'strike', coefficient: 2.8, hits: 1, actorType: 'player' },
       {
-        name: 'Torment',
+        name: CONDITION.TORMENT,
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 5,
         duration: 7,
         actorType: 'player'

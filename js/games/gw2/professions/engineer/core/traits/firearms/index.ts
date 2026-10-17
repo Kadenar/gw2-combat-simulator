@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -58,7 +60,7 @@ export const serratedSteel = defineTrait({
     },
     procChance: 0.33,
     durationMultiplier: 0.33,
-    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 }]
+    effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 3 }]
   },
   attributes: ({ balanceContext }) => ({
     traitDurations: {
@@ -93,7 +95,7 @@ export const noScope = defineTrait({
   balance: {
     internalCooldown: 8,
     attributeBonus: 150,
-    effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 4 }]
+    effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 4 }]
   },
   attributes: ({ balanceContext: profileContext, loadout }) => {
     const engineerBuild = loadout;
@@ -142,7 +144,7 @@ export const incendiaryPowder = defineTrait({
   balance: {
     internalCooldown: 10,
     durationMultiplier: 0.33,
-    effects: [{ name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 8 }]
+    effects: [{ name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8 }]
   },
   attributes: ({ balanceContext }) => ({
     traitDurations: {
@@ -186,7 +188,7 @@ export const sanguineArray = defineTrait({
   id: TRAIT.SANGUINE_ARRAY,
   name: 'Sanguine Array',
   balance: {
-    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 1, duration: 4 }]
+    effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 1, duration: 4 }]
   }
 });
 
@@ -199,7 +201,7 @@ export const hematicFocus = defineTrait({
   balance: {
     criticalChance: 0.15,
     internalCooldown: 8,
-    effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 8 }]
+    effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 8 }]
   },
   modifierRules: [
     {
@@ -208,7 +210,8 @@ export const hematicFocus = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) => balanceNumberFromContext(context, TRAIT.HEMATIC_FOCUS, 'criticalChance'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && activeBoonStacks(context, 'fury', 1) > 0
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) && activeBoonStacks(context, boonKey(BOON.FURY), 1) > 0
     }
   ]
 });
@@ -294,7 +297,7 @@ export const sharpshooter = defineTrait({
   // Sample final Power after specialization, relics, and actor projection.
   attributes: (context) => ({
     finalCondition: {
-      condition: 'Bleeding',
+      condition: CONDITION.BLEEDING,
       powerMultiplier: balanceNumberFromContext(context, TRAIT.SHARPSHOOTER, 'coefficientMultiplier')
     }
   }),
@@ -335,8 +338,8 @@ export const modifiedAmmunition = defineTrait({
 export function selectedFirearmsDurationBonuses(context: Gw2ModifierContext): Record<string, number> {
   const bonuses: Record<string, number> = {};
   for (const [condition, trait] of [
-    ['Bleeding', TRAIT.SERRATED_STEEL],
-    ['Burning', TRAIT.INCENDIARY_POWDER]
+    [CONDITION.BLEEDING, TRAIT.SERRATED_STEEL],
+    [CONDITION.BURNING, TRAIT.INCENDIARY_POWDER]
   ] as const) {
     if (hasTrait(context, trait))
       bonuses[condition] = 100 * balanceNumberFromContext(context, trait, 'durationMultiplier');
@@ -349,7 +352,7 @@ export function selectedFirearmsDurationBonuses(context: Gw2ModifierContext): Re
 
 /** Opens or extends Thermal Vision's condition-damage window from player-owned Burning. */
 function applyThermalVision(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  if (event.condition !== 'Burning' || event.actorType === 'summon') {
+  if (event.condition !== CONDITION.BURNING || event.actorType === 'summon') {
     return;
   }
 
@@ -385,17 +388,17 @@ function applyThermalVision(context: EngineerResolverContext, event: EngineerRes
 
 /** Converts player-owned Bleeding applications into Sanguine Array might. */
 function applySanguineArray(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  if (event.condition !== 'Bleeding' || event.actorType === 'summon') {
+  if (event.condition !== CONDITION.BLEEDING || event.actorType === 'summon') {
     return;
   }
 
   const sanguineArrayProfile = requireBalanceProfileFromContext(context, TRAIT.SANGUINE_ARRAY);
-  const sanguineArrayMight = requireEffect(sanguineArrayProfile, 'boon', 'might');
+  const sanguineArrayMight = requireEffect(sanguineArrayProfile, 'boon', boonKey(BOON.MIGHT));
 
   if (sanguineArrayMight) {
     emitTraitProfile(context, TRAIT.SANGUINE_ARRAY, TRAIT.SANGUINE_ARRAY, undefined, {
       at: event.at,
-      effect: { type: 'boon', name: 'might' },
+      effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
       durationContext: event,
       attribution: {
         source: 'Trait',
@@ -427,18 +430,18 @@ function applySanguineArray(context: EngineerResolverContext, event: EngineerRes
 
 /** Grants Hematic Focus fury from player-owned Bleeding when its cooldown is ready. */
 function applyHematicFocus(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  if (event.condition !== 'Bleeding' || event.actorType === 'summon') {
+  if (event.condition !== CONDITION.BLEEDING || event.actorType === 'summon') {
     return;
   }
 
   const hematicFocusProfile = requireBalanceProfileFromContext(context, TRAIT.HEMATIC_FOCUS);
-  const hematicFocusFury = requireEffect(hematicFocusProfile, 'boon', 'fury');
+  const hematicFocusFury = requireEffect(hematicFocusProfile, 'boon', boonKey(BOON.FURY));
 
   // Removed Fury cannot consume recharge; reserve it before delivering a surviving packet.
   if (hematicFocusFury && context.procs.claim(TRAIT.HEMATIC_FOCUS, 'hematicFocus', event.at)) {
     emitTraitProfile(context, TRAIT.HEMATIC_FOCUS, TRAIT.HEMATIC_FOCUS, undefined, {
       at: event.at,
-      effect: { type: 'boon', name: 'fury' },
+      effect: { type: 'boon', name: boonKey(BOON.FURY) },
       durationContext: event,
       attribution: {
         source: 'Trait',
@@ -471,12 +474,12 @@ function applyHematicFocus(context: EngineerResolverContext, event: EngineerReso
 /** Grant and report No Scope Fury only after the shared critical handler accepts the proc. */
 function grantNoScope(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const noScopeProfile = requireBalanceProfileFromContext(context, TRAIT.NO_SCOPE);
-  const noScopeFury = requireEffect(noScopeProfile, 'boon', 'fury');
+  const noScopeFury = requireEffect(noScopeProfile, 'boon', boonKey(BOON.FURY));
 
   if (noScopeFury) {
     emitTraitProfile(context, TRAIT.NO_SCOPE, TRAIT.NO_SCOPE, undefined, {
       at: event.at,
-      effect: { type: 'boon', name: 'fury' },
+      effect: { type: 'boon', name: boonKey(BOON.FURY) },
       durationContext: event,
       attribution: {
         source: 'Trait',
@@ -610,7 +613,16 @@ function emitSerratedSteel(
   quantity: number,
   owner: FirearmsConditionOwner
 ): void {
-  emitFirearmsCondition(context, event, owner, TRAIT.SERRATED_STEEL, 'Serrated Steel', 'Bleeding', quantity, quantity);
+  emitFirearmsCondition(
+    context,
+    event,
+    owner,
+    TRAIT.SERRATED_STEEL,
+    'Serrated Steel',
+    CONDITION.BLEEDING,
+    quantity,
+    quantity
+  );
 }
 
 /** Each eligible Incendiary Powder proc emits one profile application after its actor's cooldown gate. */
@@ -619,7 +631,7 @@ function emitIncendiaryPowder(
   event: EngineerResolverEvent,
   owner: FirearmsConditionOwner
 ): void {
-  emitFirearmsCondition(context, event, owner, TRAIT.INCENDIARY_POWDER, 'Incendiary Powder', 'Burning');
+  emitFirearmsCondition(context, event, owner, TRAIT.INCENDIARY_POWDER, 'Incendiary Powder', CONDITION.BURNING);
 }
 
 // Pistol conditions extend their base duration; trait procs keep their own authored duration.

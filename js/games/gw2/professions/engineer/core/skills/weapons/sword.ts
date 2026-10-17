@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -25,14 +27,14 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 4,
         actorType: 'player'
       },
       {
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 3,
         stacks: 1
       }
@@ -52,7 +54,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 10,
         actorType: 'player'
@@ -73,7 +75,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 10,
         actorType: 'player'
@@ -132,7 +134,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         },
         {
           type: 'condition',
-          ticks: [40, 80].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 4 })),
+          ticks: [40, 80].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 1, duration: 4 })),
           actorType: 'player'
         }
       ])

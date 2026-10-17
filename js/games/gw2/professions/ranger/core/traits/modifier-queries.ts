@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, countActiveBoons, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
@@ -44,8 +45,8 @@ export function rangerTargetImpaired(context: Gw2ModifierContext): boolean {
     return true;
   }
 
-  return ['Chilled', 'Crippled', 'Immobilized', 'Taunt', 'Fear'].some((condition) =>
-    targetConditionActive(context, condition)
+  return [CONDITION.CHILLED, CONDITION.CRIPPLED, CONDITION.IMMOBILIZED, CONDITION.TAUNT, CONDITION.FEAR].some(
+    (condition) => targetConditionActive(context, condition)
   );
 }
 

@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import {
@@ -42,7 +44,7 @@ export const assassinsFury = defineTrait({
   name: "Assassin's Fury",
   balance: {
     internalCooldown: 2,
-    effects: [{ type: 'boon', name: 'Might', boon: 'Might', stacks: 3, duration: 8 }]
+    effects: [{ type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 3, duration: 8 }]
   },
   triggers: [
     {
@@ -50,10 +52,10 @@ export const assassinsFury = defineTrait({
       emit: TRAIT.ASSASSINS_FURY,
       cooldown: 'profile',
       when: (runtime, event) =>
-        (event.kind || '').toLowerCase() === 'fury' &&
+        (event.kind || '').toLowerCase() === boonKey(BOON.FURY) &&
         Boolean(event.resolvedAudience?.includesSelf) &&
-        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.ASSASSINS_FURY), 'boon', 'Might')),
-      effects: (effect) => effect.type === 'boon' && effect.name === 'Might',
+        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.ASSASSINS_FURY), 'boon', BOON.MIGHT)),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.MIGHT,
       attribution: (_runtime, event) => ({
         skillId: TRAIT.ASSASSINS_FURY,
         skillName: "Assassin's Fury",
@@ -75,7 +77,7 @@ export const unrelentingStrikes = defineTrait({
   ],
   balance: {
     internalCooldown: 8,
-    effects: [{ type: 'boon', name: 'Fury', boon: 'Fury', stacks: 1, duration: 4 }]
+    effects: [{ type: 'boon', name: BOON.FURY, boon: BOON.FURY, stacks: 1, duration: 4 }]
   }
 });
 
@@ -188,7 +190,7 @@ export const noQuarter = defineTrait({
   balance: {
     internalCooldown: 2,
     attributeBonus: 250,
-    effects: [{ type: 'boon', name: 'Fury', boon: 'Fury', stacks: 1, duration: 2 }]
+    effects: [{ type: 'boon', name: BOON.FURY, boon: BOON.FURY, stacks: 1, duration: 2 }]
   },
   attributes({ loadout, balanceContext }) {
     const thiefBuild = loadout;
@@ -255,8 +257,8 @@ export const sunderingShade = defineTrait({
     effects: [
       {
         type: 'condition',
-        name: 'Vulnerability',
-        condition: 'Vulnerability',
+        name: CONDITION.VULNERABILITY,
+        condition: CONDITION.VULNERABILITY,
         stacks: 10,
         duration: 5
       }
@@ -310,7 +312,7 @@ export function hiddenKillerLinger(runtime: ThiefRuntime): number {
 /** Sundering Shade's Vulnerability follows the completed stealth attack. */
 function completeThiefStealthAttack(runtime: ThiefRuntime, { cast }: StealthAttackCompletion): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.SUNDERING_SHADE);
-  const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+  const vulnerability = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!vulnerability) return;
@@ -318,7 +320,7 @@ function completeThiefStealthAttack(runtime: ThiefRuntime, { cast }: StealthAtta
   emitTraitProfile(runtime, TRAIT.SUNDERING_SHADE, TRAIT.SUNDERING_SHADE, undefined, {
     at: runtime.time,
     fullEnd: runtime.time,
-    effect: { type: 'condition', name: 'Vulnerability' },
+    effect: { type: 'condition', name: CONDITION.VULNERABILITY },
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.SUNDERING_SHADE,
@@ -334,7 +336,7 @@ function completeThiefStealthAttack(runtime: ThiefRuntime, { cast }: StealthAtta
 /** Removed boons are omitted; surviving tuning is read from the selected profile. */
 function criticalBoonDefinition(context: unknown, traitId: SkillId) {
   const selectedProfile = requireBalanceProfileFromContext(context, traitId);
-  const effect = requireEffect(selectedProfile, 'boon', 'Fury');
+  const effect = requireEffect(selectedProfile, 'boon', BOON.FURY);
 
   if (!effect) return null;
 
@@ -410,9 +412,9 @@ const applyUnrelentingStrikes = criticalProcHandler(unrelentingStrikesCriticalRe
 function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEvent, duration: number): void {
   // Extend Fury only while its canonical half-open window is active at the hit time.
   if (
-    remainingDurationStackSeconds(context.combat.boonApplications('fury'), event.at, {
+    remainingDurationStackSeconds(context.combat.boonApplications(boonKey(BOON.FURY)), event.at, {
       includes: (application) => buffMatchesAudience(application, 'all'),
-      maximum: durationStackingBoonCapSeconds('fury')
+      maximum: durationStackingBoonCapSeconds(boonKey(BOON.FURY))
     }) <= 0
   )
     return;
@@ -425,7 +427,7 @@ function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEve
     actorType: 'effect',
     skillId: TRAIT.NO_QUARTER,
     skillName: 'No Quarter',
-    kind: 'fury',
+    kind: boonKey(BOON.FURY),
     duration
   };
   // Extension settles in the hit transaction before subsequent critical reactions inspect Fury.

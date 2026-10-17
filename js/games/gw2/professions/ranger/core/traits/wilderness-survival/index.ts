@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   isActivePetStrike,
@@ -73,7 +74,7 @@ export const poisonMaster = defineTrait({
   name: 'Poison Master',
   balance: {
     conditionDamageMultiplier: 1.25,
-    effects: [{ name: 'Poisoned', type: 'condition', condition: 'Poisoned', duration: 8, stacks: 2 }]
+    effects: [{ name: CONDITION.POISONED, type: 'condition', condition: CONDITION.POISONED, duration: 8, stacks: 2 }]
   },
   modifierRules: [
     {
@@ -83,7 +84,7 @@ export const poisonMaster = defineTrait({
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.POISON_MASTER, 'conditionDamageMultiplier'),
       // The damage bonus is Ranger-owned; the separately triggered pet attack also resolves from Ranger stats.
-      when: (context) => context.condition === 'Poisoned' && isGw2PlayerModifierOwnedEvent(context.event)
+      when: (context) => context.condition === CONDITION.POISONED && isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
 });
@@ -103,7 +104,7 @@ export const arachnophobia = defineTrait({
     damagePreviewAttribution: 'summon',
     attributeBonus: 150,
     weaponAttributeBonus: 225,
-    effects: [{ name: 'Torment', type: 'condition', condition: 'Torment', duration: 3, stacks: 1 }]
+    effects: [{ name: CONDITION.TORMENT, type: 'condition', condition: CONDITION.TORMENT, duration: 3, stacks: 1 }]
   },
   // Live pet queries may lack a snapshot; captured packet Expertise replaces this later.
   attributes(context) {
@@ -294,7 +295,7 @@ function triggerPoisonMaster(context: RangerResolverContext, event: Gw2ResolverE
   if (!actor?.poisonMasterReady) return;
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.POISON_MASTER);
-  const poison = requireEffect(profile, 'condition', 'Poisoned');
+  const poison = requireEffect(profile, 'condition', CONDITION.POISONED);
 
   // The armed pet attack exists only to deliver poison, so a removed packet leaves it armed.
   if (!poison) return;
@@ -303,7 +304,7 @@ function triggerPoisonMaster(context: RangerResolverContext, event: Gw2ResolverE
   emitTraitProfile(context, TRAIT.POISON_MASTER, TRAIT.POISON_MASTER, undefined, {
     at: event.at,
     fullEnd: event.at,
-    effect: { type: 'condition', name: 'Poisoned' },
+    effect: { type: 'condition', name: CONDITION.POISONED },
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.POISON_MASTER,
@@ -324,7 +325,7 @@ function triggerArachnophobia(context: RangerResolverContext, event: Gw2Resolver
   const divisor = event.skillId === ID.TWIN_DARTS ? Number(event.totalHits || 2) : 1;
   emitTraitProfile(context, TRAIT.ARACHNOPHOBIA, TRAIT.ARACHNOPHOBIA, undefined, {
     at: event.at,
-    effect: { type: 'condition', name: 'Torment' },
+    effect: { type: 'condition', name: CONDITION.TORMENT },
     attribution: {
       source: isPetStrike(event) ? 'ranger-pet' : 'Trait',
       actorType: isPetStrike(event) ? 'summon' : 'effect',

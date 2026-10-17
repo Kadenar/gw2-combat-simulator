@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -15,8 +16,8 @@ export const akeem = defineRelic({
     if (!isInternalCooldownReady(event.at, state.readyAt)) return;
 
     if (
-      activeConditionStackCount(ctx, 'Confusion', event.at) < REQUIRED_CONDITIONS &&
-      activeConditionStackCount(ctx, 'Torment', event.at) < REQUIRED_CONDITIONS
+      activeConditionStackCount(ctx, CONDITION.CONFUSION, event.at) < REQUIRED_CONDITIONS &&
+      activeConditionStackCount(ctx, CONDITION.TORMENT, event.at) < REQUIRED_CONDITIONS
     ) {
       return;
     }
@@ -41,7 +42,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
       at: event.at,
       name: 'Relic of Akeem — Confusion',
       skillName: 'Relic of Akeem',
-      condition: 'Confusion',
+      condition: CONDITION.CONFUSION,
       duration: 10,
       stacks: 2,
       source: 'Relic',
@@ -57,7 +58,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
       at: event.at,
       name: 'Relic of Akeem — Torment',
       skillName: 'Relic of Akeem',
-      condition: 'Torment',
+      condition: CONDITION.TORMENT,
       duration: 10,
       stacks: 2,
       source: 'Relic',

@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Renegade warband, enhanced Band Together, stance, and triggered skill identities.
  * Patchable mechanic and trait values live in sibling `profiles.ts`.
@@ -17,7 +19,7 @@ const BASE_RAZORCLAW_EFFECTS = Object.freeze([
   },
   {
     type: 'condition',
-    condition: 'Bleeding',
+    condition: CONDITION.BLEEDING,
     stacks: 4,
     duration: 8,
     actorType: 'player'
@@ -36,14 +38,14 @@ const BASE_BREAKRAZOR_EFFECTS = Object.freeze([
   {
     type: 'boon',
     audience: { recipients: 'party' as const, maximumRecipients: 5 },
-    boon: 'resolution',
+    boon: BOON.RESOLUTION,
     duration: 2.5,
     stacks: 1
   },
   {
     type: 'boon',
     audience: { recipients: 'party' as const, maximumRecipients: 5 },
-    boon: 'resolution',
+    boon: BOON.RESOLUTION,
     duration: 4,
     stacks: 1
   }
@@ -77,20 +79,20 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         ticks: [
           {
             atMs: 480,
-            condition: 'Vulnerability',
+            condition: CONDITION.VULNERABILITY,
             stacks: 10,
             duration: 8
           },
-          { atMs: 480, condition: 'Torment', stacks: 3, duration: 6 },
+          { atMs: 480, condition: CONDITION.TORMENT, stacks: 3, duration: 6 },
           {
             atMs: 480,
-            condition: 'Vulnerability',
+            condition: CONDITION.VULNERABILITY,
             stacks: 5,
             duration: 8
           },
           {
             atMs: 800,
-            condition: 'Immobilized',
+            condition: CONDITION.IMMOBILIZED,
             stacks: 1,
             duration: 2
           }
@@ -120,12 +122,12 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
-      { type: 'boon', boon: 'stability', duration: 1, stacks: 1, audience: { recipients: 'self' as const } },
+      { type: 'boon', boon: BOON.STABILITY, duration: 1, stacks: 1, audience: { recipients: 'self' as const } },
       // Share one impact timing while preserving independent payloads and declaration order.
       ...impactEffects({ atMs: 1000, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
         {
           type: 'boon',
-          boon: 'stability',
+          boon: BOON.STABILITY,
           duration: 6,
           stacks: 3,
           audience: { recipients: 'party' as const }
@@ -216,26 +218,26 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         ticks: [
           {
             atMs: 640,
-            condition: 'Vulnerability',
+            condition: CONDITION.VULNERABILITY,
             stacks: 10,
             duration: 8
           },
-          { atMs: 640, condition: 'Torment', stacks: 3, duration: 6 },
+          { atMs: 640, condition: CONDITION.TORMENT, stacks: 3, duration: 6 },
           {
             atMs: 640,
-            condition: 'Vulnerability',
+            condition: CONDITION.VULNERABILITY,
             stacks: 5,
             duration: 8
           },
-          { atMs: 640, condition: 'Chilled', stacks: 1, duration: 1.5 },
-          { atMs: 800, condition: 'Chilled', stacks: 1, duration: 1.5 },
+          { atMs: 640, condition: CONDITION.CHILLED, stacks: 1, duration: 1.5 },
+          { atMs: 800, condition: CONDITION.CHILLED, stacks: 1, duration: 1.5 },
           {
             atMs: 960,
-            condition: 'Immobilized',
+            condition: CONDITION.IMMOBILIZED,
             stacks: 1,
             duration: 2
           },
-          { atMs: 960, condition: 'Chilled', stacks: 1, duration: 1.5 }
+          { atMs: 960, condition: CONDITION.CHILLED, stacks: 1, duration: 1.5 }
         ]
       }
     ]),
@@ -253,7 +255,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       BASE_RAZORCLAW_EFFECTS[1],
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 3,
         duration: 6,
         actorType: 'player'
@@ -278,14 +280,14 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
-      { type: 'boon', boon: 'stability', duration: 1, stacks: 1, audience: { recipients: 'self' as const } },
-      { type: 'boon', boon: 'resistance', duration: 4, stacks: 1, audience: { recipients: 'party' as const } },
-      { type: 'boon', boon: 'protection', duration: 4, stacks: 1, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: BOON.STABILITY, duration: 1, stacks: 1, audience: { recipients: 'self' as const } },
+      { type: 'boon', boon: BOON.RESISTANCE, duration: 4, stacks: 1, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: BOON.PROTECTION, duration: 4, stacks: 1, audience: { recipients: 'party' as const } },
       // Share one impact timing while preserving independent payloads and declaration order.
       ...impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
           type: 'boon',
-          boon: 'stability',
+          boon: BOON.STABILITY,
           duration: 6,
           stacks: 3,
           audience: { recipients: 'party' as const }
@@ -329,7 +331,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 2,
         duration: 8,
         actorType: 'player'
@@ -359,9 +361,9 @@ export const RENEGADE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     cooldown: 0,
     effects: [
       {
-        name: 'Bleeding',
+        name: CONDITION.BLEEDING,
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 3,
         actorType: 'player'

@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
@@ -47,10 +48,10 @@ function jadeSphereEffects(boon: string, duration: number): readonly SkillEffect
 
 /** Per-attunement sphere pulse effects consumed by the Catalyst skill fragments. */
 const CATALYST_JADE_SPHERE_EFFECTS: Readonly<Record<number, readonly SkillEffect[]>> = Object.freeze({
-  [ID.DEPLOY_JADE_SPHERE_FIRE]: jadeSphereEffects('Might', 10),
-  [ID.DEPLOY_JADE_SPHERE_WATER]: jadeSphereEffects('Resolution', 1),
-  [ID.DEPLOY_JADE_SPHERE_AIR]: jadeSphereEffects('Fury', 1),
-  [ID.DEPLOY_JADE_SPHERE_EARTH]: jadeSphereEffects('Protection', 1)
+  [ID.DEPLOY_JADE_SPHERE_FIRE]: jadeSphereEffects(BOON.MIGHT, 10),
+  [ID.DEPLOY_JADE_SPHERE_WATER]: jadeSphereEffects(BOON.RESOLUTION, 1),
+  [ID.DEPLOY_JADE_SPHERE_AIR]: jadeSphereEffects(BOON.FURY, 1),
+  [ID.DEPLOY_JADE_SPHERE_EARTH]: jadeSphereEffects(BOON.PROTECTION, 1)
 });
 
 /** Jade Sphere declarations and execution share one owner for attunement, energy spending, and field windows. */

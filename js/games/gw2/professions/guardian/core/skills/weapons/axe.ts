@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -26,7 +28,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
           type: 'condition',
           ticks: Array.from({ length: 5 }, (_, index) => ({
             atMs: 680 + index * 1000,
-            condition: 'Bleeding',
+            condition: CONDITION.BLEEDING,
             stacks: 1,
             duration: 3
           }))
@@ -35,14 +37,14 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 1.5
       },
       // Later symbol pulses repeat Fury at their fixed offsets after the initial application.
       ...[1680, 2680, 3680, 4680].map((atMs) => ({
         type: 'boon' as const,
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 1.5,
         atMs,
         timingAnchor: 'castStart' as const,
@@ -65,7 +67,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 640, condition: 'Burning', stacks: 2, duration: 2 }]
+        ticks: [{ atMs: 640, condition: CONDITION.BURNING, stacks: 2, duration: 2 }]
       }
     ])
   },
@@ -80,7 +82,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 640, condition: 'Bleeding', stacks: 2, duration: 1 }]
+        ticks: [{ atMs: 640, condition: CONDITION.BLEEDING, stacks: 2, duration: 1 }]
       }
     ])
   },
@@ -94,7 +96,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 600, condition: 'Bleeding', stacks: 2, duration: 1 }]
+        ticks: [{ atMs: 600, condition: CONDITION.BLEEDING, stacks: 2, duration: 1 }]
       }
     ])
   },
@@ -109,7 +111,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
         },
         {
           type: 'condition',
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 3
         }

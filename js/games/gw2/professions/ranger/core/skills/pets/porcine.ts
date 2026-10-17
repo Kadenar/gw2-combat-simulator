@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Core Ranger pet skill fragments for the Porcine family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -28,7 +29,7 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        ticks: [600, 600].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 2, duration: 6 })),
+        ticks: [600, 600].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 2, duration: 6 })),
         source: 'ranger-pet',
         actorType: 'summon'
       }
@@ -75,7 +76,7 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        ticks: [680, 680].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 2, duration: 6 })),
+        ticks: [680, 680].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 2, duration: 6 })),
         source: 'ranger-pet',
         actorType: 'summon'
       }
@@ -98,7 +99,12 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        ticks: [640, 1640, 2640, 3640, 4640].map((atMs) => ({ atMs, condition: 'Poisoned', stacks: 1, duration: 4 })),
+        ticks: [640, 1640, 2640, 3640, 4640].map((atMs) => ({
+          atMs,
+          condition: CONDITION.POISONED,
+          stacks: 1,
+          duration: 4
+        })),
         source: 'ranger-pet',
         actorType: 'summon'
       }
@@ -141,7 +147,7 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 2,
         duration: 8,
         source: 'ranger-pet',

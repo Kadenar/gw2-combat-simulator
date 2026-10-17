@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { addCarapace, deathCarapaceStacks } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -91,7 +93,7 @@ export const darkDefense = defineTrait({
     resourceGain: 10,
     duration: 10,
     internalCooldown: 5,
-    effects: [{ name: 'protection', type: 'boon', boon: 'protection', stacks: 1, duration: 3 }]
+    effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, stacks: 1, duration: 3 }]
   },
   triggers: [{ on: 'castCommit', run: applyDarkDefense }]
 });
@@ -133,7 +135,7 @@ export const putridDefense = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.PUTRID_DEFENSE, 'conditionDamageMultiplier'),
-      when: (context) => context.condition === 'Poisoned'
+      when: (context) => context.condition === CONDITION.POISONED
     }
   ]
 });
@@ -156,7 +158,7 @@ function applyDarkDefense(runtime: NecromancerRuntime, cast: RuntimeCast<Necroma
   // Carapace has already been granted; removal affects only this ordinary Protection payload.
   emitTraitProfile(runtime, TRAIT.DARK_DEFENSE, TRAIT.DARK_DEFENSE, undefined, {
     at: runtime.time,
-    effect: { type: 'boon', name: 'protection' },
+    effect: { type: 'boon', name: boonKey(BOON.PROTECTION) },
     activationId: cast.id,
     attribution: { skillName: profile.name, triggeredBy: cast.skill.name, offTarget: cast.command.offTarget }
   });

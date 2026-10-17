@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
@@ -42,8 +43,8 @@ export const WILLBENDER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     profileKind: 'skill-variant',
     parentId: ID.CRASHING_COURAGE,
     effects: [
-      { type: 'boon', name: 'aegis', boon: 'aegis', stacks: 1, duration: 4 },
-      { type: 'boon', name: 'stability', boon: 'stability', stacks: 1, duration: 4 }
+      { type: 'boon', name: boonKey(BOON.AEGIS), boon: BOON.AEGIS, stacks: 1, duration: 4 },
+      { type: 'boon', name: boonKey(BOON.STABILITY), boon: BOON.STABILITY, stacks: 1, duration: 4 }
     ]
   }
 ]);

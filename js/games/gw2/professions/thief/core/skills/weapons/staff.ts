@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -25,7 +26,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
       {
         type: 'condition',
         // Each connecting hit adds two seconds of weakness at the strike's timestamp.
-        ticks: [120, 240, 320].map((atMs) => ({ atMs, condition: 'Weakness', stacks: 1, duration: 2 })),
+        ticks: [120, 240, 320].map((atMs) => ({ atMs, condition: CONDITION.WEAKNESS, stacks: 1, duration: 2 })),
         actorType: 'player'
       }
     ]),
@@ -93,7 +94,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 4, duration: 8 }],
+        ticks: [{ atMs: 0, condition: CONDITION.VULNERABILITY, stacks: 4, duration: 8 }],
         actorType: 'player',
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
@@ -124,7 +125,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 6,
         actorType: 'player'
@@ -179,7 +180,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 1,
         actorType: 'player'

@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
@@ -49,8 +50,8 @@ export const GUARDIAN_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
       {
         type: 'boon',
         audience: { recipients: 'party' },
-        name: 'protection',
-        boon: 'protection',
+        name: boonKey(BOON.PROTECTION),
+        boon: BOON.PROTECTION,
         duration: 1,
         stacks: 1,
         applications: 3,
@@ -80,8 +81,8 @@ export const GUARDIAN_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
       {
         type: 'boon',
         audience: { recipients: 'party', maximumRecipients: 5 },
-        name: 'resolution',
-        boon: 'resolution',
+        name: boonKey(BOON.RESOLUTION),
+        boon: BOON.RESOLUTION,
         stacks: 1,
         duration: 2,
         applications: 5,

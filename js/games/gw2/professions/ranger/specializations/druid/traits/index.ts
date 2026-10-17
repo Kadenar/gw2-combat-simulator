@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
@@ -103,7 +105,7 @@ const graceOfTheLand = defineTrait({
   id: TRAIT.GRACE_OF_THE_LAND,
   name: 'Grace of the Land',
   balance: {
-    effects: [{ name: 'alacrity', type: 'boon', boon: 'alacrity', duration: 1, stacks: 1 }]
+    effects: [{ name: boonKey(BOON.ALACRITY), type: 'boon', boon: BOON.ALACRITY, duration: 1, stacks: 1 }]
   }
 });
 
@@ -116,21 +118,27 @@ const eclipse = defineTrait({
       {
         name: 'Cosmic Ray',
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         duration: 8,
         stacks: 1
       },
-      { name: 'Seed of Life', type: 'condition', condition: 'Poisoned', duration: 8, stacks: 3 },
+      { name: 'Seed of Life', type: 'condition', condition: CONDITION.POISONED, duration: 8, stacks: 3 },
       {
         name: 'Lunar Impact',
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         duration: 3,
         stacks: 1
       },
-      { name: 'Rejuvenating Tides', type: 'condition', condition: 'Chilled', duration: 2, stacks: 1 },
-      { name: 'Natural Convergence', type: 'condition', condition: 'Burning', duration: 5, stacks: 1 },
-      { name: 'Natural Convergence final pulse', type: 'condition', condition: 'Burning', duration: 5, stacks: 3 }
+      { name: 'Rejuvenating Tides', type: 'condition', condition: CONDITION.CHILLED, duration: 2, stacks: 1 },
+      { name: 'Natural Convergence', type: 'condition', condition: CONDITION.BURNING, duration: 5, stacks: 1 },
+      {
+        name: 'Natural Convergence final pulse',
+        type: 'condition',
+        condition: CONDITION.BURNING,
+        duration: 5,
+        stacks: 3
+      }
     ]
   }
 });
@@ -140,7 +148,7 @@ const bloodMoon = defineTrait({
   id: TRAIT.BLOOD_MOON,
   name: 'Blood Moon',
   balance: {
-    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration: 4, stacks: 2 }]
+    effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, duration: 4, stacks: 2 }]
   },
   triggers: [
     {
@@ -148,7 +156,7 @@ const bloodMoon = defineTrait({
       // Pet disables do not activate the player's trait; player-owned child effects still do.
       when: (_runtime, event) => isGw2PlayerModifierOwnedEvent(event),
       emit: TRAIT.BLOOD_MOON,
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Bleeding',
+      effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.BLEEDING,
       attribution: (_runtime, event) => ({
         ownerActorType: 'player',
         skillId: TRAIT.BLOOD_MOON,
@@ -160,9 +168,10 @@ const bloodMoon = defineTrait({
     {
       on: 'condition.applied',
       when: (_runtime, event) =>
-        isGw2PlayerModifierOwnedEvent(event) && (event.condition === 'Immobilized' || event.condition === 'Immobile'),
+        isGw2PlayerModifierOwnedEvent(event) &&
+        (event.condition === CONDITION.IMMOBILIZED || event.condition === 'Immobile'),
       emit: TRAIT.BLOOD_MOON,
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Bleeding',
+      effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.BLEEDING,
       attribution: (_runtime, event) => ({
         ownerActorType: 'player',
         skillId: TRAIT.BLOOD_MOON,

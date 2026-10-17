@@ -1,3 +1,5 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -106,7 +108,9 @@ const timeCatchesUp = defineTrait<MesmerSkill>({
       // Time Catches Up affects only first-strike shatter packets against a movement-impaired target.
       when: (context) =>
         Boolean(context.event?.metadata?.shatterTraitEligible) &&
-        ['Chilled', 'Crippled', 'Immobilized', 'Slow'].some((condition) => targetConditionActive(context, condition))
+        [CONDITION.CHILLED, CONDITION.CRIPPLED, CONDITION.IMMOBILIZED, CONDITION.SLOW].some((condition) =>
+          targetConditionActive(context, condition)
+        )
     }
   ]
 });
@@ -132,7 +136,7 @@ const stretchedTime = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerShatterCompleted, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
-        triggerShatterBoon(runtime, input.resolution, TRAIT.STRETCHED_TIME, 'alacrity')
+        triggerShatterBoon(runtime, input.resolution, TRAIT.STRETCHED_TIME, boonKey(BOON.ALACRITY))
     })
   ],
   id: TRAIT.STRETCHED_TIME,
@@ -141,9 +145,9 @@ const stretchedTime = defineTrait<MesmerSkill>({
     durationPerTier: 1,
     effects: [
       {
-        name: 'alacrity',
+        name: boonKey(BOON.ALACRITY),
         type: 'boon',
-        boon: 'alacrity',
+        boon: BOON.ALACRITY,
         duration: 3,
         stacks: 1,
         audience: { recipients: 'party' as const, maximumRecipients: 5 }
@@ -157,7 +161,7 @@ const seizeTheMoment = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerShatterCompleted, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
-        triggerShatterBoon(runtime, input.resolution, TRAIT.SEIZE_THE_MOMENT, 'quickness')
+        triggerShatterBoon(runtime, input.resolution, TRAIT.SEIZE_THE_MOMENT, boonKey(BOON.QUICKNESS))
     })
   ],
   id: TRAIT.SEIZE_THE_MOMENT,
@@ -166,9 +170,9 @@ const seizeTheMoment = defineTrait<MesmerSkill>({
     durationPerTier: 1,
     effects: [
       {
-        name: 'quickness',
+        name: boonKey(BOON.QUICKNESS),
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 3,
         stacks: 1,
         audience: { recipients: 'party' as const, maximumRecipients: 5 }

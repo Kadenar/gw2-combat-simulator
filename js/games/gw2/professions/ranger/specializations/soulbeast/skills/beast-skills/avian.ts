@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Avian family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -11,7 +13,7 @@ export const SOULBEAST_AVIAN_BEAST_SKILL_MECHANICS: Readonly<Record<number, Part
     effects: [
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 10,
         stacks: 1,
         // Merging makes the ranger the boon source, retaining normal player duration scaling.
@@ -31,7 +33,7 @@ export const SOULBEAST_AVIAN_BEAST_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 6
       }

@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { HERALD_NATURE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/facet-of-nature.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -26,7 +28,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     legendId: 'LegendaryDragon',
     facet: true,
     pulseInterval: 3,
-    upkeepPulse: { kind: 'might', duration: 12, stacks: 1 }
+    upkeepPulse: { kind: boonKey(BOON.MIGHT), duration: 12, stacks: 1 }
   },
   [ID.FACET_OF_ELEMENTS]: {
     // The API omits this flip; declare its consume here so selected catalogs own the relationship.
@@ -46,7 +48,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     legendId: 'LegendaryDragon',
     facet: true,
     pulseInterval: 3,
-    upkeepPulse: { kind: 'swiftness', duration: 3, stacks: 1 }
+    upkeepPulse: { kind: boonKey(BOON.SWIFTNESS), duration: 3, stacks: 1 }
   },
   [ID.GAZE_OF_DARKNESS]: {
     // The declaration owns this activation; shared mechanics retain its live state.
@@ -61,7 +63,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     effects: [
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 10,
         duration: 6,
         actorType: 'player'
@@ -75,7 +77,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
         actorType: 'player'
@@ -127,19 +129,19 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
         ticks: [
           {
             atMs: 280,
-            condition: 'Weakness',
+            condition: CONDITION.WEAKNESS,
             stacks: 1,
             duration: 5
           },
           {
             atMs: 1280,
-            condition: 'Chilled',
+            condition: CONDITION.CHILLED,
             stacks: 1,
             duration: 3
           },
           {
             atMs: 2280,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 2,
             duration: 4
           }
@@ -165,7 +167,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     legendId: 'LegendaryDragon',
     facet: true,
     pulseInterval: 3,
-    upkeepPulse: { kind: 'regeneration', duration: 4, stacks: 1 }
+    upkeepPulse: { kind: boonKey(BOON.REGENERATION), duration: 4, stacks: 1 }
   },
   [ID.INFUSE_LIGHT]: {
     // The declaration owns this activation; shared mechanics retain its live state.
@@ -197,7 +199,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     legendId: 'LegendaryDragon',
     facet: true,
     pulseInterval: 3,
-    upkeepPulse: { kind: 'protection', duration: 3, stacks: 1 }
+    upkeepPulse: { kind: boonKey(BOON.PROTECTION), duration: 3, stacks: 1 }
   },
   [ID.CHAOTIC_RELEASE]: {
     // The declaration owns this activation; shared mechanics retain its live state.
@@ -278,7 +280,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     legendId: 'LegendaryDragon',
     facet: true,
     pulseInterval: 3,
-    upkeepPulse: { kind: 'fury', duration: 3, stacks: 1 }
+    upkeepPulse: { kind: boonKey(BOON.FURY), duration: 3, stacks: 1 }
   },
   ...HERALD_NATURE_SKILL_MECHANICS,
   [ID.LEGENDARY_DRAGON_STANCE]: {
@@ -301,14 +303,14 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 2,
         duration: 3,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 3,
         actorType: 'player'

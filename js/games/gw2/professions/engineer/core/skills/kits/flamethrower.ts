@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -50,7 +52,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 4,
         actorType: 'player'
@@ -76,7 +78,12 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
       },
       {
         type: 'condition',
-        ticks: NAPALM_TICK_OFFSETS_MS.map((atMs) => ({ atMs, condition: 'Burning', stacks: 1, duration: 3.25 })),
+        ticks: NAPALM_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: CONDITION.BURNING,
+          stacks: 1,
+          duration: 3.25
+        })),
         actorType: 'player'
       }
     ]),
@@ -90,7 +97,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         // Custom: Burning and missile procs require an already-burning target at impact; the handler below preserves that live check.
         type: 'custom',
         eventType: 'engineer.air-blast',
-        event: { condition: 'Burning', stacks: 1, duration: 5, projectile: true },
+        event: { condition: CONDITION.BURNING, stacks: 1, duration: 5, projectile: true },
         actorType: 'player'
       },
       {
@@ -129,7 +136,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         },
         {
           type: 'condition',
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 6,
           interruptCommitMs: 480,
@@ -157,7 +164,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
     effects: [
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
         actorType: 'player'
@@ -191,20 +198,20 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
       {
         // One authored total becomes independent Burning applications in the shared resolver.
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 2,
         duration: 6,
         actorType: 'player'
       },
       {
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 5,
         stacks: 1
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 8,
         stacks: 8
       }
@@ -215,7 +222,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
 
 /** Air Blast's Burning missile exists only against a target still burning at impact; knockback resolves separately. */
 export function handleAirBlast(context: EngineerRuntime, event: EngineerResolverEvent): void {
-  if (!context.combat.targetHasCondition('Burning', event.at)) return;
+  if (!context.combat.targetHasCondition(CONDITION.BURNING, event.at)) return;
 
   // Materialize the deferred missile without importing unrelated proc or strike state from its trigger.
   context.effects.emit({
@@ -249,5 +256,5 @@ export const flameJetModifier: Gw2ModifierRule = {
   target: MODIFIER_TARGET.STRIKE_DAMAGE,
   operation: 'damage-additive',
   amount: 0.1,
-  when: (context) => context.event?.skillId === ID.FLAME_JET && targetConditionActive(context, 'Burning')
+  when: (context) => context.event?.skillId === ID.FLAME_JET && targetConditionActive(context, CONDITION.BURNING)
 };

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -43,7 +44,7 @@ export function applyCatalystResolvedDamage(context: MechanicCombatContext, even
 
   const shatteringIceProfile = requireBalanceProfileFromContext(context, PROFILE.shatteringIce);
   const strike = requireEffect(shatteringIceProfile, 'strike', 'Shattering Ice - Triggered Packet');
-  const chilled = requireEffect(shatteringIceProfile, 'condition', 'Chilled');
+  const chilled = requireEffect(shatteringIceProfile, 'condition', CONDITION.CHILLED);
 
   if (strike) {
     context.effects.emit({

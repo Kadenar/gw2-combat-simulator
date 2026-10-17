@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -83,14 +85,14 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 5,
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 3,
         duration: 6,
         persistsAfterInterrupt: true
@@ -111,7 +113,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: [
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 8,
         stacks: 1
       },
@@ -128,19 +130,19 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: [
       {
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 5,
         stacks: 1
       },
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 10,
         stacks: 1
       },
       {
         type: 'boon',
-        boon: 'vigor',
+        boon: BOON.VIGOR,
         duration: 10,
         stacks: 1
       }
@@ -292,7 +294,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       },
       {
         type: 'boon',
-        boon: 'aegis',
+        boon: BOON.AEGIS,
         duration: 3,
         stacks: 1,
         persistsAfterInterrupt: true
@@ -321,7 +323,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       },
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 5,
         stacks: 1,
         persistsAfterInterrupt: true
@@ -397,7 +399,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: [
       {
         type: 'boon',
-        boon: 'aegis',
+        boon: BOON.AEGIS,
         duration: 2,
         stacks: 1
       }
@@ -443,7 +445,7 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
         hits: 1
       },
       { type: 'strike', weaponStrengthProfileId: 'bundle.exotic', name: 'Swift Cut — Shot', coefficient: 0.1, hits: 1 },
-      { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 3 }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 3 }
     ]
   }),
   sharpAsTheWindVariant(ID.SHARP_STEEL_DIVIDE, ID.STEEL_DIVIDE, 'Steel Divide', {
@@ -462,7 +464,7 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
         coefficient: 0.1,
         hits: 1
       },
-      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 3 }
     ]
   }),
   sharpAsTheWindVariant(ID.SHARP_EXPLOSIVE_THRUST, ID.EXPLOSIVE_THRUST, 'Explosive Thrust', {
@@ -482,7 +484,7 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
         hits: 1,
         damageKind: 'explosion'
       },
-      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 4 }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4 }
     ]
   }),
   sharpAsTheWindVariant(ID.SHARP_BLOOMING_FIRE, ID.BLOOMING_FIRE, 'Blooming Fire', {
@@ -506,7 +508,7 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Burning', stacks: 3, duration: 3 }]
+        ticks: [{ atMs: 0, condition: CONDITION.BURNING, stacks: 3, duration: 3 }]
       }
     ])
   }),
@@ -528,10 +530,10 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
         hits: 1,
         persistsAfterInterrupt: true
       },
-      { type: 'boon', boon: 'aegis', duration: 5, stacks: 1, persistsAfterInterrupt: true },
+      { type: 'boon', boon: BOON.AEGIS, duration: 5, stacks: 1, persistsAfterInterrupt: true },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 2,
         duration: 5,
         persistsAfterInterrupt: true
@@ -556,10 +558,10 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
           }
         ]
       },
-      { type: 'boon', boon: 'fury', duration: 5, stacks: 1, persistsAfterInterrupt: true },
+      { type: 'boon', boon: BOON.FURY, duration: 5, stacks: 1, persistsAfterInterrupt: true },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 8,
         persistsAfterInterrupt: true
@@ -713,7 +715,7 @@ export function cartridgeExplosion(runtime: WarriorRuntime, event: Gw2ResolverEv
         skillId: event.skillId,
         skillName: event.skillName,
         name: 'Overcharged Cartridges — Burning',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: effectNumber(profile, burning, 'stacks'),
         duration: window.burningDuration
       })
@@ -770,7 +772,7 @@ const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState, WarriorSkil
     const cast = context.cast;
 
     // Sample configured or executed self Fury before the cast emits its own application.
-    if (runtime.combat.activeBoonStacks('fury', runtime.time, 1) > 0) furyBeforeCast.add(cast);
+    if (runtime.combat.activeBoonStacks(boonKey(BOON.FURY), runtime.time, 1) > 0) furyBeforeCast.add(cast);
   },
   'warrior.flow-stabilize'(runtime, context) {
     if (context.kind !== 'cast') return;

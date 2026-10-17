@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 /**
@@ -50,15 +52,15 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       ...impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: 'Chilled', stacks: 1, duration: 2.5, metadata: {} }
+        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 2.5, metadata: {} }
       ]),
       ...impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 5, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5, metadata: {} }
       ]),
       ...impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 5, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5, metadata: {} }
       ])
     ],
     specialization: 'Weaver'
@@ -100,12 +102,12 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 2,
         applications: 1
       },
-      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 5, metadata: {} }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 5, metadata: {} }
     ]),
     specialization: 'Weaver'
   },
@@ -130,8 +132,8 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5 },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 8, metadata: {} },
-      { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 8, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8, metadata: {} },
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 8, metadata: {} }
     ]),
     specialization: 'Weaver'
   },
@@ -162,8 +164,8 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     cooldown: 12,
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'boon', boon: 'Regeneration', stacks: 1, duration: 5, metadata: {} },
-      { type: 'boon', boon: 'Stability', stacks: 1, duration: 5, metadata: {} }
+      { type: 'boon', boon: BOON.REGENERATION, stacks: 1, duration: 5, metadata: {} },
+      { type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5, metadata: {} }
     ]),
     specialization: 'Weaver'
   },
@@ -183,11 +185,11 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       ...impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 8, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 8, metadata: {} }
       ]),
       ...impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 8, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 8, metadata: {} }
       ])
     ],
     specialization: 'Weaver'
@@ -231,8 +233,8 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         ],
         metadata: {}
       },
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3, metadata: {} },
-      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 4, metadata: {} }
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3, metadata: {} },
+      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 4, metadata: {} }
     ]),
     specialization: 'Weaver'
   }

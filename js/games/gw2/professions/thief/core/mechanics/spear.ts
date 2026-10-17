@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
@@ -139,7 +140,7 @@ export function unsuspectingStrikeBonus(runtime: ThiefRuntime, application: Gw2R
       triggeredBy: application.triggeredBy,
       fixedDuration: application.fixedDuration,
       name: 'Unsuspecting Strike - Bonus Bleeding',
-      condition: 'Bleeding',
+      condition: CONDITION.BLEEDING,
       duration: application.duration || 0,
       stacks: 3
     })

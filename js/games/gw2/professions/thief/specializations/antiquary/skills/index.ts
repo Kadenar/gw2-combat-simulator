@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -54,7 +56,7 @@ const METAL_LEGION_GUITAR_SKILL: Partial<Skill> = {
       type: 'condition',
       ticks: [400, 920, 1400, 1920].map((atMs) => ({
         atMs,
-        condition: 'Confusion',
+        condition: CONDITION.CONFUSION,
         stacks: 1,
         duration: 8
       })),
@@ -105,12 +107,12 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'taunt'
+        controlKind: CONDITION.TAUNT.toLowerCase()
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 8,
         stacks: 2
       },
@@ -126,14 +128,14 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         {
           type: 'boon',
           audience: { recipients: 'party' as const, maximumRecipients: 5 },
-          boon: 'might',
+          boon: BOON.MIGHT,
           duration: 8,
           stacks: 4
         },
         {
           type: 'boon',
           audience: { recipients: 'party' as const, maximumRecipients: 5 },
-          boon: 'fury',
+          boon: BOON.FURY,
           duration: 8,
           stacks: 1
         }
@@ -160,7 +162,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 5,
         stacks: 1
       }
@@ -218,7 +220,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 2,
         duration: 4,
         actorType: 'player'
@@ -286,14 +288,14 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 400, condition: 'Burning', stacks: 2, duration: 4 }],
+        ticks: [{ atMs: 400, condition: CONDITION.BURNING, stacks: 2, duration: 4 }],
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
         actorType: 'player'
@@ -361,7 +363,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'condition',
         ticks: Array.from({ length: 8 }, (_, index) => ({
           atMs: 760 + index * 400,
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           stacks: 1,
           duration: 4
         })),
@@ -419,7 +421,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'condition',
         ticks: [520, 1520, 2520, 3520, 4520].map((atMs) => ({
           atMs,
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 1.5
         })),

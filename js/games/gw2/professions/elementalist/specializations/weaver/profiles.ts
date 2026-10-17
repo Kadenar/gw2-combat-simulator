@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Mechanic and skill-variant tuning for Weaver; traits own their profiles under traits/. */
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -52,10 +54,10 @@ const aura = (name: string, auraName: string, duration: number): SkillEffect => 
 /** One authored source for stance skill templates and the patchable live-attunement pulse profile. */
 export const PRIMORDIAL_STANCE_EFFECTS = Object.freeze({
   strike: { type: 'strike', name: 'Primordial Stance', coefficient: 0.33, hits: 1 },
-  Fire: { type: 'condition', name: 'Fire', condition: 'Burning', stacks: 1, duration: 2 },
-  Water: { type: 'condition', name: 'Water', condition: 'Chilled', stacks: 1, duration: 1 },
-  Air: { type: 'condition', name: 'Air', condition: 'Vulnerability', stacks: 8, duration: 3 },
-  Earth: { type: 'condition', name: 'Earth', condition: 'Bleeding', stacks: 2, duration: 6 }
+  Fire: { type: 'condition', name: 'Fire', condition: CONDITION.BURNING, stacks: 1, duration: 2 },
+  Water: { type: 'condition', name: 'Water', condition: CONDITION.CHILLED, stacks: 1, duration: 1 },
+  Air: { type: 'condition', name: 'Air', condition: CONDITION.VULNERABILITY, stacks: 8, duration: 3 },
+  Earth: { type: 'condition', name: 'Earth', condition: CONDITION.BLEEDING, stacks: 2, duration: 6 }
 } satisfies Record<string, SkillEffect>);
 
 /** Default profiles registered with the Weaver module data. */
@@ -75,20 +77,20 @@ export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     effects: []
   },
   variant(WEAVER_BALANCE_PROFILE_IDS.frostfireFlurry, ID.FROSTFIRE_FLURRY, 'Frostfire Flurry - Consumed Bullets', {
-    effects: [aura('Fire', 'Fire Aura', 3), condition('Water', 'Vulnerability', 4, 8)]
+    effects: [aura('Fire', 'Fire Aura', 3), condition('Water', CONDITION.VULNERABILITY, 4, 8)]
   }),
   variant(WEAVER_BALANCE_PROFILE_IDS.purblindingPlasma, ID.PURBLINDING_PLASMA, 'Purblinding Plasma - Fire Bullet', {
     rechargeMultiplier: 2 / 3,
-    effects: [condition('Fire', 'Burning', 3, 4)]
+    effects: [condition('Fire', CONDITION.BURNING, 3, 4)]
   }),
   variant(WEAVER_BALANCE_PROFILE_IDS.moltenMeteor, ID.MOLTEN_METEOR, 'Molten Meteor - Earth Bullet', {
-    effects: [condition('Earth', 'Bleeding', 3, 8)]
+    effects: [condition('Earth', CONDITION.BLEEDING, 3, 8)]
   }),
   variant(WEAVER_BALANCE_PROFILE_IDS.flowingFinesse, ID.FLOWING_FINESSE, 'Flowing Finesse - Consumed Bullets', {
     effects: [aura('Water', 'Frost Aura', 3), buff('Air', 'superspeed', 1, 4)]
   }),
   variant(WEAVER_BALANCE_PROFILE_IDS.enervatingEarth, ID.ENERVATING_EARTH, 'Enervating Earth - Earth Bullet', {
-    effects: [condition('Earth', 'Bleeding', 4, 8)]
+    effects: [condition('Earth', CONDITION.BLEEDING, 4, 8)]
   }),
   {
     id: WEAVER_BALANCE_PROFILE_IDS.primordialStance,
@@ -104,10 +106,10 @@ export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     profileKind: 'skill-variant',
     durationMultiplier: 5,
     effects: [
-      boon('Fire', 'might', 5, 5),
-      boon('Water', 'vigor', 1, 5),
-      boon('Air', 'fury', 1, 5),
-      boon('Earth', 'protection', 1, 5)
+      boon('Fire', boonKey(BOON.MIGHT), 5, 5),
+      boon('Water', boonKey(BOON.VIGOR), 1, 5),
+      boon('Air', boonKey(BOON.FURY), 1, 5),
+      boon('Earth', boonKey(BOON.PROTECTION), 1, 5)
     ]
   },
   {
@@ -116,6 +118,6 @@ export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     name: 'Fervent Stance - Dual Attack Might',
     profileKind: 'skill-variant',
     durationMultiplier: 8,
-    effects: [boon('Might', 'might', 3, 8)]
+    effects: [boon(BOON.MIGHT, boonKey(BOON.MIGHT), 3, 8)]
   }
 ]);

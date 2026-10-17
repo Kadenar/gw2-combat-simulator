@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { gadgeteerMineVariant } from '#gw2/professions/engineer/core/traits/tools/toolbelt.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -28,7 +29,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 3,
         stacks: 1
       }
@@ -112,7 +113,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1
       }

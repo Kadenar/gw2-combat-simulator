@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -80,7 +81,7 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
     });
   }
 
-  const torment = requireEffect(profile, 'condition', 'Torment');
+  const torment = requireEffect(profile, 'condition', CONDITION.TORMENT);
 
   if (torment) {
     // Shared emission owns transport; the mechanic selects attribution and delivery.

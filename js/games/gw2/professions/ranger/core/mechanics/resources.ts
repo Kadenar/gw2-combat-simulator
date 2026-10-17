@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -21,5 +22,5 @@ function rangerEnduranceRegenerationRates(context: RangerRuntime) {
 export const rangerEndurance: EndurancePolicy<RangerRuntime> = {
   state: (context) => professionCoreState(context).endurance,
   maximum: () => 100,
-  regenerationRate: (context, vigor) => rangerEnduranceRegenerationRates(context)[vigor ? 'vigor' : 'base']
+  regenerationRate: (context, vigor) => rangerEnduranceRegenerationRates(context)[vigor ? boonKey(BOON.VIGOR) : 'base']
 };

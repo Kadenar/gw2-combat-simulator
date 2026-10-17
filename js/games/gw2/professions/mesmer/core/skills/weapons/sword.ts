@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -19,7 +20,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
         actorType: 'player',
         weapon: 'sword'
       },
-      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 5, atMs: 200 }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, atMs: 200 }
     ]),
     castTimeMs: 360
   },
@@ -38,7 +39,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
         actorType: 'player',
         weapon: 'sword'
       },
-      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 5, atMs: 280 }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, atMs: 280 }
     ])
   },
   [ID.MIND_SPIKE]: {

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -35,9 +36,9 @@ export const abyssalChill = defineTrait({
     skillFamily: 'Trait',
     effects: [
       {
-        name: 'Torment',
+        name: CONDITION.TORMENT,
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 3,
         actorType: 'player'
@@ -59,7 +60,7 @@ export const acolyteOfTorment = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.ACOLYTE_OF_TORMENT, 'conditionDamageMultiplier'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.condition === 'Torment'
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.condition === CONDITION.TORMENT
     }
   ]
 });
@@ -72,7 +73,7 @@ export const diabolicInferno = defineTrait({
     effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 1,
         duration: 10,
         name: 'Invoke Torment - Poisoned',
@@ -82,7 +83,7 @@ export const diabolicInferno = defineTrait({
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 4,
         name: 'Invoke Torment - Burning',
@@ -113,7 +114,7 @@ export const invokingTorment = defineTrait({
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 10,
         name: 'Invoke Torment - Torment',
@@ -148,7 +149,7 @@ export const seethingMalice = defineTrait({
 export const yearningEmpowerment = defineTrait({
   attributes: traitAttributeBonuses(TRAIT.YEARNING_EMPOWERMENT, (profile) => ({
     traitDurations: Object.fromEntries(
-      ['Bleeding', 'Burning', 'Confusion', 'Poison', 'Torment'].map((condition) => [
+      [CONDITION.BLEEDING, CONDITION.BURNING, CONDITION.CONFUSION, 'Poison', CONDITION.TORMENT].map((condition) => [
         condition + ' Duration',
         100 * balanceProfileNumber(profile, 'conditionDurationBonus')
       ])
@@ -161,16 +162,16 @@ export const yearningEmpowerment = defineTrait({
 
 /** Runs the trait at its original ordered mechanic boundary. */
 function reactAbyssalChill(runtime: RevenantRuntime, { cause: event }: RevenantStrike): void {
-  if (event.condition === 'Chilled') {
+  if (event.condition === CONDITION.CHILLED) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.ABYSSAL_CHILL);
-    const condition = requireEffect(profile, 'condition', 'Torment');
+    const condition = requireEffect(profile, 'condition', CONDITION.TORMENT);
 
     if (condition) {
       const name = String(condition.condition);
       emitTraitProfile(runtime, TRAIT.ABYSSAL_CHILL, TRAIT.ABYSSAL_CHILL, event, {
         at: runtime.time,
         fullEnd: runtime.time,
-        effect: { type: 'condition', name: 'Torment' },
+        effect: { type: 'condition', name: CONDITION.TORMENT },
         attribution: {
           source: 'revenant',
           sourceId: TRAIT.ABYSSAL_CHILL,

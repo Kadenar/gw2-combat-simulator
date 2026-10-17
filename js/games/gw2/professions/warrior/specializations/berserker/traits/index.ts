@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -42,8 +44,8 @@ const burstOfAggression = defineTrait({
   name: 'Burst of Aggression',
   balance: {
     effects: [
-      { name: 'quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 3 },
-      { name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 8 }
+      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 3 },
+      { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 8 }
     ]
   }
 });
@@ -60,7 +62,7 @@ const bloodyRoar = defineTrait({
   name: 'Bloody Roar',
   balance: {
     damageMultiplier: 1.1,
-    effects: [{ name: 'resistance', type: 'boon', boon: 'resistance', stacks: 1, duration: 3.5 }]
+    effects: [{ name: boonKey(BOON.RESISTANCE), type: 'boon', boon: BOON.RESISTANCE, stacks: 1, duration: 3.5 }]
   },
   modifierRules: [
     {
@@ -80,7 +82,7 @@ const lastBlaze = defineTrait({
   name: 'Last Blaze',
   balance: {
     durationMultiplier: 1,
-    effects: [{ name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 4 }]
+    effects: [{ name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 4 }]
   },
   triggers: [
     {
@@ -89,7 +91,7 @@ const lastBlaze = defineTrait({
 
       emit: TRAIT.LAST_BLAZE,
       when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Rage')),
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Burning',
+      effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.BURNING,
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.LAST_BLAZE,
@@ -134,10 +136,10 @@ const heatTheSoul = defineTrait({
   name: 'Heat the Soul',
   balance: {
     effects: [
-      { name: 'quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 5 },
-      { name: 'Decapitate quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 2 },
-      { name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 5 },
-      { name: 'might', type: 'boon', boon: 'might', stacks: 3, duration: 5 }
+      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 5 },
+      { name: 'Decapitate quickness', type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 2 },
+      { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 5 },
+      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 5 }
     ]
   }
 });
@@ -217,7 +219,7 @@ const kingOfFires = defineTrait({
     effects: [
       { name: 'fire-aura', type: 'buff', kind: 'fire-aura', stacks: 1, duration: 5 },
       { name: 'Strike', type: 'strike', coefficient: 0.7, hits: 1 },
-      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 3, duration: 3 }
+      { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 3, duration: 3 }
     ]
   },
   attributes(context) {
@@ -342,8 +344,8 @@ function heatTheSoulCompletion(runtime: WarriorRuntime, cast: RuntimeCast<Warrio
       // Select exactly one Quickness variant before materialization so live boon duration applies once.
       effects: (effect) =>
         effect.type === 'boon' &&
-        (effect.boon !== 'quickness' ||
-          effect.name === (cast.skill.id === ID.DECAPITATE ? 'Decapitate quickness' : 'quickness'))
+        (effect.boon !== BOON.QUICKNESS ||
+          effect.name === (cast.skill.id === ID.DECAPITATE ? 'Decapitate quickness' : boonKey(BOON.QUICKNESS)))
     });
   }
 }

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createDiscreteResourceClock, type DiscreteResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import {
@@ -36,7 +37,7 @@ function createFirebrandState(profileContext: {
   const { maximum, initial, interval } = firebrandPageTuning(profileContext);
   const pages = clamp(initial, 0, maximum);
   const ashesProfile = requireBalanceProfileFromContext(profileContext, PROFILE.ashes);
-  const burn = requireEffect(ashesProfile, 'condition', 'Burning');
+  const burn = requireEffect(ashesProfile, 'condition', CONDITION.BURNING);
   return {
     activeTome: '',
     tomePages: {

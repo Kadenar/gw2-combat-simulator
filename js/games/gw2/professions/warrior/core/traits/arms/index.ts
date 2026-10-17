@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -142,7 +144,7 @@ export const bloodlust = defineTrait({
       opportunity: 'eligible critical hit'
     },
     procChance: 0.33,
-    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 }]
+    effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 3 }]
   },
   attributes(context) {
     return {
@@ -203,8 +205,8 @@ export const sunderingBurst = defineTrait({
   balance: {
     internalCooldown: 5,
     effects: [
-      { name: 'Burst', type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 },
-      { name: 'Critical burst', type: 'condition', condition: 'Vulnerability', stacks: 10, duration: 8 }
+      { name: 'Burst', type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 8 },
+      { name: 'Critical burst', type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 8 }
     ]
   }
 });
@@ -224,7 +226,7 @@ export const opportunist = defineTrait({
   balance: {
     internalCooldown: 1,
     resourceGain: 5,
-    effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 3 }]
+    effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 3 }]
   }
 });
 
@@ -235,7 +237,7 @@ export const furiousBurst = defineTrait({
   balance: {
     criticalChance: 0.05,
     internalCooldown: 4,
-    effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 2.5 }]
+    effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 2.5 }]
   },
   modifierRules: [
     {
@@ -244,7 +246,7 @@ export const furiousBurst = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) => balanceNumberFromContext(context, TRAIT.FURIOUS_BURST, 'criticalChance'),
-      when: (context) => warriorBoonActive(context, 'fury')
+      when: (context) => warriorBoonActive(context, boonKey(BOON.FURY))
     }
   ],
   triggers: [
@@ -255,7 +257,7 @@ export const furiousBurst = defineTrait({
       when: (_runtime, cast) => cast.skill.inputCategory === 'weapon-swap',
       emit: TRAIT.FURIOUS_BURST,
       cooldown: 'profile',
-      effects: (effect) => effect.type === 'boon' && effect.name === 'fury',
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.FURY),
       attribution: { name: 'Furious Burst' }
     }
   ]
@@ -276,7 +278,7 @@ export const deepStrikes = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) => balanceNumberFromContext(context, TRAIT.DEEP_STRIKES, 'criticalChance'),
-      when: (context) => targetConditionActive(context, 'Bleeding')
+      when: (context) => targetConditionActive(context, CONDITION.BLEEDING)
     }
   ],
   attributes(context) {
@@ -405,7 +407,7 @@ function signetMasteryDamage(context: WarriorRuntime, event: Gw2ResolverEvent): 
   context.cooldownController.startRecharge(skill, context.time);
   invokeTraitSkill(context, TRAIT.SIGNET_MASTERY, skill.id, event, {
     announce: true,
-    detail: `${requireEffect(skill, 'boon', 'might')?.stacks ?? 0} might; Signet Mastery stack`,
+    detail: `${requireEffect(skill, 'boon', boonKey(BOON.MIGHT))?.stacks ?? 0} might; Signet Mastery stack`,
     attribution: { priority: 5 }
   });
   emitTraitProfile(context, TRAIT.SIGNET_MASTERY, TRAIT.SIGNET_MASTERY, event, {
@@ -485,7 +487,7 @@ function bloodlustCritical(
 
   if (proc) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODLUST);
-    const bleeding = requireEffect(profile, 'condition', 'Bleeding');
+    const bleeding = requireEffect(profile, 'condition', CONDITION.BLEEDING);
 
     if (bleeding) {
       emitTraitProfile(runtime, TRAIT.BLOODLUST, TRAIT.BLOODLUST, event, {

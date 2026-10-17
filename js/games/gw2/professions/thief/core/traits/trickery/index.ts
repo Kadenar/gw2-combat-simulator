@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -51,8 +53,8 @@ export const bountifulTheft = defineTrait({
   triggers: [onTriggerPoint(stealAccepted, { run: applyBountifulTheft })],
   balance: {
     effects: [
-      { type: 'boon', name: 'Vigor', boon: 'Vigor', stacks: 1, duration: 10 },
-      { type: 'boon', name: 'Might', boon: 'Might', stacks: 5, duration: 10 }
+      { type: 'boon', name: BOON.VIGOR, boon: BOON.VIGOR, stacks: 1, duration: 10 },
+      { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 5, duration: 10 }
     ]
   }
 });
@@ -69,12 +71,12 @@ export const deadlyAmbush = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.DEADLY_AMBUSH, 'conditionDamageMultiplier'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === 'Bleeding'
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === CONDITION.BLEEDING
     }
   ],
   balance: {
     conditionDamageMultiplier: 1.25,
-    effects: [{ type: 'condition', name: 'Bleeding', condition: 'Bleeding', stacks: 3, duration: 10 }]
+    effects: [{ type: 'condition', name: CONDITION.BLEEDING, condition: CONDITION.BLEEDING, stacks: 3, duration: 10 }]
   }
 });
 
@@ -185,9 +187,9 @@ export const thrillOfTheCrime = defineTrait({
   triggers: [onTriggerPoint(stealAccepted, { run: applyThrillOfTheCrime })],
   balance: {
     effects: [
-      { type: 'boon', name: 'Fury', boon: 'Fury', stacks: 1, duration: 10 },
-      { type: 'boon', name: 'Might', boon: 'Might', stacks: 5, duration: 10 },
-      { type: 'boon', name: 'Swiftness', boon: 'Swiftness', stacks: 1, duration: 10 }
+      { type: 'boon', name: BOON.FURY, boon: BOON.FURY, stacks: 1, duration: 10 },
+      { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 5, duration: 10 },
+      { type: 'boon', name: BOON.SWIFTNESS, boon: BOON.SWIFTNESS, stacks: 1, duration: 10 }
     ]
   }
 });
@@ -200,7 +202,7 @@ export const uncatchable = defineTrait({
 });
 /** Selected steal boons retain skill lineage while shared profile delivery owns their packets. */
 function applyBountifulTheft(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
-  for (const name of ['Vigor', 'Might']) {
+  for (const name of [BOON.VIGOR, BOON.MIGHT]) {
     emitTraitProfile(runtime, TRAIT.BOUNTIFUL_THEFT, TRAIT.BOUNTIFUL_THEFT, undefined, {
       effect: { type: 'boon', name },
       skillId: cast.skill.id,
@@ -210,7 +212,7 @@ function applyBountifulTheft(runtime: ThiefRuntime, { cast }: StealAcceptance): 
       transform: (event, effect) => ({
         ...event,
         name: 'Steal \u2014 ' + String(effect.boon),
-        kind: String(effect.boon),
+        kind: String(effect.boon).toLowerCase(),
         boon: String(effect.boon),
         fixedDuration: false,
         audience: { recipients: 'party', maximumRecipients: 5 }
@@ -221,14 +223,14 @@ function applyBountifulTheft(runtime: ThiefRuntime, { cast }: StealAcceptance): 
 
 function applyDeadlyAmbush(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.DEADLY_AMBUSH);
-  const bleeding = requireEffect(profile, 'condition', 'Bleeding');
+  const bleeding = requireEffect(profile, 'condition', CONDITION.BLEEDING);
 
   if (!bleeding) return;
 
   emitTraitProfile(runtime, TRAIT.DEADLY_AMBUSH, TRAIT.DEADLY_AMBUSH, undefined, {
     at: runtime.time,
     fullEnd: runtime.time,
-    effect: { type: 'condition', name: 'Bleeding' },
+    effect: { type: 'condition', name: CONDITION.BLEEDING },
     attribution: {
       source: 'Trait',
       skillId: TRAIT.DEADLY_AMBUSH,
@@ -278,7 +280,7 @@ function applyThrillOfTheCrime(runtime: ThiefRuntime, { cast }: StealAcceptance)
     transform: (event, effect) => ({
       ...event,
       name: 'Steal \u2014 ' + String(effect.boon),
-      kind: String(effect.boon),
+      kind: String(effect.boon).toLowerCase(),
       boon: String(effect.boon),
       fixedDuration: false,
       audience: { recipients: 'party', maximumRecipients: 5 }

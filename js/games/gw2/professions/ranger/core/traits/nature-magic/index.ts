@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import type { Gw2AttributeContext, Gw2AttributeContributions } from '#gw2/platform/builds/types.js';
@@ -56,7 +57,7 @@ function shareFortifyingBond(runtime: RangerRuntime, kind: string, stacks: numbe
       }
     }),
     preserveName: true,
-    effects: (effect) => effect.type === 'boon' && effect.boon === kind
+    effects: (effect) => effect.type === 'boon' && effect.boon?.toLowerCase() === kind
   });
 }
 
@@ -67,19 +68,19 @@ export const fortifyingBond = defineTrait({
   balance: {
     pulseInterval: 3,
     effects: Object.entries({
-      aegis: 5,
-      alacrity: 3,
-      fury: 5,
-      might: 10,
-      protection: 3,
-      quickness: 2.5,
-      regeneration: 6,
-      resistance: 2,
-      resolution: 5,
-      stability: 5,
-      swiftness: 6,
-      vigor: 3
-    }).map(([boon, duration]) => ({ name: boon, type: 'boon' as const, boon, duration, stacks: 1 }))
+      [BOON.AEGIS]: 5,
+      [BOON.ALACRITY]: 3,
+      [BOON.FURY]: 5,
+      [BOON.MIGHT]: 10,
+      [BOON.PROTECTION]: 3,
+      [BOON.QUICKNESS]: 2.5,
+      [BOON.REGENERATION]: 6,
+      [BOON.RESISTANCE]: 2,
+      [BOON.RESOLUTION]: 5,
+      [BOON.STABILITY]: 5,
+      [BOON.SWIFTNESS]: 6,
+      [BOON.VIGOR]: 3
+    }).map(([boon, duration]) => ({ name: boon.toLowerCase(), type: 'boon' as const, boon, duration, stacks: 1 }))
   },
   triggers: [
     onTriggerPoint(rangerInitialized, {
@@ -246,9 +247,9 @@ export const wellspring = defineTrait({
     attributeConversion: 0.07,
     effects: [
       {
-        name: 'regeneration',
+        name: boonKey(BOON.REGENERATION),
         type: 'boon',
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 6,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 }
@@ -261,7 +262,7 @@ export const wellspring = defineTrait({
       emit: TRAIT.WELLSPRING,
       on: 'castCommit' as const,
       when: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) => cast.skill.type === 'Heal',
-      effects: (effect) => effect.type === 'boon' && effect.name === 'regeneration',
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.REGENERATION),
       attribution: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) => ({
         skillId: TRAIT.WELLSPRING,
         skillName: 'Wellspring',
@@ -281,9 +282,9 @@ export const windborneNotes = defineTrait({
   balance: {
     effects: [
       {
-        name: 'regeneration',
+        name: boonKey(BOON.REGENERATION),
         type: 'boon',
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 6,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 }
@@ -297,7 +298,7 @@ export const windborneNotes = defineTrait({
       on: 'castCommit' as const,
       when: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) =>
         cast.skill.weapon === 'Warhorn',
-      effects: (effect) => effect.type === 'boon' && effect.name === 'regeneration',
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.REGENERATION),
       attribution: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) => ({
         skillId: TRAIT.WINDBORNE_NOTES,
         skillName: 'Windborne Notes',
@@ -319,7 +320,7 @@ export const rejuvenation = defineTrait({
   name: 'Rejuvenation',
   balance: {
     internalCooldown: 20,
-    effects: [{ name: 'regeneration', type: 'boon', boon: 'regeneration', duration: 10, stacks: 1 }]
+    effects: [{ name: boonKey(BOON.REGENERATION), type: 'boon', boon: BOON.REGENERATION, duration: 10, stacks: 1 }]
   }
 });
 
@@ -334,8 +335,8 @@ export const spiritedArrival = defineTrait({
   name: 'Spirited Arrival',
   balance: {
     effects: [
-      { name: 'might', type: 'boon', boon: 'might', duration: 12, stacks: 6 },
-      { name: 'fury', type: 'boon', boon: 'fury', duration: 8, stacks: 1 }
+      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 12, stacks: 6 },
+      { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, duration: 8, stacks: 1 }
     ]
   }
 });
@@ -432,15 +433,15 @@ function applySpiritedArrival(context: RangerRuntime, skill: RangerSkill): void 
 /** Applies the trait at the accepted Beast-skill boundary. */
 function applyRejuvenation(context: RangerRuntime, skill: RangerSkill): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.REJUVENATION);
-  const effect = requireEffect(profile, 'boon', 'regeneration');
+  const effect = requireEffect(profile, 'boon', boonKey(BOON.REGENERATION));
 
   // The cooldown gates only regeneration, so a removed boon leaves the trait ready.
   if (effect && context.procs.claim(TRAIT.REJUVENATION, 'ranger.core.rejuvenation', context.time)) {
-    const kind = String(effect.boon);
+    const kind = String(effect.boon).toLowerCase();
     emitTraitProfile(context, TRAIT.REJUVENATION, TRAIT.REJUVENATION, undefined, {
       at: context.time,
       fullEnd: context.time,
-      effect: { type: 'boon', name: 'regeneration' },
+      effect: { type: 'boon', name: boonKey(BOON.REGENERATION) },
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.REJUVENATION,

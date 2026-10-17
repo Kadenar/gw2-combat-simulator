@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import {
   fromProfile,
   profileFact,
@@ -105,7 +106,7 @@ export const harbingerTooltips = {
         ...effects,
         description:
           'Blight increases condition damage.' +
-          (profile.effects?.some((effect) => effect.type === 'condition' && effect.condition === 'Poisoned')
+          (profile.effects?.some((effect) => effect.type === 'condition' && effect.condition === CONDITION.POISONED)
             ? ' Shroud skill 2 also inflicts poison.'
             : ''),
         facts: [

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 /** Electric Enchantment owns its shared identity, charge lifecycle, combat payload, and damage preview. */
 import { activeChargeGrants, consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
@@ -79,7 +80,7 @@ function emitElectricEnchantment(context: ElementalistRuntime, event: Simulation
   // Charge admission is stateful; the profile owns both payloads and their authored strike rules.
   const profile = requireBalanceProfileFromContext(context, TRAIT.GALVANIC_ENCHANTMENT);
   const strike = requireEffect(profile, 'strike', 'Galvanic Enchantment');
-  const burning = requireEffect(profile, 'condition', 'Burning');
+  const burning = requireEffect(profile, 'condition', CONDITION.BURNING);
   const attribution = {
     source: electricEnchantment.name,
     sourceId: electricEnchantment.sourceId,
@@ -104,7 +105,7 @@ function emitElectricEnchantment(context: ElementalistRuntime, event: Simulation
     emitTraitProfile(context, TRAIT.GALVANIC_ENCHANTMENT, TRAIT.GALVANIC_ENCHANTMENT, event, {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'condition', name: 'Burning' },
+      effect: { type: 'condition', name: CONDITION.BURNING },
       attribution,
       transform: (packet) => ({
         ...packet,

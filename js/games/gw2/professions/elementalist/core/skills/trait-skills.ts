@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns the patchable skills invoked by Evasive Arcana.
  * The trait selects the attunement; each skill owns its payload and recharge.
@@ -22,7 +23,7 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
 
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', weaponStrengthProfileId: 'nonweapon.unequipped', coefficient: 1 },
-      { type: 'condition', actorType: 'player', condition: 'Burning', stacks: 3, duration: 6, metadata: {} }
+      { type: 'condition', actorType: 'player', condition: CONDITION.BURNING, stacks: 3, duration: 6, metadata: {} }
     ])
   },
   [ID.CLEANSING_WAVE_TRAIT]: {
@@ -52,7 +53,7 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
         atMs: 0,
@@ -88,8 +89,8 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
         ],
         metadata: {}
       },
-      { type: 'condition', actorType: 'player', condition: 'Bleeding', stacks: 1, duration: 20, metadata: {} },
-      { type: 'condition', actorType: 'player', condition: 'Crippled', stacks: 1, duration: 2, metadata: {} }
+      { type: 'condition', actorType: 'player', condition: CONDITION.BLEEDING, stacks: 1, duration: 20, metadata: {} },
+      { type: 'condition', actorType: 'player', condition: CONDITION.CRIPPLED, stacks: 1, duration: 2, metadata: {} }
     ])
   }
 });

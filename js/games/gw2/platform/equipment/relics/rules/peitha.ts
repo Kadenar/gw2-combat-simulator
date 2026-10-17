@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -107,7 +108,7 @@ function emitDamagePayload(
       type: 'condition',
       at: impactAt,
       name: 'Relic of Peitha — Torment',
-      condition: 'Torment',
+      condition: CONDITION.TORMENT,
       duration: 7,
       stacks: 2
     }

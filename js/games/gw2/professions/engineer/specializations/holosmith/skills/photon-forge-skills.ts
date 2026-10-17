@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Photon Forge skill fragments, heat variants, and forge-only actions.
  * Persistent heat and forge state live under `mechanics/photon-forge.ts`.
@@ -146,7 +148,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 3 },
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 3,
         stacks: 1
       }
@@ -169,7 +171,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 2,
         duration: 6,
         actorType: 'player'
@@ -248,7 +250,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
       ]),
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 8,
         duration: 8,
         actorType: 'player',
@@ -257,40 +259,40 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
       ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
         {
           type: 'condition',
-          ticks: [400, 1800].map((atMs) => ({ atMs, condition: 'Burning', stacks: 2, duration: 5 })),
+          ticks: [400, 1800].map((atMs) => ({ atMs, condition: CONDITION.BURNING, stacks: 2, duration: 5 })),
           actorType: 'player'
         },
         {
           type: 'boon',
-          boon: 'might',
+          boon: BOON.MIGHT,
           duration: 8,
           stacks: 1,
           atMs: 400
         },
         {
           type: 'boon',
-          boon: 'might',
+          boon: BOON.MIGHT,
           duration: 8,
           stacks: 1,
           atMs: 760
         },
         {
           type: 'boon',
-          boon: 'might',
+          boon: BOON.MIGHT,
           duration: 8,
           stacks: 1,
           atMs: 1120
         },
         {
           type: 'boon',
-          boon: 'might',
+          boon: BOON.MIGHT,
           duration: 8,
           stacks: 1,
           atMs: 1480
         },
         {
           type: 'boon',
-          boon: 'might',
+          boon: BOON.MIGHT,
           duration: 8,
           stacks: 1,
           atMs: 1800
@@ -390,7 +392,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         type: 'condition',
         ticks: [240, 400, 480, 640, 720, 880, 960, 1120].map((atMs) => ({
           atMs,
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 3
         })),

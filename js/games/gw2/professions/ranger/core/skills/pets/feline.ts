@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Core Ranger pet skill fragments for the Feline family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -22,7 +24,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 4,
         duration: 10,
         source: 'ranger-pet',
@@ -38,7 +40,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 15,
         stacks: 8,
         source: 'ranger-pet',
@@ -60,7 +62,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 4,
         duration: 6,
         source: 'ranger-pet',
@@ -82,7 +84,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 2,
         duration: 2,
         source: 'ranger-pet',
@@ -104,7 +106,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 10,
         stacks: 1,
         source: 'ranger-pet',
@@ -147,7 +149,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 6,
         source: 'ranger-pet',
@@ -173,7 +175,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        ticks: [360, 560].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 2, duration: 10 })),
+        ticks: [360, 560].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 2, duration: 10 })),
         source: 'ranger-pet',
         actorType: 'summon'
       }
@@ -195,7 +197,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 5,
         stacks: 2,
         source: 'ranger-pet',
@@ -224,7 +226,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'aegis',
+        boon: BOON.AEGIS,
         duration: 5,
         stacks: 1,
         source: 'ranger-pet',

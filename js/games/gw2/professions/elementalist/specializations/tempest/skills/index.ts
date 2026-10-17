@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Tempest overload and slot-skill catalog fragments only.
  * Persistent overload behavior lives in `hooks.ts`; aura reactions live under `mechanics/`.
@@ -171,14 +173,14 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       { type: 'strike', coefficient: 2.5 },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 2,
         duration: 4,
         metadata: {}
       },
       {
         type: 'boon',
-        boon: 'Fury',
+        boon: BOON.FURY,
         stacks: 1,
         duration: 10,
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
@@ -186,7 +188,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       },
       {
         type: 'boon',
-        boon: 'Might',
+        boon: BOON.MIGHT,
         stacks: 8,
         duration: 15,
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
@@ -209,10 +211,10 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: [
       ...impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.75 },
-        { type: 'condition', condition: 'Crippled', stacks: 1, duration: 6, metadata: {} },
+        { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 6, metadata: {} },
         {
           type: 'boon',
-          boon: 'Protection',
+          boon: BOON.PROTECTION,
           // Share this support boon with affected allies within its recipient cap.
           audience: { recipients: 'party' as const, maximumRecipients: 5 },
           stacks: 1,
@@ -221,7 +223,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         },
         {
           type: 'boon',
-          boon: 'Aegis',
+          boon: BOON.AEGIS,
           // Share this support boon with affected allies within its recipient cap.
           audience: { recipients: 'party' as const, maximumRecipients: 5 },
           stacks: 1,
@@ -243,7 +245,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
           ],
           metadata: {}
         },
-        { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2, metadata: {} }
+        { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2, metadata: {} }
       ])
     ]
   }

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Drake family.
@@ -39,7 +40,7 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 5,
         source: 'ranger-pet',
@@ -62,7 +63,7 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 5,
         duration: 3,
         source: 'ranger-pet',
@@ -84,7 +85,7 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 5,
         duration: 4,
         source: 'ranger-pet',
@@ -106,7 +107,7 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 5,
         duration: 2,
         source: 'ranger-pet',
@@ -142,7 +143,7 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Confusion',
+        condition: CONDITION.CONFUSION,
         stacks: 10,
         duration: 5,
         source: 'ranger-pet',
@@ -150,7 +151,7 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Confusion',
+        condition: CONDITION.CONFUSION,
         stacks: 10,
         duration: 3,
         source: 'ranger-pet',

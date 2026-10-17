@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -43,13 +44,13 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 2,
         duration: 8
       },
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 4
       }
@@ -65,7 +66,7 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Fear',
+        condition: CONDITION.FEAR,
         stacks: 1,
         duration: 1
       }
@@ -110,7 +111,7 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 2,
         duration: 8
       }

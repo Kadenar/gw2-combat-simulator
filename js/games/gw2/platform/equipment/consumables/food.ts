@@ -1,3 +1,5 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { BOON } from '#gw2/platform/effects/boons.js';
 /** Owns food catalog data, proc metadata, and UI groupings. */
 
 // ─── Food Data ────────────────────────────────────────────────────────────────
@@ -71,13 +73,13 @@ const FOOD_CATALOG = {
         name: 'Ghost Pepper Popper',
         dayEffect: {
           type: 'boon',
-          name: 'Might',
+          name: BOON.MIGHT,
           stacks: 1,
           duration: 5
         },
         nightEffect: {
           type: 'condition',
-          name: 'Chilled',
+          name: CONDITION.CHILLED,
           stacks: 1,
           duration: 1
         }

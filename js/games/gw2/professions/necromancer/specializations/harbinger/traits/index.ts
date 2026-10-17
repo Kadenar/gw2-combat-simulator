@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -74,9 +76,9 @@ const cascadingCorruption = defineTrait({
         actorType: 'effect'
       },
       {
-        name: 'Torment',
+        name: CONDITION.TORMENT,
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 6,
         duration: 6,
         atMs: 680,
@@ -114,9 +116,9 @@ const septicCorruption = defineTrait({
     conditionDamageIncreasePerStack: 0.0025,
     effects: [
       {
-        name: 'Poisoned',
+        name: CONDITION.POISONED,
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 1,
         duration: 3,
         actorType: 'effect'
@@ -151,9 +153,9 @@ const doomApproaches = defineTrait({
     blightGain: 4,
     effects: [
       {
-        name: 'Vulnerability',
+        name: CONDITION.VULNERABILITY,
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 2,
         duration: 6,
         actorType: 'effect'
@@ -170,7 +172,7 @@ const doomApproaches = defineTrait({
         pulseInterval: 0.75 / 8,
         effects: [
           { name: 'Strike', type: 'strike', coefficient: 0.6 },
-          { name: 'Torment', type: 'condition', condition: 'Torment', stacks: 1, duration: 3 }
+          { name: CONDITION.TORMENT, type: 'condition', condition: CONDITION.TORMENT, stacks: 1, duration: 3 }
         ]
       }
     )
@@ -197,18 +199,18 @@ const deathlyHaste = defineTrait({
   balance: {
     effects: [
       {
-        name: 'quickness',
+        name: boonKey(BOON.QUICKNESS),
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         stacks: 1,
         duration: 4,
         actorType: 'player',
         audience: { recipients: 'party' as const }
       },
       {
-        name: 'fury',
+        name: boonKey(BOON.FURY),
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         stacks: 1,
         duration: 4,
         actorType: 'player',
@@ -242,9 +244,9 @@ const implacableFoe = defineTrait({
     attributeConversion: 0.13,
     effects: [
       {
-        name: 'stability',
+        name: boonKey(BOON.STABILITY),
         type: 'boon',
-        boon: 'stability',
+        boon: BOON.STABILITY,
         stacks: 3,
         duration: 5,
         actorType: 'player'
@@ -284,9 +286,9 @@ const bolsteringBrew = defineTrait({
   balance: {
     effects: [
       {
-        name: 'protection',
+        name: boonKey(BOON.PROTECTION),
         type: 'boon',
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         stacks: 1,
         duration: 3,
         actorType: 'player'
@@ -350,7 +352,7 @@ const wickedCorruption = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.WICKED_CORRUPTION, 'criticalDamage'),
-      when: (context) => targetConditionActive(context, 'Torment')
+      when: (context) => targetConditionActive(context, CONDITION.TORMENT)
     }
   ]
 });
@@ -437,7 +439,7 @@ function applyCascadingCorruption(
     const corruption = requireBalanceProfileFromContext(runtime, TRAIT.CASCADING_CORRUPTION);
     const meltdown = requireEffect(corruption, 'buff', 'meltdown');
     const strike = requireEffect(corruption, 'strike', 'Strike');
-    const torment = requireEffect(corruption, 'condition', 'Torment');
+    const torment = requireEffect(corruption, 'condition', CONDITION.TORMENT);
 
     if (meltdown || strike || torment) {
       const threshold = balanceProfileNumber(corruption, 'minimumStacks');
@@ -527,7 +529,7 @@ function applyDoomApproachesStrike(context: NecromancerResolverContext, event: N
 
   if (firstHit && skill?.id === ID.TAINTED_BOLTS) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.DOOM_APPROACHES);
-    const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+    const vulnerability = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 
     if (vulnerability) {
       /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
@@ -538,7 +540,7 @@ function applyDoomApproachesStrike(context: NecromancerResolverContext, event: N
         {
           at: event.at,
           fullEnd: event.at,
-          effect: { type: 'condition', name: 'Vulnerability' },
+          effect: { type: 'condition', name: CONDITION.VULNERABILITY },
           attribution: {
             source: 'Trait',
             sourceId: TRAIT.DOOM_APPROACHES,
@@ -566,7 +568,7 @@ function applySepticCorruptionStrike(context: NecromancerResolverContext, event:
   // Septic Corruption procs on shroud slot 2 specifically (the pistol #2 skill), not all pistol hits.
   if (skill?.shroudSlot === 2) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.SEPTIC_CORRUPTION);
-    const condition = requireEffect(profile, 'condition', 'Poisoned');
+    const condition = requireEffect(profile, 'condition', CONDITION.POISONED);
 
     if (condition) {
       /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
@@ -577,7 +579,7 @@ function applySepticCorruptionStrike(context: NecromancerResolverContext, event:
         {
           at: event.at,
           fullEnd: event.at,
-          effect: { type: 'condition', name: 'Poisoned' },
+          effect: { type: 'condition', name: CONDITION.POISONED },
           settlement: 'reaction',
           attribution: {
             source: 'Trait',

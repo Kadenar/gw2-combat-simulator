@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
@@ -58,7 +59,7 @@ function applyMistral(context: RangerRuntime, event: Gw2ResolverEvent): void {
 
   const profile = requireBalanceProfileFromContext(context, PROFILE.mistral);
   const strike = requireEffect(profile, 'strike', 'Strike');
-  const chilled = requireEffect(profile, 'condition', 'Chilled');
+  const chilled = requireEffect(profile, 'condition', CONDITION.CHILLED);
   // Each missile-triggered Mistral is its own effect activation while its
   // strike and condition packets remain grouped under one identity.
   const activationId = strike || chilled ? 'mistral:' + event.eventOrder : undefined;

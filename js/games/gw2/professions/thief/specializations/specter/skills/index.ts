@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -23,7 +25,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: [
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Slow', stacks: 1, duration: 5 }],
+        ticks: [{ atMs: 0, condition: CONDITION.SLOW, stacks: 1, duration: 5 }],
         persistsAfterInterrupt: true,
         actorType: 'player',
         timingAnchor: 'castEnd',
@@ -65,17 +67,17 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 360, condition: 'Chilled', stacks: 1, duration: 2 }],
+        ticks: [{ atMs: 360, condition: CONDITION.CHILLED, stacks: 1, duration: 2 }],
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 680, condition: 'Weakness', stacks: 1, duration: 4 }],
+        ticks: [{ atMs: 680, condition: CONDITION.WEAKNESS, stacks: 1, duration: 4 }],
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [360, 680].map((atMs) => ({ atMs, condition: 'Poisoned', stacks: 2, duration: 4 })),
+        ticks: [360, 680].map((atMs) => ({ atMs, condition: CONDITION.POISONED, stacks: 2, duration: 4 })),
         actorType: 'player'
       }
     ]),
@@ -100,14 +102,14 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         },
         {
           type: 'condition',
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 3,
           actorType: 'player'
         },
         {
           type: 'condition',
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           stacks: 2,
           duration: 6,
           actorType: 'player'
@@ -144,7 +146,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       },
       {
         type: 'condition',
-        condition: 'Fear',
+        condition: CONDITION.FEAR,
         stacks: 1,
         duration: 1,
         actorType: 'player'
@@ -196,7 +198,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 4,
         stacks: 3
       },
@@ -275,11 +277,11 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       {
         type: 'condition',
         ticks: [
-          { atMs: 400, condition: 'Torment', stacks: 2, duration: 6 },
-          { atMs: 1400, condition: 'Bleeding', stacks: 3, duration: 6 },
-          { atMs: 2400, condition: 'Torment', stacks: 2, duration: 6 },
-          { atMs: 3400, condition: 'Poisoned', stacks: 3, duration: 6 },
-          { atMs: 4400, condition: 'Torment', stacks: 2, duration: 6 }
+          { atMs: 400, condition: CONDITION.TORMENT, stacks: 2, duration: 6 },
+          { atMs: 1400, condition: CONDITION.BLEEDING, stacks: 3, duration: 6 },
+          { atMs: 2400, condition: CONDITION.TORMENT, stacks: 2, duration: 6 },
+          { atMs: 3400, condition: CONDITION.POISONED, stacks: 3, duration: 6 },
+          { atMs: 4400, condition: CONDITION.TORMENT, stacks: 2, duration: 6 }
         ],
         actorType: 'player'
       }
@@ -293,7 +295,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: [
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 2 }],
+        ticks: [{ atMs: 0, condition: CONDITION.CRIPPLED, stacks: 1, duration: 2 }],
         actorType: 'player',
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
@@ -327,7 +329,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 5,
         stacks: 2,
         atMs: 0,
@@ -337,7 +339,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 15,
         stacks: 8,
         atMs: 1000,
@@ -347,7 +349,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 5,
         stacks: 1,
         atMs: 2000,
@@ -357,7 +359,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'vigor',
+        boon: BOON.VIGOR,
         duration: 8,
         stacks: 1,
         atMs: 3000,
@@ -367,7 +369,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 12,
         stacks: 1,
         atMs: 4000,
@@ -395,7 +397,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         },
         {
           type: 'condition',
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           stacks: 1,
           duration: 6,
           actorType: 'player'
@@ -404,7 +406,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 5,
         stacks: 1,
         persistsAfterInterrupt: true

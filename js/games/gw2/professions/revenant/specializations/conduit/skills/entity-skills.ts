@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
@@ -248,7 +250,7 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
       type: 'condition',
       ticks: Array.from({ length: 2 }, (_, index) => ({
         atMs: 880 + index * 0,
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 2,
         duration: 3
       })),
@@ -256,7 +258,7 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
     },
     {
       type: 'boon',
-      boon: 'might',
+      boon: BOON.MIGHT,
       stacks: 2,
       duration: 8,
       applications: 2,
@@ -265,7 +267,7 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
     },
     {
       type: 'condition',
-      ticks: [{ atMs: 880, condition: 'Immobilized', stacks: 1, duration: 2 }],
+      ticks: [{ atMs: 880, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }],
       actorType: 'player',
       metadata: { legendId: LEGEND.ASSASSIN },
       when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>
@@ -286,7 +288,7 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
       type: 'condition',
       ticks: Array.from({ length: 2 }, (_, index) => ({
         atMs: 1400 + index * 0,
-        condition: 'Confusion',
+        condition: CONDITION.CONFUSION,
         stacks: 3,
         duration: 3
       })),
@@ -338,7 +340,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         actorType: 'player',
         ticks: [440, 560, 680, 800, 920, 1040].map((atMs) => ({
           atMs,
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           stacks: 1,
           duration: 1.5
         }))
@@ -378,13 +380,13 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 5,
         actorType: 'player'
       },
-      { type: 'boon', boon: 'resolution', duration: 3, stacks: 1 },
-      { type: 'boon', boon: 'resistance', duration: 3, stacks: 1 }
+      { type: 'boon', boon: BOON.RESOLUTION, duration: 3, stacks: 1 },
+      { type: 'boon', boon: BOON.RESISTANCE, duration: 3, stacks: 1 }
     ]),
     legendId: 'LegendaryEntity'
   },

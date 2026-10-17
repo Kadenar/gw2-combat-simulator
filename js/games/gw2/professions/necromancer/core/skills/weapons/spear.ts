@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
@@ -45,8 +47,8 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
             }
           ]
         },
-        { type: 'boon', boon: 'Might', duration: 8, stacks: 5 },
-        { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3 },
+        { type: 'boon', boon: BOON.MIGHT, duration: 8, stacks: 5 },
+        { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 },
         { type: 'buff', kind: 'extirpation', duration: 4, stacks: 3 }
       ]
     )
@@ -196,7 +198,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
         ],
         coefficient: 1.8
       },
-      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 2 }
+      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 2 }
     ])
   },
   [ID.PERFORATE]: {
@@ -265,8 +267,8 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2.4 },
-      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3 },
-      { type: 'condition', condition: 'Vulnerability', stacks: 8, duration: 8 }
+      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3 },
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 8, duration: 8 }
     ]),
     flipDuration: 3,
     // Recharge tracks the same fraction of the accepted completion interval.

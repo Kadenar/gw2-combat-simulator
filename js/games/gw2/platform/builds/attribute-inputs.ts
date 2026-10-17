@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type {
   Gw2AttributeInputs,
   Gw2AttributeSeed,
@@ -152,13 +154,13 @@ export function attributeSeedFromCommon(common: Gw2CommonAttributeResult): Gw2At
     boonDurationBonus: Math.max(0, duration('Boon Duration') - value('Concentration') / 15),
     conditionDurationBonus: Math.max(0, duration('Condition Duration') - value('Expertise') / 15),
     conditionDurationBonuses: Object.fromEntries(
-      ['Bleeding', 'Burning', 'Confusion', 'Poison', 'Torment'].map((name) => [
-        name === 'Poison' ? 'Poisoned' : name,
+      [CONDITION.BLEEDING, CONDITION.BURNING, CONDITION.CONFUSION, 'Poison', CONDITION.TORMENT].map((name) => [
+        name === 'Poison' ? CONDITION.POISONED : name,
         duration(name + ' Duration')
       ])
     ),
     boonDurationBonuses: Object.fromEntries(
-      ['Quickness', 'Might', 'Fury'].map((name) => [name.toLowerCase(), duration(name + ' Duration')])
+      [BOON.QUICKNESS, BOON.MIGHT, BOON.FURY].map((name) => [name.toLowerCase(), duration(name + ' Duration')])
     )
   };
   return {

@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { type ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { elementalistMightStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -85,7 +87,7 @@ const evocation = defineTrait({
   name: 'Evocation',
   balance: {
     internalCooldown: 5,
-    effects: [boon('Fire Familiar', 'might', 1, 6)]
+    effects: [boon('Fire Familiar', boonKey(BOON.MIGHT), 1, 6)]
   }
 });
 
@@ -177,7 +179,7 @@ const galvanicEnchantment = defineTrait({
     durationMultiplier: 6,
     effects: [
       { name: 'Galvanic Enchantment', type: 'strike', coefficient: 0.4, hits: 1 },
-      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 1.5 }
+      { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 1.5 }
     ]
   }
 });
@@ -198,7 +200,8 @@ const enhancedPotency = defineTrait({
           feedsConversions: 'none',
           enabled:
             config?.evokerElement === 'Air' &&
-            (context.query?.furyActiveAt(context.time, context.runtime, context.event) ?? boonActive(context, 'fury'))
+            (context.query?.furyActiveAt(context.time, context.runtime, context.event) ??
+              boonActive(context, boonKey(BOON.FURY)))
         },
         {
           kind: 'flat',
@@ -294,10 +297,10 @@ const altruisticAspect = defineTrait({
   name: 'Altruistic Aspect',
   balance: {
     effects: [
-      boon("Fox's Fury", 'might', 3, 10),
-      boon("Hare's Agility", 'fury', 1, 5),
-      boon("Toad's Fortitude", 'stability', 1, 5),
-      boon('Elemental Procession', 'resistance', 1, 5)
+      boon("Fox's Fury", boonKey(BOON.MIGHT), 3, 10),
+      boon("Hare's Agility", boonKey(BOON.FURY), 1, 5),
+      boon("Toad's Fortitude", boonKey(BOON.STABILITY), 1, 5),
+      boon('Elemental Procession', boonKey(BOON.RESISTANCE), 1, 5)
     ]
   }
 });
@@ -323,7 +326,7 @@ const familiarsBlessing = defineTrait({
   id: TRAIT.FAMILIARS_BLESSING,
   name: "Familiar's Blessing",
   balance: {
-    effects: [boon('Quickness', 'quickness', 1, 1.75), boon('Alacrity', 'alacrity', 1, 4)]
+    effects: [boon(BOON.QUICKNESS, boonKey(BOON.QUICKNESS), 1, 1.75), boon(BOON.ALACRITY, boonKey(BOON.ALACRITY), 1, 4)]
   }
 });
 
@@ -339,7 +342,7 @@ const fieryMight = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.FIERY_MIGHT, 'damageMultiplier'),
-      when: (context) => targetConditionActive(context, 'Burning')
+      when: (context) => targetConditionActive(context, CONDITION.BURNING)
     }
   ]
 });
@@ -363,7 +366,7 @@ export const evokerTraits = [
 function applyEvocationBurning(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = evokerState.from(context);
 
-  if (event.type === 'condition' && event.condition === 'Burning' && state.element === 'Fire') {
+  if (event.type === 'condition' && event.condition === CONDITION.BURNING && state.element === 'Fire') {
     const evocationProfile = requireBalanceProfileFromContext(context, TRAIT.EVOCATION);
     const might = requireEffect(evocationProfile, 'boon', 'Fire Familiar');
     const sourceId = event.skillId ?? event.sourceId;

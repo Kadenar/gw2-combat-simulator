@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -39,8 +41,8 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       // Each pulse applies both conditions, retaining their separate durations and packet order.
       ...(
         [
-          { condition: 'Burning', duration: 3 },
-          { condition: 'Bleeding', duration: 5 }
+          { condition: CONDITION.BURNING, duration: 3 },
+          { condition: CONDITION.BLEEDING, duration: 5 }
         ] as const
       ).flatMap(({ condition, duration }) =>
         [0, 1000, 2000, 3000, 4000].map((offsetMs) => ({
@@ -64,13 +66,13 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 10
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 4
       }
@@ -92,13 +94,13 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         duration: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         duration: 1,
         atMs: 1240,
         timingAnchor: 'castStart',
@@ -107,7 +109,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         duration: 1,
         atMs: 2240,
         timingAnchor: 'castStart',
@@ -116,7 +118,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         duration: 1,
         atMs: 3240,
         timingAnchor: 'castStart',
@@ -142,13 +144,13 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         },
         {
           type: 'condition',
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 2.5
         },
         {
           type: 'condition',
-          condition: 'Vulnerability',
+          condition: CONDITION.VULNERABILITY,
           stacks: 2,
           duration: 10
         }
@@ -195,12 +197,12 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'control',
-        controlKind: 'taunt'
+        controlKind: CONDITION.TAUNT.toLowerCase()
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'resolution',
+        boon: BOON.RESOLUTION,
         duration: 3
       }
     ]
@@ -214,13 +216,13 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 5
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 5,
         atMs: 1240,
         timingAnchor: 'castStart',
@@ -229,7 +231,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 5,
         atMs: 2240,
         timingAnchor: 'castStart',
@@ -238,7 +240,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 5,
         atMs: 3240,
         timingAnchor: 'castStart',
@@ -247,7 +249,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 5,
         atMs: 4240,
         timingAnchor: 'castStart',
@@ -314,13 +316,13 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 2
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 6
       }
     ]
@@ -349,19 +351,19 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 5
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 5
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'aegis',
+        boon: BOON.AEGIS,
         duration: 4
       }
     ]
@@ -382,19 +384,19 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'vigor',
+        boon: BOON.VIGOR,
         duration: 5
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 6
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 5
       }
     ]

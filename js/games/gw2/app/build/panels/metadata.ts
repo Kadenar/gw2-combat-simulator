@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { CONDITION_DURATION_ATTRIBUTES, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
 
@@ -25,25 +26,36 @@ export const SPECIFIC_CONDITION_DURATION_ATTRIBUTES = new Set([...CONDITION_DURA
 export const TARGET_CONDITION_GROUPS = Object.freeze([
   Object.freeze({
     label: 'Damaging',
-    conditions: Object.freeze(['Burning', 'Bleeding', 'Torment', 'Confusion', 'Poisoned'])
+    conditions: Object.freeze([
+      CONDITION.BURNING,
+      CONDITION.BLEEDING,
+      CONDITION.TORMENT,
+      CONDITION.CONFUSION,
+      CONDITION.POISONED
+    ])
   }),
   Object.freeze({
     label: 'Control',
     conditions: Object.freeze([
-      'Vulnerability',
-      'Weakness',
-      'Blindness',
-      'Slow',
-      'Chilled',
-      'Crippled',
-      'Immobilized',
-      'Fear',
-      'Taunt'
+      CONDITION.VULNERABILITY,
+      CONDITION.WEAKNESS,
+      CONDITION.BLINDNESS,
+      CONDITION.SLOW,
+      CONDITION.CHILLED,
+      CONDITION.CRIPPLED,
+      CONDITION.IMMOBILIZED,
+      CONDITION.FEAR,
+      CONDITION.TAUNT
     ])
   })
 ]);
 
-export const STACKING_TARGET_CONDITIONS = new Set(['Vulnerability', 'Bleeding', 'Torment', 'Confusion']);
+export const STACKING_TARGET_CONDITIONS = new Set<string>([
+  CONDITION.VULNERABILITY,
+  CONDITION.BLEEDING,
+  CONDITION.TORMENT,
+  CONDITION.CONFUSION
+]);
 
 export const TARGET_ARMOR_OPTIONS = Object.freeze([
   Object.freeze({ value: STANDARD_TARGET_ARMOR, label: 'Base' }),

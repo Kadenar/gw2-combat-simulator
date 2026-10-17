@@ -25,7 +25,7 @@ export function resolveTroubadourTale({ context, skill, at, eligible }: Troubado
     const packet = buildMesmerPacket({
       type: 'buff',
       at,
-      kind: String(boon.boon || ''),
+      kind: String(boon.boon || '').toLowerCase(),
       stacks: Number(boon.stacks),
       duration: Number(boon.duration),
       skillName: skill.name,

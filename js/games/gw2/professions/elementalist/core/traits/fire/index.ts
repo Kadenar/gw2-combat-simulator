@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -83,7 +85,7 @@ export const inferno = defineTrait({
   // Inferno replaces condition scaling only after final owner Power is known.
   attributes: (context) => ({
     finalCondition: {
-      condition: 'Burning',
+      condition: CONDITION.BURNING,
       powerMultiplier: balanceNumberFromContext(context, TRAIT.INFERNO, 'coefficientMultiplier')
     }
   }),
@@ -112,7 +114,7 @@ export const burningPrecision = defineTrait({
     procChance: 0.33,
     internalCooldown: 5,
     durationMultiplier: 20,
-    effects: [{ type: 'condition', name: 'Burning Precision', condition: 'Burning', stacks: 1, duration: 3 }]
+    effects: [{ type: 'condition', name: 'Burning Precision', condition: CONDITION.BURNING, stacks: 1, duration: 3 }]
   },
   attributes: ({ balanceContext }) => ({
     traitDurations: {
@@ -159,7 +161,7 @@ export const burningRage = defineTrait({
     // The replacement burning belongs to Sunspot's shared trigger.
     damagePreviewAttribution: 'shared',
     attributeBonus: 180,
-    effects: [{ type: 'condition', name: 'Sunspot Burning', condition: 'Burning', stacks: 2, duration: 4 }]
+    effects: [{ type: 'condition', name: 'Sunspot Burning', condition: CONDITION.BURNING, stacks: 2, duration: 4 }]
   },
   attributes: traitAttributeEffects(TRAIT.BURNING_RAGE, [
     { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'none' }
@@ -216,7 +218,8 @@ export const pyromancersTraining = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.PYROMANCERS_TRAINING, 'damageMultiplier'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Burning')
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.BURNING)
     }
   ]
 });
@@ -247,10 +250,10 @@ export const pyromancersPuissance = defineTrait({
     damageIncreasePerStack: 0.1,
     durationPerTier: 0.5,
     effects: [
-      { type: 'boon', name: 'Attunement Might', boon: 'might', stacks: 1, duration: 15 },
-      { type: 'boon', name: 'Flame Expulsion Might', boon: 'might', stacks: 1, duration: 15 },
+      { type: 'boon', name: 'Attunement Might', boon: BOON.MIGHT, stacks: 1, duration: 15 },
+      { type: 'boon', name: 'Flame Expulsion Might', boon: BOON.MIGHT, stacks: 1, duration: 15 },
       { type: 'strike', name: 'Flame Expulsion', coefficient: 1, hits: 1 },
-      { type: 'condition', name: 'Flame Expulsion', condition: 'Burning', stacks: 1, duration: 2 }
+      { type: 'condition', name: 'Flame Expulsion', condition: CONDITION.BURNING, stacks: 1, duration: 2 }
     ]
   }
 });
@@ -462,5 +465,5 @@ function applyPersistingFlamesDamage(context: MechanicCombatContext, event: Gw2R
 
 /** Burning rewards stay after Strength of Stone in the accepted-condition reaction. */
 function applyPersistingFlamesCondition(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
-  if (event.condition === 'Burning') grantPersistingFlames(context, event);
+  if (event.condition === CONDITION.BURNING) grantPersistingFlames(context, event);
 }

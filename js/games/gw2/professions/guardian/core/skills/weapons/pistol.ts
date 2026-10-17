@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
@@ -40,7 +42,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         },
         {
           type: 'condition',
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 5,
           duration: 6
         },
@@ -73,7 +75,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'condition',
         ticks: [280, 440, 640, 800, 960].map((atMs) => ({
           atMs,
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 8,
           projectile: true
@@ -83,7 +85,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'condition',
         ticks: [280, 440, 640, 800, 960].map((atMs) => ({
           atMs,
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 1,
           projectile: true
@@ -109,7 +111,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
       // Each strike applies the same Burning packet at its impact time.
       ...[280, 480, 640, 800, 960].map((atMs) => ({
         type: 'condition' as const,
-        ticks: [{ atMs, condition: 'Burning', stacks: 1, duration: 1.5 }]
+        ticks: [{ atMs, condition: CONDITION.BURNING, stacks: 1, duration: 1.5 }]
       }))
     ])
   },
@@ -140,7 +142,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       ...[280, 960, 1640, 2320, 3000].map((atMs) => ({
         type: 'boon' as const,
-        boon: 'might',
+        boon: BOON.MIGHT,
         stacks: 1,
         duration: 5,
         audience: { recipients: 'party' as const },
@@ -163,7 +165,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         },
         {
           type: 'condition',
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 8,
           projectile: true
@@ -212,17 +214,18 @@ export const guardianIgnitionLifecycle = {
 // and fire-whirl bolts also ignite, but ordinary conditions and ignition itself do not.
 export function reactToSymbolOfIgnition(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const symbolOfIgnitionProfile = requireBalanceProfileFromContext(context, PROFILE.symbolOfIgnition);
-  const burning = requireEffect(symbolOfIgnitionProfile, 'condition', 'Burning');
+  const burning = requireEffect(symbolOfIgnitionProfile, 'condition', CONDITION.BURNING);
 
   if (!burning) return;
 
   const burningBolt =
     event.type === 'condition' &&
-    event.condition === 'Burning' &&
+    event.condition === CONDITION.BURNING &&
     !!event.comboId &&
     event.fieldType === 'Fire' &&
     event.finisherType === 'Whirl';
-  const torchPulse = event.type === 'condition' && event.condition === 'Burning' && event.skillId === ID.ZEALOTS_FLAME;
+  const torchPulse =
+    event.type === 'condition' && event.condition === CONDITION.BURNING && event.skillId === ID.ZEALOTS_FLAME;
 
   if (
     !isGw2PlayerActorEvent(event) ||

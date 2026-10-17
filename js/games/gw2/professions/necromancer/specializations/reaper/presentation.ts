@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
@@ -29,12 +30,12 @@ export function bindReaperUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill
           label: 'Target Chilled',
           group: 'Target conditions',
           kind: 'condition',
-          field: 'Chilled',
+          field: CONDITION.CHILLED,
           scope: ['damage'],
           description: 'Cold Shoulder'
         });
 
-      preview.condition('Vulnerability', 'Decimate Defenses');
+      preview.condition(CONDITION.VULNERABILITY, 'Decimate Defenses');
       return preview.controls;
     },
     /** Seed only the detached attribute query; combat state and saved builds remain untouched. */

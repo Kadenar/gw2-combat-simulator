@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import {
   fromProfile,
   tooltipSeconds,
@@ -158,7 +159,7 @@ export const holosmithTooltips = {
               [
                 {
                   type: 'boon',
-                  boon: 'quickness',
+                  boon: BOON.QUICKNESS,
                   duration: tooltipNumber(tooltipProfile(balanceContext, HOLOSMITH.radiantArcHeatTier), field)
                 }
               ],

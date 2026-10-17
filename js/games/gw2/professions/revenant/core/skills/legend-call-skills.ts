@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Owns Core legend-swap call skill fragments used by Song of the Mists. */
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -24,7 +26,7 @@ export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         name: 'Call of the Dwarf',
         stacks: 1,
         duration: 5,
@@ -46,7 +48,7 @@ export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         name: 'Call of the Assassin',
         stacks: 8,
         duration: 5,
@@ -54,7 +56,7 @@ export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         name: 'Call of the Assassin',
         duration: 2,
         stacks: 1
@@ -75,7 +77,7 @@ export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Slow',
+        condition: CONDITION.SLOW,
         name: 'Call of the Demon - Slow',
         skillName: 'Call of the Demon',
         stacks: 1,
@@ -84,7 +86,7 @@ export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         name: 'Call of the Demon - Torment',
         skillName: 'Call of the Demon',
         stacks: 2,

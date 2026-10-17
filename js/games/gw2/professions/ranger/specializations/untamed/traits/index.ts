@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
@@ -118,8 +120,8 @@ const letLoose = defineTrait({
   balance: {
     internalCooldown: 9,
     effects: [
-      { name: 'quickness', type: 'boon', boon: 'quickness', duration: 5, stacks: 1 },
-      { name: 'might', type: 'boon', boon: 'might', duration: 10, stacks: 5 }
+      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 5, stacks: 1 },
+      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 10, stacks: 5 }
     ]
   }
 });
@@ -130,7 +132,7 @@ const blindingOutburst = defineTrait({
   name: 'Blinding Outburst',
   balance: {
     damageIncrease: 0.25,
-    effects: [{ name: 'Blindness', type: 'condition', condition: 'Blindness', duration: 2, stacks: 1 }]
+    effects: [{ name: CONDITION.BLINDNESS, type: 'condition', condition: CONDITION.BLINDNESS, duration: 2, stacks: 1 }]
   },
   modifierRules: [
     {
@@ -153,7 +155,7 @@ const blindingOutburst = defineTrait({
         Number(event.coefficient) > 0 &&
         (isPlayerStrike(event) || isPetStrike(event)),
       emit: TRAIT.BLINDING_OUTBURST,
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Blindness',
+      effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.BLINDNESS,
       attribution: (_runtime, event) => ({
         ownerActorType: 'player',
         skillId: TRAIT.BLINDING_OUTBURST,
@@ -215,8 +217,8 @@ const debilitatingBlows = defineTrait({
   balance: {
     internalCooldown: 1,
     effects: [
-      { name: 'Poisoned', type: 'condition', condition: 'Poisoned', duration: 5, stacks: 2 },
-      { name: 'Slow', type: 'condition', condition: 'Slow', duration: 2, stacks: 2 }
+      { name: CONDITION.POISONED, type: 'condition', condition: CONDITION.POISONED, duration: 5, stacks: 2 },
+      { name: CONDITION.SLOW, type: 'condition', condition: CONDITION.SLOW, duration: 2, stacks: 2 }
     ]
   },
   triggers: [
@@ -228,9 +230,13 @@ const debilitatingBlows = defineTrait({
         (isPlayerStrike(event) || isPetStrike(event)) &&
         untamedState.from(runtime).rangerUnleashed &&
         Boolean(
-          requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.DEBILITATING_BLOWS), 'condition', 'Poisoned')
+          requireEffect(
+            requireBalanceProfileFromContext(runtime, TRAIT.DEBILITATING_BLOWS),
+            'condition',
+            CONDITION.POISONED
+          )
         ),
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Poisoned',
+      effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.POISONED,
       attribution: (_runtime, event) => ({
         skillId: TRAIT.DEBILITATING_BLOWS,
         skillName: 'Debilitating Blows',
@@ -247,9 +253,13 @@ const debilitatingBlows = defineTrait({
         (isPlayerStrike(event) || isPetStrike(event)) &&
         !untamedState.from(runtime).rangerUnleashed &&
         Boolean(
-          requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.DEBILITATING_BLOWS), 'condition', 'Slow')
+          requireEffect(
+            requireBalanceProfileFromContext(runtime, TRAIT.DEBILITATING_BLOWS),
+            'condition',
+            CONDITION.SLOW
+          )
         ),
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Slow',
+      effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.SLOW,
       attribution: (_runtime, event) => ({
         skillId: TRAIT.DEBILITATING_BLOWS,
         skillName: 'Debilitating Blows',
@@ -268,8 +278,8 @@ const enhancingImpact = defineTrait({
   balance: {
     internalCooldown: 1,
     effects: [
-      { name: 'quickness', type: 'boon', boon: 'quickness', duration: 3, stacks: 1 },
-      { name: 'stability', type: 'boon', boon: 'stability', duration: 3, stacks: 1 }
+      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 3, stacks: 1 },
+      { name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, duration: 3, stacks: 1 }
     ]
   },
   triggers: [
@@ -280,8 +290,14 @@ const enhancingImpact = defineTrait({
       when: (runtime, event) =>
         (isPlayerStrike(event) || isPetStrike(event)) &&
         untamedState.from(runtime).rangerUnleashed &&
-        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.ENHANCING_IMPACT), 'boon', 'quickness')),
-      effects: (effect) => effect.type === 'boon' && effect.name === 'quickness',
+        Boolean(
+          requireEffect(
+            requireBalanceProfileFromContext(runtime, TRAIT.ENHANCING_IMPACT),
+            'boon',
+            boonKey(BOON.QUICKNESS)
+          )
+        ),
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.QUICKNESS),
       attribution: (_runtime, event) => ({
         skillId: TRAIT.ENHANCING_IMPACT,
         skillName: 'Enhancing Impact',
@@ -297,8 +313,14 @@ const enhancingImpact = defineTrait({
       when: (runtime, event) =>
         (isPlayerStrike(event) || isPetStrike(event)) &&
         !untamedState.from(runtime).rangerUnleashed &&
-        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.ENHANCING_IMPACT), 'boon', 'stability')),
-      effects: (effect) => effect.type === 'boon' && effect.name === 'stability',
+        Boolean(
+          requireEffect(
+            requireBalanceProfileFromContext(runtime, TRAIT.ENHANCING_IMPACT),
+            'boon',
+            boonKey(BOON.STABILITY)
+          )
+        ),
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.STABILITY),
       attribution: (_runtime, event) => ({
         skillId: TRAIT.ENHANCING_IMPACT,
         skillName: 'Enhancing Impact',

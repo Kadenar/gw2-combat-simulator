@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import type { BuildTemplatePreset, BuildTemplateSection } from '#gw2/app/build/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
@@ -11,7 +12,11 @@ export type TemplateBoonFilter = 'all' | Exclude<TemplateBoon, 'none'>;
 
 export const TEMPLATE_FILTERS: readonly TemplateFilter[] = ['all', 'power', 'condi'];
 
-export const TEMPLATE_BOON_FILTERS: readonly TemplateBoonFilter[] = ['all', 'alacrity', 'quickness'];
+export const TEMPLATE_BOON_FILTERS: readonly TemplateBoonFilter[] = [
+  'all',
+  boonKey(BOON.ALACRITY),
+  boonKey(BOON.QUICKNESS)
+];
 
 export function templateSpecializations(manifest: readonly BuildTemplateSection[]): string[] {
   // Manifest sections represent active specializations, so they can drive the filter without loading every build file.
@@ -77,9 +82,9 @@ export function templateBoon(preset: Pick<BuildTemplatePreset, 'label' | 'build'
   // Template names encode support roles, so the selector can filter them without loading every build asset.
   const description = `${preset.label} ${preset.build}`.toLowerCase();
 
-  if (/\balacrity\b|[-/]alac-/.test(description)) return 'alacrity';
+  if (/\balacrity\b|[-/]alac-/.test(description)) return boonKey(BOON.ALACRITY);
 
-  if (/\bquickness\b|[-/]quick-/.test(description)) return 'quickness';
+  if (/\bquickness\b|[-/]quick-/.test(description)) return boonKey(BOON.QUICKNESS);
 
   return 'none';
 }

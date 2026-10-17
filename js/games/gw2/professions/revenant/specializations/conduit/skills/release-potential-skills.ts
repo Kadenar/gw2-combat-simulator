@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { conditionEffectTicks, impactEffects } from '#gw2/platform/effects/authoring.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -58,14 +60,14 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         duration: 2,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 6,
         stacks: 1
       }
@@ -91,7 +93,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 2,
         duration: 3,
         durationPerAffinity: 0.1,
@@ -99,7 +101,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 8,
         durationReductionPerAffinity: 0.15,
@@ -146,7 +148,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 3,
         duration: 6,
         actorType: 'player',
@@ -156,7 +158,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         stacks: 10,
         duration: 8,
         metadata: { legendId: LEGEND.CENTAUR },
@@ -165,7 +167,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'fury',
+        boon: BOON.FURY,
         stacks: 1,
         duration: 8,
         metadata: { legendId: LEGEND.CENTAUR },
@@ -212,7 +214,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
       ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
         {
           type: 'condition',
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 2,
           durationPerAffinity: 0.2,
@@ -220,7 +222,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         },
         {
           type: 'condition',
-          condition: 'Immobilized',
+          condition: CONDITION.IMMOBILIZED,
           stacks: 1,
           duration: 2,
           durationPerAffinity: 0.2,

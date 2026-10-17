@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import type { ProfessionEffectPresentation } from '#gw2/platform/profession-presentation/types.js';
@@ -34,7 +35,7 @@ export const mirageUi: MesmerUiSlice = Object.freeze({
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
     preview.damageBuff('Phantom Pain', 'phantomPain', 'phantom-pain', true);
-    preview.boon('vigor', "Nomad's Endurance");
+    preview.boon(boonKey(BOON.VIGOR), "Nomad's Endurance");
     return preview.controls;
   },
   effectPresentations: mirageEffectPresentations,

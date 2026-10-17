@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -59,14 +61,14 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 2,
         duration: 6,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 6,
         actorType: 'player'
@@ -85,7 +87,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: [
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 6,
         stacks: 1
       }
@@ -117,14 +119,14 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 6,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 6,
         actorType: 'player'
@@ -154,7 +156,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
         },
         {
           type: 'condition',
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 4,
           actorType: 'player'
@@ -162,7 +164,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
       ]),
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 6,
         stacks: 1
       }
@@ -192,7 +194,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 1,
         duration: 8,
         actorType: 'player'
@@ -223,7 +225,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 6,
         stacks: 3
       }
@@ -252,22 +254,22 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
         },
         {
           type: 'condition',
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 4,
           actorType: 'player'
         },
-        { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1, actorType: 'player' }
+        { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1, actorType: 'player' }
       ]),
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 3,
         stacks: 1
       },
       {
         type: 'boon',
-        boon: 'vigor',
+        boon: BOON.VIGOR,
         duration: 3,
         stacks: 1
       }
@@ -298,7 +300,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 6,
         stacks: 3
       }

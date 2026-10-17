@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Core Ranger pet skill fragments for the Raptor Swiftwing family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -27,7 +28,14 @@ export const RANGER_CORE_RAPTOR_SWIFTWING_PET_SKILL_MECHANICS: Readonly<Record<n
       // The ground strike applies four eight-second bleeds; the skill name does not imply a Might boon.
       effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         { type: 'strike', coefficient: 0.75, source: 'ranger-pet', actorType: 'summon' },
-        { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 8, source: 'ranger-pet', actorType: 'summon' }
+        {
+          type: 'condition',
+          condition: CONDITION.BLEEDING,
+          stacks: 4,
+          duration: 8,
+          source: 'ranger-pet',
+          actorType: 'summon'
+        }
       ]),
       castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.RAPTOR_SWIFTWING_SAURIAN_MIGHT]!.castTimeMs,
       quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.RAPTOR_SWIFTWING_SAURIAN_MIGHT]!.quicknessCastTimeMs,
@@ -37,7 +45,14 @@ export const RANGER_CORE_RAPTOR_SWIFTWING_PET_SKILL_MECHANICS: Readonly<Record<n
       // Landing deals pet-owned damage and applies cripple before the movement recovery finishes.
       effects: impactEffects({ atMs: 1240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         { type: 'strike', coefficient: 1, source: 'ranger-pet', actorType: 'summon' },
-        { type: 'condition', condition: 'Crippled', stacks: 1, duration: 4, source: 'ranger-pet', actorType: 'summon' }
+        {
+          type: 'condition',
+          condition: CONDITION.CRIPPLED,
+          stacks: 1,
+          duration: 4,
+          source: 'ranger-pet',
+          actorType: 'summon'
+        }
       ]),
       castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.RAPTOR_SWIFTWING_LEAPING_LIZARD]!.castTimeMs,
       quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.RAPTOR_SWIFTWING_LEAPING_LIZARD]!.quicknessCastTimeMs,
@@ -56,7 +71,7 @@ export const RANGER_CORE_RAPTOR_SWIFTWING_PET_SKILL_MECHANICS: Readonly<Record<n
         },
         {
           type: 'condition',
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           stacks: 2,
           duration: 8,
           source: 'ranger-pet',

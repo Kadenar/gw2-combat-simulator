@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 /** Brawler relic rules. */
@@ -33,7 +34,7 @@ export const brawler = defineRelic({
 
     // Player ownership is insufficient: the boon must reach the player to activate Brawler.
     if (
-      (kind !== 'protection' && kind !== 'resolution') ||
+      (kind !== boonKey(BOON.PROTECTION) && kind !== boonKey(BOON.RESOLUTION)) ||
       !isGw2PlayerActorEvent(event) ||
       !event.resolvedAudience?.includesSelf ||
       !(Number(event.duration) > 0) ||

@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
@@ -94,9 +96,9 @@ export const chronomancerUi: MesmerUiSlice = Object.freeze({
     const preview = createPreviewControls(context);
     // Expose held combat bonuses to isolated damage calculations.
     preview.damageBuff('Time Bomb', 'timeBomb', 'time-bomb');
-    preview.condition('Slow', 'Time Catches Up');
+    preview.condition(CONDITION.SLOW, 'Time Catches Up');
 
-    preview.boon('alacrity', 'Flow of Time');
+    preview.boon(boonKey(BOON.ALACRITY), 'Flow of Time');
     preview.buff('Danger Time', 'dangerTime', 'danger-time', 'Critical Damage');
     return preview.controls;
   },

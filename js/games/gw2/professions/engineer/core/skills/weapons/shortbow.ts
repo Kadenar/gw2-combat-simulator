@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -18,21 +20,21 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 5,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'aegis',
+        boon: BOON.AEGIS,
         duration: 5,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 3,
         stacks: 1
       }
@@ -59,7 +61,7 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 8,
         actorType: 'player'
@@ -117,14 +119,14 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 8,
         stacks: 5
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 8,
         stacks: 3
       }

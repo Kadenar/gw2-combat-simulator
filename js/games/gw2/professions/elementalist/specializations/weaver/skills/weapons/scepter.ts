@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Scepter weapon-skill mechanics owned by the Weaver module.
  *
@@ -33,8 +35,8 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.1 },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 4, metadata: {} },
-      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 4, metadata: {} },
+      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3, metadata: {} }
     ]),
     specialization: 'Weaver'
   },
@@ -124,13 +126,13 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       ...impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1.2 },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} },
-        { type: 'condition', condition: 'Vulnerability', stacks: 3, duration: 8, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2, metadata: {} },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 3, duration: 8, metadata: {} }
       ]),
       ...impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1.2 },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} },
-        { type: 'condition', condition: 'Vulnerability', stacks: 3, duration: 8, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2, metadata: {} },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 3, duration: 8, metadata: {} }
       ])
     ],
     specialization: 'Weaver'
@@ -149,8 +151,8 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2, canCrit: true },
-      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 4, metadata: {} },
-      { type: 'boon', boon: 'Stability', stacks: 1, duration: 5, metadata: {} },
+      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 4, metadata: {} },
+      { type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5, metadata: {} },
       { type: 'control', applications: 1, controlKind: 'crowd-control' }
     ]),
     specialization: 'Weaver'
@@ -172,44 +174,44 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       ...impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3, metadata: {} },
-        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 3, metadata: {} },
-        { type: 'condition', condition: 'Crippled', stacks: 1, duration: 4, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 3, metadata: {} },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 3, metadata: {} },
+        { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 4, metadata: {} }
       ]),
       ...impactEffects({ atMs: 1040, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3, metadata: {} },
-        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 3, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 3, metadata: {} },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 3, metadata: {} }
       ]),
       ...impactEffects({ atMs: 1320, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3, metadata: {} },
-        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 3, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 3, metadata: {} },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 3, metadata: {} }
       ]),
       ...impactEffects({ atMs: 1600, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3, metadata: {} },
-        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 3, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 3, metadata: {} },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 3, metadata: {} }
       ]),
       ...impactEffects({ atMs: 1880, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3, metadata: {} },
-        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 3, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 3, metadata: {} },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 3, metadata: {} }
       ]),
       ...impactEffects({ atMs: 2160, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3, metadata: {} },
-        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 3, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 3, metadata: {} },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 3, metadata: {} }
       ]),
       ...impactEffects({ atMs: 2440, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3, metadata: {} },
-        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 3, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 3, metadata: {} },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 3, metadata: {} }
       ]),
       ...impactEffects({ atMs: 2720, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3, metadata: {} },
-        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 3, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 3, metadata: {} },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 3, metadata: {} }
       ])
     ],
     specialization: 'Weaver'

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Porcine family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -19,7 +20,7 @@ export const SOULBEAST_PORCINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Pa
       {
         type: 'condition',
         // Each impact applies one stack, keeping partial casts consistent with their landed hits.
-        ticks: [400, 440].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 6 }))
+        ticks: [400, 440].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 1, duration: 6 }))
       }
     ]),
     castTimeMs: 560
@@ -31,7 +32,12 @@ export const SOULBEAST_PORCINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Pa
       { type: 'strike', ticks: [680, 1680, 2680, 3680, 4680].map((atMs) => ({ atMs, coefficient: 0.2 })) },
       {
         type: 'condition',
-        ticks: [680, 1680, 2680, 3680, 4680].map((atMs) => ({ atMs, condition: 'Poisoned', stacks: 1, duration: 4 }))
+        ticks: [680, 1680, 2680, 3680, 4680].map((atMs) => ({
+          atMs,
+          condition: CONDITION.POISONED,
+          stacks: 1,
+          duration: 4
+        }))
       }
     ]),
     comboFields: [{ ownerId: 'ranger', fieldType: 'Poison', duration: 5, startMs: 680, startAnchor: 'castStart' }],

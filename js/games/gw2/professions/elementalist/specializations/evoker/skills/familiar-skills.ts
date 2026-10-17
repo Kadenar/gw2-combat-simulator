@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
@@ -61,7 +63,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     skillFamily: 'Familiar',
     effects: impactEffects({ atMs: 880, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.63 },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2, metadata: {} }
     ])
   },
   [ID.CONFLAGRATION]: {
@@ -90,7 +92,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         { type: 'strike', coefficient: 1.56 },
         {
           type: 'condition',
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 2,
           duration: 4.5,
           metadata: {}
@@ -119,7 +121,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     effects: [
       {
         type: 'boon',
-        boon: 'Regeneration',
+        boon: BOON.REGENERATION,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
@@ -228,7 +230,12 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       },
       {
         type: 'condition',
-        ticks: [1120, 1360, 1600, 1840, 2080].map((atMs) => ({ atMs, condition: 'Weakness', stacks: 1, duration: 3 })),
+        ticks: [1120, 1360, 1600, 1840, 2080].map((atMs) => ({
+          atMs,
+          condition: CONDITION.WEAKNESS,
+          stacks: 1,
+          duration: 3
+        })),
         metadata: {}
       }
     ])
@@ -289,13 +296,13 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         metadata: {},
         canCrit: true
       },
-      { type: 'condition', condition: 'Bleeding', stacks: 6, duration: 10, metadata: {} },
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 6, duration: 10, metadata: {} },
       // The initial knockdown triggers disable passives before the later damage and barrier pulses.
       { type: 'control', applications: 1, controlKind: 'crowd-control', atMs: 1320 },
       // The barrier supplies party Protection independently of hitting an enemy; its pulses keep a fixed cadence.
       {
         type: 'boon',
-        boon: 'Protection',
+        boon: BOON.PROTECTION,
         stacks: 1,
         duration: 1.5,
         applications: 5,
@@ -323,28 +330,28 @@ export const familiarBalanceProfiles: readonly BalanceProfile[] = Object.freeze(
       {
         type: 'condition',
         name: 'Tier 1',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 2
       },
       {
         type: 'condition',
         name: 'Tier 2',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 0.5
       },
       {
         type: 'condition',
         name: 'Tier 3',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 1
       },
       {
         type: 'condition',
         name: 'Tier 4',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 1.5
       }
@@ -371,7 +378,14 @@ export const familiarBalanceProfiles: readonly BalanceProfile[] = Object.freeze(
     // The equipped Earth familiar grants personal Protection on disables, independently of party pulses.
     internalCooldown: 0.25,
     effects: [
-      { type: 'boon', name: 'Protection', boon: 'protection', stacks: 1, duration: 2, audience: { recipients: 'self' } }
+      {
+        type: 'boon',
+        name: BOON.PROTECTION,
+        boon: BOON.PROTECTION,
+        stacks: 1,
+        duration: 2,
+        audience: { recipients: 'self' }
+      }
     ]
   })
 ]);

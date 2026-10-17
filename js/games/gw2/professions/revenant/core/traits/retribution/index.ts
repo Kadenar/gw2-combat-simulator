@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -25,9 +27,9 @@ export const dwarvenBattleTraining = defineTrait({
     skillFamily: 'Trait',
     effects: [
       {
-        name: 'Weakness',
+        name: CONDITION.WEAKNESS,
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 5,
         actorType: 'player'
@@ -41,7 +43,8 @@ export const dwarvenBattleTraining = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.DWARVEN_BATTLE_TRAINING, 'damageMultiplier'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Weakness')
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.WEAKNESS)
     }
   ],
   triggers: [
@@ -49,7 +52,7 @@ export const dwarvenBattleTraining = defineTrait({
       on: 'control.resolved',
       when: () => true,
       emit: TRAIT.DWARVEN_BATTLE_TRAINING,
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Weakness',
+      effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.WEAKNESS,
       attribution: {
         source: 'revenant',
         sourceId: TRAIT.DWARVEN_BATTLE_TRAINING,
@@ -102,9 +105,9 @@ export const viciousReprisalTrait = defineTrait({
     cooldown: 1,
     effects: [
       {
-        name: 'might',
+        name: boonKey(BOON.MIGHT),
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 10,
         stacks: 1,
         actorType: 'player'
@@ -121,7 +124,7 @@ export const viciousReprisalTrait = defineTrait({
         target === MODIFIER_TARGET.CONDITION_DAMAGE
           ? balanceNumberFromContext(context, TRAIT.VICIOUS_REPRISAL, 'conditionDamageIncrease')
           : balanceNumberFromContext(context, TRAIT.VICIOUS_REPRISAL, 'damageIncrease'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, 'resolution')
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, boonKey(BOON.RESOLUTION))
     }
   ]
 });
@@ -129,10 +132,10 @@ export const viciousReprisalTrait = defineTrait({
 /** Vicious Reprisal grants Might from landed strikes while Resolution is active, once per its cooldown. */
 function viciousReprisal(runtime: RevenantRuntime, { cause: event }: RevenantStrike): void {
   // Permanent configured Resolution and executed self applications count; pending packets never do.
-  if (runtime.combat.activeBoonStacks('resolution', runtime.time, 1) === 0) return;
+  if (runtime.combat.activeBoonStacks(boonKey(BOON.RESOLUTION), runtime.time, 1) === 0) return;
 
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.VICIOUS_REPRISAL);
-  const boon = requireEffect(profile, 'boon', 'might');
+  const boon = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
   // The cooldown gates only might, so a removed boon leaves it ready.
   if (!boon) return;

@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import {
   advanceDurationStack,
   durationStackingBoonCapSeconds,
@@ -195,7 +196,7 @@ export function buildBoonGeneration(
       const allied = values.slice(1).reduce((sum, amount) => sum + amount, 0);
       const previous = totals.get(kind) || {
         // Percentage presentation is independent of which boons the combat engine models as duration pools.
-        intensityStacking: kind === 'might' || kind === 'stability',
+        intensityStacking: kind === boonKey(BOON.MIGHT) || kind === boonKey(BOON.STABILITY),
         self: empty(),
         allies: empty()
       };

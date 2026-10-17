@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Rock Gazelle family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -16,7 +17,7 @@ export const SOULBEAST_ROCK_GAZELLE_BEAST_SKILL_MECHANICS: Readonly<Record<numbe
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 3,
         duration: 6
       }

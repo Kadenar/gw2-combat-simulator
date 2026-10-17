@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import {
   applyRuntimeSigilStrike,
@@ -63,7 +64,7 @@ export function createCombatExecution<T extends object>(
               order: -300,
               handler: (_context, event) => {
                 // Fear qualifies for disable procs through its accepted condition application.
-                if (event.condition === 'Fear') applyRuntimeSigils(sigils, 'control', event);
+                if (event.condition === CONDITION.FEAR) applyRuntimeSigils(sigils, 'control', event);
               }
             }
           ],

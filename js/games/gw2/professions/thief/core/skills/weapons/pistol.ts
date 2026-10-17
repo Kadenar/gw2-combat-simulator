@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/execution/cast-timing.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
@@ -31,14 +33,14 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 3,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 1.5,
         actorType: 'player'
@@ -78,7 +80,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         },
         {
           type: 'condition',
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           stacks: 4,
           duration: 6,
           actorType: 'player'
@@ -139,7 +141,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 8,
         stacks: 8
       }
@@ -194,7 +196,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 6,
         actorType: 'player'
@@ -225,7 +227,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 5, duration: 3 }],
+        ticks: [{ atMs: 0, condition: CONDITION.BLEEDING, stacks: 5, duration: 3 }],
         actorType: 'player',
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
@@ -257,7 +259,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 2,
         actorType: 'player',
@@ -292,7 +294,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 5, duration: 5 }],
+        ticks: [{ atMs: 0, condition: CONDITION.BLEEDING, stacks: 5, duration: 5 }],
         actorType: 'player',
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
@@ -327,7 +329,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 5, duration: 3 }],
+        ticks: [{ atMs: 0, condition: CONDITION.BLEEDING, stacks: 5, duration: 3 }],
         actorType: 'player',
         timingAnchor: 'castEnd',
         timingScale: 'fixed'

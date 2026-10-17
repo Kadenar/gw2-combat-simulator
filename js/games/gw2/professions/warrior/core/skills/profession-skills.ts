@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { warriorBurstRules } from '#gw2/professions/warrior/resource-rules.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -56,7 +58,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 5,
         stacks: 5
       },
@@ -76,7 +78,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         transform(runtime, cast, effects) {
           const tier = warriorBurstTier(runtime, warriorBurstSpend(cast)!);
           return effects.map((effect) =>
-            effect.type === 'boon' && effect.boon === 'fury'
+            effect.type === 'boon' && effect.boon === BOON.FURY
               ? { ...effect, duration: effect.duration * [1, 1.5, 2][tier - 1] }
               : effect
           );
@@ -102,7 +104,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 8,
         stacks: 1
       }
@@ -217,7 +219,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
             metadata: { warriorAdrenalineSpent: spent, warriorBurstTier: tier }
           };
           const strike = requireEffect(profile, 'strike', 'Strike');
-          const burning = requireEffect(profile, 'condition', 'Burning');
+          const burning = requireEffect(profile, 'condition', CONDITION.BURNING);
           return [
             ...(strike
               ? [
@@ -306,7 +308,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1
       }
@@ -325,7 +327,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1
       }
@@ -345,7 +347,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1
       }
@@ -359,7 +361,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 6
       },
@@ -382,7 +384,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 6
       }
@@ -396,7 +398,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 6
       },
@@ -417,7 +419,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
           const profile = requireBalanceProfileFromContext(runtime, PROFILE.bloodthirsterTiers);
           const bleeding = requireEffect(profile, 'condition', `Tier ${tier}`);
           return effects.flatMap<SkillEffect>((effect) =>
-            effect.type === 'condition' && effect.condition === 'Bleeding'
+            effect.type === 'condition' && effect.condition === CONDITION.BLEEDING
               ? bleeding
                 ? [
                     {
@@ -445,7 +447,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 3,
         duration: 6
       }

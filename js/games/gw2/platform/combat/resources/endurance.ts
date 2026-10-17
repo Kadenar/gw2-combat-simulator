@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { GW2_ACTION_TICK_MS, gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 
@@ -25,7 +26,7 @@ export function* vigorEnduranceIntervals(
   let index = 0;
   for (const interval of boonIntervals(
     context.events,
-    'vigor',
+    boonKey(BOON.VIGOR),
     start,
     end,
     Boolean(context.config.boons?.vigor),

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Moa family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -17,7 +18,7 @@ export const SOULBEAST_MOA_BEAST_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 10
       }

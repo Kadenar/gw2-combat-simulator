@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { renderSkills } from '#gw2/app/build/panels/skills.js';
@@ -256,7 +257,7 @@ test('Herald invocation effects use patch-authorable skill declarations', () => 
   assert.deepEqual(spiritBoon.profile.effects[effectIndex], {
     audience: { recipients: 'party', maximumRecipients: 5 },
     type: 'boon',
-    boon: 'protection',
+    boon: BOON.PROTECTION,
     duration: 3,
     stacks: 1,
     actorType: 'player',
@@ -314,7 +315,7 @@ test('Renegade invocation effects use patch-authorable skill declarations', () =
   assert.deepEqual(spiritBoon.profile.effects[effectIndex], {
     audience: { recipients: 'party', maximumRecipients: 5 },
     type: 'boon',
-    boon: 'resolution',
+    boon: BOON.RESOLUTION,
     duration: 4,
     stacks: 1,
     actorType: 'player',
@@ -384,7 +385,7 @@ test('Renegade mechanics use authorable skills and trait balances', () => {
     audience: { recipients: 'party', maximumRecipients: 5 },
     name: 'might',
     type: 'boon',
-    boon: 'might',
+    boon: BOON.MIGHT,
     duration: 8,
     stacks: 2,
     actorType: 'player'

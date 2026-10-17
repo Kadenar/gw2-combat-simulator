@@ -1,3 +1,5 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
+
 /** Canonical exotic item IDs verified against the public GW2 items API. */
 export const SIGIL_IDS = Object.freeze({
   BLOODLUST: 24575,
@@ -200,7 +202,7 @@ export const SIGIL_PROCS = Object.freeze({
     trigger: 'crit',
     cooldown: 5,
     effect: 'condition',
-    condition: 'Torment',
+    condition: CONDITION.TORMENT,
     stacks: 2,
     duration: 5,
     icon: SIGIL_BY_ID[SIGIL_IDS.TORMENT].icon
@@ -209,7 +211,7 @@ export const SIGIL_PROCS = Object.freeze({
     trigger: 'crit',
     cooldown: 2,
     effect: 'condition',
-    condition: 'Bleeding',
+    condition: CONDITION.BLEEDING,
     stacks: 1,
     duration: 6,
     icon: SIGIL_BY_ID[SIGIL_IDS.EARTH].icon
@@ -218,7 +220,7 @@ export const SIGIL_PROCS = Object.freeze({
     trigger: 'crit',
     cooldown: 8,
     effect: 'condition',
-    condition: 'Poisoned',
+    condition: CONDITION.POISONED,
     stacks: 2,
     duration: 4,
     icon: SIGIL_BY_ID[SIGIL_IDS.BLIGHT].icon
@@ -227,7 +229,7 @@ export const SIGIL_PROCS = Object.freeze({
     trigger: 'swap',
     cooldown: 9,
     effect: 'next-hit-condition',
-    condition: 'Poisoned',
+    condition: CONDITION.POISONED,
     stacks: 3,
     duration: 8,
     icon: SIGIL_BY_ID[SIGIL_IDS.DOOM].icon
@@ -238,7 +240,7 @@ export const SIGIL_PROCS = Object.freeze({
     effect: 'strike-condition',
     coefficient: 0.25,
     canCrit: true,
-    condition: 'Bleeding',
+    condition: CONDITION.BLEEDING,
     stacks: 3,
     duration: 8,
     icon: SIGIL_BY_ID[SIGIL_IDS.GEOMANCY].icon
@@ -249,7 +251,7 @@ export const SIGIL_PROCS = Object.freeze({
     effect: 'strike-condition',
     coefficient: 1,
     canCrit: true,
-    condition: 'Chilled',
+    condition: CONDITION.CHILLED,
     stacks: 1,
     duration: 2,
     icon: SIGIL_BY_ID[SIGIL_IDS.HYDROMANCY].icon
@@ -262,7 +264,7 @@ export const SIGIL_PROCS = Object.freeze({
     coefficient: 0.15,
     canCrit: true,
     projectile: true,
-    condition: 'Blindness',
+    condition: CONDITION.BLINDNESS,
     stacks: 1,
     duration: 2,
     icon: SIGIL_BY_ID[SIGIL_IDS.MISCHIEF].icon
@@ -272,7 +274,7 @@ export const SIGIL_PROCS = Object.freeze({
     trigger: 'strike',
     cooldown: 10,
     effect: 'condition',
-    condition: 'Chilled',
+    condition: CONDITION.CHILLED,
     stacks: 1,
     duration: 2,
     icon: SIGIL_BY_ID[SIGIL_IDS.ICE].icon

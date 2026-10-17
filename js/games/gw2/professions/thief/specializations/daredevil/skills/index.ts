@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -85,17 +87,17 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 360, condition: 'Poisoned', stacks: 3, duration: 10 }],
+        ticks: [{ atMs: 360, condition: CONDITION.POISONED, stacks: 3, duration: 10 }],
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Slow', stacks: 1, duration: 5 }],
+        ticks: [{ atMs: 440, condition: CONDITION.SLOW, stacks: 1, duration: 5 }],
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 520, condition: 'Immobilized', stacks: 1, duration: 2 }],
+        ticks: [{ atMs: 520, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }],
         actorType: 'player'
       }
     ])
@@ -239,7 +241,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 120, condition: 'Vulnerability', stacks: 1, duration: 5 }],
+        ticks: [{ atMs: 120, condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5 }],
         actorType: 'player'
       }
     ])
@@ -266,7 +268,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     effects: [
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 10,
         stacks: 1
       }
@@ -289,19 +291,19 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         ticks: [
           {
             atMs: 200,
-            condition: 'Bleeding',
+            condition: CONDITION.BLEEDING,
             stacks: 2,
             duration: 4
           },
           {
             atMs: 360,
-            condition: 'Torment',
+            condition: CONDITION.TORMENT,
             stacks: 2,
             duration: 4
           },
           {
             atMs: 520,
-            condition: 'Crippled',
+            condition: CONDITION.CRIPPLED,
             stacks: 1,
             duration: 3
           }

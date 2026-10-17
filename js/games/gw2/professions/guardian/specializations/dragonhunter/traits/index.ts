@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -31,8 +33,8 @@ const soaringDevastation = defineTrait({
       { type: 'strike', name: 'Strike', coefficient: 1.5, hits: 1 },
       {
         type: 'condition',
-        name: 'Immobilized',
-        condition: 'Immobilized',
+        name: CONDITION.IMMOBILIZED,
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 3
       }
@@ -50,8 +52,8 @@ const bigGameHunter = defineTrait({
     effects: [
       {
         type: 'condition',
-        name: 'Vulnerability',
-        condition: 'Vulnerability',
+        name: CONDITION.VULNERABILITY,
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 10
       }
@@ -79,7 +81,7 @@ const bigGameHunter = defineTrait({
         Number(event.coefficient) > 0 &&
         (details.hitContext?.damage ?? 0) > 0 &&
         dragonhunterState.from(runtime).tetherUntil > runtime.time,
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Vulnerability',
+      effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.VULNERABILITY,
       attribution: (_runtime, event) => ({
         source: 'guardian',
         actorType: 'effect',
@@ -111,7 +113,7 @@ const huntersPremonition = defineTrait({
   id: TRAIT.HUNTERS_PREMONITION,
   name: "Hunter's Premonition",
   balance: {
-    effects: [{ type: 'boon', name: 'aegis', boon: 'aegis', stacks: 1, duration: 3 }]
+    effects: [{ type: 'boon', name: boonKey(BOON.AEGIS), boon: BOON.AEGIS, stacks: 1, duration: 3 }]
   },
   triggers: [
     {
@@ -119,7 +121,7 @@ const huntersPremonition = defineTrait({
       emit: TRAIT.HUNTERS_PREMONITION,
       on: 'castCommit',
       when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Trap')),
-      effects: (effect) => effect.type === 'boon' && effect.name === 'aegis',
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.AEGIS),
       attribution: (_runtime, cast) => ({
         source: 'guardian',
         sourceId: cast.skill.id,
@@ -138,8 +140,8 @@ const dulledSenses = defineTrait({
     effects: [
       {
         type: 'condition',
-        name: 'Crippled',
-        condition: 'Crippled',
+        name: CONDITION.CRIPPLED,
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 4
       }
@@ -165,7 +167,7 @@ const heavyLight = defineTrait({
   balance: {
     damageMultiplier: 1.15,
     internalCooldown: 1,
-    effects: [{ type: 'boon', name: 'stability', boon: 'stability', stacks: 1, duration: 6 }]
+    effects: [{ type: 'boon', name: boonKey(BOON.STABILITY), boon: BOON.STABILITY, stacks: 1, duration: 6 }]
   },
   triggers: [onTriggerPoint(dragonhunterControlAccepted, { run: grantHeavyLight })],
   modifierRules: [
@@ -210,7 +212,7 @@ const zealotsAggression = defineTrait({
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.ZEALOTS_AGGRESSION, 'damageMultiplier'),
       order: 100,
-      when: (context) => targetConditionActive(context, 'Crippled')
+      when: (context) => targetConditionActive(context, CONDITION.CRIPPLED)
     }
   ]
 });
@@ -247,14 +249,14 @@ function grantHuntersDetermination(runtime: GuardianRuntime, { cast }: Dragonhun
 /** Control-triggered Crippled resolves immediately so its reactions share the originating control timestamp. */
 function applyDulledSenses(runtime: GuardianRuntime, { cause: event }: DragonhunterControl): void {
   const dulledSensesProfile = requireBalanceProfileFromContext(runtime, TRAIT.DULLED_SENSES);
-  const crippled = requireEffect(dulledSensesProfile, 'condition', 'Crippled');
+  const crippled = requireEffect(dulledSensesProfile, 'condition', CONDITION.CRIPPLED);
 
   if (!crippled) return;
 
   emitTraitProfile(runtime, TRAIT.DULLED_SENSES, TRAIT.DULLED_SENSES, undefined, {
     at: event.at,
     fullEnd: event.at,
-    effect: { type: 'condition', name: 'Crippled' },
+    effect: { type: 'condition', name: CONDITION.CRIPPLED },
     settlement: 'reaction',
     attribution: {
       source: 'guardian',
@@ -272,7 +274,7 @@ function applyDulledSenses(runtime: GuardianRuntime, { cause: event }: Dragonhun
 /** Heavy Light's Stability keeps a 1-second internal cooldown that the game tooltip does not expose. */
 function grantHeavyLight(runtime: GuardianRuntime, { cause: event }: DragonhunterControl): void {
   const heavyLightProfile = requireBalanceProfileFromContext(runtime, TRAIT.HEAVY_LIGHT);
-  const stability = requireEffect(heavyLightProfile, 'boon', 'stability');
+  const stability = requireEffect(heavyLightProfile, 'boon', boonKey(BOON.STABILITY));
 
   // Removing Stability leaves Heavy Light's interval unclaimed.
   if (!stability || !runtime.procs.claim(TRAIT.HEAVY_LIGHT, 'guardian.dragonhunter.heavyLight', event.at)) return;
@@ -280,7 +282,7 @@ function grantHeavyLight(runtime: GuardianRuntime, { cause: event }: Dragonhunte
   emitTraitProfile(runtime, TRAIT.HEAVY_LIGHT, TRAIT.HEAVY_LIGHT, undefined, {
     at: event.at,
     fullEnd: event.at,
-    effect: { type: 'boon', name: 'stability' },
+    effect: { type: 'boon', name: boonKey(BOON.STABILITY) },
     durationContext: event,
     attribution: {
       priority: 5,
@@ -301,7 +303,7 @@ function grantHeavyLight(runtime: GuardianRuntime, { cause: event }: Dragonhunte
       name: 'Heavy Light',
       at: event.at,
       sourceSkill: event.skillName,
-      detail: 'Stability',
+      detail: BOON.STABILITY,
       icon: guardianTraitIcon(TRAIT.HEAVY_LIGHT)
     }
   });

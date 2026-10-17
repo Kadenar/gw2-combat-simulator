@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
@@ -22,7 +23,7 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: [
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 1,
         duration: 6,
         applications: 3,
@@ -56,7 +57,7 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
@@ -71,7 +72,7 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: [
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 2,
         duration: 6,
         source: 'ranger-pet',
@@ -101,7 +102,7 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: [
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 10,
         source: 'ranger-pet',
@@ -109,7 +110,7 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 6,
         source: 'ranger-pet',
@@ -117,7 +118,7 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',

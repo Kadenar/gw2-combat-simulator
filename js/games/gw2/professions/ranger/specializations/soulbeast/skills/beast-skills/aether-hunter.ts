@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Aether Hunter family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -17,7 +18,7 @@ export const SOULBEAST_AETHER_HUNTER_BEAST_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 6
       }
@@ -33,7 +34,7 @@ export const SOULBEAST_AETHER_HUNTER_BEAST_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 5
       }

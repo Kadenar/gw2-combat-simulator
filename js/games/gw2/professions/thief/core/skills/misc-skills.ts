@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -13,8 +15,8 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'condition',
-        name: 'Bleeding',
-        condition: 'Bleeding',
+        name: CONDITION.BLEEDING,
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 5,
         applications: 3,
@@ -24,8 +26,8 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       },
       {
         type: 'condition',
-        name: 'Crippled',
-        condition: 'Crippled',
+        name: CONDITION.CRIPPLED,
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 1,
         applications: 3,
@@ -42,21 +44,21 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: [
       {
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 6,
         stacks: 1,
         audience: { recipients: 'self' }
       },
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 6,
         stacks: 1,
         audience: { recipients: 'self' }
       },
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 6,
         stacks: 1,
         audience: { recipients: 'self' }
@@ -78,7 +80,7 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 2,
         actorType: 'player'

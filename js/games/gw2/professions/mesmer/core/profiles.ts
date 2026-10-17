@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -55,7 +56,7 @@ export function mesmerShatterProfile(
 export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   // The landed-hit reaction selects this ordinary condition profile instead of creating an excess clone.
   variant(MESMER_CORE_BALANCE_PROFILE_IDS.etherClone, ID.ETHER_CLONE, 'Ether Clone - Clone Limit', {
-    effects: [{ type: 'condition', condition: 'Torment', duration: 9, stacks: 1 }]
+    effects: [{ type: 'condition', condition: CONDITION.TORMENT, duration: 9, stacks: 1 }]
   }),
   {
     id: MESMER_CORE_BALANCE_PROFILE_IDS.resources,

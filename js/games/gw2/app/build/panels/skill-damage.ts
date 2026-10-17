@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { calculateSkillDamageAttributes } from '#gw2/app/build/buffed-attributes.js';
 import {
@@ -170,7 +171,7 @@ function renderRegions(app: ProfessionAppState): void {
   if (movement && current)
     movement.hidden = !state.evaluation!.result.occurrences.some((occurrence) =>
       [occurrence.measurement, ...occurrence.variants.map((variant) => variant.measurement)].some((measurement) =>
-        measurement?.conditions.some((condition) => condition.condition === 'Torment' && condition.stacks > 0)
+        measurement?.conditions.some((condition) => condition.condition === CONDITION.TORMENT && condition.stacks > 0)
       )
     );
 
@@ -323,7 +324,7 @@ function statsHtml(app: ProfessionAppState, values: AttributePreviewValues): str
     stat('Critical damage', 'Critical Damage', percentStat),
     stat('Condition damage', 'Condition Damage', integer),
     stat('Condition duration', 'Condition Duration', percentStat),
-    ...['Burning', 'Bleeding', 'Torment', 'Confusion', 'Poison']
+    ...[CONDITION.BURNING, CONDITION.BLEEDING, CONDITION.TORMENT, CONDITION.CONFUSION, 'Poison']
       .filter((name) => current[`${name} Duration`]?.final !== current['Condition Duration']?.final)
       .map((name) => stat(`${name} duration`, `${name} Duration`, percentStat)),
     stat('Strike multiplier', 'Strike Multiplier', factor),

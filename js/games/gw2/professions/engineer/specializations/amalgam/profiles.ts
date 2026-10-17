@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 
 // Stable profile IDs let runtime mechanics request patchable values without
@@ -38,7 +39,7 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     effects: [
       {
         type: 'boon',
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         duration: 8,
         sourceId: 'engineer.resiliant-strain',
         name: 'Resiliant Strain',
@@ -46,7 +47,7 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
       },
       {
         type: 'boon',
-        boon: 'alacrity',
+        boon: BOON.ALACRITY,
         duration: 8,
         sourceId: 'engineer.replicating-strain',
         name: 'Replicating Strain',
@@ -61,7 +62,7 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 8,
         stacks: 10,
         sourceId: 'engineer.titanic-strain',
@@ -70,7 +71,7 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
       },
       {
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 8,
         sourceId: 'engineer.predator-strain',
         name: 'Predator Strain',
@@ -86,7 +87,7 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
       },
       {
         type: 'boon',
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 8,
         stacks: 5,
         sourceId: 'engineer.berserker-strain',

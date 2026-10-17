@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -19,7 +20,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'condition',
         ticks: [1440, 1920, 2400, 2880, 3480, 4080, 4680, 5280, 5880, 6480, 7080, 7680].map((atMs) => ({
           atMs,
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 1
         }))
@@ -48,7 +49,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'condition',
         ticks: [360, 520, 680, 840, 1000, 1160, 1320, 1480, 1640, 1800].map((atMs) => ({
           atMs,
-          condition: 'Vulnerability',
+          condition: CONDITION.VULNERABILITY,
           stacks: 1,
           duration: 10
         }))

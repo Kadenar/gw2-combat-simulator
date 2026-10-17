@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -73,14 +75,14 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 2,
         actorType: 'player'
       },
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 3,
         stacks: 1
       }
@@ -144,7 +146,7 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 2, hits: 1, name: 'Tactical Strike', actorType: 'player' },
       { type: 'control', actorType: 'player', controlKind: 'daze' },
-      { type: 'condition', condition: 'Vulnerability', stacks: 10, duration: 5, actorType: 'player' }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 5, actorType: 'player' }
     ]),
     requiredMainHand: 'Sword',
     stealthAttack: true
@@ -163,14 +165,14 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 2,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 2,
         actorType: 'player'

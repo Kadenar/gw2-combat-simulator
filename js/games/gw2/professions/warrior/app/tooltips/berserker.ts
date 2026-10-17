@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import {
   fromProfile,
   outsideScopeTooltip,
@@ -103,7 +104,7 @@ export const berserkerTooltips = {
             [effect],
             effect.name === 'Decapitate quickness'
               ? 'Decapitate'
-              : effect.name === 'quickness'
+              : effect.name === boonKey(BOON.QUICKNESS)
                 ? 'other primal bursts'
                 : ''
           ).facts

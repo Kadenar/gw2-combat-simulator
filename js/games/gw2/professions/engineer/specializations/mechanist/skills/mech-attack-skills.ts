@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Mechanist autonomous, triggered, and supplemental mech attack identities.
  * User-issued mech commands and their cast-lane rules live in `mech-command-skills.ts`.
@@ -36,7 +37,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 5,
         actorType: 'summon'
@@ -121,7 +122,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
         type: 'condition',
         ticks: Array.from({ length: 5 }, (_, index) => ({
           atMs: 880 + index * 360,
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 6
         })),

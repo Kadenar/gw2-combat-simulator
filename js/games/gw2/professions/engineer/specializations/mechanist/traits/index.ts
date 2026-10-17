@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -36,7 +38,9 @@ const jadeCannons = defineTrait({
   name: 'Jade Cannons',
   balance: {
     criticalChance: 0.2,
-    effects: [{ name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6 }]
+    effects: [
+      { name: CONDITION.VULNERABILITY, type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
+    ]
   },
   triggers: [
     onTriggerPoint(mechStruck, {
@@ -77,7 +81,14 @@ const highImpactDrivers = defineTrait({
   balance: {
     internalCooldown: 1,
     effects: [
-      { name: 'might', type: 'boon', boon: 'might', stacks: 1, duration: 10, packetLabel: 'on qualifying mech strikes' }
+      {
+        name: boonKey(BOON.MIGHT),
+        type: 'boon',
+        boon: BOON.MIGHT,
+        stacks: 1,
+        duration: 10,
+        packetLabel: 'on qualifying mech strikes'
+      }
     ]
   },
   triggers: [onTriggerPoint(mechStruck, { run: applyHighImpactDrivers })]
@@ -90,7 +101,14 @@ const singleEdgeCutters = defineTrait({
   balance: {
     internalCooldown: 1,
     effects: [
-      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3, actorType: 'summon' }
+      {
+        name: CONDITION.BLEEDING,
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 1,
+        duration: 3,
+        actorType: 'summon'
+      }
     ]
   },
   triggers: [onTriggerPoint(mechStruck, { run: applySingleEdgeCutters })]
@@ -102,14 +120,14 @@ const jadeDynamo = defineTrait({
   name: 'Jade Dynamo',
   balance: {
     rechargeMultiplier: 0.8,
-    effects: [{ name: 'quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 2.5 }]
+    effects: [{ name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 2.5 }]
   },
   triggers: [
     {
       on: 'castCommit',
       when: (_runtime, cast) => isEngineerMechCommand(cast.skill),
       emit: TRAIT.MECH_CORE_JADE_DYNAMO,
-      effects: (effect) => effect.type === 'boon' && effect.name === 'quickness',
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.QUICKNESS),
       attribution: { actorType: 'player', name: 'Jade Dynamo — quickness' }
     }
   ],
@@ -175,7 +193,7 @@ const channelingConduits = defineTrait({
     inheritanceRatio: 1,
     secondaryAttributeCap: 1500,
     internalCooldown: 1,
-    effects: [{ type: 'boon', name: 'alacrity', boon: 'alacrity', stacks: 1, duration: 1 }]
+    effects: [{ type: 'boon', name: boonKey(BOON.ALACRITY), boon: BOON.ALACRITY, stacks: 1, duration: 1 }]
   },
   // Only new barrier rewards are isolated; recipient-specific claims remain with the selected listener.
   triggers: [{ on: 'buff.applied', run: channelBarrierAlacrity }]
@@ -216,13 +234,13 @@ export const mechanistTraits = [
 /** Each surviving arm reward reserves its independent interval before delivery; a removed effect claims nothing. */
 function applySingleEdgeCutters(context: EngineerRuntime, { cause: event }: MechStrike): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS);
-  const packet = requireEffect(profile, 'condition', 'Bleeding');
+  const packet = requireEffect(profile, 'condition', CONDITION.BLEEDING);
 
   if (!packet || !context.procs.claim(TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, 'singleEdgeCutters', event.at)) return;
 
   emitTraitProfile(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, undefined, {
     at: event.at,
-    effect: { type: 'condition', name: 'Bleeding' },
+    effect: { type: 'condition', name: CONDITION.BLEEDING },
     settlement: 'reaction',
     attribution: {
       source: 'engineer',
@@ -265,13 +283,13 @@ function applySingleEdgeCutters(context: EngineerRuntime, { cause: event }: Mech
 /** High-Impact Drivers grants Might on its own independent interval. */
 function applyHighImpactDrivers(context: EngineerRuntime, { cause: event }: MechStrike): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS);
-  const packet = requireEffect(profile, 'boon', 'might');
+  const packet = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
   if (!packet || !context.procs.claim(TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, 'highImpactDrivers', event.at)) return;
 
   emitTraitProfile(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, undefined, {
     at: event.at,
-    effect: { type: 'boon', name: 'might' },
+    effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
     durationContext: event,
     attribution: {
       source: 'Trait',
@@ -310,12 +328,12 @@ function applyHighImpactDrivers(context: EngineerRuntime, { cause: event }: Mech
 /** Jade Cannons basic attacks apply Vulnerability without an interval. */
 function applyJadeCannonsVulnerability(context: EngineerRuntime, { cause: event }: MechStrike): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.MECH_ARMS_JADE_CANNONS);
-  const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+  const vulnerability = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 
   if (vulnerability)
     emitTraitProfile(context, TRAIT.MECH_ARMS_JADE_CANNONS, TRAIT.MECH_ARMS_JADE_CANNONS, undefined, {
       at: event.at,
-      effect: { type: 'condition', name: 'Vulnerability' },
+      effect: { type: 'condition', name: CONDITION.VULNERABILITY },
       settlement: 'reaction',
       attribution: {
         source: 'engineer',
@@ -432,7 +450,7 @@ function channelBarrierAlacrity(runtime: EngineerRuntime, event: EngineerResolve
 
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.MECH_FRAME_CHANNELING_CONDUITS);
 
-  if (!profile.effects?.some((effect) => effect.type === 'boon' && effect.boon === 'alacrity')) return;
+  if (!profile.effects?.some((effect) => effect.type === 'boon' && effect.boon === BOON.ALACRITY)) return;
 
   const interval = balanceProfileNumber(profile, 'internalCooldown');
   const claim = (recipient: string): boolean => {

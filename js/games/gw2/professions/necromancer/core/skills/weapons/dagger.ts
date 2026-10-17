@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -25,7 +26,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
         ],
         coefficient: 2.4
       },
-      { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10 }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 10 }
     ])
   },
   [ID.NECROTIC_SLASH]: {
@@ -105,7 +106,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 6
       }
@@ -121,8 +122,8 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
       { atMs: 1200, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 1.5 },
-        { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 10 },
-        { type: 'condition', condition: 'Weakness', stacks: 1, duration: 6 }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 10 },
+        { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 6 }
       ]
     )
   },
@@ -158,5 +159,5 @@ export const lifeSiphonBleedingModifier: Gw2ModifierRule = {
   order: 100,
   when: (context) =>
     skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.LIFE_SIPHON &&
-    targetConditionActive(context, 'Bleeding')
+    targetConditionActive(context, CONDITION.BLEEDING)
 };

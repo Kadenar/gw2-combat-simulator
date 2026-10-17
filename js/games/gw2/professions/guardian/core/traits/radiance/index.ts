@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
@@ -39,7 +41,7 @@ export const healersResolution = defineTrait({
   name: "Healer's Resolution",
   balance: {
     internalCooldown: 20,
-    effects: [{ type: 'boon', name: 'resolution', boon: 'resolution', duration: 8, stacks: 1 }]
+    effects: [{ type: 'boon', name: boonKey(BOON.RESOLUTION), boon: BOON.RESOLUTION, duration: 8, stacks: 1 }]
   },
   triggers: [
     onTriggerPoint(guardianCastCompleted, {
@@ -56,7 +58,7 @@ export const righteousInstincts = defineTrait({
   balance: {
     criticalChance: 0.25,
     pulseInterval: 1,
-    effects: [{ type: 'boon', name: 'might', boon: 'might', stacks: 1, duration: 6 }]
+    effects: [{ type: 'boon', name: boonKey(BOON.MIGHT), boon: BOON.MIGHT, stacks: 1, duration: 6 }]
   },
   modifierRules: [
     {
@@ -65,14 +67,14 @@ export const righteousInstincts = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) => balanceNumberFromContext(context, TRAIT.RIGHTEOUS_INSTINCTS, 'criticalChance'),
-      when: (context) => guardianBoonActive(context, 'resolution')
+      when: (context) => guardianBoonActive(context, boonKey(BOON.RESOLUTION))
     }
   ],
   // Hoisted handlers keep trait declarations first without changing task priorities or initialization order.
   triggers: [
     onTriggerPoint(guardianBuffApplied, {
       when: (_runtime, { cause }: GuardianBuffApplication) =>
-        cause.kind === 'resolution' && cause.resolvedAudience?.includesSelf === true,
+        cause.kind === boonKey(BOON.RESOLUTION) && cause.resolvedAudience?.includesSelf === true,
       run: (runtime: GuardianRuntime, { cause }: GuardianBuffApplication) => startRighteousInstincts(runtime, cause)
     })
   ],
@@ -126,7 +128,7 @@ export const radiantPower = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) => balanceNumberFromContext(context, TRAIT.RADIANT_POWER, 'criticalChance'),
-      when: (context) => targetConditionActive(context, 'Burning')
+      when: (context) => targetConditionActive(context, CONDITION.BURNING)
     }
   ],
   attributes: traitAttributeEffects(TRAIT.RADIANT_POWER, [
@@ -144,7 +146,7 @@ export const radiantFire = defineTrait({
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.RADIANT_FIRE, 'durationMultiplier'),
       when: (context) =>
-        context.condition === 'Burning' &&
+        context.condition === CONDITION.BURNING &&
         (context.sourceId === ID.ZEALOTS_FLAME || context.event?.skillId === ID.ZEALOTS_FLAME)
     }
   ],
@@ -188,7 +190,7 @@ export const amplifiedWrath = defineTrait({
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.AMPLIFIED_WRATH, 'durationMultiplier'),
       when: (context) =>
-        context.condition === 'Burning' &&
+        context.condition === CONDITION.BURNING &&
         (context.sourceId === 'guardian.justice-passive' || context.event?.sourceId === 'guardian.justice-passive')
     },
     {
@@ -197,7 +199,7 @@ export const amplifiedWrath = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.AMPLIFIED_WRATH, 'conditionDamageMultiplier'),
-      when: (context) => context.condition === 'Burning'
+      when: (context) => context.condition === CONDITION.BURNING
     }
   ]
 });
@@ -219,7 +221,7 @@ export const justiceIsBlind = defineTrait({
     effects: [
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 3,
         name: 'Blind'
@@ -242,7 +244,7 @@ export const retribution = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: (context) => balanceNumberFromContext(context, TRAIT.RETRIBUTION, 'damageIncrease'),
-      when: (context) => guardianBoonActive(context, 'resolution')
+      when: (context) => guardianBoonActive(context, boonKey(BOON.RESOLUTION))
     }
   ]
 });
@@ -254,7 +256,7 @@ export const innerFire = defineTrait({
   balance: {
     threshold: 3,
     internalCooldown: 10,
-    effects: [{ type: 'boon', name: 'fury', boon: 'fury', duration: 8, stacks: 1 }]
+    effects: [{ type: 'boon', name: boonKey(BOON.FURY), boon: BOON.FURY, duration: 8, stacks: 1 }]
   },
   triggers: [
     {
@@ -264,7 +266,7 @@ export const innerFire = defineTrait({
       when: (runtime, event, details) =>
         event.actorType === 'player' &&
         (details.hitContext?.damage ?? 0) > 0 &&
-        runtime.combat.targetConditionStacks('Burning', event.at) >=
+        runtime.combat.targetConditionStacks(CONDITION.BURNING, event.at) >=
           balanceNumberFromContext(runtime, TRAIT.INNER_FIRE, 'threshold')
     }
   ]
@@ -272,25 +274,29 @@ export const innerFire = defineTrait({
 
 /** Resolution readiness follows the accepted self-boon pool, including its cap and extension records. */
 function resolutionDeadline(runtime: GuardianRuntime): number {
-  const remaining = remainingDurationStackSeconds(runtime.combat.boonApplications('resolution'), runtime.time, {
-    includes: (application) => application.resolvedAudience.includesSelf,
-    maximum: durationStackingBoonCapSeconds('resolution'),
-    ordered: true
-  });
+  const remaining = remainingDurationStackSeconds(
+    runtime.combat.boonApplications(boonKey(BOON.RESOLUTION)),
+    runtime.time,
+    {
+      includes: (application) => application.resolvedAudience.includesSelf,
+      maximum: durationStackingBoonCapSeconds(boonKey(BOON.RESOLUTION)),
+      ordered: true
+    }
+  );
   return remaining > 0 ? canonicalTime(runtime.time + remaining) : 0;
 }
 
 /** Grant the selected Might component without moving its emission outside the Resolution cadence. */
 function righteousMight(runtime: GuardianRuntime, event: Gw2ResolverEvent): boolean {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS);
-  const effect = requireEffect(profile, 'boon', 'might');
+  const effect = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
   if (!effect) return false;
 
   emitTraitProfile(runtime, TRAIT.RIGHTEOUS_INSTINCTS, TRAIT.RIGHTEOUS_INSTINCTS, event, {
     at: runtime.time,
     fullEnd: runtime.time,
-    effect: { type: 'boon', name: 'might' },
+    effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.RIGHTEOUS_INSTINCTS,
@@ -309,7 +315,7 @@ function righteousMight(runtime: GuardianRuntime, event: Gw2ResolverEvent): bool
       type: 'trait',
       name: profile.name,
       at: runtime.time,
-      sourceSkill: 'Resolution',
+      sourceSkill: BOON.RESOLUTION,
       detail: 'Resolution active',
       icon: guardianTraitIcon(TRAIT.RIGHTEOUS_INSTINCTS)
     }
@@ -388,7 +394,7 @@ function grantHealersResolution(runtime: GuardianRuntime, { cast }: GuardianCast
 
   // A removed boon leaves this heal's claim ready.
   if (
-    !requireEffect(profile, 'boon', 'resolution') ||
+    !requireEffect(profile, 'boon', boonKey(BOON.RESOLUTION)) ||
     !runtime.procs.claim(TRAIT.HEALERS_RESOLUTION, 'guardian.core.healersResolution', runtime.time)
   )
     return;
@@ -396,7 +402,7 @@ function grantHealersResolution(runtime: GuardianRuntime, { cast }: GuardianCast
   const cause = guardianCastCause(runtime, cast);
   emitTraitProfile(runtime, TRAIT.HEALERS_RESOLUTION, TRAIT.HEALERS_RESOLUTION, cause, {
     at: runtime.time,
-    effect: { type: 'boon', name: 'resolution' },
+    effect: { type: 'boon', name: boonKey(BOON.RESOLUTION) },
     attribution: { source: cause.source, actorType: cause.actorType }
   });
 }

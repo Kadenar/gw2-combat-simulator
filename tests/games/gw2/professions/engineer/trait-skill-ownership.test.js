@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -32,7 +33,7 @@ test('Lock On invokes the patched Controlled Analysis payload and shared cooldow
               [ID.CONTROLLED_ANALYSIS]: {
                 fields: { cooldown: { from: 25, to: 2 } },
                 effects: [
-                  { type: 'boon', boon: 'fury', duration: { from: 5, to: 7 } },
+                  { type: 'boon', boon: BOON.FURY, duration: { from: 5, to: 7 } },
                   {
                     type: 'condition',
                     condition: 'Vulnerability',

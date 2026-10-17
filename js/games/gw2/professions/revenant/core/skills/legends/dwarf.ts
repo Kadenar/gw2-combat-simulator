@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -45,7 +47,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'condition',
-        condition: 'Slow',
+        condition: CONDITION.SLOW,
         stacks: 1,
         duration: 4,
         actorType: 'player'
@@ -53,7 +55,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'taunt'
+        controlKind: CONDITION.TAUNT.toLowerCase()
       }
     ],
     legendId: 'LegendaryDwarf'
@@ -75,7 +77,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'boon',
-        boon: 'resolution',
+        boon: BOON.RESOLUTION,
         duration: 5,
         stacks: 1
       }
@@ -103,7 +105,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 6,
         actorType: 'player'
@@ -111,14 +113,14 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 3,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 3,
         stacks: 1,
         applications: 5,
@@ -137,7 +139,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'boon',
-        boon: 'resolution',
+        boon: BOON.RESOLUTION,
         duration: 5,
         stacks: 1
       }
@@ -158,7 +160,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'condition',
-        condition: 'Slow',
+        condition: CONDITION.SLOW,
         stacks: 1,
         duration: 4,
         actorType: 'player'
@@ -166,7 +168,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'taunt'
+        controlKind: CONDITION.TAUNT.toLowerCase()
       }
     ],
     legendId: 'LegendaryDwarf'
@@ -217,7 +219,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 6,
         actorType: 'player'
@@ -225,14 +227,14 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 3,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 3,
         stacks: 1
       }

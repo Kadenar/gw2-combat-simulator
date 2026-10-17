@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -19,7 +21,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 8,
         actorType: 'player'
@@ -40,7 +42,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 10,
         duration: 5,
         actorType: 'player'
@@ -85,14 +87,14 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 3,
         duration: 8,
         actorType: 'player'
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 8,
         stacks: 3
       }
@@ -112,7 +114,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 8,
         stacks: 1
       }
@@ -162,7 +164,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
           type: 'condition',
           ticks: Array.from({ length: 5 }, (_, index) => ({
             atMs: 1000 + index * 1000,
-            condition: 'Vulnerability',
+            condition: CONDITION.VULNERABILITY,
             stacks: 1,
             duration: 8
           })),

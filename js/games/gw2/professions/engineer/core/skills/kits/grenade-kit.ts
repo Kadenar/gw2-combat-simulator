@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Core Engineer Grenade Kit skill mechanics. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -36,7 +37,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
       },
       {
         type: 'condition',
-        ticks: [400, 440, 440].map((atMs) => ({ atMs, condition: 'Poisoned', stacks: 3, duration: 8 })),
+        ticks: [400, 440, 440].map((atMs) => ({ atMs, condition: CONDITION.POISONED, stacks: 3, duration: 8 })),
         actorType: 'player'
       }
     ]),
@@ -60,7 +61,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
       },
       {
         type: 'condition',
-        ticks: [400, 440, 440].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 7 })),
+        ticks: [400, 440, 440].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 1, duration: 7 })),
         actorType: 'player'
       }
     ]),
@@ -88,7 +89,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
         actorType: 'player'
@@ -114,7 +115,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
       },
       {
         type: 'condition',
-        ticks: [400, 440, 440].map((atMs) => ({ atMs, condition: 'Chilled', stacks: 1, duration: 2 })),
+        ticks: [400, 440, 440].map((atMs) => ({ atMs, condition: CONDITION.CHILLED, stacks: 1, duration: 2 })),
         actorType: 'player'
       }
     ]),

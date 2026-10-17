@@ -30,7 +30,7 @@ import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardi
 import { hammerImpact } from '#gw2/professions/guardian/specializations/luminary/skills/hammer-impact.js';
 import {
   BLADE_IMMOBILIZE,
-  BOON,
+  WEAPON_BOON,
   glaringBurstDetail,
   glaringBurstDuration,
   HAMMER,
@@ -146,7 +146,7 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
           transform: (event) => ({ ...event, offTarget: cast.command.offTarget === true })
         });
       },
-      [BOON](runtime, data) {
+      [WEAPON_BOON](runtime, data) {
         const { cast, kind, duration, party } = data as {
           cast: RuntimeCast<GuardianSkill>;
           kind: string;

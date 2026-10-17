@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_LOADOUT_SKILL_IDS } from '#gw2/professions/elementalist/data/skill-identities.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -441,8 +442,8 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
       preview.damageTargetHealth(preview.hasId(TRAIT.BOLT_TO_THE_HEART));
       // Expose held combat bonuses to isolated damage calculations.
       preview.damageBuff('Bountiful Power', 'bountifulPower', 'bountiful-power-active');
-      preview.condition('Burning', "Pyromancer's Training", 'Fiery Might');
-      preview.condition('Bleeding', 'Serrated Stones');
+      preview.condition(CONDITION.BURNING, "Pyromancer's Training", 'Fiery Might');
+      preview.condition(CONDITION.BLEEDING, 'Serrated Stones');
 
       if (context.weapons.includes('Hammer'))
         preview.add({

@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -110,9 +112,9 @@ const lotusTraining = defineTrait({
         ]
       },
       // Lotus conditions follow their individual projectiles from dodge start.
-      { type: 'condition', name: 'Bleeding', atMs: 200, condition: 'Bleeding', stacks: 2, duration: 4 },
-      { type: 'condition', name: 'Torment', atMs: 360, condition: 'Torment', stacks: 2, duration: 4 },
-      { type: 'condition', name: 'Crippled', atMs: 520, condition: 'Crippled', stacks: 1, duration: 3 }
+      { type: 'condition', name: CONDITION.BLEEDING, atMs: 200, condition: CONDITION.BLEEDING, stacks: 2, duration: 4 },
+      { type: 'condition', name: CONDITION.TORMENT, atMs: 360, condition: CONDITION.TORMENT, stacks: 2, duration: 4 },
+      { type: 'condition', name: CONDITION.CRIPPLED, atMs: 520, condition: CONDITION.CRIPPLED, stacks: 1, duration: 3 }
     ]
   }
 });
@@ -122,7 +124,7 @@ const unhinderedCombatant = defineTrait({
   id: TRAIT.UNHINDERED_COMBATANT,
   name: 'Unhindered Combatant',
   balance: {
-    effects: [{ type: 'boon', name: 'Swiftness', boon: 'Swiftness', stacks: 1, duration: 8 }]
+    effects: [{ type: 'boon', name: BOON.SWIFTNESS, boon: BOON.SWIFTNESS, stacks: 1, duration: 8 }]
   }
 });
 
@@ -231,13 +233,14 @@ const weakeningStrikes = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.WEAKENING_STRIKES, 'damageMultiplier'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Weakness')
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.WEAKNESS)
     }
   ],
   balance: {
     damageMultiplier: 1.1,
     durationMultiplier: 4,
-    effects: [{ type: 'condition', name: 'Weakness', condition: 'Weakness', stacks: 1, duration: 3 }]
+    effects: [{ type: 'condition', name: CONDITION.WEAKNESS, condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 }]
   }
 });
 
@@ -290,7 +293,7 @@ function armWeakeningStrikes(runtime: ThiefRuntime, { cast }: DaredevilCast): vo
   const weakening = requireBalanceProfileFromContext(runtime, TRAIT.WEAKENING_STRIKES);
 
   // A removed Weakness cannot arm a pending grant.
-  if (!requireEffect(weakening, 'condition', 'Weakness')) return;
+  if (!requireEffect(weakening, 'condition', CONDITION.WEAKNESS)) return;
 
   const duration = balanceProfileNumber(weakening, 'durationMultiplier');
   state.weakeningStrikeReady = true;
@@ -323,7 +326,7 @@ function weakeningStrike(runtime: ThiefRuntime, { cause: event }: DaredevilStrik
 
   state.weakeningStrikeReady = false;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.WEAKENING_STRIKES);
-  const weakness = requireEffect(profile, 'condition', 'Weakness');
+  const weakness = requireEffect(profile, 'condition', CONDITION.WEAKNESS);
 
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!weakness) return;
@@ -331,7 +334,7 @@ function weakeningStrike(runtime: ThiefRuntime, { cause: event }: DaredevilStrik
   emitTraitProfile(runtime, TRAIT.WEAKENING_STRIKES, TRAIT.WEAKENING_STRIKES, undefined, {
     at: event.at,
     fullEnd: event.at,
-    effect: { type: 'condition', name: 'Weakness' },
+    effect: { type: 'condition', name: CONDITION.WEAKNESS },
     settlement: 'reaction',
     attribution: {
       source: 'Trait',

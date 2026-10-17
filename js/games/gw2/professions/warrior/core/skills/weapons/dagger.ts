@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -38,7 +40,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 5,
         stacks: 1
       }
@@ -148,7 +150,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Slow',
+        condition: CONDITION.SLOW,
         stacks: 1,
         duration: 1.5
       }

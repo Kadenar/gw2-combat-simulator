@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
@@ -248,7 +249,7 @@ export function slashEffects(_runtime: WarriorRuntime, cast: RuntimeCast<Warrior
     effects.push({
       ...timing,
       type: 'condition',
-      condition: 'Burning',
+      condition: CONDITION.BURNING,
       stacks,
       duration
     });

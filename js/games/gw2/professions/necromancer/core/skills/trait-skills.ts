@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
@@ -23,16 +25,16 @@ export const NECROMANCER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
         hits: 1
       },
       {
-        name: 'Poisoned',
+        name: CONDITION.POISONED,
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 2,
         duration: 4
       },
       {
-        name: 'Chilled',
+        name: CONDITION.CHILLED,
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 2
       }
@@ -58,16 +60,16 @@ export const NECROMANCER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
         hits: 1
       },
       {
-        name: 'Bleeding',
+        name: CONDITION.BLEEDING,
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 2,
         duration: 8
       },
       {
-        name: 'Regeneration',
+        name: BOON.REGENERATION,
         type: 'boon',
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         stacks: 1,
         duration: 5,
         audience: {
@@ -99,9 +101,9 @@ export const NECROMANCER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
         actorType: 'effect'
       },
       {
-        name: 'Chilled',
+        name: CONDITION.CHILLED,
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 5,
         actorType: 'effect'

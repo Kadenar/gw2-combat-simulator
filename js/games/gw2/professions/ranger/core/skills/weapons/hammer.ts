@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
@@ -63,7 +65,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial
         },
         {
           type: 'condition',
-          condition: 'Blindness',
+          condition: CONDITION.BLINDNESS,
           stacks: 1,
           duration: 2
         }
@@ -88,13 +90,13 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 6.5,
         stacks: 6
       },
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 6.5,
         stacks: 1
       }
@@ -146,7 +148,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 5
       }
@@ -204,26 +206,26 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial
       },
       {
         type: 'boon',
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 3,
         stacks: 1
       },
       ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
           type: 'condition',
-          condition: 'Weakness',
+          condition: CONDITION.WEAKNESS,
           stacks: 1,
           duration: 4
         },
         {
           type: 'condition',
-          condition: 'Vulnerability',
+          condition: CONDITION.VULNERABILITY,
           stacks: 8,
           duration: 6
         },
         {
           type: 'condition',
-          condition: 'Immobilized',
+          condition: CONDITION.IMMOBILIZED,
           stacks: 1,
           duration: 2
         }

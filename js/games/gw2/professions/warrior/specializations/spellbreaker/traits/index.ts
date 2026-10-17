@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -89,7 +90,9 @@ const noEscape = defineTrait({
   id: TRAIT.NO_ESCAPE,
   name: 'No Escape',
   balance: {
-    effects: [{ name: 'Immobilized', type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1 }]
+    effects: [
+      { name: CONDITION.IMMOBILIZED, type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1 }
+    ]
   },
   triggers: [
     {
@@ -99,7 +102,7 @@ const noEscape = defineTrait({
       emit: TRAIT.NO_ESCAPE,
       when: (_runtime, event) =>
         event.actorType === 'player' && ['daze', 'stun'].includes(String(event.controlKind).toLowerCase()),
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Immobilized',
+      effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.IMMOBILIZED,
       attribution: { source: 'Trait', sourceId: TRAIT.NO_ESCAPE, actorType: 'effect', name: 'No Escape - Immobilized' }
     }
   ]

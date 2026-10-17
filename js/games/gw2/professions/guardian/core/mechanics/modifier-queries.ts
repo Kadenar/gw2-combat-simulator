@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -12,7 +13,7 @@ export function guardianRuntimeState(context: Gw2ModifierContext): Partial<Guard
 export function guardianBoonActive(context: Gw2ModifierContext, boon: string): boolean {
   return (
     boonActive(context, boon) ||
-    (boon === 'resolution' && (guardianRuntimeState(context).resolutionUntil || 0) > context.time)
+    (boon === boonKey(BOON.RESOLUTION) && (guardianRuntimeState(context).resolutionUntil || 0) > context.time)
   );
 }
 

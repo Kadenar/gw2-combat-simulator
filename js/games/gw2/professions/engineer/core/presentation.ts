@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
@@ -178,9 +179,9 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
       // Expose held combat bonuses to isolated damage calculations.
       preview.damageBuff('Thermal Vision', 'thermalVision', 'thermal-vision');
       preview.damageBuff('Kinetic Battery', 'kineticBattery', 'kinetic-battery');
-      preview.boon('vigor', 'Excessive Energy');
+      preview.boon(boonKey(BOON.VIGOR), 'Excessive Energy');
 
-      preview.boon('regeneration', 'Energy Amplifier');
+      preview.boon(boonKey(BOON.REGENERATION), 'Energy Amplifier');
       preview.buff('Explosive Temper', 'explosiveTemper', 'explosive-temper', 'Ferocity', true);
       preview.buff('Grand Entrance', 'grandEntrance', 'grand-entrance', 'Critical Chance');
       preview.trait('High Caliber', {

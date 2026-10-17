@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -89,7 +91,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 4
       }
@@ -135,7 +137,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 2,
         stacks: 1,
         applications: 2,
@@ -163,7 +165,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 2,
         stacks: 1,
         applications: 2,
@@ -172,7 +174,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 3,
         duration: 8,
         applications: 2,

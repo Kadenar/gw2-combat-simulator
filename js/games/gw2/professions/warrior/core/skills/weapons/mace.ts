@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Mace casts and impacts use observed timings rounded to the nearest 40 ms action tick. */
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -44,7 +46,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 5
       }
@@ -125,13 +127,13 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 6,
         stacks: 5
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 10,
         duration: 6
       }
@@ -153,7 +155,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 8
       }

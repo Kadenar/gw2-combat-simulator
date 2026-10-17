@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -19,10 +20,10 @@ export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<
       {
         type: 'condition',
         ticks: [
-          { atMs: 0, condition: 'Burning', stacks: 3, duration: 5 },
+          { atMs: 0, condition: CONDITION.BURNING, stacks: 3, duration: 5 },
           ...Array.from({ length: 8 }, (_, index) => ({
             atMs: (index + 1) * 1000,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 1
           }))
@@ -52,13 +53,13 @@ export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 10
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 3
       }

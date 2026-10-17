@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { activationInputKind, resolveInputControl } from '#gw2/platform/results/input-trace.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
@@ -168,7 +169,7 @@ export function createCastExecution<T extends object>(
     if (
       Number(cast.skill.selfStunMs) > 0 &&
       !config.boons?.stability &&
-      query.timeline.buffStacksAt('stability', runtime.time, 0, 25) === 0
+      query.timeline.buffStacksAt(boonKey(BOON.STABILITY), runtime.time, 0, 25) === 0
     )
       cursor.selfStunUntil = Math.max(cursor.selfStunUntil, runtime.time + Number(cast.skill.selfStunMs) / 1000);
 
@@ -221,7 +222,8 @@ export function createCastExecution<T extends object>(
         ? resolveInputControl(profession.catalog, skill, command, config.skillInputBars)
         : professionInput;
     const baseDurationMs =
-      skill.independentCast && (config.boons?.quickness || query.timeline.buffStacksAt('quickness', start, 0, 1) > 0)
+      skill.independentCast &&
+      (config.boons?.quickness || query.timeline.buffStacksAt(boonKey(BOON.QUICKNESS), start, 0, 1) > 0)
         ? summonQuicknessCastTimeMs(skill)
         : (skill.castTimeMs ?? 0);
     // Capture profession timing once so completion, interruption, and cast-relative packets share the reservation.

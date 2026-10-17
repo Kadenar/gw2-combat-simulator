@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
@@ -91,7 +92,9 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       const at = runtime.time;
       const { windows, duration } = artifactWindow(runtime);
 
-      if (!requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.mistburnProc), 'condition', 'Burning'))
+      if (
+        !requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.mistburnProc), 'condition', CONDITION.BURNING)
+      )
         return;
 
       state.mistburn = grantCharges(balanceProfileNumber(windows, 'playerStacks'), at + duration);

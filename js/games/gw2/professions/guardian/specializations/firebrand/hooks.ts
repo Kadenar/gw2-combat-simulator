@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
@@ -78,7 +80,7 @@ export const firebrandHooks = composeRuntimeHooks<GuardianRuntimeState, Guardian
       },
       'buff.applied'(runtime, event) {
         // Executed history is appended after dispatch; reproject once the applied Alacrity window is queryable.
-        if (event.kind === 'alacrity') runtime.schedule(FIREBRAND_MANTRA_WAKE, runtime.time);
+        if (event.kind === boonKey(BOON.ALACRITY)) runtime.schedule(FIREBRAND_MANTRA_WAKE, runtime.time);
 
         runtime.fireTrigger(firebrandBuffApplied, { cause: event });
       },
@@ -86,7 +88,7 @@ export const firebrandHooks = composeRuntimeHooks<GuardianRuntimeState, Guardian
         runtime.fireTrigger(firebrandControlAccepted, { cause: event });
       },
       'condition.applied'(runtime, event) {
-        if (event.condition === 'Immobilized' || event.condition === 'Slow')
+        if (event.condition === CONDITION.IMMOBILIZED || event.condition === CONDITION.SLOW)
           runtime.fireTrigger(firebrandControlAccepted, { cause: event });
       }
     }

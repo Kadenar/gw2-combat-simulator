@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
@@ -103,7 +105,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 3,
         stacks: 1
       }
@@ -124,7 +126,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 6,
         duration: 6,
         actorType: 'player'
@@ -139,7 +141,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
     effects: [
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 6,
         stacks: 1
       }
@@ -160,7 +162,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 6,
         duration: 6,
         actorType: 'player'

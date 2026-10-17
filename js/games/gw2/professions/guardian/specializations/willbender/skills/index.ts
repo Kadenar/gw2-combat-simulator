@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -29,7 +31,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5
       }
@@ -56,13 +58,13 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       },
       {
         type: 'boon',
-        boon: 'aegis',
+        boon: BOON.AEGIS,
         stacks: 1,
         duration: 4
       },
       {
         type: 'boon',
-        boon: 'stability',
+        boon: BOON.STABILITY,
         stacks: 1,
         duration: 4
       }
@@ -124,7 +126,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         type: 'condition',
         ticks: [280, 480, 680, 880].map((atMs) => ({
           atMs,
-          condition: 'Weakness',
+          condition: CONDITION.WEAKNESS,
           stacks: 1,
           duration: 3
         }))
@@ -133,7 +135,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         type: 'condition',
         ticks: [280, 480, 680, 880].map((atMs) => ({
           atMs,
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 3
         }))
@@ -193,7 +195,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 4,
         sourceId: ID.RUSHING_JUSTICE_IMPACT,

@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { bloodReaction } from '#gw2/professions/warrior/specializations/berserker/traits/index.js';
 import { attackersInsight } from '#gw2/professions/warrior/specializations/spellbreaker/traits/index.js';
@@ -1144,7 +1145,7 @@ test('Warrior rifle skills use their PvE ammo, effects, finishers, and explosion
     {
       audience: { recipients: 'party', maximumRecipients: 5 },
       type: 'boon',
-      boon: 'might',
+      boon: BOON.MIGHT,
       duration: 5,
       stacks: 1,
       atMs: 480,

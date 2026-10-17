@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -74,7 +75,7 @@ export function reactToAshesHit(
   { hitContext }: Pick<NativeResolvedDamageDetails, 'hitContext'> = {}
 ): void {
   const ashesProfile = requireBalanceProfileFromContext(context, PROFILE.ashes);
-  const burn = requireEffect(ashesProfile, 'condition', 'Burning');
+  const burn = requireEffect(ashesProfile, 'condition', CONDITION.BURNING);
 
   if (!burn) return;
 
@@ -90,7 +91,7 @@ export function reactToAshesHit(
 /** One charge uses the same burn payload as an accepted combat hit. */
 export function emitAshes(context: GuardianResolverContext, event: GuardianResolverEvent, duration?: number): void {
   const ashesProfile = requireBalanceProfileFromContext(context, PROFILE.ashes);
-  const burn = requireEffect(ashesProfile, 'condition', 'Burning');
+  const burn = requireEffect(ashesProfile, 'condition', CONDITION.BURNING);
 
   if (!burn) return;
 

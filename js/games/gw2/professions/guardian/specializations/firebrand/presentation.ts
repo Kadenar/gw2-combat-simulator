@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
@@ -113,7 +114,7 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
-      preview.boon('quickness', 'Imbued Haste');
+      preview.boon(boonKey(BOON.QUICKNESS), 'Imbued Haste');
       return preview.controls;
     },
 

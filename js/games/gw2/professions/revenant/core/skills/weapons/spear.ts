@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -47,19 +48,19 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         type: 'condition',
         actorType: 'player',
-        ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: 'Slow', stacks: 1, duration: 3 })),
+        ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: CONDITION.SLOW, stacks: 1, duration: 3 })),
         metadata: {}
       },
       {
         type: 'condition',
         actorType: 'player',
-        ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: 'Chilled', stacks: 1, duration: 3 })),
+        ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: CONDITION.CHILLED, stacks: 1, duration: 3 })),
         metadata: {}
       },
       {
         type: 'condition',
         actorType: 'player',
-        ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: 'Weakness', stacks: 1, duration: 3 })),
+        ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 })),
         metadata: {}
       }
     ])
@@ -113,11 +114,11 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: 'player',
         persistsAfterInterrupt: true,
         ticks: [
-          { atMs: 960, condition: 'Poisoned', stacks: 1, duration: 6 },
-          { atMs: 1240, condition: 'Poisoned', stacks: 1, duration: 6 },
-          { atMs: 1520, condition: 'Poisoned', stacks: 1, duration: 6 },
-          { atMs: 1800, condition: 'Poisoned', stacks: 1, duration: 6 },
-          { atMs: 2080, condition: 'Poisoned', stacks: 1, duration: 6 }
+          { atMs: 960, condition: CONDITION.POISONED, stacks: 1, duration: 6 },
+          { atMs: 1240, condition: CONDITION.POISONED, stacks: 1, duration: 6 },
+          { atMs: 1520, condition: CONDITION.POISONED, stacks: 1, duration: 6 },
+          { atMs: 1800, condition: CONDITION.POISONED, stacks: 1, duration: 6 },
+          { atMs: 2080, condition: CONDITION.POISONED, stacks: 1, duration: 6 }
         ],
         metadata: {}
       },
@@ -125,7 +126,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
       ...impactEffects({ atMs: 960, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
         {
           type: 'condition',
-          condition: 'Chilled',
+          condition: CONDITION.CHILLED,
           stacks: 1,
           duration: 2,
           actorType: 'player'
@@ -160,14 +161,14 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 8,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 2,
         actorType: 'player'
@@ -200,14 +201,14 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         },
         {
           type: 'condition',
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           stacks: 1,
           duration: 3,
           actorType: 'player'
         },
         {
           type: 'condition',
-          condition: 'Vulnerability',
+          condition: CONDITION.VULNERABILITY,
           stacks: 1,
           duration: 6,
           actorType: 'player'
@@ -248,14 +249,14 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 5,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 2,
         duration: 5,
         actorType: 'player',
@@ -324,7 +325,7 @@ function abyssalRazePackets(
     event: buildResolverCondition({
       ...common,
       name: 'Abyssal Raze — Torment',
-      condition: 'Torment',
+      condition: CONDITION.TORMENT,
       stacks: baseTick?.stacks || 0,
       duration: baseTick?.duration || 0
     })
@@ -337,7 +338,7 @@ function abyssalRazePackets(
       event: buildResolverCondition({
         ...common,
         name: 'Abyssal Raze — Crushing Abyss Torment',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: (crushingTick?.stacks || 0) * stacks,
         duration: crushingTick?.duration || 0
       })

@@ -53,7 +53,7 @@ export function expireInspiringImagery(context: MesmerRuntime, cast: RuntimeCast
         sourceId: cast.skill.id,
         skillId: cast.skill.id,
         skillName: cast.skill.name,
-        kind: String(effect.boon),
+        kind: String(effect.boon).toLowerCase(),
         stacks: effect.stacks ?? 1,
         duration: effect.duration,
         audience: effect.audience

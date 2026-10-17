@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -28,7 +30,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 8,
         stacks: 1
       }
@@ -63,7 +65,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 8,
         stacks: 1,
         atMs: 320
@@ -105,14 +107,14 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       ...impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
           type: 'condition',
-          condition: 'Immobilized',
+          condition: CONDITION.IMMOBILIZED,
           stacks: 1,
           duration: 1,
           actorType: 'player'
         },
         {
           type: 'condition',
-          condition: 'Vulnerability',
+          condition: CONDITION.VULNERABILITY,
           stacks: 8,
           duration: 5,
           actorType: 'player'
@@ -184,7 +186,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 6,
         actorType: 'player'
@@ -215,7 +217,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 280, condition: 'Chilled', stacks: 1, duration: 2 }],
+        ticks: [{ atMs: 280, condition: CONDITION.CHILLED, stacks: 1, duration: 2 }],
         actorType: 'player'
       }
     ])
@@ -236,7 +238,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 2,
         duration: 6,
         actorType: 'player'

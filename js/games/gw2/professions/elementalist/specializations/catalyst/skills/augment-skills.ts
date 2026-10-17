@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
@@ -94,7 +95,7 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
       {
         type: 'boon',
         name: 'Fire',
-        boon: 'might',
+        boon: BOON.MIGHT,
         stacks: 5,
         duration: 6,
         when: (runtime, cast) => catalystState.from(runtime).sphereExpiry.Fire > cast.effectiveEnd
@@ -102,7 +103,7 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
       {
         type: 'boon',
         name: 'Water',
-        boon: 'vigor',
+        boon: BOON.VIGOR,
         stacks: 1,
         duration: 6,
         when: (runtime, cast) => catalystState.from(runtime).sphereExpiry.Water > cast.effectiveEnd
@@ -110,7 +111,7 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
       {
         type: 'boon',
         name: 'Air',
-        boon: 'fury',
+        boon: BOON.FURY,
         stacks: 1,
         duration: 6,
         when: (runtime, cast) => catalystState.from(runtime).sphereExpiry.Air > cast.effectiveEnd
@@ -118,7 +119,7 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
       {
         type: 'boon',
         name: 'Earth',
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         stacks: 1,
         duration: 4,
         when: (runtime, cast) => catalystState.from(runtime).sphereExpiry.Earth > cast.effectiveEnd

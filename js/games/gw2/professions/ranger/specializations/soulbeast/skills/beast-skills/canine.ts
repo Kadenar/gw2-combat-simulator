@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Canine family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -26,7 +27,7 @@ export const SOULBEAST_CANINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 5
       }

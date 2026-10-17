@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import {
   fromProfile,
   outsideScopeTooltip,
@@ -46,8 +47,10 @@ const chantTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const recovery = entity.id === ID.CHANT_OF_RECUPERATION;
   const effects = tooltipProfile(balanceContext, PARAGON.chants).effects || [];
   // Match runtime packet identities even when an earlier boon was removed.
-  const names = action ? ['might', 'fury'] : recovery ? ['vigor'] : ['stability'];
-  const opening = effects.filter((effect) => effect.type === 'boon' && names.includes(String(effect.name)));
+  const names = action ? [BOON.MIGHT, BOON.FURY] : recovery ? [BOON.VIGOR] : [BOON.STABILITY];
+  const opening = effects.filter(
+    (effect) => effect.type === 'boon' && names.some((boon) => boon === String(effect.boon))
+  );
   return {
     description:
       'Spend adrenaline, gain Motivation, and replace the active refrain. The refrain pulses until Motivation runs out; each pulse uses the Motivation tier before spending its cost. ' +
@@ -66,11 +69,11 @@ const chantTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
           (effect) =>
             effect.type === 'boon' &&
             (action
-              ? ['might', 'fury']
+              ? [BOON.MIGHT, BOON.FURY]
               : recovery
-                ? ['regeneration']
-                : ['swiftness', 'resolution', 'protection']
-            ).includes(String(effect.boon))
+                ? [BOON.REGENERATION]
+                : [BOON.SWIFTNESS, BOON.RESOLUTION, BOON.PROTECTION]
+            ).some((boon) => boon === String(effect.boon))
         ),
         'on eligible refrain tier (Might per tier)'
       ).facts,

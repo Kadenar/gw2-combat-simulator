@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -9,7 +11,7 @@ export const RANGER_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1
       }
@@ -31,7 +33,7 @@ export const RANGER_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<
       {
         type: 'boon',
         audience: { recipients: 'summons' as const, affectsSelf: false, maximumRecipients: 1 },
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 3,
         stacks: 1
       }
@@ -46,7 +48,7 @@ export const RANGER_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<
         hits: 1
       },
       // Each target is immobilized once by the advancing vines (wiki: Vine_Surge, PvE).
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1.5 }
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1.5 }
     ],
     castTimeMs: 500
   },

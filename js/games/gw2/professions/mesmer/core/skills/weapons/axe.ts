@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import {
   buildMesmerStrikes,
   mesmerPacketOwner,
@@ -30,13 +31,13 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         duration: 6,
         stacks: 1
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         duration: 6,
         stacks: 1
       }
@@ -55,7 +56,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         duration: 2,
         stacks: 1
       }
@@ -76,7 +77,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         duration: 2,
         stacks: 1
       }
@@ -111,13 +112,13 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
       },
       {
         type: 'condition',
-        condition: 'torment',
+        condition: CONDITION.TORMENT,
         duration: 4,
         stacks: 3
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         duration: 1,
         stacks: 3
       }
@@ -148,13 +149,13 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
       },
       {
         type: 'condition',
-        condition: 'confusion',
+        condition: CONDITION.CONFUSION,
         duration: 6,
         stacks: 5
       },
       {
         type: 'condition',
-        condition: 'confusion',
+        condition: CONDITION.CONFUSION,
         duration: 6,
         stacks: 1
       }
@@ -211,7 +212,7 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
         state,
         skill.name,
         impactAt,
-        { type: 'condition', condition: 'Confusion', duration: 6, stacks: 1 },
+        { type: 'condition', condition: CONDITION.CONFUSION, duration: 6, stacks: 1 },
         'Clone',
         `${skill.name} — Clone`,
         { metadata: { cloneId: clone.id }, skillId: skill.id, actorType: 'summon', summonKind: 'clone' }
@@ -246,7 +247,7 @@ export function completeAxesConfusion(state: MesmerRuntime, cast: RuntimeCast<Me
         state,
         skill.name,
         at,
-        { type: 'condition', condition: 'Confusion', duration: 6, stacks: clones.length },
+        { type: 'condition', condition: CONDITION.CONFUSION, duration: 6, stacks: clones.length },
         'Player',
         skill.name,
         {

@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -164,9 +165,9 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
       }
     ],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'boon', boon: 'Swiftness', stacks: 1, duration: 6, metadata: {} },
-      { type: 'boon', boon: 'Fury', stacks: 1, duration: 6, metadata: {} },
-      { type: 'boon', boon: 'Quickness', stacks: 1, duration: 6, metadata: {} }
+      { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 6, metadata: {} },
+      { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 6, metadata: {} },
+      { type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 6, metadata: {} }
     ])
   }
 });
@@ -204,7 +205,7 @@ export function applyFerventStance(
   // Dual attacks grant Might only while the stance is armed and strictly unexpired.
   if (dualAttunements && state.ferventStanceUntil > 0 && state.ferventStanceUntil > at) {
     const ferventStanceProfile = requireBalanceProfileFromContext(context, PROFILE.ferventStance);
-    const might = requireEffect(ferventStanceProfile, 'boon', 'Might');
+    const might = requireEffect(ferventStanceProfile, 'boon', BOON.MIGHT);
 
     if (might) {
       context.effects.emit(

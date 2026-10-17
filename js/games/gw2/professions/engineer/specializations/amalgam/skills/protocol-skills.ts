@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Amalgam offensive and defensive protocol skill fragments across mechanic slots.
  * Evolved-state actions and persistent morph behavior live in their named owners.
@@ -47,7 +49,7 @@ const shred: Partial<Skill> = {
     },
     {
       type: 'condition',
-      condition: 'Immobilized',
+      condition: CONDITION.IMMOBILIZED,
       stacks: 1,
       duration: 3,
       actorType: 'player'
@@ -131,7 +133,7 @@ const obliterate: Partial<Skill> = {
     },
     {
       type: 'condition',
-      condition: 'Bleeding',
+      condition: CONDITION.BLEEDING,
       stacks: 8,
       duration: 6,
       actorType: 'player'
@@ -146,7 +148,7 @@ const cleanse: Partial<Skill> = {
   effects: [
     {
       type: 'boon',
-      boon: 'protection',
+      boon: BOON.PROTECTION,
       duration: 3,
       stacks: 1
     }
@@ -167,7 +169,7 @@ const pierce: Partial<Skill> = {
     },
     {
       type: 'condition',
-      condition: 'Vulnerability',
+      condition: CONDITION.VULNERABILITY,
       stacks: 8,
       duration: 8,
       actorType: 'player'

@@ -1,3 +1,5 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -31,7 +33,7 @@ export const soothingIce = defineTrait({
     internalCooldown: 15,
     effects: [
       { type: 'buff', name: 'Frost Aura', kind: 'Frost Aura', stacks: 1, duration: 4 },
-      { type: 'boon', name: 'Regeneration', boon: 'regeneration', stacks: 1, duration: 4 }
+      { type: 'boon', name: BOON.REGENERATION, boon: BOON.REGENERATION, stacks: 1, duration: 4 }
     ]
   }
 });
@@ -86,7 +88,8 @@ export const piercingShards = defineTrait({
         primaryAttunement(context) === 'Water'
           ? balanceNumberFromContext(context, TRAIT.PIERCING_SHARDS, 'waterFactor')
           : balanceNumberFromContext(context, TRAIT.PIERCING_SHARDS, 'otherFactor'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Vulnerability')
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.VULNERABILITY)
     }
   ]
 });
@@ -121,7 +124,7 @@ function applySoothingIce(context: ElementalistRuntime, { cast }: ElementalistCa
   emitTraitProfile(context, TRAIT.SOOTHING_ICE, TRAIT.SOOTHING_ICE, undefined, {
     at: at,
     fullEnd: at,
-    effect: { type: 'boon', name: 'Regeneration' },
+    effect: { type: 'boon', name: BOON.REGENERATION },
     skillId: skill.id,
     skillName: 'Soothing Ice',
     cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },

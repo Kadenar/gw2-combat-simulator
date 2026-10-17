@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
@@ -126,13 +128,13 @@ const restorativeVirtues = defineTrait({
   balance: {
     // Each virtue trigger advances active weapon recharge by 280ms before recharge-speed conversion.
     rechargeReduction: 0.28,
-    effects: [{ type: 'boon', name: 'vigor', boon: 'vigor', stacks: 1, duration: 3 }]
+    effects: [{ type: 'boon', name: boonKey(BOON.VIGOR), boon: BOON.VIGOR, stacks: 1, duration: 3 }]
   },
   triggers: [
     onTriggerPoint(willbenderVirtueOpened, {
       when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'resolve',
       run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
-        grantVirtueBoon(runtime, TRAIT.RESTORATIVE_VIRTUES, 'vigor', cause, () => ({ recipients: 'self' }))
+        grantVirtueBoon(runtime, TRAIT.RESTORATIVE_VIRTUES, boonKey(BOON.VIGOR), cause, () => ({ recipients: 'self' }))
     }),
     onTriggerPoint(willbenderVirtueTriggered, {
       run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) => reduceWeapons(runtime, cause)
@@ -166,19 +168,33 @@ const holyReckoning = defineTrait({
   name: 'Holy Reckoning',
   balance: {
     effects: [
-      { type: 'boon', name: 'might', boon: 'might', stacks: 1, duration: 15, audience: { recipients: 'party' } },
-      { type: 'boon', name: 'fury', boon: 'fury', stacks: 1, duration: 3, audience: { recipients: 'self' } }
+      {
+        type: 'boon',
+        name: boonKey(BOON.MIGHT),
+        boon: BOON.MIGHT,
+        stacks: 1,
+        duration: 15,
+        audience: { recipients: 'party' }
+      },
+      {
+        type: 'boon',
+        name: boonKey(BOON.FURY),
+        boon: BOON.FURY,
+        stacks: 1,
+        duration: 3,
+        audience: { recipients: 'self' }
+      }
     ]
   },
   triggers: [
     onTriggerPoint(willbenderVirtueOpened, {
       when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'justice',
       run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
-        grantVirtueBoon(runtime, TRAIT.HOLY_RECKONING, 'fury', cause, () => ({ recipients: 'self' }))
+        grantVirtueBoon(runtime, TRAIT.HOLY_RECKONING, boonKey(BOON.FURY), cause, () => ({ recipients: 'self' }))
     }),
     onTriggerPoint(willbenderVirtueTriggered, {
       run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
-        grantVirtueBoon(runtime, TRAIT.HOLY_RECKONING, 'might', cause, () => ({ recipients: 'party' }))
+        grantVirtueBoon(runtime, TRAIT.HOLY_RECKONING, boonKey(BOON.MIGHT), cause, () => ({ recipients: 'party' }))
     })
   ]
 });
@@ -189,11 +205,18 @@ const phoenixProtocol = defineTrait({
   name: 'Phoenix Protocol',
   balance: {
     effects: [
-      { type: 'boon', name: 'alacrity', boon: 'alacrity', stacks: 1, duration: 5, audience: { recipients: 'self' } },
+      {
+        type: 'boon',
+        name: boonKey(BOON.ALACRITY),
+        boon: BOON.ALACRITY,
+        stacks: 1,
+        duration: 5,
+        audience: { recipients: 'self' }
+      },
       {
         type: 'boon',
         name: 'alacrity (triggered)',
-        boon: 'alacrity',
+        boon: BOON.ALACRITY,
         stacks: 1,
         duration: 1,
         packetLabel: 'triggered',
@@ -206,7 +229,7 @@ const phoenixProtocol = defineTrait({
     onTriggerPoint(willbenderVirtueOpened, {
       when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'resolve',
       run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
-        grantVirtueBoon(runtime, TRAIT.PHOENIX_PROTOCOL, 'alacrity', cause, phoenixAudience(runtime))
+        grantVirtueBoon(runtime, TRAIT.PHOENIX_PROTOCOL, boonKey(BOON.ALACRITY), cause, phoenixAudience(runtime))
     }),
     onTriggerPoint(willbenderVirtueTriggered, {
       when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'resolve',
@@ -257,7 +280,7 @@ const searingPact = defineTrait({
   name: 'Searing Pact',
   balance: {
     attributeBonus: 120,
-    effects: [{ type: 'condition', name: 'Burning', condition: 'Burning', stacks: 1, duration: 1 }]
+    effects: [{ type: 'condition', name: CONDITION.BURNING, condition: CONDITION.BURNING, stacks: 1, duration: 1 }]
   },
   triggers: [
     {
@@ -268,7 +291,7 @@ const searingPact = defineTrait({
         (details.hitContext?.damage ?? 0) > 0 &&
         Number(event.coefficient) > 0 &&
         (event.actorType === 'player' || event.sourceId === `sigil.${SIGIL_IDS.AIR}`),
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Burning',
+      effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.BURNING,
       attribution: {
         source: 'guardian',
         actorType: 'player',

@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -59,70 +60,70 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 10,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'Regeneration',
+        boon: BOON.REGENERATION,
         duration: 10,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'Vigor',
+        boon: BOON.VIGOR,
         duration: 10,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'Might',
+        boon: BOON.MIGHT,
         duration: 10,
         stacks: 10
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'Fury',
+        boon: BOON.FURY,
         duration: 10,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'Swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 10,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'resolution',
+        boon: BOON.RESOLUTION,
         duration: 5,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'Aegis',
+        boon: BOON.AEGIS,
         duration: 10,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'Stability',
+        boon: BOON.STABILITY,
         duration: 8,
         stacks: 1
       },
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'Resistance',
+        boon: BOON.RESISTANCE,
         duration: 3,
         stacks: 1
       }

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -30,7 +31,7 @@ function spore(parentSkillName: string): SkillEffect[] {
       damageBreakdownName: 'Exploding Spore',
       skillName: 'Exploding Spore',
       parentSkillName,
-      condition: 'Poisoned',
+      condition: CONDITION.POISONED,
       stacks: 2,
       duration: 5
     }
@@ -64,13 +65,13 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, Partial<Sk
       // Both projectiles are launched before their impacts, allowing a weapon swap during flight.
       ...impact(680, [
         { type: 'strike', coefficient: 0.65, projectile: true },
-        { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 8 },
-        { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 8 },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 8 }
       ]),
       ...impact(880, [
         { type: 'strike', coefficient: 0.65, projectile: true },
-        { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 8 },
-        { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1.25 }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 8 },
+        { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1.25 }
       ])
     ],
     { interruptCommitMs: 560, persistsAfterInterrupt: true }
@@ -80,9 +81,9 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, Partial<Sk
     560,
     impact(560, [
       { type: 'strike', coefficient: 2 },
-      { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 8 },
-      { type: 'condition', condition: 'Poisoned', stacks: 2, duration: 8 },
-      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 8 },
+      { type: 'condition', condition: CONDITION.POISONED, stacks: 2, duration: 8 },
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 8 }
     ])
   ),
   [ID.RAMPANT_GROWTH]: ambush(
@@ -90,14 +91,14 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, Partial<Sk
     480,
     impact(480, [
       { type: 'strike', coefficient: 3, reactions: [naturesStrengthReaction()] },
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 }
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }
     ]),
     // Interrupted casts commit their effects only after reaching the supplied commitment boundary.
     { interruptCommitMs: 520 }
   ),
   [ID.SOLAR_BRILLIANCE]: ambush(1160, 1160, [
     // Blindness precedes damage; the six pulses continue independently after the animation ends.
-    ...impact(640, [{ type: 'condition', condition: 'Blindness', stacks: 1, duration: 3 }]),
+    ...impact(640, [{ type: 'condition', condition: CONDITION.BLINDNESS, stacks: 1, duration: 3 }]),
     {
       type: 'strike',
       timingAnchor: 'castStart',
@@ -108,7 +109,7 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, Partial<Sk
   [ID.SAVAGE_SLASH]: ambush(680, 600, [
     ...impact(600, [
       { type: 'strike', coefficient: 3.3 },
-      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 8 }
     ]),
     ...spore('Savage Slash')
   ]),
@@ -127,7 +128,7 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, Partial<Sk
             on: 'damage.resolved',
             actor: 'player',
             packets: 'first',
-            when: (runtime, { event }) => runtime.combat.targetHasCondition('Poisoned', event.at),
+            when: (runtime, { event }) => runtime.combat.targetHasCondition(CONDITION.POISONED, event.at),
             do: {
               type: 'emitProfile',
               profileId: PROFILE.toxicShotPoisoned,
@@ -137,8 +138,8 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, Partial<Sk
         ]
       },
       // The supplied log records four poison stacks; the wiki lists three. Keep the observed count here.
-      { type: 'condition', condition: 'Poisoned', stacks: 4, duration: 6 },
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3 }
+      { type: 'condition', condition: CONDITION.POISONED, stacks: 4, duration: 6 },
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 }
     ])
   ),
   [ID.RAVAGERS_ABANDON]: ambush(680, 600, [

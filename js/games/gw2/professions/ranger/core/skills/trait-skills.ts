@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
@@ -15,9 +17,9 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
     icon: 'https://render.guildwars2.com/file/2BBB18C54A01FF1D5FF9473EB1059AE491AA98FF/103310.png',
     effects: [
       {
-        name: 'fury',
+        name: boonKey(BOON.FURY),
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 5,
         stacks: 1,
         audience: {
@@ -26,9 +28,9 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
         }
       },
       {
-        name: 'might',
+        name: boonKey(BOON.MIGHT),
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 5,
         stacks: 6,
         audience: {
@@ -37,9 +39,9 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
         }
       },
       {
-        name: 'swiftness',
+        name: boonKey(BOON.SWIFTNESS),
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 5,
         stacks: 1,
         audience: {
@@ -48,9 +50,9 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
         }
       },
       {
-        name: 'Weakness',
+        name: CONDITION.WEAKNESS,
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         duration: 5,
         stacks: 1
       },
@@ -81,16 +83,16 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
     icon: 'https://render.guildwars2.com/file/B6BD062BE66079C0514191004BB1D1140112E2A1/103996.png',
     effects: [
       {
-        name: 'Immobilized',
+        name: CONDITION.IMMOBILIZED,
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         duration: 1,
         stacks: 1
       },
       {
-        name: 'Crippled',
+        name: CONDITION.CRIPPLED,
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         duration: 2,
         stacks: 1,
         applications: 5,
@@ -100,9 +102,9 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
         timingScale: 'fixed'
       },
       {
-        name: 'Slow',
+        name: CONDITION.SLOW,
         type: 'condition',
-        condition: 'Slow',
+        condition: CONDITION.SLOW,
         duration: 1,
         stacks: 1,
         applications: 5,

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
@@ -199,7 +200,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
       if (event.actorType === 'player') runtime.fireTrigger(controlAccepted, { event });
     },
     'condition.applied'(runtime, event) {
-      if (event.condition === 'Immobilized') runtime.fireTrigger(immobilized, { event });
+      if (event.condition === CONDITION.IMMOBILIZED) runtime.fireTrigger(immobilized, { event });
     }
   }
 };

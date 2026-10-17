@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -84,7 +86,9 @@ export const steelPackedPowder = defineTrait({
   id: TRAIT.STEEL_PACKED_POWDER,
   name: 'Steel-Packed Powder',
   balance: {
-    effects: [{ name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 5 }]
+    effects: [
+      { name: CONDITION.VULNERABILITY, type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5 }
+    ]
   }
 });
 
@@ -95,7 +99,7 @@ export const shortFuse = defineTrait({
   name: 'Short Fuse',
   balance: {
     internalCooldown: 3,
-    effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 4 }]
+    effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 4 }]
   }
 });
 
@@ -144,8 +148,8 @@ export const shrapnel = defineTrait({
     },
     procChance: 0.33,
     effects: [
-      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6 },
-      { name: 'Crippled', type: 'condition', condition: 'Crippled', stacks: 1, duration: 1 }
+      { name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6 },
+      { name: CONDITION.CRIPPLED, type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 1 }
     ]
   }
 });
@@ -184,7 +188,7 @@ export const grandEntrance = defineTrait({
     criticalChance: 0.1,
     // Each ordinary window is independently editable and removable through its profile.
     effects: [
-      { type: 'boon', name: 'Resistance', boon: 'resistance', stacks: 1, duration: 3 },
+      { type: 'boon', name: BOON.RESISTANCE, boon: BOON.RESISTANCE, stacks: 1, duration: 3 },
       { type: 'buff', name: 'Grand Entrance', kind: 'grand-entrance', stacks: 1, duration: 3 }
     ]
   },
@@ -292,13 +296,13 @@ function applySteelPackedPowder(context: EngineerResolverContext, event: Enginee
   if (!explosion) return;
 
   const steelPackedPowderProfile = requireBalanceProfileFromContext(context, TRAIT.STEEL_PACKED_POWDER);
-  const steelPackedPowderVulnerability = requireEffect(steelPackedPowderProfile, 'condition', 'Vulnerability');
+  const steelPackedPowderVulnerability = requireEffect(steelPackedPowderProfile, 'condition', CONDITION.VULNERABILITY);
 
   if (steelPackedPowderVulnerability) {
     emitTraitProfile(context, TRAIT.STEEL_PACKED_POWDER, TRAIT.STEEL_PACKED_POWDER, undefined, {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'condition', name: 'Vulnerability' },
+      effect: { type: 'condition', name: CONDITION.VULNERABILITY },
       settlement: 'reaction',
       attribution: {
         sourceId: TRAIT.STEEL_PACKED_POWDER,
@@ -324,13 +328,13 @@ function applyShortFuse(context: EngineerResolverContext, event: EngineerResolve
   if (!explosion || !context.procs.claim(TRAIT.SHORT_FUSE, 'shortFuse', event.at)) return;
 
   const shortFuseProfile = requireBalanceProfileFromContext(context, TRAIT.SHORT_FUSE);
-  const shortFuseFury = requireEffect(shortFuseProfile, 'boon', 'fury');
+  const shortFuseFury = requireEffect(shortFuseProfile, 'boon', boonKey(BOON.FURY));
 
   if (shortFuseFury) {
     emitTraitProfile(context, TRAIT.SHORT_FUSE, TRAIT.SHORT_FUSE, undefined, {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'boon', name: 'fury' },
+      effect: { type: 'boon', name: boonKey(BOON.FURY) },
       durationContext: event,
       attribution: {
         name: 'Short Fuse',
@@ -428,13 +432,13 @@ function applyShrapnel(context: EngineerResolverContext, event: EngineerResolver
   if (!context.random.roll(chance, 'engineer.shrapnel')) return;
 
   const shrapnelProfile = requireBalanceProfileFromContext(context, TRAIT.SHRAPNEL);
-  const shrapnelBleeding = requireEffect(shrapnelProfile, 'condition', 'Bleeding');
+  const shrapnelBleeding = requireEffect(shrapnelProfile, 'condition', CONDITION.BLEEDING);
 
   if (shrapnelBleeding) {
     emitTraitProfile(context, TRAIT.SHRAPNEL, TRAIT.SHRAPNEL, undefined, {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'condition', name: 'Bleeding' },
+      effect: { type: 'condition', name: CONDITION.BLEEDING },
       settlement: 'reaction',
       attribution: {
         sourceId: TRAIT.SHRAPNEL,
@@ -450,14 +454,14 @@ function applyShrapnel(context: EngineerResolverContext, event: EngineerResolver
     });
   }
 
-  const shrapnelCrippled = requireEffect(shrapnelProfile, 'condition', 'Crippled');
+  const shrapnelCrippled = requireEffect(shrapnelProfile, 'condition', CONDITION.CRIPPLED);
 
   if (shrapnelCrippled) {
     // Resolve Crippled as a target condition so duration bonuses and condition queries include it.
     emitTraitProfile(context, TRAIT.SHRAPNEL, TRAIT.SHRAPNEL, undefined, {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'condition', name: 'Crippled' },
+      effect: { type: 'condition', name: CONDITION.CRIPPLED },
       settlement: 'reaction',
       attribution: {
         sourceId: TRAIT.SHRAPNEL,

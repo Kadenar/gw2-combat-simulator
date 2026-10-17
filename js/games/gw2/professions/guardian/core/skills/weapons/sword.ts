@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -22,13 +24,13 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 3
       },
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 2,
         stacks: 1,
         audience: { recipients: 'party' as const }
@@ -129,7 +131,7 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         // The first strike immobilizes once; the second strike does not refresh it (wiki: Advancing_Strike).
         type: 'condition',
-        ticks: [{ atMs: 320, condition: 'Immobilized', stacks: 1, duration: 1 }],
+        ticks: [{ atMs: 320, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { Gw2AttributeSeed } from '#gw2/platform/builds/types.js';
 import type { BuildAttributes, BuildContextInput, ProfessionModifier } from '#gw2/build-context/types.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
@@ -67,7 +69,7 @@ export function createGw2SimulationConfig({
   const alliedPlayerCount = boundedInteger(assumptions.alliedPlayerCount || 0, 0, 0, 4);
   const targetConditions = { ...(assumptions.targetConditions || {}) };
 
-  if (disabled?.type === 'Target' && disabled.name === 'Vulnerability') {
+  if (disabled?.type === 'Target' && disabled.name === CONDITION.VULNERABILITY) {
     delete targetConditions.Vulnerability;
   }
 
@@ -117,13 +119,14 @@ export function createGw2SimulationConfig({
     utility: disabled?.type === 'Utility' ? '' : build.utility,
     timeOfDay: assumptions.timeOfDay === 'night' ? 'night' : 'day',
     boons: {
-      might: disabled?.type === 'Boon' && disabled.name === 'Might' ? 0 : Number(assumptions.might || 0),
-      fury: disabled?.type === 'Boon' && disabled.name === 'Fury' ? false : Boolean(assumptions.fury),
+      might: disabled?.type === 'Boon' && disabled.name === BOON.MIGHT ? 0 : Number(assumptions.might || 0),
+      fury: disabled?.type === 'Boon' && disabled.name === BOON.FURY ? false : Boolean(assumptions.fury),
       // Console timing boons are permanent, even when a build bypasses application loading.
       quickness: true,
       alacrity: true,
       protection: Boolean(assumptions.protection),
-      resolution: disabled?.type === 'Boon' && disabled.name === 'Resolution' ? false : Boolean(assumptions.resolution),
+      resolution:
+        disabled?.type === 'Boon' && disabled.name === BOON.RESOLUTION ? false : Boolean(assumptions.resolution),
       regeneration: Boolean(assumptions.regeneration),
       swiftness: Boolean(assumptions.swiftness),
       vigor: Boolean(assumptions.vigor),

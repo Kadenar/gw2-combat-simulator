@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
@@ -142,7 +143,7 @@ export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSk
         });
       }
 
-      preview.condition('Torment', 'Wicked Corruption');
+      preview.condition(CONDITION.TORMENT, 'Wicked Corruption');
       // Blight scales Harbinger damage traits but no attribute, so it is a skill damage input only.
       preview.add({
         key: 'blight',

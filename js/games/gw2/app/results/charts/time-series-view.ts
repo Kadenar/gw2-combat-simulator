@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 import { PRESENTATION_ALLIED_PLAYER_COUNT } from '#gw2/platform/results/boon-generation.js';
@@ -436,11 +437,11 @@ function drawLineChart(
 
 /** Shows time-averaged stacks for each audience alongside boon supply coverage and personal uptime. */
 function effectSummaryHtml(series: ChartSeries): string {
-  const priority = ['Might', 'Fury', 'Protection', 'Quickness', 'Alacrity'];
+  const priority: readonly string[] = [BOON.MIGHT, BOON.FURY, BOON.PROTECTION, BOON.QUICKNESS, BOON.ALACRITY];
   const summaries = series.effectSummaries || {};
   const generation = series.boonGeneration || {};
   const primaryBoons = priority.filter((name) => {
-    if (name !== 'Quickness' && name !== 'Alacrity') return true;
+    if (name !== BOON.QUICKNESS && name !== BOON.ALACRITY) return true;
 
     const boon = generation[name];
     return boon && boon.self.generatedStackSeconds + boon.allies.generatedStackSeconds > 0;
@@ -461,8 +462,8 @@ function effectSummaryHtml(series: ChartSeries): string {
       .map((name) => {
         const summary = summaries[name];
         const boon = generation[name];
-        const intensity = Boolean(boon?.intensityStacking || name === 'Might');
-        const maximum = summary?.maximumStacks ?? boon?.maximumStacks ?? (name === 'Might' ? 25 : undefined);
+        const intensity = Boolean(boon?.intensityStacking || name === BOON.MIGHT);
+        const maximum = summary?.maximumStacks ?? boon?.maximumStacks ?? (name === BOON.MIGHT ? 25 : undefined);
         const own = boon?.self;
         const alliedGenerated = boon?.allies.generatedStackSeconds || 0;
         const alliedPerPlayer = alliedGenerated / PRESENTATION_ALLIED_PLAYER_COUNT;

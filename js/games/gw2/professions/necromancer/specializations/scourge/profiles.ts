@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 
@@ -26,9 +28,9 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         actorType: 'player'
       },
       {
-        name: 'Torment',
+        name: CONDITION.TORMENT,
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 2,
         actorType: 'player'
@@ -48,7 +50,16 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     id: SCOURGE_BALANCE_PROFILE_IDS.garishPillar,
     name: 'Garish Pillar - Fear',
     profileKind: 'skill-variant',
-    effects: [{ name: 'Fear', type: 'condition', condition: 'Fear', stacks: 1, duration: 1, actorType: 'player' }]
+    effects: [
+      {
+        name: CONDITION.FEAR,
+        type: 'condition',
+        condition: CONDITION.FEAR,
+        stacks: 1,
+        duration: 1,
+        actorType: 'player'
+      }
+    ]
   },
   {
     id: SCOURGE_BALANCE_PROFILE_IDS.desertShroud,
@@ -63,9 +74,9 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         actorType: 'player'
       },
       {
-        name: 'Torment',
+        name: CONDITION.TORMENT,
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 5,
         applications: 7,
@@ -82,12 +93,19 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     effects: [
       ...impactEffects({ atMs: 3500, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         { name: 'Strike', type: 'strike', coefficient: 3, hits: 1, actorType: 'player' },
-        { name: 'Torment', type: 'condition', condition: 'Torment', stacks: 6, duration: 5, actorType: 'player' }
+        {
+          name: CONDITION.TORMENT,
+          type: 'condition',
+          condition: CONDITION.TORMENT,
+          stacks: 6,
+          duration: 5,
+          actorType: 'player'
+        }
       ]),
       {
         name: 'protection pulses',
         type: 'boon',
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         stacks: 1,
         duration: 1.5,
         applications: 3,
@@ -98,9 +116,9 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         audience: { recipients: 'party' as const }
       },
       {
-        name: 'protection',
+        name: boonKey(BOON.PROTECTION),
         type: 'boon',
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         stacks: 1,
         duration: 3,
         atMs: 3500,

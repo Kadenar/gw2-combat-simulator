@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -41,7 +43,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 4
       }
@@ -64,7 +66,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 6,
         stacks: 1
       }
@@ -100,7 +102,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 3,
         stacks: 1
       }
@@ -118,7 +120,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 8,
         duration: 8
       }
@@ -135,7 +137,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 2
       }
@@ -176,7 +178,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
       },
       {
         type: 'condition',
-        ticks: [400, 720, 960].map((atMs) => ({ atMs, condition: 'Vulnerability', stacks: 1, duration: 8 }))
+        ticks: [400, 720, 960].map((atMs) => ({ atMs, condition: CONDITION.VULNERABILITY, stacks: 1, duration: 8 }))
       }
     ])
   },
@@ -212,7 +214,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 4
       }
@@ -281,14 +283,14 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 2
       },
       {
         // The four-second net reapplies a one-second cripple instead of one long application.
         type: 'condition',
-        ticks: [0, 1000, 2000, 3000].map((atMs) => ({ atMs, condition: 'Crippled', stacks: 1, duration: 1 })),
+        ticks: [0, 1000, 2000, 3000].map((atMs) => ({ atMs, condition: CONDITION.CRIPPLED, stacks: 1, duration: 1 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
@@ -349,5 +351,5 @@ export const rangerFalconsStoopModifier: Gw2ModifierRule = {
   factor: 1.2,
   when: (context) =>
     skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.FALCONS_STOOP &&
-    (context.config?.target?.defiant || targetConditionActive(context, 'Immobilized'))
+    (context.config?.target?.defiant || targetConditionActive(context, CONDITION.IMMOBILIZED))
 };

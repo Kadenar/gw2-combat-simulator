@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
@@ -63,10 +65,12 @@ export function calculateSkillDamageAttributes(
         (stats.concentration - preview.attributeData!.attributes.Concentration.final) / 15
     );
     set('Condition Duration', (query.conditionDurationMultiplier('', at, stats, event, runtime) - 1) * 100);
-    for (const name of ['Burning', 'Bleeding', 'Torment', 'Confusion', 'Poison'])
+    for (const name of [CONDITION.BURNING, CONDITION.BLEEDING, CONDITION.TORMENT, CONDITION.CONFUSION, 'Poison'])
       set(
         name + ' Duration',
-        (query.conditionDurationMultiplier(name === 'Poison' ? 'Poisoned' : name, at, stats, event, runtime) - 1) * 100
+        (query.conditionDurationMultiplier(name === 'Poison' ? CONDITION.POISONED : name, at, stats, event, runtime) -
+          1) *
+          100
       );
     // The strip reports generic player factors; occurrence diagnostics retain skill-specific modifiers.
     const contributors: Gw2ModifierContribution[] = [];
@@ -88,7 +92,10 @@ function calculatePreview(
   const values = normalizeAttributePreview(controls, input);
   const playerHealth = Number(values.playerHealth ?? 100) / 100;
   const boons = Object.fromEntries(
-    GW2_STANDARD_BOONS.map((key) => [key, key === 'might' ? Number(values[key] || 0) : Boolean(values[key])])
+    GW2_STANDARD_BOONS.map((key) => [
+      key,
+      key === boonKey(BOON.MIGHT) ? Number(values[key] || 0) : Boolean(values[key])
+    ])
   );
   const weaponSet = app.attributeWeaponSet === 2 ? 2 : 1;
   const { preview, context, config } = createIsolatedPreview(app, controls, values, boons, weaponSet);
@@ -227,10 +234,12 @@ function calculatePreview(
   if (queryOptions.conditionDurations) {
     const duration = (query.conditionDurationMultiplier('', 1, stats, event, runtime) - 1) * 100;
     set('Condition Duration', duration);
-    for (const name of ['Burning', 'Bleeding', 'Torment', 'Confusion', 'Poison'])
+    for (const name of [CONDITION.BURNING, CONDITION.BLEEDING, CONDITION.TORMENT, CONDITION.CONFUSION, 'Poison'])
       set(
         `${name} Duration`,
-        (query.conditionDurationMultiplier(name === 'Poison' ? 'Poisoned' : name, 1, stats, event, runtime) - 1) * 100 -
+        (query.conditionDurationMultiplier(name === 'Poison' ? CONDITION.POISONED : name, 1, stats, event, runtime) -
+          1) *
+          100 -
           duration
       );
   }

@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -49,7 +51,7 @@ export const stalwartStrength = defineTrait({
   balance: {
     damageMultiplier: 1.1,
     internalCooldown: 0.32,
-    effects: [{ name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 5 }]
+    effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5 }]
   },
   modifierRules: [
     {
@@ -58,7 +60,7 @@ export const stalwartStrength = defineTrait({
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.STALWART_STRENGTH, 'damageMultiplier'),
       order: 95,
-      when: (context) => warriorBoonActive(context, 'stability')
+      when: (context) => warriorBoonActive(context, boonKey(BOON.STABILITY))
     }
   ],
   triggers: [
@@ -86,7 +88,7 @@ export const cullTheWeak = defineTrait({
   balance: {
     damageMultiplier: 1.1,
     internalCooldown: 5,
-    effects: [{ name: 'Weakness', type: 'condition', condition: 'Weakness', duration: 3.5, stacks: 1 }]
+    effects: [{ name: CONDITION.WEAKNESS, type: 'condition', condition: CONDITION.WEAKNESS, duration: 3.5, stacks: 1 }]
   },
   modifierRules: [
     {
@@ -95,7 +97,7 @@ export const cullTheWeak = defineTrait({
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.CULL_THE_WEAK, 'damageMultiplier'),
       order: 93,
-      when: (context) => targetConditionActive(context, 'Weakness')
+      when: (context) => targetConditionActive(context, CONDITION.WEAKNESS)
     }
   ]
 });
@@ -105,7 +107,7 @@ export const thickSkin = defineTrait({
   id: TRAIT.THICK_SKIN,
   name: 'Thick Skin',
   balance: {
-    effects: [{ name: 'protection', type: 'boon', boon: 'protection', stacks: 1, duration: 3 }]
+    effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, stacks: 1, duration: 3 }]
   },
   triggers: [
     {

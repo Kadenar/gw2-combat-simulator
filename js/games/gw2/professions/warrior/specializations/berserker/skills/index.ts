@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Berserker PvE packets use nearest-40 ms offsets to remove false timing precision. */
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -26,19 +28,19 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 5
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 10,
         duration: 8
       },
       {
         type: 'boon',
-        boon: 'aegis',
+        boon: BOON.AEGIS,
         duration: 3,
         stacks: 1
       }
@@ -71,7 +73,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 10
       },
@@ -98,19 +100,19 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 4,
         duration: 8
       },
       {
         type: 'condition',
-        condition: 'Confusion',
+        condition: CONDITION.CONFUSION,
         stacks: 5,
         duration: 3
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 8
       }
@@ -158,7 +160,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'condition',
-        ticks: [320, 2320, 4320].map((atMs) => ({ atMs, condition: 'Burning', stacks: 1, duration: 3 }))
+        ticks: [320, 2320, 4320].map((atMs) => ({ atMs, condition: CONDITION.BURNING, stacks: 1, duration: 3 }))
       }
     ]),
     castTimeMs: 360,
@@ -181,7 +183,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 8,
         stacks: 1
       }
@@ -214,13 +216,13 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 4,
         duration: 10
       },
       {
         type: 'boon',
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 2,
         stacks: 2
       }
@@ -362,7 +364,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'condition',
         ticks: [400, 640, 880, 1120, 1320, 1560].map((atMs) => ({
           atMs,
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 3.5
         }))
@@ -384,7 +386,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 5,
         stacks: 5
       }
@@ -415,7 +417,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 2
       },
@@ -453,11 +455,11 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1
       },
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 }
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }
     ],
     castTimeMs: 333,
     adrenalineCost: 10,
@@ -493,7 +495,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 2,
         duration: 5
       }

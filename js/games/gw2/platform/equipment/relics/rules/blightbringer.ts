@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -18,7 +19,7 @@ export const blightbringer = defineRelic({
     trackedActivations: new Set<string>()
   }),
   condition(ctx, state, application, _helpers) {
-    if (application.condition !== 'Poisoned' || !isGw2PlayerActorEvent(application)) {
+    if (application.condition !== CONDITION.POISONED || !isGw2PlayerActorEvent(application)) {
       return;
     }
 
@@ -57,9 +58,9 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, applicat
     }
   });
   for (const [condition, stacks, duration] of [
-    ['Poisoned', 3, 10],
-    ['Crippled', 1, 5],
-    ['Weakness', 1, 5]
+    [CONDITION.POISONED, 3, 10],
+    [CONDITION.CRIPPLED, 1, 5],
+    [CONDITION.WEAKNESS, 1, 5]
   ] as const) {
     ctx.effects.emit({
       kind: 'packet',

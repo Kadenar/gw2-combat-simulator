@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -73,7 +74,7 @@ const scourgeShroudActions = {
     if (context.kind !== 'cast') return;
 
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.garishPillar);
-    const fear = requireEffect(profile, 'condition', 'Fear');
+    const fear = requireEffect(profile, 'condition', CONDITION.FEAR);
 
     if (fear) {
       // Shared emission owns transport; the mechanic selects attribution and delivery.
@@ -81,7 +82,7 @@ const scourgeShroudActions = {
       const emissionCast: RuntimeCast<NecromancerSkill> = context.cast;
       const emissionEvent: SimulationEventBase = {
         type: 'condition',
-        condition: 'Fear',
+        condition: CONDITION.FEAR,
         stacks: Number(fear.stacks),
         duration: Number(fear.duration),
         at: runtime.time,

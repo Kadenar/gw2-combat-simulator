@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
 
 /**
@@ -92,7 +94,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       profileId: 'mesmer.troubadour.tale-honorable-rogue',
       instrument: 'Drum',
       resourceGain: 1,
-      effects: [{ name: 'aegis', type: 'boon', boon: 'aegis', duration: 4, stacks: 1 }]
+      effects: [{ name: boonKey(BOON.AEGIS), type: 'boon', boon: BOON.AEGIS, duration: 4, stacks: 1 }]
     },
     // The instant tale refunds endurance at commitment through the shared capped pool.
     resourceGain: 50,
@@ -123,7 +125,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       coefficient: 1,
       hits: 1,
       damageAtMs: 360,
-      conditions: [{ type: 'condition', condition: 'Confusion', duration: 4, stacks: 3 }]
+      conditions: [{ type: 'condition', condition: CONDITION.CONFUSION, duration: 4, stacks: 3 }]
     },
     effects: [
       // Performance and afterimage impacts materialize the same authored control.
@@ -145,9 +147,9 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       instrument: 'Lute',
       resourceGain: 2,
       effects: [
-        { name: 'might', type: 'boon', boon: 'might', duration: 15, stacks: 10 },
-        { name: 'fury', type: 'boon', boon: 'fury', duration: 10, stacks: 1 },
-        { name: 'quickness', type: 'boon', boon: 'quickness', duration: 4, stacks: 1 }
+        { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 15, stacks: 10 },
+        { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, duration: 10, stacks: 1 },
+        { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 4, stacks: 1 }
       ]
     },
     castTimeMs: 0,
@@ -212,15 +214,15 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       },
       {
         type: 'condition',
-        ticks: [360, 1360, 2360, 3360].map((atMs) => ({ atMs, condition: 'Torment', duration: 8, stacks: 1 }))
+        ticks: [360, 1360, 2360, 3360].map((atMs) => ({ atMs, condition: CONDITION.TORMENT, duration: 8, stacks: 1 }))
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 360, condition: 'Weakness', stacks: 1, duration: 5 }]
+        ticks: [{ atMs: 360, condition: CONDITION.WEAKNESS, stacks: 1, duration: 5 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1360, condition: 'Vulnerability', stacks: 10, duration: 4 }]
+        ticks: [{ atMs: 1360, condition: CONDITION.VULNERABILITY, stacks: 10, duration: 4 }]
       },
       {
         type: 'control',
@@ -284,8 +286,8 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       instrument: 'Harp',
       resourceGain: 1,
       effects: [
-        { name: 'stability', type: 'boon', boon: 'stability', duration: 4, stacks: 5 },
-        { name: 'resistance', type: 'boon', boon: 'resistance', duration: 3, stacks: 1 }
+        { name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, duration: 4, stacks: 5 },
+        { name: boonKey(BOON.RESISTANCE), type: 'boon', boon: BOON.RESISTANCE, duration: 3, stacks: 1 }
       ]
     },
     castTimeMs: 0,

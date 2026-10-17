@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Owns Legendary Alliance stance skill fragments. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -20,14 +22,14 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 5,
         actorType: 'player'
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 5,
         stacks: 1
       }
@@ -50,7 +52,7 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 6,
         stacks: 1
       }
@@ -71,13 +73,13 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'boon',
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 1,
         stacks: 1
       },
       {
         type: 'boon',
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 6,
         stacks: 1
       },
@@ -107,7 +109,7 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
         },
         {
           type: 'condition',
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           stacks: 5,
           duration: 8,
           actorType: 'player'
@@ -130,20 +132,20 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 2,
         duration: 5,
         actorType: 'player'
       },
       {
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 5,
         stacks: 1
       },
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 5,
         stacks: 1
       }

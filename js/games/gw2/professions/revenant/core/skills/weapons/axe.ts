@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -26,12 +27,12 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 680, condition: 'Chilled', stacks: 1, duration: 2 }],
+        ticks: [{ atMs: 680, condition: CONDITION.CHILLED, stacks: 1, duration: 2 }],
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1000, condition: 'Torment', stacks: 3, duration: 6 }],
+        ticks: [{ atMs: 1000, condition: CONDITION.TORMENT, stacks: 3, duration: 6 }],
         actorType: 'player'
       }
     ])
@@ -54,7 +55,7 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 4,
         duration: 10,
         actorType: 'player'

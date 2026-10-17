@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
@@ -21,7 +22,7 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
       {
         name: 'One round',
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 3,
         duration: 6,
         packetLabel: 'one round spent'
@@ -29,7 +30,7 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
       {
         name: 'Two rounds',
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 4,
         duration: 7,
         packetLabel: 'two rounds spent'
@@ -84,7 +85,7 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
         duration: 8,
         damageIncreasePerStack: 0.15
       },
-      { name: 'Overcharged Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 3 },
+      { name: 'Overcharged Burning', type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3 },
       {
         name: 'supercharged-cartridges',
         type: 'buff',
@@ -93,7 +94,7 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
         duration: 8,
         damageIncreasePerStack: 0.2
       },
-      { name: 'Supercharged Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 5 }
+      { name: 'Supercharged Burning', type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5 }
     ]
   }
 ]);

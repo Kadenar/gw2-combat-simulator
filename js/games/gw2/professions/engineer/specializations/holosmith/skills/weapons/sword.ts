@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import {
   requireBalanceProfileFromContext,
@@ -50,7 +52,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 4,
         actorType: 'player'
@@ -79,7 +81,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 10,
         actorType: 'player'
@@ -124,7 +126,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
         },
         {
           type: 'condition',
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 4,
           actorType: 'player'
@@ -166,7 +168,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 4,
         actorType: 'player'
@@ -189,7 +191,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 10,
         actorType: 'player'
@@ -223,7 +225,7 @@ function handleRadiantArcQuickness(context: EngineerResolverContext, event: Holo
     kind: 'packet',
     event: buildEngineerBuff(event, {
       name: 'Radiant Arc - quickness',
-      kind: 'quickness',
+      kind: boonKey(BOON.QUICKNESS),
       stacks: 1,
       duration: requireBalanceNumber(event.duration, 'Radiant Arc field=duration')
     }),
@@ -237,7 +239,7 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
   const refractionCutterHeatTierProfile = requireBalanceProfileFromContext(context, PROFILE.refractionCutterHeatTier);
   const delay = Math.max(0, balanceProfileNumber(refractionCutterHeatTierProfile, 'initialDelay'));
   const strike = requireEffect(refractionCutterHeatTierProfile, 'strike', 'Refraction Cutter Heat Tier');
-  const condition = requireEffect(refractionCutterHeatTierProfile, 'condition', 'Bleeding');
+  const condition = requireEffect(refractionCutterHeatTierProfile, 'condition', CONDITION.BLEEDING);
   // Materialize each extra blade independently so its strike can own a matching combo attempt and bleed.
   for (let blade = 0; blade < extraBlades; blade += 1) {
     const at = event.at + delay;

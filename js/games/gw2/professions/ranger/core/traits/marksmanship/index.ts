@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { petDerivedConditionMetadata } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
@@ -67,9 +69,9 @@ export const wolfsong = defineTrait({
     damageMultiplier: 1.1,
     effects: [
       {
-        name: 'Vulnerability',
+        name: CONDITION.VULNERABILITY,
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         duration: 6,
         stacks: 6
       }
@@ -110,9 +112,9 @@ export const openingStrike = defineTrait({
   balance: {
     effects: [
       {
-        name: 'Vulnerability',
+        name: CONDITION.VULNERABILITY,
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         duration: 5,
         stacks: 5
       }
@@ -130,7 +132,7 @@ export const alphaFocus = defineTrait({
   id: TRAIT.ALPHA_FOCUS,
   name: 'Alpha Focus',
   balance: {
-    effects: [{ name: 'Crippled', type: 'condition', condition: 'Crippled', duration: 2, stacks: 1 }]
+    effects: [{ name: CONDITION.CRIPPLED, type: 'condition', condition: CONDITION.CRIPPLED, duration: 2, stacks: 1 }]
   }
 });
 
@@ -149,7 +151,7 @@ export const huntersGaze = defineTrait({
     upperThreshold: 0.75,
     internalCooldown: 1,
     maximumStacks: 3,
-    effects: [{ name: 'might', type: 'boon', boon: 'might', duration: 5, stacks: 1 }]
+    effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 5, stacks: 1 }]
   }
 });
 
@@ -160,8 +162,8 @@ export const leadTheWind = defineTrait({
   balance: {
     rechargeMultiplier: 0.8,
     effects: [
-      { name: 'swiftness', type: 'boon', boon: 'swiftness', duration: 10, stacks: 1 },
-      { name: 'quickness', type: 'boon', boon: 'quickness', duration: 5, stacks: 1 }
+      { name: boonKey(BOON.SWIFTNESS), type: 'boon', boon: BOON.SWIFTNESS, duration: 10, stacks: 1 },
+      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 5, stacks: 1 }
     ]
   },
   triggers: [
@@ -171,7 +173,7 @@ export const leadTheWind = defineTrait({
       on: 'castCommit' as const,
       when: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) =>
         cast.skill.id === ID.POINT_BLANK_SHOT,
-      effects: (effect) => effect.type === 'boon' && effect.name === 'swiftness',
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.SWIFTNESS),
       attribution: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) => ({
         skillId: TRAIT.LEAD_THE_WIND,
         skillName: 'Lead the Wind',
@@ -185,7 +187,7 @@ export const leadTheWind = defineTrait({
       on: 'castCommit' as const,
       when: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) =>
         cast.skill.id === ID.POINT_BLANK_SHOT,
-      effects: (effect) => effect.type === 'boon' && effect.name === 'quickness',
+      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.QUICKNESS),
       attribution: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) => ({
         skillId: TRAIT.LEAD_THE_WIND,
         skillName: 'Lead the Wind',
@@ -314,13 +316,13 @@ function applyClarionBond(context: RangerRuntime, skill: RangerSkill): void {
 function applyWolfsong(context: RangerRuntime, skill: RangerSkill): void {
   if (rangerPetByName(professionCoreState(context).activePet).family === 'canine') {
     const profile = requireBalanceProfileFromContext(context, TRAIT.WOLFSONG);
-    const effect = requireEffect(profile, 'condition', 'Vulnerability');
+    const effect = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 
     if (effect)
       emitTraitProfile(context, TRAIT.WOLFSONG, TRAIT.WOLFSONG, undefined, {
         at: context.time,
         fullEnd: context.time,
-        effect: { type: 'condition', name: 'Vulnerability' },
+        effect: { type: 'condition', name: CONDITION.VULNERABILITY },
         attribution: {
           source: 'Trait',
           actorType: 'effect',
@@ -348,11 +350,11 @@ function consumeOpeningStrike(context: RangerResolverContext, event: Gw2Resolver
   if (!actor?.openingStrikeReady) return;
 
   const openingStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.OPENING_STRIKE);
-  const openingStrike = requireEffect(openingStrikeProfile, 'condition', 'Vulnerability');
+  const openingStrike = requireEffect(openingStrikeProfile, 'condition', CONDITION.VULNERABILITY);
   const alphaFocusProfile = hasTrait(context, TRAIT.ALPHA_FOCUS)
     ? requireBalanceProfileFromContext(context, TRAIT.ALPHA_FOCUS)
     : undefined;
-  const alphaFocus = alphaFocusProfile && requireEffect(alphaFocusProfile, 'condition', 'Crippled');
+  const alphaFocus = alphaFocusProfile && requireEffect(alphaFocusProfile, 'condition', CONDITION.CRIPPLED);
 
   // Readiness is spent by a delivered opener; with every opener packet removed it stays armed.
   if (!openingStrike && !alphaFocus) return;
@@ -363,7 +365,7 @@ function consumeOpeningStrike(context: RangerResolverContext, event: Gw2Resolver
     emitTraitProfile(context, TRAIT.OPENING_STRIKE, TRAIT.OPENING_STRIKE, undefined, {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'condition', name: 'Vulnerability' },
+      effect: { type: 'condition', name: CONDITION.VULNERABILITY },
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.OPENING_STRIKE,
@@ -385,7 +387,7 @@ function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEv
 
   const health = targetHealthFraction(context);
   const profile = requireBalanceProfileFromContext(context, TRAIT.HUNTERS_GAZE);
-  const might = requireEffect(profile, 'boon', 'might');
+  const might = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
   // The cooldown and proc record exist only for the might packet.
   if (!might) return;
@@ -418,7 +420,7 @@ function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEv
   emitTraitProfile(context, TRAIT.HUNTERS_GAZE, TRAIT.HUNTERS_GAZE, undefined, {
     at: event.at,
     fullEnd: event.at,
-    effect: { type: 'boon', name: 'might' },
+    effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
     durationContext: event,
     attribution: {
       source: 'Trait',
@@ -436,7 +438,7 @@ function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEv
 function reactToRangerCoreBuff(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const kind = (event.kind || '').toLowerCase();
 
-  if (kind === 'fury' && event.resolvedAudience?.includesSelf) {
+  if (kind === boonKey(BOON.FURY) && event.resolvedAudience?.includesSelf) {
     const state = professionCoreState(context);
     state.player.openingStrikeReady = true;
 
@@ -449,7 +451,7 @@ function applyAlphaFocus(context: RangerResolverContext, event: Gw2ResolverEvent
   // A consumed pet opener retains its companion's attributes and lifetime identity.
   emitTraitProfile(context, TRAIT.ALPHA_FOCUS, TRAIT.ALPHA_FOCUS, undefined, {
     at: event.at,
-    effect: { type: 'condition', name: 'Crippled' },
+    effect: { type: 'condition', name: CONDITION.CRIPPLED },
     attribution: {
       source: isPetStrike(event) ? 'ranger-pet' : 'Trait',
       actorType: isPetStrike(event) ? 'summon' : 'effect',

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -15,7 +16,12 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
       // Each selected pulse applies one complete stack; the mechanic alternates two and three selections per cast.
       chaosStormPoison: {
         type: 'condition',
-        ticks: CHAOS_STORM_PULSES_MS.slice(1).map((atMs) => ({ atMs, condition: 'Poisoned', duration: 4, stacks: 1 })),
+        ticks: CHAOS_STORM_PULSES_MS.slice(1).map((atMs) => ({
+          atMs,
+          condition: CONDITION.POISONED,
+          duration: 4,
+          stacks: 1
+        })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -90,7 +96,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         duration: 4,
         stacks: 6,
         actorType: 'summon',
@@ -119,14 +125,14 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'torment',
+        condition: CONDITION.TORMENT,
         duration: 5,
         stacks: 1,
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'confusion',
+        condition: CONDITION.CONFUSION,
         duration: 5,
         stacks: 1,
         persistsAfterInterrupt: true
@@ -160,7 +166,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
       // The activation blinds once for five seconds, independently of its Confusion.
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
         source: 'Player',
@@ -168,7 +174,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        condition: 'confusion',
+        condition: CONDITION.CONFUSION,
         duration: 5,
         stacks: 3
       }

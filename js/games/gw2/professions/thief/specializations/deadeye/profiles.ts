@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { DEADEYE_THIEVES_GUILD_PROFILE } from '#gw2/professions/thief/specializations/deadeye/mechanics/thieves-guild.js';
 
@@ -32,7 +33,7 @@ export const DEADEYE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     profileKind: 'skill-variant',
     parentId: ID.MALICIOUS_SNEAK_ATTACK,
     durationMultiplier: 2,
-    effects: [{ type: 'condition', name: 'Torment', condition: 'Torment', stacks: 1, duration: 1 }]
+    effects: [{ type: 'condition', name: CONDITION.TORMENT, condition: CONDITION.TORMENT, stacks: 1, duration: 1 }]
   },
   {
     id: DEADEYE_BALANCE_PROFILE_IDS.maliciousAshenAssault,
@@ -42,7 +43,7 @@ export const DEADEYE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     coefficientMultiplier: 0.02,
     durationMultiplier: 0.5,
     resourceGain: 4,
-    effects: [{ type: 'condition', name: 'Torment', condition: 'Torment', stacks: 1, duration: 0.5 }]
+    effects: [{ type: 'condition', name: CONDITION.TORMENT, condition: CONDITION.TORMENT, stacks: 1, duration: 0.5 }]
   },
   {
     id: DEADEYE_BALANCE_PROFILE_IDS.mercy,

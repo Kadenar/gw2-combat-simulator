@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
@@ -189,9 +191,9 @@ const mistfire = defineTrait({
         actorType: 'effect'
       },
       {
-        name: 'Burning',
+        name: CONDITION.BURNING,
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 6,
         actorType: 'effect'
@@ -208,8 +210,10 @@ const mistfire = defineTrait({
       cooldown: 'profile',
       when: (runtime, event) =>
         !(event.skillId != null && TWIN_MOON_SKILL_IDS.has(event.skillId)) &&
-        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.mistfire), 'condition', 'Burning')),
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Burning',
+        Boolean(
+          requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.mistfire), 'condition', CONDITION.BURNING)
+        ),
+      effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.BURNING,
       attribution: {
         source: 'revenant',
         ownerActorType: 'player',
@@ -224,7 +228,7 @@ const mistfire = defineTrait({
 // The duration values depend only on the patch; selection is checked by the live declaration.
 const numinousDurations = traitAttributeBonuses(CONDUIT_BALANCE_PROFILE_IDS.numinousGift, (profile) => ({
   traitDurations: Object.fromEntries(
-    ['Bleeding', 'Burning', 'Confusion', 'Poison', 'Torment'].map((condition) => [
+    [CONDITION.BLEEDING, CONDITION.BURNING, CONDITION.CONFUSION, 'Poison', CONDITION.TORMENT].map((condition) => [
       condition + ' Duration',
       100 * balanceProfileNumber(profile, 'conditionDurationBonus')
     ])
@@ -248,38 +252,38 @@ const numinousGiftTrait = defineTrait({
     damageIncrease: 0.05,
     conditionDurationBonus: 0.05,
     effects: [
-      { type: 'boon', boon: 'might', duration: 10, stacks: 5 },
+      { type: 'boon', boon: BOON.MIGHT, duration: 10, stacks: 5 },
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 10,
         stacks: 1,
         metadata: { legendId: LEGEND.ASSASSIN }
       },
       {
         type: 'boon',
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         duration: 5,
         stacks: 1,
         metadata: { legendId: LEGEND.DEMON }
       },
       {
         type: 'boon',
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 5,
         stacks: 1,
         metadata: { legendId: LEGEND.DWARF }
       },
       {
         type: 'boon',
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 5,
         stacks: 1,
         metadata: { legendId: LEGEND.CENTAUR }
       },
       {
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 5,
         stacks: 1,
         metadata: { legendId: LEGEND.ENTITY }
@@ -329,7 +333,7 @@ const sharedWisdom = defineTrait({
       {
         name: 'entity-skill',
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 5,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 },
@@ -338,7 +342,7 @@ const sharedWisdom = defineTrait({
       {
         name: 'shielding-hands',
         type: 'boon',
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 3,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 },
@@ -347,7 +351,7 @@ const sharedWisdom = defineTrait({
       {
         name: 'beguiling-haze',
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 5,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 },
@@ -356,7 +360,7 @@ const sharedWisdom = defineTrait({
       {
         name: 'hex-eater-vortex',
         type: 'boon',
-        boon: 'resolution',
+        boon: BOON.RESOLUTION,
         duration: 3,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 },
@@ -365,7 +369,7 @@ const sharedWisdom = defineTrait({
       {
         name: 'gladiators-defense',
         type: 'boon',
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 3,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 },
@@ -374,7 +378,7 @@ const sharedWisdom = defineTrait({
       {
         name: 'twin-moon-sweep',
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 10,
         stacks: 5,
         applications: 2,

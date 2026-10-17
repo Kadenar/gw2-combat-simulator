@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Rock Gazelle family.
@@ -34,7 +35,7 @@ export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<numbe
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 8,
         source: 'ranger-pet',

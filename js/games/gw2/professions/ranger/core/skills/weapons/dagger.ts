@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -24,7 +26,7 @@ import type { RangerResolverContext, RangerRuntimeState, RangerSkill } from '#gw
 
 /** Restricts Stalker's Strike's bonus to its three documented movement-impairing conditions. */
 function stalkersStrikeTargetImpaired(hasCondition: (condition: string) => boolean): boolean {
-  return ['Crippled', 'Slow', 'Immobilized'].some(hasCondition);
+  return [CONDITION.CRIPPLED, CONDITION.SLOW, CONDITION.IMMOBILIZED].some(hasCondition);
 }
 
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
@@ -48,13 +50,13 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 3,
         duration: 6
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 4
       }
@@ -101,7 +103,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 3,
         duration: 8
       }
@@ -113,7 +115,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     effects: [
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 4
       },
@@ -131,7 +133,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 1,
         duration: 4
       },
@@ -148,7 +150,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     effects: [
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 6,
         duration: 6
       },
@@ -170,19 +172,19 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 4
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 4
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 1,
         duration: 4
       },
@@ -199,7 +201,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     effects: [
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 4
       },
@@ -227,19 +229,19 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
       },
       {
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 3,
         stacks: 1
       },
       {
         type: 'condition',
-        condition: 'Slow',
+        condition: CONDITION.SLOW,
         stacks: 1,
         duration: 2
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 4,
         duration: 8
       }

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -25,14 +26,16 @@ export const dazzling = defineTrait<MesmerSkill>({
   id: TRAIT.DAZZLING,
   name: 'Dazzling',
   balance: {
-    effects: [{ name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 }]
+    effects: [
+      { name: CONDITION.VULNERABILITY, type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 8 }
+    ]
   },
   triggers: [
     {
       on: 'control.resolved',
       emit: TRAIT.DAZZLING,
       when: (_runtime, event) => !missesTarget(event) && (event.actorType === 'player' || event.actorType === 'summon'),
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Vulnerability',
+      effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.VULNERABILITY,
       attribution: { source: 'Trait', sourceId: TRAIT.DAZZLING, actorType: 'effect', ownerActorType: 'player' }
     }
   ]
@@ -166,7 +169,9 @@ export const rendingShatter = defineTrait<MesmerSkill>({
   id: TRAIT.RENDING_SHATTER,
   name: 'Rending Shatter',
   balance: {
-    effects: [{ type: 'condition', name: 'Vulnerability', condition: 'Vulnerability', stacks: 1, duration: 8 }]
+    effects: [
+      { type: 'condition', name: CONDITION.VULNERABILITY, condition: CONDITION.VULNERABILITY, stacks: 1, duration: 8 }
+    ]
   },
   triggers: [
     onTriggerPoint(mesmerShatterResolved, {
@@ -197,7 +202,7 @@ function triggerRendingShatter(
   const effect = requireEffect(
     requireBalanceProfileFromContext(context, TRAIT.RENDING_SHATTER),
     'condition',
-    'Vulnerability'
+    CONDITION.VULNERABILITY
   );
 
   if (!effect) return;
@@ -219,7 +224,7 @@ function triggerRendingShatter(
       hit.at,
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         duration: effect.duration,
         stacks: Number(effect.stacks) * hit.count
       },

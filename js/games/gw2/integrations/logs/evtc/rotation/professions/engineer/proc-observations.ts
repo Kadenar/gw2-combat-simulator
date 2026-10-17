@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import {
   EVTC_BLEEDING_SKILL_ID,
   EVTC_CRIPPLED_SKILL_ID,
@@ -115,17 +116,17 @@ export function analyzeEngineerShrapnelObservation(
   if (!explosionHits) return null;
 
   const crippledEffect = profile.effects?.find(
-    (effect) => effect.type === 'condition' && effect.condition?.toLowerCase() === 'crippled'
+    (effect) => effect.type === 'condition' && effect.condition?.toLowerCase() === CONDITION.CRIPPLED.toLowerCase()
   );
   const matchedBleedingDurationsMs = expectedConditionDurationsMs(
     bleedingDuration(profile),
-    'Bleeding',
+    CONDITION.BLEEDING,
     config,
     observationAttributeSets(config, catalog, engineerProfession.attributeContributions)
   );
   const matchedCrippledDurationsMs = expectedConditionDurationsMs(
     crippledEffect ? effectNumber(profile, crippledEffect, 'duration') : 0,
-    'Crippled',
+    CONDITION.CRIPPLED,
     config,
     observationAttributeSets(config, catalog, engineerProfession.attributeContributions)
   );

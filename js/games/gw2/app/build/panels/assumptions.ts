@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { optionHtml } from '#ui/shared/select-options.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
@@ -21,13 +22,13 @@ import type {
 import { clamp } from '#kernel/core/numeric.js';
 
 const PERMANENT_BOONS: readonly (readonly [string, string])[] = [
-  ['fury', 'Fury'],
-  ['protection', 'Protection'],
-  ['resolution', 'Resolution'],
-  ['regeneration', 'Regeneration'],
-  ['swiftness', 'Swiftness'],
-  ['vigor', 'Vigor'],
-  ['aegis', 'Aegis']
+  [boonKey(BOON.FURY), BOON.FURY],
+  [boonKey(BOON.PROTECTION), BOON.PROTECTION],
+  [boonKey(BOON.RESOLUTION), BOON.RESOLUTION],
+  [boonKey(BOON.REGENERATION), BOON.REGENERATION],
+  [boonKey(BOON.SWIFTNESS), BOON.SWIFTNESS],
+  [boonKey(BOON.VIGOR), BOON.VIGOR],
+  [boonKey(BOON.AEGIS), BOON.AEGIS]
 ];
 
 interface EffectItemOptions {
@@ -75,10 +76,10 @@ export function renderAssumptions(app: ProfessionAppState): void {
         </label>`;
   const boonItems = [
     item({
-      name: 'Might',
+      name: BOON.MIGHT,
       checked: Number(a.might) > 0,
       type: 'boon',
-      key: 'might',
+      key: boonKey(BOON.MIGHT),
       stacks: clamp(Number(a.might) || 0, 0, 25)
     }),
     ...PERMANENT_BOONS.map(([key, name]) =>

@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -12,8 +13,8 @@ export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         hits: 1
       },
       // The modeled counterattack grants its boons alongside the strike.
-      { type: 'boon', boon: 'protection', duration: 3, stacks: 1, audience: { recipients: 'party' } },
-      { type: 'boon', boon: 'aegis', duration: 6, stacks: 1, audience: { recipients: 'party' } }
+      { type: 'boon', boon: BOON.PROTECTION, duration: 3, stacks: 1, audience: { recipients: 'party' } },
+      { type: 'boon', boon: BOON.AEGIS, duration: 6, stacks: 1, audience: { recipients: 'party' } }
     ]
   },
   [ID.FAITHFUL_STRIKE]: {
@@ -63,7 +64,7 @@ export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
       // Regeneration follows the symbol's pulses so mace boon-duration traits affect actual applications.
       {
         type: 'boon',
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 1,
         stacks: 1,
         applications: 5,

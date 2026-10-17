@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Spinegazer family.
@@ -19,7 +20,7 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 3,
         source: 'ranger-pet',
@@ -44,7 +45,7 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 6,
         duration: 6,
         source: 'ranger-pet',
@@ -74,7 +75,7 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
       },
       {
         type: 'condition',
-        condition: 'Confusion',
+        condition: CONDITION.CONFUSION,
         stacks: 6,
         duration: 6,
         source: 'ranger-pet',

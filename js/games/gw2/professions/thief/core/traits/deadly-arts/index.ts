@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
@@ -75,7 +77,7 @@ export const deadlyAmbition = defineTrait({
   balance: {
     attributeBonus: 180,
     playerStacks: 2,
-    effects: [{ type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 1, duration: 3 }]
+    effects: [{ type: 'condition', name: CONDITION.POISONED, condition: CONDITION.POISONED, stacks: 1, duration: 3 }]
   },
   attributes({ balanceContext }) {
     return {
@@ -100,8 +102,8 @@ export const evenTheOdds = defineTrait({
     effects: [
       {
         type: 'condition',
-        name: 'Vulnerability',
-        condition: 'Vulnerability',
+        name: CONDITION.VULNERABILITY,
+        condition: CONDITION.VULNERABILITY,
         stacks: 10,
         duration: 10
       }
@@ -183,8 +185,8 @@ export const lotusPoison = defineTrait({
   balance: {
     internalCooldown: 10,
     effects: [
-      { type: 'boon', name: 'Might', boon: 'Might', stacks: 3, duration: 10, audience: { recipients: 'self' } },
-      { type: 'condition', name: 'Weakness', condition: 'Weakness', stacks: 1, duration: 4 }
+      { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 3, duration: 10, audience: { recipients: 'self' } },
+      { type: 'condition', name: CONDITION.WEAKNESS, condition: CONDITION.WEAKNESS, stacks: 1, duration: 4 }
     ]
   }
 });
@@ -214,12 +216,12 @@ export const panicStrike = defineTrait({
     effects: [
       {
         type: 'condition',
-        name: 'Immobilized',
-        condition: 'Immobilized',
+        name: CONDITION.IMMOBILIZED,
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 2.5
       },
-      { type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 1, duration: 4 }
+      { type: 'condition', name: CONDITION.POISONED, condition: CONDITION.POISONED, stacks: 1, duration: 4 }
     ]
   }
 });
@@ -235,7 +237,7 @@ export const potentPoison = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.POTENT_POISON, 'conditionDamageMultiplier'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === 'Poisoned'
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === CONDITION.POISONED
     }
   ],
   balance: {
@@ -314,20 +316,20 @@ export const serpentsTouch = defineTrait({
   triggers: [onTriggerPoint(stealAccepted, { run: applySerpentsTouch })],
   balance: {
     playerStacks: 3,
-    effects: [{ type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 2, duration: 10 }]
+    effects: [{ type: 'condition', name: CONDITION.POISONED, condition: CONDITION.POISONED, stacks: 2, duration: 10 }]
   }
 });
 
 function applyEvenTheOdds(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EVEN_THE_ODDS);
-  const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+  const vulnerability = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 
   if (!vulnerability) return;
 
   emitTraitProfile(runtime, TRAIT.EVEN_THE_ODDS, TRAIT.EVEN_THE_ODDS, undefined, {
     at: runtime.time,
     fullEnd: runtime.time,
-    effect: { type: 'condition', name: 'Vulnerability' },
+    effect: { type: 'condition', name: CONDITION.VULNERABILITY },
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.EVEN_THE_ODDS,
@@ -368,14 +370,14 @@ function applyMug(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
 /** Serpent's Touch Poison is attributed to its trait while retaining the triggering steal. */
 function applySerpentsTouch(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.SERPENTS_TOUCH);
-  const poison = requireEffect(profile, 'condition', 'Poisoned');
+  const poison = requireEffect(profile, 'condition', CONDITION.POISONED);
 
   if (!poison) return;
 
   emitTraitProfile(runtime, TRAIT.SERPENTS_TOUCH, TRAIT.SERPENTS_TOUCH, undefined, {
     at: runtime.time,
     fullEnd: runtime.time,
-    effect: { type: 'condition', name: 'Poisoned' },
+    effect: { type: 'condition', name: CONDITION.POISONED },
     attribution: {
       source: 'Trait',
       skillId: TRAIT.SERPENTS_TOUCH,
@@ -414,7 +416,7 @@ function applyDeadlyAmbition(context: ThiefResolverContext, { cause }: ThiefStri
   const state = professionCoreState(context);
 
   const deadlyAmbitionProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_AMBITION);
-  const poison = requireEffect(deadlyAmbitionProfile, 'condition', 'Poisoned');
+  const poison = requireEffect(deadlyAmbitionProfile, 'condition', CONDITION.POISONED);
 
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!poison) return;
@@ -427,7 +429,7 @@ function applyDeadlyAmbition(context: ThiefResolverContext, { cause }: ThiefStri
   emitTraitProfile(context, TRAIT.DEADLY_AMBITION, TRAIT.DEADLY_AMBITION, undefined, {
     at: event.at,
     fullEnd: event.at,
-    effect: { type: 'condition', name: 'Poisoned' },
+    effect: { type: 'condition', name: CONDITION.POISONED },
     settlement: 'reaction',
     attribution: {
       source: 'Trait',
@@ -445,7 +447,11 @@ function applyDeadlyAmbition(context: ThiefResolverContext, { cause }: ThiefStri
 
 /** Player-applied poison grants self Might and target Weakness once per shared ten-second cooldown. */
 function applyLotusPoison(context: ThiefResolverContext, { cause: event }: ThiefConditionApplication): void {
-  if (event.condition !== 'Poisoned' || event.actorType !== 'player' || (event.metadata?.triggeredByAlly || 0) > 0)
+  if (
+    event.condition !== CONDITION.POISONED ||
+    event.actorType !== 'player' ||
+    (event.metadata?.triggeredByAlly || 0) > 0
+  )
     return;
 
   const lotusPoisonProfile = requireBalanceProfileFromContext(context, TRAIT.LOTUS_POISON);
@@ -459,14 +465,14 @@ function applyLotusPoison(context: ThiefResolverContext, { cause: event }: Thief
   )
     return;
 
-  const might = requireEffect(lotusPoisonProfile, 'boon', 'Might');
+  const might = requireEffect(lotusPoisonProfile, 'boon', BOON.MIGHT);
 
   if (might) {
     const boon = String(might.boon);
     emitTraitProfile(context, TRAIT.LOTUS_POISON, TRAIT.LOTUS_POISON, undefined, {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'boon', name: 'Might' },
+      effect: { type: 'boon', name: BOON.MIGHT },
       durationContext: event,
       attribution: {
         source: 'Trait',
@@ -481,13 +487,13 @@ function applyLotusPoison(context: ThiefResolverContext, { cause: event }: Thief
     });
   }
 
-  const weakness = requireEffect(lotusPoisonProfile, 'condition', 'Weakness');
+  const weakness = requireEffect(lotusPoisonProfile, 'condition', CONDITION.WEAKNESS);
 
   if (weakness)
     emitTraitProfile(context, TRAIT.LOTUS_POISON, TRAIT.LOTUS_POISON, undefined, {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'condition', name: 'Weakness' },
+      effect: { type: 'condition', name: CONDITION.WEAKNESS },
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.LOTUS_POISON,
@@ -508,7 +514,7 @@ function applyPanicStrike(context: ThiefResolverContext, { cause: event }: Venom
 
   if (poisonTargetConditionCount(context, event.at) < balanceProfileNumber(panicStrikeProfile, 'threshold')) return;
 
-  const immobilized = requireEffect(panicStrikeProfile, 'condition', 'Immobilized');
+  const immobilized = requireEffect(panicStrikeProfile, 'condition', CONDITION.IMMOBILIZED);
 
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!immobilized) return;
@@ -526,7 +532,7 @@ function applyPanicStrike(context: ThiefResolverContext, { cause: event }: Venom
   emitTraitProfile(context, TRAIT.PANIC_STRIKE, TRAIT.PANIC_STRIKE, undefined, {
     at: event.at,
     fullEnd: event.at,
-    effect: { type: 'condition', name: 'Immobilized' },
+    effect: { type: 'condition', name: CONDITION.IMMOBILIZED },
     settlement: 'reaction',
     attribution: {
       source: 'Trait',
@@ -545,10 +551,10 @@ function applyPanicStrikePoison(
   context: ThiefResolverContext,
   { cause: application }: ThiefConditionApplication
 ): void {
-  if (application.condition !== 'Immobilized' || application.actorType !== 'player') return;
+  if (application.condition !== CONDITION.IMMOBILIZED || application.actorType !== 'player') return;
 
   const panicStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.PANIC_STRIKE);
-  const poison = requireEffect(panicStrikeProfile, 'condition', 'Poisoned');
+  const poison = requireEffect(panicStrikeProfile, 'condition', CONDITION.POISONED);
 
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!poison) return;
@@ -556,7 +562,7 @@ function applyPanicStrikePoison(
   emitTraitProfile(context, TRAIT.PANIC_STRIKE, TRAIT.PANIC_STRIKE, undefined, {
     at: application.at,
     fullEnd: application.at,
-    effect: { type: 'condition', name: 'Poisoned' },
+    effect: { type: 'condition', name: CONDITION.POISONED },
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.PANIC_STRIKE,

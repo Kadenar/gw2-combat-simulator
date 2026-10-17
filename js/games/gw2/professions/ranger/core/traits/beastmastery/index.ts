@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
@@ -207,7 +209,7 @@ export const wiltingStrike = defineTrait({
   id: TRAIT.WILTING_STRIKE,
   name: 'Wilting Strike',
   balance: {
-    effects: [{ name: 'Weakness', type: 'condition', condition: 'Weakness', duration: 4, stacks: 1 }]
+    effects: [{ name: CONDITION.WEAKNESS, type: 'condition', condition: CONDITION.WEAKNESS, duration: 4, stacks: 1 }]
   }
 });
 
@@ -226,7 +228,7 @@ export const goForTheEyes = defineTrait({
       {
         name: 'Blind',
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5
       }
@@ -241,8 +243,8 @@ export const bestialRage = defineTrait({
   balance: {
     internalCooldown: 0.25,
     effects: [
-      { name: 'might', type: 'boon', boon: 'might', duration: 8, stacks: 5 },
-      { name: 'fury', type: 'boon', boon: 'fury', duration: 3, stacks: 1 }
+      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 8, stacks: 5 },
+      { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, duration: 3, stacks: 1 }
     ]
   }
 });
@@ -292,11 +294,12 @@ export const bestialRageControl = compileProfessionRules<RangerRuntimeState>({
       cooldown: 'profile',
       // Only the surviving boon effects can activate this trait's control proc.
       when: (runtime) =>
-        ['might', 'fury'].some((effectName) =>
+        [boonKey(BOON.MIGHT), boonKey(BOON.FURY)].some((effectName) =>
           Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.BESTIAL_RAGE), 'boon', effectName))
         ),
       effects: (effect) =>
-        (effect.type === 'boon' || effect.type === 'buff') && (effect.name === 'might' || effect.name === 'fury'),
+        (effect.type === 'boon' || effect.type === 'buff') &&
+        (effect.name === boonKey(BOON.MIGHT) || effect.name === boonKey(BOON.FURY)),
       attribution: (_runtime, event) => ({
         skillId: TRAIT.BESTIAL_RAGE,
         skillName: 'Bestial Rage',
@@ -469,7 +472,7 @@ function triggerMergedGoForTheEyes(context: RangerResolverContext, event: Gw2Res
 /** Runs once on the accepted first hit of the merged Beast ability. */
 function triggerMergedWiltingStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.WILTING_STRIKE);
-  const weakness = requireEffect(profile, 'condition', 'Weakness');
+  const weakness = requireEffect(profile, 'condition', CONDITION.WEAKNESS);
 
   if (weakness)
     context.effects.emit(rangerProfileEffectRequest(event, profile, weakness, TRAIT.WILTING_STRIKE, 'Wilting Strike'));

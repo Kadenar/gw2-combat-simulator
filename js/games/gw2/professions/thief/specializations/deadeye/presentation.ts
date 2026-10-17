@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
@@ -50,7 +51,7 @@ export const deadeyeUi = Object.freeze({
       ),
       description: 'Malice consumed by a malicious attack'
     });
-    preview.boon('quickness', 'Be Quick or Be Killed');
+    preview.boon(boonKey(BOON.QUICKNESS), 'Be Quick or Be Killed');
     return preview.controls;
   },
 

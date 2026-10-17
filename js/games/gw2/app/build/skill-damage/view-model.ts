@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type {
   SkillDamageGroupKind,
   SkillDamagePlan,
@@ -219,5 +220,5 @@ export function conditionPerSecond(row: SkillDamageConditionRow): number | null 
 
 /** The game's display names for resolver condition keys. */
 export function conditionLabel(condition: string): string {
-  return condition === 'Poisoned' ? 'Poison' : condition;
+  return condition === CONDITION.POISONED ? 'Poison' : condition;
 }

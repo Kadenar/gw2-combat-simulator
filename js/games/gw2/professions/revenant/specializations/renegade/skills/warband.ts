@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
@@ -69,7 +70,7 @@ export function razorclawsRage(
 
   if (!proc) throw new Error("Missing Razorclaw's Rage proc declaration.");
 
-  const bleed = requireEffect(proc, 'condition', 'Bleeding');
+  const bleed = requireEffect(proc, 'condition', CONDITION.BLEEDING);
 
   // Charges exist only to deliver the empowered bleed, so either removal arms nothing.
   if (!buff || !bleed) return;
@@ -156,7 +157,7 @@ export function razorclawProc(runtime: RevenantRuntime, event: Gw2ResolverEvent)
 
   if (!profile) throw new Error("Missing Razorclaw's Rage proc declaration.");
 
-  const effect = requireEffect(profile, 'condition', 'Bleeding');
+  const effect = requireEffect(profile, 'condition', CONDITION.BLEEDING);
 
   // Charges exist only to deliver the bleed, so a removed packet leaves them unspent.
   if (!effect) return;

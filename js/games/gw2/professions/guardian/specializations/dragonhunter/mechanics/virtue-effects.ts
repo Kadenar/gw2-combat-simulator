@@ -1,3 +1,5 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
@@ -113,7 +115,7 @@ const couragePulse = createPassiveCourageTask({
         skillId: skill.id,
         skillName: skill.name,
         name: 'Shield of Courage — Passive Aegis',
-        kind: 'aegis',
+        kind: boonKey(BOON.AEGIS),
         duration: effectNumber(profile, effect, 'duration'),
         stacks: effectNumber(profile, effect, 'stacks')
       }
@@ -160,7 +162,7 @@ function tetherBurn(runtime: GuardianRuntime, data: unknown): void {
     return;
 
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.tether);
-  const effect = requireEffect(profile, 'condition', 'Burning');
+  const effect = requireEffect(profile, 'condition', CONDITION.BURNING);
 
   if (!effect) return;
 

@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Explicit PvE skill mechanics owned by the Druid Ranger module. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -42,7 +44,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: impactEffects({ atMs: SEED_OF_LIFE_DETONATION_MS, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 4
       }
@@ -82,7 +84,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: [
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 10,
         stacks: 1,
         applications: 5,
@@ -119,11 +121,11 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         ticks: [520, 1160, 1640, 2040].flatMap((atMs) => [
           {
             atMs,
-            condition: 'Crippled',
+            condition: CONDITION.CRIPPLED,
             stacks: 1,
             duration: 1
           },
-          { atMs, condition: 'Slow', stacks: 1, duration: 1 }
+          { atMs, condition: CONDITION.SLOW, stacks: 1, duration: 1 }
         ])
       },
       {
@@ -158,14 +160,14 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         applications: 4,
         atMs: 2640,
         intervalMs: 1520,
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 2,
         skillName: 'Black Hole'
       },
       ...[520, 1160, 1640, 2040].map((atMs) => ({
         type: 'boon' as const,
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 10,
         stacks: 1,
         atMs,

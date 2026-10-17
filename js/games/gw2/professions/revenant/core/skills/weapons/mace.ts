@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -22,7 +24,7 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         },
         {
           type: 'condition',
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           stacks: 1,
           duration: 12,
           actorType: 'player'
@@ -48,7 +50,7 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         },
         {
           type: 'condition',
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           stacks: 1,
           duration: 3,
           actorType: 'player'
@@ -74,7 +76,7 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         },
         {
           type: 'condition',
-          condition: 'Torment',
+          condition: CONDITION.TORMENT,
           stacks: 1,
           duration: 3,
           actorType: 'player'
@@ -106,21 +108,21 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 4,
         duration: 5,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 3,
         actorType: 'player'
       },
       {
         type: 'boon',
-        boon: 'Might',
+        boon: BOON.MIGHT,
         duration: 9,
         stacks: 3
       }
@@ -156,14 +158,14 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 480, condition: 'Burning', stacks: 3, duration: 3 }],
+        ticks: [{ atMs: 480, condition: CONDITION.BURNING, stacks: 3, duration: 3 }],
         actorType: 'player'
       },
       {
         type: 'condition',
         ticks: Array.from({ length: 3 }, (_, index) => ({
           atMs: 1480 + index * 1000,
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 1
         })),

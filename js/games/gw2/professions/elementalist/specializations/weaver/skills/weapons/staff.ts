@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Staff weapon-skill mechanics owned by the Weaver module.
  *
@@ -35,12 +37,12 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       { type: 'strike', coefficient: 2 },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 4,
         applications: 1
       },
-      { type: 'boon', boon: 'Regeneration', stacks: 1, duration: 4, metadata: {} }
+      { type: 'boon', boon: BOON.REGENERATION, stacks: 1, duration: 4, metadata: {} }
     ]),
     specialization: 'Weaver'
   },
@@ -95,7 +97,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       ...impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.8 },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 3, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3, metadata: {} }
       ]),
       {
         type: 'strike',
@@ -129,25 +131,25 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         ticks: [
           {
             atMs: 1720,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 1
           },
           {
             atMs: 2720,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 1
           },
           {
             atMs: 3720,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 1
           },
           {
             atMs: 4720,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 1
           }
@@ -175,8 +177,8 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       ...impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.25, canCrit: true },
-        { type: 'condition', condition: 'Vulnerability', stacks: 8, duration: 8, metadata: {} },
-        { type: 'condition', condition: 'Chilled', stacks: 1, duration: 4, metadata: {} },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 8, duration: 8, metadata: {} },
+        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 4, metadata: {} },
         { type: 'control', applications: 1, controlKind: 'crowd-control' }
       ]),
       {
@@ -224,14 +226,19 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       },
       {
         type: 'condition',
-        ticks: [1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, condition: 'Crippled', stacks: 1, duration: 2 })),
+        ticks: [1280, 2280, 3280, 4280, 5280].map((atMs) => ({
+          atMs,
+          condition: CONDITION.CRIPPLED,
+          stacks: 1,
+          duration: 2
+        })),
         metadata: {}
       },
       {
         type: 'condition',
         ticks: [1280, 2280, 3280, 4280, 5280].map((atMs) => ({
           atMs,
-          condition: 'Immobilized',
+          condition: CONDITION.IMMOBILIZED,
           stacks: 1,
           duration: 2
         })),

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
 import type { EffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import type { Gw2ConditionCalculation, SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -74,7 +75,7 @@ export function createGw2ConditionResolution({
     // The shared formula owns Torment's target-motion branch; Confusion adds configured activation damage below.
     let rate = conditionTickDamage(name, conditionDamage, { stationary: !ctx.config.target?.moving });
 
-    if (name === 'Confusion') {
+    if (name === CONDITION.CONFUSION) {
       const formula = CONDITION_FORMULAS.Confusion;
       rate +=
         (ctx.config.target?.confusionActivationsPerSecond || 0) *

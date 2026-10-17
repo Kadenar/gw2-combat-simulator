@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -37,7 +38,7 @@ export const sereneRejuvenation = defineTrait({
     effects: [
       {
         type: 'boon',
-        boon: 'vigor',
+        boon: BOON.VIGOR,
         duration: 2,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 },
@@ -45,7 +46,7 @@ export const sereneRejuvenation = defineTrait({
       },
       {
         type: 'boon',
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 3,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 },
@@ -53,7 +54,7 @@ export const sereneRejuvenation = defineTrait({
       },
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 5,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 },
@@ -61,7 +62,7 @@ export const sereneRejuvenation = defineTrait({
       },
       {
         type: 'boon',
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         duration: 4,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 },

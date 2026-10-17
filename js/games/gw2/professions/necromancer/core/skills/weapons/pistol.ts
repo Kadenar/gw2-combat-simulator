@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -23,7 +24,7 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
         ],
         coefficient: 1
       },
-      { type: 'condition', condition: 'Poisoned', stacks: 5, duration: 6 },
+      { type: 'condition', condition: CONDITION.POISONED, stacks: 5, duration: 6 },
       { type: 'control', controlKind: 'control' }
     ])
   },
@@ -58,12 +59,17 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
         },
         {
           type: 'condition',
-          ticks: [240, 360, 520, 640, 760, 880].map((atMs) => ({ atMs, condition: 'Torment', stacks: 1, duration: 4 }))
+          ticks: [240, 360, 520, 640, 760, 880].map((atMs) => ({
+            atMs,
+            condition: CONDITION.TORMENT,
+            stacks: 1,
+            duration: 4
+          }))
         }
       ]),
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         duration: 6,
         stacks: 6
       }
@@ -84,7 +90,7 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.65 },
-      { type: 'condition', condition: 'Torment', stacks: 1, duration: 3.5 }
+      { type: 'condition', condition: CONDITION.TORMENT, stacks: 1, duration: 3.5 }
     ])
   }
 });

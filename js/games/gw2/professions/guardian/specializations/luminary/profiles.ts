@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -22,7 +24,7 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     name: 'Radiant Courage - Gleaming Blade Immobilize',
     profileKind: 'skill-variant',
     parentId: ID.GLEAMING_BLADE,
-    effects: [{ type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 }]
+    effects: [{ type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }]
   },
   // Support weapons replace the strike with a party boon; every weapon applies the shared vulnerability afterward.
   {
@@ -31,7 +33,13 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     profileKind: 'skill-variant',
     parentId: ID.GLARING_BURST,
     effects: [
-      { type: 'boon', name: 'regeneration', boon: 'regeneration', duration: 2, audience: { recipients: 'party' } }
+      {
+        type: 'boon',
+        name: boonKey(BOON.REGENERATION),
+        boon: BOON.REGENERATION,
+        duration: 2,
+        audience: { recipients: 'party' }
+      }
     ]
   },
   {
@@ -40,7 +48,13 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     profileKind: 'skill-variant',
     parentId: ID.GLARING_BURST,
     effects: [
-      { type: 'boon', name: 'resolution', boon: 'resolution', duration: 1.5, audience: { recipients: 'party' } }
+      {
+        type: 'boon',
+        name: boonKey(BOON.RESOLUTION),
+        boon: BOON.RESOLUTION,
+        duration: 1.5,
+        audience: { recipients: 'party' }
+      }
     ]
   },
   {
@@ -48,7 +62,9 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     name: 'Glaring Burst — Shared Vulnerability',
     profileKind: 'skill-variant',
     parentId: ID.GLARING_BURST,
-    effects: [{ type: 'condition', name: 'Vulnerability', condition: 'Vulnerability', stacks: 1, duration: 8 }]
+    effects: [
+      { type: 'condition', name: CONDITION.VULNERABILITY, condition: CONDITION.VULNERABILITY, stacks: 1, duration: 8 }
+    ]
   },
   {
     id: LUMINARY_BALANCE_PROFILE_IDS.forge,
@@ -100,8 +116,8 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
       },
       {
         type: 'condition',
-        name: 'Vulnerability',
-        condition: 'Vulnerability',
+        name: CONDITION.VULNERABILITY,
+        condition: CONDITION.VULNERABILITY,
         stacks: 8,
         duration: 8
       }

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Fanged Iboga family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -17,13 +18,13 @@ export const SOULBEAST_FANGED_IBOGA_BEAST_SKILL_MECHANICS: Readonly<Record<numbe
       },
       {
         type: 'condition',
-        condition: 'Confusion',
+        condition: CONDITION.CONFUSION,
         stacks: 6,
         duration: 8
       },
       {
         type: 'condition',
-        condition: 'Confusion',
+        condition: CONDITION.CONFUSION,
         stacks: 6,
         duration: 3
       }
@@ -39,13 +40,13 @@ export const SOULBEAST_FANGED_IBOGA_BEAST_SKILL_MECHANICS: Readonly<Record<numbe
       },
       {
         type: 'condition',
-        condition: 'Confusion',
+        condition: CONDITION.CONFUSION,
         stacks: 3,
         duration: 3
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 2,
         duration: 6
       }

@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Harbinger elixir skill fragments.
  * Impact hooks read Blight gain from the mapped empowered balance profile for both impact variants.
@@ -32,10 +34,10 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       { atMs: 400, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 2, hits: 1 },
-        { type: 'condition', condition: 'Torment', stacks: 3, duration: 5 },
-        { type: 'condition', condition: 'Weakness', stacks: 1, duration: 5 },
-        { type: 'boon', boon: 'might', stacks: 10, duration: 10 },
-        { type: 'boon', boon: 'fury', stacks: 1, duration: 10 }
+        { type: 'condition', condition: CONDITION.TORMENT, stacks: 3, duration: 5 },
+        { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 5 },
+        { type: 'boon', boon: BOON.MIGHT, stacks: 10, duration: 10 },
+        { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 10 }
       ]
     ),
     cooldown: 20
@@ -49,7 +51,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       { type: 'strike', coefficient: 0.8, hits: 1 },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 2
       }
@@ -74,10 +76,10 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
           stacks: 3,
           duration: 5
         })),
-        { type: 'boon', boon: 'might', stacks: 25, duration: 5 },
-        { type: 'boon', boon: 'fury', stacks: 1, duration: 5 },
-        { type: 'boon', boon: 'quickness', stacks: 1, duration: 5 },
-        { type: 'boon', boon: 'alacrity', stacks: 1, duration: 5 }
+        { type: 'boon', boon: BOON.MIGHT, stacks: 25, duration: 5 },
+        { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 5 },
+        { type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 5 },
+        { type: 'boon', boon: BOON.ALACRITY, stacks: 1, duration: 5 }
       ]
     )
   },
@@ -89,9 +91,9 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 1, hits: 1 },
       // Anguish pairs enemy control with mobility; its empowered profile doubles these durations.
-      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 5 },
-      { type: 'boon', boon: 'quickness', stacks: 1, duration: 5 },
-      { type: 'boon', boon: 'swiftness', stacks: 1, duration: 10 }
+      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 5 },
+      { type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 5 },
+      { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 10 }
     ])
   },
   [ID.ELIXIR_OF_PROMISE]: {
@@ -105,7 +107,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       { atMs: 400, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 0.8, hits: 1 },
-        { type: 'condition', condition: 'Poisoned', stacks: 3, duration: 5 }
+        { type: 'condition', condition: CONDITION.POISONED, stacks: 3, duration: 5 }
       ]
     )
   }

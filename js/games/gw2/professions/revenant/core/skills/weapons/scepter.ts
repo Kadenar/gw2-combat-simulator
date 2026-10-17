@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -49,7 +51,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 3,
         actorType: 'player'
@@ -83,7 +85,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 9,
         stacks: 2
       }
@@ -135,21 +137,21 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     effects: [
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 10,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 2,
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Slow',
+        condition: CONDITION.SLOW,
         stacks: 1,
         duration: 1,
         actorType: 'player'
@@ -163,7 +165,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     cooldown: 0,
     energyCost: 10,
     effects: [
-      { type: 'condition', condition: 'Vulnerability', stacks: 6, duration: 10, actorType: 'player' },
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 6, duration: 10, actorType: 'player' },
       { type: 'control', controlKind: 'pull', actorType: 'player' }
     ]
   },

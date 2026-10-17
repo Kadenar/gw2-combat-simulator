@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import type { Gw2BuffAudience } from '#gw2/platform/combat/boons.js';
 import {
@@ -86,7 +87,7 @@ export function createGw2TimelineIndex({
     if (cached) return cached;
 
     const retiredAt = retiredCompanions.get(companionId) ?? Infinity;
-    const windows = prepareBoonWindows(events, 'alacrity', 'summon', companionId, resolved)
+    const windows = prepareBoonWindows(events, boonKey(BOON.ALACRITY), 'summon', companionId, resolved)
       .filter((window) => window.start < retiredAt)
       .map((window) => ({ ...window, end: Math.min(window.end, retiredAt) }));
 
@@ -166,7 +167,7 @@ export function createGw2TimelineIndex({
       }
 
       if (event.type === 'buff') {
-        if (event.kind === 'alacrity') alacrityWindows.clear();
+        if (event.kind === boonKey(BOON.ALACRITY)) alacrityWindows.clear();
 
         indexBuff(event);
       }
@@ -271,7 +272,8 @@ export function createGw2TimelineIndex({
     return buffStacksAt(kind, time, 0, 1) > 0;
   };
 
-  const vigorActiveAt = (time: number): boolean => Boolean(config.boons?.vigor) || timedActive('vigor', time);
+  const vigorActiveAt = (time: number): boolean =>
+    Boolean(config.boons?.vigor) || timedActive(boonKey(BOON.VIGOR), time);
 
   const activeWeaponSetAt = (time: number): number => {
     time = canonicalTime(time);

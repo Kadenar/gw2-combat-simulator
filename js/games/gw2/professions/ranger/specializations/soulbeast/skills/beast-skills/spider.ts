@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Spider family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -11,7 +12,7 @@ export const SOULBEAST_SPIDER_BEAST_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: [
       {
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 1,
         duration: 6
       }
@@ -26,7 +27,7 @@ export const SOULBEAST_SPIDER_BEAST_SKILL_MECHANICS: Readonly<Record<number, Par
         hits: 1
       },
       // The merged spider web immobilizes on impact (wiki: Entangling_Web_(soulbeast), PvE).
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 3 }
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 3 }
     ]
   }
 });

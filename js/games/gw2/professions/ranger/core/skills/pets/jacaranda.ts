@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Core Ranger pet skill fragments for the Jacaranda family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -21,7 +23,7 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'boon',
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1,
         source: 'ranger-pet',
@@ -48,8 +50,8 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'condition',
         ticks: [
-          { atMs: EMBRACE_STRIKE_MS, condition: 'Vulnerability', stacks: 1, duration: 8 },
-          { atMs: EMBRACE_STRIKE_MS, condition: 'Immobilized', stacks: 1, duration: 1 }
+          { atMs: EMBRACE_STRIKE_MS, condition: CONDITION.VULNERABILITY, stacks: 1, duration: 8 },
+          { atMs: EMBRACE_STRIKE_MS, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1 }
         ],
         source: 'ranger-pet',
         actorType: 'summon'
@@ -64,8 +66,8 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'condition',
         ticks: EMBRACE_VINE_PULSE_TIMES_MS.flatMap((atMs) => [
-          { atMs, condition: 'Vulnerability', stacks: 1, duration: 8 },
-          { atMs, condition: 'Immobilized', stacks: 1, duration: 2 }
+          { atMs, condition: CONDITION.VULNERABILITY, stacks: 1, duration: 8 },
+          { atMs, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }
         ]),
         source: 'ranger-pet',
         actorType: 'player'
@@ -109,7 +111,7 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'condition',
         ticks: CALL_LIGHTNING_PULSE_TIMES_MS.map((atMs) => ({
           atMs,
-          condition: 'Vulnerability',
+          condition: CONDITION.VULNERABILITY,
           stacks: 1,
           duration: 6
         })),

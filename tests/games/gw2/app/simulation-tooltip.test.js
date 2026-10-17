@@ -1109,9 +1109,7 @@ test('New Genes tooltip lists shared boons and each Morph bonus once', async () 
     const qualifier = effect.metadata?.trigger
       ? `${effect.metadata.trigger.replace(/^\w/, (letter) => letter.toUpperCase())} only`
       : 'All Morph skills';
-    const matching = model.facts.filter(
-      (fact) => fact.name.toLowerCase() === effect.boon && fact.detail.endsWith(`— ${qualifier}`)
-    );
+    const matching = model.facts.filter((fact) => fact.name === effect.boon && fact.detail.endsWith(`— ${qualifier}`));
     assert.equal(matching.length, 1, `${effect.name} appears once with its granting skill`);
   }
 

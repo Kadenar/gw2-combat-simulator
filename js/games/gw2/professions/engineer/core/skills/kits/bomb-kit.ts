@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Core Engineer Bomb Kit skill mechanics. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -76,7 +77,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
       },
       {
         type: 'condition',
-        condition: 'Confusion',
+        condition: CONDITION.CONFUSION,
         stacks: 6,
         duration: 8,
         actorType: 'player'
@@ -114,14 +115,14 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 760, condition: 'Burning', stacks: 2, duration: 5 }],
+        ticks: [{ atMs: 760, condition: CONDITION.BURNING, stacks: 2, duration: 5 }],
         actorType: 'player'
       },
       {
         type: 'condition',
         ticks: Array.from({ length: 3 }, (_, index) => ({
           atMs: 1760 + index * 1000,
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 2
         })),
@@ -136,7 +137,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
     effects: [
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 3,
         actorType: 'player'

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -15,7 +16,7 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
       { atMs: 560, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 0.8 },
-        { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 10 }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 10 }
       ]
     )
   },
@@ -27,8 +28,8 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
       { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 0.5 },
-        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 4.5 },
-        { type: 'condition', condition: 'Poisoned', stacks: 1, duration: 6 }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4.5 },
+        { type: 'condition', condition: CONDITION.POISONED, stacks: 1, duration: 6 }
       ]
     )
   },
@@ -37,7 +38,7 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.35 },
-      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 4.5 }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4.5 }
     ])
   },
   [ID.RENDING_CURSE]: {
@@ -45,7 +46,7 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.35 },
-      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 4.5 }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4.5 }
     ])
   },
   [ID.FEAST_OF_CORRUPTION]: {
@@ -72,7 +73,7 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 4
       }
@@ -106,7 +107,7 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
         ],
         coefficient: 1.16
       },
-      { type: 'condition', condition: 'Torment', stacks: 1, duration: 4 }
+      { type: 'condition', condition: CONDITION.TORMENT, stacks: 1, duration: 4 }
     ],
 
     flipParentId: null

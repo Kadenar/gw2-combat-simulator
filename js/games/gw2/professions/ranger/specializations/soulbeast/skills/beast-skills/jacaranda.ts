@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Jacaranda family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -11,7 +13,7 @@ export const SOULBEAST_JACARANDA_BEAST_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'boon',
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 5,
         stacks: 1
       }
@@ -28,7 +30,7 @@ export const SOULBEAST_JACARANDA_BEAST_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 6
       }

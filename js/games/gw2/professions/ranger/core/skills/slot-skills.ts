@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeBuff, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import {
@@ -69,7 +71,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 6,
         duration: 6
       }
@@ -85,7 +87,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'regeneration',
+        boon: BOON.REGENERATION,
         duration: 3,
         stacks: 6
       }
@@ -104,7 +106,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       },
       ...[520, 1520, 2520, 3520].map((atMs) => ({
         type: 'condition' as const,
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 1,
         atMs
@@ -120,7 +122,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         type: 'condition',
         ticks: [880, 1880, 2880, 3880, 4880].map((atMs) => ({
           atMs,
-          condition: 'Chilled',
+          condition: CONDITION.CHILLED,
           stacks: 1,
           duration: 2
         }))
@@ -150,11 +152,11 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: [
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 10,
         duration: 10
       },
-      spiritShakes('fury', 2)
+      spiritShakes(boonKey(BOON.FURY), 2)
     ],
     castTimeMs: 360
   },
@@ -163,21 +165,21 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'aegis',
+        boon: BOON.AEGIS,
         duration: 5,
         stacks: 1
       },
       ...spiritSlam([
         {
           type: 'condition',
-          condition: 'Crippled',
+          condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 6,
           comboFinishers: [{ ownerId: 'ranger', finisherType: 'Blast' }]
         },
-        { type: 'condition', condition: 'Weakness', stacks: 1, duration: 6 }
+        { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 6 }
       ]),
-      spiritShakes('protection', 2)
+      spiritShakes(boonKey(BOON.PROTECTION), 2)
     ],
     castTimeMs: 167
   },
@@ -196,7 +198,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         type: 'condition',
         ticks: [1400, 2400, 3400].map((atMs) => ({
           atMs,
-          condition: 'Poisoned',
+          condition: CONDITION.POISONED,
           stacks: 2,
           duration: 8
         }))
@@ -219,7 +221,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       {
         type: 'boon',
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         duration: 4,
         stacks: 1
       },
@@ -232,7 +234,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
           comboFinishers: [{ ownerId: 'ranger', finisherType: 'Blast' }]
         }
       ]),
-      spiritShakes('resolution', 2)
+      spiritShakes(boonKey(BOON.RESOLUTION), 2)
     ],
     castTimeMs: 167
   },
@@ -240,10 +242,10 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     // A committed summon schedules Solar Flare alongside its first shake.
     sideEffects: [{ on: 'castCommit', do: { type: 'ranger.sun-spirit' } }],
     effects: [
-      spiritShakes('might', 15, 2),
+      spiritShakes(boonKey(BOON.MIGHT), 15, 2),
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5
       }
@@ -268,7 +270,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         type: 'condition',
         ticks: [520, 520, 1000, 1520, 2000, 2520].map((atMs) => ({
           atMs,
-          condition: 'Burning',
+          condition: CONDITION.BURNING,
           stacks: 1,
           duration: 2.5
         }))
@@ -281,18 +283,18 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: [
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 2
       },
       {
         type: 'condition',
-        condition: 'Slow',
+        condition: CONDITION.SLOW,
         stacks: 1,
         duration: 1
       },
       // Immobilize applies once when the area is created, independently of its pulses (wiki: Muddy_Terrain).
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 3 }
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 3 }
     ],
     castTimeMs: 500
   },
@@ -307,21 +309,21 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       },
       {
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         duration: 12,
         stacks: 1,
         audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
-        boon: 'stability',
+        boon: BOON.STABILITY,
         duration: 8,
         stacks: 10,
         audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
-        boon: 'swiftness',
+        boon: BOON.SWIFTNESS,
         duration: 12,
         stacks: 1,
         audience: { recipients: 'summons' as const, maximumRecipients: 2 }
@@ -343,7 +345,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     // Revival has no combat payload while all players remain alive at full health.
     effects: [
       ...spiritSlam([{ type: 'custom', eventType: 'marker', event: { name: "Nature's Renewal" } }]),
-      spiritShakes('regeneration', 3)
+      spiritShakes(boonKey(BOON.REGENERATION), 3)
     ],
     castTimeMs: 1000
   },
@@ -361,7 +363,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         type: 'condition',
         ticks: [1560, 3080, 4600, 6120, 7640].map((atMs) => ({
           atMs,
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 8
         }))
@@ -370,7 +372,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         type: 'condition',
         ticks: [1560, 3080, 4600, 6120, 7640].map((atMs) => ({
           atMs,
-          condition: 'Immobilized',
+          condition: CONDITION.IMMOBILIZED,
           stacks: 1,
           duration: 2
         }))
@@ -385,7 +387,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: [
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 3,
         duration: 6
       }
@@ -411,13 +413,13 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: [
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 6
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 6
       }
@@ -437,7 +439,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: [
       {
         type: 'boon',
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 4,
         stacks: 1
       }
@@ -449,7 +451,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: [
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 10,
         stacks: 1
       }
@@ -467,7 +469,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     // Healing has no combat payload under the fixed-full-health simulation assumption.
     effects: [
       ...spiritSlam([{ type: 'custom', eventType: 'marker', event: { name: 'Aqua Surge' } }]),
-      spiritShakes('vigor', 2)
+      spiritShakes(boonKey(BOON.VIGOR), 2)
     ],
     castTimeMs: 500
   },
@@ -481,18 +483,18 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     categories: ['Command'],
     // These non-emitting templates provide the duration menu for the live two-way copy.
     effects: [
-      { type: 'boon', when: () => false, boon: 'aegis', duration: 5 },
-      { type: 'boon', when: () => false, boon: 'alacrity', duration: 3 },
-      { type: 'boon', when: () => false, boon: 'fury', duration: 3 },
-      { type: 'boon', when: () => false, boon: 'might', duration: 10 },
-      { type: 'boon', when: () => false, boon: 'protection', duration: 2 },
-      { type: 'boon', when: () => false, boon: 'quickness', duration: 2 },
-      { type: 'boon', when: () => false, boon: 'regeneration', duration: 5 },
-      { type: 'boon', when: () => false, boon: 'resistance', duration: 2 },
-      { type: 'boon', when: () => false, boon: 'resolution', duration: 5 },
-      { type: 'boon', when: () => false, boon: 'stability', duration: 3 },
-      { type: 'boon', when: () => false, boon: 'swiftness', duration: 3 },
-      { type: 'boon', when: () => false, boon: 'vigor', duration: 3 }
+      { type: 'boon', when: () => false, boon: BOON.AEGIS, duration: 5 },
+      { type: 'boon', when: () => false, boon: BOON.ALACRITY, duration: 3 },
+      { type: 'boon', when: () => false, boon: BOON.FURY, duration: 3 },
+      { type: 'boon', when: () => false, boon: BOON.MIGHT, duration: 10 },
+      { type: 'boon', when: () => false, boon: BOON.PROTECTION, duration: 2 },
+      { type: 'boon', when: () => false, boon: BOON.QUICKNESS, duration: 2 },
+      { type: 'boon', when: () => false, boon: BOON.REGENERATION, duration: 5 },
+      { type: 'boon', when: () => false, boon: BOON.RESISTANCE, duration: 2 },
+      { type: 'boon', when: () => false, boon: BOON.RESOLUTION, duration: 5 },
+      { type: 'boon', when: () => false, boon: BOON.STABILITY, duration: 3 },
+      { type: 'boon', when: () => false, boon: BOON.SWIFTNESS, duration: 3 },
+      { type: 'boon', when: () => false, boon: BOON.VIGOR, duration: 3 }
     ],
     castTimeMs: 920
   }
@@ -505,7 +507,7 @@ export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<Range
   const copies = (cast.skill.effects ?? [])
     .filter((effect) => effect.type === 'boon')
     .map((effect) => {
-      const kind = String(effect.boon);
+      const kind = String(effect.boon).toLowerCase();
       const player = runtime.combat.boonSnapshot(kind, runtime.time, { actor: 'player' }).stacks;
       return {
         kind,

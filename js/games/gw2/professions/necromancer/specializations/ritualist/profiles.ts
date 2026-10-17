@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
@@ -68,8 +69,8 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         name: 'Summon Spirits - Anguish'
       },
       // Opening conditions are independently patchable and removable from the barrage.
-      { type: 'condition', name: 'Crippled', condition: 'Crippled', stacks: 1, duration: 4 },
-      { type: 'condition', name: 'Vulnerability', condition: 'Vulnerability', stacks: 8, duration: 10 }
+      { type: 'condition', name: CONDITION.CRIPPLED, condition: CONDITION.CRIPPLED, stacks: 1, duration: 4 },
+      { type: 'condition', name: CONDITION.VULNERABILITY, condition: CONDITION.VULNERABILITY, stacks: 8, duration: 10 }
     ]
   },
   {
@@ -119,10 +120,24 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         name: 'Summon Spirits - Wanderlust'
       },
       // Offsets follow the field's first impact, including its travel delay.
-      { type: 'condition', name: 'Chilled', condition: 'Chilled', stacks: 1, duration: 2, atMs: 0 },
-      { type: 'condition', name: 'Vulnerability', condition: 'Vulnerability', stacks: 4, duration: 6, atMs: 1000 },
-      { type: 'condition', name: 'Weakness', condition: 'Weakness', stacks: 1, duration: 4, atMs: 2000 },
-      { type: 'condition', name: 'Slow', condition: 'Slow', stacks: 1, duration: 2, atMs: 3000 }
+      { type: 'condition', name: CONDITION.CHILLED, condition: CONDITION.CHILLED, stacks: 1, duration: 2, atMs: 0 },
+      {
+        type: 'condition',
+        name: CONDITION.VULNERABILITY,
+        condition: CONDITION.VULNERABILITY,
+        stacks: 4,
+        duration: 6,
+        atMs: 1000
+      },
+      {
+        type: 'condition',
+        name: CONDITION.WEAKNESS,
+        condition: CONDITION.WEAKNESS,
+        stacks: 1,
+        duration: 4,
+        atMs: 2000
+      },
+      { type: 'condition', name: CONDITION.SLOW, condition: CONDITION.SLOW, stacks: 1, duration: 2, atMs: 3000 }
     ]
   },
   {
@@ -191,9 +206,9 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         damageKind: 'life-steal'
       },
       {
-        name: 'Vulnerability',
+        name: CONDITION.VULNERABILITY,
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 2,
         duration: 8,
         actorType: 'effect'

@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
@@ -204,7 +205,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         type: 'boon',
         audience: { recipients: 'party' as const, affectsSelf: false, maximumRecipients: 5 },
-        boon: 'Resolution',
+        boon: BOON.RESOLUTION,
         duration: 4
       }
     ])

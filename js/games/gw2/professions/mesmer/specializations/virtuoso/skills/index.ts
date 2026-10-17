@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { bladecallEffects } from '#gw2/professions/mesmer/core/skills/weapons/bladecall.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
@@ -66,7 +67,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
         weapon: 'utility'
       },
       // The falling blade immobilizes at the same impact as its strike (wiki: Sword_of_Decimation, PvE).
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 4 }
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 4 }
     ]
   },
   [ID.BLADE_RENEWAL]: {
@@ -92,7 +93,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
           actorType: 'player',
           weapon: 'utility'
         },
-        { type: 'condition', condition: 'Vulnerability', stacks: 3, duration: 10 }
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 3, duration: 10 }
       ])
     )
   },
@@ -179,7 +180,9 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
       minimumResource: 1,
       resourceSpendProgress: 1,
       ticks: bladePacketTiers([0, 0.42, 0.84, 1.25, 1.67, 2.09], [440, 520, 600, 680, 680]),
-      effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 3, stacks: 1 }]
+      effects: [
+        { name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 3, stacks: 1 }
+      ]
     },
     castTimeMs: 480,
     lockouts: [

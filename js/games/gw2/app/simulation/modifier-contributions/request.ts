@@ -1,3 +1,5 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { BuildContextFactory } from '#gw2/build-context/types.js';
 import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
@@ -19,8 +21,8 @@ function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
     candidates.push({
       id: 'Boon:Might',
       type: 'Boon',
-      name: 'Might',
-      label: 'Might'
+      name: BOON.MIGHT,
+      label: BOON.MIGHT
     });
   }
 
@@ -28,8 +30,8 @@ function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
     candidates.push({
       id: 'Boon:Fury',
       type: 'Boon',
-      name: 'Fury',
-      label: 'Fury'
+      name: BOON.FURY,
+      label: BOON.FURY
     });
   }
 
@@ -37,8 +39,8 @@ function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
     candidates.push({
       id: 'Boon:Resolution',
       type: 'Boon',
-      name: 'Resolution',
-      label: 'Resolution'
+      name: BOON.RESOLUTION,
+      label: BOON.RESOLUTION
     });
   }
 
@@ -46,8 +48,8 @@ function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
     candidates.push({
       id: 'Target:Vulnerability',
       type: 'Target',
-      name: 'Vulnerability',
-      label: 'Vulnerability'
+      name: CONDITION.VULNERABILITY,
+      label: CONDITION.VULNERABILITY
     });
   }
 

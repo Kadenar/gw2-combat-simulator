@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
@@ -57,7 +58,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'condition',
-        condition: 'Fear',
+        condition: CONDITION.FEAR,
         stacks: 1,
         duration: 2
       }
@@ -91,7 +92,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       conditionTimeline(
         [240, 440, 680, 880, 1120, 1320, 1560, 1760, 2000].map((atMs) => ({
           atMs,
-          condition: 'Bleeding',
+          condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 3
         }))
@@ -118,13 +119,13 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 2,
         duration: 8
       },
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 3
       }
@@ -175,7 +176,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'condition',
-        condition: 'Fear',
+        condition: CONDITION.FEAR,
         stacks: 1,
         duration: 2
       }
@@ -192,7 +193,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 3,
         duration: 3
       }
@@ -208,7 +209,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 4
       }
@@ -253,7 +254,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 1,
         duration: 3
       }
@@ -272,20 +273,20 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'condition',
-        ticks: [{ atMs: 200, condition: 'Torment', stacks: 2, duration: 12 }],
+        ticks: [{ atMs: 200, condition: CONDITION.TORMENT, stacks: 2, duration: 12 }],
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1240, condition: 'Torment', stacks: 2, duration: 12 }]
+        ticks: [{ atMs: 1240, condition: CONDITION.TORMENT, stacks: 2, duration: 12 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 2240, condition: 'Torment', stacks: 2, duration: 12 }]
+        ticks: [{ atMs: 2240, condition: CONDITION.TORMENT, stacks: 2, duration: 12 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 3240, condition: 'Torment', stacks: 2, duration: 12 }]
+        ticks: [{ atMs: 3240, condition: CONDITION.TORMENT, stacks: 2, duration: 12 }]
       },
       {
         weaponStrengthProfileId: 'transform.death-shroud',
@@ -295,7 +296,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       {
         // Binding immobilizes only with the final impact, after the four-second tether (wiki: Tainted_Shackles).
         type: 'condition',
-        ticks: [{ atMs: 4240, condition: 'Immobilized', stacks: 1, duration: 2 }]
+        ticks: [{ atMs: 4240, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }]
       }
     ]),
     type: 'Profession',

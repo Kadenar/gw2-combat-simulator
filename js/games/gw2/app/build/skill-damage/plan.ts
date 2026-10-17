@@ -1,3 +1,5 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { GameContentAddress } from '#browser/game/contracts.js';
 import { attributePreviewContext, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
@@ -62,14 +64,14 @@ const SLOT_TYPES = Object.freeze(['Heal', 'Utility', 'Elite'] as const);
 function sharedDamageControls(): PreviewControl[] {
   return [
     {
-      key: 'might',
-      label: 'Might',
+      key: boonKey(BOON.MIGHT),
+      label: BOON.MIGHT,
       group: 'Boons',
       kind: 'boon',
       max: 25,
       description: 'stacks; +30 Power and Condition Damage each'
     },
-    { key: 'fury', label: 'Fury', group: 'Boons', kind: 'boon', description: '+25% Critical Chance' },
+    { key: boonKey(BOON.FURY), label: BOON.FURY, group: 'Boons', kind: 'boon', description: '+25% Critical Chance' },
     // Count-based bonuses need a total, not arbitrary extra boons with their own combat effects.
     {
       key: 'boonCount',
@@ -92,10 +94,10 @@ function sharedDamageControls(): PreviewControl[] {
     },
     {
       key: 'condition:Vulnerability',
-      label: 'Vulnerability',
+      label: CONDITION.VULNERABILITY,
       group: 'Target conditions',
       kind: 'condition',
-      field: 'Vulnerability',
+      field: CONDITION.VULNERABILITY,
       max: 25,
       description: 'stacks; +1% strike and condition damage each'
     },

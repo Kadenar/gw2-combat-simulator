@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Staff weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -59,7 +61,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.4 },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 1, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 1, metadata: {} }
     ])
   },
   // Four field-tick packets one second apart inside the 4s fire field, each burning.
@@ -89,7 +91,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'condition',
-        ticks: [1160, 2160, 3160, 4160].map((atMs) => ({ atMs, condition: 'Burning', stacks: 1, duration: 1 })),
+        ticks: [1160, 2160, 3160, 4160].map((atMs) => ({ atMs, condition: CONDITION.BURNING, stacks: 1, duration: 1 })),
         metadata: {}
       }
     ])
@@ -108,14 +110,14 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
       { type: 'strike', coefficient: 1 },
       {
         type: 'condition',
-        condition: 'Burning',
+        condition: CONDITION.BURNING,
         stacks: 3,
         duration: 6,
         metadata: {}
       },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 3,
         applications: 1
@@ -145,7 +147,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       ...impactEffects({ atMs: 80, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.2 },
-        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2, metadata: {} }
       ]),
       {
         type: 'strike',
@@ -189,37 +191,37 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         ticks: [
           {
             atMs: 1080,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 2
           },
           {
             atMs: 2080,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 2
           },
           {
             atMs: 3080,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 2
           },
           {
             atMs: 4080,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 2
           },
           {
             atMs: 5080,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 2
           },
           {
             atMs: 6080,
-            condition: 'Burning',
+            condition: CONDITION.BURNING,
             stacks: 1,
             duration: 2
           }
@@ -302,7 +304,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         ],
         metadata: {}
       },
-      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 10, metadata: {} }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 10, metadata: {} }
     ])
   },
   // Contributes only a water combo field; no strike or condition packets are modelled.
@@ -351,7 +353,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         ticks: [
           {
             atMs: 160,
-            condition: 'Chilled',
+            condition: CONDITION.CHILLED,
             stacks: 1,
             duration: 2
           }
@@ -383,7 +385,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       {
         type: 'boon',
-        boon: 'Regeneration',
+        boon: BOON.REGENERATION,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
@@ -434,7 +436,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
       { type: 'strike', coefficient: 1.8 },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
         applications: 1
@@ -475,7 +477,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'boon',
-        boon: 'Swiftness',
+        boon: BOON.SWIFTNESS,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
@@ -540,7 +542,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         ],
         metadata: {}
       },
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3, metadata: {} }
     ])
   },
   // Long fuse: the blast finisher, six Bleeding stacks, and Cripple all land at 4000ms.
@@ -568,8 +570,8 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         ],
         metadata: {}
       },
-      { type: 'condition', condition: 'Bleeding', stacks: 6, duration: 12, metadata: {} },
-      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 6, duration: 12, metadata: {} },
+      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 3, metadata: {} }
     ])
   },
   // Aura/transmute flip pair: Magnetic Aura grants the aura and flips to Transmute Earth, which
@@ -669,8 +671,8 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         ],
         metadata: {}
       },
-      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 20, metadata: {} },
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 20, metadata: {} },
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2, metadata: {} }
     ])
   }
 });

@@ -1,3 +1,4 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -86,36 +87,36 @@ const empoweringSpirits = defineTrait({
     categories: ['Trait'],
     effects: [
       {
-        name: 'quickness',
+        name: boonKey(BOON.QUICKNESS),
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         stacks: 1,
         duration: 3.75,
         actorType: 'player',
         audience: { recipients: 'party' as const }
       },
       {
-        name: 'might',
+        name: boonKey(BOON.MIGHT),
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         stacks: 8,
         duration: 10,
         actorType: 'player',
         audience: { recipients: 'party' as const }
       },
       {
-        name: 'fury',
+        name: boonKey(BOON.FURY),
         type: 'boon',
-        boon: 'fury',
+        boon: BOON.FURY,
         stacks: 1,
         duration: 5,
         actorType: 'player',
         audience: { recipients: 'party' as const }
       },
       {
-        name: 'resolution',
+        name: boonKey(BOON.RESOLUTION),
         type: 'boon',
-        boon: 'resolution',
+        boon: BOON.RESOLUTION,
         stacks: 1,
         duration: 4,
         actorType: 'player',
@@ -214,7 +215,10 @@ function summonExplosiveGrowth(
 /** Summon boons follow the shared creature reactions and precede autonomous scheduling. */
 function applyEmpoweringSpirits(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>, key: string): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWERING_SPIRITS);
-  for (const kind of ['quickness', key === 'anguish' ? 'might' : key === 'wanderlust' ? 'fury' : 'resolution']) {
+  for (const kind of [
+    boonKey(BOON.QUICKNESS),
+    key === 'anguish' ? boonKey(BOON.MIGHT) : key === 'wanderlust' ? boonKey(BOON.FURY) : boonKey(BOON.RESOLUTION)
+  ]) {
     const effect = requireEffect(profile, 'boon', kind);
 
     if (effect) {

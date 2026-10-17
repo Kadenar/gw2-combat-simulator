@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
@@ -24,7 +25,7 @@ export const GALESHOT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     duration: 6,
     effects: [
       { name: 'Strike', type: 'strike', coefficient: 0.3, hits: 1 },
-      { name: 'Chilled', type: 'condition', condition: 'Chilled', duration: 1, stacks: 1 }
+      { name: CONDITION.CHILLED, type: 'condition', condition: CONDITION.CHILLED, duration: 1, stacks: 1 }
     ]
   }
 ]);

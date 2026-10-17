@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -22,7 +23,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 360,
     effects: [
       { type: 'strike', coefficient: 2, hits: 1 },
-      { type: 'condition', condition: 'Vulnerability', duration: 10, stacks: 6 }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, duration: 10, stacks: 6 }
     ]
   },
   [ID.CHILLED_TO_THE_BONE]: {
@@ -30,7 +31,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       { type: 'strike', coefficient: 3, hits: 1 },
       { type: 'control', controlKind: 'control' },
-      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 4 }
+      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 4 }
     ]
   },
   [ID.YOUR_SOUL_IS_MINE]: {
@@ -73,7 +74,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         coefficient: 1.5,
         hits: 1
       },
-      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3 }
+      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3 }
     ]
   },
   [ID.RISE]: {

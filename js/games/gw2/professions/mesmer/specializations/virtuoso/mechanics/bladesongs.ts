@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -64,7 +65,11 @@ export function resolveBladesong(
   }
 
   if (shatter.kind === 'blade-confusion') {
-    const baseConfusion = mesmerConditionFromProfile(context, shatter.balanceProfileId || skill.id, 'Confusion');
+    const baseConfusion = mesmerConditionFromProfile(
+      context,
+      shatter.balanceProfileId || skill.id,
+      CONDITION.CONFUSION
+    );
     const confusion = bladesongConfusion(shatter, spent, cryOfPainConfusion(context, baseConfusion));
     const ticks = packetTicks();
 

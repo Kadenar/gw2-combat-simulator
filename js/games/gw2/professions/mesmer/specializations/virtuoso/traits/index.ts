@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -45,7 +46,7 @@ const deadlyBlades = defineTrait<MesmerSkill>({
           input.details,
           TRAIT.DEADLY_BLADES,
           'Deadly Blades',
-          'Vulnerability',
+          CONDITION.VULNERABILITY,
           'mesmer.virtuoso.deadly-blades'
         )
     }),
@@ -60,7 +61,9 @@ const deadlyBlades = defineTrait<MesmerSkill>({
     damageIncrease: 0.05,
     conditionDamageIncrease: 0.1,
     durationMultiplier: 7,
-    effects: [{ name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', duration: 5, stacks: 1 }]
+    effects: [
+      { name: CONDITION.VULNERABILITY, type: 'condition', condition: CONDITION.VULNERABILITY, duration: 5, stacks: 1 }
+    ]
   },
   modifierRules: [
     {
@@ -89,7 +92,7 @@ const jaggedMind = defineTrait<MesmerSkill>({
           input.details,
           TRAIT.JAGGED_MIND,
           'Jagged Mind',
-          'Bleeding',
+          CONDITION.BLEEDING,
           'mesmer.virtuoso.jagged-mind'
         )
     })
@@ -97,7 +100,7 @@ const jaggedMind = defineTrait<MesmerSkill>({
   id: TRAIT.JAGGED_MIND,
   name: 'Jagged Mind',
   balance: {
-    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration: 4, stacks: 1 }]
+    effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, duration: 4, stacks: 1 }]
   }
 });
 
@@ -117,14 +120,14 @@ export const bloodsong = defineTrait<MesmerSkill>({
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.BLOODSONG, 'conditionDamageMultiplier'),
       order: 100,
-      when: (context) => context.condition === 'Bleeding'
+      when: (context) => context.condition === CONDITION.BLEEDING
     }
   ],
   triggers: [
     {
       on: 'condition.applied',
       run(runtime, event) {
-        if (event.condition !== 'Bleeding') return;
+        if (event.condition !== CONDITION.BLEEDING) return;
 
         const state = virtuosoState.from(runtime);
         const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODSONG);

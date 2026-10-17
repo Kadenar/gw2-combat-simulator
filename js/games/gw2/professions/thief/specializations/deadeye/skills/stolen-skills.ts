@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -41,8 +43,14 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
         stacks: 1,
         when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
-      { type: 'boon', boon: 'vigor', duration: 10, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } },
-      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3, actorType: 'player' }
+      {
+        type: 'boon',
+        boon: BOON.VIGOR,
+        duration: 10,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      },
+      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3, actorType: 'player' }
     ])
   },
   [ID.STEAL_RESISTANCE]: {
@@ -67,12 +75,12 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
       },
       {
         type: 'boon',
-        boon: 'resistance',
+        boon: BOON.RESISTANCE,
         duration: 5,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 }
       },
-      { type: 'condition', condition: 'Torment', stacks: 3, duration: 8, actorType: 'player' }
+      { type: 'condition', condition: CONDITION.TORMENT, stacks: 3, duration: 8, actorType: 'player' }
     ])
   },
   [ID.STEAL_PRECISION]: {
@@ -95,10 +103,16 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
         stacks: 1,
         when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
-      { type: 'boon', boon: 'fury', duration: 8, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } },
+      {
+        type: 'boon',
+        boon: BOON.FURY,
+        duration: 8,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 6,
         actorType: 'player'
@@ -125,7 +139,7 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
         stacks: 1,
         when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
-      { type: 'condition', condition: 'Bleeding', stacks: 5, duration: 8, actorType: 'player' }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 5, duration: 8, actorType: 'player' }
     ])
   },
   [ID.STEAL_STRENGTH]: {
@@ -148,8 +162,14 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
         stacks: 1,
         when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
-      { type: 'boon', boon: 'might', duration: 12, stacks: 5, audience: { recipients: 'party', maximumRecipients: 5 } },
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 8, actorType: 'player' }
+      {
+        type: 'boon',
+        boon: BOON.MIGHT,
+        duration: 12,
+        stacks: 5,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      },
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 8, actorType: 'player' }
     ])
   },
   [ID.STEAL_TIME]: {
@@ -181,12 +201,12 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
       },
       {
         type: 'boon',
-        boon: 'quickness',
+        boon: BOON.QUICKNESS,
         duration: 5,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 }
       },
-      { type: 'condition', condition: 'Slow', stacks: 1, duration: 3, actorType: 'player' }
+      { type: 'condition', condition: CONDITION.SLOW, stacks: 1, duration: 3, actorType: 'player' }
     ])
   },
   [ID.STEAL_DURABILITY]: {
@@ -211,12 +231,12 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
       },
       {
         type: 'boon',
-        boon: 'protection',
+        boon: BOON.PROTECTION,
         duration: 5,
         stacks: 1,
         audience: { recipients: 'party', maximumRecipients: 5 }
       },
-      { type: 'condition', condition: 'Vulnerability', stacks: 10, duration: 5, actorType: 'player' }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 5, actorType: 'player' }
     ])
   },
   [ID.STEAL_DEFENSES]: {
@@ -239,8 +259,14 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
         stacks: 1,
         when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
-      { type: 'boon', boon: 'aegis', duration: 5, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } },
-      { type: 'condition', condition: 'Poisoned', stacks: 2, duration: 8, actorType: 'player' }
+      {
+        type: 'boon',
+        boon: BOON.AEGIS,
+        duration: 5,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      },
+      { type: 'condition', condition: CONDITION.POISONED, stacks: 2, duration: 8, actorType: 'player' }
     ])
   },
   [ID.STEAL_MOBILITY]: {
@@ -263,7 +289,7 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
         stacks: 1,
         when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1.5, actorType: 'player' }
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1.5, actorType: 'player' }
     ])
   }
 });

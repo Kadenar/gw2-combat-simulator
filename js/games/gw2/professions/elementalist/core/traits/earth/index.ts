@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -44,7 +46,7 @@ export const earthsEmbrace = defineTrait({
   name: "Earth's Embrace",
   balance: {
     internalCooldown: 15,
-    effects: [{ type: 'boon', name: 'Resistance', boon: 'resistance', stacks: 1, duration: 4 }]
+    effects: [{ type: 'boon', name: BOON.RESISTANCE, boon: BOON.RESISTANCE, stacks: 1, duration: 4 }]
   }
 });
 
@@ -62,7 +64,8 @@ export const serratedStones = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.SERRATED_STONES, 'damageMultiplier'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Bleeding')
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.BLEEDING)
     }
   ],
   attributes: ({ balanceContext }) => ({
@@ -82,7 +85,7 @@ export const elementalShielding = defineTrait({
   id: TRAIT.ELEMENTAL_SHIELDING,
   name: 'Elemental Shielding',
   balance: {
-    effects: [{ type: 'boon', name: 'Protection', boon: 'protection', stacks: 1, duration: 3 }]
+    effects: [{ type: 'boon', name: BOON.PROTECTION, boon: BOON.PROTECTION, stacks: 1, duration: 3 }]
   }
 });
 
@@ -111,7 +114,7 @@ export const strengthOfStone = defineTrait({
     onTriggerPoint(elementalistConditionApplied, {
       run: (runtime: ElementalistRuntime, { cause }: ElementalistReaction) => {
         if (
-          cause.condition === 'Immobilized' &&
+          cause.condition === CONDITION.IMMOBILIZED &&
           (runtime.engagement.startTime == null || cause.at >= runtime.engagement.startTime)
         )
           applyStrengthOfStone(runtime, cause);
@@ -122,7 +125,7 @@ export const strengthOfStone = defineTrait({
   balance: {
     attributeConversion: 0.1,
     internalCooldown: 3,
-    effects: [{ type: 'condition', name: 'Strength of Stone', condition: 'Bleeding', stacks: 3, duration: 10 }]
+    effects: [{ type: 'condition', name: 'Strength of Stone', condition: CONDITION.BLEEDING, stacks: 3, duration: 10 }]
   },
   attributes: traitAttributeEffects(TRAIT.STRENGTH_OF_STONE, [
     {
@@ -154,8 +157,8 @@ export const rockSolid = defineTrait({
     effects: [
       {
         type: 'boon',
-        name: 'Stability',
-        boon: 'stability',
+        name: BOON.STABILITY,
+        boon: BOON.STABILITY,
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
@@ -204,7 +207,7 @@ function applyEarthsEmbrace(context: ElementalistRuntime, { cast }: Elementalist
   emitTraitProfile(context, TRAIT.EARTHS_EMBRACE, TRAIT.EARTHS_EMBRACE, undefined, {
     at: at,
     fullEnd: at,
-    effect: { type: 'boon', name: 'Resistance' },
+    effect: { type: 'boon', name: BOON.RESISTANCE },
     skillId: skill.id,
     skillName: "Earth's Embrace",
     cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
@@ -295,7 +298,7 @@ function applyResolverElementalShielding(context: MechanicCombatContext, event: 
     at: event.at,
     fullEnd: event.at,
     durationContext: event,
-    effect: { type: 'boon', name: 'Protection' },
+    effect: { type: 'boon', name: BOON.PROTECTION },
     attribution: {
       actorType: 'player',
       skillName: requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_SHIELDING).name,
@@ -344,7 +347,7 @@ function grantElementalistRockSolid(
   emitTraitProfile(context, TRAIT.ROCK_SOLID, TRAIT.ROCK_SOLID, undefined, {
     at: at,
     fullEnd: at,
-    effect: { type: 'boon', name: 'Stability' },
+    effect: { type: 'boon', name: BOON.STABILITY },
     skillId: sourceId,
     skillName: 'Rock Solid',
     cast: emissionCast,

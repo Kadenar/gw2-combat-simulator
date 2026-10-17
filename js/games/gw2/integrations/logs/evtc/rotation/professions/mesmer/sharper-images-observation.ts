@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import {
   EVTC_BLEEDING_SKILL_ID,
   EVTC_CRITICAL_RESULT,
@@ -35,7 +36,7 @@ function sharperImagesDurations(
   config: Gw2Config
 ): readonly number[] {
   const attributes = observationAttributeSets(config, catalog, mesmerProfession.attributeContributions);
-  const passiveDurations = expectedConditionDurationsMs(baseDuration, 'Bleeding', config, attributes);
+  const passiveDurations = expectedConditionDurationsMs(baseDuration, CONDITION.BLEEDING, config, attributes);
 
   if (!selectedSkillIdSet(config.selectedSkillIds).has(ID.SIGNET_OF_MIDNIGHT)) return passiveDurations;
 
@@ -43,7 +44,7 @@ function sharperImagesDurations(
   const bonus = balanceNumberFromContext({ catalog }, PROFILE.signetOfMidnight, 'expertiseBonus');
   const rechargingDurations = expectedConditionDurationsMs(
     baseDuration,
-    'Bleeding',
+    CONDITION.BLEEDING,
     config,
     attributes.map((stats) => ({ ...stats, expertise: Math.max(0, (stats.expertise ?? 0) - bonus) }))
   );

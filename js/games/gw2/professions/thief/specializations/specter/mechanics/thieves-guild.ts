@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { permanentTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefGuildSummonProfile, ThiefSummonCondition, ThiefSummonStrike } from '#gw2/professions/thief/types.js';
@@ -15,15 +16,17 @@ const TRIPLE_THREAT_READY_AT = 16 - THIEVES_GUILD_CAST_TIME;
 const ACTIVE_LIFETIME = 24 - THIEVES_GUILD_CAST_TIME;
 const AUTO_CHAIN_START = 5.235 - THIEVES_GUILD_CAST_TIME;
 const AUTO_CHAIN_DURATION = (20.435 - 5.235) / 3;
-const TORMENT: readonly ThiefSummonCondition[] = Object.freeze([{ condition: 'Torment', stacks: 1, duration: 2 }]);
+const TORMENT: readonly ThiefSummonCondition[] = Object.freeze([
+  { condition: CONDITION.TORMENT, stacks: 1, duration: 2 }
+]);
 
 const WELL_OF_SORROW = 67795;
-const WELL_OF_SORROW_PRIORITY = Object.freeze(['Poisoned', 'Bleeding', 'Torment']);
+const WELL_OF_SORROW_PRIORITY = Object.freeze([CONDITION.POISONED, CONDITION.BLEEDING, CONDITION.TORMENT]);
 const WELL_OF_SORROW_CONDITIONS = Object.freeze([
-  Object.freeze({ condition: 'Poisoned', stacks: 1, duration: 3 }),
-  Object.freeze({ condition: 'Bleeding', stacks: 2, duration: 4 }),
-  Object.freeze({ condition: 'Torment', stacks: 2, duration: 4 }),
-  Object.freeze({ condition: 'Torment', stacks: 1, duration: 4 })
+  Object.freeze({ condition: CONDITION.POISONED, stacks: 1, duration: 3 }),
+  Object.freeze({ condition: CONDITION.BLEEDING, stacks: 2, duration: 4 }),
+  Object.freeze({ condition: CONDITION.TORMENT, stacks: 2, duration: 4 }),
+  Object.freeze({ condition: CONDITION.TORMENT, stacks: 1, duration: 4 })
 ]);
 
 function packet(

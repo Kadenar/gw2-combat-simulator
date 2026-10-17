@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { ThiefGuildSummonProfile } from '#gw2/professions/thief/types.js';
 
 // Daredevil replaces the third Thieves Guild summon with its staff-wielding specialist.
@@ -26,9 +27,9 @@ export const DAREDEVIL_THIEVES_GUILD_PROFILE: ThiefGuildSummonProfile = Object.f
       hits: 3,
       initialDelay: 2.72,
       conditions: [
-        { condition: 'Poisoned', stacks: 3, duration: 8 },
-        { condition: 'Slow', stacks: 1, duration: 4 },
-        { condition: 'Immobilized', stacks: 1, duration: 2 }
+        { condition: CONDITION.POISONED, stacks: 3, duration: 8 },
+        { condition: CONDITION.SLOW, stacks: 1, duration: 4 },
+        { condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }
       ]
     },
     {

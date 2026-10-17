@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -45,10 +47,16 @@ const shimmeringStances = defineTrait({
   name: 'Shimmering Stances',
   balance: {
     effects: [
-      { type: 'boon', name: 'protection', boon: 'protection', duration: 3, audience: { recipients: 'party' } },
+      {
+        type: 'boon',
+        name: boonKey(BOON.PROTECTION),
+        boon: BOON.PROTECTION,
+        duration: 3,
+        audience: { recipients: 'party' }
+      },
       {
         type: 'condition',
-        condition: 'Blindness',
+        condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 3,
         name: 'Blind'
@@ -170,9 +178,9 @@ const resplendentWeaponry = defineTrait({
   name: 'Resplendent Weaponry',
   balance: {
     effects: [
-      { type: 'boon', name: 'alacrity', boon: 'alacrity', duration: 4 },
-      { type: 'boon', name: 'might', boon: 'might', duration: 8, stacks: 1 },
-      { type: 'boon', name: 'fury', boon: 'fury', duration: 5 }
+      { type: 'boon', name: boonKey(BOON.ALACRITY), boon: BOON.ALACRITY, duration: 4 },
+      { type: 'boon', name: boonKey(BOON.MIGHT), boon: BOON.MIGHT, duration: 8, stacks: 1 },
+      { type: 'boon', name: boonKey(BOON.FURY), boon: BOON.FURY, duration: 5 }
     ]
   },
   triggers: [onTriggerPoint(radiantWeaponEquipped, { run: grantResplendentWeaponry })]

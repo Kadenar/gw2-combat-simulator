@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -96,7 +98,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       },
       {
         type: 'boon',
-        boon: 'aegis',
+        boon: BOON.AEGIS,
         duration: 3,
         stacks: 1
       }
@@ -140,7 +142,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 2,
         duration: 6
       }
@@ -234,7 +236,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 4
       }
@@ -265,7 +267,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
+        condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 2
       }

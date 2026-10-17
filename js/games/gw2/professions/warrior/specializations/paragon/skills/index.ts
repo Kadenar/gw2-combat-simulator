@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /** Explicit PvE skill mechanics owned by the Paragon Warrior module. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -57,13 +59,13 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 10,
         duration: 10
       },
       {
         type: 'boon',
-        boon: 'might',
+        boon: BOON.MIGHT,
         duration: 10,
         stacks: 7
       }
@@ -84,13 +86,13 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       },
       {
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 6
       },
       {
         type: 'condition',
-        condition: 'Weakness',
+        condition: CONDITION.WEAKNESS,
         stacks: 1,
         duration: 6
       }
@@ -131,19 +133,19 @@ export const paragonRefrains: Readonly<
   >
 > = {
   [ID.CHANT_OF_RECUPERATION]: {
-    openingBoons: ['vigor'],
-    pulse: (tier) => ({ cost: tier === 3 ? 3 : 2, kinds: tier === 3 ? ['regeneration'] : [] })
+    openingBoons: [BOON.VIGOR],
+    pulse: (tier) => ({ cost: tier === 3 ? 3 : 2, kinds: tier === 3 ? [BOON.REGENERATION] : [] })
   },
   [ID.CHANT_OF_FREEDOM]: {
-    openingBoons: ['stability'],
+    openingBoons: [BOON.STABILITY],
     pulse: (tier) => ({
       cost: tier,
-      kinds: ['swiftness', ...(tier >= 2 ? ['resolution'] : []), ...(tier === 3 ? ['protection'] : [])]
+      kinds: [BOON.SWIFTNESS, ...(tier >= 2 ? [BOON.RESOLUTION] : []), ...(tier === 3 ? [BOON.PROTECTION] : [])]
     })
   },
   [ID.CHANT_OF_ACTION]: {
-    openingBoons: ['might', 'fury'],
-    pulse: (tier) => ({ cost: 1, kinds: tier >= 2 ? ['might', 'fury'] : ['might'] })
+    openingBoons: [BOON.MIGHT, BOON.FURY],
+    pulse: (tier) => ({ cost: 1, kinds: tier >= 2 ? [BOON.MIGHT, BOON.FURY] : [BOON.MIGHT] })
   }
 };
 

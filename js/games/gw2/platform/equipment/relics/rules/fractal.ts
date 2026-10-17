@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -13,12 +14,12 @@ export const fractal = defineRelic({
   createState: () => ({ readyAt: 0 }),
   condition(ctx, state, application, { activeConditionStackCount }) {
     if (
-      application.condition !== 'Bleeding' ||
+      application.condition !== CONDITION.BLEEDING ||
       // Only bleeding the player owns arms the relic. Pets and the mech own the bleeding they apply, so their
       // applications never trigger it; other summons share the player's condition packets and still do.
       (application.actorType === 'summon' && application.independentConditionOwner === true) ||
       !isInternalCooldownReady(application.at, state.readyAt) ||
-      activeConditionStackCount(ctx, 'Bleeding', application.at) - (application.stacks || 0) < REQUIRED_BLEEDING
+      activeConditionStackCount(ctx, CONDITION.BLEEDING, application.at) - (application.stacks || 0) < REQUIRED_BLEEDING
     ) {
       return;
     }
@@ -50,7 +51,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, applicat
       at: application.at,
       name: 'Relic of the Fractal — Burning',
       skillName: 'Relic of the Fractal',
-      condition: 'Burning',
+      condition: CONDITION.BURNING,
       duration: 8,
       stacks: 2,
       source: 'Relic',
@@ -67,7 +68,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, applicat
       at: application.at,
       name: 'Relic of the Fractal — Torment',
       skillName: 'Relic of the Fractal',
-      condition: 'Torment',
+      condition: CONDITION.TORMENT,
       duration: 8,
       stacks: 3,
       source: 'Relic',

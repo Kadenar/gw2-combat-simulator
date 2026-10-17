@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -39,7 +41,7 @@ const unstoppableUnion = defineTrait({
   id: TRAIT.UNSTOPPABLE_UNION,
   name: 'Unstoppable Union',
   balance: {
-    effects: [{ name: 'protection', type: 'boon', boon: 'protection', duration: 2.5, stacks: 1 }]
+    effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, duration: 2.5, stacks: 1 }]
   }
 });
 
@@ -64,8 +66,8 @@ const liveFast = defineTrait({
   name: 'Live Fast',
   balance: {
     effects: [
-      { name: 'fury', type: 'boon', boon: 'fury', duration: 6, stacks: 1 },
-      { name: 'quickness', type: 'boon', boon: 'quickness', duration: 3, stacks: 1 }
+      { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, duration: 6, stacks: 1 },
+      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 3, stacks: 1 }
     ]
   }
 });
@@ -164,7 +166,7 @@ const predatorsCunning = defineTrait({
     {
       emit: TRAIT.PREDATORS_CUNNING,
       on: 'condition.applied',
-      when: (_runtime, event) => event.condition === 'Poisoned',
+      when: (_runtime, event) => event.condition === CONDITION.POISONED,
       effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
       attribution: (_runtime, event) => ({
         skillId: TRAIT.PREDATORS_CUNNING,
@@ -229,7 +231,7 @@ const furiousStrength = defineTrait({
       operation: 'damage-additive',
       amount: (context) => balanceNumberFromContext(context, TRAIT.FURIOUS_STRENGTH, 'damageIncrease'),
       // Furious Strength requires the player to have Fury; pet fury does not count.
-      when: (context) => boonActive(context, 'fury')
+      when: (context) => boonActive(context, boonKey(BOON.FURY))
     }
   ]
 });
@@ -249,8 +251,8 @@ export const soulbeastTraits = [
 /** Runs once on the accepted first hit of the merged Beast ability. */
 function triggerMergedLiveFast(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.LIVE_FAST);
-  const fury = requireEffect(profile, 'boon', 'fury');
-  const quickness = requireEffect(profile, 'boon', 'quickness');
+  const fury = requireEffect(profile, 'boon', boonKey(BOON.FURY));
+  const quickness = requireEffect(profile, 'boon', boonKey(BOON.QUICKNESS));
 
   if (fury) context.effects.emit(rangerProfileEffectRequest(event, profile, fury, TRAIT.LIVE_FAST, 'Live Fast'));
 
@@ -261,14 +263,14 @@ function triggerMergedLiveFast(context: RangerResolverContext, event: Gw2Resolve
 // Called from both enter- and exit-beastmode handlers; protection fires on every toggle regardless of direction.
 function applyUnstoppableUnion(context: RangerRuntime, skill: RangerSkill): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.UNSTOPPABLE_UNION);
-  const effect = requireEffect(profile, 'boon', 'protection');
+  const effect = requireEffect(profile, 'boon', boonKey(BOON.PROTECTION));
 
   if (!effect) return;
 
   emitTraitProfile(context, TRAIT.UNSTOPPABLE_UNION, TRAIT.UNSTOPPABLE_UNION, undefined, {
     at: context.time,
     fullEnd: context.time,
-    effect: { type: 'boon', name: 'protection' },
+    effect: { type: 'boon', name: boonKey(BOON.PROTECTION) },
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.UNSTOPPABLE_UNION,

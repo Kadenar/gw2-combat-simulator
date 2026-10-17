@@ -1,3 +1,5 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 /**
  * Spear weapon-skill mechanics owned by the Weaver module.
  *
@@ -79,7 +81,7 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2.6 },
       { type: 'buff', kind: 'superspeed', stacks: 1, duration: 3, metadata: {} },
-      { type: 'boon', boon: 'Might', stacks: 3, duration: 6, metadata: {} }
+      { type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 6, metadata: {} }
     ]),
     specialization: 'Weaver'
   },
@@ -111,8 +113,8 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
         ],
         metadata: {}
       },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 5, metadata: {} },
-      { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 6, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5, metadata: {} },
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 6, metadata: {} }
     ]),
     specialization: 'Weaver'
   },
@@ -130,8 +132,8 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.25 },
-      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8, metadata: {} },
-      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 4, metadata: {} }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 8, metadata: {} },
+      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 4, metadata: {} }
     ]),
     specialization: 'Weaver'
   },
@@ -186,8 +188,8 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.5 },
-      { type: 'condition', condition: 'Blindness', stacks: 1, duration: 3 },
-      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 5, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLINDNESS, stacks: 1, duration: 3 },
+      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 5, metadata: {} }
     ]),
     specialization: 'Weaver'
   }

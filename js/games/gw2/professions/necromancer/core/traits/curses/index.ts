@@ -1,3 +1,5 @@
+import { BOON, boonKey } from '#gw2/platform/effects/boons.js';
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -57,9 +59,9 @@ export const barbedPrecision = defineTrait({
     criticalChance: 0.33,
     effects: [
       {
-        name: 'Bleeding',
+        name: CONDITION.BLEEDING,
         type: 'condition',
-        condition: 'Bleeding',
+        condition: CONDITION.BLEEDING,
         stacks: 1,
         duration: 3,
         actorType: 'effect'
@@ -79,7 +81,7 @@ export const chillingDarkness = defineTrait({
   triggers: [
     onTriggerPoint(necromancerConditionApplied, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
-        input.event.condition === 'Blindness',
+        input.event.condition === CONDITION.BLINDNESS,
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
         applyChillingDarkness(runtime, input.event)
     })
@@ -90,9 +92,9 @@ export const chillingDarkness = defineTrait({
     cooldown: 3,
     effects: [
       {
-        name: 'Chilled',
+        name: CONDITION.CHILLED,
         type: 'condition',
-        condition: 'Chilled',
+        condition: CONDITION.CHILLED,
         stacks: 1,
         duration: 2,
         actorType: 'effect'
@@ -110,7 +112,7 @@ export const insidiousDisruption = defineTrait({
     }),
     onTriggerPoint(necromancerConditionApplied, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
-        input.event.condition === 'Fear',
+        input.event.condition === CONDITION.FEAR,
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
         applyInsidiousDisruption(runtime, input.event)
     })
@@ -120,9 +122,9 @@ export const insidiousDisruption = defineTrait({
   balance: {
     effects: [
       {
-        name: 'Torment',
+        name: CONDITION.TORMENT,
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 1,
         duration: 5,
         actorType: 'effect'
@@ -142,7 +144,16 @@ export const furiousDemise = defineTrait({
   id: TRAIT.FURIOUS_DEMISE,
   name: 'Furious Demise',
   balance: {
-    effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 8, packetLabel: 'on shroud entry' }],
+    effects: [
+      {
+        name: boonKey(BOON.FURY),
+        type: 'boon',
+        boon: BOON.FURY,
+        stacks: 1,
+        duration: 8,
+        packetLabel: 'on shroud entry'
+      }
+    ],
     attributeBonus: 180
   },
   attributes: traitAttributeEffects(TRAIT.FURIOUS_DEMISE, [
@@ -227,8 +238,8 @@ export const weakeningShroud = defineTrait({
   balance: {
     effects: [
       { name: 'Strike', type: 'strike', coefficient: 1.5, hits: 1 },
-      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10 },
-      { name: 'Weakness', type: 'condition', condition: 'Weakness', stacks: 1, duration: 6 }
+      { name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 10 },
+      { name: CONDITION.WEAKNESS, type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 6 }
     ]
   }
 });
@@ -243,7 +254,7 @@ export const masterOfCorruption = defineTrait({
       {
         name: 'Self Torment',
         type: 'condition',
-        condition: 'Torment',
+        condition: CONDITION.TORMENT,
         stacks: 2,
         duration: 10,
         target: 'self',
@@ -253,7 +264,7 @@ export const masterOfCorruption = defineTrait({
       {
         name: 'Master of Corruption Vulnerability',
         type: 'condition',
-        condition: 'Vulnerability',
+        condition: CONDITION.VULNERABILITY,
         stacks: 5,
         duration: 4,
         target: 'self',
@@ -263,7 +274,7 @@ export const masterOfCorruption = defineTrait({
       {
         name: 'Self Poisoned',
         type: 'condition',
-        condition: 'Poisoned',
+        condition: CONDITION.POISONED,
         stacks: 1,
         duration: 4,
         target: 'self',
@@ -273,7 +284,7 @@ export const masterOfCorruption = defineTrait({
       {
         name: 'Self Crippled',
         type: 'condition',
-        condition: 'Crippled',
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 2,
         target: 'self',
@@ -317,7 +328,7 @@ export const terror = defineTrait({
   balance: { conditionBaseDamage: 444, conditionDamageScaling: 0.4 },
   hooks: {
     prepareEvent: (runtime, event) =>
-      event.type === 'condition' && event.condition === 'Fear' && hasTrait(runtime, TRAIT.TERROR)
+      event.type === 'condition' && event.condition === CONDITION.FEAR && hasTrait(runtime, TRAIT.TERROR)
         ? {
             ...event,
             conditionDamageFormula: {
@@ -345,7 +356,7 @@ const necromancerBarbedPrecisionReaction = criticalProcHandler<
     // Barbed Precision emits one condition application per threshold proc.
     for (let proc = 0; proc < application.quantity; proc += 1) {
       const profile = requireBalanceProfileFromContext(context, TRAIT.BARBED_PRECISION);
-      const effect = requireEffect(profile, 'condition', 'Bleeding');
+      const effect = requireEffect(profile, 'condition', CONDITION.BLEEDING);
 
       if (!effect) return;
 
@@ -357,7 +368,7 @@ const necromancerBarbedPrecisionReaction = criticalProcHandler<
         {
           at: event.at,
           fullEnd: event.at,
-          effect: { type: 'condition', name: 'Bleeding' },
+          effect: { type: 'condition', name: CONDITION.BLEEDING },
           settlement: 'reaction',
           attribution: {
             source: 'Trait',
@@ -381,7 +392,7 @@ const necromancerBarbedPrecisionReaction = criticalProcHandler<
 
 function applyChillingDarkness(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.CHILLING_DARKNESS);
-  const effect = requireEffect(profile, 'condition', 'Chilled');
+  const effect = requireEffect(profile, 'condition', CONDITION.CHILLED);
 
   // Claim only after local eligibility, before conditions, resources or queued strikes; the cooldown gates only
   // Chill, so a removed packet leaves it ready.
@@ -396,7 +407,7 @@ function applyChillingDarkness(context: NecromancerResolverContext, event: Necro
     {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'condition', name: 'Chilled' },
+      effect: { type: 'condition', name: CONDITION.CHILLED },
       settlement: 'reaction',
       attribution: {
         source: 'Trait',
@@ -405,7 +416,7 @@ function applyChillingDarkness(context: NecromancerResolverContext, event: Necro
         skillName: 'Chilling Darkness',
         triggeredBy: event.skillName,
         ownerActorType: 'player',
-        name: 'Chilling Darkness' + ' - ' + effect.condition || 'Chilled'
+        name: 'Chilling Darkness' + ' - ' + effect.condition || CONDITION.CHILLED
       }
     }
   );
@@ -417,7 +428,7 @@ function applyChillingDarkness(context: NecromancerResolverContext, event: Necro
 
 function applyInsidiousDisruption(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.INSIDIOUS_DISRUPTION);
-  const effect = requireEffect(profile, 'condition', 'Torment');
+  const effect = requireEffect(profile, 'condition', CONDITION.TORMENT);
 
   if (!effect) return;
 
@@ -429,7 +440,7 @@ function applyInsidiousDisruption(context: NecromancerResolverContext, event: Ne
     {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'condition', name: 'Torment' },
+      effect: { type: 'condition', name: CONDITION.TORMENT },
       settlement: 'reaction',
       attribution: {
         source: 'Trait',

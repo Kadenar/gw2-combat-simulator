@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -1356,7 +1357,7 @@ test('Eviscerate damage scales with adrenaline spent', () => {
     eviscerate.effects.find((effect) => effect.type === 'boon'),
     {
       type: 'boon',
-      boon: 'might',
+      boon: BOON.MIGHT,
       duration: 5,
       stacks: 5
     }

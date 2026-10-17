@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -21,7 +22,7 @@ export function cloneShatterTier(shatter: MesmerShatter, skill: MesmerSkill, spe
           }))
         : [];
       break;
-    case 'confusion':
+    case CONDITION.CONFUSION.toLowerCase():
     case 'defense':
       strikes = strike ? [{ ...strike, atMs: 0 }] : [];
       break;
@@ -54,8 +55,11 @@ export function cloneShatterEffects(
 ): SkillEffect[] {
   const tier = cloneShatterTier(shatter, skill, spent);
   const confusion =
-    shatter.kind === 'confusion'
-      ? cloneShatterConfusion(mesmerConditionFromProfile(context, shatter.balanceProfileId, 'Confusion'), tier.sources)
+    shatter.kind === CONDITION.CONFUSION.toLowerCase()
+      ? cloneShatterConfusion(
+          mesmerConditionFromProfile(context, shatter.balanceProfileId, CONDITION.CONFUSION),
+          tier.sources
+        )
       : undefined;
   return [...(shatter.kind === 'defense' ? [] : tier.strikes), ...(confusion ? [confusion] : []), ...tier.effects];
 }

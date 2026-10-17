@@ -1,3 +1,4 @@
+import { BOON } from '#gw2/platform/effects/boons.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
@@ -83,8 +84,8 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     castTimeMs: 200,
     // Activation grants the stance's defensive boons to nearby allies.
     effects: [
-      { type: 'boon', boon: 'stability', stacks: 5, duration: 4, audience: { recipients: 'party' } },
-      { type: 'boon', boon: 'protection', duration: 4, audience: { recipients: 'party' } }
+      { type: 'boon', boon: BOON.STABILITY, stacks: 5, duration: 4, audience: { recipients: 'party' } },
+      { type: 'boon', boon: BOON.PROTECTION, duration: 4, audience: { recipients: 'party' } }
     ]
   }
 });

@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { defineSkillVariantProfile as skillVariant } from '#gw2/platform/profession-definition/profile-authoring.js';
 
@@ -54,7 +55,7 @@ export const HOLOSMITH_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     enhancedStrikeFactor: 1.35,
     effects: [
       { name: 'Laser Disk Heat Tier', type: 'strike', coefficient: 0.5, hits: 1 },
-      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2 }
+      { name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 2 }
     ]
   }),
   skillVariant(HOLOSMITH_BALANCE_PROFILE_IDS.launchWallHeatTier, 'Launch Wall Heat Tier', {
@@ -65,7 +66,7 @@ export const HOLOSMITH_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     enhancedStrikeFactor: 1.35,
     effects: [
       { name: 'Launch Wall Heat Tier', type: 'strike', coefficient: 1.5, hits: 1 },
-      { name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 3, duration: 5 }
+      { name: CONDITION.VULNERABILITY, type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 3, duration: 5 }
     ]
   }),
   skillVariant(HOLOSMITH_BALANCE_PROFILE_IDS.primeLightBeamHeatTier, 'Prime Light Beam Heat Tier', {
@@ -76,7 +77,7 @@ export const HOLOSMITH_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     enhancedConditionBaseDurationFactor: 1.5,
     effects: [
       { name: 'Prime Light Beam Heat Tier', type: 'strike', coefficient: 0.5, hits: 1 },
-      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 3 }
+      { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3 }
     ]
   }),
   skillVariant(HOLOSMITH_BALANCE_PROFILE_IDS.radiantArcHeatTier, 'Radiant Arc Heat Tier', {
@@ -91,7 +92,7 @@ export const HOLOSMITH_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     initialDelay: 0.36,
     effects: [
       { name: 'Refraction Cutter Heat Tier', type: 'strike', coefficient: 0.4, hits: 1 },
-      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 4 }
+      { name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4 }
     ]
   })
 ]);

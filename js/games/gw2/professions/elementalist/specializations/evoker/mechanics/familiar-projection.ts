@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
@@ -22,12 +23,12 @@ export function projectIgniteEffects(
 
     if (effect.ticks) {
       const ticks = effect.ticks.flatMap((tick) =>
-        tick.condition !== 'Burning' ? [tick] : burning ? [{ ...tick, duration: Number(burning.duration) }] : []
+        tick.condition !== CONDITION.BURNING ? [tick] : burning ? [{ ...tick, duration: Number(burning.duration) }] : []
       );
       return ticks.length ? [{ ...effect, ticks }] : [];
     }
 
-    return effect.condition !== 'Burning'
+    return effect.condition !== CONDITION.BURNING
       ? [effect]
       : burning
         ? [{ ...effect, duration: Number(burning.duration) }]

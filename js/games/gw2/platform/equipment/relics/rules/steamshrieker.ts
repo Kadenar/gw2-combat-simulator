@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/effects/conditions.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -34,7 +35,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
       ownerActorType: 'player',
       skillName: 'Relic of Steamshrieker',
       name: 'Relic of Steamshrieker — Burning',
-      condition: 'Burning',
+      condition: CONDITION.BURNING,
       stacks: 1,
       duration: 5,
       triggeredBy: event.skillName
