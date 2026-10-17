@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   applyBoonExtension,
   boonIntervals,
@@ -72,7 +73,7 @@ test('prepared boon windows preserve capped pools, extension expiry, recipients,
     { ...buff(0.5, 50, self, 'alacrity'), cancelled: true },
     buff(0, 10, { ...shared, includesSelf: false }, 'alacrity')
   ];
-  const windows = prepareBoonWindows(events, 'alacrity', 'all');
+  const windows = prepareBoonWindows(events, 'alacrity', RECIPIENT.SELF);
   assert.deepEqual(
     [...boonIntervalsFromWindows(windows, -2, 34)],
     [
@@ -89,11 +90,11 @@ test('prepared boon windows preserve capped pools, extension expiry, recipients,
   assert.deepEqual([...boonIntervalsFromWindows(windows, 0.5, 1)], [{ start: 0.5, end: 1, active: true }]);
   assert.deepEqual([...boonIntervalsFromWindows(windows, 2, 1)], []);
   assert.deepEqual(
-    [...boonIntervalsFromWindows(prepareBoonWindows([], 'alacrity', 'all'), -1, 1)],
+    [...boonIntervalsFromWindows(prepareBoonWindows([], 'alacrity', RECIPIENT.SELF), -1, 1)],
     [{ start: -1, end: 1, active: false }]
   );
   assert.deepEqual(
-    [...boonIntervalsFromWindows(prepareBoonWindows(events, 'alacrity', 'summon'), 0, 11)],
+    [...boonIntervalsFromWindows(prepareBoonWindows(events, 'alacrity', RECIPIENT.SUMMONS), 0, 11)],
     [
       { start: 0, end: 10, active: true },
       { start: 10, end: 11, active: false }
@@ -110,7 +111,13 @@ test('prepared windows respect causal order for grants and extensions sharing a 
     [2, 5]
   ]) {
     assert.deepEqual(
-      [...boonIntervalsFromWindows(prepareBoonWindows([{ ...extension, eventOrder }, grant], 'alacrity', 'all'), 0, 6)],
+      [
+        ...boonIntervalsFromWindows(
+          prepareBoonWindows([{ ...extension, eventOrder }, grant], 'alacrity', RECIPIENT.SELF),
+          0,
+          6
+        )
+      ],
       [
         { start: 0, end: expiry, active: true },
         { start: expiry, end: 6, active: false }
@@ -172,7 +179,7 @@ test('extensions preserve past duration and intensity observations across recipi
     [10, 0, 0]
   ]) {
     assert.equal(timeline.buffStacksAt('might', at, 0, 25), player);
-    assert.equal(timeline.buffStacksAt('might', at, 0, 25, 'summon', 'pet'), pet);
+    assert.equal(timeline.buffStacksAt('might', at, 0, 25, RECIPIENT.SUMMONS, 'pet'), pet);
     assert.equal(
       runtime
         .get('might')

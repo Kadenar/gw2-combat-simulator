@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   buffApplicationStacks,
   buffMatchesAudience,
@@ -55,7 +56,7 @@ function simulate({ might = 0, concentration = 0, count = 4, grants = [] } = {})
             playerMight = buffApplicationStacks(runtime.boons.get('might') ?? [], 'might', 3, 25);
             playerFury = remainingDurationStackSeconds(runtime.boons.get('fury') ?? [], 3, {
               maximum: 30,
-              includes: (application) => buffMatchesAudience(application, 'all')
+              includes: (application) => buffMatchesAudience(application, RECIPIENT.SELF)
             });
           }
         ]

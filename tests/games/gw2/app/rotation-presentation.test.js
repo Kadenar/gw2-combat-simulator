@@ -1,3 +1,4 @@
+import { CONTROL } from '#gw2/platform/constants.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -82,7 +83,7 @@ test('target impact details preserve precombat applications and distinguish sepa
         parentEventOrder: 1
       },
       { activationId: 'first', type: 'damage', at: 1.1, cancelled: true },
-      { activationId: 'first', type: 'control', controlKind: 'initial-state', at: 1 },
+      { activationId: 'first', type: 'control', controlKind: CONTROL.INITIAL_STATE, at: 1 },
       { activationId: 'second', type: 'damage', at: 3.6, offTarget: true },
       { activationId: 'buff-only', type: 'buff', at: 4 },
       { activationId: 'invalid', type: 'damage', at: 5.2 }

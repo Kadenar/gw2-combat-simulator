@@ -6,7 +6,8 @@ import {
   STATUS,
   ACTOR,
   BOON,
-  CONDITION
+  CONDITION,
+  CONTROL
 } from '#gw2/platform/constants.js';
 import {
   boonKey,
@@ -155,7 +156,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         metadata: {},
         canCrit: true
       },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
     ])
   },
   // Contributes only a water combo field; no strike or condition packets are modelled.
@@ -201,7 +202,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         metadata: {}
       },
       { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 2.5, metadata: {} },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
     ])
   },
   // Travelling orb whose damage decays over nineteen hits down to a 0.05 floor; each hit also
@@ -335,8 +336,8 @@ export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2Resolv
   // boonSnapshot includes configured boons and collapses Might to one duration, so it cannot preserve this copy.
   const applications = runtime.combat
     .boonApplications(kind)
-    // 'all' checks includesSelf: keep grants received by the player, including party grants, not every recipient.
-    .filter((application) => buffMatchesAudience(application, 'all'));
+    // SELF checks includesSelf, retaining party grants received by the player.
+    .filter((application) => buffMatchesAudience(application, RECIPIENT.SELF));
 
   // Fury adds durations into one capped pool; Might stacks retain their individual remaining lifetimes.
   const copies =

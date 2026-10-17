@@ -1,4 +1,4 @@
-import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -34,7 +34,7 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
         coefficient: 1.2
       },
       { type: 'condition', condition: CONDITION.TORMENT, stacks: 2, duration: 9 },
-      { type: 'control', controlKind: 'control' }
+      { type: 'control', controlKind: CONTROL.GENERIC }
     ])
   },
   [ID.HARROWING_WAVE]: {

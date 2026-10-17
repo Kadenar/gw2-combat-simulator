@@ -1,4 +1,4 @@
-import { COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { COMBO_FINISHER, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 /**
  * Canonical Core elementalist skill fragments grouped by their GW2 owner.
  *
@@ -157,7 +157,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
         metadata: {},
         canCrit: true
       },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
     ])
   },
   // --- Conjures ---------------------------------------------------------------
@@ -236,7 +236,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Glyph',
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5, canCrit: true },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
     ])
   },
   [ID.GLYPH_OF_ELEMENTAL_POWER_EARTH]: {

@@ -41,14 +41,23 @@ export const AURA = Object.freeze({
   SHOCKING: 'Shocking Aura'
 });
 
+/** Control effects and runtime markers share event classification without implying the same disable behavior. */
 export const CONTROL = Object.freeze({
+  GENERIC: 'control',
+  CROWD_CONTROL: 'crowd-control',
+  DEFIANCE: 'defiance',
+  INITIAL_STATE: 'initial-state',
   DAZE: 'daze',
+  FEAR: 'fear',
   FLOAT: 'float',
   KNOCKBACK: 'knockback',
   KNOCKDOWN: 'knockdown',
   LAUNCH: 'launch',
   PULL: 'pull',
-  STUN: 'stun'
+  PUSH: 'push',
+  SINK: 'sink',
+  STUN: 'stun',
+  TAUNT: 'taunt'
 });
 
 export const COMBO_FIELD = Object.freeze({
@@ -70,6 +79,7 @@ export const COMBO_FINISHER = Object.freeze({
   WHIRL: 'Whirl'
 });
 
+/** Actor ownership determines eligibility for player-only procs independently of display labels. */
 export const ACTOR = Object.freeze({
   PLAYER: 'player',
   SUMMON: 'summon',

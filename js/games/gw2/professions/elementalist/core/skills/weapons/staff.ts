@@ -6,7 +6,8 @@ import {
   STATUS,
   AURA,
   BOON,
-  CONDITION
+  CONDITION,
+  CONTROL
 } from '#gw2/platform/constants.js';
 /**
  * Staff weapon-skill mechanics owned by the Core Elementalist module.
@@ -468,7 +469,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        controlKind: 'crowd-control'
+        controlKind: CONTROL.CROWD_CONTROL
       }
     ]
   },
@@ -517,11 +518,11 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       ...impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.5, canCrit: true },
-        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
       ]),
       ...impactEffects({ atMs: 680, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.5, canCrit: true },
-        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
       ])
     ]
   },
@@ -650,7 +651,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        controlKind: 'crowd-control'
+        controlKind: CONTROL.CROWD_CONTROL
       }
     ]
   },

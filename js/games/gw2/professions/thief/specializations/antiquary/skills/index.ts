@@ -106,7 +106,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       {
         type: 'control',
         actorType: ACTOR.PLAYER,
-        controlKind: CONDITION.TAUNT.toLowerCase()
+        controlKind: CONTROL.TAUNT
       },
       {
         type: 'boon',

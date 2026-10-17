@@ -413,7 +413,7 @@ function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEve
   // Extend Fury only while its canonical half-open window is active at the hit time.
   if (
     remainingDurationStackSeconds(context.combat.boonApplications(boonKey(BOON.FURY)), event.at, {
-      includes: (application) => buffMatchesAudience(application, 'all'),
+      includes: (application) => buffMatchesAudience(application, RECIPIENT.SELF),
       maximum: durationStackingBoonCapSeconds(boonKey(BOON.FURY))
     }) <= 0
   )

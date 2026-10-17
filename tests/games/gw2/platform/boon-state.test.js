@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   buffApplicationStacks,
   durationStackingBoonCapSeconds,
@@ -44,12 +45,12 @@ test('ordered intensity queries reuse expired history only for later instants', 
     { at: 0, expiresAt: 1, stacks: 1, resolvedAudience: self },
     { at: 0, expiresAt: 5, stacks: 2, resolvedAudience: summons }
   ];
-  const stacks = (at, audience = 'all') =>
+  const stacks = (at, audience = RECIPIENT.SELF) =>
     buffApplicationStacks(history, 'fencer', at, 25, { ordered: true, audience });
   assert.equal(stacks(2), 0);
   history.push({ at: 3, expiresAt: 6, stacks: 4, resolvedAudience: self });
   assert.equal(stacks(4), 4);
-  assert.equal(stacks(4, 'summon'), 2);
+  assert.equal(stacks(4, RECIPIENT.SUMMONS), 2);
   assert.equal(stacks(0.5), 1);
   assert.equal(stacks(7), 0);
   assert.equal(stacks(4), 4);
@@ -90,7 +91,7 @@ test('summon intensity boons exclude canonical expiry and preserve the preceding
     [0.6, false],
     [0.600001, false]
   ]) {
-    assert.equal(activeFor(context, 'might', at, 'summon'), active);
+    assert.equal(activeFor(context, 'might', at, RECIPIENT.SUMMONS), active);
   }
 });
 
@@ -105,7 +106,7 @@ test('summon boon queries keep capped recipients in separate duration pools', ()
       resolvedAudience: { includesSummons: true, companionIds: [companionId] }
     }))
   );
-  const active = (index, at) => activeFor(context, 'quickness', at, 'summon', `minion:bone-minion:${index}`);
+  const active = (index, at) => activeFor(context, 'quickness', at, RECIPIENT.SUMMONS, `minion:bone-minion:${index}`);
   assert.equal(active(0, 0), true);
   assert.equal(active(1, 0), false);
   assert.equal(active(0, 1), true);

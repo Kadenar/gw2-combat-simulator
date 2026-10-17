@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
@@ -118,7 +119,7 @@ test('Jacaranda Photosynthesize resolves to a companion skill outside and inside
     assert.equal(pet.petSkill, true);
     assert.equal(pet.petAutonomousSkill, true);
     assert.equal(pet.beastmodeSkill, false);
-    assert.equal(pet.rechargeBuffAudience, 'summon');
+    assert.equal(pet.rechargeBuffAudience, RECIPIENT.SUMMONS);
     const merged = catalog.skillsById.get(ID.PHOTOSYNTHESIZE);
 
     if (specialization === 'Soulbeast') {

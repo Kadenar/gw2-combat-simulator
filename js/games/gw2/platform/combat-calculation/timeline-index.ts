@@ -1,4 +1,4 @@
-import { ACTOR, BOON } from '#gw2/platform/constants.js';
+import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import {
   boonKey,
   type Gw2BuffAudience,
@@ -32,7 +32,7 @@ interface CreateGw2TimelineIndexOptions {
 }
 
 interface IndexedBuffEvents {
-  readonly all: SimulationEvent[];
+  readonly self: SimulationEvent[];
   readonly summon: SimulationEvent[];
   maximumDuration: number;
 }
@@ -88,7 +88,7 @@ export function createGw2TimelineIndex({
     if (cached) return cached;
 
     const retiredAt = retiredCompanions.get(companionId) ?? Infinity;
-    const windows = prepareBoonWindows(events, boonKey(BOON.ALACRITY), ACTOR.SUMMON, companionId, resolved)
+    const windows = prepareBoonWindows(events, boonKey(BOON.ALACRITY), RECIPIENT.SUMMONS, companionId, resolved)
       .filter((window) => window.start < retiredAt)
       .map((window) => ({ ...window, end: Math.min(window.end, retiredAt) }));
 
@@ -131,17 +131,17 @@ export function createGw2TimelineIndex({
 
     if (!bucket) {
       // Keep only recipient-based views consumed by player and companion queries.
-      bucket = { all: [], summon: [], maximumDuration: 0 };
+      bucket = { self: [], summon: [], maximumDuration: 0 };
       indexedBuffs.set(kind, bucket);
     }
 
     bucket.maximumDuration = Math.max(bucket.maximumDuration, Number(event.duration) || 0);
 
-    if (buffMatchesAudience(event, 'all')) {
-      insertOrdered(bucket.all, event);
+    if (buffMatchesAudience(event, RECIPIENT.SELF)) {
+      insertOrdered(bucket.self, event);
     }
 
-    if (buffMatchesAudience(event, ACTOR.SUMMON)) {
+    if (buffMatchesAudience(event, RECIPIENT.SUMMONS)) {
       insertOrdered(bucket.summon, event);
     }
   };
@@ -194,13 +194,14 @@ export function createGw2TimelineIndex({
     time: number,
     duration: number,
     maximum: number,
-    audience: Gw2BuffAudience = 'all',
+    audience: Gw2BuffAudience = RECIPIENT.SELF,
     companionId?: string | null
   ): number => {
     time = canonicalTime(time);
 
     // Retirement facts end recipient visibility without rewriting earlier shared boon applications.
-    if (audience !== 'all' && companionId && time >= (retiredCompanions.get(companionId) ?? Infinity)) return 0;
+    if (audience !== RECIPIENT.SELF && companionId && time >= (retiredCompanions.get(companionId) ?? Infinity))
+      return 0;
 
     // Reuse chronological extension replay only for histories that contain an extension.
     if (hasExtensions && isStandardBoon(kind)) {
@@ -209,7 +210,7 @@ export function createGw2TimelineIndex({
     }
 
     const bucket = indexedBuffs.get((kind || '').toLowerCase());
-    const applications = audience === ACTOR.SUMMON ? bucket?.summon : bucket?.all;
+    const applications = audience === RECIPIENT.SUMMONS ? bucket?.summon : bucket?.self;
 
     if (isDurationStackingBoon(kind)) {
       return buffApplicationStacks(applications || [], kind, time, maximum, {
@@ -246,7 +247,7 @@ export function createGw2TimelineIndex({
     time: number,
     duration: number,
     maximum: number,
-    audience: Gw2BuffAudience = 'all',
+    audience: Gw2BuffAudience = RECIPIENT.SELF,
     companionId?: string | null
   ): number => {
     time = canonicalTime(time);

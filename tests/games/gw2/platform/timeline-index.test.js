@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
@@ -21,7 +22,7 @@ test('companion recharge windows isolate grants, extensions and retirement', () 
     }
   });
   const events = [grant('a'), grant('b')];
-  const skill = { id: 1, rechargeBuffAudience: 'summon' };
+  const skill = { id: 1, rechargeBuffAudience: RECIPIENT.SUMMONS };
   const timeline = createGw2TimelineIndex({ events });
   const ready = (companionId) =>
     projectRecharge({ startedAt: 0, work: 10 }, timeline.rechargeIntervals(skill, 0, Infinity, companionId));
@@ -57,7 +58,7 @@ test('player recharge never samples Alacrity grants or expiry', () => {
     ];
     const timeline = createGw2TimelineIndex({ events, config: { boons: { alacrity } } });
     assert.deepEqual(
-      [...timeline.rechargeIntervals({ id: 1, rechargeBuffAudience: 'self' }, 2, 12)],
+      [...timeline.rechargeIntervals({ id: 1, rechargeBuffAudience: RECIPIENT.SELF }, 2, 12)],
       [{ start: 2, end: 12, rate: 1.25 }]
     );
     assert.deepEqual(
@@ -73,7 +74,7 @@ test('declared recharge rate applies only to player skills', () => {
   const skill = { id: 1, name: 'Recharge' };
   for (const [selected, rate] of [
     [skill, 1.5],
-    [{ ...skill, rechargeBuffAudience: 'summon' }, 1],
+    [{ ...skill, rechargeBuffAudience: RECIPIENT.SUMMONS }, 1],
     [{ ...skill, rechargeIgnoresAlacrity: true }, 1]
   ]) {
     assert.deepEqual(
@@ -238,10 +239,10 @@ test('buff query arguments and timeline instances cannot share another audience 
   assert.equal(timeline.buffStacksAt('might', 1, 0, 25), 0);
   assert.equal(timeline.buffStacksAt('might', 1, 2, 25), 4);
   assert.equal(timeline.buffStacksAt('might', 1, 2, 2), 2);
-  assert.equal(timeline.buffStacksAt('might', 1, 2, 25, 'summon'), 10);
-  assert.equal(timeline.buffStacksAt('might', 1, 2, 25, 'summon', 'pet-a'), 4);
-  assert.equal(timeline.buffStacksAt('might', 1, 2, 25, 'summon', 'pet-b'), 6);
-  assert.equal(timeline.buffStacksAt('might', 1, 2, 25, 'summon', null), 0);
+  assert.equal(timeline.buffStacksAt('might', 1, 2, 25, RECIPIENT.SUMMONS), 10);
+  assert.equal(timeline.buffStacksAt('might', 1, 2, 25, RECIPIENT.SUMMONS, 'pet-a'), 4);
+  assert.equal(timeline.buffStacksAt('might', 1, 2, 25, RECIPIENT.SUMMONS, 'pet-b'), 6);
+  assert.equal(timeline.buffStacksAt('might', 1, 2, 25, RECIPIENT.SUMMONS, null), 0);
   assert.equal(timeline.buffStacksAt('fury', 1, 2, 25), 0);
   assert.equal(createGw2TimelineIndex().buffStacksAt('might', 1, 2, 25), 0);
 });

@@ -1,4 +1,4 @@
-import { ACTOR } from '#gw2/platform/constants.js';
+import { ACTOR, CONTROL } from '#gw2/platform/constants.js';
 import { normalizeEffectMetadata } from '#gw2/platform/effects/audience-metadata-validation.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -144,6 +144,11 @@ export function elementalistControlRequest(packet: Packet, emissionCast?: Effect
     kind: 'packet',
     cause: packet.cause,
     cast: emissionCast,
-    event: { ...fields(packet), type: 'control', at: packet.at, controlKind: packet.controlKind ?? 'crowd-control' }
+    event: {
+      ...fields(packet),
+      type: 'control',
+      at: packet.at,
+      controlKind: packet.controlKind ?? CONTROL.CROWD_CONTROL
+    }
   };
 }

@@ -1,4 +1,4 @@
-import { ACTOR, BOON } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, CONTROL } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -131,7 +131,7 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     ],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.75, canCrit: true },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
     ])
   },
   [ID.UNRAVEL]: {

@@ -1,4 +1,4 @@
-import { WEAPON, COMBO_FIELD, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { WEAPON, COMBO_FIELD, COMBO_FINISHER, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 /**
  * Dagger weapon-skill mechanics owned by the Weaver module.
  *
@@ -149,11 +149,11 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         },
         { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3, metadata: {} },
         { type: 'boon', boon: BOON.REGENERATION, stacks: 1, duration: 4, metadata: {} },
-        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
       ]),
       ...impactEffects({ atMs: 1520, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1.25, canCrit: true },
-        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
       ])
     ],
     specialization: 'Weaver'
@@ -172,7 +172,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 960, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.15, canCrit: true },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
     ]),
     specialization: 'Weaver'
   },

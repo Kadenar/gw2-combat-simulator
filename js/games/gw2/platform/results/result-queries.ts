@@ -21,7 +21,7 @@ export function criticalChanceEventAt(
     const actor = gw2EventActorType(event);
 
     // Only effects explicitly owned by the player join player actors in this sample.
-    if (actor !== ACTOR.PLAYER && (actor !== 'effect' || !isGw2PlayerModifierOwnedEvent(event))) continue;
+    if (actor !== ACTOR.PLAYER && (actor !== ACTOR.EFFECT || !isGw2PlayerModifierOwnedEvent(event))) continue;
 
     // Match combat-query's independent critical profile: attribution alone does not imply player stats.
     if (

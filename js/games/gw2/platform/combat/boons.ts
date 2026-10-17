@@ -1,4 +1,4 @@
-import { ACTOR, BOON, type BoonName } from '#gw2/platform/constants.js';
+import { BOON, type BoonName, RECIPIENT } from '#gw2/platform/constants.js';
 import type { ResolvedEffectAudience, SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
@@ -87,7 +87,7 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
   time: number,
   maximum: number,
   {
-    audience = 'all',
+    audience = RECIPIENT.SELF,
     companionId,
     duration,
     start = 0,
@@ -299,7 +299,7 @@ export function buffMatchesAudience(
 
   if (!resolvedAudience) return false;
 
-  if (audience === 'all') return resolvedAudience.includesSelf;
+  if (audience === RECIPIENT.SELF) return resolvedAudience.includesSelf;
 
   if (!resolvedAudience.includesSummons) return false;
 
@@ -394,7 +394,7 @@ export function* boonIntervals(
   start: number,
   end: number,
   permanent = false,
-  audience: Gw2BuffAudience = 'all',
+  audience: Gw2BuffAudience = RECIPIENT.SELF,
   resolved = false
 ) {
   // Empty or reversed resource windows cannot accrue a boon, so avoid preparing their history.
@@ -523,7 +523,7 @@ export function timedBuffApplicationsAt(
   return applicationsByKind.get(kind) || [];
 }
 
-export type Gw2BuffAudience = 'all' | typeof ACTOR.SUMMON;
+export type Gw2BuffAudience = typeof RECIPIENT.SELF | typeof RECIPIENT.SUMMONS;
 
 export interface Gw2TimedBuffApplication {
   readonly event?: SimulationEvent;

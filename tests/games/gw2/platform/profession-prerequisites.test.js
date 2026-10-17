@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
@@ -260,9 +261,9 @@ test('timeline indexes buff stacks by kind and summon audience', () => {
   });
 
   assert.equal(timeline.buffStacksAt('might', 1, 0, 25), 9);
-  assert.equal(timeline.buffStacksAt('Might', 1, 0, 25, 'summon'), 11);
-  assert.equal(timeline.buffStacksAt('might', 1, 0, 25, 'summon', 'minion:one'), 11);
-  assert.equal(timeline.buffStacksAt('might', 1, 0, 25, 'summon', 'minion:two'), 7);
+  assert.equal(timeline.buffStacksAt('Might', 1, 0, 25, RECIPIENT.SUMMONS), 11);
+  assert.equal(timeline.buffStacksAt('might', 1, 0, 25, RECIPIENT.SUMMONS, 'minion:one'), 11);
+  assert.equal(timeline.buffStacksAt('might', 1, 0, 25, RECIPIENT.SUMMONS, 'minion:two'), 7);
   assert.equal(timeline.buffStacksAt('might', 1, 0, 5), 5);
   assert.equal(timeline.buffStacksAt('might', 2, 0, 25), 0);
   assert.equal(timeline.buffStacksAt('quickness', 3.5, 0, 1), 1);

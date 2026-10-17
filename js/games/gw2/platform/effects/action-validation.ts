@@ -155,7 +155,7 @@ export function validateEffectReactions(catalog: CanonicalCatalog, skill: Skill,
             (effect.type === 'condition' && effect.ticks?.some((tick) => tick.comboFinishers?.length))
           )
         : rule.on !== stage) ||
-      ![ACTOR.PLAYER, ACTOR.SUMMON, 'effect'].includes(rule.actor) ||
+      ![ACTOR.PLAYER, ACTOR.SUMMON, ACTOR.EFFECT].includes(rule.actor) ||
       !['each', 'first'].includes(rule.packets) ||
       (rule.when !== undefined && typeof rule.when !== 'function')
     )

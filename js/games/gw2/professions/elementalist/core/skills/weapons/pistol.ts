@@ -1,4 +1,4 @@
-import { WEAPON, COMBO_FINISHER, COMBO_FIELD, ACTOR, AURA, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { WEAPON, COMBO_FINISHER, COMBO_FIELD, ACTOR, AURA, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type {
   ElementalistRuntime,
@@ -309,7 +309,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
       [
         { type: 'strike', coefficient: 0.75, canCrit: true },
         { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 8, duration: 10, metadata: {} },
-        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
       ]
     )
   },

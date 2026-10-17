@@ -90,7 +90,7 @@ function initialState(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>
   if (id === INITIAL.claw) {
     runtime.effects.emit({
       kind: 'packet',
-      event: { ...event, type: 'control', controlKind: 'initial-state', initialStateDuration: duration }
+      event: { ...event, type: 'control', controlKind: CONTROL.INITIAL_STATE, initialStateDuration: duration }
     });
     return;
   }

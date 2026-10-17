@@ -1,4 +1,4 @@
-import { WEAPON, COMBO_FIELD, RECIPIENT, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { WEAPON, COMBO_FIELD, RECIPIENT, COMBO_FINISHER, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 /**
  * Focus weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -151,7 +151,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
         metadata: {},
         canCrit: true
       },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
     ])
   },
   // Projectile-destruction bubble with no offensive packets; the fragment only models its cast time and recharge.
@@ -185,7 +185,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        controlKind: 'crowd-control'
+        controlKind: CONTROL.CROWD_CONTROL
       }
     ]
   },

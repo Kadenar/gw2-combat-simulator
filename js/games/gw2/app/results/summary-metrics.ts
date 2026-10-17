@@ -90,7 +90,7 @@ export function baseResultSummaryMetrics(result: Gw2ResolverResult): ResultSumma
       {
         label: 'Environment Damage',
         value: format(result.environmentDamage),
-        className: ACTOR.ENVIRONMENT,
+        className: 'environment',
         group: 'target',
         details: [
           { label: 'Environment DPS', value: format(result.environmentDps) },

@@ -174,7 +174,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     effects: impactEffects({ atMs: 1120, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.8, canCrit: true },
       { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 5, metadata: {} },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
     ])
   },
   // --- Lightning Hammer (conjure) --------------------------------------------

@@ -1,4 +1,4 @@
-import { ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -25,7 +25,7 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
         coefficient: 1
       },
       { type: 'condition', condition: CONDITION.POISONED, stacks: 5, duration: 6 },
-      { type: 'control', controlKind: 'control' }
+      { type: 'control', controlKind: CONTROL.GENERIC }
     ])
   },
   [ID.WEEPING_SHOTS]: {

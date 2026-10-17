@@ -196,7 +196,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       {
         type: 'control',
-        controlKind: CONDITION.TAUNT.toLowerCase()
+        controlKind: CONTROL.TAUNT
       },
       {
         type: 'boon',

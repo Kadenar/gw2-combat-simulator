@@ -359,7 +359,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
       ...impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
         {
           type: 'control',
-          controlKind: 'control'
+          controlKind: CONTROL.GENERIC
         },
         {
           type: 'condition',
@@ -399,7 +399,7 @@ export function glaringBurstDetail(context: CastDetailContext<GuardianRuntimeSta
   const state = specialization.state;
   const label =
     state.radiantWeapon === 'blade'
-      ? `Sword (${state.glaringBurstSwordSlow ? CONDITION.SLOW.toLowerCase() : 'fast'})`
+      ? `Sword (${state.glaringBurstSwordSlow ? 'slow' : 'fast'})`
       : { hammer: WEAPON.HAMMER, staff: WEAPON.STAFF, bulwark: WEAPON.SHIELD }[state.radiantWeapon];
   return label ? `Variant: ${label}` : undefined;
 }

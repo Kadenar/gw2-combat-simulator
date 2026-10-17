@@ -1,4 +1,13 @@
-import { WEAPON, COMBO_FIELD, COMBO_FINISHER, AURA, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import {
+  WEAPON,
+  COMBO_FIELD,
+  COMBO_FINISHER,
+  AURA,
+  RECIPIENT,
+  BOON,
+  CONDITION,
+  CONTROL
+} from '#gw2/platform/constants.js';
 /**
  * Dagger weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -464,7 +473,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
       { atMs: 840, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 1.5, canCrit: true },
-        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
       ]
     )
   },
@@ -511,7 +520,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         coefficient: 0
       },
       { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 10, metadata: {} },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
     ])
   },
   [ID.IMPALE]: {
@@ -608,7 +617,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         metadata: {},
         canCrit: true
       },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
     ])
   },
   // The zero-coefficient packet at cast start exists only to fire the blast finisher at channel start;

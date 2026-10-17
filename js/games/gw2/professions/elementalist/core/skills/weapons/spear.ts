@@ -1,4 +1,4 @@
-import { WEAPON, COMBO_FINISHER, COMBO_FIELD, STATUS, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { WEAPON, COMBO_FINISHER, COMBO_FIELD, STATUS, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 /**
  * Spear weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -373,7 +373,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.7, canCrit: true },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
     ])
   },
   [ID.ETCHING_JO_KULHLAUP]: {
@@ -565,7 +565,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         canCrit: true
       },
       { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 10, metadata: {} },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
     ])
   },
   [ID.ETCHING_DERECHO]: {
@@ -615,7 +615,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2, canCrit: true },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
     ])
   },
   [ID.DERECHO]: {
@@ -632,7 +632,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 4, canCrit: true },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
     ])
   },
   [ID.STONE_STRIKE]: {

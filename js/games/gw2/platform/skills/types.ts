@@ -85,7 +85,7 @@ export interface Skill extends CatalogEntity {
   readonly rechargeProgress?: number;
   readonly cooldown?: number;
   /** Which actor's active boons determine recharge-rate modifiers. */
-  readonly rechargeBuffAudience?: typeof RECIPIENT.SELF | typeof ACTOR.SUMMON;
+  readonly rechargeBuffAudience?: typeof RECIPIENT.SELF | typeof RECIPIENT.SUMMONS;
   /** Recharge always runs at the base rate; Alacrity never changes it (for example, Revenant legend swap). */
   readonly rechargeIgnoresAlacrity?: boolean;
   /**

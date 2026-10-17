@@ -1,4 +1,4 @@
-import { ACTOR, COMBO_FIELD, RECIPIENT, STATUS, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, COMBO_FIELD, RECIPIENT, STATUS, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -162,7 +162,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
       ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
         {
           type: 'control',
-          controlKind: CONDITION.TAUNT.toLowerCase(),
+          controlKind: CONTROL.TAUNT,
           source: 'Player',
           actorType: ACTOR.PLAYER
         },

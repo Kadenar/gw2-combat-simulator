@@ -18,7 +18,7 @@ export type ResolvedEffectTrigger<Stage extends EffectReactionStage = EffectReac
 export type EffectReaction = {
   [On in EffectReactionStage]: {
     readonly on: On;
-    readonly actor: typeof ACTOR.PLAYER | typeof ACTOR.SUMMON | 'effect';
+    readonly actor: typeof ACTOR.PLAYER | typeof ACTOR.SUMMON | typeof ACTOR.EFFECT;
     readonly packets: 'each' | 'first';
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Reaction declarations and handler registries erase profession state at the shared dispatch boundary.
     readonly when?: (runtime: MechanicQueryContext<any>, trigger: ResolvedEffectTrigger<On>) => boolean;

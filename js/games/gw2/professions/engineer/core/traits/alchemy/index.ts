@@ -1,4 +1,4 @@
-import { CONTROL, ACTOR, COMBO_FINISHER, CONDITION, BOON } from '#gw2/platform/constants.js';
+import { CONTROL, ACTOR, COMBO_FINISHER, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -19,17 +19,17 @@ import { type SimulationEventBase } from '#gw2/platform/events/events.js';
 import { type RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
 // In-game "disable" reminder: stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.
-const DISABLE_CONTROL_KINDS = new Set([
+const DISABLE_CONTROL_KINDS: ReadonlySet<string> = new Set([
   CONTROL.STUN,
   CONTROL.DAZE,
   CONTROL.KNOCKBACK,
   CONTROL.PULL,
   CONTROL.KNOCKDOWN,
-  'sink',
+  CONTROL.SINK,
   CONTROL.FLOAT,
   CONTROL.LAUNCH,
-  CONDITION.TAUNT.toLowerCase(),
-  CONDITION.FEAR.toLowerCase()
+  CONTROL.TAUNT,
+  CONTROL.FEAR
 ]);
 
 /** Owns HGH tuning and behavior at its established runtime and build boundaries. */

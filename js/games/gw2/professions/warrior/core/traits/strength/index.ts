@@ -186,8 +186,8 @@ export const bodyBlow = defineTrait({
       on: 'control.resolved',
       when: (_runtime, event) =>
         event.actorType === ACTOR.PLAYER &&
-        [CONTROL.STUN, CONTROL.DAZE, CONTROL.KNOCKBACK, CONTROL.PULL, 'push', CONTROL.LAUNCH].includes(
-          String(event.controlKind).toLowerCase()
+        [CONTROL.STUN, CONTROL.DAZE, CONTROL.KNOCKBACK, CONTROL.PULL, CONTROL.PUSH, CONTROL.LAUNCH].some(
+          (kind) => kind === String(event.controlKind).toLowerCase()
         ),
       emit: TRAIT.BODY_BLOW,
       attribution: { priority: 5 }

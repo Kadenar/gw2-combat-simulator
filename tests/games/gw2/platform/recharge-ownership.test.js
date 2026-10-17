@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
@@ -130,9 +131,9 @@ function rateFixture(skills) {
 test('constant-rate deadlines are cached and completed recharge progress is retained', () => {
   for (const metadata of [
     {},
-    { rechargeBuffAudience: 'self' },
+    { rechargeBuffAudience: RECIPIENT.SELF },
     { rechargeIgnoresAlacrity: true },
-    { rechargeBuffAudience: 'summon', rechargeIgnoresAlacrity: true }
+    { rechargeBuffAudience: RECIPIENT.SUMMONS, rechargeIgnoresAlacrity: true }
   ]) {
     const skill = { ...ordinary, ...metadata };
     const { state, intervalReads, controller } = rateFixture([skill]);
@@ -171,7 +172,7 @@ test('cached cooldowns reflect reductions and copied recharge immediately', () =
 
 // A received boon can change live readiness before refresh; copied summon identities follow the recipient's rate.
 test('summon recharge observes received Alacrity on demand and during refresh', () => {
-  const summon = { ...ordinary, id: 4, rechargeBuffAudience: 'summon' };
+  const summon = { ...ordinary, id: 4, rechargeBuffAudience: RECIPIENT.SUMMONS };
   const { state, intervalReads, controller } = rateFixture([ordinary, summon]);
   controller.startRecharge(ordinary, 0, 10);
   controller.copy(ordinary.id, summon.id);
@@ -197,7 +198,7 @@ test('summon recharge observes received Alacrity on demand and during refresh', 
 
 // Restoring earned work uses the new timeline immediately, without relying on a later global refresh.
 test('checkpoint restoration projects work before returning', () => {
-  const summon = { ...ordinary, id: 4, rechargeBuffAudience: 'summon' };
+  const summon = { ...ordinary, id: 4, rechargeBuffAudience: RECIPIENT.SUMMONS };
   const { state, controller } = rateFixture([ordinary, summon]);
   for (const skill of [ordinary, summon]) controller.startRecharge(skill, 0, 10);
   const saved = controller.checkpoint(2, new Set(), ordinary.id);

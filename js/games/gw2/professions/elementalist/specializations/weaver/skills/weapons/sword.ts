@@ -1,4 +1,4 @@
-import { WEAPON, CONDITION } from '#gw2/platform/constants.js';
+import { WEAPON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 /** Sword weapon-skill mechanics owned by the Weaver module. */
 
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -194,31 +194,31 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         { type: 'strike', coefficient: 0.275, canCrit: true },
         { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5, metadata: {} },
         { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, metadata: {} },
-        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
       ]),
       ...impactEffects({ atMs: 920, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.275, canCrit: true },
         { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5, metadata: {} },
         { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, metadata: {} },
-        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
       ]),
       ...impactEffects({ atMs: 1320, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.275, canCrit: true },
         { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5, metadata: {} },
         { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, metadata: {} },
-        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
       ]),
       ...impactEffects({ atMs: 1720, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.275, canCrit: true },
         { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5, metadata: {} },
         { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, metadata: {} },
-        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
       ]),
       ...impactEffects({ atMs: 2120, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.275, canCrit: true },
         { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5, metadata: {} },
         { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, metadata: {} },
-        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
       ])
     ],
     specialization: 'Weaver'

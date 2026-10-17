@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
@@ -161,7 +162,7 @@ test('summon-owned cooldowns use received Alacrity until it expires', () => {
         name: 'Summon Skill',
         cooldown: 20,
         castTimeMs: 0,
-        rechargeBuffAudience: 'summon',
+        rechargeBuffAudience: RECIPIENT.SUMMONS,
         effects: []
       },
       {

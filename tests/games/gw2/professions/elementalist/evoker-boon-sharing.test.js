@@ -1,3 +1,4 @@
+import { CONTROL } from '#gw2/platform/constants.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
@@ -191,7 +192,7 @@ test('Earth familiar Protection shares an internal cooldown across accepted play
                 skillId: 42,
                 skillName: 'Fixture disable',
                 actorType,
-                controlKind: 'crowd-control'
+                controlKind: CONTROL.CROWD_CONTROL
               }
             });
           }

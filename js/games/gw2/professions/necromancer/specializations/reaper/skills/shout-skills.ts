@@ -1,4 +1,4 @@
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -16,7 +16,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 0,
     effects: [
       { type: 'strike', coefficient: 2.5, hits: 1 },
-      { type: 'control', controlKind: 'control' }
+      { type: 'control', controlKind: CONTROL.GENERIC }
     ]
   },
   [ID.NOTHING_CAN_SAVE_YOU]: {
@@ -30,7 +30,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 680,
     effects: [
       { type: 'strike', coefficient: 3, hits: 1 },
-      { type: 'control', controlKind: 'control' },
+      { type: 'control', controlKind: CONTROL.GENERIC },
       { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 4 }
     ]
   },

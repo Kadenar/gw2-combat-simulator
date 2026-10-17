@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { buffApplicationStacks, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -82,7 +83,7 @@ test('summon recharge windows preserve executed extension order and recipient ow
     { ...extension('alacrity'), extensionAudience: 'all' }
   ];
   const timeline = createGw2TimelineIndex({ events, resolved: true });
-  const skill = { id: 1, rechargeBuffAudience: 'summon' };
+  const skill = { id: 1, rechargeBuffAudience: RECIPIENT.SUMMONS };
   assert.deepEqual([...timeline.rechargeIntervals(skill, 1, 2, 'pet')], [{ start: 1, end: 2, rate: 1.25 }]);
   assert.deepEqual([...timeline.rechargeIntervals(skill, 1, 2, 'other')], [{ start: 1, end: 2, rate: 1 }]);
   assert.deepEqual([...timeline.rechargeIntervals(skill, 3, 4, 'pet')], [{ start: 3, end: 4, rate: 1 }]);
@@ -239,7 +240,7 @@ test('a nested extension is visible immediately and follows its grant without ex
             });
             assert.equal(buffApplicationStacks(context.combat.boonApplications(kind), kind, 1.5, 25), 1);
             assert.equal(context.combat.timeline.buffStacksAt(kind, 1.5, 0, 25), 1);
-            assert.equal(context.combat.timeline.buffStacksAt(kind, 1.5, 0, 25, 'summon', 'pet'), 0);
+            assert.equal(context.combat.timeline.buffStacksAt(kind, 1.5, 0, 25, RECIPIENT.SUMMONS, 'pet'), 0);
           }
         }
       });

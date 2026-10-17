@@ -1,4 +1,4 @@
-import { RECIPIENT, COMBO_FIELD, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { RECIPIENT, COMBO_FIELD, COMBO_FINISHER, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
@@ -165,7 +165,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        controlKind: 'crowd-control'
+        controlKind: CONTROL.CROWD_CONTROL
       }
     ]
   },
@@ -259,7 +259,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     skillFamily: 'Familiar',
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.65, canCrit: true },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
     ])
   },
   [ID.SEISMIC_IMPACT]: {
@@ -297,7 +297,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 6, duration: 10, metadata: {} },
       // The initial knockdown triggers disable passives before the later damage and barrier pulses.
-      { type: 'control', applications: 1, controlKind: 'crowd-control', atMs: 1320 },
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL, atMs: 1320 },
       // The barrier supplies party Protection independently of hitting an enemy; its pulses keep a fixed cadence.
       {
         type: 'boon',

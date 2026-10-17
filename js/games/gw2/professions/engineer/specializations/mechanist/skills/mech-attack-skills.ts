@@ -1,4 +1,4 @@
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 /**
  * Owns Mechanist autonomous, triggered, and supplemental mech attack identities.
  * User-issued mech commands and their cast-lane rules live in `mech-command-skills.ts`.
@@ -45,7 +45,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
       {
         type: 'control',
         actorType: ACTOR.SUMMON,
-        controlKind: 'defiance'
+        controlKind: CONTROL.DEFIANCE
       }
     ]
   },

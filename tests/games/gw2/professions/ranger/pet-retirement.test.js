@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
@@ -245,9 +246,9 @@ for (const output of ['detailed', 'score']) {
     assert.deepEqual(result.warnings, []);
     const runtime = observedRuntime(result);
     const timeline = createGw2TimelineIndex({ events: runtime.facts.read(), resolved: true });
-    assert.equal(timeline.buffStacksAt('fury', 0.5, 0, 1, 'summon', oldPet), 1);
-    assert.equal(timeline.buffStacksAt('fury', 1, 0, 1, 'summon', oldPet), 0);
-    assert.equal(timeline.buffStacksAt('fury', 1, 0, 1, 'all'), 1);
+    assert.equal(timeline.buffStacksAt('fury', 0.5, 0, 1, RECIPIENT.SUMMONS, oldPet), 1);
+    assert.equal(timeline.buffStacksAt('fury', 1, 0, 1, RECIPIENT.SUMMONS, oldPet), 0);
+    assert.equal(timeline.buffStacksAt('fury', 1, 0, 1, RECIPIENT.SELF), 1);
   });
 }
 

@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
@@ -75,7 +76,7 @@ function normalize(skill: RangerSkill): RangerSkill {
     // Pet recharge begins on its own execution lane, independently of the player's command reservation.
     rechargeOwner: petSkill ? 'actor' : skill.rechargeOwner,
     rechargeAnchor: petSkill ? 'castStart' : skill.rechargeAnchor,
-    rechargeBuffAudience: petSkill ? 'summon' : skill.rechargeBuffAudience,
+    rechargeBuffAudience: petSkill ? RECIPIENT.SUMMONS : skill.rechargeBuffAudience,
     beastmodeSkill,
     unleashedPetSkill,
     unleashedAmbushSkill

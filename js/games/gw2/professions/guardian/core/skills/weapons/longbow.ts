@@ -1,4 +1,4 @@
-import { COMBO_FIELD, CONDITION } from '#gw2/platform/constants.js';
+import { COMBO_FIELD, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -16,7 +16,7 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, P
       },
       {
         type: 'control',
-        controlKind: 'control'
+        controlKind: CONTROL.GENERIC
       }
     ])
   },

@@ -1,4 +1,4 @@
-import { ACTOR, BOON } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import {
   boonKey,
   buffApplicationStacks,
@@ -26,7 +26,7 @@ export function appliedEffectStacks(
   fallbackDuration = 0
 ): number {
   kind = kind.toLowerCase();
-  const audience = recipient.actor === ACTOR.PLAYER ? 'all' : ACTOR.SUMMON;
+  const audience = recipient.actor === ACTOR.PLAYER ? RECIPIENT.SELF : RECIPIENT.SUMMONS;
   const companionId = recipient.actor === 'companion' ? recipient.companionId : undefined;
   // A retired entity has no live boons or buffs; earlier queries still see its accepted grants.
   const retiredAt = companionId ? context.runtime?.retiredCompanions?.get(companionId) : undefined;
@@ -58,7 +58,7 @@ export function liveBoonSnapshot(
   // Copying a boon cannot expose ordinary buff windows or malformed assumptions.
   if (!isStandardBoon(kind)) return { stacks: 0, duration: 0 };
 
-  const audience = recipient.actor === ACTOR.PLAYER ? 'all' : ACTOR.SUMMON;
+  const audience = recipient.actor === ACTOR.PLAYER ? RECIPIENT.SELF : RECIPIENT.SUMMONS;
   const companionId = recipient.actor === 'companion' ? recipient.companionId : undefined;
   const configured = recipient.actor === ACTOR.PLAYER ? Number(config.boons?.[kind] || 0) : 0;
   const maximum = kind === boonKey(BOON.MIGHT) || kind === boonKey(BOON.STABILITY) ? 25 : 1;

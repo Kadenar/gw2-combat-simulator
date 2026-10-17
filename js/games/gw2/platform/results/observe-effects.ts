@@ -1,4 +1,4 @@
-import { ACTOR, STATUS, RECIPIENT } from '#gw2/platform/constants.js';
+import { STATUS, RECIPIENT } from '#gw2/platform/constants.js';
 import {
   GW2_STANDARD_BOONS,
   standardBoonPresentation,
@@ -83,7 +83,7 @@ function observeGenericBuff(
   for (const id of companions)
     states.push(
       observeBuffState(kind, applications, at, policy, `companion:${id}`, (application) =>
-        buffMatchesAudience(application, ACTOR.SUMMON, id)
+        buffMatchesAudience(application, RECIPIENT.SUMMONS, id)
       )
     );
 

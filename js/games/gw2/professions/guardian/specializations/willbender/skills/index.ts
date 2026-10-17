@@ -26,7 +26,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       },
       {
         type: 'control',
-        controlKind: 'control'
+        controlKind: CONTROL.GENERIC
       },
       {
         type: 'condition',
@@ -79,7 +79,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       },
       {
         type: 'control',
-        controlKind: 'control'
+        controlKind: CONTROL.GENERIC
       }
     ]
   },

@@ -1,4 +1,13 @@
-import { WEAPON, COMBO_FIELD, COMBO_FINISHER, RECIPIENT, STATUS, BOON, CONDITION } from '#gw2/platform/constants.js';
+import {
+  WEAPON,
+  COMBO_FIELD,
+  COMBO_FINISHER,
+  RECIPIENT,
+  STATUS,
+  BOON,
+  CONDITION,
+  CONTROL
+} from '#gw2/platform/constants.js';
 /**
  * Sword weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -396,7 +405,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3, metadata: {} },
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3, metadata: {} },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
     ])
   },
   // Nine-packet flurry; the shared tick table keeps one Vulnerability stack aligned to each strike.

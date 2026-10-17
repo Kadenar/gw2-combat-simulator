@@ -1,4 +1,4 @@
-import { ACTOR } from '#gw2/platform/constants.js';
+import { ACTOR, type SimulationActorType } from '#gw2/platform/constants.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import {
   advanceCriticalProc,
@@ -15,9 +15,7 @@ export interface ResolvedCriticalHitOptions<
 > {
   readonly id: string;
   readonly chanceOnCriticalHit?: number | ((context: TContext) => number);
-  readonly actorTypes?: readonly (
-    typeof ACTOR.PLAYER | typeof ACTOR.SUMMON | 'effect' | typeof ACTOR.ENVIRONMENT | 'unknown'
-  )[];
+  readonly actorTypes?: readonly SimulationActorType[];
   readonly when?: (context: TContext, event: TEvent, details: TDetails) => boolean;
   readonly internalCooldown?: {
     readonly duration: number | ((context: TContext) => number);

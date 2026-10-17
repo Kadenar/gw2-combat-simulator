@@ -1,4 +1,4 @@
-import { WEAPON, ACTOR } from '#gw2/platform/constants.js';
+import { WEAPON, ACTOR, CONTROL } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -253,7 +253,7 @@ const weaverPistolSideEffects: RuntimeProfession<ElementalistRuntimeState, Eleme
           actorType: ACTOR.PLAYER,
           skillName: skill.name,
           skillId: skill.id,
-          controlKind: 'crowd-control'
+          controlKind: CONTROL.CROWD_CONTROL
         },
         { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
       )

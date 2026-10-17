@@ -1,4 +1,4 @@
-import { ACTOR, type SimulationActorType } from '#gw2/platform/constants.js';
+import { ACTOR, CONTROL, type SimulationActorType } from '#gw2/platform/constants.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { normalizeEffectAudience } from '#gw2/platform/effects/audience-metadata-validation.js';
@@ -106,7 +106,7 @@ export function buildThiefControl(
     ...envelope(skill, options),
     type: 'control',
     at: canonicalTime(options.at),
-    controlKind: options.controlKind ?? 'control'
+    controlKind: options.controlKind ?? CONTROL.GENERIC
   };
 }
 

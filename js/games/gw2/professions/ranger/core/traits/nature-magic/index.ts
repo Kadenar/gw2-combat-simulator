@@ -101,8 +101,8 @@ export const fortifyingBond = defineTrait({
           !(Number(event.duration) > 0) ||
           !(Number(event.stacks) > 0) ||
           // Trait and equipment effects are player grants; NPCs and pet-cast boons cannot trigger sharing.
-          ![ACTOR.PLAYER, 'effect'].includes(event.actorType) ||
-          ![ACTOR.PLAYER, 'effect'].includes(gw2EventOwnerActorType(event))
+          ![ACTOR.PLAYER, ACTOR.EFFECT].some((actor) => actor === event.actorType) ||
+          ![ACTOR.PLAYER, ACTOR.EFFECT].some((actor) => actor === gw2EventOwnerActorType(event))
         )
           return;
 

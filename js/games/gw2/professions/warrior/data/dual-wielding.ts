@@ -1,3 +1,4 @@
+import { WEAPON } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -7,7 +8,10 @@ import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 /** Cast duration and commit timing share the trait's active-offhand requirement. */
 export function warriorDualWieldingActive(config: Gw2Config | undefined, activeWeaponSet: number): boolean {
   const offhand = gw2ConfiguredWeaponSet(config, activeWeaponSet)[1];
-  return hasTrait(config, TRAIT.DUAL_WIELDING) && ['Axe', 'Dagger', 'Mace', 'Sword'].includes(String(offhand));
+  return (
+    hasTrait(config, TRAIT.DUAL_WIELDING) &&
+    [WEAPON.AXE, WEAPON.DAGGER, WEAPON.MACE, WEAPON.SWORD].some((weapon) => weapon === offhand)
+  );
 }
 
 /** Capture measured commitment and packet timing on the cast-local skill, shared by replay and log reconstruction. */

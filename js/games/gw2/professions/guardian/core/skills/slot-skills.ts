@@ -1,4 +1,4 @@
-import { RECIPIENT, COMBO_FIELD, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { RECIPIENT, COMBO_FIELD, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -46,7 +46,7 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'control',
-        controlKind: 'control'
+        controlKind: CONTROL.GENERIC
       }
     ]
   },
@@ -64,7 +64,7 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'control',
-        controlKind: 'control'
+        controlKind: CONTROL.GENERIC
       }
     ]
   },

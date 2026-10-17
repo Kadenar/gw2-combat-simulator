@@ -1,4 +1,4 @@
-import { WEAPON } from '#gw2/platform/constants.js';
+import { WEAPON, CONTROL } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -54,7 +54,7 @@ export function empowerElementalistSpearPacket(
 
   if (followup.control) {
     followup.control = false;
-    context.effects.emit(elementalistControlRequest({ ...event, controlKind: 'crowd-control' }, emissionCast));
+    context.effects.emit(elementalistControlRequest({ ...event, controlKind: CONTROL.CROWD_CONTROL }, emissionCast));
   }
 
   return {

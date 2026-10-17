@@ -1,3 +1,4 @@
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
@@ -325,7 +326,7 @@ test('summon recharge requires shared player Alacrity and accounts for its expir
         name: 'Summon recharge',
         castTimeMs: 0,
         cooldown: 10,
-        rechargeBuffAudience: 'summon',
+        rechargeBuffAudience: RECIPIENT.SUMMONS,
         effects: []
       };
       const profession = defineTestProfession({

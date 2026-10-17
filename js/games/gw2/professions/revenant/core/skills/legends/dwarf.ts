@@ -1,4 +1,4 @@
-import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -54,7 +54,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'control',
         actorType: ACTOR.PLAYER,
-        controlKind: CONDITION.TAUNT.toLowerCase()
+        controlKind: CONTROL.TAUNT
       }
     ],
     legendId: 'LegendaryDwarf'
@@ -167,7 +167,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'control',
         actorType: ACTOR.PLAYER,
-        controlKind: CONDITION.TAUNT.toLowerCase()
+        controlKind: CONTROL.TAUNT
       }
     ],
     legendId: 'LegendaryDwarf'

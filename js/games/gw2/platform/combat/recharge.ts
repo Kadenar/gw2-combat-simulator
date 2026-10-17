@@ -1,4 +1,4 @@
-import { ACTOR } from '#gw2/platform/constants.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { boonIntervalsFromWindows, type BoonWindow } from '#gw2/platform/combat/boons.js';
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -40,7 +40,7 @@ export function gw2RechargeRate(
   // Skills such as Weapon Swap declare their Alacrity immunity instead of being recognized by display name.
   if (skill.rechargeIgnoresAlacrity) return 1;
 
-  if (skill.rechargeBuffAudience === ACTOR.SUMMON) return summonAlacrity ? GW2_ALACRITY_RECHARGE_RATE : 1;
+  if (skill.rechargeBuffAudience === RECIPIENT.SUMMONS) return summonAlacrity ? GW2_ALACRITY_RECHARGE_RATE : 1;
 
   // Professions declare their player rate; summon rates and immunity remain shared rules.
   if (!Number.isFinite(playerAlacrityRechargeRate) || playerAlacrityRechargeRate <= 0)
@@ -59,7 +59,7 @@ export function* gw2RechargeIntervals(
 ): Iterable<RateInterval> {
   if (end <= start) return;
 
-  if (skill.rechargeBuffAudience !== ACTOR.SUMMON || skill.rechargeIgnoresAlacrity) {
+  if (skill.rechargeBuffAudience !== RECIPIENT.SUMMONS || skill.rechargeIgnoresAlacrity) {
     yield { start, end, rate: gw2RechargeRate(skill, playerAlacrityRechargeRate) };
     return;
   }

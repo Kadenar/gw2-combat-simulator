@@ -58,14 +58,14 @@ export const vampiric = defineTrait({
   balance: {
     effects: [
       {
-        name: ACTOR.PLAYER,
+        name: 'player',
         type: 'strike',
         coefficient: 0,
         hits: 1,
         flatStrikeBase: 38,
         flatStrikePowerCoeff: 0.003,
         actorType: ACTOR.EFFECT,
-        packetLabel: ACTOR.PLAYER,
+        packetLabel: 'player',
         canCrit: false,
         damageKind: 'life-steal'
       },
@@ -289,7 +289,7 @@ function applyVampiric(context: NecromancerResolverContext, event: NecromancerRe
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.VAMPIRIC);
   // Player and minion siphons are separately named, so removing one never borrows the other's values.
-  const effect = requireEffect(profile, 'strike', minionHit ? 'minion' : ACTOR.PLAYER);
+  const effect = requireEffect(profile, 'strike', minionHit ? 'minion' : 'player');
 
   if (!effect) return;
 
