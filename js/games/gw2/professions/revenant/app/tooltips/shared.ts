@@ -48,6 +48,8 @@ export function variantEffects(effects: readonly SkillEffect[] = [], context = '
     LegendaryAlliance: 'Alliance',
     LegendaryEntity: 'Entity',
     'entity-skill': 'using an Entity skill',
+    // Keep the heal's Shared Wisdom boon grouped with its granting skill.
+    'shielding-hands': 'Shielding Hands',
     'beguiling-haze': 'Beguiling Haze',
     'hex-eater-vortex': 'Hex Eater Vortex',
     'gladiators-defense': "Gladiator's Defense",

@@ -324,6 +324,7 @@ const sharedWisdom = defineTrait({
   name: 'Shared Wisdom',
   balance: {
     id: CONDUIT_BALANCE_PROFILE_IDS.sharedWisdom,
+    // Shared Wisdom's base and skill-specific boons all affect the same five-person party.
     effects: [
       {
         name: 'entity-skill',
@@ -331,7 +332,17 @@ const sharedWisdom = defineTrait({
         boon: 'swiftness',
         duration: 5,
         stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 },
         metadata: { trigger: 'entity-skill' }
+      },
+      {
+        name: 'shielding-hands',
+        type: 'boon',
+        boon: 'protection',
+        duration: 3,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 },
+        metadata: { trigger: 'shielding-hands' }
       },
       {
         name: 'beguiling-haze',
@@ -339,6 +350,7 @@ const sharedWisdom = defineTrait({
         boon: 'fury',
         duration: 5,
         stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 },
         metadata: { trigger: 'beguiling-haze' }
       },
       {
@@ -347,6 +359,7 @@ const sharedWisdom = defineTrait({
         boon: 'resolution',
         duration: 3,
         stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 },
         metadata: { trigger: 'hex-eater-vortex' }
       },
       {
@@ -355,6 +368,7 @@ const sharedWisdom = defineTrait({
         boon: 'stability',
         duration: 3,
         stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 },
         metadata: { trigger: 'gladiators-defense' }
       },
       {
@@ -368,6 +382,7 @@ const sharedWisdom = defineTrait({
         intervalMs: 0,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        audience: { recipients: 'party', maximumRecipients: 5 },
         metadata: { trigger: 'twin-moon-sweep' }
       }
     ]
@@ -504,7 +519,14 @@ function completionSharedWisdom(runtime: RevenantRuntime, cast: RuntimeCast<Reve
 function grantEntitySkillBoon(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const haze = BEGUILING_HAZE_SKILL_IDS.has(cast.skill.id);
   const hex = cast.skill.id === ID.HEX_EATER_VORTEX;
-  const trigger = haze ? 'beguiling-haze' : hex ? 'hex-eater-vortex' : 'gladiators-defense';
+  const trigger =
+    cast.skill.id === ID.SHIELDING_HANDS
+      ? 'shielding-hands'
+      : haze
+        ? 'beguiling-haze'
+        : hex
+          ? 'hex-eater-vortex'
+          : 'gladiators-defense';
   emitTraitProfile(runtime, TRAIT.SHARED_WISDOM, PROFILE.sharedWisdom, undefined, {
     skillId: cast.skill.id,
     skillName: cast.skill.name,
@@ -514,7 +536,7 @@ function grantEntitySkillBoon(runtime: RevenantRuntime, cast: RuntimeCast<Revena
     preserveName: true,
     attribution: {
       source: 'revenant',
-      sourceId: haze ? TRAIT.SHARED_WISDOM : hex ? ID.HEX_EATER_VORTEX : ID.GLADIATORS_DEFENSE,
+      sourceId: haze ? TRAIT.SHARED_WISDOM : cast.skill.id,
       actorType: 'player'
     }
   });

@@ -18,6 +18,8 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.SHIELDING_HANDS]: {
+    // A completed heal grants Shared Wisdom's Protection through the same trait hook as Entity utilities.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } }],
     castTimeMs: 1000,
     cooldown: 30,
     energyCost: 5,
