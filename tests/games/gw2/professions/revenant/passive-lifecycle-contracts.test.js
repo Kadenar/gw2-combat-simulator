@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
 import { draconicEcho } from '#gw2/professions/revenant/specializations/herald/traits/index.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
@@ -87,6 +88,44 @@ test('Ancient Echo selects exactly the active Core legend package', () => {
   }
 });
 
+// Both Numinous Gift triggers share the full boon package only when Found Purpose is selected.
+test('Found Purpose shares Cosmic Wisdom boons with allies, including outside combat', () => {
+  for (const selected of [false, true]) {
+    for (const combat of [false, true]) {
+      for (const count of [0, 4]) {
+        const result = simulate('Conduit', [...(combat ? ['__combat_start'] : []), 'Cosmic Wisdom', wait(12000)], {
+          selectedTraitIds: selected ? [TRAIT.FOUND_PURPOSE] : [],
+          selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
+          allies: { count }
+        });
+        assert.deepEqual(result.warnings, []);
+        const grants = result.resolvedEvents.filter(
+          (event) => event.type === 'buff' && event.skillId === SKILL.COSMIC_WISDOM && event.kind !== 'cosmic-wisdom'
+        );
+        assert.deepEqual(
+          grants.map((event) => event.kind),
+          ['might', 'fury', 'quickness']
+        );
+        for (const grant of grants) {
+          assert.equal(grant.audience.recipients, selected ? 'party' : 'self');
+          assert.equal(grant.resolvedAudience.includesSelf, true);
+          assert.equal(grant.resolvedAudience.alliedPlayerCount, selected ? count : 0);
+        }
+
+        // Party reporting projects four allies even when the simulated player is alone.
+        const generation = buildBoonGeneration(grants, 0, result.rotationEndTime);
+        const quickness = grants.find((event) => event.kind === 'quickness');
+
+        assert.equal(generation.boons.get('quickness').self.generatedStackSeconds, quickness.duration);
+        assert.equal(
+          generation.boons.get('quickness').allies.generatedStackSeconds,
+          selected ? quickness.duration * 4 : 0
+        );
+      }
+    }
+  }
+});
+
 test('Found Purpose requires combat for a legend invocation', () => {
   const config = { selectedTraitIds: [TRAIT.FOUND_PURPOSE], selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY] };
   const before = simulate('Conduit', ['Swap Legends', wait(1000), '__combat_start'], config);
@@ -97,7 +136,18 @@ test('Found Purpose requires combat for a legend invocation', () => {
     before.events.some((event) => event.type === 'buff'),
     false
   );
-  assert.ok(during.events.some((event) => event.type === 'buff' && event.kind === 'fury'));
+  const grants = during.resolvedEvents.filter((event) => event.type === 'buff');
+  assert.deepEqual(
+    grants.map((event) => event.kind),
+    ['might', 'fury', 'quickness']
+  );
+  assert.ok(grants.every((event) => event.audience.recipients === 'party' && event.resolvedAudience.includesSelf));
+  const unselected = simulate('Conduit', ['__combat_start', 'Swap Legends'], { ...config, selectedTraitIds: [] });
+  assert.deepEqual(unselected.warnings, []);
+  assert.equal(
+    unselected.events.some((event) => event.type === 'buff'),
+    false
+  );
 });
 
 test("Assassin's Presence pulses during idle combat and attacks cannot move the cadence", () => {

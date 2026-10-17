@@ -409,7 +409,7 @@ function extendEnhancedEmbodiment(runtime: RevenantRuntime, formActive: boolean)
 
 /** Applies the trait at the mechanic's existing execution boundary. */
 function grantFoundPurpose(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, combat: boolean): void {
-  if (combat) numinousGift(runtime, cast, true);
+  if (combat) numinousGift(runtime, cast);
 }
 
 /** Applies the trait at the mechanic's existing execution boundary. */
@@ -451,8 +451,8 @@ function grantExpandedConsciousness(runtime: RevenantRuntime, previous: number, 
     );
 }
 
-/** Numinous Gift grants its base and equipped-legend boons to the caster or, with Found Purpose, to allies. */
-function numinousGift(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, allies = false): void {
+/** Found Purpose shares every Numinous Gift trigger, including Cosmic Wisdom, with the party. */
+function numinousGift(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   if (runtime.config.specialization !== 'Conduit') return;
 
   emitTraitProfile(runtime, TRAIT.NUMINOUS_GIFT, PROFILE.numinousGift, undefined, {
@@ -469,7 +469,7 @@ function numinousGift(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>
     transform: (event) => ({
       ...event,
       name: cast.skill.name + ' \u2014 ' + event.kind,
-      audience: { recipients: allies ? 'party' : 'self' }
+      audience: { recipients: hasTrait(runtime, TRAIT.FOUND_PURPOSE) ? 'party' : 'self' }
     })
   });
 }
