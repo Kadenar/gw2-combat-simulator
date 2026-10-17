@@ -287,7 +287,15 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.75 },
-      { type: 'boon', boon: 'Regeneration', stacks: 1, duration: 5, metadata: {} }
+      {
+        type: 'boon',
+        boon: 'Regeneration',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        stacks: 1,
+        duration: 5,
+        metadata: {}
+      }
     ])
   },
   [ID.CHARGED_STRIKE]: {

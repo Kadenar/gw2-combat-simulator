@@ -384,6 +384,8 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
       {
         type: 'boon',
         boon: 'Regeneration',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
         duration: 13,
         atMs: 720,
@@ -471,7 +473,15 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'boon', boon: 'Swiftness', stacks: 1, duration: 10, metadata: {} },
+      {
+        type: 'boon',
+        boon: 'Swiftness',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        stacks: 1,
+        duration: 10,
+        metadata: {}
+      },
       { type: 'buff', kind: 'superspeed', stacks: 1, duration: 3, metadata: {} }
     ])
   },

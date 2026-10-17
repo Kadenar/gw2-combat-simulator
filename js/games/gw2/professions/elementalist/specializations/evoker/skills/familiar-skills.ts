@@ -120,6 +120,8 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       {
         type: 'boon',
         boon: 'Regeneration',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
         duration: 4,
         atMs: 0,

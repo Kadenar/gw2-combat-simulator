@@ -337,7 +337,15 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5 },
-      { type: 'boon', boon: 'Regeneration', stacks: 1, duration: 4, metadata: {} }
+      {
+        type: 'boon',
+        boon: 'Regeneration',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        stacks: 1,
+        duration: 4,
+        metadata: {}
+      }
     ])
   },
   // Heal/cleanse only: no offensive packets, so the fragment exists to occupy cast time and recharge.

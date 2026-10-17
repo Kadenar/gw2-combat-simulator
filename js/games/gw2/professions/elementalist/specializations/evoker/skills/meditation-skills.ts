@@ -205,6 +205,16 @@ export const meditationBalanceProfiles: readonly BalanceProfile[] = Object.freez
     parentId: ID.TOADS_FORTITUDE,
     name: "Toad's Fortitude - Earth Resistance",
     profileKind: 'skill-variant',
-    effects: [{ type: 'boon', name: 'Toad Resistance', boon: 'resistance', stacks: 1, duration: 4 }]
+    effects: [
+      {
+        type: 'boon',
+        name: 'Toad Resistance',
+        boon: 'resistance',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        stacks: 1,
+        duration: 4
+      }
+    ]
   }
 ]);

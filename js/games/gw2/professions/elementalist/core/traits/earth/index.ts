@@ -151,7 +151,17 @@ export const rockSolid = defineTrait({
   id: TRAIT.ROCK_SOLID,
   name: 'Rock Solid',
   balance: {
-    effects: [{ type: 'boon', name: 'Stability', boon: 'stability', stacks: 1, duration: 3 }]
+    effects: [
+      {
+        type: 'boon',
+        name: 'Stability',
+        boon: 'stability',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        stacks: 1,
+        duration: 3
+      }
+    ]
   }
 });
 

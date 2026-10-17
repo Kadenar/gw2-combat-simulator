@@ -204,6 +204,8 @@ const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistRuntimeS
               kind: String(resistance.boon).toLowerCase(),
               stacks: Number(resistance.stacks),
               duration: resistance.duration,
+              // Preserve the profile's allied recipients when constructing the Earth-specialized grant.
+              audience: resistance.audience,
               skillName: skill.name
             },
             { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }

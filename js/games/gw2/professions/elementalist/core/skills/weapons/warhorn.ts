@@ -180,7 +180,15 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.9, canCrit: true },
-      { type: 'boon', boon: 'Swiftness', stacks: 1, duration: 10, metadata: {} },
+      {
+        type: 'boon',
+        boon: 'Swiftness',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 3 },
+        stacks: 1,
+        duration: 10,
+        metadata: {}
+      },
       { type: 'buff', kind: 'superspeed', stacks: 1, duration: 2.5, metadata: {} },
       { type: 'control', applications: 1, controlKind: 'crowd-control' }
     ])
@@ -236,6 +244,8 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'boon',
         boon: 'Protection',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         stacks: 1,
         duration: 2,
         atMs: 560,
@@ -285,6 +295,8 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         {
           type: 'boon',
           boon: 'Resistance',
+          // Share this support boon with affected allies within its recipient cap.
+          audience: { recipients: 'party' as const, maximumRecipients: 5 },
           stacks: 1,
           duration: 4,
           atMs: 1560,

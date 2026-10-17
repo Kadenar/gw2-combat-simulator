@@ -253,7 +253,17 @@ export const ragingStorm = defineTrait({
   balance: {
     internalCooldown: 8,
     attributeBonus: 180,
-    effects: [{ type: 'boon', name: 'Fury', boon: 'fury', stacks: 1, duration: 4 }]
+    effects: [
+      {
+        type: 'boon',
+        name: 'Fury',
+        boon: 'fury',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        stacks: 1,
+        duration: 4
+      }
+    ]
   }
 });
 

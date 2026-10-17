@@ -97,7 +97,15 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
       [
         { type: 'strike', coefficient: 1 },
         { type: 'condition', condition: 'Burning', stacks: 1, duration: 6, metadata: {} },
-        { type: 'boon', boon: 'Might', stacks: 5, duration: 6, metadata: {} }
+        {
+          type: 'boon',
+          boon: 'Might',
+          // Share this support boon with affected allies within its recipient cap.
+          audience: { recipients: 'party' as const, maximumRecipients: 5 },
+          stacks: 5,
+          duration: 6,
+          metadata: {}
+        }
       ]
     )
   },

@@ -54,7 +54,17 @@ const galeSong = defineTrait({
   id: TRAIT.GALE_SONG,
   name: 'Gale Song',
   balance: {
-    effects: [{ type: 'boon', name: 'Protection', boon: 'protection', stacks: 1, duration: 3 }]
+    effects: [
+      {
+        type: 'boon',
+        name: 'Protection',
+        boon: 'protection',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        stacks: 1,
+        duration: 3
+      }
+    ]
   }
 });
 
@@ -69,7 +79,17 @@ const latentStamina = defineTrait({
   name: 'Latent Stamina',
   balance: {
     internalCooldown: 10,
-    effects: [{ type: 'boon', name: 'Vigor', boon: 'vigor', stacks: 1, duration: 3 }]
+    effects: [
+      {
+        type: 'boon',
+        name: 'Vigor',
+        boon: 'vigor',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        stacks: 1,
+        duration: 3
+      }
+    ]
   }
 });
 
@@ -203,7 +223,17 @@ const hardyConduit = defineTrait({
   id: TRAIT.HARDY_CONDUIT,
   name: 'Hardy Conduit',
   balance: {
-    effects: [{ type: 'boon', name: 'Protection', boon: 'protection', stacks: 1, duration: 3 }]
+    effects: [
+      {
+        type: 'boon',
+        name: 'Protection',
+        boon: 'protection',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        stacks: 1,
+        duration: 3
+      }
+    ]
   },
   triggers: [
     {
@@ -307,8 +337,24 @@ const lucidSingularity = defineTrait({
     // At most `maximumStacks` overload hits pulse alacrity; the last of them uses `Final Alacrity`.
     maximumStacks: 5,
     effects: [
-      { type: 'boon', name: 'Pulse Alacrity', boon: 'alacrity', stacks: 1, duration: 1 },
-      { type: 'boon', name: 'Final Alacrity', boon: 'alacrity', stacks: 1, duration: 4.5 }
+      {
+        type: 'boon',
+        name: 'Pulse Alacrity',
+        boon: 'alacrity',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        stacks: 1,
+        duration: 1
+      },
+      {
+        type: 'boon',
+        name: 'Final Alacrity',
+        boon: 'alacrity',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        stacks: 1,
+        duration: 4.5
+      }
     ]
   }
 });

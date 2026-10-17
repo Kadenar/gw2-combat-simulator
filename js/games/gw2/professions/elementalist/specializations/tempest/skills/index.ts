@@ -210,8 +210,24 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       ...impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.75 },
         { type: 'condition', condition: 'Crippled', stacks: 1, duration: 6, metadata: {} },
-        { type: 'boon', boon: 'Protection', stacks: 1, duration: 5, metadata: {} },
-        { type: 'boon', boon: 'Aegis', stacks: 1, duration: 5, metadata: {} }
+        {
+          type: 'boon',
+          boon: 'Protection',
+          // Share this support boon with affected allies within its recipient cap.
+          audience: { recipients: 'party' as const, maximumRecipients: 5 },
+          stacks: 1,
+          duration: 5,
+          metadata: {}
+        },
+        {
+          type: 'boon',
+          boon: 'Aegis',
+          // Share this support boon with affected allies within its recipient cap.
+          audience: { recipients: 'party' as const, maximumRecipients: 5 },
+          stacks: 1,
+          duration: 5,
+          metadata: {}
+        }
       ]),
       ...impactEffects({ atMs: 1200, timingAnchor: 'castStart', timingScale: 'cast' }, [
         {

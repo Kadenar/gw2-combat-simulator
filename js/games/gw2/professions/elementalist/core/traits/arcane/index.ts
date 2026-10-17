@@ -113,10 +113,42 @@ export const elementalAttunement = defineTrait({
   name: 'Elemental Attunement',
   balance: {
     effects: [
-      { type: 'boon', name: 'Fire', boon: 'might', stacks: 1, duration: 15 },
-      { type: 'boon', name: 'Water', boon: 'regeneration', stacks: 1, duration: 5 },
-      { type: 'boon', name: 'Air', boon: 'swiftness', stacks: 1, duration: 8 },
-      { type: 'boon', name: 'Earth', boon: 'protection', stacks: 1, duration: 5 }
+      {
+        type: 'boon',
+        name: 'Fire',
+        boon: 'might',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        stacks: 1,
+        duration: 15
+      },
+      {
+        type: 'boon',
+        name: 'Water',
+        boon: 'regeneration',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        stacks: 1,
+        duration: 5
+      },
+      {
+        type: 'boon',
+        name: 'Air',
+        boon: 'swiftness',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        stacks: 1,
+        duration: 8
+      },
+      {
+        type: 'boon',
+        name: 'Earth',
+        boon: 'protection',
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        stacks: 1,
+        duration: 5
+      }
     ]
   }
 });
