@@ -6,7 +6,7 @@ import type {
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { ProfessionPaletteGroup, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import { activeRangerUiPet, rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { SoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
@@ -61,6 +61,7 @@ export function bindSoulbeastUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
+      preview.damageTargetHealth(preview.hasId(TRAIT.OPPRESSIVE_SUPERIORITY));
       // Expose held combat bonuses to isolated damage calculations.
       preview.damageBuff('Twice as Vicious', 'twiceAsVicious', 'twice-as-vicious');
 

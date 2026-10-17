@@ -158,6 +158,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     // Expose the follow-up on commitment; its declaration owns the window.
     sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.PULL, expiryPriority: -220 } }],
     castTimeMs: 480,
+    interruptCommitMs: 440,
     // Pull Self stays available for the tether's lifetime.
     flipDuration: 10,
     effects: [

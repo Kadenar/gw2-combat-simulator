@@ -5,6 +5,7 @@ import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platf
 import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 
 export interface GuardianCoreState {
@@ -22,6 +23,7 @@ export interface GuardianCoreState {
 
   resolutionUntil: number;
   righteousInstinctsGeneration: number;
+  righteousInstinctsCause: Gw2ResolverEvent | null;
 
   spearIlluminatedArmed: boolean;
   spearIlluminatedUntil: number;
@@ -50,6 +52,7 @@ export function createGuardianCoreState(): GuardianCoreState {
 
     resolutionUntil: 0,
     righteousInstinctsGeneration: 0,
+    righteousInstinctsCause: null,
 
     spearIlluminatedArmed: false,
     spearIlluminatedUntil: 0,

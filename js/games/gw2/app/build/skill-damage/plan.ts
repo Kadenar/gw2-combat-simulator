@@ -47,6 +47,8 @@ export interface SkillDamageGroupDefinition {
 }
 
 export interface SkillDamagePlan {
+  /** Health can affect a represented payload, even when its bonus is inactive at full health. */
+  readonly usesTargetHealth: boolean;
   readonly groups: readonly SkillDamageGroupDefinition[];
   readonly rows: ReadonlyMap<string, SkillDamageRowDefinition>;
   readonly request: SkillDamageRequest & GameContentAddress;
@@ -56,7 +58,7 @@ export interface SkillDamagePlan {
 
 const SLOT_TYPES = Object.freeze(['Heal', 'Utility', 'Elite'] as const);
 
-/** Shared controls the damage panel always offers; professions add their own conditionals beside them. */
+/** Shared preview inputs; the panel hides health and movement when no represented source needs them. */
 function sharedDamageControls(): PreviewControl[] {
   return [
     {
@@ -128,16 +130,21 @@ export function skillDamageControls(app: ProfessionAppState): PreviewControl[] {
   const keys = new Set(shared.map((control) => control.key));
   // Retain profession boons such as Resolution; only shared keys are already represented.
   // Damage rows cover every equipped set, independently of the Attribute Preview selector.
-  const sets = app.build.alternateWeapons?.[0] ? [1, 2] : [1];
-  const owned = sets
-    .flatMap((set) => app.profession.ui.previewControls(attributePreviewContext(app, set)))
-    .filter((control) => {
-      if (!previewControlScopes(control).includes('damage') || keys.has(control.key)) return false;
+  const owned = professionDamageControls(app).filter((control) => {
+    if (keys.has(control.key)) return false;
 
-      keys.add(control.key);
-      return true;
-    });
+    keys.add(control.key);
+    return true;
+  });
   return [...shared, ...owned];
+}
+
+/** Both equipped sets contribute owner-declared dependencies, independently of the attribute-preview selector. */
+function professionDamageControls(app: ProfessionAppState): PreviewControl[] {
+  const sets = app.build.alternateWeapons?.[0] ? [1, 2] : [1];
+  return sets
+    .flatMap((set) => app.profession.ui.previewControls(attributePreviewContext(app, set)))
+    .filter((control) => previewControlScopes(control).includes('damage'));
 }
 
 /** The saved simulation assumptions, expressed as this panel's values; nothing is written back. */
@@ -394,6 +401,9 @@ export function createSkillDamagePlan(
   values: AttributePreviewValues
 ): SkillDamagePlan {
   const { config, context, inputs } = createSkillDamagePreview(app, controls, values);
+  // Inspect declarations and the rows already being collected; never sample extra health states in the engine.
+  let usesTargetHealth =
+    config.relic === 'Eagle' || professionDamageControls(app).some((control) => control.key === 'targetHealth');
   const groups: SkillDamageGroupDefinition[] = [];
   const rows = new Map<string, SkillDamageRowDefinition>();
   const occurrences: SkillDamageOccurrence[] = [];
@@ -403,6 +413,13 @@ export function createSkillDamagePlan(
     status: SkillDamageRowStatus,
     base: { context: string; weaponSet?: number }
   ): string => {
+    usesTargetHealth ||= Boolean(
+      skill.effects?.some(
+        (effect) =>
+          effect.type === 'strike' &&
+          effect.coefficientModifiers?.some((modifier) => modifier.kind === 'target-health-below')
+      )
+    );
     const id = `${group.id}:${skill.id}`;
     const owned: SkillDamageState | null = app.profession.ui.skillDamageState(
       {
@@ -510,5 +527,5 @@ export function createSkillDamagePlan(
 
   occurrences.push(...damageOccurrences(app.profession.runtimeFor(config), config));
   const request = { gameId: app.gameId, contentId: app.contentId, config, inputs, occurrences };
-  return { groups, rows, request, signature: JSON.stringify(request) };
+  return { groups, rows, request, usesTargetHealth, signature: JSON.stringify(request) };
 }

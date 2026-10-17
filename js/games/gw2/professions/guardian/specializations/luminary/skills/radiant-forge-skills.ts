@@ -160,6 +160,8 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.empower-blade' } }
     ],
     castTimeMs: 840,
+    interruptCommitMs: 760,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         weaponStrengthProfileId: 'transform.radiant-forge',

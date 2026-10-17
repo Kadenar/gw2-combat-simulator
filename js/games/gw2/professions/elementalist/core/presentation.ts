@@ -47,7 +47,8 @@ import {
 } from '#gw2/professions/elementalist/core/state.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
-  ELEMENTALIST_SKILL_IDS as ID
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistAttunementResourceAnchor } from '#gw2/professions/elementalist/family-presentation.js';
 
@@ -437,6 +438,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
+      preview.damageTargetHealth(preview.hasId(TRAIT.BOLT_TO_THE_HEART));
       // Expose held combat bonuses to isolated damage calculations.
       preview.damageBuff('Bountiful Power', 'bountifulPower', 'bountiful-power-active');
       preview.condition('Burning', "Pyromancer's Training", 'Fiery Might');

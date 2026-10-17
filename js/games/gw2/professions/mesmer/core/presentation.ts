@@ -13,7 +13,7 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerResourceProfileId } from '#gw2/professions/mesmer/family-state.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
@@ -183,7 +183,8 @@ export const mesmerCoreUi: MesmerUiSlice = Object.freeze({
 
     preview.boon('regeneration', 'Chaotic Persistence');
     preview.buff("Fencer's Finesse", 'fencer', 'fencer', 'Ferocity', true);
-    preview.targetHealth('Superiority Complex');
+    preview.targetHealth(TRAIT.SUPERIORITY_COMPLEX);
+    preview.damageTargetHealth(preview.hasId(TRAIT.EGOTISM));
     preview.passives(ID.SIGNET_OF_DOMINATION, ID.SIGNET_OF_MIDNIGHT);
     return preview.controls;
   },

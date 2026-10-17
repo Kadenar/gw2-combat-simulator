@@ -287,7 +287,7 @@ function righteousMight(runtime: GuardianRuntime, event: Gw2ResolverEvent): bool
 
   if (!effect) return false;
 
-  emitTraitProfile(runtime, TRAIT.RIGHTEOUS_INSTINCTS, TRAIT.RIGHTEOUS_INSTINCTS, undefined, {
+  emitTraitProfile(runtime, TRAIT.RIGHTEOUS_INSTINCTS, TRAIT.RIGHTEOUS_INSTINCTS, event, {
     at: runtime.time,
     fullEnd: runtime.time,
     effect: { type: 'boon', name: 'might' },
@@ -299,12 +299,12 @@ function righteousMight(runtime: GuardianRuntime, event: Gw2ResolverEvent): bool
       skillName: profile.name,
       activationId: event.activationId
     },
-    preserveName: true,
-    transform: (packet) => ({ ...packet, causalOrder: event.causalOrder ?? event.eventOrder })
+    preserveName: true
   });
 
   runtime.effects.emit({
     kind: 'announcement',
+    cause: event,
     announcement: {
       type: 'trait',
       name: profile.name,
@@ -326,6 +326,8 @@ function startRighteousInstincts(runtime: GuardianRuntime, event: Gw2ResolverEve
 
   if (!(state.resolutionUntil > runtime.time)) return;
 
+  // Refresh attribution without restarting the cadence: later grants sustain the shared Resolution pool.
+  state.righteousInstinctsCause = event;
   runtime.schedule(RESOLUTION_EXPIRY, state.resolutionUntil, state.resolutionUntil, undefined, -220);
 
   if (active) return;
@@ -340,7 +342,7 @@ function startRighteousInstincts(runtime: GuardianRuntime, event: Gw2ResolverEve
     runtime.schedule(
       MIGHT,
       canonicalTime(runtime.time + interval),
-      { generation: state.righteousInstinctsGeneration, event },
+      { generation: state.righteousInstinctsGeneration },
       undefined,
       -10
     );
@@ -356,18 +358,24 @@ function expireRighteousResolution(runtime: GuardianRuntime, deadline: unknown):
 
   if (state.resolutionUntil > runtime.time)
     runtime.schedule(RESOLUTION_EXPIRY, state.resolutionUntil, state.resolutionUntil, undefined, -220);
+  else state.righteousInstinctsCause = null;
 }
 
 /** Continue one Might cadence while its generation and Resolution window remain live. */
 function pulseRighteousMight(runtime: GuardianRuntime, data: unknown): void {
-  const { generation, event } = data as { generation: number; event: Gw2ResolverEvent };
+  const { generation } = data as { generation: number };
   const state = runtime.profession.core;
 
   if (generation !== state.righteousInstinctsGeneration) return;
 
   state.resolutionUntil = resolutionDeadline(runtime);
 
-  if (!(state.resolutionUntil > runtime.time) || !righteousMight(runtime, event)) return;
+  if (
+    !(state.resolutionUntil > runtime.time) ||
+    !state.righteousInstinctsCause ||
+    !righteousMight(runtime, state.righteousInstinctsCause)
+  )
+    return;
 
   const interval = balanceNumberFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS, 'pulseInterval');
 

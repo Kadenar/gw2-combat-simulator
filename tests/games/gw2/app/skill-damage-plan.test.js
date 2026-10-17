@@ -19,6 +19,102 @@ import { firstPresetBuildPath, headlessApp } from '#tests/helpers/skill-damage.j
 const BLADESWORN = 'data/gw2/builds/warrior/b-power-bladesworn-sword-pistol.json';
 const HARBINGER = 'data/gw2/builds/necromancer/b-condi-harbinger.json';
 
+/** Refresh selected traits through the same build context used by the editor. */
+function refreshAttributes(app) {
+  app.attributeData = app.adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId,
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(1);
+}
+
+function healthPlan(app) {
+  const controls = skillDamageControls(app);
+  return createSkillDamagePlan(app, controls, clearedValues(controls));
+}
+
+// Selected traits own visibility by canonical identity, independently of their current display labels.
+test('target-health visibility follows selected damage traits without leaking damage-only attribute controls', async () => {
+  for (const [profession, weapons, names, attributeNames = []] of [
+    ['elementalist', ['Scepter', 'Focus'], ['Bolt to the Heart']],
+    ['engineer', ['Rifle', ''], ['Big Boomer', 'Heavy Metal'], ['Heavy Metal']],
+    ['mesmer', ['Greatsword', ''], ['Egotism', 'Superiority Complex'], ['Superiority Complex']],
+    ['necromancer', ['Dagger', 'Focus'], ['Close to Death']],
+    ['ranger', ['Longbow', ''], ['Oppressive Superiority']],
+    ['revenant', ['Staff', ''], ['Swift Termination', 'Unsuspecting Strikes']],
+    ['thief', ['Pistol', 'Pistol'], ['Executioner', 'Ferocious Strikes'], ['Ferocious Strikes']],
+    ['warrior', ['Sword', 'Sword'], ["Warrior's Cunning"]]
+  ]) {
+    const app = await headlessApp(profession, await firstPresetBuildPath(profession));
+    app.build.weapons = weapons;
+    app.build.alternateWeapons = ['', ''];
+    app.build.relic = 'Claw';
+    for (const name of names) {
+      const trait = app.activeCatalog.traits.find((entry) => entry.name === name);
+      assert.ok(trait, name);
+      const choices = [0, 0, 0];
+
+      if (trait.slot === 'Major') choices[trait.tier - 1] = trait.position;
+
+      app.build.specializations = [
+        {
+          name: trait.specialization,
+          traits: choices.join('-'),
+          disabledMinorTraits: [0, 1, 2].filter((tier) => trait.slot !== 'Minor' || tier !== trait.tier - 1)
+        }
+      ];
+      refreshAttributes(app);
+      assert.ok(
+        app.attributeData.activeTraits.some((entry) => entry.id === trait.id),
+        name
+      );
+      app.attributeData.activeTraits = app.attributeData.activeTraits.map((entry) => ({
+        ...entry,
+        name: `Renamed ${entry.id}`
+      }));
+      assert.equal(healthPlan(app).usesTargetHealth, true, name);
+      assert.equal(
+        attributeEffectControls(app).some((control) => control.key === 'targetHealth'),
+        attributeNames.includes(name),
+        name
+      );
+      assert.equal(skillDamageControls(app).filter((control) => control.key === 'targetHealth').length, 1);
+    }
+
+    app.build.specializations = [];
+    refreshAttributes(app);
+    assert.equal(healthPlan(app).usesTargetHealth, false, `${profession}: deselected`);
+  }
+});
+
+// Weapon selection includes alternate sets and transformed skills, but not irrelevant catalog entries.
+test('target-health visibility covers intrinsic skills and procedural exceptions in either weapon set', async () => {
+  for (const [profession, specialization, weapon, expected] of [
+    ['thief', 'Core', 'Dagger', true],
+    ['thief', 'Deadeye', 'Spear', true],
+    ['warrior', 'Core', 'Rifle', true],
+    ['warrior', 'Spellbreaker', 'Rifle', true],
+    ['warrior', 'Berserker', 'Rifle', false],
+    ['warrior', 'Bladesworn', 'Rifle', false],
+    ['necromancer', 'Core', 'Sword', true],
+    ['necromancer', 'Reaper', 'Staff', true],
+    ['necromancer', 'Core', 'Greatsword', false],
+    ['ranger', 'Untamed', 'Spear', true]
+  ]) {
+    const app = await headlessApp(profession, await firstPresetBuildPath(profession));
+    app.build.specializations = specialization === 'Core' ? [] : [{ name: specialization, traits: '0-0-0' }];
+    app.build.relic = 'Claw';
+    refreshAttributes(app);
+    for (const set of [1, 2]) {
+      app.build.weapons = set === 1 ? [weapon, ''] : ['', ''];
+      app.build.alternateWeapons = set === 2 ? [weapon, ''] : ['', ''];
+      assert.equal(healthPlan(app).usesTargetHealth, expected, `${profession} ${specialization} ${weapon} set ${set}`);
+    }
+  }
+});
+
 // Each isolated spear cast gets its own illumination charge, with no saved-state or cross-weapon changes.
 test('Guardian spear illumination is damage-only, works in either set, and resets when cleared', async () => {
   const app = await headlessApp('guardian', await firstPresetBuildPath('guardian'));

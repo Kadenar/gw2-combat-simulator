@@ -1230,6 +1230,7 @@ test('Righteous Instincts extends one cadence and rejects stale ticks after a ne
         boon(runtime, 'resolution', 0, 5, { audience: { recipients: 'party', affectsSelf: false } });
         boon(runtime, 'resolution', 0.1, 1.1);
         boon(runtime, 'resolution', 0.8, 1);
+        boon(runtime, 'resolution', 1.2, 5, { audience: { recipients: 'party', affectsSelf: false } });
         boon(runtime, 'resolution', 2.5, 1.1);
       }
     }
@@ -1241,7 +1242,23 @@ test('Righteous Instincts extends one cadence and rejects stale ticks after a ne
       .map((event) => event.at),
     [0.1, 1.1, 2.1, 2.5, 3.5]
   );
+  // Cadence extensions transfer ownership to the latest self grant, never an unrelated party application.
+  const resolution = result.resolvedEvents.filter(
+    (event) => event.type === 'buff' && event.kind === 'resolution' && event.resolvedAudience.includesSelf
+  );
+  const might = result.resolvedEvents.filter(
+    (event) => event.type === 'buff' && event.sourceId === TRAIT.RIGHTEOUS_INSTINCTS
+  );
+  assert.ok(might.length > 0);
+  for (const event of might) {
+    const cause = resolution.findLast((application) => application.at <= event.at);
+    assert.ok(cause);
+    assert.equal(event.parentEventOrder, cause.eventOrder);
+    assert.equal(event.activationId, cause.activationId);
+  }
+
   assert.equal(core(result).resolutionUntil, 0);
+  assert.equal(core(result).righteousInstinctsCause, null);
 });
 
 test('Righteous Instincts respects the shared Resolution duration cap and extension records', () => {

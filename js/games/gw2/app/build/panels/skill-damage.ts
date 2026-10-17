@@ -158,6 +158,11 @@ function renderRegions(app: ProfessionAppState): void {
 
   const current = state.evaluation?.signature === state.plan.signature;
 
+  // Health dependencies come from declarations, so inactive execute bonuses remain editable before measurement.
+  const health = host.querySelector<HTMLElement>('[data-sd-target-health]');
+
+  if (health) health.hidden = !state.plan.usesTargetHealth;
+
   // Use every measured source and variant, including procedural traits and equipment, independently of row filters.
   // Hide movement until a completed preview establishes that Torment can be applied; keep the input node for focus.
   const movement = host.querySelector<HTMLElement>('[data-sd-target-moving]');
@@ -334,7 +339,13 @@ function controlHtml(control: PreviewControl, value: number | string | undefined
     : control.max != null
       ? `<input ${attrs} type="number" min="${control.min ?? 0}" max="${control.max}" step="1" value="${esc(String(value ?? 0))}">`
       : `<input ${attrs} type="checkbox"${value ? ' checked' : ''}>`;
-  return `<label class="sd-control"${control.key === 'targetMoving' ? ' data-sd-target-moving hidden' : ''}><span>${esc(control.label)}</span>${input}<small>${esc(control.description)}</small></label>`;
+  const visibility =
+    control.key === 'targetMoving'
+      ? ' data-sd-target-moving hidden'
+      : control.key === 'targetHealth'
+        ? ' data-sd-target-health hidden'
+        : '';
+  return `<label class="sd-control"${visibility}><span>${esc(control.label)}</span>${input}<small>${esc(control.description)}</small></label>`;
 }
 
 /** Show editable preview assumptions; equipped bonuses still apply through the build's damage configuration. */

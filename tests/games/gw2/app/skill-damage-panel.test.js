@@ -10,14 +10,18 @@ function panelFixture(t, app) {
   const table = inertContainer();
   const stats = inertContainer();
   const movement = { hidden: true };
+  const health = { hidden: true };
   const listeners = new Map();
   const host = {
     ...inertContainer(),
     addEventListener: (name, listener) => listeners.set(name, listener),
     querySelector: (selector) =>
-      ({ '[data-sd-region="stats"]': stats, '[data-sd-region="table"]': table, '[data-sd-target-moving]': movement })[
-        selector
-      ] ?? null
+      ({
+        '[data-sd-region="stats"]': stats,
+        '[data-sd-region="table"]': table,
+        '[data-sd-target-moving]': movement,
+        '[data-sd-target-health]': health
+      })[selector] ?? null
   };
   for (const [name, value] of Object.entries({
     document: { getElementById: (id) => (id === 'skill-damage-preview' ? host : null) },
@@ -43,11 +47,32 @@ function panelFixture(t, app) {
     host,
     listeners,
     movement,
+    health,
     get plan() {
       return plan;
     }
   };
 }
+
+// Health availability is known before worker delivery and updates immediately when equipment changes.
+test('target health appears only for relevant damage sources and stays independent of row filters', async (t) => {
+  const app = await headlessApp('guardian', await firstPresetBuildPath('guardian'));
+  app.build.specializations = [];
+  app.attributeData.activeTraits = [];
+  app.build.weapons = ['Greatsword', ''];
+  app.build.alternateWeapons = ['', ''];
+  const fixture = panelFixture(t, app);
+  for (const relic of ['Claw', 'Eagle', 'Claw']) {
+    app.build.relic = relic;
+    const saved = structuredClone(app.build);
+    renderSkillDamage(app);
+    assert.match(fixture.host.innerHTML, /data-sd-target-health hidden/);
+    assert.equal(fixture.health.hidden, relic !== 'Eagle');
+    fixture.listeners.get('click')({ target: { closest: () => ({ dataset: { sdFilter: 'equipped' } }) } });
+    assert.equal(fixture.health.hidden, relic !== 'Eagle');
+    assert.deepEqual(app.build, saved);
+  }
+});
 
 // Preserve the measurement denominator through the real panel renderer without starting a browser worker.
 test('skill damage breakdowns identify individual charges and pulses', async (t) => {

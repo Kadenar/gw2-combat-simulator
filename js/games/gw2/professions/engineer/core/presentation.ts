@@ -189,7 +189,8 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
         field: 'High Caliber',
         description: 'Within range; Critical Chance'
       });
-      preview.targetHealth('Heavy Metal');
+      preview.targetHealth(TRAIT.HEAVY_METAL);
+      preview.damageTargetHealth(preview.hasId(TRAIT.BIG_BOOMER));
       return preview.controls;
     },
 

@@ -17,7 +17,7 @@ import type { RotationStateSnapshotItem } from '#gw2/platform/profession-present
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
 import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import type { ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
@@ -195,7 +195,9 @@ export const thiefCoreUi = Object.freeze({
       scope: ['attributes', 'damage'],
       description: 'Stealthed; Critical Chance'
     });
-    preview.targetHealth('Ferocious Strikes');
+    preview.targetHealth(TRAIT.FEROCIOUS_STRIKES);
+    // Unsuspecting Strike's health-dependent Bleeding is procedural, without a coefficient modifier to inspect.
+    preview.damageTargetHealth(preview.hasId(TRAIT.EXECUTIONER) || context.weapons.includes('Spear'));
     preview.playerHealth(['Keen Observer', 'Twin Fangs'], preview.has('Keen Observer') ? 50 : 100);
 
     if (preview.has('Twin Fangs'))

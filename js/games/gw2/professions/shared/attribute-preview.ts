@@ -12,6 +12,7 @@ export function createPreviewControls(context: ProfessionAttributePreviewContext
   const skills = selectedSkillIdSet(context.build.selectedSkillIds);
   const controls: PreviewControl[] = [];
   const has = (...names: string[]): boolean => names.some((name) => traits.has(name));
+  const hasId = (...ids: SkillId[]): boolean => context.activeTraits.some((trait) => ids.includes(trait.id));
   const add = (control: PreviewControl): void => {
     controls.push(control);
   };
@@ -23,6 +24,7 @@ export function createPreviewControls(context: ProfessionAttributePreviewContext
   return {
     controls,
     has,
+    hasId,
     skills,
     add,
     trait,
@@ -83,8 +85,8 @@ export function createPreviewControls(context: ProfessionAttributePreviewContext
           });
       }
     },
-    targetHealth(...names: string[]): void {
-      if (has(...names))
+    targetHealth(...ids: SkillId[]): void {
+      if (hasId(...ids))
         add({
           key: 'targetHealth',
           label: 'Target health (%)',
@@ -94,6 +96,20 @@ export function createPreviewControls(context: ProfessionAttributePreviewContext
           max: 100,
           initial: 100,
           description: 'Target-health-dependent bonuses'
+        });
+    },
+    /** Damage-only health dependencies must not add controls to the isolated attribute preview. */
+    damageTargetHealth(enabled: boolean): void {
+      if (enabled && !controls.some((control) => control.key === 'targetHealth'))
+        add({
+          key: 'targetHealth',
+          label: 'Target health (%)',
+          group: 'Target conditions',
+          kind: 'special',
+          scope: ['damage'],
+          max: 100,
+          initial: 100,
+          description: 'Fixed target health for conditional damage'
         });
     },
     playerHealth(names: readonly string[], initial = 100): void {

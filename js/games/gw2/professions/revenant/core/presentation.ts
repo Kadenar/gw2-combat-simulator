@@ -14,7 +14,7 @@ import type {
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
 import { revenantLegend, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
-import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import type { RevenantState, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 
@@ -117,6 +117,7 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
+    preview.damageTargetHealth(preview.hasId(TRAIT.SWIFT_TERMINATION, TRAIT.UNSUSPECTING_STRIKES));
     const legends = (context.build as { selectedLegends?: readonly string[] }).selectedLegends ?? [];
     const upkeeps = context.catalog.skills.filter(
       (skill) => skill.upkeepCost != null && legends.includes(String(skill.legendId))

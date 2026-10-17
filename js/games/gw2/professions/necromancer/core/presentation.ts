@@ -18,7 +18,7 @@ import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import type {
   NecromancerSkill,
@@ -206,6 +206,7 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
+      preview.damageTargetHealth(preview.hasId(TRAIT.CLOSE_TO_DEATH));
 
       // Expose held combat bonuses to isolated damage calculations.
       if (context.weapons.includes('Dagger'))
