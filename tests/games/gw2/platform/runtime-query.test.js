@@ -2,10 +2,11 @@ import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timelin
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import {
   activeBoonStacks,
   activeBuffStacks,
@@ -35,7 +36,7 @@ function context(overrides = {}) {
 // A sampled zero must bypass a fresh lookup without changing the independent Vulnerability reporting query.
 test('condition damage consumes supplied Vulnerability while standalone queries retain their own state', () => {
   const query = createGw2CombatQuery({
-    profession: { id: 'sample-test', catalog, modifyConditionDamage: (_context, multiplier) => multiplier },
+    profession: defineTestProfession({ id: 'sample-test', name: 'Sample test', catalog }),
     config: { target: { conditions: { Vulnerability: 25 } } }
   });
   const sample = { vulnerabilityStacks: 0, modifierValues: new Map() };
@@ -159,11 +160,12 @@ test('additive damage uses the live weapon set before and after a same-time swap
   const hit = { type: 'strike', at: 5 };
   const swap = { type: 'weapon_set', at: 5, weaponSet: 2 };
   const query = createGw2CombatQuery({
-    profession: {
+    profession: defineTestProfession({
       id: 'test',
+      name: 'Test',
       catalog,
-      ...createModifierHooks({
-        rules: [
+      modifiers: {
+        modifierRules: [
           {
             id: 'test.additive',
             target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
@@ -171,8 +173,8 @@ test('additive damage uses the live weapon set before and after a same-time swap
             amount: 0.2
           }
         ]
-      })
-    },
+      }
+    }),
     config: {
       sigilSets: [
         { strike: 1.05, condition: 1.1 },
@@ -183,7 +185,7 @@ test('additive damage uses the live weapon set before and after a same-time swap
   });
   const runtime = { activeWeaponSet: 1 };
 
-  // The hit must remove the same sigil factor that the base multiplier used.
+  // Equipment joins the shared bucket using the weapon set active when damage resolves.
   assert.equal(query.strikeMultiplier(hit, hit.at, runtime), 1.25);
   assert.equal(query.conditionMultiplier('Burning', hit.at, hit, runtime), 1.3);
   runtime.activeWeaponSet = swap.weaponSet;
@@ -193,13 +195,55 @@ test('additive damage uses the live weapon set before and after a same-time swap
   assert.equal(query.conditionMultiplier('Burning', hit.at, hit), 1.2);
 });
 
+// Minimal professions must apply and explain equipment once even without any authored damage rules.
+test('empty profession rules retain equipment bonuses through the combat query', () => {
+  const profession = defineTestProfession({ id: 'empty-rules', name: 'Empty rules' });
+  const query = createGw2CombatQuery({
+    profession,
+    config: {
+      sigilSets: [
+        { strike: 1.5, strikeAdd: 0.5, condition: 1.25, conditionAdd: 0.25 },
+        { strike: 1.25, strikeAdd: 0.25, condition: 1.5, conditionAdd: 0.5 }
+      ],
+      modifiers: { strike: 2, condition: 3 },
+      target: { conditions: { Vulnerability: 25 } }
+    }
+  });
+  const relic = { state: {}, rules: { outgoingDamageBonus: () => 0.25 } };
+  for (const activeWeaponSet of [1, 2]) {
+    const runtime = { activeWeaponSet, relic };
+    for (const [kind, expected] of [
+      ['strike', 1.25 * 2 * (activeWeaponSet === 1 ? 1.75 : 1.5)],
+      ['condition', 1.25 * 3 * (activeWeaponSet === 1 ? 1.5 : 1.75)]
+    ]) {
+      const contributors = [];
+      const evaluate = (trace) =>
+        kind === 'strike'
+          ? query.strikeMultiplier({}, 0, runtime, trace)
+          : query.conditionMultiplier('Bleeding', 0, null, runtime, undefined, trace);
+      assert.equal(evaluate(), expected);
+      assert.equal(evaluate(contributors), expected);
+      const additions = contributors.filter((entry) => entry.bucket === 'additive');
+      assert.deepEqual(
+        additions.map((entry) => entry.id),
+        ['equipment.sigils', 'equipment.relic']
+      );
+      const explained =
+        (1 + additions.reduce((sum, entry) => sum + entry.value, 0)) *
+        contributors.filter((entry) => entry.bucket !== 'additive').reduce((factor, entry) => factor * entry.value, 1);
+      assert.equal(explained, expected);
+    }
+  }
+});
+
 // Independent pet/mech owners keep profession bonuses while player sigils remain player-owned.
 test('Force and Bursting neither boost nor dilute independent companion damage', () => {
-  const profession = {
+  const profession = defineTestProfession({
     id: 'companion-sigil-test',
+    name: 'Companion sigil test',
     catalog,
-    ...createModifierHooks({
-      rules: [
+    modifiers: {
+      modifierRules: [
         {
           id: 'companion-bonus',
           target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
@@ -207,8 +251,8 @@ test('Force and Bursting neither boost nor dilute independent companion damage',
           amount: 0.1
         }
       ]
-    })
-  };
+    }
+  });
   const query = createGw2CombatQuery({
     profession,
     config: {
@@ -231,22 +275,32 @@ test('Force and Bursting neither boost nor dilute independent companion damage',
 
   assert.ok(Math.abs(query.strikeMultiplier({ actorType: 'player' }, 0) - 1.15) < 1e-12);
   assert.ok(Math.abs(query.conditionMultiplier('Burning', 0, { actorType: 'summon' }, {}) - 1.15) < 1e-12);
-  // Correcting sigil ownership must retain the independent profile's existing relic-factor stage.
+  // Independent strikes apply eligible relics separately from profession additions, with no player sigils.
   const relic = { state: {}, rules: { outgoingDamageBonus: () => 0.25 } };
-  assert.equal(
-    query.strikeMultiplier(
-      { actorType: 'summon', independentSummonStrike: true, summonUsesProfessionModifiers: true },
-      0,
-      { relic }
-    ),
-    1.25 * 1.1
-  );
+  for (const summonUsesEquipmentModifiers of [true, false]) {
+    for (const summonUsesProfessionModifiers of [true, false]) {
+      assert.equal(
+        query.strikeMultiplier(
+          {
+            actorType: 'summon',
+            independentSummonStrike: true,
+            summonUsesEquipmentModifiers,
+            summonUsesProfessionModifiers,
+            summonStrikeMultiplier: 2
+          },
+          0,
+          { relic, activeWeaponSet: 1 }
+        ),
+        2 * (summonUsesEquipmentModifiers ? 1.25 : 1) * (summonUsesProfessionModifiers ? 1.1 : 1)
+      );
+    }
+  }
 });
 
 // Duration sigils follow the condition owner, preserving pet Expertise and player-owned summon effects.
 test('Malice and condition-specific duration sigils do not extend independent companion conditions', () => {
   const query = createGw2CombatQuery({
-    profession: { id: 'companion-duration-test', catalog, ...createModifierHooks({ rules: [] }) },
+    profession: defineTestProfession({ id: 'companion-duration-test', name: 'Companion duration test', catalog }),
     config: {
       sigilSets: [{ conditionDurationBonus: 10, conditionDurationBonuses: { Bleeding: 20 } }, {}]
     }
@@ -282,11 +336,12 @@ test('boon-dependent damage sees same-time buffs only after their live applicati
     resolvedAudience: { includesSelf: true }
   };
   const query = createGw2CombatQuery({
-    profession: {
+    profession: defineTestProfession({
       id: 'test',
+      name: 'Test',
       catalog,
-      ...createModifierHooks({
-        rules: [
+      modifiers: {
+        modifierRules: [
           {
             id: 'test.fury',
             target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -295,8 +350,8 @@ test('boon-dependent damage sees same-time buffs only after their live applicati
             when: (current) => boonActive(current, 'fury')
           }
         ]
-      })
-    },
+      }
+    }),
     events: [hit, buff]
   });
   const runtime = { boons: new Map(), buffs: new Map() };

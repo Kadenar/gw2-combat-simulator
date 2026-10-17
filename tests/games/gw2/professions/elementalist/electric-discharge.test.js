@@ -1,3 +1,5 @@
+import { enteredCombat } from '#tests/helpers/engagement.js';
+import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -42,7 +44,7 @@ function fixture(catalog = native.catalog) {
     time: 2,
     helpers: catalog,
     traits: new Set(config.selectedTraitIds),
-    combatActive: true,
+    engagement: enteredCombat(),
     effects: capture.effects,
     combat: { allocateEffectActivation: (prefix) => `${prefix}${activation++}` }
   };
@@ -172,7 +174,7 @@ test('Electric Discharge admission remains selected and combat-only', () => {
     for (const inCombat of [false, true]) {
       const { context, events, announcements } = fixture();
       context.traits = new Set(selected ? config.selectedTraitIds : []);
-      context.combatActive = inCombat;
+      context.engagement = inCombat ? enteredCombat() : createCombatEngagement().query;
       enter(context);
       assert.equal(events.length > 0, selected && inCombat);
       assert.equal(announcements.length > 0, selected && inCombat);

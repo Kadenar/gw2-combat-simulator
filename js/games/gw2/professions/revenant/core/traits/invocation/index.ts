@@ -64,7 +64,7 @@ export const incensedResponse = defineTrait({
       on: 'buff.applied',
       when: (runtime, event) =>
         event.kind === 'fury' &&
-        runtime.combatStartedAt() &&
+        runtime.engagement.combatMechanicsAllowed() &&
         isGw2PlayerModifierOwnedEvent(event) &&
         gw2BoonApplicationRecipients(runtime.config, event).includesSelf,
       emit: TRAIT.INCENSED_RESPONSE,
@@ -290,7 +290,8 @@ function invokeSongOfTheMists(runtime: RevenantRuntime): void {
 
 /** Core emits the invocation packets; Kalla additionally grants two Fervor stacks for Song of the Mists. */
 function grantRenegadeInvocationFervor(runtime: RevenantRuntime): void {
-  if (runtime.profession.core.activeLegendId !== LEGEND.RENEGADE || !runtime.combatStartedAt()) return;
+  if (runtime.profession.core.activeLegendId !== LEGEND.RENEGADE || !runtime.engagement.combatMechanicsAllowed())
+    return;
 
   const song = runtime.helpers.skillsById.get(ID.CALL_OF_THE_RENEGADE);
 
@@ -306,7 +307,8 @@ function grantRenegadeInvocationFervor(runtime: RevenantRuntime): void {
 
 /** Core emits the invocation packets; Alliance additionally restores the Song skill's authored endurance. */
 function grantAllianceInvocationEndurance(runtime: RevenantRuntime): void {
-  if (runtime.profession.core.activeLegendId !== LEGEND.ALLIANCE || !runtime.combatStartedAt()) return;
+  if (runtime.profession.core.activeLegendId !== LEGEND.ALLIANCE || !runtime.engagement.combatMechanicsAllowed())
+    return;
 
   const song = runtime.helpers.skillsById.get(ID.CALL_OF_THE_ALLIANCE);
 

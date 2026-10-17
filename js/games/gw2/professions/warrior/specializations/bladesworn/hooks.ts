@@ -87,7 +87,7 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
     },
     // Like weapon swaps, Gunsaber transitions recharge instantly until combat begins.
     rechargeWork: (runtime, skill, work) =>
-      (skill.id === ID.UNSHEATHE_GUNSABER || skill.id === ID.SHEATHE_GUNSABER) && !runtime.combatActive ? 0 : work,
+      (skill.id === ID.UNSHEATHE_GUNSABER || skill.id === ID.SHEATHE_GUNSABER) && !runtime.engagement.active ? 0 : work,
 
     availability(runtime, skill, command) {
       const bar = gunsaberBarAvailability(runtime, skill);

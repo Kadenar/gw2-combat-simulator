@@ -4,6 +4,28 @@ import test from 'node:test';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { createEventReactions, defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
+
+// JavaScript definitions must fail before obsolete or misspelled declarations can lose their formulas.
+test('profession normalization rejects unsupported modifier declarations', () => {
+  for (const define of [defineProfession, defineTestProfession]) {
+    for (const key of ['modifyStrikeDamage', 'modifyConditionDamage', 'compileModifierRules', 'unknownModifier']) {
+      assert.throws(() => define({ id: 'invalid', name: 'Invalid', modifiers: { [key]: () => 99 } }), {
+        name: 'TypeError',
+        message: `Unsupported modifiers field: ${key}.`
+      });
+    }
+
+    for (const modifiers of [false, 1, []]) {
+      assert.throws(() => define({ id: 'invalid', name: 'Invalid', modifiers }), /modifiers must be an object/);
+    }
+
+    assert.throws(
+      () => define({ id: 'invalid', name: 'Invalid', modifiers: { modifierRules: {} } }),
+      /modifierRules must be an array/
+    );
+  }
+});
 
 // Profession contracts provide neutral defaults and deterministic hooks for every implementation.
 test('profession contract supplies defaults and deterministic hook ordering', () => {

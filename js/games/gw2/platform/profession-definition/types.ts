@@ -1,4 +1,4 @@
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2DamageBucketPolicies, Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2AttributeContributions } from '#gw2/platform/builds/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
@@ -42,18 +42,12 @@ export interface ProfessionModifierDefinition {
   readonly modifyConditionAttributes?: ProfessionHookEntry;
   readonly modifyCriticalChance?: ProfessionHookEntry;
   readonly modifyCriticalDamage?: ProfessionHookEntry;
-  readonly modifyStrikeDamage?: ProfessionHookEntry;
-  readonly modifyConditionDamage?: ProfessionHookEntry;
   readonly modifyConditionBaseDuration?: ProfessionHookEntry;
   readonly modifyConditionDuration?: ProfessionHookEntry;
   /** Declarative modifier fragments compiled once per selection with standard GW2 damage buckets. */
   readonly modifierRules?: readonly Gw2ModifierRule[];
-  /** Optional single-owner override for profession-specific damage-bucket policies. */
-  readonly compileModifierRules?: (declarations: readonly Gw2ModifierRule[]) => {
-    readonly [
-      K in Exclude<keyof ProfessionModifierDefinition, 'modifierRules' | 'compileModifierRules'>
-    ]?: ProfessionHook;
-  };
+  /** Each damage target has one policy owner; all selected rules share its equipment eligibility. */
+  readonly damageBuckets?: Gw2DamageBucketPolicies;
 }
 
 export interface ProfessionDefinition<TProfessionState extends object = object, TSkill extends Skill = Skill> {

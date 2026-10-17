@@ -70,7 +70,7 @@ export function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantS
     }
   });
 
-  if (runtime.combatStartedAt()) runtime.fireTrigger(legendInvoked, { at: runtime.time });
+  if (runtime.engagement.combatMechanicsAllowed()) runtime.fireTrigger(legendInvoked, { at: runtime.time });
 }
 
 /** Samples pre-swap Energy before the legend reset is applied. */

@@ -37,8 +37,8 @@ export function activeAura(
 /** Gates combat-only traits on combat already observed, including runs without an explicit start marker. */
 export function combatStarted(context: ElementalistRuntime, at: number): boolean {
   return (
-    context.combatActive &&
-    (!context.hasExplicitCombatStart || (context.combatStartTime != null && at >= context.combatStartTime))
+    context.engagement.active &&
+    (!context.engagement.explicit || (context.engagement.startTime != null && at >= context.engagement.startTime))
   );
 }
 

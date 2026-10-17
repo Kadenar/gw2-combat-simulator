@@ -1,3 +1,4 @@
+import { createCombatEngagement, type CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
 import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createProcRegistry, type ProcRegistry } from '#gw2/platform/combat/procs/registry.js';
@@ -35,6 +36,7 @@ import { createMechanicCombatServices, type MechanicCombatServices } from '#gw2/
  * condition, damage, and reporting state.
  */
 export function createGw2ResolverRuntimeState({
+  engagement = createCombatEngagement().query,
   reporting = true,
   effectRecorder = null,
   damageDiagnostics = false,
@@ -56,6 +58,7 @@ export function createGw2ResolverRuntimeState({
     },
     // Distribution trials always couple damage to crit outcomes, regardless of the baseline preference.
     criticalDamageMode: config.randomness?.mode === 'stochastic' ? 'rolled' : criticalDamageMode,
+    engagement,
     reporting,
     // Damage previews retain resolved packets without constructing chart histories.
     effectRecorder,
@@ -231,8 +234,7 @@ export interface Gw2ResolverRuntime {
   firstHitTime: number | null;
   lastHitTime: number | null;
   deathTime: number | null;
-  combatStartTime?: number | null;
-  combatStartPending?: boolean;
+  readonly engagement: CombatEngagementQueries;
   activeWeaponSet: number;
   combo: Gw2ComboRuntimeState;
   relic: Gw2RelicRuntime;
@@ -259,6 +261,7 @@ export interface Gw2ResolverRuntime {
 }
 
 interface CreateGw2ResolverRuntimeStateOptions {
+  readonly engagement?: CombatEngagementQueries;
   readonly effectRecorder?: EffectReportObserver | null;
   readonly damageDiagnostics?: boolean;
   readonly reporting?: boolean;

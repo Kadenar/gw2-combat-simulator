@@ -72,7 +72,7 @@ export function landThiefAxe(runtime: ThiefRuntime, data: unknown): void {
 
   core.spinningAxes.push({
     skillId: landed.skillId,
-    expiresAt: runtime.combatStartedAt() ? canonicalTime(runtime.time + 10) : Infinity
+    expiresAt: runtime.engagement.combatMechanicsAllowed() ? canonicalTime(runtime.time + 10) : Infinity
   });
 }
 

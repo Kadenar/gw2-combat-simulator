@@ -1,3 +1,5 @@
+import { enteredCombat } from '#tests/helpers/engagement.js';
+import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
@@ -59,7 +61,7 @@ test('attunement recharge applies trait reductions in order and stays free befor
   const context = {
     helpers: elementalistCatalog,
     config: { selectedTraitIds: [TRAIT.ELEMENTAL_ENCHANTMENT, TRAIT.FLOW_STATE] },
-    combatActive: true,
+    engagement: enteredCombat(),
     traits: new Set([TRAIT.ELEMENTAL_ENCHANTMENT, TRAIT.FLOW_STATE]),
     cooldownController: { rate: () => 1.25 }
   };
@@ -70,7 +72,7 @@ test('attunement recharge applies trait reductions in order and stays free befor
     Math.abs(elementalistAttunementRechargeDuration(context, skill, 2, flowStateAttunementReduction(context)) - 0.56) <
       1e-12
   );
-  context.combatActive = false;
+  context.engagement = createCombatEngagement().query;
   assert.equal(elementalistAttunementRechargeDuration(context, skill, 4, flowStateAttunementReduction(context)), 0);
   assert.equal(elementalistAttunementRechargeDuration(context, skill, 2, flowStateAttunementReduction(context)), 0);
 });
@@ -204,7 +206,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
         helpers: preview,
         config: traitConfig,
         time: 0,
-        combatActive: true,
+        engagement: enteredCombat(),
         cooldownController: { rate: () => 1 },
         traits: normalizeSelectedTraitIds(traitConfig.selectedTraitIds)
       },

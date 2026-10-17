@@ -86,8 +86,7 @@ export function transfer(
     !(maximum > 0) ||
     work.offTarget ||
     runtime.deathTime != null ||
-    runtime.combatStartPending ||
-    (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
+    !runtime.engagement.hostileEffectsAllowed(runtime.time)
   )
     return 0;
 

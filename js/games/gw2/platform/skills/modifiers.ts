@@ -43,7 +43,7 @@ export function normalizeSkillDamageModifiers(value: unknown, label: string): re
   );
 }
 
-/** Register skill declarations once with module rules so custom compilers, ordering, and balance authoring share them. */
+/** Register skill declarations once with module rules so canonical compilation and balance authoring share them. */
 export function nativeSkillModifierRules(data: NativeModuleCatalogData): readonly Gw2ModifierRule[] {
   const skills = new Map<string, Partial<Skill>>();
   for (const skill of [...(data.generatedSkills ?? []), ...(data.extraSkills ?? [])]) {

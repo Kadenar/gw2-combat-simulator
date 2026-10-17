@@ -16,7 +16,7 @@ test('Chak Shield refunds three paid weapon uses and preserves charges for free 
     traits: owner.mechanics.traits,
     profession: owner.mechanics.profession,
     time: owner.time,
-    combatStartedAt: owner.combatStartedAt,
+    engagement: owner.engagement,
     resourceController: { grant: (resource, amount) => refunds.push([resource, amount]) }
   };
   const state = runtime.profession.specialization.state;
@@ -69,7 +69,7 @@ test('Chak Shield caps stacked refunds at four and expired grants cannot fund we
     traits: owner.mechanics.traits,
     profession: owner.mechanics.profession,
     time: owner.time,
-    combatStartedAt: owner.combatStartedAt,
+    engagement: owner.engagement,
     resourceController: { grant: (...args) => refunds.push(args) }
   };
   const state = runtime.profession.specialization.state;

@@ -17,9 +17,9 @@ export const brawler = defineRelic({
     // Preparation can leave a buff running, but only the equipped relic can trigger again after the marker.
     const marker = state.combatMarker;
     const precombat =
-      ctx.combatStartPending === true ||
-      (ctx.combatStartTime != null &&
-        event.at <= ctx.combatStartTime &&
+      ctx.engagement.boundaryPending ||
+      (ctx.engagement.startTime != null &&
+        event.at <= ctx.engagement.startTime &&
         (!marker || compareTimelineEvents(event, marker) < 0));
 
     if (

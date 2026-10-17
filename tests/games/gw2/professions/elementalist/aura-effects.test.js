@@ -1,3 +1,4 @@
+import { enteredCombat } from '#tests/helpers/engagement.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { attunementChanged, auraAccepted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
@@ -142,6 +143,7 @@ test('Tempest preserves aura damage windows and grants boons for every actual au
   for (const origin of [{}, { type: 'aura' }]) {
     const queued = [];
     const context = {
+      engagement: enteredCombat(),
       helpers: elementalistCatalog,
       traits: new Set([TRAIT.TEMPESTUOUS_ARIA, TRAIT.INVIGORATING_TORRENTS, TRAIT.ELEMENTAL_BASTION]),
       config: {},
@@ -172,9 +174,9 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
   const state = catalystState.create();
   state.empoweringAuras = { stacks: 1, expiresAt: 3 };
   const context = {
+    engagement: enteredCombat(),
     profession: { core: {}, specialization: { kind: 'Catalyst', state } },
     traits: new Set([TRAIT.EMPOWERING_AURAS, TRAIT.ELEMENTAL_EPITOME]),
-    combatStartTime: 0,
     boons: new Map(),
     buffs: new Map(),
     // Both scalar and effect overrides are assembled before aura reactions read their owners.
@@ -212,6 +214,7 @@ test('Empowering Auras keeps queued grants, tick-aligned refreshes, exclusive ex
   const state = catalystState.create();
   const { effects, events } = captureEffectEmissions();
   const context = {
+    engagement: enteredCombat(),
     profession: { core: {}, specialization: { kind: 'Catalyst', state } },
     traits: new Set([TRAIT.EMPOWERING_AURAS]),
     catalog: withProfile(elementalistCatalog, TRAIT.EMPOWERING_AURAS, { maximumStacks: 2 }),

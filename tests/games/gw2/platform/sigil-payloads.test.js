@@ -1,3 +1,4 @@
+import { enteredCombat } from '#tests/helpers/engagement.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
@@ -21,7 +22,7 @@ function liveFixture(name) {
     captured,
     runtime: {
       ...createGw2ResolverRuntimeState({ config }),
-      combatActive: true,
+      engagement: enteredCombat(),
       activeWeaponSet: 1,
       effects: captured.effects
     }

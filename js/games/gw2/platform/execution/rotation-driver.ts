@@ -87,8 +87,7 @@ export function createRotationDriver<T extends object>(
                 end: Math.round(runtime.time * 1000)
               });
 
-            runtime.combatStartPending = false;
-            runtime.combatStartTime = runtime.time;
+            runtime.engagementController.consumeMarker(runtime.time);
             runtime.effects.emit({
               kind: 'packet',
               event: {

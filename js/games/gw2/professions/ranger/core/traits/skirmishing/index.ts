@@ -455,7 +455,7 @@ function applyRangerDodgeTraits(context: RangerRuntime, at = context.time): void
 // one-use window for the next qualifying weapon skill.
 /** Own the selected reward at the committed weapon-swap boundary. */
 function tailWindSwap(context: RangerRuntime, skill: RangerSkill, at: number): void {
-  const inCombat = context.combatStartTime != null && at >= context.combatStartTime;
+  const inCombat = context.engagement.startTime != null && at >= context.engagement.startTime;
 
   if (inCombat) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.TAIL_WIND);
@@ -483,7 +483,7 @@ function tailWindSwap(context: RangerRuntime, skill: RangerSkill, at: number): v
 /** Own the selected reward at the committed weapon-swap boundary. */
 function quickDrawSwap(context: RangerRuntime, skill: RangerSkill, at: number): void {
   const state = professionCoreState(context);
-  const inCombat = context.combatStartTime != null && at >= context.combatStartTime;
+  const inCombat = context.engagement.startTime != null && at >= context.engagement.startTime;
 
   if (inCombat && context.procs.claim(TRAIT.QUICK_DRAW, 'ranger.core.quickDraw', at)) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.QUICK_DRAW);
@@ -510,7 +510,7 @@ function quickDrawSwap(context: RangerRuntime, skill: RangerSkill, at: number): 
 
 /** Own the selected reward at the committed weapon-swap boundary. */
 function furiousGripSwap(context: RangerRuntime, skill: RangerSkill, at: number): void {
-  const inCombat = context.combatStartTime != null && at >= context.combatStartTime;
+  const inCombat = context.engagement.startTime != null && at >= context.engagement.startTime;
 
   if (inCombat) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.FURIOUS_GRIP);

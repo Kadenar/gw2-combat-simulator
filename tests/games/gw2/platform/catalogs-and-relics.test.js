@@ -1,3 +1,4 @@
+import { enteredCombat } from '#tests/helpers/engagement.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { captureEffectEmissions, captureAcceptedBuffEmissions } from '#tests/helpers/effect-emission.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
@@ -465,7 +466,7 @@ test('Severance queries retain application windows across refreshes and gaps', (
 // The exact cooldown deadline remains blocked, and accepted grants rearm it before another application.
 test('Aristocracy rule state owns strict ICD, stack cap, and expiry', () => {
   const relic = createRelicRuntime('Aristocracy');
-  const context = { relic, effects: captureEffectEmissions().effects };
+  const context = { engagement: enteredCombat(), relic, effects: captureEffectEmissions().effects };
   const trigger = (at) =>
     context.relic.rules.condition(context, context.relic.state, {
       type: 'condition',
@@ -498,7 +499,7 @@ test('Aristocracy rule state owns strict ICD, stack cap, and expiry', () => {
 test('Aristocracy accepted applications preserve combat entry and historical stack windows', () => {
   const context = {
     relic: createRelicRuntime('Aristocracy'),
-    combatStartTime: 2,
+    engagement: enteredCombat(2),
     effects: captureEffectEmissions().effects
   };
   const trigger = (at) =>
@@ -540,17 +541,21 @@ test('Aristocracy requires a landed condition with eligible explicit ownership',
   ]) {
     for (const offTarget of [false, true]) {
       const relic = createRelicRuntime('Aristocracy');
-      relic.rules.condition({ relic, effects: captureEffectEmissions().effects }, relic.state, {
-        type: 'condition',
-        at: 1,
-        source: 'Trait',
-        actorType,
-        ownerActorType,
-        offTarget,
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 5
-      });
+      relic.rules.condition(
+        { engagement: enteredCombat(), relic, effects: captureEffectEmissions().effects },
+        relic.state,
+        {
+          type: 'condition',
+          at: 1,
+          source: 'Trait',
+          actorType,
+          ownerActorType,
+          offTarget,
+          condition: 'Vulnerability',
+          stacks: 1,
+          duration: 5
+        }
+      );
       assert.equal(relic.state.stacks, offTarget ? 0 : expected);
     }
   }
@@ -558,7 +563,7 @@ test('Aristocracy requires a landed condition with eligible explicit ownership',
 
 test('Nourys owns its generic stack cadence and additive damage window', () => {
   const relic = createRelicRuntime('Nourys');
-  const context = { relic, combatStartTime: 2 };
+  const context = { relic, engagement: enteredCombat(2) };
 
   // Reporting observes the passive hook after the live runtime reaches its combat boundary.
   const result = simulateMesmer(
@@ -589,7 +594,11 @@ test('Brawler requires player-cast Protection or Resolution that reaches the pla
       ['party including self', { recipients: 'party' }, 'player', true],
       ['summon-cast party', { recipients: 'party' }, 'summon', false]
     ]) {
-      const context = { relic: createRelicRuntime('Brawler'), ...captureAcceptedBuffEmissions() };
+      const context = {
+        engagement: enteredCombat(),
+        relic: createRelicRuntime('Brawler'),
+        ...captureAcceptedBuffEmissions()
+      };
       const event = {
         type: 'buff',
         kind,

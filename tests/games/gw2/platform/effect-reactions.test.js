@@ -1,12 +1,11 @@
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { MODIFIER_HOOK_NAMES } from '#gw2/platform/profession-definition/compile-contract.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { testProfession } from '#tests/fixtures/profession.js';
+import { testProfessionModifiers } from '#tests/fixtures/profession.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { validateResourceGrantSupport } from '#gw2/platform/effects/action-validation.js';
 
@@ -49,8 +48,8 @@ function run(
     },
     rotation,
     profession: {
-      // Use the canonical list so fixtures retain every required modifier as the contract evolves.
-      ...Object.fromEntries(MODIFIER_HOOK_NAMES.map((key) => [key, testProfession[key]])),
+      // Reuse the normalized contract so compiled damage evaluators are included.
+      ...testProfessionModifiers,
       id: 'fixture',
       catalog: catalogFor(effects, skill, profiles),
       createState: () => ({ energy: { value: 0, maximum: 100, updatedAt: 0, rate: 0 } }),

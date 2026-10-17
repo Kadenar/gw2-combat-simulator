@@ -93,7 +93,7 @@ const letLoose = defineTrait({
 
         if (
           cast.skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS &&
-          runtime.combatActive &&
+          runtime.engagement.active &&
           runtime.procs.claim(TRAIT.LET_LOOSE, 'ranger.untamed.letLoose', runtime.time)
         ) {
           // An immediate swap ambush spends the refreshed grant's cooldown, preventing intervening toggles from rearming it.

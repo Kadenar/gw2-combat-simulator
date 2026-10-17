@@ -4,7 +4,6 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { createCalculateAttributes, resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
@@ -304,29 +303,48 @@ function previewFamily(core = moduleWith([trait])) {
 // Every registered module exposes one modifier shape, including trait-free modules and preview clones.
 test('module registration normalizes modifiers and rejects invalid rule collections', () => {
   const rules = [trait.modifierRules[0]];
-  const modifyStrikeDamage = (_context, damage) => damage + 1;
+  const modifyCriticalChance = (_context, chance) => chance + 0.1;
   assert.deepEqual(moduleWith([]).modifiers, {});
   const core = moduleWith([], { modifiers: rules });
   assert.deepEqual(core.modifiers, { modifierRules: rules });
-  const imperative = moduleWith([], { modifiers: { modifierRules: rules, modifyStrikeDamage } });
-  assert.equal(imperative.modifiers.modifyStrikeDamage, modifyStrikeDamage);
-  assert.equal(familyWith(imperative).runtimeFor({}).modifyStrikeDamage({}, 10), 22);
+  const imperative = moduleWith([], { modifiers: { modifierRules: rules, modifyCriticalChance } });
+  assert.equal(imperative.modifiers.modifyCriticalChance, modifyCriticalChance);
+  assert.equal(familyWith(imperative).runtimeFor({}).modifyCriticalChance({}, 0), 0.1);
+  assert.equal(familyWith(imperative).runtimeFor({}).modifyStrikeDamage({}, 10), 20);
   assert.throws(() => moduleWith([], { modifiers: { modifierRules: {} } }), /modifierRules must be an array/);
   assert.throws(() => moduleWith([], { modifiers: 1 }), /modifiers must be an object/);
   assert.throws(() => familyWith({ ...core, modifiers: rules }), /modifiers must be an object/);
   assert.throws(() => familyWith({ ...core, modifiers: { modifierRules: {} } }), /modifierRules must be an array/);
 });
 
-test('trait expansion preserves a custom compiler, imperative modifiers, and cached runtime selection isolation', () => {
-  const compiled = [];
+// Registration and reconstruction both reject unsupported fields, including on an inactive elite module.
+test('native modules reject unsupported modifier declarations before composition', () => {
+  const core = moduleWith([]);
+  const elite = defineNativeModule({ id: 'Elite', data: {}, state: { create: () => ({}) } });
+  for (const key of ['modifyStrikeDamage', 'modifyConditionDamage', 'compileModifierRules', 'unknownModifier']) {
+    const modifiers = { [key]: () => 99 };
+    assert.throws(() => moduleWith([], { modifiers }), {
+      name: 'TypeError',
+      message: `Unsupported Core.modifiers field: ${key}.`
+    });
+    assert.throws(() => familyWith({ ...core, modifiers }), {
+      name: 'TypeError',
+      message: `Unsupported Core.modifiers field: ${key}.`
+    });
+    assert.throws(() => familyWith(core, { ...elite, modifiers }), {
+      name: 'TypeError',
+      message: `Unsupported Elite.modifiers field: ${key}.`
+    });
+  }
+});
+
+// Trait expansion preserves non-damage hooks and evaluates trait selection on each query.
+test('trait expansion preserves scalar hooks, damage policies, and cached runtime selection isolation', () => {
   const family = familyWith(
     moduleWith([trait], {
       modifiers: {
-        modifyStrikeDamage: (_context, damage) => damage + 1,
-        compileModifierRules(rules) {
-          compiled.push(rules.map((rule) => rule.id));
-          return createModifierHooks({ rules });
-        }
+        modifyCriticalChance: (_context, chance) => chance + 0.1,
+        damageBuckets: { strikeDamage: { includeSigil: false } }
       }
     }),
     defineNativeModule({ id: 'Elite', data: {}, state: { create: () => ({}) } })
@@ -334,9 +352,10 @@ test('trait expansion preserves a custom compiler, imperative modifiers, and cac
   const selected = family.runtimeFor({ specialization: 'Elite', selectedTraitIds: [101] });
   const unselected = family.runtimeFor({ specialization: 'Elite', selectedTraitIds: [] });
   assert.equal(selected, unselected);
-  assert.equal(selected.modifyStrikeDamage({ selectedTraitIds: [101] }, 10), 22);
-  assert.equal(unselected.modifyStrikeDamage({ selectedTraitIds: [] }, 10), 11);
-  assert.deepEqual(compiled, [['fixture.damage']]);
+  const damageInputs = { strikeSigilBonus: 0.5 };
+  assert.equal(selected.modifyStrikeDamage({ selectedTraitIds: [101], damageInputs }, 10), 20);
+  assert.equal(unselected.modifyStrikeDamage({ selectedTraitIds: [], damageInputs }, 10), 10);
+  assert.equal(selected.modifyCriticalChance({}, 0), 0.1);
   assert.equal(selected.rechargeWork({ config: { selectedTraitIds: [101] }, helpers: selected.catalog }, skill, 10), 5);
   assert.equal(unselected.rechargeWork({ config: { selectedTraitIds: [] }, helpers: selected.catalog }, skill, 10), 10);
   assert.equal(family.catalog.balanceProfilesById.has('fixture.extra'), true);

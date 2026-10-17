@@ -288,7 +288,7 @@ function revenantAssassinsPresencePulse(runtime: RevenantRuntime): void {
     { id: REVENANT_ASSASSINS_PRESENCE, generation: core.assassinsPresenceGeneration }
   );
 
-  if (!runtime.combatStartedAt()) return;
+  if (!runtime.engagement.combatMechanicsAllowed()) return;
 
   const boon = requireEffect(profile, 'boon', 'fury');
 
@@ -335,7 +335,7 @@ function activeOffhand(context: Gw2ModifierContext): boolean {
 function exposeDefenses(runtime: RevenantRuntime, { cause: event }: RevenantStrike): void {
   const core = runtime.profession.core;
 
-  if (core.exposeDefensesUsed || !runtime.combatStartedAt()) return;
+  if (core.exposeDefensesUsed || !runtime.engagement.combatMechanicsAllowed()) return;
 
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EXPOSE_DEFENSES);
   const condition = requireEffect(profile, 'condition', 'Vulnerability');
@@ -545,7 +545,7 @@ function completeRevenantBrutality(runtime: RevenantRuntime, { cast }: RevenantC
 function completeNotoriety(runtime: RevenantRuntime, { cast }: RevenantCastCompletion): void {
   const skill = cast.skill;
 
-  if (runtime.combatStartedAt() && isLegendaryStanceSkill(skill)) {
+  if (runtime.engagement.combatMechanicsAllowed() && isLegendaryStanceSkill(skill)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.NOTORIETY);
     const boon = requireEffect(profile, 'boon', 'might');
 

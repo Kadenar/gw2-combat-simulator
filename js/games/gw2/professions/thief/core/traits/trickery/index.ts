@@ -150,7 +150,10 @@ export const quickPockets = defineTrait({
   id: TRAIT.QUICK_POCKETS,
   name: 'Quick Pockets',
   triggers: [
-    onTriggerPoint(thiefWeaponSwapped, { when: (runtime) => runtime.combatStartedAt(), run: grantQuickPockets })
+    onTriggerPoint(thiefWeaponSwapped, {
+      when: (runtime) => runtime.engagement.combatMechanicsAllowed(),
+      run: grantQuickPockets
+    })
   ],
   balance: {
     internalCooldown: 8,

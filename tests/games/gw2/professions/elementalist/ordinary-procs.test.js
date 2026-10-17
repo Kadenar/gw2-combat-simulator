@@ -35,7 +35,7 @@ function contextFor(kind = 'Core', specialization = {}, traits = []) {
   const core = createElementalistCoreState();
   context.profession = { core, specialization: { kind, state: specialization } };
   context.time = context.effectiveEnd = 1;
-  context.combatActive = true;
+  context.engagementController.acceptEntry(context.time);
   context.traits = new Set(traits);
   const events = [];
   context.effects = captureEffectEmissions({

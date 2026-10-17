@@ -49,7 +49,7 @@ export function resolveElementalistAura(context: ElementalistRuntime, event: Gw2
   insertAura(context, event);
   context.observations.record(event);
 
-  if (context.combatStartTime != null && event.at < context.combatStartTime) return;
+  if (context.engagement.startTime != null && event.at < context.engagement.startTime) return;
 
   context.combat.react('aura.applied', event);
 }
@@ -58,7 +58,7 @@ export function resolveElementalistAura(context: ElementalistRuntime, event: Gw2
 export function acceptElementalistAuraReaction(context: ElementalistRuntime, event: Gw2ResolverEvent): boolean {
   if (event.type === 'aura') insertAura(context, event);
 
-  return context.combatStartTime == null || event.at >= context.combatStartTime;
+  return context.engagement.startTime == null || event.at >= context.engagement.startTime;
 }
 
 /** Applies Smothering Auras' profile-driven duration multiplier once. */

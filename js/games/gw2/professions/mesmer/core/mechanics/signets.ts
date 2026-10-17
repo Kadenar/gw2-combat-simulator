@@ -84,7 +84,7 @@ export function signetIllusionsPulse(context: MesmerRuntime, data: unknown): voi
 
   const skill = equippedSignetOfIllusions(context);
 
-  if (!skill || context.combatStartPending) return;
+  if (!skill || context.engagement.boundaryPending) return;
 
   const ready = context.cooldownController.readyAt(skill.id) ?? 0;
 

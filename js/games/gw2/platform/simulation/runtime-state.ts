@@ -1,3 +1,4 @@
+import type { CombatEngagement } from '#gw2/platform/combat/engagement.js';
 import type { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import type { EnduranceController, ResourceController } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { CastControl, RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -20,7 +21,7 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
   profession: T;
   time: number;
   inputReadyAt: number;
-  combatActive: boolean;
+  readonly engagementController: CombatEngagement;
   readonly alliedStrikeController: ReturnType<typeof createAlliedStrikeController>;
   rotationEndTime: number | null;
   readonly cursor: RotationCursor;
@@ -37,7 +38,6 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
   readonly inputActions: import('#gw2/platform/results/input-trace.js').InputAction[];
   resourceController: ResourceController;
   endurance: EnduranceController;
-  readonly hasExplicitCombatStart: boolean;
   /**
    * Opens a follow-up window on the profession's Core state. A finite window retires itself at expiry, and only this
    * occurrence: a later rearm of the same skill survives the older deadline.
@@ -45,8 +45,6 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
   armFlip(skillId: SkillId, window?: FlipWindowOptions): SkillFlipWindow;
   /** Retires a follow-up once; an absent window is already consumed. */
   consumeFlip(skillId: SkillId): SkillFlipWindow | undefined;
-  /** True once combat has started: always without an explicit marker, otherwise from the executed marker onward. */
-  combatStartedAt(at?: number): boolean;
   /** Queues private work; cancellation uses its owner and generation rather than a packet identity. */
   schedule(name: string, at: number, data?: unknown, owner?: WorkOwner, priority?: number): void;
   /** Snapshots cast data without cloning executable skill declarations; handlers receive `{ ...data, cast }`. */

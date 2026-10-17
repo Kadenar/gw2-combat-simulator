@@ -433,11 +433,7 @@ function applyCascadingCorruption(
 ): void {
   const state = harbingerState.from(runtime);
 
-  if (
-    consumed &&
-    !runtime.combatStartPending &&
-    !(runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
-  ) {
+  if (consumed && runtime.engagement.hostileEffectsAllowed(runtime.time)) {
     const corruption = requireBalanceProfileFromContext(runtime, TRAIT.CASCADING_CORRUPTION);
     const meltdown = requireEffect(corruption, 'buff', 'meltdown');
     const strike = requireEffect(corruption, 'strike', 'Strike');

@@ -45,9 +45,9 @@ modifiers.modifyAttribtes;
 // @ts-expect-error Rule slots accept hooks, not arbitrary saved data.
 const invalidRules: ProfessionModifierDefinition = { modifyAttributes: 42 };
 void invalidRules;
-// @ts-expect-error Compiler output must be a hook container.
-const invalidCompiler: ProfessionModifierDefinition = { compileModifierRules: () => ({ modifyStrikeDamage: 42 }) };
-void invalidCompiler;
+// @ts-expect-error Bucket eligibility accepts only a boolean or context predicate.
+const invalidPolicy: ProfessionModifierDefinition = { damageBuckets: { strikeDamage: { includeSigil: 42 } } };
+void invalidPolicy;
 
 // Presentation carries the canonical loadout methods and validates build-owned selector keys.
 declare const loadout: NonNullable<ProfessionUiContract['slotLoadout']>;

@@ -29,7 +29,7 @@ function flowTick(runtime: WarriorRuntime): void {
   const active = (start: number, end: number) => start < runtime.time && runtime.time <= end;
   const stabilizers = state.flowStabilizerWindows.filter((window) => active(window.startedAt, window.expiresAt));
   const rate =
-    (runtime.combatActive ? balanceProfileNumber(profile, 'energyRegenerationPerSecond') : 0) +
+    (runtime.engagement.active ? balanceProfileNumber(profile, 'energyRegenerationPerSecond') : 0) +
     // Skill and trait Positive Flow share one per-stack regeneration rate.
     stabilizers.reduce((total, window) => total + window.stacks, 0) *
       balanceProfileNumber(profile, 'attributePerStack') +

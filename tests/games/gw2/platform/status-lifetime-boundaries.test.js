@@ -1,3 +1,4 @@
+import { enteredCombat } from '#tests/helpers/engagement.js';
 import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { aristocracy } from '#gw2/platform/equipment/relics/rules/aristocracy.js';
@@ -428,7 +429,7 @@ test('Skritt Scuffle allows the final pilfer without a grace period', () => {
 });
 
 test('Nourys recurring damage windows have exact starts and exclusive tick-aligned ends', () => {
-  const context = { combatStartTime: 0.001 };
+  const context = { engagement: enteredCombat(0.001) };
   for (const [at, bonus] of [
     [30, 0],
     [30.001, 0.25],
@@ -443,7 +444,7 @@ test('Nourys recurring damage windows have exact starts and exclusive tick-align
 
 test('Aristocracy excludes its own trigger instant but benefits the following microsecond', () => {
   const state = aristocracy.createState();
-  aristocracy.condition({ effects: captureEffectEmissions().effects }, state, {
+  aristocracy.condition({ engagement: enteredCombat(), effects: captureEffectEmissions().effects }, state, {
     type: 'condition',
     actorType: 'player',
     at: 0.001,

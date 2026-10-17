@@ -1,10 +1,9 @@
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { MODIFIER_HOOK_NAMES } from '#gw2/platform/profession-definition/compile-contract.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { testProfession } from '#tests/fixtures/profession.js';
+import { testProfessionModifiers } from '#tests/fixtures/profession.js';
 
 // Every reported packet carries an identity, and reactions name the event whose handling created them.
 const catalog = createCanonicalCatalog({
@@ -35,7 +34,7 @@ const buff = (at, sourceId, extra = {}) => ({
 
 function run(rotation, hooks) {
   const profession = {
-    ...Object.fromEntries(MODIFIER_HOOK_NAMES.map((key) => [key, testProfession[key]])),
+    ...testProfessionModifiers,
     id: 'provenance-fixture',
     catalog,
     createState: () => ({}),

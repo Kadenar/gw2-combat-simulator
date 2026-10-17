@@ -14,7 +14,7 @@ const procs = SIGIL_PROCS as Readonly<Record<number, Gw2SigilProc>>;
 /** Sigils own their armed state and use only combat facts, proc claims, emission and endurance grants. */
 export interface SigilRuntimeContext extends Pick<
   MechanicContext,
-  'config' | 'effects' | 'combatStartTime' | 'combatStartPending' | 'combatActive' | 'activeWeaponSet'
+  'config' | 'effects' | 'engagement' | 'activeWeaponSet'
 > {
   readonly sigil: Gw2SigilRuntimeState;
   readonly firstHitTime: number | null;
@@ -66,9 +66,9 @@ export function applyRuntimeSigils(
   trigger: 'swap' | 'control' | 'strike',
   event: Gw2ResolverEvent
 ): void {
-  if (runtime.combatStartPending || (runtime.combatStartTime != null && event.at < runtime.combatStartTime)) return;
+  if (!runtime.engagement.hostileEffectsAllowed(event.at)) return;
 
-  if (!runtime.combatActive && runtime.firstHitTime == null && runtime.combatStartTime == null) return;
+  if (!runtime.engagement.active && runtime.firstHitTime == null && runtime.engagement.startTime == null) return;
 
   if (trigger === 'strike' && (!isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0))) return;
 

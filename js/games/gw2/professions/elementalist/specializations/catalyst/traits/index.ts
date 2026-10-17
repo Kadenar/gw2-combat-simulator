@@ -405,7 +405,7 @@ function applyEmpoweringAura(context: ElementalistRuntime, event: Gw2ResolverEve
 /** Aura acceptance grants Epitome stacks only after combat starts. */
 function applyEpitomeAura(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
   // Only accepted combat auras grant the profiled stack; expiry and stack tracking remain with the buff owner.
-  if (context.combatStartTime != null && event.at < context.combatStartTime) return;
+  if (context.engagement.startTime != null && event.at < context.engagement.startTime) return;
 
   emitTraitProfile(context, TRAIT.ELEMENTAL_EPITOME, TRAIT.ELEMENTAL_EPITOME, undefined, {
     at: event.at,
@@ -523,7 +523,7 @@ function applyViciousEmpowerment(context: MechanicCombatContext, event: Gw2Resol
   if (
     event.actorType !== 'player' ||
     (event.type !== 'control' && !immobilize) ||
-    (context.combatStartTime != null && event.at < context.combatStartTime)
+    (context.engagement.startTime != null && event.at < context.engagement.startTime)
   ) {
     return;
   }

@@ -1,3 +1,4 @@
+import type { CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
@@ -37,26 +38,24 @@ export interface Gw2RelicState {
 }
 
 export interface Gw2RelicRuntimeContext {
-  readonly combatStartTime?: number | null;
+  readonly engagement?: Pick<CombatEngagementQueries, 'startTime'>;
   readonly relic?: Gw2RelicRuntime;
 }
 
 interface Gw2RelicEmissionContext {
-  readonly combatStartTime?: number | null;
-  readonly hasExplicitCombatStart?: boolean;
+  readonly engagement: CombatEngagementQueries;
   readonly effects: EffectEmissionService;
 }
 
 export interface Gw2RelicContext {
   readonly buffs?: ReadonlyMap<string, readonly Gw2TimedBuffApplication[]>;
-  readonly combatStartPending?: boolean;
+  readonly engagement: CombatEngagementQueries;
   readonly helpers?: Gw2ResolverHelpers;
   precastRelics?: readonly Gw2RelicRuntime[];
   readonly config: Gw2RelicConfig;
   /** Relics may query target thresholds; only shared damage resolution can update totals. */
   readonly totals: { readonly strike: number; readonly condition: number };
   readonly effects: EffectEmissionService;
-  readonly combatStartTime?: number | null;
   readonly relic?: Gw2RelicRuntime;
 }
 

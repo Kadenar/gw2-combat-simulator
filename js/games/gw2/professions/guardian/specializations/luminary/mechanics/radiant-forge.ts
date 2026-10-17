@@ -36,14 +36,7 @@ function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianSkill>):
   const enter = runtime.helpers.skillsById.get(ID.ENTER_RADIANT_FORGE)!;
   const exit = runtime.helpers.skillsById.get(ID.EXIT_RADIANT_FORGE)!;
 
-  if (
-    runtime.hasExplicitCombatStart &&
-    (runtime.combatStartPending ||
-      runtime.castController.pendingCombatStart() ||
-      runtime.combatStartTime == null ||
-      runtime.time < runtime.combatStartTime)
-  )
-    runtime.cooldownController.clear(enter.id);
+  if (!runtime.engagement.preparationComplete()) runtime.cooldownController.clear(enter.id);
   else {
     const used = Object.keys(state.radiantWeaponsUsed).filter((weapon) =>
       ['hammer', 'staff', 'blade', 'bulwark'].includes(weapon)

@@ -33,14 +33,8 @@ export function createCombatExecution<T extends object>(
         get effects() {
           return getRuntime().effects;
         },
-        get combatStartTime() {
-          return getRuntime().combatStartTime;
-        },
-        get combatStartPending() {
-          return getRuntime().combatStartPending;
-        },
-        get combatActive() {
-          return getRuntime().combatActive;
+        get engagement() {
+          return getRuntime().engagement;
         },
         get activeWeaponSet() {
           return getRuntime().activeWeaponSet;

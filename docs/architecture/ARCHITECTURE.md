@@ -139,13 +139,16 @@ normalized catalog and attribute metadata to application consumers; it does not 
   then elite, palette overrides refine individual fields, presenters delegate on `undefined`, and selection replacement
   asks the elite first.
 - Modifier rules: modules contribute inert `modifiers.modifierRules`. The family compiles Core + active elite once,
-  preserving the single additive-damage bucket. It uses the shared compiler unless one module supplies
-  `compileModifierRules`; multiple compiler owners are rejected.
+  preserving the single additive-damage bucket, including when the rule set is empty. Modules may declare
+  `modifiers.damageBuckets` eligibility policies; each target (`strikeDamage` or `conditionDamage`) has at most one
+  owner across the selected modules. Duplicate owners are rejected rather than merged.
 
 `platform/combat/modifiers.ts` compiles per-effect scalar rules into critical chance/damage, strike damage, condition
 damage, and condition duration hooks, combining equipment and profession additions once. Pet/mech owners exclude player
-Force and Bursting. Trait and module `attributes` declarations provide owned attribute contributions; imperative
-modifier hooks remain available for ordered or stateful calculations.
+Force and Bursting. Damage hooks are compiled outputs, not authoring hooks; arbitrary compiler overrides and imperative
+damage declarations are rejected. Trait and module `attributes` declarations provide owned attribute contributions.
+Imperative non-damage hooks remain available for attributes, critical chance/damage, and condition base
+duration/duration. Modifier declarations reject keys other than those hooks, `modifierRules`, and `damageBuckets`.
 
 ### Hook ownership
 

@@ -404,7 +404,7 @@ export function lingeringMagicConcentration(context: SelectedContentContext): nu
 /** Grants combat-only arrival boons before Clarion Bond. */
 function applySpiritedArrival(context: RangerRuntime, skill: RangerSkill): void {
   const at = context.time;
-  const inCombat = context.combatStartTime != null && context.time >= context.combatStartTime;
+  const inCombat = context.engagement.startTime != null && context.time >= context.engagement.startTime;
 
   if (inCombat) {
     emitTraitProfile(context, TRAIT.SPIRITED_ARRIVAL, TRAIT.SPIRITED_ARRIVAL, undefined, {

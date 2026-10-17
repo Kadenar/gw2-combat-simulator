@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
-import { combatStartedAt } from '#gw2/platform/combat/engagement.js';
+import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
@@ -11,16 +11,10 @@ function fixture({ explicit = true, rate = 2 } = {}) {
   const runtime = {
     config: { allies: { count: 2, strikesPerSecond: rate } },
     time: 0,
-    deathTime: null,
-    hasExplicitCombatStart: explicit,
-    combatActive: false,
-    combatStartPending: explicit,
-    combatStartTime: null,
-    cursor: { command: explicit ? { type: 'combat-start' } : null },
-    combatStartedAt() {
-      return combatStartedAt(this);
-    }
+    deathTime: null
   };
+  const engagement = createCombatEngagement({ authoredMarkers: explicit ? 1 : 0 }, () => runtime.time);
+  runtime.engagement = engagement.query;
   const queue = [];
   const controller = createAlliedStrikeController(() => runtime, {
     schedule: (at, sequence) => queue.push({ at, sequence }),
@@ -30,6 +24,7 @@ function fixture({ explicit = true, rate = 2 } = {}) {
   const triggered = [];
   return {
     runtime,
+    engagement,
     controller,
     queue,
     triggered,
@@ -58,10 +53,9 @@ function fixture({ explicit = true, rate = 2 } = {}) {
       runtime.time = at;
     },
     engage() {
-      runtime.combatActive = true;
-      runtime.combatStartPending = false;
-      runtime.combatStartTime ??= runtime.time;
-      runtime.cursor.command = null;
+      engagement.consumeMarker(runtime.time);
+      engagement.dispatchMarker(runtime.time);
+      engagement.acceptEntry(runtime.time, true);
       controller.start();
     }
   };
@@ -92,21 +86,21 @@ test('explicit preparation preserves live charges and real expiry without a catc
 // Hostile activity at the marker instant cannot release setup grants or move the authored anchor.
 test('pending markers and late registration use the canonical engagement boundary', () => {
   const f = fixture();
-  f.runtime.combatStartTime = 2;
+  f.engagement.discoverBoundary(2);
   f.advance(2);
-  f.runtime.combatActive = true;
-  f.runtime.combatStartPending = false;
+  f.engagement.acceptEntry(2);
   f.grant('prepared');
-  assert.equal(f.runtime.combatStartedAt(), false);
+  assert.equal(f.runtime.engagement.combatMechanicsAllowed(), false);
   assert.equal(f.queue.length, 0);
   f.engage();
-  assert.equal(f.runtime.combatStartedAt(), true);
+  assert.equal(f.runtime.engagement.combatMechanicsAllowed(), true);
   f.advance(3);
   f.grant('late');
   assert.equal(f.queue[0].at, 3.5, 'the original combat boundary owns the cadence');
   const late = fixture();
-  Object.assign(late.runtime, { time: 3.1, combatStartTime: 2, combatStartPending: false, combatActive: true });
-  late.runtime.cursor.command = null;
+  late.advance(2);
+  late.engage();
+  late.advance(3.1);
   late.grant('first-after-marker');
   assert.equal(late.queue[0].at, 3.5, 'first registration must not become a new engagement anchor');
 });
@@ -145,14 +139,14 @@ test('same-time opening damage cannot move a setup completion across the combat 
       },
       reactions: {
         'damage.resolved'(runtime) {
-          transitions.push(['hit', runtime.combatActive, runtime.combatStartedAt()]);
+          transitions.push(['hit', runtime.engagement.active, runtime.engagement.combatMechanicsAllowed()]);
         }
       },
       onCastCommit(runtime) {
-        transitions.push(['commit', runtime.combatActive, runtime.combatStartedAt()]);
+        transitions.push(['commit', runtime.engagement.active, runtime.engagement.combatMechanicsAllowed()]);
       },
       onCombatStart(runtime) {
-        transitions.push(['marker', runtime.combatActive, runtime.combatStartedAt()]);
+        transitions.push(['marker', runtime.engagement.active, runtime.engagement.combatMechanicsAllowed()]);
       }
     }
   });

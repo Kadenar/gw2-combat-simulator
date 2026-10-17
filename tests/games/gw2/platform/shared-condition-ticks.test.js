@@ -379,12 +379,24 @@ test('non-damaging conditions preserve other skills modifiers, expiry, and repor
       id: 'condition-state-probe',
       name: 'Condition state probe',
       modifiers: {
-        modifyStrikeDamage: (context, base) =>
-          base * (1 + targetConditionCount(context)) * (targetConditionActive(context, 'Chilled') ? 2 : 1),
-        modifyConditionDamage: (context, base) =>
-          base *
-          (targetConditionActive(context, 'Weakness') ? 2 : 1) *
-          (targetConditionActive(context, 'Crippled') ? 2 : 1)
+        // Both damage types read accepted target conditions at evaluation time.
+        modifierRules: [
+          {
+            id: 'target-strike',
+            target: 'strikeDamage',
+            operation: 'multiply',
+            factor: (context) =>
+              (1 + targetConditionCount(context)) * (targetConditionActive(context, 'Chilled') ? 2 : 1)
+          },
+          {
+            id: 'target-condition',
+            target: 'conditionDamage',
+            operation: 'multiply',
+            factor: (context) =>
+              (targetConditionActive(context, 'Weakness') ? 2 : 1) *
+              (targetConditionActive(context, 'Crippled') ? 2 : 1)
+          }
+        ]
       }
     });
     const combat = createGw2CombatQuery({

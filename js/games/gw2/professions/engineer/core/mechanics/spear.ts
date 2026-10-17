@@ -151,11 +151,7 @@ function focused(context: EngineerResolverContext, at: number): boolean {
 /** Each Lightning Rod pulse applies Vulnerability, with stronger strikes and stacks against Focused targets. */
 export function handleLightningRodPulse(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   // Only a target-facing pulse in combat can earn an Artillery charge.
-  if (
-    !event.offTarget &&
-    !context.combatStartPending &&
-    (context.combatStartTime == null || event.at >= context.combatStartTime)
-  ) {
+  if (!event.offTarget && context.engagement.hostileEffectsAllowed(event.at)) {
     const state = context.profession.core;
     state.lightningRodChargeExpiries = addTimedStacks(state.lightningRodChargeExpiries, 1, event.at, 12, 12).expiries;
   }
@@ -199,11 +195,7 @@ function handleConduitSurge(context: EngineerResolverContext, event: EngineerRes
   const burning = requireEffect(idProfile, 'condition', 'Burning');
 
   // Independent accepted target windows preserve a longer Focused grant without a duplicate deadline.
-  if (
-    !event.offTarget &&
-    !context.combatStartPending &&
-    (context.combatStartTime == null || event.at >= context.combatStartTime)
-  )
+  if (!event.offTarget && context.engagement.hostileEffectsAllowed(event.at))
     context.effects.emit({
       kind: 'packet',
       settlement: 'reaction',

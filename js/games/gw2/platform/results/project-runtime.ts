@@ -20,13 +20,11 @@ export function projectRuntimeResult<T extends object>(
   execution: RuntimeExecution<T>,
   {
     output,
-    explicitCombat,
     executed,
     ownsEffect,
     damageCompletionTime
   }: {
     output: 'detailed' | 'score' | 'damage';
-    explicitCombat: boolean;
     executed: Gw2ResolverEvent[];
     ownsEffect?: (event: SimulationEventBase) => boolean;
     damageCompletionTime?: () => number;
@@ -43,7 +41,7 @@ export function projectRuntimeResult<T extends object>(
     };
   }
 
-  const score = buildSimulationScore(runtime, runtime.rotationEndTime, explicitCombat);
+  const score = buildSimulationScore(runtime, runtime.rotationEndTime);
 
   if (output === 'score') {
     return score;
@@ -95,7 +93,7 @@ export function projectRuntimeResult<T extends object>(
   // Project accepted commands once so APM and binding activity share the same action population.
   const inputTrace = projectInputTrace(
     runtime.inputActions,
-    explicitCombat ? (runtime.combatStartTime ?? 0) : 0,
+    runtime.engagement.startTime ?? 0,
     runtime.rotationEndTime
   );
   const result = {
@@ -114,7 +112,7 @@ export function projectRuntimeResult<T extends object>(
       profession.catalog
     ),
     planningState: planningState(
-      { ...runtime, catalog: profession.catalog },
+      { ...runtime, combatActive: runtime.engagement.active, catalog: profession.catalog },
       profession.projectPlanningState,
       (skill) => {
         const resolved = profession.resolveCastSkill?.(runtime.mechanicQueries, skill) ?? skill;

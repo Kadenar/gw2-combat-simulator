@@ -48,8 +48,7 @@ function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
     !(Number(event.duration) > 0) ||
     runtime.deathTime != null ||
     event.offTarget ||
-    runtime.combatStartPending ||
-    (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
+    !runtime.engagement.hostileEffectsAllowed(runtime.time)
   )
     return;
 

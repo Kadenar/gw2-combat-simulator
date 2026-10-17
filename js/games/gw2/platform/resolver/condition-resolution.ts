@@ -373,7 +373,7 @@ export function createGw2ConditionResolution({
       const elapsedUs = timeKey(through) - timeKey(application.settledThrough);
 
       // Expiry remainders sampled before Combat Start cannot fund a later in-combat payout.
-      if (elapsedUs > 0 && !ctx.combatStartPending && (ctx.combatStartTime == null || at >= ctx.combatStartTime)) {
+      if (elapsedUs > 0 && ctx.engagement.hostileEffectsAllowed(at)) {
         // Non-damaging conditions still settle and remain queryable; only their zero-damage arithmetic is skipped.
         if (dealsDamage) {
           const batch = attributeBatches.get(application);
@@ -430,7 +430,7 @@ export function createGw2ConditionResolution({
       if (!onGrid) continue;
 
       // The sample ending at Combat Start contains no in-combat interval and must not fund a boundary payout.
-      if (ctx.combatStartPending || (ctx.combatStartTime != null && at <= ctx.combatStartTime)) {
+      if (!ctx.engagement.hostileEffectsAllowed(at, false)) {
         entry.bufferedRate = 0;
         continue;
       }
@@ -580,7 +580,7 @@ export function createGw2ConditionResolution({
     bufferConditions(ctx, event.at);
     pruneGroup(group, event.at);
     group.nextPulseAt = canonicalTime(event.at + 1);
-    const canDamage = !ctx.combatStartPending && (ctx.combatStartTime == null || event.at >= ctx.combatStartTime);
+    const canDamage = ctx.engagement.hostileEffectsAllowed(event.at);
     const contributions = [];
     for (const application of group.applications) {
       const fraction = application.bufferedDurationUs / 1_000_000;

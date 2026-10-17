@@ -10,12 +10,7 @@ import {
   criticalDamageMultiplier,
   gw2ConditionDurationMultiplier
 } from '#gw2/platform/combat/formulas.js';
-import type {
-  Gw2DamageInputs,
-  Gw2ModifierContext,
-  Gw2ModifierContribution,
-  Gw2ModifierHook
-} from '#gw2/platform/combat/modifiers.js';
+import type { Gw2DamageInputs, Gw2ModifierContext, Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import { appliedEffectStacks } from '#gw2/platform/combat/query/effect-stacks.js';
 import {
   gw2EventActorType,
@@ -555,7 +550,7 @@ export function createGw2CombatQuery({
         event.summonUsesEquipmentModifiers === false
           ? 0
           : relicOutgoingDamageBonus(relicContext, 'strike', time, event);
-      const modifier = activeProfession.modifyStrikeDamage as Gw2ModifierHook;
+      const modifier = activeProfession.modifyStrikeDamage;
       const vulnerability = 1 + vulnerabilityStacksAt(time, runtime) / 100;
 
       if (event.independentSummonStrike === true) {
@@ -585,10 +580,8 @@ export function createGw2CombatQuery({
       const timeOfDayMultiplier = config.timeOfDay === 'night' ? sigils.nightStrikeMultiplier || 1 : 1;
       const utilityMultiplier = 1 + (UTILITY_STRIKE_DAMAGE_BONUSES[config.utility || ''] || 0) / 100;
       // Independent factors retain their established order; only additive equipment enters the shared bucket.
-      const equipmentFactor = modifier.acceptsDamageInputs ? 1 : sigilFactor + relicBonus;
       const base =
         vulnerability *
-        equipmentFactor *
         timeOfDayMultiplier *
         (sigils.strikeMultiplier || 1) *
         utilityMultiplier *
@@ -606,7 +599,6 @@ export function createGw2CombatQuery({
       if (contributors) {
         // Query-owned factors sit outside the profession hook; any untraced remainder stays visible as one entry.
         traceFactor(contributors, 'target.vulnerability', 'Vulnerability', vulnerability);
-        traceFactor(contributors, 'equipment.sigils-and-relic', 'Sigils and relic', equipmentFactor);
         traceFactor(contributors, 'equipment.night', 'Night sigil', timeOfDayMultiplier);
         traceFactor(contributors, 'equipment.sigil-multiplier', 'Sigils', sigils.strikeMultiplier || 1);
         traceFactor(contributors, 'equipment.utility', 'Utility', utilityMultiplier);
@@ -637,10 +629,10 @@ export function createGw2CombatQuery({
           ? Number(sigils.conditionAdd)
           : sigilFactor - 1
         : 0;
-      const modifier = activeProfession.modifyConditionDamage as Gw2ModifierHook;
+      const modifier = activeProfession.modifyConditionDamage;
       const vulnerability = 1 + (sample?.vulnerabilityStacks ?? vulnerabilityStacksAt(time, runtime)) / 100;
-      const equipmentFactor = modifier.acceptsDamageInputs ? 1 : sigilFactor + relicBonus;
-      const base = vulnerability * equipmentFactor * (config.modifiers?.condition || 1);
+      // Equipment enters the canonical evaluator's additive bucket, separate from target and configured factors.
+      const base = vulnerability * (config.modifiers?.condition || 1);
       const total = modifier(
         hookContext(time, {
           event,
@@ -655,7 +647,6 @@ export function createGw2CombatQuery({
 
       if (contributors) {
         traceFactor(contributors, 'target.vulnerability', 'Vulnerability', vulnerability);
-        traceFactor(contributors, 'equipment.sigils-and-relic', 'Sigils and relic', equipmentFactor);
         traceFactor(contributors, 'config.condition', 'Configured modifier', config.modifiers?.condition || 1);
         closeContributions(contributors, total);
       }

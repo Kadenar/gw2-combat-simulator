@@ -190,7 +190,7 @@ export const markOfEvasion = defineTrait({
   triggers: [
     {
       on: 'castCommit',
-      when: (runtime, cast) => cast.skill.id === SHARED_SKILL_IDS.DODGE && runtime.combatStartedAt(),
+      when: (runtime, cast) => cast.skill.id === SHARED_SKILL_IDS.DODGE && runtime.engagement.combatMechanicsAllowed(),
       invoke: ID.LESSER_MARK_OF_BLOOD
     }
   ]
@@ -352,13 +352,13 @@ function vampiricPresenceDamage(
  * 0-3 s after engagement. The simulation places it at the expected half interval after combat start.
  */
 function vampiricAuraActive(
-  context: Pick<NecromancerResolverContext, 'combatStartTime' | 'combatStartPending'>,
+  context: Pick<NecromancerResolverContext, 'engagement'>,
   profile: BalanceProfile,
   at: number
 ): boolean {
-  if (context.combatStartPending) return false;
+  if (context.engagement.boundaryPending) return false;
 
-  const firstPulse = (context.combatStartTime ?? 0) + balanceProfileNumber(profile, 'auraPulseInterval') / 2;
+  const firstPulse = (context.engagement.startTime ?? 0) + balanceProfileNumber(profile, 'auraPulseInterval') / 2;
   return canonicalTime(at) >= canonicalTime(firstPulse);
 }
 

@@ -476,7 +476,7 @@ test('family hook order is deterministic and duplicate hook ids fail', () => {
 });
 
 // Default compilation combines active additive rules and equipment bonuses in one damage bucket.
-test('family modifier rules use standard GW2 compilation without an explicit compiler', () => {
+test('family modifier rules share one GW2 damage bucket', () => {
   const rule = (id, amount) => ({ id, target: 'strikeDamage', operation: 'damage-additive', amount });
   const family = testFamily(
     testModule('Core', { modifiers: { modifierRules: [rule('core.rule', 0.25)] } }),
@@ -489,66 +489,54 @@ test('family modifier rules use standard GW2 compilation without an explicit com
   const runtime = family.runtimeFor(config);
   assert.equal(query.modifyStrikeDamage(context, 1), 2.5);
   assert.equal(runtime.modifyStrikeDamage, query.modifyStrikeDamage);
-  assert.equal(runtime.modifyStrikeDamage.acceptsDamageInputs, true);
 });
 
-// A default compiler must not hide malformed overrides or conflicting module ownership.
-test('family modifier compiler overrides retain validation', () => {
-  const modifierRules = [{ id: 'core.rule', target: 'strikeDamage', operation: 'multiply', factor: 2 }];
-  for (const [compileModifierRules, message] of [
-    [42, /compileModifierRules must be a function/],
-    [() => null, /compileModifierRules must return a hook object/]
+// Policy ownership is per target, and invalid declarations fail even when no damage rules exist.
+test('family damage bucket policies validate eligibility and reject conflicting owners', () => {
+  for (const [damageBuckets, message] of [
+    [42, /damageBuckets must be an object/],
+    [{ strikeDamage: null }, /bucket policy "strikeDamage" must be an object/],
+    [{ strikeDamage: { includeSigil: 42 } }, /unsupported includeSigil/],
+    [{ unknown: {} }, /unsupported target/]
   ]) {
-    const family = testFamily(testModule('Core', { modifiers: { modifierRules, compileModifierRules } }));
+    const family = testFamily(testModule('Core', { modifiers: { damageBuckets } }));
     assert.throws(() => family.resolveProfession({}), message);
   }
 
-  const compileModifierRules = () => ({});
+  const damageBuckets = { strikeDamage: { includeSigil: false } };
   const family = testFamily(
-    testModule('Core', { modifiers: { modifierRules, compileModifierRules } }),
-    testModule('Elite', { modifiers: { compileModifierRules } })
+    testModule('Core', { modifiers: { damageBuckets } }),
+    testModule('Elite', { modifiers: { damageBuckets } })
   );
   assert.throws(
     () => family.resolveProfession({ specialization: 'Elite' }),
-    /compileModifierRules has multiple owners: Core, Elite/
+    /damageBuckets.strikeDamage has multiple owners: Core, Elite/
   );
 });
 
-test('family attribute declarations compile after active module composition', () => {
-  const compiledRuleIds = [];
-  // Query and execution must reuse one compilation, including the damage-input marker.
-  const compileModifierRules = (rules) => {
-    compiledRuleIds.push(rules.map((rule) => rule.id));
-    return {
-      modifyStrikeDamage: Object.assign((_context, value) => value + rules.length, { acceptsDamageInputs: true })
-    };
-  };
-
-  const core = testModule('Core', {
-    modifiers: {
-      modifierRules: [{ id: 'core.rule' }],
-      compileModifierRules
-    }
-  });
-  const elite = testModule('Elite', {
-    modifiers: {
-      modifierRules: [{ id: 'elite.rule' }]
-    }
-  });
-  const family = testFamily(core, elite);
-
-  assert.equal(family.resolveProfession({}).modifyStrikeDamage({}, 10), 11);
+// Empty selections still apply equipment; Core and elite policies can own different damage targets.
+test('family empty rules compile equipment with selected bucket policies', () => {
+  const context = { damageInputs: { strikeSigilBonus: 0.5, conditionSigilBonus: 0.25, equipmentBonus: 0.25 } };
+  const empty = testFamily(testModule('Core'));
+  assert.equal(empty.resolveProfession({}).modifyStrikeDamage(context, 1), 1.75);
+  assert.equal(empty.resolveProfession({}).modifyConditionDamage(context, 1), 1.5);
+  const family = testFamily(
+    testModule('Core', { modifiers: { damageBuckets: { strikeDamage: { includeSigil: false } } } }),
+    testModule('Elite', { modifiers: { damageBuckets: { conditionDamage: { includeSigil: false } } } })
+  );
+  const core = family.resolveProfession({});
+  assert.equal(core.modifyStrikeDamage(context, 1), 1.25);
+  assert.equal(core.modifyConditionDamage(context, 1), 1.5);
   const config = { specialization: 'Elite' };
   const query = family.resolveProfession(config);
   const runtime = family.runtimeFor(config);
-  assert.equal(query.modifyStrikeDamage({}, 10), 12);
-  assert.equal(runtime.modifyStrikeDamage({}, 10), 12);
-  assert.equal(runtime.modifyStrikeDamage.acceptsDamageInputs, true);
+  assert.equal(query.modifyStrikeDamage(context, 1), 1.25);
+  assert.equal(query.modifyConditionDamage(context, 1), 1.25);
   assert.equal(runtime.modifyStrikeDamage, query.modifyStrikeDamage);
+  assert.equal(runtime.modifyConditionDamage, query.modifyConditionDamage);
   assert.equal(runtime.createState, query.createState);
   assert.equal(runtime.catalog, query.catalog);
   assert.equal(family.runtimeFor(config), runtime);
-  assert.deepEqual(compiledRuleIds, [['core.rule'], ['core.rule', 'elite.rule']]);
 });
 
 // State factories remain per-run even though selected contracts are cached; invalid ownership must fail in both views.

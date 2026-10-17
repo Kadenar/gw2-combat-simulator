@@ -276,10 +276,18 @@ test('damage modifiers retain full player health and selected target health', ()
     name: 'Health damage',
     catalog: fixture([{ type: 'strike', coefficient: 1 }]).catalog,
     modifiers: {
-      modifyStrikeDamage(context, multiplier) {
-        assert.equal(playerHealthFraction(context), 1);
-        return multiplier * (targetHealthBelow(context, 0.5) ? 2 : 1);
-      }
+      // Damage eligibility uses full player health and the independently configured target health.
+      modifierRules: [
+        {
+          id: 'health-damage',
+          target: 'strikeDamage',
+          operation: 'multiply',
+          factor(context) {
+            assert.equal(playerHealthFraction(context), 1);
+            return targetHealthBelow(context, 0.5) ? 2 : 1;
+          }
+        }
+      ]
     }
   });
   const [high] = evaluate(profession, [occurrence(991001)], { target: { health: 100, fixedHealthFraction: 1 } });

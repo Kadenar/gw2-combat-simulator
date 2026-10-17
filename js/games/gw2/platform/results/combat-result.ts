@@ -28,16 +28,13 @@ function countCasts(events: readonly Gw2ResolverEvent[]): Map<string, CastCount>
 }
 
 /** Derives numeric windows and totals directly from completed combat state in either execution path. */
-export function buildSimulationScore(
-  ctx: Gw2ResolverRuntime,
-  rotationEndTime: number,
-  hasExplicitCombatStart: boolean
-): Gw2SimulationScore {
+export function buildSimulationScore(ctx: Gw2ResolverRuntime, rotationEndTime: number): Gw2SimulationScore {
   if (ctx.horizon == null) throw new TypeError('Results require a known observation end.');
 
+  const hasExplicitCombatStart = ctx.engagement.explicit;
   const totalDamage = playerDamageTotal(ctx);
   const effectiveEnd = ctx.deathTime ?? ctx.horizon;
-  const explicitCombatStart = ctx.combatStartTime ?? 0;
+  const explicitCombatStart = ctx.engagement.startTime ?? 0;
   // DPS always begins with the first surviving positive damage event. An
   // explicit Combat Start only filters earlier combat events and provides the
   // fallback for a damage-free encounter; it is not itself damage.
@@ -56,7 +53,7 @@ export function buildSimulationScore(
     rotationEndTime,
     observationEndTime: ctx.horizon,
     combatEndTime: effectiveEnd,
-    combatStartTime: hasExplicitCombatStart ? (ctx.combatStartTime ?? null) : ctx.firstHitTime,
+    combatStartTime: hasExplicitCombatStart ? (ctx.engagement.startTime ?? null) : ctx.firstHitTime,
     hasExplicitCombatStart,
     dpsStartTime: dpsStart,
     dpsWindow,

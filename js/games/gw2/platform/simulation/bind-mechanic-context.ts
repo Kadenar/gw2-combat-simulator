@@ -13,7 +13,6 @@ class MechanicQueries<T extends object, TSkill extends Skill> implements Mechani
   readonly endurance: MechanicQueryContext<T, TSkill>['endurance'];
   readonly facts: MechanicQueryContext<T, TSkill>['facts'];
   readonly cooldownController: MechanicQueryContext<T, TSkill>['cooldownController'];
-  readonly combatStartedAt: MechanicQueryContext<T, TSkill>['combatStartedAt'];
   constructor(runtime: Gw2Runtime<T, TSkill>) {
     this.#runtime = runtime;
     const combat = runtime.combat;
@@ -40,7 +39,6 @@ class MechanicQueries<T extends object, TSkill extends Skill> implements Mechani
       hasInFlight: (id: SkillId) => runtime.castController.hasInFlight(id),
       inFlightSkillIds: () => runtime.castController.inFlightSkillIds(),
       currentLaneEnd: () => runtime.castController.currentLaneEnd(),
-      pendingCombatStart: () => runtime.castController.pendingCombatStart(),
       pendingChargeRelease: () => runtime.castController.pendingChargeRelease()
     });
     this.resourceController = Object.freeze({
@@ -63,7 +61,6 @@ class MechanicQueries<T extends object, TSkill extends Skill> implements Mechani
       project: recharge.project,
       remaining: recharge.remaining
     });
-    this.combatStartedAt = runtime.combatStartedAt;
   }
 
   get profession() {
@@ -78,16 +75,12 @@ class MechanicQueries<T extends object, TSkill extends Skill> implements Mechani
     return this.#runtime.time;
   }
 
+  get engagement() {
+    return this.#runtime.engagement;
+  }
+
   get activeWeaponSet() {
     return this.#runtime.activeWeaponSet;
-  }
-
-  get combatStartPending() {
-    return this.#runtime.combatStartPending;
-  }
-
-  get combatActive() {
-    return this.#runtime.combatActive;
   }
 
   get traits() {
@@ -109,7 +102,6 @@ export function createMechanicQueryContext<T extends object, TSkill extends Skil
 /** Shared accessors preserve live service replacement without allocating new getter functions for every run. */
 class MechanicCommands<T extends object, TSkill extends Skill> implements MechanicContext<T, TSkill> {
   readonly #runtime: Gw2Runtime<T, TSkill>;
-  readonly hasExplicitCombatStart: MechanicContext<T, TSkill>['hasExplicitCombatStart'];
   readonly combat: MechanicContext<T, TSkill>['combat'];
   readonly procs: MechanicContext<T, TSkill>['procs'];
   readonly cooldownController: MechanicContext<T, TSkill>['cooldownController'];
@@ -118,14 +110,12 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
   readonly effectReactions: MechanicContext<T, TSkill>['effectReactions'];
   readonly armFlip: MechanicContext<T, TSkill>['armFlip'];
   readonly consumeFlip: MechanicContext<T, TSkill>['consumeFlip'];
-  readonly combatStartedAt: MechanicContext<T, TSkill>['combatStartedAt'];
   readonly schedule: MechanicContext<T, TSkill>['schedule'];
   readonly scheduleForCast: MechanicContext<T, TSkill>['scheduleForCast'];
   readonly cancelOwner: MechanicContext<T, TSkill>['cancelOwner'];
   readonly fireTrigger: MechanicContext<T, TSkill>['fireTrigger'];
   constructor(runtime: Gw2Runtime<T, TSkill>) {
     this.#runtime = runtime;
-    this.hasExplicitCombatStart = runtime.hasExplicitCombatStart;
     this.combat = runtime.combat;
     this.procs = runtime.procs;
     // Bind only mechanic operations so cast-only commands are absent even for JavaScript callers.
@@ -141,7 +131,6 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
     this.effectReactions = Object.freeze({ register: runtime.effectReactions.register });
     this.armFlip = runtime.armFlip;
     this.consumeFlip = runtime.consumeFlip;
-    this.combatStartedAt = runtime.combatStartedAt;
     this.schedule = runtime.schedule;
     this.scheduleForCast = runtime.scheduleForCast;
     this.cancelOwner = runtime.cancelOwner;
@@ -168,20 +157,12 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
     return this.#runtime.time;
   }
 
+  get engagement() {
+    return this.#runtime.engagement;
+  }
+
   get activeWeaponSet() {
     return this.#runtime.activeWeaponSet;
-  }
-
-  get combatStartTime() {
-    return this.#runtime.combatStartTime;
-  }
-
-  get combatStartPending() {
-    return this.#runtime.combatStartPending;
-  }
-
-  get combatActive() {
-    return this.#runtime.combatActive;
   }
 
   get deathTime() {

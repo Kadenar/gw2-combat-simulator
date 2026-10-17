@@ -53,14 +53,14 @@ export const peitha = defineRelic({
 
 /** Torment and the player's damage buff arrive together, including in isolated damage calculations. */
 function emitDamagePayload(
-  ctx: Pick<Gw2RelicContext, 'effects' | 'combatStartTime'>,
+  ctx: Pick<Gw2RelicContext, 'effects' | 'engagement'>,
   _state: Gw2RelicState,
   event: SimulationEvent,
   inputs: import('#gw2/platform/skill-damage/types.js').DamageInputs = {}
 ): void {
   const impactAt = Math.max(
     event.at + Math.max(0, Number(inputs.impactDelayMs ?? PEITHA_DEFAULT_IMPACT_DELAY_MS)) / 1000,
-    ctx.combatStartTime ?? -Infinity
+    ctx.engagement.startTime ?? -Infinity
   );
   const attribution = {
     source: 'Relic',

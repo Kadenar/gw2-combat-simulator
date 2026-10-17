@@ -626,8 +626,8 @@ export function activateSicEm(runtime: RangerRuntime, skill: Skill): void {
 /** Hold deployed trap packets until explicit engagement, preserving their relative pulses and field lifetime. */
 export function prepareFrostTrapEvent(runtime: RangerRuntime, event: SimulationEventBase): SimulationEventBase | null {
   if (
-    runtime.hasExplicitCombatStart &&
-    runtime.combatStartPending &&
+    runtime.engagement.explicit &&
+    runtime.engagement.boundaryPending &&
     event.skillId === ID.FROST_TRAP &&
     !event.cancelled &&
     ['damage', 'condition', 'combo_field'].includes(event.type)

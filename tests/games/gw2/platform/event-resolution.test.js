@@ -259,9 +259,15 @@ test('resolver profession state changes are chronological and preserve counters'
       })
     },
     modifiers: {
-      modifyStrikeDamage(context, value) {
-        return context.runtime.profession.active ? value * 2 : value;
-      }
+      // Resolve the state-dependent multiplier at impact so queued changes affect later hits.
+      modifierRules: [
+        {
+          id: 'active-damage',
+          target: 'strikeDamage',
+          operation: 'multiply',
+          factor: (context) => (context.runtime.profession.active ? 2 : 1)
+        }
+      ]
     },
     hooks: {
       eventHandlers: {
@@ -454,16 +460,24 @@ test('resolver modifiers receive stable trait, event, and runtime context', () =
     name: 'Context Fixture',
     catalog,
     modifiers: {
-      modifyStrikeDamage(context, multiplier) {
-        observed = {
-          actorType: context.actorType,
-          hasRuntimeProfession: Boolean(context.runtime?.profession),
-          skillId: context.skillId,
-          trait: context.traits.has('context-fixture.damage')
-        };
+      // Inspect the canonical rule context while checking skill and trait eligibility.
+      modifierRules: [
+        {
+          id: 'context-damage',
+          target: 'strikeDamage',
+          operation: 'multiply',
+          factor(context) {
+            observed = {
+              actorType: context.actorType,
+              hasRuntimeProfession: Boolean(context.runtime?.profession),
+              skillId: context.skillId,
+              trait: context.traits.has('context-fixture.damage')
+            };
 
-        return observed.trait && observed.skillId === 930002 ? multiplier * 2 : multiplier;
-      }
+            return observed.trait && observed.skillId === 930002 ? 2 : 1;
+          }
+        }
+      ]
     }
   });
   const base = simulateGw2({

@@ -560,7 +560,7 @@ function createDamageHook(
     return initialValue * outgoing * multiplicativeFactor;
   };
 
-  return Object.freeze(Object.assign(hook, { acceptsDamageInputs: true as const }));
+  return Object.freeze(hook);
 }
 
 /**
@@ -635,10 +635,13 @@ export function createModifierHooks({
   return Object.freeze(hooks) as Readonly<Gw2ModifierHooks>;
 }
 
-/** Native composition needs only authored scalar/attribute hooks; damage hooks also own equipment buckets. */
-export function compileGw2ModifierRules(rules: readonly Gw2ModifierRule[]): Readonly<Partial<Gw2ModifierHooks>> {
+/** Every profession gets equipment-aware damage evaluators; other hooks are included only when authored. */
+export function compileGw2ModifierRules(
+  rules: readonly Gw2ModifierRule[],
+  damageBuckets: Gw2DamageBucketPolicies = {}
+): Readonly<Partial<Gw2ModifierHooks> & Pick<Gw2ModifierHooks, 'modifyStrikeDamage' | 'modifyConditionDamage'>> {
   const hooks: { -readonly [K in keyof Gw2ModifierHooks]?: Gw2ModifierHooks[K] } = {
-    ...createModifierHooks({ rules })
+    ...createModifierHooks({ rules, damageBuckets })
   };
   const targets = new Set(
     rules.flatMap((rule) => (typeof rule.target === 'string' ? [rule.target] : [...rule.target]))
@@ -658,7 +661,9 @@ export function compileGw2ModifierRules(rules: readonly Gw2ModifierRule[]): Read
 
   if (![...ATTRIBUTE_TARGETS].some((target) => targets.has(target))) delete hooks.modifyAttributes;
 
-  return Object.freeze(hooks);
+  return Object.freeze(hooks) as Readonly<
+    Partial<Gw2ModifierHooks> & Pick<Gw2ModifierHooks, 'modifyStrikeDamage' | 'modifyConditionDamage'>
+  >;
 }
 
 type Gw2ModifierTarget =
@@ -767,7 +772,7 @@ interface Gw2DamageBucketPolicy {
   readonly includeSigil: Gw2IncludeSigilPolicy;
 }
 
-type Gw2DamageBucketPolicies = Partial<
+export type Gw2DamageBucketPolicies = Partial<
   Record<Gw2DamageModifierTarget, { readonly includeSigil?: Gw2IncludeSigilPolicy }>
 >;
 
@@ -778,9 +783,7 @@ export interface Gw2DamageInputs {
   readonly equipmentBonus?: number;
 }
 
-export type Gw2ModifierHook = ((context: Gw2ModifierContext, initialValue: number) => number) & {
-  readonly acceptsDamageInputs?: true;
-};
+export type Gw2ModifierHook = (context: Gw2ModifierContext, initialValue: number) => number;
 
 type Gw2AttributeModifierHook = (context: Gw2ModifierContext, initialValue: Gw2ResolvedStats) => Gw2ResolvedStats;
 

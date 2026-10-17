@@ -1,5 +1,6 @@
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import type { ProfessionModifierDefinition } from '#gw2/platform/profession-definition/types.js';
 import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 
 const modifierParameters = (values: Record<string, number>): Readonly<Record<string, number>> => Object.freeze(values);
@@ -16,18 +17,12 @@ const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   }
 ]);
 
-function compileMesmerModifierRules(rules: readonly Gw2ModifierRule[]): ReturnType<typeof createModifierHooks> {
-  return createModifierHooks({
-    rules,
-    damageBuckets: {
-      strikeDamage: {
-        includeSigil: (context) => !illusionSource(context)
-      }
-    }
-  });
-}
-
+// Illusion strikes share profession additions but do not inherit the player's additive sigil bonuses.
 export const mesmerCoreModifiers = Object.freeze({
   modifierRules: mesmerCoreModifierRules,
-  compileModifierRules: compileMesmerModifierRules
-});
+  damageBuckets: {
+    strikeDamage: {
+      includeSigil: (context) => !illusionSource(context)
+    }
+  }
+} satisfies ProfessionModifierDefinition);

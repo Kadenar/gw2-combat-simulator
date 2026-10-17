@@ -1,3 +1,4 @@
+import { enteredCombat } from '#tests/helpers/engagement.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -453,9 +454,7 @@ test('equipment producers bind swap and reaction capabilities independently for 
   const execution = createCombatExecution(fixture().runtimeFor(config), []);
   const createOwner = () => ({
     config: { sigilSets: [{ names: [] }, { names: ['Doom'] }] },
-    combatStartTime: 0,
-    combatStartPending: false,
-    combatActive: true,
+    engagement: enteredCombat(),
     activeWeaponSet: 1,
     firstHitTime: null,
     sigil: { doomPending: false },

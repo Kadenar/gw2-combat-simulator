@@ -134,7 +134,7 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
   applyWeaveSelfAttunement(context, at, target, source, sourceId);
 
   // Pre-combat setup swaps must not generate trait procs.
-  if (canonicalTime(at) < (context.combatStartTime || 0)) return;
+  if (canonicalTime(at) < (context.engagement.startTime || 0)) return;
 
   context.fireTrigger(weaverAttunementCompleted, { event });
   // A normal Weaver swap moves both hands and so counts as two attunement

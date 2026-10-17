@@ -273,13 +273,13 @@ export const warriorBladeswornTraits = [
 ] as const;
 
 function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>, trait: number): void {
-  if (runtime.hasExplicitCombatStart && !runtime.combatActive) return;
+  if (runtime.engagement.explicit && !runtime.engagement.active) return;
 
   const state = bladeswornState.from(runtime);
 
   if (!isInternalCooldownReady(runtime.time, runtime.procs.deadline('warrior.bladesworn.gunsaberSwapTrait'))) return;
 
-  if (trait === TRAIT.UNSEEN_SWORD && !runtime.combatActive) return;
+  if (trait === TRAIT.UNSEEN_SWORD && !runtime.engagement.active) return;
 
   const profile = requireBalanceProfileFromContext(runtime, trait);
   const event = {

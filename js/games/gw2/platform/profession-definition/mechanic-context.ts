@@ -1,3 +1,4 @@
+import type { CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
 import type { AlliedStrikeGrants } from '#gw2/platform/combat/state/allied-strikes.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -29,8 +30,7 @@ export interface MechanicQueryContext<T extends object = object, TSkill extends 
   readonly traits: ReadonlySet<SkillId>;
   readonly time: number;
   readonly activeWeaponSet: number;
-  readonly combatStartPending?: boolean;
-  readonly combatActive: boolean;
+  readonly engagement: CombatEngagementQueries;
   readonly combat: Pick<
     MechanicCombatServices,
     | 'activeBoonStacks'
@@ -50,7 +50,7 @@ export interface MechanicQueryContext<T extends object = object, TSkill extends 
   >;
   readonly castController: Pick<
     CastControl,
-    'hasInFlight' | 'inFlightSkillIds' | 'currentLaneEnd' | 'pendingCombatStart' | 'pendingChargeRelease'
+    'hasInFlight' | 'inFlightSkillIds' | 'currentLaneEnd' | 'pendingChargeRelease'
   >;
   readonly resourceController: Pick<ResourceController, 'value' | 'readyAt'>;
   readonly endurance: Pick<EnduranceController, 'readyAt'>;
@@ -59,7 +59,6 @@ export interface MechanicQueryContext<T extends object = object, TSkill extends 
     CooldownController,
     'readyAt' | 'hasCooldown' | 'hasAmmo' | 'readAmmo' | 'rechargeFor' | 'rate' | 'project' | 'remaining'
   >;
-  combatStartedAt(at?: number): boolean;
 }
 
 /** Resolver mechanics own their profession slice and request shared changes through phase-preserving services. */
@@ -74,8 +73,7 @@ export interface MechanicCombatContext<T extends object = object, TSkill extends
   readonly procs: ProcRegistry;
   readonly random: Readonly<SimulationRandom>;
   readonly activeWeaponSet: number;
-  readonly combatStartTime?: number | null;
-  readonly combatStartPending?: boolean;
+  readonly engagement: CombatEngagementQueries;
   readonly deathTime: number | null;
 }
 
@@ -86,8 +84,6 @@ export interface MechanicContext<T extends object = object, TSkill extends Skill
 > {
   readonly queries: MechanicQueryContext<T, TSkill>;
   readonly time: number;
-  readonly combatActive: boolean;
-  readonly hasExplicitCombatStart: boolean;
   /** Cast acceptance and authored resets remain exclusive to the execution owner. */
   readonly cooldownController: Omit<CooldownController, 'resetAll' | 'spendAmmo' | 'setAmmoLockout'>;
   readonly castController: CastControl;
@@ -98,7 +94,6 @@ export interface MechanicContext<T extends object = object, TSkill extends Skill
   readonly effectReactions: Pick<EffectReactionRegistry<T>, 'register'>;
   armFlip(skillId: SkillId, window?: FlipWindowOptions): SkillFlipWindow;
   consumeFlip(skillId: SkillId): SkillFlipWindow | undefined;
-  combatStartedAt(at?: number): boolean;
   schedule(name: string, at: number, data?: unknown, owner?: WorkOwner, priority?: number): void;
   scheduleForCast(
     name: string,

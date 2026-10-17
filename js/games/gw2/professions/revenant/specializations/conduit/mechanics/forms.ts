@@ -53,7 +53,7 @@ export function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast<Revenan
 /** Legend swaps reset affinity, extend and re-select the form, and share Found Purpose. */
 export function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const state = conduitState.from(runtime);
-  const combat = runtime.combatStartedAt();
+  const combat = runtime.engagement.combatMechanicsAllowed();
   // The form state before the reset decides Enhanced Embodiment and the form update.
   const formActive = state.cosmicWisdomUntil > runtime.time;
   runtime.resourceController.replace('affinity', 0);

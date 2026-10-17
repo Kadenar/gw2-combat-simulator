@@ -161,10 +161,7 @@ export function createCastExecution<T extends object>(
       offTarget: cast.command.offTarget,
       cancelled: cast.cancelled,
       // Preparation relics follow authored command order even when hostile eligibility includes the marker timestamp.
-      precombat:
-        runtime.combatStartPending ||
-        cursor.command?.type === 'combat-start' ||
-        (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
+      precombat: !runtime.engagement.preparationComplete(runtime.time)
     });
     execution.castCompleted?.(runtime, completion);
 
@@ -205,7 +202,7 @@ export function createCastExecution<T extends object>(
   function rechargeWorkFor(skill: Skill, baseWork = gw2BaseRecharge(skill)): number {
     const work = profession.rechargeWork?.(runtime.mechanicQueries, skill, baseWork) ?? baseWork;
     return skill.inputCategory === 'weapon-swap'
-      ? runtime.combatActive
+      ? runtime.engagement.active
         ? Math.max(0, work - relicWeaponSwapRechargeReduction(config.relic))
         : 0
       : work;
@@ -484,7 +481,6 @@ export function createCastExecution<T extends object>(
       lockInputUntil: (at: number) => {
         runtime.inputReadyAt = Math.max(runtime.inputReadyAt, at);
       },
-      pendingCombatStart: () => cursor.command?.type === 'combat-start',
       pendingChargeRelease: () => cursor.pendingChargeRelease(),
       hasInFlight: (skillId: SkillId) => Boolean(inFlight.get(skillId)?.size),
       inFlightSkillIds: () => inFlight.keys(),

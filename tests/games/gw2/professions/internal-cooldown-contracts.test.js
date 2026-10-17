@@ -1,3 +1,4 @@
+import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import {
   necromancerStrike,
   necromancerConditionApplied
@@ -235,6 +236,7 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
   const procs = [];
   const conditions = [];
   const context = {
+    engagement: createCombatEngagement().query,
     procs: createProcRegistry(() => context),
     profession: { id },
     catalog,
@@ -743,11 +745,11 @@ test('Vampiric Aura pulses relative to an explicit combat start', () => {
   const profile = necromancerCatalog.balanceProfilesById.get(NECROMANCER_TRAIT_IDS.VAMPIRIC_PRESENCE);
   const firstPulse = 10 + balanceProfileNumber(profile, 'auraPulseInterval') / 2;
   const event = { type: 'damage', actorType: 'player', coefficient: 1, at: firstPulse };
-  context.combatStartPending = true;
+  const engagement = createCombatEngagement({ authoredMarkers: 1 });
+  context.engagement = engagement.query;
   strikeOpportunity(context, event);
   assert.equal(context.queue.length, 0, 'pending setup has no aura');
-  context.combatStartPending = false;
-  context.combatStartTime = 10;
+  engagement.discoverBoundary(10);
   strikeOpportunity(context, { ...event, at: firstPulse - 0.001 });
   assert.equal(context.queue.length, 0, 'the first pulse follows the explicit start');
   strikeOpportunity(context, event);

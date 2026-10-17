@@ -24,7 +24,7 @@ export const egoRestoration = defineTrait<MesmerSkill>({
     {
       on: 'castCommit',
       run(runtime, cast) {
-        if (!runtime.combatStartedAt() || cast.skill.type !== 'Heal') return;
+        if (!runtime.engagement.combatMechanicsAllowed() || cast.skill.type !== 'Heal') return;
 
         createMesmerIllusionRewards(runtime).gainResources(
           runtime.time,

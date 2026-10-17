@@ -32,7 +32,6 @@ export interface SkillTaskData<TSkill extends Skill = Skill> {
 export interface CastControl {
   /** Resource recovery and form entry inspect lane facts without acquiring command traversal. */
   currentLaneEnd(): number;
-  pendingCombatStart(): boolean;
   lockInputUntil(at: number): void;
   pendingChargeRelease(): ChargeReleaseIntent | undefined;
   hasInFlight(skillId: SkillId): boolean;

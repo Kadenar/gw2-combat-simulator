@@ -1,5 +1,5 @@
 import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
-import { combatStartedAt } from '#gw2/platform/combat/engagement.js';
+import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { validateResourceGrantSupport } from '#gw2/platform/effects/action-validation.js';
 import { validateCatalogResourceGrants } from '#gw2/platform/effects/action-declarations.js';
@@ -127,14 +127,11 @@ export function runRuntime<T extends object>(
   const cursor = execution.driver.cursor;
   const markers = cursor.commands.filter((command) => command.type === 'combat-start');
 
-  if (markers.length > 1 || (markers.length && combatStartTime != null))
-    throw new TypeError('Combat Start must have one owner.');
-
-  if (combatStartTime != null && (!Number.isFinite(combatStartTime) || combatStartTime < 0))
-    throw new RangeError('Combat Start must be finite and non-negative.');
-
-  const explicitCombat = markers.length > 0 || combatStartTime != null;
   let runtime: Gw2Runtime<T>;
+  const engagementController = createCombatEngagement(
+    { authoredMarkers: markers.length, inheritedStartTime: combatStartTime },
+    () => runtime.time
+  );
   const coordinator = createExecutionCoordinator(() => runtime);
   const { queue, identify, reactionParent, withCause, enqueueWork } = coordinator;
   const history: Gw2ResolverEvent[] = [];
@@ -207,6 +204,7 @@ export function runRuntime<T extends object>(
   });
 
   const base = createGw2ResolverRuntimeState({
+    engagement: engagementController.query,
     config,
     traits: normalizeSelectedTraitIds(config.selectedTraitIds),
     reporting: output !== 'score',
@@ -258,7 +256,7 @@ export function runRuntime<T extends object>(
     profession: base.profession as T,
     time: 0,
     inputReadyAt: 0,
-    combatActive: false,
+    engagementController,
     rotationEndTime: null,
     cursor,
     cooldownController,
@@ -267,9 +265,6 @@ export function runRuntime<T extends object>(
     observations: facts.writer,
     steps: [],
     inputActions: [],
-    hasExplicitCombatStart: explicitCombat,
-    combatStartTime: combatStartTime == null ? null : canonicalTime(combatStartTime),
-    combatStartPending: markers.length > 0 || (combatStartTime != null && combatStartTime > 0),
     armFlip(
       skillId: SkillId,
       {
@@ -297,9 +292,6 @@ export function runRuntime<T extends object>(
     },
     consumeFlip(skillId: SkillId) {
       return consumeSkillFlip(flipWindows(), skillId);
-    },
-    combatStartedAt(at = runtime.time) {
-      return combatStartedAt(runtime, at);
     },
     schedule(name: string, at: number, data: unknown = null, owner?: { id: string; generation: number }, priority = 0) {
       if (!profession.tasks?.[name]) throw new TypeError(`No task handler registered for ${name}.`);
@@ -524,7 +516,6 @@ export function runRuntime<T extends object>(
   onPhase?.('execution', reportingStarted - started);
   const result = projectRuntimeResult(runtime, profession, execution, {
     output,
-    explicitCombat,
     executed,
     ownsEffect,
     damageCompletionTime

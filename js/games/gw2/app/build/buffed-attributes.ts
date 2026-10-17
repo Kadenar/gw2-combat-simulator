@@ -196,7 +196,7 @@ function calculatePreview(
     activeWeaponSet: weaponSet,
     boons: previewBoons,
     buffs: previewBuffs,
-    combatStartTime: 0,
+    engagement: { startTime: 0 },
     relic
   };
   const stats = query.statsAt(1, event, runtime);

@@ -44,7 +44,7 @@ export function elementalistAttunementRechargeDuration(
   seconds: number,
   flatReduction = 0
 ): number {
-  if (!context.combatActive) return 0;
+  if (!context.engagement.active) return 0;
 
   const adjusted = Math.max(0, elementalEnchantmentRecharge(context, seconds) - flatReduction);
   return adjusted / context.cooldownController.rate(skill);

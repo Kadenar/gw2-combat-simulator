@@ -1,5 +1,6 @@
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
+import { MODIFIER_HOOK_NAMES } from '#gw2/platform/profession-definition/compile-contract.js';
 
 // Shared fixture only; its filename keeps Node from reporting this helper as an empty test.
 const catalog = createCanonicalCatalog({
@@ -58,3 +59,10 @@ export const testProfession = defineTestProfession({
     }
   }
 });
+
+// Minimal runtime fixtures share only modifier capabilities, without inheriting state or catalog behavior.
+export const testProfessionModifiers = Object.freeze(
+  Object.fromEntries(
+    [...MODIFIER_HOOK_NAMES, 'modifyStrikeDamage', 'modifyConditionDamage'].map((name) => [name, testProfession[name]])
+  )
+);

@@ -17,7 +17,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         // Precast mines are released by their combat-start owner; ordinary casts use these packets.
-        when: (runtime) => !runtime.combatStartPending,
+        when: (runtime) => !runtime.engagement.boundaryPending,
         type: 'strike',
         coefficient: 3.85,
         hits: 5,
@@ -27,7 +27,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         damageKind: 'explosion'
       },
       {
-        when: (runtime) => !runtime.combatStartPending,
+        when: (runtime) => !runtime.engagement.boundaryPending,
         type: 'condition',
         ticks: [
           { atMs: 0, condition: 'Crippled', stacks: 1, duration: 2.5 },
@@ -147,7 +147,7 @@ const mineFieldActions: NonNullable<RuntimeHooks<EngineerRuntimeState, EngineerS
   'engineer.mine-field'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Mine Field requires a cast trigger.');
 
-    if (runtime.combatStartPending) runtime.profession.core.pendingMineFieldActivationIds.push(context.cast.id);
+    if (runtime.engagement.boundaryPending) runtime.profession.core.pendingMineFieldActivationIds.push(context.cast.id);
     else notifyToolbeltActivation(runtime, runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!, context.cast.id);
   }
 };

@@ -33,7 +33,7 @@ test('Prodigious Pincher retains precombat gross spending, checks after Chak ref
             traits: runtime.mechanics.traits,
             profession: runtime.mechanics.profession,
             time: runtime.time,
-            combatStartedAt: runtime.combatStartedAt,
+            engagement: runtime.engagement,
             resourceController: {
               grant(resource, amount) {
                 readings.push([resource, amount, state.initiativeSpentSincePilfer]);

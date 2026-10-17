@@ -1,3 +1,4 @@
+import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import assert from 'node:assert/strict';
@@ -63,6 +64,7 @@ test('combo and aura handlers skip score report rows while preserving state and 
     const dispatched = [];
     const facts = createExecutedFacts([]);
     const context = {
+      engagement: createCombatEngagement().query,
       reporting,
       resolved: [],
       traits: new Set(),

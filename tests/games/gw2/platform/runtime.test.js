@@ -1,12 +1,11 @@
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { MODIFIER_HOOK_NAMES } from '#gw2/platform/profession-definition/compile-contract.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { createRuntimeEndurance } from '#gw2/platform/simulation/runtime-resources.js';
-import { testProfession } from '#tests/fixtures/profession.js';
+import { testProfessionModifiers } from '#tests/fixtures/profession.js';
 
 // The pilot owns its hooks directly; none of the production scheduler/resolver state factories are installed.
 const catalog = createCanonicalCatalog({
@@ -91,8 +90,8 @@ const config = {
 };
 function fixture(hooks = {}) {
   return {
-    // Use the canonical list so fixtures retain every required modifier as the contract evolves.
-    ...Object.fromEntries(MODIFIER_HOOK_NAMES.map((key) => [key, testProfession[key]])),
+    // Reuse the normalized contract so compiled damage evaluators are included.
+    ...testProfessionModifiers,
     id: 'live-fixture',
     catalog,
     createState: () => ({

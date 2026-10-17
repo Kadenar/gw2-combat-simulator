@@ -77,12 +77,7 @@ export function exitNecromancerShroud(runtime: NecromancerRuntime): void {
 
   if (entry) {
     // A known marker timestamp admits hostile packets but does not move an earlier authored exit into combat.
-    if (
-      runtime.combatStartPending ||
-      runtime.castController.pendingCombatStart() ||
-      (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
-    )
-      runtime.cooldownController.clear(entry.id);
+    if (!runtime.engagement.preparationComplete()) runtime.cooldownController.clear(entry.id);
     else runtime.cooldownController.startRecharge(entry, runtime.time, 10);
   }
 

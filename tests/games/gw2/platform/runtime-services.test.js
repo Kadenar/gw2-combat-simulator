@@ -84,12 +84,14 @@ function native(
     endurancePool: { value: 0, maximum: 100, updatedAt: 0, rate: 0 },
     starts: [],
     grants: 0
-  })
+  }),
+  modifiers = {}
 ) {
   const core = defineNativeModule({
     id: 'Core',
     data: { generatedSkills: skills, weapons: ['Sword'] },
     state: { create: state },
+    modifiers,
     hooks: {
       onCastStart(runtime, activation) {
         runtime.profession.core.starts.push([activation.skill.id, runtime.time]);
@@ -152,35 +154,46 @@ test('live event preparation preserves authored ownership and feeds derived comb
 test('live modifier hooks read executed history independently of report collection', () => {
   for (const output of ['detailed', 'score']) {
     const observations = [];
-    const source = native({
-      buffPolicies: () => [{ kind: 'custom-window', maximumStacks: 1 }],
-      initialize(runtime) {
-        runtime.effects.emit({
-          kind: 'packet',
-          event: {
-            type: 'buff',
-            at: 1,
-            source: 'live',
-            sourceId: 991003,
-            actorType: 'player',
-            kind: 'custom-window',
-            duration: 2,
-            stacks: 1
-          }
-        });
-        runtime.effects.emit({ kind: 'packet', event: hit(0.5) });
-        runtime.effects.emit({ kind: 'packet', event: hit(1.5) });
-      }
-    }).runtimeFor({ specialization: 'Core' });
-    observeGw2Runtime({
-      profession: {
-        ...source,
-        modifyStrikeDamage(context, multiplier) {
-          const applied = context.events.some((event) => event.kind === 'custom-window');
-          observations.push([context.time, applied]);
-          return multiplier * (applied ? 2 : 1);
+    const source = native(
+      {
+        buffPolicies: () => [{ kind: 'custom-window', maximumStacks: 1 }],
+        initialize(runtime) {
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'buff',
+              at: 1,
+              source: 'live',
+              sourceId: 991003,
+              actorType: 'player',
+              kind: 'custom-window',
+              duration: 2,
+              stacks: 1
+            }
+          });
+          runtime.effects.emit({ kind: 'packet', event: hit(0.5) });
+          runtime.effects.emit({ kind: 'packet', event: hit(1.5) });
         }
       },
+      undefined,
+      {
+        // The rule reads only executed history, even when detailed reporting is disabled.
+        modifierRules: [
+          {
+            id: 'executed-history',
+            target: 'strikeDamage',
+            operation: 'multiply',
+            factor(context) {
+              const applied = context.events.some((event) => event.kind === 'custom-window');
+              observations.push([context.time, applied]);
+              return applied ? 2 : 1;
+            }
+          }
+        ]
+      }
+    ).runtimeFor({ specialization: 'Core' });
+    observeGw2Runtime({
+      profession: source,
       config,
       rotation: [wait(2000)],
       output
@@ -1118,6 +1131,10 @@ test('mechanic capabilities exclude cast-only recharge commands and unused query
           assert.equal(name in context.cooldownController, false);
         for (const name of ['combatStartTime', 'hasExplicitCombatStart', 'procs'])
           assert.equal(name in context.queries, false);
+        // Mechanic views share live engagement queries without acquiring transition authority.
+        assert.equal(context.engagement, context.queries.engagement);
+        assert.equal(Object.isFrozen(context.engagement), true);
+        assert.equal('acceptEntry' in context.engagement, false);
         context.cooldownController.setReadyAt(991001, 2);
         assert.equal(context.queries.cooldownController.readyAt(991001), 2);
         assert.equal(Object.isFrozen(context.cooldownController), true);

@@ -100,10 +100,10 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
         }
       }
 
-      if (!runtime.combatStartPending) restartSignetIllusionsPassive(runtime, 0);
+      if (!runtime.engagement.boundaryPending) restartSignetIllusionsPassive(runtime, 0);
     },
     onCombatStart(runtime) {
-      if (runtime.hasExplicitCombatStart) restartSignetIllusionsPassive(runtime, runtime.time);
+      if (runtime.engagement.explicit) restartSignetIllusionsPassive(runtime, runtime.time);
     },
     prepareEvent(runtime, event) {
       const prepared = prepareGw2BuffCompanionCandidates(

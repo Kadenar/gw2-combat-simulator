@@ -14,7 +14,7 @@ export const mirage = defineRelic({
     if (
       !isGw2PlayerActorEvent(dodge) ||
       dodge.cancelled ||
-      dodge.at < (ctx.combatStartTime ?? 0) ||
+      dodge.at < (ctx.engagement.startTime ?? 0) ||
       !(dodge.evades === true || ['Dodge', 'Dodge / Mirage Cloak', 'Dodge Jump'].includes(String(dodge.skillName))) ||
       !isInternalCooldownReady(dodge.at, state.readyAt)
     )

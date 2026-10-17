@@ -84,7 +84,7 @@ function aristocracyActivationAt(state: AristocracyState, at: number): Aristocra
 export const aristocracy = defineRelic({
   createState: createAristocracyState,
   condition(ctx, state, event) {
-    if (ctx.combatStartTime != null && canonicalTime(event.at) < canonicalTime(ctx.combatStartTime)) return;
+    if (ctx.engagement.startTime != null && canonicalTime(event.at) < canonicalTime(ctx.engagement.startTime)) return;
 
     // Accepted applications own the stack claim and report; isolated previews seed their own activation window.
     const activation = applyAristocracyTrigger(state as AristocracyState, event);

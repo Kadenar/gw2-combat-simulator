@@ -1,4 +1,4 @@
-import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
+import { autonomousActionsAllowed, type CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -46,9 +46,7 @@ export function createAlliedStrikeController(
     readonly config: Gw2Config;
     readonly time: number;
     readonly deathTime: number | null;
-    combatStartedAt(): boolean;
-    readonly hasExplicitCombatStart: boolean;
-    readonly combatStartTime?: number | null;
+    readonly engagement: CombatEngagementQueries;
   },
   services: {
     schedule(at: number, sequence: number): void;
@@ -73,7 +71,7 @@ export function createAlliedStrikeController(
 
     if (!autonomousActionsAllowed(context)) return;
 
-    anchor ??= context.hasExplicitCombatStart ? context.combatStartTime! : 0;
+    anchor ??= context.engagement.explicit ? context.engagement.startTime! : 0;
 
     if (nextAt != null || dispatching) return;
 

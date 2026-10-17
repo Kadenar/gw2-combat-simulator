@@ -1,3 +1,5 @@
+import { enteredCombat } from '#tests/helpers/engagement.js';
+import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
@@ -16,9 +18,10 @@ import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-st
 test('Mischief shares its nine-second cooldown across equipped copies', () => {
   const emitted = [];
   const procs = [];
+  const engagement = createCombatEngagement();
   const runtime = {
     ...createGw2ResolverRuntimeState({ config: {} }),
-    combatActive: false,
+    engagement: engagement.query,
     activeWeaponSet: 1,
     config: { sigilSets: [{ names: ['Mischief'] }, { names: [] }] },
     effects: captureEffectEmissions({
@@ -31,7 +34,7 @@ test('Mischief shares its nine-second cooldown across equipped copies', () => {
   assert.equal(emitted.length, 0);
   assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.MISCHIEF}`), 0);
 
-  runtime.combatActive = true;
+  engagement.acceptEntry(1);
   applyRuntimeSigils(runtime, 'swap', { ...swap, weaponSet: 2 });
   assert.equal(emitted.length, 0);
   assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.MISCHIEF}`), 0);
@@ -95,7 +98,7 @@ test('Ice rejects non-defiant hits without consuming its shared cooldown', () =>
     const emitted = [];
     const runtime = {
       ...createGw2ResolverRuntimeState({ config: {} }),
-      combatActive: true,
+      engagement: enteredCombat(),
       activeWeaponSet: 1,
       config: { target: { defiant: false }, sigilSets: [{ names: ['Ice', 'Ice'] }] },
       effects: captureEffectEmissions({ submit: (event) => emitted.push(event) }).effects

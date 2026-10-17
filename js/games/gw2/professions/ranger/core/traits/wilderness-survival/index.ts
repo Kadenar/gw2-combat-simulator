@@ -258,7 +258,8 @@ function triggerChildOfEarth(context: RangerRuntime, skill: RangerSkill): void {
 function applyPoisonMasterBeastSkill(context: RangerRuntime, skill: RangerSkill): void {
   const petCommand = isBeastSkill(skill);
   const notBeforeCombat =
-    !context.hasExplicitCombatStart || (context.combatStartTime != null && context.time >= context.combatStartTime);
+    !context.engagement.explicit ||
+    (context.engagement.startTime != null && context.time >= context.engagement.startTime);
 
   if (petCommand || notBeforeCombat) {
     context.effects.emit({

@@ -1,3 +1,4 @@
+import { compileGw2ModifierRules } from '#gw2/platform/combat/modifiers.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ProfessionFamilyContract } from '#gw2/platform/profession-definition/family-contract.js';
 import type {
@@ -43,8 +44,6 @@ const HOOK_DEFINITIONS = Object.freeze([
   ['modifyConditionAttributes', 'modifier'],
   ['modifyCriticalChance', 'modifier'],
   ['modifyCriticalDamage', 'modifier'],
-  ['modifyStrikeDamage', 'modifier'],
-  ['modifyConditionDamage', 'modifier'],
   ['modifyConditionBaseDuration', 'modifier'],
   ['modifyConditionDuration', 'modifier']
 ] as const satisfies readonly (readonly [string, HookCategory])[]);
@@ -59,6 +58,23 @@ const hookNamesWith = <TCategory extends HookCategory>(category: TCategory) =>
 const HOOK_NAMES = Object.freeze(HOOK_DEFINITIONS.map(([name]) => name));
 
 export const MODIFIER_HOOK_NAMES = hookNamesWith('modifier');
+
+const MODIFIER_FIELDS: readonly string[] = [...MODIFIER_HOOK_NAMES, 'modifierRules', 'damageBuckets'];
+
+/** Reject unsupported declarations before normalization can silently discard their behavior. */
+export function assertModifierDefinition(value: unknown, scope = 'modifiers'): void {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError(`${scope} must be an object.`);
+  }
+
+  for (const key of Object.keys(value)) {
+    if (!MODIFIER_FIELDS.includes(key)) throw new TypeError(`Unsupported ${scope} field: ${key}.`);
+  }
+
+  const rules = (value as UnvalidatedFields).modifierRules;
+
+  if (rules != null && !Array.isArray(rules)) throw new TypeError(`${scope}.modifierRules must be an array.`);
+}
 
 const NOOP: ComposableHook = (..._args) => undefined;
 
@@ -125,11 +141,6 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
         const next = hook.handler(context, chainedValue);
         return next === undefined ? chainedValue : next;
       }, initialValue);
-
-    // Native damage rules consume explicit equipment inputs; ordinary profession hooks keep their numeric contract.
-    if (hooks.some(({ handler }) => 'acceptsDamageInputs' in handler && handler.acceptsDamageInputs === true)) {
-      return Object.assign(composed, { acceptsDamageInputs: true });
-    }
 
     return composed;
   }
@@ -221,7 +232,10 @@ export function defineProfession<TProfessionState extends object, TSkill extends
 ): Readonly<NormalizedProfessionContract<TProfessionState, TSkill>> {
   assertDefinition(definition);
   const resources = definition.resources || {};
-  const modifiers = definition.modifiers || {};
+  const modifiers = definition.modifiers ?? {};
+  assertModifierDefinition(modifiers);
+  // Compile even empty declarations so equipment always participates exactly once in the damage bucket.
+  const compiled = compileGw2ModifierRules(modifiers.modifierRules ?? [], modifiers.damageBuckets);
   assertCallbackContainer(resources, ['createState', 'projectPlanningState'], 'resources');
   const sources: UnvalidatedFields = {
     projectPlanningState: resources.projectPlanningState,
@@ -229,8 +243,6 @@ export function defineProfession<TProfessionState extends object, TSkill extends
     modifyConditionAttributes: modifiers.modifyConditionAttributes,
     modifyCriticalChance: modifiers.modifyCriticalChance,
     modifyCriticalDamage: modifiers.modifyCriticalDamage,
-    modifyStrikeDamage: modifiers.modifyStrikeDamage,
-    modifyConditionDamage: modifiers.modifyConditionDamage,
     modifyConditionBaseDuration: modifiers.modifyConditionBaseDuration,
     modifyConditionDuration: modifiers.modifyConditionDuration
   };
@@ -238,7 +250,11 @@ export function defineProfession<TProfessionState extends object, TSkill extends
   const composedHooks: DynamicFields = {};
   for (const name of HOOK_NAMES) {
     const fallback = name.startsWith('modify') ? IDENTITY_SECOND_ARGUMENT : NOOP;
-    composedHooks[name] = composeHooks(sources[name], name, fallback);
+    const source = sources[name];
+    const ruleHook =
+      name === 'projectPlanningState' || name === 'modifyConditionAttributes' ? undefined : compiled[name];
+    const hooks = source == null ? [] : Array.isArray(source) ? source : [source];
+    composedHooks[name] = composeHooks(ruleHook ? [...hooks, ruleHook] : hooks, name, fallback);
   }
 
   if (definition.canSwapWeaponSetsInCombat != null && typeof definition.canSwapWeaponSetsInCombat !== 'boolean')
@@ -253,7 +269,9 @@ export function defineProfession<TProfessionState extends object, TSkill extends
     catalog: definition.catalog ?? createCanonicalCatalog<TSkill>(),
     createState: (config: Readonly<ProfessionConfig>, balanceContext?: ProfessionBalanceContext) =>
       resources.createState?.(config, balanceContext) ?? {},
-    ...composedHooks
+    ...composedHooks,
+    modifyStrikeDamage: compiled.modifyStrikeDamage,
+    modifyConditionDamage: compiled.modifyConditionDamage
   };
   return Object.freeze(profession) as unknown as Readonly<NormalizedProfessionContract<TProfessionState, TSkill>>;
 }

@@ -16,7 +16,6 @@ import type {
   Gw2AttributeContributions,
   Gw2Build
 } from '#gw2/platform/builds/types.js';
-import { compileGw2ModifierRules } from '#gw2/platform/combat/modifiers.js';
 import type { EndurancePolicy, ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   denyCast,
@@ -26,6 +25,7 @@ import {
 import {
   MODIFIER_HOOK_NAMES,
   assertDefinition,
+  assertModifierDefinition,
   defineProfession
 } from '#gw2/platform/profession-definition/compile-contract.js';
 import type { Gw2ProfessionContract } from '#gw2/platform/profession-definition/family-contract.js';
@@ -150,11 +150,7 @@ function assertNativeModuleDefinition(definition: object): void {
     candidate.kind === 'native-profession-module' ||
     (candidate.modifiers != null && !Array.isArray(candidate.modifiers))
   ) {
-    assertObject(candidate.modifiers, `${candidate.id}.modifiers`);
-    const rules = (candidate.modifiers as ProfessionModifierDefinition).modifierRules;
-
-    if (rules != null && !Array.isArray(rules))
-      throw new TypeError(`${candidate.id} modifiers.modifierRules must be an array.`);
+    assertModifierDefinition(candidate.modifiers, `${candidate.id}.modifiers`);
   }
 }
 
@@ -301,7 +297,7 @@ function createModuleUi<TSkill extends Skill>(
   return { ...(presentation as Partial<ProfessionUiContract> | undefined) };
 }
 
-/** Compiles merged active rules once, using standard GW2 buckets unless a module owns a custom compiler. */
+/** Merge declarations before normalization so every active rule shares one evaluator and each policy has one owner. */
 function composeModuleModifiers(
   modules: readonly Pick<AnyNativeModule, 'id' | 'modifiers'>[]
 ): ProfessionModifierDefinition {
@@ -316,34 +312,29 @@ function composeModuleModifiers(
     ])
   ) as Record<(typeof MODIFIER_HOOK_NAMES)[number], ProfessionHook[]>;
   const declarations = modifiers.flatMap((source) => source.modifierRules ?? []);
-  const owners = modifiers.flatMap((source, index) => (source.compileModifierRules == null ? [] : [index]));
+  const damageBuckets: NonNullable<ProfessionModifierDefinition['damageBuckets']> = {};
+  const policyOwners = new Map<string, string>();
+  for (const module of modules) {
+    const policies = module.modifiers.damageBuckets;
 
-  if (owners.length > 1) {
-    throw new TypeError(
-      `modifiers.compileModifierRules has multiple owners: ${owners.map((index) => modules[index].id).join(', ')}.`
-    );
+    if (policies == null) continue;
+
+    if (typeof policies !== 'object' || Array.isArray(policies))
+      throw new TypeError('Modifier damageBuckets must be an object.');
+
+    for (const target of Object.keys(policies)) {
+      if (policyOwners.has(target))
+        throw new TypeError(
+          `modifiers.damageBuckets.${target} has multiple owners: ${policyOwners.get(target)}, ${module.id}.`
+        );
+
+      policyOwners.set(target, module.id);
+    }
+
+    Object.assign(damageBuckets, policies);
   }
 
-  if (!declarations.length) return result;
-
-  const compiler: NonNullable<ProfessionModifierDefinition['compileModifierRules']> =
-    modifiers[owners[0]]?.compileModifierRules ?? compileGw2ModifierRules;
-
-  if (typeof compiler !== 'function') throw new TypeError('modifiers.compileModifierRules must be a function.');
-
-  const compiled = compiler(declarations);
-
-  if (!compiled || typeof compiled !== 'object' || Array.isArray(compiled)) {
-    throw new TypeError('modifiers.compileModifierRules must return a hook object.');
-  }
-
-  for (const name of MODIFIER_HOOK_NAMES) {
-    const hook = compiled[name];
-
-    if (hook != null) result[name].push(hook);
-  }
-
-  return result;
+  return { ...result, modifierRules: declarations, damageBuckets };
 }
 
 /**

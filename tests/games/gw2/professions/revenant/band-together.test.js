@@ -1,3 +1,4 @@
+import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -23,7 +24,7 @@ function fixture(traits = []) {
     config,
     traits: new Set(traits),
     time: 1,
-    combatStartedAt: () => null,
+    engagement: createCombatEngagement({ authoredMarkers: 1 }).query,
     profession: native.createState(config),
     helpers: native.catalog
   };

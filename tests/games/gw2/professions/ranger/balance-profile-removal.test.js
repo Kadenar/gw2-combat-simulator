@@ -1,3 +1,4 @@
+import { enteredCombat } from '#tests/helpers/engagement.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -165,7 +166,7 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
     config,
     traits: new Set(config.selectedTraitIds),
     catalog: patched(rangerCatalog, { [TRAIT.QUICK_DRAW]: remove('boon', 'quickness') }),
-    combatStartTime: 0,
+    engagement: enteredCombat(),
     effectiveEnd: 1,
     state: { time: 1, profession: { core: createRangerCoreState(config) } },
     effects: { emit: ({ event }) => events.push(event) }
@@ -244,7 +245,7 @@ test('a missing required Ranger scalar fails instead of using a local default', 
     config,
     traits: new Set(config.selectedTraitIds),
     catalog: { balanceProfilesById: new Map([[TRAIT.QUICK_DRAW, profile]]) },
-    combatStartTime: 0,
+    engagement: enteredCombat(),
     effectiveEnd: 1,
     state: { time: 1, profession: { core: createRangerCoreState(config) } },
     emit() {}

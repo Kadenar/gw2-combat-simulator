@@ -124,11 +124,11 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     runtime.profession.core.combatBeganAt = runtime.time;
     runtime.resourceController.refresh('energy');
 
-    if (runtime.hasExplicitCombatStart) runtime.fireTrigger(revenantLifecycleAnchored, { at: runtime.time });
+    if (runtime.engagement.explicit) runtime.fireTrigger(revenantLifecycleAnchored, { at: runtime.time });
   },
   availability: revenantAvailability,
   // Legend swaps stay free during setup until combat is established, like the runtime's weapon swaps.
-  rechargeWork: (runtime, skill, work) => (skill.id === ID.SWAP_LEGENDS && !runtime.combatActive ? 0 : work),
+  rechargeWork: (runtime, skill, work) => (skill.id === ID.SWAP_LEGENDS && !runtime.engagement.active ? 0 : work),
   modifyEffects(runtime, cast, effects) {
     // Upkeep owners emit their own activation and recurring payloads.
     if (isRevenantUpkeep(cast.skill)) return [];
@@ -159,7 +159,7 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   },
   onCooldownReset(runtime) {
     // Restores in-combat Energy after the shared runtime resets cooldowns.
-    if (!runtime.combatStartedAt()) return;
+    if (!runtime.engagement.combatMechanicsAllowed()) return;
 
     runtime.resourceController.grant('energy', runtime.profession.core.energy.maximum);
   },

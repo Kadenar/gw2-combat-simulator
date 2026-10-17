@@ -64,31 +64,23 @@ test('skill and effect bonuses use shared buckets while excluding sibling effect
   assert.ok(Math.abs(hooks.modifyStrikeDamage({ event: { ...enhanced, name: 'Renamed' } }, 100) - 330) < 1e-10);
 });
 
-test('native composition registers intrinsic rules once with the custom compiler and reads impact-time state', () => {
-  let compilations = 0;
-  const core = moduleFor(
-    [
-      skill(1, [
-        {
-          ...bonus('dynamic', 1),
-          parameters: { perStack: 0.1 },
-          factor: (context, _target, parameters) => 1 + context.runtime.stacks * parameters.perStack,
-          when: (context) => context.runtime.enabled
-        }
-      ])
-    ],
-    {
-      compileModifierRules(rules) {
-        compilations += 1;
-        return createModifierHooks({ rules });
+// Intrinsic rules share the selected evaluator and sample live state at impact.
+test('native composition shares intrinsic rules with queries and reads impact-time state', () => {
+  const core = moduleFor([
+    skill(1, [
+      {
+        ...bonus('dynamic', 1),
+        parameters: { perStack: 0.1 },
+        factor: (context, _target, parameters) => 1 + context.runtime.stacks * parameters.perStack,
+        when: (context) => context.runtime.enabled
       }
-    }
-  );
+    ])
+  ]);
   const family = defineNativeProfession({ id: 'modifier-fixture', name: 'Modifier fixture', modules: [core] });
   const runtime = family.runtimeFor({});
   assert.equal(family.runtimeFor({}), runtime);
-  assert.equal(compilations, 1);
-  const hooks = createModifierHooks({ rules: core.modifiers.modifierRules });
+  const hooks = family.resolveProfession({});
+  assert.equal(hooks.modifyStrikeDamage, runtime.modifyStrikeDamage);
   const context = { event: { skillId: 1 }, runtime: { stacks: 2, enabled: true } };
   assert.equal(hooks.modifyStrikeDamage(context, 100), 120);
   context.runtime.stacks = 5;

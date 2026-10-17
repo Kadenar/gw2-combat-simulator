@@ -293,8 +293,7 @@ export function createEffectDelivery<T extends object>(
     if (
       ('offTarget' in event && event.offTarget === true) ||
       runtime.deathTime != null ||
-      runtime.combatStartPending ||
-      (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
+      !runtime.engagement.hostileEffectsAllowed(runtime.time)
     )
       return [];
 
@@ -356,7 +355,7 @@ export function createEffectDelivery<T extends object>(
     event = normalizeBoonDuration(event);
 
     // Inherited combat boundaries remain pending until their queued marker actually executes.
-    if (event.type === 'combat_start') runtime.combatStartPending = false;
+    if (event.type === 'combat_start') runtime.engagementController.dispatchMarker(event.at);
 
     // Actual finishers settle before their owning hit samples attributes and critical chance.
     // Requeue the same hit once, retaining its identity and position after the higher-priority combo chain.
@@ -372,8 +371,7 @@ export function createEffectDelivery<T extends object>(
     }
 
     const hostile = isHostileTargetEvent(event) || event.type === 'combo_finisher' || event.comboId != null;
-    const precombat =
-      runtime.combatStartPending || (runtime.combatStartTime != null && event.at < runtime.combatStartTime);
+    const precombat = !runtime.engagement.hostileEffectsAllowed(event.at);
 
     if (missesTarget(event) || (precombat && isPrecombatTargetEffect(event) && event.type !== 'condition_tick')) {
       // Preserve attempted packets for targeting edits; only resolved rows contribute damage.
@@ -395,16 +393,13 @@ export function createEffectDelivery<T extends object>(
       }
     }
 
-    // Precombat control notifications remain observable without starting combat producers before the marker.
-    if (!runtime.combatActive && !precombat && isCombatEntryEvent(event)) {
-      runtime.combatActive = true;
-
-      // Timed profession producers anchor once to the accepted combat-start boundary.
-      if (!runtime.hasExplicitCombatStart) execution.combatStart?.(runtime);
-    }
-
-    // Same-time opening hits may mark combat active, but only the consumed marker releases explicit setup producers.
-    if (event.type === 'combat_start' && runtime.hasExplicitCombatStart) execution.combatStart?.(runtime);
+    // Accepted entry activates combat; the owner releases explicit producers only on marker dispatch, once.
+    if (
+      !precombat &&
+      isCombatEntryEvent(event) &&
+      runtime.engagementController.acceptEntry(event.at, event.type === 'combat_start')
+    )
+      execution.combatStart?.(runtime);
 
     event = bindRuntimeCombo(runtime, event);
 

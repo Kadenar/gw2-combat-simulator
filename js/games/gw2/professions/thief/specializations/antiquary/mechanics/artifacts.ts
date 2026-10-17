@@ -126,7 +126,7 @@ export function antiquaryAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, 
 /** Reads accumulated spending without consuming it; only an in-combat threshold check can request a pilfer. */
 export function prodigiousPincherReady(runtime: ThiefRuntime): boolean {
   return (
-    runtime.combatStartedAt() &&
+    runtime.engagement.combatMechanicsAllowed() &&
     hasTrait(runtime, TRAIT.PRODIGIOUS_PINCHER) &&
     advanceCounter(
       antiquaryState.from(runtime).initiativeSpentSincePilfer,

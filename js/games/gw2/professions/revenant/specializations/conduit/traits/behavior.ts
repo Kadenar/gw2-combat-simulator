@@ -84,7 +84,7 @@ export function bolsteredBondsBonuses(
 const enhancedEmbodimentRecharge = compileRechargeRules<RevenantRuntimeState, RevenantSkill>([
   {
     trait: TRAIT.ENHANCED_EMBODIMENT,
-    when: (runtime, skill) => skill.id === ID.SWAP_LEGENDS && runtime.combatStartedAt(),
+    when: (runtime, skill) => skill.id === ID.SWAP_LEGENDS && runtime.engagement.combatMechanicsAllowed(),
     multiplier: { profile: PROFILE.enhancedEmbodiment, field: 'rechargeMultiplier' }
   }
 ]);
@@ -95,7 +95,8 @@ export function enhancedLegendRecharge(
   skill: Skill,
   work: number
 ): number {
-  if (work === 0 || !runtime.combatStartedAt() || !hasTrait(runtime, TRAIT.ENHANCED_EMBODIMENT)) return work;
+  if (work === 0 || !runtime.engagement.combatMechanicsAllowed() || !hasTrait(runtime, TRAIT.ENHANCED_EMBODIMENT))
+    return work;
 
   return enhancedEmbodimentRecharge(runtime, skill, Math.max(0, skill.cooldown ?? work));
 }

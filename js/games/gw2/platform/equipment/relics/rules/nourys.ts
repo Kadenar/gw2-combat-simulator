@@ -12,7 +12,7 @@ const NOURYS_DAMAGE_BONUS = 0.25;
 const NOURYS_CYCLE_DURATION = NOURYS_STACK_INTERVAL * NOURYS_STACKS_NEEDED + NOURYS_BUFF_DURATION;
 
 function nourysCombatStart(context: Gw2RelicRuntimeContext, state: Gw2RelicState): number {
-  const runtimeStart = Number(context.combatStartTime);
+  const runtimeStart = Number(context.engagement?.startTime);
 
   if (Number.isFinite(runtimeStart)) return runtimeStart;
 

@@ -1,3 +1,4 @@
+import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -14,6 +15,7 @@ test('Cascading Corruption resets at the cap in combat before emitting the consu
       .specialization.state;
     state.cascadingCorruptionStacks = 1;
     const observations = [];
+    const engagement = createCombatEngagement({ authoredMarkers: 1 });
     const runtime = {
       helpers: applyBalanceProfilePatch(necromancerCatalog, {
         balanceProfiles: {
@@ -32,7 +34,7 @@ test('Cascading Corruption resets at the cap in combat before emitting the consu
         }
       }),
       time: 1,
-      combatStartPending: true,
+      engagement: engagement.query,
       traits: new Set([TRAIT.CASCADING_CORRUPTION]),
       profession: { specialization: { kind: 'Harbinger', state } },
       effects: captureEffectEmissions({
@@ -47,7 +49,7 @@ test('Cascading Corruption resets at the cap in combat before emitting the consu
     bindTriggerPoints(runtime, necromancerProfession, { specialization: 'Harbinger' });
     runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed: 5, at: runtime.time, activationId: cast.id });
     assert.equal(state.cascadingCorruptionStacks, 1);
-    runtime.combatStartPending = false;
+    engagement.discoverBoundary(1);
     runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed: 0, at: runtime.time, activationId: cast.id });
     assert.equal(state.cascadingCorruptionStacks, 1);
     runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed: 5, at: runtime.time, activationId: cast.id });

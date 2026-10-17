@@ -149,10 +149,8 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     let finished = false;
     for (let iteration = 0; iteration < DEFAULT_EXECUTION_ITERATION_LIMIT; iteration++) {
       // The next authored marker fixes a boundary, not a gameplay transition: opening packets at that instant remain eligible.
-      if (runtime.combatStartPending && cursor.command?.type === 'combat-start') {
-        runtime.combatStartTime = cursor.requestAt(runtime.time);
-        runtime.combatStartPending = false;
-      }
+      if (cursor.command?.type === 'combat-start')
+        runtime.engagementController.discoverBoundary(cursor.requestAt(runtime.time));
 
       const due = queue.peek();
 

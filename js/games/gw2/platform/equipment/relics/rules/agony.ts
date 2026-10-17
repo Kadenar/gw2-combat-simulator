@@ -10,7 +10,7 @@ export const agony = defineRelic({
   createState: () => ({ readyAt: 0 }),
   control(ctx, state, event) {
     // Like Severance, controls before the explicit combat boundary cannot consume the proc's cooldown.
-    if (ctx.combatStartPending || (ctx.combatStartTime != null && event.at < ctx.combatStartTime)) return;
+    if (!ctx.engagement.hostileEffectsAllowed(event.at)) return;
 
     if (!isInternalCooldownReady(event.at, state.readyAt)) return;
 

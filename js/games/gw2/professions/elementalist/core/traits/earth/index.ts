@@ -112,7 +112,7 @@ export const strengthOfStone = defineTrait({
       run: (runtime: ElementalistRuntime, { cause }: ElementalistReaction) => {
         if (
           cause.condition === 'Immobilized' &&
-          (runtime.combatStartTime == null || cause.at >= runtime.combatStartTime)
+          (runtime.engagement.startTime == null || cause.at >= runtime.engagement.startTime)
         )
           applyStrengthOfStone(runtime, cause);
       }

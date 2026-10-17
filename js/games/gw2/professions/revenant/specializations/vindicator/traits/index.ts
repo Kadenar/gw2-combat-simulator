@@ -199,7 +199,7 @@ export const traitDefinitions = [
 
 /** Applies the trait at the mechanic's existing execution boundary. */
 function grantAngsiyansTrustEnergy(runtime: RevenantRuntime): void {
-  if (runtime.combatStartedAt())
+  if (runtime.engagement.combatMechanicsAllowed())
     runtime.resourceController.grant(
       'energy',
       Math.max(0, balanceNumberFromContext(runtime, TRAIT.ANGSIYANS_TRUST, 'resourceGain'))

@@ -37,7 +37,7 @@ export function bladeswornEffectStates(runtime: MechanicQueriesOf<WarriorRuntime
       durationLimit: maximum
     }),
     timedEffectState('positive-flow', [
-      ...(runtime.combatActive ? [{ stacks: 1, expiresAt: null }] : []),
+      ...(runtime.engagement.active ? [{ stacks: 1, expiresAt: null }] : []),
       ...state.flowStabilizerWindows.map((window) => ({ stacks: window.stacks, expiresAt: window.expiresAt })),
       { stacks: state.traitPositiveFlowStacks, expiresAt: state.traitPositiveFlowUntil }
     ]),
