@@ -1,5 +1,6 @@
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
 import { INPUT_CONTROL_IDS } from '#gw2/platform/skills/input-controls.js';
+import { snapshotActionDeclaration } from '#gw2/platform/effects/action-declarations.js';
 import {
   validateActionIds,
   validateEffectReactions,
@@ -543,7 +544,11 @@ export function normalizeSkill<TSkill extends Skill>(
     effects,
     ...(modifiers ? { modifiers } : {}),
     ...(merged.sideEffects
-      ? { sideEffects: Object.freeze([...merged.sideEffects].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))) }
+      ? {
+          sideEffects: snapshotActionDeclaration(
+            [...merged.sideEffects].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+          )
+        }
       : {}),
     tags: Object.freeze([...(baseSkill.tags || [])])
   };

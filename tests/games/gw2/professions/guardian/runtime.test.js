@@ -952,15 +952,30 @@ test('Guardian weapon follow-ups expire autonomously and committed replacements 
   assert.ok(core(replaced).availableFlips[ID.ZEALOTS_FIRE].expiresAt > observedRuntime(replaced).time);
 });
 
-test('Guardian flip cancellation and Banish recharge resets follow successful commitment', () => {
+test('Guardian flip cancellation requires a committed parent before accepting its follow-up', () => {
   const canceled = run([{ skillId: ID.BINDING_BLADE, interruptAfterMs: 1 }], { primaryWeapon: 'Greatsword' });
   assert.deepEqual(canceled.warnings, []);
   assert.deepEqual(core(canceled).availableFlips, {});
-  const reset = run([ID.MIGHTY_BLOW, ID.BANISH], { primaryWeapon: 'Hammer' });
-  assert.deepEqual(reset.warnings, []);
-  assert.equal(observedRuntime(reset).cooldownController.hasCooldown(ID.MIGHTY_BLOW), false);
   const denied = run([ID.PULL], { primaryWeapon: 'Greatsword' });
   assert.ok(denied.warnings.some((warning) => warning.includes('not currently armed')));
+});
+
+test('Banish resets either hammer leap only when its strike reaches the target', () => {
+  // The trait replacement shares the on-hit reward; off-target and cancelled attacks retain the spent recharge.
+  for (const [leap, selectedTraitIds] of [
+    [ID.MIGHTY_BLOW, []],
+    [ID.GLACIAL_BLOW, [TRAIT.GLACIAL_HEART]]
+  ]) {
+    for (const [command, shouldReset] of [
+      [{ type: 'cast', skillId: ID.BANISH }, true],
+      [{ type: 'cast', skillId: ID.BANISH, offTarget: true }, false],
+      [{ type: 'cast', skillId: ID.BANISH, interruptAfterMs: 1 }, false]
+    ]) {
+      const result = run([leap, command], { primaryWeapon: 'Hammer', selectedTraitIds });
+      assert.deepEqual(result.warnings, []);
+      assert.equal(observedRuntime(result).cooldownController.hasCooldown(leap), !shouldReset);
+    }
+  }
 });
 
 test('native Guardian detailed and score modes share virtue state and outcomes', () => {

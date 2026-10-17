@@ -8,6 +8,7 @@ import type { MechanicContext } from '#gw2/platform/profession-definition/mechan
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-build.js';
+import { validateCatalogActionHandlers } from '#gw2/platform/effects/action-declarations.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
 import type {
   Gw2AttributeContext,
@@ -742,15 +743,7 @@ export function defineNativeProfession<
     };
 
     // Bind actions on base and profile effects after Core and elite handlers have been composed.
-    for (const owner of [...runtime.catalog.skills, ...runtime.catalog.balanceProfiles]) {
-      const actions = [
-        ...((owner as Skill).sideEffects ?? []).map((rule) => rule.do),
-        ...(owner.effects ?? []).flatMap((effect) => (effect.reactions ?? []).flatMap((rule) => rule.do))
-      ];
-      for (const action of actions)
-        if (action.type.includes('.') && typeof runtime.sideEffectHandlers?.[action.type] !== 'function')
-          throw new TypeError(`Skill ${owner.id} has no side-effect handler registered for ${action.type}.`);
-    }
+    validateCatalogActionHandlers(runtime.catalog, (type) => typeof runtime.sideEffectHandlers?.[type] === 'function');
 
     selection.runtimes.set(traitTriggers, runtime);
     return runtime;

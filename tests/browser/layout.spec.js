@@ -94,14 +94,32 @@ test('clearing a loading template lets new skills simulate without its old worke
 
 // Ordinary skill edits retain the current timeline even when their background simulation is held open.
 test('adding skills never shows the template skeleton', async ({ page }) => {
+  // Hold transport at the browser boundary without reaching into the runner's private worker ownership.
+  await page.addInitScript(() => {
+    const NativeWorker = window.Worker;
+    window.Worker = class extends NativeWorker {
+      constructor(url, options) {
+        super(url, options);
+        this.baseline = String(url).includes('/simulation/baseline/worker.');
+      }
+      postMessage(message) {
+        if (this.baseline && window.holdBaselineMessages && !message.warmup) {
+          window.heldBaselineJob = message;
+          return;
+        }
+
+        super.postMessage(message);
+      }
+    };
+  });
   await openSimulator(page);
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
   await page.evaluate(() => {
-    window.professionApp.baselineSimulationRunner.worker.postMessage = () => {};
+    window.holdBaselineMessages = true;
   });
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
-  await page.waitForFunction(() => window.professionApp.baselineSimulationRunner.inFlight);
+  await page.waitForFunction(() => window.heldBaselineJob);
   await expect(page.locator('#rotation-timeline .rotation-skeleton')).toHaveCount(0);
   await expect(page.locator('#rotation-timeline .rot-skill[data-idx]')).toHaveCount(1);
 });

@@ -1,3 +1,4 @@
+import { calculateRelicComparison } from '#gw2/app/optimizer/relic-comparison/calculate.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
@@ -75,7 +76,7 @@ test('chart collection waits for the current baseline, caches completion, and re
   workers[0].respond(workers[0].messages[0], { result });
   const chartJob = workers[0].messages[1];
   assert.equal(chartJob.request.collectChartData, true);
-  assert.equal(runner.inFlight.chartsOnly, true);
+  assert.equal(runner.queue.inFlight.chartsOnly, true);
   workers[0].respond(chartJob, { result: { dps: 999, effectReport: {}, boonGeneration: {} }, patchComparison: null });
   assert.equal(app.results, result, 'enrichment retains the editor result identity');
   assert.equal(result.dps, 100);
@@ -98,7 +99,7 @@ test('chart collection waits for the current baseline, caches completion, and re
   assert.equal(workers[1].terminated, true, 'an edit cancels chart work immediately');
   workers[1].respond(replaced, { result: { effectReport: { stale: true } } });
   assert.equal(result.effectReport, null);
-  assert.equal(runner.inFlight.chartsOnly, false);
+  assert.equal(runner.queue.inFlight.chartsOnly, false);
   runner.cancelCharts();
   assert.equal(workers[2].terminated, undefined, 'leaving Analysis preserves editor work');
   runner.cancel();
@@ -113,7 +114,8 @@ function runTimersImmediately(t) {
   t.mock.method(globalThis, 'setTimeout', (callback) => {
     callback();
 
-    return 0;
+    // An already-fired timer has no pending debounce, matching the queue's timer callback.
+    return null;
   });
 }
 
@@ -351,7 +353,7 @@ test('baseline runner coalesces edits, cancels cleared work, and reuses idle wor
   assert.equal(warmup.warmup, true);
   assert.deepEqual(warmup.request, { gameId: 'gw2', contentId: 'necromancer' });
   workers[0].respond({ requestId: warmup.requestId });
-  assert.equal(runner.inFlight, null);
+  assert.equal(runner.queue.inFlight, null);
   assert.equal(app.simulationStatus, 'idle');
   assert.deepEqual(published, [], 'warmup does not publish a simulation result');
 
@@ -386,7 +388,7 @@ test('baseline runner coalesces edits, cancels cleared work, and reuses idle wor
   const clearJob = workers[1].messages[0];
   workers[0].listeners.get('error')({ message: 'abandoned worker error' });
   workers[0].respond({ ...workers[0].messages[2], output: { result: { id: 'abandoned' } } });
-  assert.equal(runner.inFlight.requestId, clearJob.requestId);
+  assert.equal(runner.queue.inFlight.requestId, clearJob.requestId);
 
   rotation = [{ type: 'wait', durationMs: 2 }];
   app.buildRevision = 5;
@@ -407,8 +409,13 @@ test('baseline runner coalesces edits, cancels cleared work, and reuses idle wor
   workers[1].respond({ requestId: staleJob.requestId, output: { result: { id: 'stale-revision' } } });
   assert.equal(published.length, 2, 'the runner retains the revision guard without a worker echo');
   runner.cancel();
-  assert.equal(runner.worker, workers[1], 'switching an idle tab retains the loaded engine');
-  assert.notEqual(workers[1].terminated, true);
+  assert.equal(workers[1].terminated, undefined, 'switching an idle tab retains the loaded engine');
+  runner.schedule(7);
+  assert.equal(workers.length, 2, 'returning to an idle runner does not create another worker');
+  const reusedJob = workers[1].messages.at(-1);
+  assert.notEqual(reusedJob.requestId, staleJob.requestId);
+  workers[1].respond({ requestId: reusedJob.requestId, output: { result: { id: 'reused' } } });
+  assert.deepEqual(published.at(-1), ['reused', undefined, 7]);
 });
 
 test('superseded baseline fallbacks release the slot and publish only the newest edit', (t) => {
@@ -450,8 +457,8 @@ test('superseded baseline fallbacks release the slot and publish only the newest
 
   assert.deepEqual(calculated, [2]);
   assert.deepEqual(published, [[2, 2]]);
-  assert.equal(runner.inFlight, null);
-  assert.equal(runner.pending, null);
+  assert.equal(runner.queue.inFlight, null);
+  assert.equal(runner.queue.pending, null);
 });
 
 test('baseline requests refresh a queued reference once, using independent command clones', async () => {
@@ -983,16 +990,92 @@ test('relic comparison scheduling publishes availability without simulating', ()
   assert.equal(simulated, 0, 'scheduling must not run the second simulation');
 });
 
-test('relic comparison scopes assumptions and attributes damage against a no-relic simulation', (t) => {
-  runTimersImmediately(t);
-  let renderCount = 0;
+// The worker calculation owns relic assumptions and counterfactual attribution independently of the runner.
+test('relic comparison scopes assumptions and attributes damage against a no-relic simulation', () => {
   const simulatedConfigs = [];
   const simulationOptions = [];
   const results = minimalResult(4000);
+  const simulate = ({ config, output, collectChartData }) => {
+    simulatedConfigs.push(config);
+    simulationOptions.push(output === 'score' ? { output } : { collectChartData });
+    return output === 'score' ? { dps: 900 } : minimalResult(4200);
+  };
+
+  let comparison;
+  for (const comparisonRelic of ['Akeem', 'Thorns', 'Mirage']) {
+    comparison = calculateRelicComparison(
+      {
+        rotation: STRIKE_ROTATION,
+        baseConfig: { relic: 'Fractal' },
+        opponentRelic: 'Fractal',
+        comparisonRelic,
+        opponentResult: results,
+        initialStacks: 4
+      },
+      {},
+      simulate
+    );
+  }
+
+  assert.deepEqual(
+    simulationOptions,
+    Array.from({ length: 3 }, () => [{ collectChartData: false }, { output: 'score' }]).flat()
+  );
+  assert.deepEqual(
+    simulatedConfigs.map(({ relic, initialThornsStacks }) => ({ relic, initialThornsStacks })),
+    [
+      { relic: 'Akeem', initialThornsStacks: undefined },
+      { relic: '', initialThornsStacks: undefined },
+      { relic: 'Thorns', initialThornsStacks: 4 },
+      { relic: '', initialThornsStacks: undefined },
+      { relic: 'Mirage', initialThornsStacks: undefined },
+      { relic: '', initialThornsStacks: undefined }
+    ]
+  );
+  assert.equal(comparison.opponentRelic, 'Fractal');
+  assert.equal(comparison.targetRelic, 'Mirage');
+  assert.equal(comparison.opponentFinalDps, results.dps);
+  assert.equal(comparison.targetFinalDps, 1050);
+  assert.deepEqual(comparison.opponentDamage, { buildDps: 1000, directDamage: 0, contributedDps: 100 });
+  assert.deepEqual(comparison.targetDamage, { buildDps: 1050, directDamage: 0, contributedDps: 150 });
+});
+
+/** Controlled transport exercises result ownership without running expensive work on the calling thread. */
+function relicWorkerFixture(t) {
+  runTimersImmediately(t);
+  const workers = [];
+  class ControlledWorker {
+    listeners = new Map();
+    constructor(url, options) {
+      assert.match(String(url), /relic-comparison\/worker\.js$/);
+      assert.equal(options.type, 'module');
+      workers.push(this);
+    }
+    addEventListener(type, listener) {
+      this.listeners.set(type, listener);
+    }
+    postMessage(message) {
+      this.message = structuredClone(message);
+    }
+    terminate() {
+      this.terminated = true;
+    }
+    reply(payload) {
+      this.listeners.get('message')({ data: { requestId: this.message.requestId, ...payload } });
+    }
+  }
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
+  Object.defineProperty(globalThis, 'Worker', { configurable: true, value: ControlledWorker });
+  t.after(() => {
+    if (previous) Object.defineProperty(globalThis, 'Worker', previous);
+    else delete globalThis.Worker;
+  });
+  let updates = 0;
   const app = {
     build: { rotation: STRIKE_ROTATION, relic: 'Fractal' },
-    relicNames: ['Akeem', 'Fractal', 'Mirage', 'Thorns'],
-    results,
+    buildRevision: 1,
+    relicNames: ['Akeem', 'Fractal', 'Thorns'],
+    results: minimalResult(4000),
     adapter: {
       relicComparisonRequest(_app, comparisonRelic) {
         return {
@@ -1004,82 +1087,83 @@ test('relic comparison scopes assumptions and attributes damage against a no-rel
           comparisonRelic
         };
       },
-      simulateBuild(_rotation, config, options) {
-        simulatedConfigs.push(config);
-        simulationOptions.push(options);
-        // A score-only baseline deliberately has no events or charts for the runner to consume.
-        return options.output === 'score' ? { dps: minimalResult(3600).dps } : minimalResult(4200);
-      },
-      presentation: testPresentation(() => assert.fail('Relic updates must not render Analysis'))
+      simulateBuild() {
+        assert.fail('Comparison calculations must execute in the worker');
+      }
     }
   };
   const runner = new RelicComparisonRunner(app, () => {
-    renderCount += 1;
+    updates++;
   });
+  t.after(() => runner.cancel());
+  return { app, runner, workers, updates: () => updates };
+}
 
-  runner.run('Akeem');
+test('relic comparison sends captured assumptions to a worker and publishes its result', (t) => {
+  const { app, runner, workers, updates } = relicWorkerFixture(t);
+  // Unrelated analysis state must never enter the structured-clone payload.
+  app.results.randomDistribution = { retainedOnlyInApp: () => {} };
   runner.run('Thorns', 4);
-  runner.run('Mirage', 4);
-
-  assert.deepEqual(
-    simulationOptions,
-    Array.from({ length: 3 }, () => [{ collectChartData: false }, { output: 'score' }]).flat()
-  );
-  assert.deepEqual(
-    simulatedConfigs.map(({ relic, initialThornsStacks }) => ({
-      relic,
-      initialThornsStacks
-    })),
-    [
-      { relic: 'Akeem', initialThornsStacks: undefined },
-      { relic: '', initialThornsStacks: undefined },
-      { relic: 'Thorns', initialThornsStacks: 4 },
-      { relic: '', initialThornsStacks: undefined },
-      { relic: 'Mirage', initialThornsStacks: undefined },
-      { relic: '', initialThornsStacks: undefined }
-    ]
-  );
-  assert.equal(results.relicComparisonInitialStacks, 4);
-  assert.equal(results.relicComparisonStale, false);
-  assert.equal(results.relicComparisonError, '');
-  assert.ok(results.relicComparison, 'break-even model is stored');
-  assert.equal(results.relicComparison.opponentRelic, 'Fractal');
-  assert.equal(results.relicComparison.targetRelic, 'Mirage');
-  assert.equal(results.relicComparison.opponentFinalDps, results.dps);
-  assert.equal(results.relicComparison.targetFinalDps, 1050);
-  assert.deepEqual(results.relicComparison.opponentDamage, { buildDps: 1000, directDamage: 0, contributedDps: 100 });
-  assert.deepEqual(results.relicComparison.targetDamage, { buildDps: 1050, directDamage: 0, contributedDps: 150 });
-  assert.ok(renderCount >= 1);
+  const worker = workers[0];
+  assert.equal(app.results.relicComparisonStale, true);
+  assert.equal(worker.message.request.initialStacks, 4);
+  assert.equal(worker.message.request.opponentResult.dps, app.results.dps);
+  assert.notEqual(worker.message.request.opponentResult, app.results);
+  assert.deepEqual(Object.keys(worker.message.request.opponentResult).sort(), [
+    'breakdown',
+    'combatEndTime',
+    'dps',
+    'dpsStartTime',
+    'firstHitTime',
+    'resolvedEvents'
+  ]);
+  runner.initialStacks = 9;
+  assert.equal(worker.message.request.initialStacks, 4);
+  const comparison = { targetRelic: 'Thorns' };
+  worker.reply({ comparison });
+  assert.equal(app.results.relicComparison, comparison);
+  assert.equal(app.results.relicComparisonStale, false);
+  assert.equal(worker.terminated, undefined);
+  assert.equal(updates(), 2);
+  runner.run('Akeem');
+  assert.equal(workers.length, 1, 'completed comparisons reuse their warm worker');
+  assert.equal(worker.message.request.comparisonRelic, 'Akeem');
+  worker.reply({ comparison: { targetRelic: 'Akeem' } });
+  assert.equal(app.results.relicComparison.targetRelic, 'Akeem');
 });
 
-test('relic comparison run surfaces simulation failures', (t) => {
-  runTimersImmediately(t);
-  const results = minimalResult(4000);
-  const app = {
-    build: { rotation: STRIKE_ROTATION, relic: 'Akeem' },
-    relicNames: ['Akeem', 'Fractal', 'Thorns'],
-    results,
-    adapter: {
-      relicComparisonRequest(_app, comparisonRelic) {
-        return {
-          gameId: 'gw2',
-          contentId: 'engineer',
-          rotation: STRIKE_ROTATION,
-          baseConfig: { relic: 'Akeem' },
-          opponentRelic: 'Akeem',
-          comparisonRelic
-        };
-      },
-      simulateBuild() {
-        throw new Error('Comparison simulation failed.');
-      },
-      presentation: testPresentation()
-    }
-  };
-  const runner = new RelicComparisonRunner(app);
-
+test('relic comparison terminates superseded and cancelled jobs and rejects stale baselines', (t) => {
+  const { app, runner, workers } = relicWorkerFixture(t);
+  runner.run('Thorns');
+  runner.run('Akeem');
+  assert.equal(workers[0].terminated, true);
+  workers[0].reply({ comparison: { stale: true } });
+  assert.equal(app.results.relicComparison, undefined);
+  runner.cancel();
+  assert.equal(workers[1].terminated, true);
+  workers[1].reply({ comparison: { stale: true } });
+  assert.equal(app.results.relicComparison, undefined);
   runner.run();
+  app.buildRevision++;
+  workers[2].reply({ comparison: { stale: true } });
+  assert.equal(app.results.relicComparison, undefined);
+  runner.run();
+  app.results = minimalResult(5000);
+  assert.equal(workers.length, 3, 'discarding a completed stale result keeps the worker reusable');
+  workers[2].reply({ comparison: { stale: true } });
+  assert.equal(app.results.relicComparison, undefined);
+});
 
-  assert.equal(results.relicComparisonStale, false);
-  assert.equal(results.relicComparisonError, 'Comparison simulation failed.');
+test('relic comparison surfaces worker failures and can retry', (t) => {
+  const { app, runner, workers } = relicWorkerFixture(t);
+  runner.run();
+  workers[0].reply({ error: 'Comparison simulation failed.' });
+  assert.equal(app.results.relicComparisonStale, false);
+  assert.equal(app.results.relicComparisonError, 'Comparison simulation failed.');
+  assert.equal(workers[0].terminated, undefined, 'calculation errors do not discard a healthy worker');
+  runner.run();
+  assert.equal(workers.length, 1);
+  workers[0].reply({ comparison: { targetRelic: 'Thorns' } });
+  assert.equal(app.results.relicComparisonError, '');
+  assert.equal(app.results.relicComparison.targetRelic, 'Thorns');
 });

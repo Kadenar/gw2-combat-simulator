@@ -153,7 +153,7 @@ test('planning and measuring skill damage never changes the build, its assumptio
   const controls = skillDamageControls(app);
   const values = { ...clearedValues(controls), might: 7, fury: 1, fierceAsFire: 4 };
   const plan = createSkillDamagePlan(app, controls, values);
-  app.adapter.calculateSkillDamage({ ...plan.request, occurrences: plan.request.occurrences.slice(0, 3) });
+  evaluateSkillDamage({ ...plan.request, occurrences: plan.request.occurrences.slice(0, 3) }, app.profession);
   assert.deepEqual(app.build, build);
   assert.equal(app.attributeData, attributeData);
 });
@@ -244,7 +244,7 @@ test('target movement controls equipment Torment independently of skill declarat
     assert.equal(request.config.target.moving, Boolean(moving));
     const occurrence = request.occurrences.find((entry) => entry.name === 'Relic of Akeem');
     assert.ok(occurrence);
-    const [result] = app.adapter.calculateSkillDamage({ ...request, occurrences: [occurrence] }).occurrences;
+    const [result] = evaluateSkillDamage({ ...request, occurrences: [occurrence] }, app.profession).occurrences;
     assert.equal(result.status, 'measured');
     return result.measurement.conditions.find((row) => row.condition === 'Torment').damage;
   };
@@ -340,7 +340,7 @@ for (const [professionId, buildPath] of [
     const strip = calculateSkillDamageAttributes(app, values, controls);
     assert.ok(Number.isFinite(strip.attributes.Power.final));
     assert.ok(Number.isFinite(strip.attributes['Strike Multiplier'].final));
-    const evaluation = app.adapter.calculateSkillDamage(plan.request);
+    const evaluation = evaluateSkillDamage(plan.request, app.profession);
     const measured = new Map(
       evaluation.occurrences
         .filter((occurrence) => occurrence.measurement?.total > 0)
@@ -384,7 +384,7 @@ test('Evoker measures both familiar forms using existing initial charge settings
     const plan = createSkillDamagePlan(app, controls, simulationConfigValues(app, controls));
     const ids = plan.groups.find((group) => group.id === 'mechanic-familiar').rowIds;
     const occurrences = plan.request.occurrences.filter((occurrence) => ids.includes(occurrence.id));
-    const result = app.adapter.calculateSkillDamage({ ...plan.request, occurrences });
+    const result = evaluateSkillDamage({ ...plan.request, occurrences }, app.profession);
     assert.deepEqual(
       result.occurrences.map((occurrence) => occurrence.reason),
       [undefined, undefined],

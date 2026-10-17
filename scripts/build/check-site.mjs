@@ -66,6 +66,7 @@ for (const worker of [
   'baseline-worker-',
   'modifier-contributions-worker-',
   'random-distribution-worker-',
+  'relic-comparison-worker-',
   'skill-damage-worker-',
   'gear-worker-'
 ]) {

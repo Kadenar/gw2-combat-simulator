@@ -1,6 +1,6 @@
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { bladecallEffects } from '#gw2/professions/mesmer/core/skills/weapons/bladecall.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
@@ -12,31 +12,7 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Part
       mode: 'add',
       count: 1
     },
-    // Group simultaneous daggers per impact while preserving the outgoing and returning projectile effects.
-    effects: [
-      { atMs: 200, hits: 3 },
-      { atMs: 2720, hits: 2 },
-      { atMs: 2760, hits: 1 }
-    ].flatMap(({ atMs, hits }) =>
-      impactEffects({ atMs, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
-        {
-          type: 'strike',
-          coefficient: 0.25 * hits,
-          hits,
-          actorType: 'player',
-          weapon: 'dagger',
-          comboFinishers: [
-            {
-              ownerId: 'mesmer',
-              finisherType: 'Projectile',
-              chance: 0.2,
-              ambiguousFieldSelection: 'oldest'
-            }
-          ],
-          metadata: {}
-        }
-      ])
-    ),
+    effects: bladecallEffects(),
     castTimeMs: 440
   },
   [ID.FLYING_CUTTER]: {

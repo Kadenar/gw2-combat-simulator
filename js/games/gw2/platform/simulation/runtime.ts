@@ -2,6 +2,7 @@ import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-
 import { combatStartedAt } from '#gw2/platform/combat/engagement.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { validateResourceGrantSupport } from '#gw2/platform/effects/action-validation.js';
+import { validateCatalogResourceGrants } from '#gw2/platform/effects/action-declarations.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { prepareSelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
@@ -23,7 +24,7 @@ import {
   expireSkillFlip,
   type SkillFlipWindows
 } from '#gw2/platform/execution/skill-flips.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { sigilBuffPolicies } from '#gw2/platform/equipment/sigils/runtime.js';
@@ -107,16 +108,7 @@ export function runRuntime<T extends object>(
 
   if (profession.endurance) supportedResources.add('endurance');
 
-  for (const owner of [...profession.catalog.skills, ...profession.catalog.balanceProfiles]) {
-    const actions = [
-      ...((owner as Skill).sideEffects ?? []).map((rule) => rule.do),
-      ...(owner.effects ?? []).flatMap((effect) =>
-        (effect.reactions ?? []).flatMap((rule) => (Array.isArray(rule.do) ? rule.do : [rule.do]))
-      )
-    ];
-    for (const action of actions)
-      validateResourceGrantSupport(action, supportedResources, `${owner.name} (${owner.id})`);
-  }
+  validateCatalogResourceGrants(profession.catalog, supportedResources);
 
   // Direct and public runtime entry points share catalog validation and detached selection snapshots.
   if ('selectedSkills' in config)

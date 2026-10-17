@@ -46,7 +46,6 @@ import type { ProfessionResourceView } from '#gw2/platform/profession-presentati
 import type { ProfessionIsSkillAvailable, ProfessionDefaultOffhand } from '#gw2/app/build/types.js';
 import type { BuildAttributes } from '#gw2/build-context/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { SkillDamageEvaluation, SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
 import type { BuildEditor, SimulationPresentation } from '#browser/shell/types.js';
 
 export type ProfessionAppContract = Gw2ProfessionSource & {
@@ -167,8 +166,6 @@ export interface ProfessionRuntimeApi {
   ): Gw2SimulationResult;
   baselineSimulationRequest(app: ProfessionAppState): BaselineSimulationRequest;
   calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput;
-  /** Measures skill damage probes in the calling thread, for environments without workers. */
-  calculateSkillDamage(request: SkillDamageRequest): SkillDamageEvaluation;
 }
 
 export interface ProfessionFeatureRunner {

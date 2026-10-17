@@ -10,7 +10,10 @@ export interface RelicDamageSummary {
 }
 
 /** Direct relic packets come from the breakdown; removing the relic also captures its buffs and interactions. */
-export function relicDamageSummary(result: Gw2SimulationResult, withoutRelicDps: number): RelicDamageSummary {
+export function relicDamageSummary(
+  result: Pick<Gw2SimulationResult, 'dps' | 'breakdown'>,
+  withoutRelicDps: number
+): RelicDamageSummary {
   return {
     buildDps: result.dps,
     directDamage: result.breakdown

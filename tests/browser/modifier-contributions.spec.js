@@ -124,7 +124,16 @@ test('modifiers run on demand in Analysis and update only their own section', as
       Boolean(window.professionApp.results.effectReport && window.professionApp.results.boonGeneration)
     )
   ).toBe(true);
-  const chartRequestId = await page.evaluate(() => window.professionApp.baselineSimulationRunner.requestId);
+  // Observe the runner's public scheduling boundary to verify cached charts need no additional work.
+  await page.evaluate(() => {
+    const runner = window.professionApp.baselineSimulationRunner;
+    const schedule = runner.schedule;
+    window.baselineSchedulesAfterCharts = 0;
+    runner.schedule = function (...args) {
+      window.baselineSchedulesAfterCharts++;
+      return schedule.apply(this, args);
+    };
+  });
   await page.locator('[data-role="skill-header"] [data-sort-col="total"]').click();
   expect(await page.evaluate(() => window.professionApp._skillSortCol)).toBe('total');
   const chart = await page.locator('[data-role="result-charts"]').elementHandle();
@@ -143,7 +152,7 @@ test('modifiers run on demand in Analysis and update only their own section', as
   await page.getByRole('link', { name: 'Analysis', exact: true }).click();
   expect(await page.evaluate(() => window.professionApp.modifierContributionRunner.isRunning)).toBe(false);
   expect(modifierWorkers).toHaveLength(completedWorkerCount);
-  expect(await page.evaluate(() => window.professionApp.baselineSimulationRunner.requestId)).toBe(chartRequestId);
+  expect(await page.evaluate(() => window.baselineSchedulesAfterCharts)).toBe(0);
 
   await page.getByRole('link', { name: 'Workspace', exact: true }).click();
   await page.evaluate(() => window.professionApp.addRotation('Bladecall'));

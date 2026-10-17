@@ -32,8 +32,6 @@ import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
-import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
-import type { SkillDamageEvaluation, SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
@@ -208,11 +206,6 @@ export function createProfessionRuntime({
     return calculateBaseline(request, profession);
   }
 
-  /** Runs the same probe evaluation as the skill damage worker, with damage diagnostics for its breakdowns. */
-  function calculateSkillDamage(request: SkillDamageRequest): SkillDamageEvaluation {
-    return evaluateSkillDamage(request, profession);
-  }
-
   const api: ProfessionRuntimeApi = {
     simulateBuild,
     eliteSpecialization,
@@ -225,8 +218,7 @@ export function createProfessionRuntime({
     rotationPlanningStateAt,
     rotationPreviewAt,
     baselineSimulationRequest,
-    calculateBaselineSimulation,
-    calculateSkillDamage
+    calculateBaselineSimulation
   };
   return api;
 }

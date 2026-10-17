@@ -95,7 +95,8 @@ export const marchingOrders = defineTrait({
 export const soldiersComfort = defineTrait({
   triggers: [
     onTriggerPoint(soldierFocusApplied, {
-      run: (runtime, input: TriggerPointInput<typeof soldierFocusApplied>) => soldiersComfortFocus(runtime, input.event)
+      run: (runtime, input: TriggerPointInput<typeof soldierFocusApplied>) =>
+        emitSoldierFocusReward(runtime, input.event, TRAIT.SOLDIERS_COMFORT)
     })
   ],
   id: TRAIT.SOLDIERS_COMFORT,
@@ -109,7 +110,8 @@ export const soldiersComfort = defineTrait({
 export const martialCadence = defineTrait({
   triggers: [
     onTriggerPoint(soldierFocusApplied, {
-      run: (runtime, input: TriggerPointInput<typeof soldierFocusApplied>) => martialCadenceFocus(runtime, input.event)
+      run: (runtime, input: TriggerPointInput<typeof soldierFocusApplied>) =>
+        emitSoldierFocusReward(runtime, input.event, TRAIT.MARTIAL_CADENCE)
     }),
     onTriggerPoint(focusReset, { run: (runtime) => resetSoldierFocus(runtime) }),
     onTriggerPoint(weaponSwapped, { run: (runtime) => resetSoldierFocus(runtime) })
@@ -231,27 +233,7 @@ function empowerPulse(runtime: WarriorRuntime): void {
 function soldierFocusBurst(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
   if (runtime.procs.claim(TRAIT.MARCHING_ORDERS, 'warrior.core.soldierFocus', runtime.time)) {
     // All Soldier's Focus rewards share the claim; Martial Cadence still owns its explicit swap resets.
-    const audience = { recipients: 'party' as const };
-    {
-      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.MARCHING_ORDERS);
-      emitTraitProfile(runtime, TRAIT.MARCHING_ORDERS, TRAIT.MARCHING_ORDERS, event, {
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.MARCHING_ORDERS,
-          actorType: 'effect',
-          skillId: event.skillId,
-          skillName: event.skillName
-        },
-        transform: (packet) => ({
-          ...packet,
-          priority: 5,
-          name: traitProfile.name,
-          stacks: 1 * Number(packet.stacks),
-          audience
-        }),
-        effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
-      });
-    }
+    emitSoldierFocusReward(runtime, event, TRAIT.MARCHING_ORDERS);
 
     runtime.fireTrigger(soldierFocusApplied, { event });
   }
@@ -267,52 +249,24 @@ function initializeEmpowerAllies(runtime: WarriorRuntime): void {
   runtime.schedule(EMPOWER_PULSE, 0, null, undefined, -210);
 }
 
-/** Grant the selected follow-up only after Focus consumed its shared proc. */
-function soldiersComfortFocus(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
-  const audience = { recipients: 'party' as const };
-  {
-    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.SOLDIERS_COMFORT);
-    emitTraitProfile(runtime, TRAIT.SOLDIERS_COMFORT, TRAIT.SOLDIERS_COMFORT, event, {
-      attribution: {
-        source: 'Trait',
-        sourceId: TRAIT.SOLDIERS_COMFORT,
-        actorType: 'effect',
-        skillId: event.skillId,
-        skillName: event.skillName
-      },
-      transform: (packet) => ({
-        ...packet,
-        priority: 5,
-        name: traitProfile.name,
-        stacks: 1 * Number(packet.stacks),
-        audience
-      }),
-      effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
-    });
-  }
-}
-
-/** Grant the selected follow-up only after Focus consumed its shared proc. */
-function martialCadenceFocus(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
-  const audience = { recipients: 'party' as const };
-  {
-    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.MARTIAL_CADENCE);
-    emitTraitProfile(runtime, TRAIT.MARTIAL_CADENCE, TRAIT.MARTIAL_CADENCE, event, {
-      attribution: {
-        source: 'Trait',
-        sourceId: TRAIT.MARTIAL_CADENCE,
-        actorType: 'effect',
-        skillId: event.skillId,
-        skillName: event.skillName
-      },
-      transform: (packet) => ({
-        ...packet,
-        priority: 5,
-        name: traitProfile.name,
-        stacks: 1 * Number(packet.stacks),
-        audience
-      }),
-      effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
-    });
-  }
+/** Focus rewards share party delivery after the proc claim while each trait retains its own tuning and identity. */
+function emitSoldierFocusReward(runtime: WarriorRuntime, event: Gw2ResolverEvent, traitId: number): void {
+  const traitProfile = requireBalanceProfileFromContext(runtime, traitId);
+  emitTraitProfile(runtime, traitId, traitId, event, {
+    attribution: {
+      source: 'Trait',
+      sourceId: traitId,
+      actorType: 'effect',
+      skillId: event.skillId,
+      skillName: event.skillName
+    },
+    transform: (packet) => ({
+      ...packet,
+      priority: 5,
+      name: traitProfile.name,
+      stacks: Number(packet.stacks),
+      audience: { recipients: 'party' }
+    }),
+    effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
+  });
 }

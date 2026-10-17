@@ -1,4 +1,5 @@
 import { validateEffectReactions } from '#gw2/platform/effects/action-validation.js';
+import { hasImmutableLiteralReactions } from '#gw2/platform/effects/action-declarations.js';
 import type { ActionContext, SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { EffectReaction, EffectReactionStage, ResolvedEffectTrigger } from '#gw2/platform/effects/reactions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -31,24 +32,30 @@ export function createEffectReactions<T extends object>(
   catalog: CanonicalCatalog,
   actions: EffectReactionActions<T>
 ): EffectReactionRegistry<T> {
-  const groups: { skill: Skill; rules: readonly EffectReaction[] }[] = [];
+  const groups: { skill: Skill; rules: readonly EffectReaction[]; literalType?: SkillEffect['type'] }[] = [];
   const identities = new WeakMap<Skill, WeakMap<readonly EffectReaction[], number>>();
   return {
     register(skill: Skill, effect: SkillEffect): number | undefined {
       if (effect.reactions === undefined) return undefined;
 
+      let byRules = identities.get(skill);
+      const existing = byRules?.get(effect.reactions);
+
+      // Literal grants depend only on the effect stage: timing copies reuse validation, transformed stages do not.
+      if (
+        existing !== undefined &&
+        groups[existing].literalType !== undefined &&
+        groups[existing].literalType === effect.type
+      )
+        return existing;
+
       validateEffectReactions(catalog, skill, effect);
 
       if (!effect.reactions.length) return undefined;
 
-      let byRules = identities.get(skill);
-      const existing = byRules?.get(effect.reactions);
-
-      if (existing !== undefined) return existing;
-
       for (const rule of effect.reactions)
         for (const action of Array.isArray(rule.do) ? rule.do : [rule.do]) {
-          // Transformed effects must support their grants too; validate each registered declaration only once.
+          // Mutable and transformed declarations must still support their grants even when their group was interned.
           actions.validate(skill, action);
 
           if (action.type.includes('.') && !actions.hasHandler(action.type))
@@ -57,7 +64,13 @@ export function createEffectReactions<T extends object>(
 
       if (!byRules) identities.set(skill, (byRules = new WeakMap()));
 
-      const group = groups.push({ skill, rules: effect.reactions }) - 1;
+      const group =
+        existing ??
+        groups.push({
+          skill,
+          rules: effect.reactions,
+          ...(hasImmutableLiteralReactions(effect.reactions) ? { literalType: effect.type } : {})
+        }) - 1;
       byRules.set(effect.reactions, group);
       return group;
     },

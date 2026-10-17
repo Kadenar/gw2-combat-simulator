@@ -7,7 +7,6 @@ import {
 } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { ENGINEER_SKILL_IDS as SKILL, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
@@ -18,7 +17,6 @@ import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
-import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
 /**
  * Engineer persisted-build definition.
@@ -76,35 +74,13 @@ export function createEngineerBuildDefaults(): EngineerCanonicalBuild {
 /** Resolves morph casts to the selected slot so imported rotations follow the build's protocol layout. */
 function normalizeMorphRotation(savedRotation: unknown, morphIds: readonly number[]): RotationCommand[] {
   const selectedByKind = new Map(morphIds.map((id) => [AMALGAM_MORPH_KIND_BY_SKILL_ID.get(id), id]));
-  const selectedByName = new Map<string, Skill>(
-    morphIds
-      .map((skillId) => {
-        const skill = engineerCatalog.skillsById.get(skillId);
-        return [skill?.name, skill];
-      })
-      .filter(([name, skill]) => name && skill) as [string, Skill][]
-  );
-  const rawRotation = Array.isArray(savedRotation) ? savedRotation : [];
-  return rawRotation.flatMap<RotationCommand>((raw) => {
-    // Normalize one raw entry at a time so dropping a malformed command cannot shift later name-based casts.
-    const [command] = normalizeRotation([raw], engineerCatalog);
-
-    if (!command) return [];
-
-    const rawCommand = raw && typeof raw === 'object' ? (raw as UnvalidatedFields) : null;
-    const legacyName =
-      typeof raw === 'string'
-        ? raw
-        : rawCommand && rawCommand.skillId == null && rawCommand.id == null && typeof rawCommand.name === 'string'
-          ? rawCommand.name
-          : null;
-    const selected = legacyName == null ? undefined : selectedByName.get(legacyName);
-
-    if (command.type !== 'cast') return [command];
+  // Shared normalization resolves names and rejects malformed entries before protocol kinds select slot identities.
+  return normalizeRotation(savedRotation, engineerCatalog).map((command) => {
+    if (command.type !== 'cast') return command;
 
     const kind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(command.skillId);
     const selectedId = kind === undefined ? undefined : selectedByKind.get(kind);
-    return [{ ...command, skillId: selectedId ?? selected?.id ?? command.skillId }];
+    return { ...command, skillId: selectedId ?? command.skillId };
   });
 }
 

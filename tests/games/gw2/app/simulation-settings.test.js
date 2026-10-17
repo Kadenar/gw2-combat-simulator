@@ -220,14 +220,14 @@ for (const action of [...TRANSITION_DELAY_KEYS, 'Apply 100 ms to all', 'Clear al
     assert.equal(tab.resultsFresh, false);
     assert.equal(tab.session.rotationComparison.referenceStatus, 'queued');
     assert.equal(app.rotationComparison.referenceStatus, 'queued');
-    assert.equal(app.baselineSimulationRunner.pending.revision, app.buildRevision);
+    assert.equal(app.baselineSimulationRunner.queue.pending.revision, app.buildRevision);
     assert.equal(tab.session.results, cached);
     assert.equal(tab.session.rotationComparison.referenceResult, reference);
 
     app.activateBuildTab(tab.id);
     assert.equal(app.results, null);
     assert.equal(app.simulationStatus, 'queued');
-    const request = app.baselineSimulationRunner.pending.request;
+    const request = app.baselineSimulationRunner.queue.pending.request;
     assert.deepEqual(request.baseConfig.transitionDelays, delays);
     assert.deepEqual(request.referenceRotation, app.rotationComparison.referenceRotation);
     settle();
@@ -247,7 +247,7 @@ test('unchanged normalized delays and rotation-only edits preserve inactive cach
   input('weaponSwapMs', 'invalid');
   click('Clear all');
   assert.equal(app.buildRevision, revision);
-  assert.equal(app.baselineSimulationRunner.pending, null);
+  assert.equal(app.baselineSimulationRunner.queue.pending, null);
   app.build.rotation.push({ type: 'wait', durationMs: 100 });
   app.changed(false);
   assert.equal(tab.resultsFresh, true);
@@ -256,7 +256,7 @@ test('unchanged normalized delays and rotation-only edits preserve inactive cach
   assert.equal(app.results, cached);
   assert.equal(app.rotationComparison.referenceResult, reference);
   assert.equal(app.rotationComparison.referenceStatus, 'fresh');
-  assert.equal(app.baselineSimulationRunner.pending, null);
+  assert.equal(app.baselineSimulationRunner.queue.pending, null);
 });
 
 test('reverting shared delays still refreshes invalidated tabs and leaves empty references empty', (t) => {
@@ -274,8 +274,8 @@ test('reverting shared delays still refreshes invalidated tabs and leaves empty 
   assert.equal(tab.resultsFresh, false);
   assert.equal(empty.session.rotationComparison.referenceStatus, 'empty');
   app.activateBuildTab(tab.id);
-  assert.equal(app.baselineSimulationRunner.pending.request.baseConfig.transitionDelays.weaponSwapMs, 0);
-  assert.ok(app.baselineSimulationRunner.pending.request.referenceRotation);
+  assert.equal(app.baselineSimulationRunner.queue.pending.request.baseConfig.transitionDelays.weaponSwapMs, 0);
+  assert.ok(app.baselineSimulationRunner.queue.pending.request.referenceRotation);
   settle();
   assert.equal(app.rotationComparison.referenceStatus, 'fresh');
 });

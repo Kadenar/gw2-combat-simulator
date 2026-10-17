@@ -1,4 +1,5 @@
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
+import { snapshotEffectReactions } from '#gw2/platform/effects/action-declarations.js';
 import {
   effectApplicationCount,
   MAX_EFFECT_EXPANSION,
@@ -646,6 +647,9 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   // Spread normalized numeric fields on top so runtime consumers always get typed values.
   return Object.freeze({
     ...normalizedEffect,
+    ...(normalizedEffect.reactions === undefined
+      ? {}
+      : { reactions: snapshotEffectReactions(normalizedEffect.reactions) }),
     ...(modifiers ? { modifiers } : {}),
     ...(normalizedEffect.type === 'strike' && !strikeTicks ? { hits: normalizedEffect.hits ?? 1 } : {}),
     ...(normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff'

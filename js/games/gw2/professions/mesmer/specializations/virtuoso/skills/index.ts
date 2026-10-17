@@ -1,3 +1,4 @@
+import { bladecallEffects } from '#gw2/professions/mesmer/core/skills/weapons/bladecall.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 
@@ -32,31 +33,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
       atMs: 200
     },
     blade: true,
-    // Group simultaneous daggers per impact while preserving the outgoing and returning projectile effects.
-    effects: [
-      { atMs: 200, hits: 3 },
-      { atMs: 2720, hits: 2 },
-      { atMs: 2760, hits: 1 }
-    ].flatMap(({ atMs, hits }) =>
-      impactEffects({ atMs, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
-        {
-          type: 'strike',
-          coefficient: 0.25 * hits,
-          hits,
-          actorType: 'player',
-          weapon: 'dagger',
-          comboFinishers: [
-            {
-              ownerId: 'mesmer',
-              finisherType: 'Projectile',
-              chance: 0.2,
-              ambiguousFieldSelection: 'oldest'
-            }
-          ],
-          metadata: {}
-        }
-      ])
-    ),
+    effects: bladecallEffects(),
     castTimeMs: 440
   },
   [ID.THOUSAND_CUTS]: {

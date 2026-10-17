@@ -13,18 +13,24 @@ for (const patchId of ['current', 'worker-preview']) {
     await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
     await page.evaluate((patchId) => {
       window.professionApp.patchId = patchId;
+      window.professionApp.build.relic = 'Fractal';
       window.professionApp.addRotation('Bladecall');
     }, patchId);
     await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
 
-    const uiImports = (worker) =>
-      worker.evaluate(() =>
-        performance
-          .getEntriesByType('resource')
-          .map((entry) => entry.name)
-          .filter((url) =>
-            /\/app\/(?:define-profession-app\.|build-editor\.|build\/|optimizer\/|rotation\/|results\/)/.test(url)
-          )
+    const uiImports = (worker, calculationModules = []) =>
+      worker.evaluate(
+        (calculationModules) =>
+          performance
+            .getEntriesByType('resource')
+            .map((entry) => entry.name)
+            .filter(
+              (url) =>
+                /\/app\/(?:define-profession-app\.|build-editor\.|build\/|optimizer\/|rotation\/|results\/)/.test(
+                  url
+                ) && !calculationModules.some((module) => new URL(url).pathname === module)
+            ),
+        calculationModules
       );
 
     const baselineWorkerReady = page.waitForEvent('worker', (worker) =>
@@ -103,5 +109,31 @@ for (const patchId of ['current', 'worker-preview']) {
     expect(random.outcomes).toHaveLength(2);
     expect(random.outcomes.every((outcome) => outcome.dps > 0 && Array.isArray(outcome.metrics))).toBe(true);
     expect(await uiImports(await randomWorkerReady)).toEqual([]);
+
+    // One smoke check covers the relic runner's actual module URL; Node tests cover its scheduling and reuse.
+    if (patchId !== 'current') return;
+
+    const relicWorkerReady = page.waitForEvent('worker', (worker) =>
+      worker.url().includes('/optimizer/relic-comparison/worker.')
+    );
+    await page.evaluate(() => {
+      window.professionApp.relicComparisonRunner.run('Thorns', 4);
+    });
+    await page.waitForFunction(() => {
+      const results = window.professionApp.results;
+      return !results.relicComparisonStale && (results.relicComparison || results.relicComparisonError);
+    });
+    expect(await page.evaluate(() => window.professionApp.results.relicComparisonError)).toBe('');
+    expect(await page.evaluate(() => window.professionApp.results.relicComparison.targetRelic)).toBe('Thorns');
+    const relicWorker = await relicWorkerReady;
+    // Pure calculation models are allowed; views and application owners must remain outside the worker graph.
+    expect(
+      await uiImports(relicWorker, [
+        '/js/games/gw2/app/optimizer/relic-comparison/worker.ts',
+        '/js/games/gw2/app/optimizer/relic-comparison/calculate.ts',
+        '/js/games/gw2/app/optimizer/relic-comparison/relic-comparison.ts',
+        '/js/games/gw2/app/results/charts/time-series-model.ts'
+      ])
+    ).toEqual([]);
   });
 }

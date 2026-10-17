@@ -439,6 +439,51 @@ test('reaction registry interns shared declarations across repeated materializat
   assert.equal(ids.size, 1);
 });
 
+// Immutable literal declarations reuse validation across timing copies, while changed stages and mutable grants remain checked.
+test('reaction validation cache admits only immutable context-independent effects', () => {
+  const catalog = catalogFor([strike([reaction()])]);
+  const skill = catalog.skills[0];
+  const effect = skill.effects[0];
+  let validations = 0;
+  const registry = createEffectReactions(catalog, {
+    hasHandler: () => false,
+    validate: (owner, action) => {
+      validations += 1;
+      validateResourceGrantSupport(action, new Set(['energy']), owner.name);
+    },
+    apply: () => assert.fail('Registration cannot dispatch actions.')
+  });
+  const group = registry.register(skill, effect);
+  assert.equal(registry.register(skill, effect), group);
+  assert.equal(registry.register(skill, { ...effect, atMs: 200 }), group);
+  assert.equal(validations, 1);
+  assert.throws(
+    () => registry.register(skill, Object.freeze({ ...effect, type: 'condition', condition: 'Burning' })),
+    /invalid effect reaction/
+  );
+
+  const mutable = strike([reaction(grant(1))]);
+  registry.register(skill, mutable);
+  mutable.reactions[0].do.resource = 'malice';
+  assert.throws(() => registry.register(skill, mutable), /no policy/);
+});
+
+// Frozen reaction data may still reference mutable catalog indexes, so those lookups cannot use the literal fast path.
+test('reaction registration revalidates referenced profile values', () => {
+  const catalog = catalogFor([strike([reaction(grant({ profile: 'amount', field: 'grant' }))])], {}, [
+    { id: 'amount', name: 'Amount', profileKind: 'trait', grant: 1, effects: [] }
+  ]);
+  const skill = catalog.skills[0];
+  const registry = createEffectReactions(catalog, {
+    hasHandler: () => false,
+    validate: () => {},
+    apply: () => {}
+  });
+  registry.register(skill, skill.effects[0]);
+  catalog.balanceProfilesById.set('amount', { ...catalog.balanceProfilesById.get('amount'), grant: -1 });
+  assert.throws(() => registry.register(skill, skill.effects[0]), /non-negative/);
+});
+
 // A finisher carries its authored packet identity through selection/chance without passing reactions to combo damage.
 test('resolved combo reactions retain finisher provenance, acceptance gates, and observer ordering', () => {
   for (const [field, chance, expected] of [

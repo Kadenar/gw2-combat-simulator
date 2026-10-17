@@ -103,8 +103,12 @@ export function chartValueAt(points: readonly ChartPoint[], time: number): numbe
   return value;
 }
 
+// Damage-only consumers can omit chart enrichment and unrelated simulation state.
+type TimeSeriesResult = Pick<Gw2ResolverResult, 'dpsStartTime' | 'firstHitTime' | 'combatEndTime' | 'resolvedEvents'> &
+  Partial<Pick<Gw2ResolverResult, 'effectReport' | 'boonGeneration'>>;
+
 export function buildTimeSeries(
-  result: Gw2ResolverResult,
+  result: TimeSeriesResult,
   sampleStepMs = 250,
   { effectName = (value) => String(value || ''), skillKey, includeEffects = true }: BuildChartSeriesOptions = {}
 ): ChartSeries {
@@ -364,7 +368,7 @@ export function buildRollingDpsSeries(cumulativeDamage: readonly ChartPoint[], w
 
 /** Effect charts are an explicit consumer of optional engine-owned histories. */
 function buildEffectSeries(
-  result: Gw2ResolverResult,
+  result: TimeSeriesResult,
   times: readonly number[],
   dpsStartMs: number,
   endMs: number,

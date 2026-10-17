@@ -1,4 +1,5 @@
 import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
+import { prepareCatalogActionRequirements } from '#gw2/platform/effects/action-declarations.js';
 import { deriveAutoattackChains, indexAutoattackChains } from '#gw2/platform/skills/autoattack-chain-index.js';
 import type {
   AutoattackChainPosition,
@@ -221,5 +222,6 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
     weaponHands: new Map(weaponHands instanceof Map ? weaponHands : Object.entries(weaponHands || {}))
   };
   validateCanonicalCatalog(catalog);
+  prepareCatalogActionRequirements(catalog);
   return Object.freeze(catalog);
 }

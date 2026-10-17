@@ -1,9 +1,9 @@
+import { LatestWorkerQueue } from '#browser/game/latest-worker-queue.js';
 import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { analysisViewIsActive } from '#browser/shell/result-view.js';
 
 interface BaselineJob {
-  readonly requestId: number;
   readonly revision: number;
   readonly request: BaselineSimulationRequest;
   readonly chartsOnly: boolean;
@@ -17,76 +17,69 @@ interface BaselineWorkerMessage {
 
 const BASELINE_DEBOUNCE_MS = 40;
 
+/** Owns revision and chart-publication policy while the shared queue manages worker lifetime. */
 export class BaselineSimulationRunner {
-  readonly app: ProfessionAppState;
-  timer: ReturnType<typeof setTimeout> | null;
-  worker: Worker | null;
-  pending: BaselineJob | null;
-  inFlight: BaselineJob | null;
-  requestId: number;
+  readonly queue: LatestWorkerQueue<BaselineJob, BaselineWorkerMessage>;
 
-  constructor(app: ProfessionAppState) {
-    this.app = app;
-    this.timer = null;
-    this.worker = null;
-    this.pending = null;
-    this.inFlight = null;
-    this.requestId = 0;
+  constructor(readonly app: ProfessionAppState) {
+    this.queue = new LatestWorkerQueue<BaselineJob, BaselineWorkerMessage>({
+      debounceMs: BASELINE_DEBOUNCE_MS,
+      // Static worker URLs must remain beside construction for Vite's module-worker bundling.
+      createWorker: () => new Worker(new URL('./worker.js', import.meta.url), { type: 'module' }),
+      onStart: () => {
+        app.simulationStatus = 'running';
+      },
+      calculateWithoutWorker: (job) => ({
+        requestId: job.requestId,
+        output: app.adapter.calculateBaselineSimulation(job.request)
+      }),
+      onResult: (job, message) => {
+        if (job.revision !== app.buildRevision) return;
+
+        if (message.output) app.publishBaselineSimulation(message.output, job.revision, job.chartsOnly);
+        else app.failBaselineSimulation(message.error, job.revision, job.chartsOnly);
+
+        // Analysis may have opened while an editor-only baseline was already in flight.
+        if (message.output && !job.chartsOnly) this.ensureCharts();
+      },
+      onError: (job, error) => {
+        if (job.revision === app.buildRevision) app.failBaselineSimulation(error, job.revision, job.chartsOnly);
+      }
+    });
   }
 
   /** Load the selected profession while the page is opening, before a template click needs its first result. */
   warmup(): void {
-    if (this.worker || typeof Worker !== 'function') return;
-
-    let worker: Worker | null = null;
-    try {
-      worker = this.createWorker();
-      worker.postMessage({
-        requestId: 0,
-        warmup: true,
-        request: { gameId: this.app.gameId, contentId: this.app.contentId }
-      });
-    } catch {
-      // Warmup is optional; an actual simulation retries construction through the normal error path.
-      worker?.terminate();
-      this.worker = null;
-    }
+    this.queue.warmup({
+      requestId: 0,
+      warmup: true,
+      request: { gameId: this.app.gameId, contentId: this.app.contentId }
+    });
   }
 
-  /** Coalesces rapid edits and keeps at most one expensive worker job in flight. */
+  /** Coalesces rapid edits and gives editor work priority over chart enrichment. */
   schedule(revision: number, chartsOnly = false): void {
-    // An editor change takes priority over chart enrichment for the previous result.
-    if (!chartsOnly && (this.inFlight?.chartsOnly || this.pending?.chartsOnly)) this.cancel();
+    if (!chartsOnly && (this.queue.inFlight?.chartsOnly || this.queue.pending?.chartsOnly)) this.cancel();
 
     const request = this.app.adapter.baselineSimulationRequest(this.app);
 
-    // Clearing abandons the old rotation; subsequent skills must not queue behind its simulation or cold load.
-    if (this.inFlight && request.rotation.length === 0) this.cancel();
+    // Clearing abandons the old rotation instead of queueing behind its simulation or cold load.
+    if (this.queue.inFlight && request.rotation.length === 0) this.cancel();
 
-    const requestId = ++this.requestId;
-    this.pending = {
-      requestId,
+    this.app.simulationStatus = 'queued';
+    this.app.simulationError = '';
+    this.queue.schedule({
       revision,
       request: chartsOnly ? { ...request, collectChartData: true } : request,
       chartsOnly
-    };
-    this.app.simulationStatus = 'queued';
-    this.app.simulationError = '';
-
-    if (this.timer !== null) clearTimeout(this.timer);
-
-    this.timer = setTimeout(() => {
-      this.timer = null;
-      this.startPending();
-    }, BASELINE_DEBOUNCE_MS);
+    });
   }
 
-  /** Enrich a current editor result once on Analysis entry; reuse the cached histories on subsequent visits. */
+  /** Enrich a current editor result once on Analysis entry; reuse cached histories on subsequent visits. */
   ensureCharts(): void {
     if (
       !analysisViewIsActive() ||
-      this.pending ||
-      this.inFlight ||
+      this.queue.isRunning ||
       !this.app.results ||
       !this.app.build.rotation.length ||
       this.app.resultRevision !== this.app.buildRevision ||
@@ -99,7 +92,7 @@ export class BaselineSimulationRunner {
 
   /** Leaving Analysis abandons only chart work; an ordinary editor baseline must still finish. */
   cancelCharts(): void {
-    if (!this.inFlight?.chartsOnly && !this.pending?.chartsOnly) return;
+    if (!this.queue.inFlight?.chartsOnly && !this.queue.pending?.chartsOnly) return;
 
     this.cancel();
     this.app.simulationStatus = this.app.resultRevision === this.app.buildRevision ? 'idle' : 'queued';
@@ -108,104 +101,7 @@ export class BaselineSimulationRunner {
       document.body.dataset.simulationStatus = this.app.simulationStatus;
   }
 
-  /** Cancel active work, retaining an idle worker so changing templates does not reload the same engine. */
   cancel(): void {
-    this.requestId += 1;
-
-    if (this.timer !== null) clearTimeout(this.timer);
-
-    this.timer = null;
-    this.pending = null;
-
-    if (this.inFlight) {
-      this.worker?.terminate();
-      this.worker = null;
-    }
-
-    this.inFlight = null;
-  }
-
-  private startPending(): void {
-    if (this.inFlight || !this.pending) return;
-
-    const job = this.pending;
-    this.pending = null;
-    this.inFlight = job;
-
-    if (job.requestId === this.requestId) this.app.simulationStatus = 'running';
-
-    if (typeof Worker !== 'function') {
-      // Tests and older browsers retain correctness; the timeout still separates mutation from calculation.
-      setTimeout(() => {
-        // Superseded fallback jobs must release the slot so the newest pending edit can run.
-        if (job.requestId !== this.requestId) return this.finish(job, { requestId: job.requestId });
-
-        try {
-          this.finish(job, {
-            requestId: job.requestId,
-            output: this.app.adapter.calculateBaselineSimulation(job.request)
-          });
-        } catch (error) {
-          this.finish(job, { requestId: job.requestId, error });
-        }
-      }, 0);
-      return;
-    }
-
-    let worker = this.worker;
-    try {
-      // Worker construction can be blocked by browser policy; failures use the same cleanup path as postMessage errors.
-      worker ||= this.createWorker();
-      // Revision and chart-publication policy stay with the runner; the worker only needs the calculation request.
-      worker.postMessage({ requestId: job.requestId, request: job.request });
-    } catch (error) {
-      worker?.terminate();
-
-      if (this.worker === worker) this.worker = null;
-
-      this.finish(job, { requestId: job.requestId, error });
-    }
-  }
-
-  private createWorker(): Worker {
-    const worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
-    worker.addEventListener('message', (event: MessageEvent<BaselineWorkerMessage>) => {
-      if (this.worker !== worker) return;
-
-      const job = this.inFlight;
-
-      if (!job || event.data.requestId !== job.requestId) return;
-
-      this.finish(job, event.data);
-    });
-    worker.addEventListener('error', (event) => {
-      // Queued events from an abandoned worker cannot fail the replacement job.
-      if (this.worker !== worker) return;
-
-      const job = this.inFlight;
-      worker.terminate();
-
-      if (this.worker === worker) this.worker = null;
-
-      if (job) this.finish(job, { requestId: job.requestId, error: event.error ?? event.message });
-    });
-    this.worker = worker;
-    return worker;
-  }
-
-  private finish(job: BaselineJob, message: BaselineWorkerMessage): void {
-    if (this.inFlight?.requestId !== job.requestId) return;
-
-    this.inFlight = null;
-
-    if (job.requestId === this.requestId && job.revision === this.app.buildRevision) {
-      if (message.output) this.app.publishBaselineSimulation(message.output, job.revision, job.chartsOnly);
-      else this.app.failBaselineSimulation(message.error, job.revision, job.chartsOnly);
-    }
-
-    // A newer edit replaces every intermediate request and starts as soon as the worker is free.
-    if (this.pending) this.startPending();
-    // Analysis may have opened while an editor-only baseline was already in flight.
-    else if (message.output && !job.chartsOnly && job.requestId === this.requestId) this.ensureCharts();
+    this.queue.cancel();
   }
 }

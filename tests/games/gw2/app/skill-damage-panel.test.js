@@ -1,3 +1,4 @@
+import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { receiveSkillDamage, renderSkillDamage } from '#gw2/app/build/panels/skill-damage.js';
@@ -36,7 +37,7 @@ test('skill damage breakdowns identify individual charges and pulses', async (t)
     }
   };
   renderSkillDamage(app);
-  const result = app.adapter.calculateSkillDamage(plan.request);
+  const result = evaluateSkillDamage(plan.request, app.profession);
   receiveSkillDamage(app, plan.signature, result, '');
   for (const [name, unit] of [
     ['Soul Shards', 'charge'],

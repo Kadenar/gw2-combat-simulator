@@ -1,24 +1,55 @@
-import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
-import { buildRelicComparisonModel, relicDamageSummary } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
+import { LatestWorkerQueue } from '#browser/game/latest-worker-queue.js';
+import type { GameWorkerResponseEnvelope } from '#browser/game/worker-harness.js';
+import type { RelicComparisonModel } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
+import type { RelicComparisonWorkerRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+
+interface RelicComparisonWorkerMessage extends GameWorkerResponseEnvelope {
+  readonly comparison: RelicComparisonModel;
+}
+
+interface RelicComparisonJob {
+  readonly request: RelicComparisonWorkerRequest;
+  readonly results: NonNullable<ProfessionAppState['results']>;
+  readonly revision: number;
+}
 
 /** Runs one user-selected relic simulation against the equipped relic already on screen. */
 export class RelicComparisonRunner {
   readonly app: ProfessionAppState;
-  timer: ReturnType<typeof setTimeout> | null;
-  requestId: number;
+  private readonly queue: LatestWorkerQueue<RelicComparisonJob, RelicComparisonWorkerMessage>;
   comparisonRelic: string;
   initialStacks: number;
   readonly onUpdate: () => void;
 
   constructor(app: ProfessionAppState, onUpdate: () => void = () => {}) {
     this.app = app;
-    this.timer = null;
-    this.requestId = 0;
     this.comparisonRelic = '';
     this.initialStacks = 0;
     // Let the owning relic panel refresh without rerendering unrelated simulation views.
     this.onUpdate = onUpdate;
+    // Completed comparisons retain their loaded profession; abandoned calculations release the occupied worker.
+    const isCurrent = (job: RelicComparisonJob) => app.results === job.results && app.buildRevision === job.revision;
+    this.queue = new LatestWorkerQueue({
+      debounceMs: 0,
+      createWorker: () => new Worker(new URL('./worker.js', import.meta.url), { type: 'module' }),
+      onResult: (job, message) => {
+        if (!isCurrent(job)) return;
+
+        job.results.relicComparison = message.comparison;
+        job.results.relicComparisonStale = false;
+        job.results.relicComparisonError = '';
+        this.onUpdate();
+      },
+      onError: (job, error) => {
+        if (!isCurrent(job)) return;
+
+        job.results.relicComparisonStale = false;
+        job.results.relicComparisonError =
+          error instanceof Error ? error.message : String(error || 'Relic comparison failed.');
+        this.onUpdate();
+      }
+    });
   }
 
   /** Keeps a valid selection, preferring Thorns as the initial comparison when available. */
@@ -31,24 +62,15 @@ export class RelicComparisonRunner {
         : (alternatives[0] ?? '');
   }
 
-  /** Cancels the outgoing tab's scheduled comparison without replacing its cached result. */
+  /** Terminates comparison work when the owning tab or result is abandoned. */
   cancel(): void {
-    this.requestId += 1;
-
-    if (this.timer !== null) clearTimeout(this.timer);
-
-    this.timer = null;
+    this.queue.cancel();
   }
 
   /** Publishes picker availability without paying for another simulation. */
   schedule(): void {
     const app = this.app;
-    this.requestId += 1;
-
-    if (this.timer !== null) {
-      clearTimeout(this.timer);
-      this.timer = null;
-    }
+    this.cancel();
 
     const results = app.results;
 
@@ -87,11 +109,7 @@ export class RelicComparisonRunner {
   /** Applies each relic's configured assumptions to its comparison simulation. */
   run(comparisonRelic: string = this.comparisonRelic, initialStacks: number = this.initialStacks): void {
     const app = this.app;
-    const requestId = ++this.requestId;
-
-    if (this.timer !== null) clearTimeout(this.timer);
-
-    this.timer = null;
+    this.cancel();
 
     const results = app.results;
 
@@ -108,7 +126,6 @@ export class RelicComparisonRunner {
       return;
     }
 
-    const opponentResult = results;
     results.relicComparisonAvailable = true;
     results.relicComparisonStale = true;
     results.relicComparisonError = '';
@@ -116,57 +133,19 @@ export class RelicComparisonRunner {
     results.relicComparisonTarget = request.comparisonRelic;
     this.onUpdate();
 
-    this.timer = setTimeout(() => {
-      this.timer = null;
-
-      if (requestId !== this.requestId || !app.results) return;
-
-      try {
-        // The comparison rebuilds its DPS series from events and does not consume effect charts.
-        const targetResult = app.adapter.simulateBuild(
-          request.rotation,
-          {
-            ...request.baseConfig,
-            relic: request.comparisonRelic,
-            ...(request.comparisonRelic === 'Thorns' ? { initialThornsStacks: this.initialStacks } : null)
-          },
-          { collectChartData: false }
-        );
-        const opponentSeries = buildTimeSeries(opponentResult, 250, { includeEffects: false });
-        const targetSeries = buildTimeSeries(targetResult, 250, { includeEffects: false });
-        // One shared no-relic run attributes both direct damage and modifier effects.
-        const withoutRelic = app.adapter.simulateBuild(
-          request.rotation,
-          { ...request.baseConfig, relic: '' },
-          { output: 'score' }
-        );
-        const model = buildRelicComparisonModel({
-          opponentRelic: request.opponentRelic,
-          targetRelic: request.comparisonRelic,
-          opponentDps: opponentSeries.dps,
-          targetDps: targetSeries.dps,
-          opponentFinalDps: opponentResult.dps,
-          targetFinalDps: targetResult.dps
-        });
-
-        if (requestId !== this.requestId || !app.results) return;
-
-        app.results.relicComparison = {
-          ...model,
-          opponentDamage: relicDamageSummary(opponentResult, withoutRelic.dps),
-          targetDamage: relicDamageSummary(targetResult, withoutRelic.dps)
-        };
-        app.results.relicComparisonStale = false;
-        app.results.relicComparisonError = '';
-        this.onUpdate();
-      } catch (error) {
-        if (requestId !== this.requestId || !app.results) return;
-
-        app.results.relicComparisonStale = false;
-        app.results.relicComparisonError =
-          error instanceof Error ? error.message : String(error || 'Relic comparison failed.');
-        this.onUpdate();
-      }
-    }, 0);
+    // Send only the baseline facts used by damage comparison, excluding chart histories and other analysis results.
+    const workerRequest: RelicComparisonWorkerRequest = {
+      ...request,
+      opponentResult: {
+        dps: results.dps,
+        breakdown: results.breakdown,
+        resolvedEvents: results.resolvedEvents,
+        dpsStartTime: results.dpsStartTime,
+        firstHitTime: results.firstHitTime,
+        combatEndTime: results.combatEndTime
+      },
+      initialStacks: this.initialStacks
+    };
+    this.queue.schedule({ request: workerRequest, results, revision: app.buildRevision });
   }
 }
