@@ -49,6 +49,7 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: [
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'protection',
         duration: 4,
         stacks: 1,
@@ -89,6 +90,7 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: [
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'fury',
         duration: 15,
         stacks: 1,

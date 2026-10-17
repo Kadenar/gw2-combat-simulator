@@ -82,6 +82,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'might',
         duration: 9,
         stacks: 2
@@ -125,7 +126,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.OTHERWORLDLY_BOND]: {
-    // The tether offers cancellation first, then its enemy pull once fully developed.
+    // This enemy tether offers cancellation and then a pull; ally-target boon payloads do not apply.
     sideEffects: [{ on: 'castCommit', do: { type: 'revenant.start-bond' } }],
     castTimeMs: 520,
     flipDuration: 7,
@@ -152,18 +153,6 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
         stacks: 1,
         duration: 1,
         actorType: 'player'
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 9,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 3,
-        stacks: 1
       }
     ]
   },

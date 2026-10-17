@@ -9,7 +9,7 @@ import {
   buildMesmerStrikes,
   mesmerPacketOwner
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { buildMirageBoon } from '#gw2/professions/mesmer/specializations/mirage/mechanics/boons.js';
+import { buildMirageCloneBoon } from '#gw2/professions/mesmer/specializations/mirage/mechanics/boons.js';
 import {
   mirageAmbushAccepted,
   mirageCloakGranted,
@@ -423,10 +423,12 @@ export function executeMirageCloneAmbushPackets(
     }
 
     for (const boon of ambush.clone.boons || []) {
+      const packet = buildMirageCloneBoon(impactAt, boon, ambush, clone.id);
       state.effects.emit({
         ...delivery,
         kind: 'packet',
-        event: buildMirageBoon(impactAt, boon, `${ambush.name} — Clone`, 'summon')
+        event: packet,
+        owner: mesmerPacketOwner(packet)
       });
     }
   }

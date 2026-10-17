@@ -86,18 +86,21 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
     effects: [
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'swiftness',
         duration: 10,
         stacks: 1
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'vigor',
         duration: 10,
         stacks: 1
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'regeneration',
         duration: 10,
         stacks: 1

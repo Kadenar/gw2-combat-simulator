@@ -19,18 +19,21 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
       {
         type: 'boon',
         boon: 'aegis',
+        audience: { recipients: 'party', maximumRecipients: 5 },
         duration: 3,
         applications: 3,
         intervalMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
-      { type: 'boon', boon: 'stability', stacks: 1, duration: 1 },
+      // The immediate stun-break stability is personal; the well's later grant protects allies.
+      { type: 'boon', boon: 'stability', stacks: 1, duration: 1, audience: { recipients: 'self' } },
       ...impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
         {
           type: 'boon',
           boon: 'stability',
           stacks: 3,
+          audience: { recipients: 'party', maximumRecipients: 5 },
           duration: 5,
           atMs: 1000
         },

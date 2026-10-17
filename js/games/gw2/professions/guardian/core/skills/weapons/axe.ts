@@ -34,12 +34,14 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
       ]),
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'fury',
         duration: 1.5
       },
       // Later symbol pulses repeat Fury at their fixed offsets after the initial application.
       ...[1680, 2680, 3680, 4680].map((atMs) => ({
         type: 'boon' as const,
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'fury',
         duration: 1.5,
         atMs,

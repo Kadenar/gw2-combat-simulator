@@ -254,6 +254,7 @@ test('Herald invocation effects use patch-authorable skill declarations', () => 
     ]
   );
   assert.deepEqual(spiritBoon.profile.effects[effectIndex], {
+    audience: { recipients: 'party', maximumRecipients: 5 },
     type: 'boon',
     boon: 'protection',
     duration: 3,
@@ -311,6 +312,7 @@ test('Renegade invocation effects use patch-authorable skill declarations', () =
     ]
   );
   assert.deepEqual(spiritBoon.profile.effects[effectIndex], {
+    audience: { recipients: 'party', maximumRecipients: 5 },
     type: 'boon',
     boon: 'resolution',
     duration: 4,
@@ -379,6 +381,7 @@ test('Renegade mechanics use authorable skills and trait balances', () => {
     )
   );
   assert.deepEqual(heroic.skill.effects[0], {
+    audience: { recipients: 'party', maximumRecipients: 5 },
     name: 'might',
     type: 'boon',
     boon: 'might',

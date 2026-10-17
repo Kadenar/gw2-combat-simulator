@@ -213,7 +213,7 @@ function applyBountifulTheft(runtime: ThiefRuntime, { cast }: StealAcceptance): 
         kind: String(effect.boon),
         boon: String(effect.boon),
         fixedDuration: false,
-        audience: undefined
+        audience: { recipients: 'party', maximumRecipients: 5 }
       })
     });
   }
@@ -281,7 +281,7 @@ function applyThrillOfTheCrime(runtime: ThiefRuntime, { cast }: StealAcceptance)
       kind: String(effect.boon),
       boon: String(effect.boon),
       fixedDuration: false,
-      audience: undefined
+      audience: { recipients: 'party', maximumRecipients: 5 }
     })
   });
 }

@@ -287,12 +287,14 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'might',
         duration: 10,
         stacks: 5
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'protection',
         duration: 4,
         stacks: 1

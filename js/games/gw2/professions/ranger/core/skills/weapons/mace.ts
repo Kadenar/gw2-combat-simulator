@@ -57,7 +57,13 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 1.4, hits: 1, reactions: [naturesStrengthReaction()] },
-      { type: 'boon', boon: 'vigor', duration: 3, stacks: 1 },
+      {
+        type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        boon: 'vigor',
+        duration: 3,
+        stacks: 1
+      },
       { type: 'condition', condition: 'Crippled', stacks: 1, duration: 2 }
     ]),
     castTimeMs: 920
@@ -76,7 +82,13 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       { type: 'strike', coefficient: 2, hits: 1, reactions: [naturesStrengthReaction()] },
       // Resolve the leap's stun alongside its impact so control-triggered effects can activate.
       { type: 'control', controlKind: 'stun' },
-      { type: 'boon', boon: 'protection', duration: 4, stacks: 1 }
+      {
+        type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        boon: 'protection',
+        duration: 4,
+        stacks: 1
+      }
     ]),
     // The leap remains 960 ms in this Quickness log; its animation is not accelerated.
     castTimeMs: 960
@@ -94,7 +106,14 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         reactions: [naturesStrengthReaction()]
       },
       { type: 'strike', coefficient: 1.275, hits: 1, atMs: 1480, name: 'Flourish - Delayed Damage' },
-      { type: 'boon', boon: 'regeneration', duration: 4, stacks: 1, atMs: 480 }
+      {
+        type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        boon: 'regeneration',
+        duration: 4,
+        stacks: 1,
+        atMs: 480
+      }
     ]),
     castTimeMs: 800
   },

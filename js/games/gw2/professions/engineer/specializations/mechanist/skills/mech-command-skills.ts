@@ -56,7 +56,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
     // Reserve the entire observed channel so autonomous melee attacks cannot run between barrier pulses.
     quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.BARRIER_BURST] * 1000,
     cooldown: 30,
-    // Barrier and both boons pulse together with players taking priority over summons in the five-target cap.
+    // Barrier and both boons pulse together; recipient resolution grants the mech its separate entitlement.
     effects: (
       [
         {
@@ -149,24 +149,28 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
     effects: [
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'aegis',
         duration: 3,
         stacks: 1
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'stability',
         duration: 6,
         stacks: 1
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'protection',
         duration: 6,
         stacks: 1
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'alacrity',
         duration: 6,
         stacks: 1

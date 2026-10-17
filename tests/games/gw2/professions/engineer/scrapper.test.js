@@ -406,6 +406,7 @@ test('Medic Gyro and Reconstruction Field expose their water fields', () => {
   assert.equal(reconstructionField.comboFields[0].fieldType, 'Water');
   assert.equal(reconstructionField.comboFields[0].duration, 2);
   assert.deepEqual(reconstructionField.effects[0], {
+    audience: { recipients: 'party', maximumRecipients: 5 },
     type: 'boon',
     boon: 'protection',
     duration: 2,

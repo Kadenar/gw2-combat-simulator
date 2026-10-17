@@ -101,8 +101,9 @@ test('pet Screech scales only with Lingering Magic while merged Screech uses pla
     );
     assert.equal(boon.duration, 10 * (1 + (trait ? concentrationBonus : 0) / 1500));
     assert.equal(boon.resolvedAudience.includesSelf, true);
-    // The casting pet and ranger occupy two of the five recipient slots.
-    assert.equal(boon.resolvedAudience.alliedPlayerCount, 3);
+    // Player priority leaves no companion slot in a full party.
+    assert.equal(boon.resolvedAudience.alliedPlayerCount, 4);
+    assert.deepEqual(boon.resolvedAudience.companionIds, []);
     assert.equal(boon.resolvedAudience.recipientCount, 5);
     assert.equal(boon.actorType, 'summon');
   }

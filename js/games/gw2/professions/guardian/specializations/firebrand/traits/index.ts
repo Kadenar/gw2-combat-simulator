@@ -535,7 +535,7 @@ function grantStoicDemeanor(runtime: GuardianRuntime, { cause: boonCause }: Fire
       skillId: TRAIT.STOIC_DEMEANOR,
       skillName: boonProfile.name
     },
-    transform: (packet) => ({ ...packet, audience: { recipients: 'self' } })
+    transform: (packet) => ({ ...packet, audience: { recipients: 'party', maximumRecipients: 5 } })
   });
   runtime.effects.emit({
     kind: 'announcement',

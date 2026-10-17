@@ -16,12 +16,14 @@ export const REVENANT_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'protection',
         duration: 3,
         stacks: 1
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'aegis',
         duration: 4,
         stacks: 1

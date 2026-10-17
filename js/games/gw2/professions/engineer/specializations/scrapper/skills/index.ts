@@ -23,6 +23,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
     effects: [
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'protection',
         duration: 2,
         stacks: 1
@@ -104,6 +105,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'Might',
         duration: 15,
         stacks: 2

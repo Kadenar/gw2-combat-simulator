@@ -587,7 +587,7 @@ test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () =
   );
   assert.equal(
     buffs.some((event) => event.kind === 'resolution' && event.skillName === 'Helio Rush' && event.duration === 5),
-    true
+    false
   );
   assert.equal(
     buffs.some((event) => event.kind === 'guardian-inspiring-virtue' && event.duration === 6),

@@ -145,6 +145,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 3 },
         boon: 'swiftness',
         duration: 3,
         stacks: 1

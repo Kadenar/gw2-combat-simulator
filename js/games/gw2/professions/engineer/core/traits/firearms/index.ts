@@ -492,6 +492,7 @@ function grantNoScope(context: EngineerResolverContext, event: EngineerResolverE
         applicationIndex: undefined,
         totalApplications: undefined,
         name: 'No Scope',
+        audience: { recipients: 'party', maximumRecipients: 5 },
         stacks: Number(noScopeFury.stacks),
         duration: noScopeFury.duration
       })

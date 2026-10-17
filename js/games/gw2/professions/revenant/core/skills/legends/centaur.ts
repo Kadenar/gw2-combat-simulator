@@ -39,6 +39,7 @@ export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'stability',
         duration: 5,
         stacks: 3

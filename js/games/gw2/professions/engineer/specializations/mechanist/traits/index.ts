@@ -277,6 +277,7 @@ function applyHighImpactDrivers(context: EngineerRuntime, { cause: event }: Mech
       source: 'Trait',
       sourceId: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS,
       actorType: 'effect',
+      audience: { recipients: 'party', maximumRecipients: 5 },
       skillId: undefined,
       activationId: undefined,
       skillName: 'Mech Arms: High-Impact Drivers',

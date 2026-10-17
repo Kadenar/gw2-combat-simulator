@@ -158,6 +158,7 @@ const boldReversal = defineTrait({
     effects: [
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'protection',
         duration: 1,
         stacks: 1,
@@ -325,6 +326,7 @@ const lastingLegacy = defineTrait({
         {
           name: 'might',
           type: 'boon',
+          audience: { recipients: 'party', maximumRecipients: 5 },
           boon: 'might',
           duration: 8,
           stacks: 3,
@@ -379,6 +381,7 @@ const righteousRebel = defineTrait({
     effects: [
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'alacrity',
         duration: 2,
         stacks: 1,

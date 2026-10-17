@@ -134,7 +134,7 @@ export const indomitableCourage = defineTrait({
     onTriggerPoint(virtueActivated, {
       when: (_runtime, { virtue }: VirtueActivation) => virtue === 'courage',
       run: (runtime: GuardianRuntime, { cast }: VirtueActivation) =>
-        virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE, 'stability')
+        virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE, 'stability', true)
     })
   ],
   name: 'Indomitable Courage',

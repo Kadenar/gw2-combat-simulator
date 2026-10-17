@@ -83,6 +83,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 3 },
         boon: 'swiftness',
         duration: 3,
         stacks: 1
@@ -179,6 +180,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
     effects: [
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'regeneration',
         duration: 10,
         stacks: 1

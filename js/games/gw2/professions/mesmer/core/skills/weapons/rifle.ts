@@ -43,8 +43,8 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Parti
     comboFields: [{ ownerId: 'mesmer', fieldType: 'Ethereal', duration: 2, startAnchor: 'castEnd' }],
     tasks: [{ type: 'mesmer.core.imagery-expire', atMs: 2000, timingAnchor: 'castEnd' }],
     effects: [
-      { type: 'boon', boon: 'might', stacks: 12, duration: 9 },
-      { type: 'boon', boon: 'fury', duration: 9 }
+      { type: 'boon', boon: 'might', stacks: 12, duration: 9, audience: { recipients: 'party', maximumRecipients: 5 } },
+      { type: 'boon', boon: 'fury', duration: 9, audience: { recipients: 'party', maximumRecipients: 5 } }
     ]
   },
   [ID.PHANTASMAL_SHARPSHOOTER]: {

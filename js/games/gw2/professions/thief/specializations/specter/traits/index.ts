@@ -117,7 +117,7 @@ const secondOpinion = defineTrait({
   }
 });
 
-/** All three shroud rewards use compiled cast commitment, independently of intrinsic skill effects. */
+/** Assume a tethered ally is present among nearby allies; share each committed shroud reward with the party. */
 const shadestep = defineTrait({
   id: TRAIT.SHADESTEP,
   name: 'Shadestep',
@@ -135,7 +135,11 @@ const shadestep = defineTrait({
       when: (_runtime, cast) =>
         cast.skill.id === ID.GRASPING_SHADOWS && Boolean(cast.skill.shadowShroudSkill) && !castWasInterrupted(cast),
       effects: (effect) => effect.type === 'boon' && effect.name === 'alacrity',
-      attribution: { actorType: 'player', name: 'Shade Step - alacrity', audience: { recipients: 'party' } }
+      attribution: {
+        actorType: 'player',
+        name: 'Shade Step - alacrity',
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
     },
     {
       emit: TRAIT.SHADESTEP,
@@ -143,7 +147,11 @@ const shadestep = defineTrait({
       when: (_runtime, cast) =>
         cast.skill.id === ID.DAWNS_REPOSE && Boolean(cast.skill.shadowShroudSkill) && !castWasInterrupted(cast),
       effects: (effect) => effect.type === 'boon' && effect.name === 'protection',
-      attribution: { actorType: 'player', name: 'Shade Step - protection', audience: { recipients: 'party' } }
+      attribution: {
+        actorType: 'player',
+        name: 'Shade Step - protection',
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
     },
     {
       emit: TRAIT.SHADESTEP,
@@ -151,7 +159,11 @@ const shadestep = defineTrait({
       when: (_runtime, cast) =>
         cast.skill.id === ID.MIND_SHOCK && Boolean(cast.skill.shadowShroudSkill) && !castWasInterrupted(cast),
       effects: (effect) => effect.type === 'boon' && effect.name === 'aegis',
-      attribution: { actorType: 'player', name: 'Shade Step - aegis', audience: { recipients: 'party' } }
+      attribution: {
+        actorType: 'player',
+        name: 'Shade Step - aegis',
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
     }
   ]
 });

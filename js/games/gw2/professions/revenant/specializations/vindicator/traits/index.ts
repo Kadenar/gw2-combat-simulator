@@ -156,6 +156,7 @@ const songOfArboreum = defineTrait({
       {
         name: 'vigor',
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'vigor',
         duration: 9,
         stacks: 1,

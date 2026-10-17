@@ -35,12 +35,14 @@ const BASE_RAZORCLAW_EFFECTS = Object.freeze([
 const BASE_BREAKRAZOR_EFFECTS = Object.freeze([
   {
     type: 'boon',
+    audience: { recipients: 'party' as const, maximumRecipients: 5 },
     boon: 'resolution',
     duration: 2.5,
     stacks: 1
   },
   {
     type: 'boon',
+    audience: { recipients: 'party' as const, maximumRecipients: 5 },
     boon: 'resolution',
     duration: 4,
     stacks: 1

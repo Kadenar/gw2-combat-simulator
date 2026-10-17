@@ -153,6 +153,7 @@ export const spiritBoon = defineTrait({
     effects: [
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'might',
         duration: 10,
         stacks: 2,
@@ -161,6 +162,7 @@ export const spiritBoon = defineTrait({
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'resistance',
         duration: 2,
         stacks: 1,
@@ -169,6 +171,7 @@ export const spiritBoon = defineTrait({
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'stability',
         duration: 3,
         stacks: 1,
@@ -177,6 +180,7 @@ export const spiritBoon = defineTrait({
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'regeneration',
         duration: 5,
         stacks: 1,
@@ -186,6 +190,7 @@ export const spiritBoon = defineTrait({
       {
         metadata: { legendId: LEGEND.DRAGON },
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'protection',
         duration: 3,
         stacks: 1,
@@ -194,6 +199,7 @@ export const spiritBoon = defineTrait({
       {
         metadata: { legendId: LEGEND.RENEGADE },
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'resolution',
         duration: 4,
         stacks: 1,
@@ -202,6 +208,7 @@ export const spiritBoon = defineTrait({
       {
         metadata: { legendId: LEGEND.ALLIANCE },
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'vigor',
         duration: 4,
         stacks: 1,

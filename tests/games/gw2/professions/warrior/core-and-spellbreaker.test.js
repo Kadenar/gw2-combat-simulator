@@ -1142,6 +1142,7 @@ test('Warrior rifle skills use their PvE ammo, effects, finishers, and explosion
   assert.deepEqual(
     skill(ID.FIERCE_SHOT).effects.find((effect) => effect.type === 'boon'),
     {
+      audience: { recipients: 'party', maximumRecipients: 5 },
       type: 'boon',
       boon: 'might',
       duration: 5,

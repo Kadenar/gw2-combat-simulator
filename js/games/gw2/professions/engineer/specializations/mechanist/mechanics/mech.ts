@@ -163,6 +163,27 @@ export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerRe
 
 /** Capture the concrete mech owner before queued packets can outlive their originating activation. */
 export function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
+  // These grants explicitly exempt the active mech from the allied target cap.
+  if (
+    event.type === 'buff' &&
+    event.audience?.recipients === 'party' &&
+    (event.skillId === ID.BARRIER_BURST ||
+      event.skillId === ID.CRISIS_ZONE ||
+      event.sourceId === TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS)
+  ) {
+    const party = gw2AlliedEffectRecipients(context.config, { ...event.audience, eligibleCompanionIds: [] });
+    const active = mechanistState.from(context).mech.active;
+    event = {
+      ...event,
+      resolvedAudience: {
+        ...party,
+        includesSummons: active,
+        companionIds: active ? ['engineer.mech'] : [],
+        recipientCount: party.recipientCount + Number(active)
+      }
+    };
+  }
+
   if (event.actorType !== 'summon') return event;
 
   // Native command fragments identify their skill; stamp ownership here before modifiers and reactions consume it.
@@ -188,7 +209,7 @@ export function prepareEngineerMechEvent(context: EngineerRuntime, event: Simula
   if (
     event.type === 'buff' &&
     event.audience?.recipients === 'party' &&
-    (event.skillId === ID.BARRIER_BURST || event.sourceId === TRAIT.MECH_CORE_BARRIER_ENGINE)
+    event.sourceId === TRAIT.MECH_CORE_BARRIER_ENGINE
   ) {
     updates.resolvedAudience = gw2AlliedEffectRecipients(
       { ...context.config, sharePlayerBoonsWithSummons: true },

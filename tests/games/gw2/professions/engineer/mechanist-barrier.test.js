@@ -71,19 +71,24 @@ test('Barrier Burst grants its barrier and boons to the party and retains a 30-s
   }
 });
 
-// Party players consume target slots before the mech, including the alacrity derived from those grants.
-test('barrier support reserves its five recipient slots for players before the mech', () => {
+// Burst exempts its mech from the cap; derived alacrity must follow the actual barrier recipients.
+test('Barrier Burst exempts its mech while passive barrier retains ordinary player priority', () => {
   for (const count of [0, 2, 4]) {
     const result = simulate('Mechanist', ['Barrier Burst', { type: 'wait', durationMs: 4000 }], { allies: { count } });
     const grants = result.events.filter((event) => event.kind === 'barrier');
     assert.ok(grants.length > 0);
     assert.ok(grants.every((event) => event.resolvedAudience.alliedPlayerCount === count));
-    assert.ok(grants.every((event) => event.resolvedAudience.includesSummons === count < 4));
+    for (const grant of grants) {
+      const exempt = grant.skillName === 'Barrier Burst';
+      assert.equal(grant.resolvedAudience.includesSummons, exempt || count < 4);
+      assert.equal(grant.resolvedAudience.recipientCount, 1 + count + Number(exempt || count < 4));
+    }
+
     const alacrity = result.events.filter((event) => event.kind === 'alacrity');
     assert.ok(alacrity.some((event) => event.resolvedAudience.includesSelf));
     assert.equal(
       alacrity.some((event) => event.resolvedAudience.companionIds.includes('engineer.mech')),
-      count < 4
+      true
     );
   }
 });

@@ -1,27 +1,32 @@
 import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { StatusEffect } from '#gw2/platform/effects/types.js';
 
-/** Clone boons reach the five-player party while player boons apply to self. */
-export function buildMirageBoon(
+/** Clone ambush boons retain their caster identity and share spare recipient slots with living clones. */
+export function buildMirageCloneBoon(
   at: number,
   boon: StatusEffect,
-  sourceSkill: string,
-  actorType: 'player' | 'summon' = 'player'
+  skill: { id: number; name: string },
+  cloneId: number
 ) {
-  const boonRecipients = actorType === 'summon' ? 'party' : 'self';
+  const sourceSkill = `${skill.name} — Clone`;
   return buildMesmerPacket({
     type: 'buff',
     at,
-    source: actorType === 'summon' ? 'Clone' : 'Player',
-    actorType,
+    source: 'Clone',
+    actorType: 'summon',
+    summonKind: 'clone',
+    summonOwner: `mesmer.clone:${cloneId}`,
+    metadata: { cloneId },
+    skillId: skill.id,
+    sourceId: skill.id,
     kind: (boon.boon || '').toLowerCase(),
     stacks: Number(boon.stacks),
     duration: boon.duration,
     skillName: sourceSkill,
     sourceSkill,
     audience: {
-      recipients: boonRecipients,
-      ...(boonRecipients === 'party' ? { maximumRecipients: 5 } : {})
+      recipients: 'party',
+      maximumRecipients: 5
     }
   });
 }

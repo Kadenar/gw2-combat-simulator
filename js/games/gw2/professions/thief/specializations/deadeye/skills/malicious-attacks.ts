@@ -169,6 +169,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
     malicious: true
   },
   [ID.MALICIOUS_SHADOWSQUALL]: {
+    // This combat variant targets enemies; regeneration belongs only to the unsupported ally-target variant.
     // Transform the selected base packet so coefficient and duration patches remain authoritative.
     effectVariants: [
       {
@@ -204,12 +205,6 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'cast'
-      },
-      {
-        type: 'boon',
-        boon: 'Regeneration',
-        duration: 2.5,
-        stacks: 1
       }
     ],
     requiredMainHand: 'Scepter',

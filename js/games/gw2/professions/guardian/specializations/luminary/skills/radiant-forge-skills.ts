@@ -110,9 +110,10 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 440, startAnchor: 'castStart' }],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      // Each self boon survives a missed hostile symbol pulse.
+      // Allied symbol boons survive a missed hostile pulse.
       ...[440, 1440, 2440, 3440].map((atMs) => ({
         type: 'boon' as const,
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'resolution',
         duration: 1,
         stacks: 1,

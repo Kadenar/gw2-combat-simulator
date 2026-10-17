@@ -266,7 +266,13 @@ function grantNewGenes(context: EngineerRuntime, { morphKind, at }: AmalgamMorph
     emitTraitProfile(context, TRAIT.NEW_GENES, TRAIT.NEW_GENES, undefined, {
       at,
       effect: { type: 'boon', name },
-      attribution: { source: 'engineer', actorType: 'player', skillName: 'New Genes', name: 'New Genes' },
+      attribution: {
+        audience: { recipients: 'party', maximumRecipients: 5 },
+        source: 'engineer',
+        actorType: 'player',
+        skillName: 'New Genes',
+        name: 'New Genes'
+      },
       transform: (event) => ({
         ...event,
         metadata: undefined,

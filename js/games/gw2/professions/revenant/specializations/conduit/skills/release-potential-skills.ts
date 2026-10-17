@@ -55,8 +55,20 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 10,
     energyCost: 0,
     effects: [
-      { type: 'boon', boon: 'resistance', duration: 2, stacks: 1 },
-      { type: 'boon', boon: 'regeneration', duration: 6, stacks: 1 }
+      {
+        type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        boon: 'resistance',
+        duration: 2,
+        stacks: 1
+      },
+      {
+        type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        boon: 'regeneration',
+        duration: 6,
+        stacks: 1
+      }
     ]
   },
   [ID.RELEASE_POTENTIAL_MESMER]: {
@@ -143,6 +155,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'might',
         stacks: 10,
         duration: 8,
@@ -151,6 +164,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'fury',
         stacks: 1,
         duration: 8,

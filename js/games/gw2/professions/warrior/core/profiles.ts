@@ -22,7 +22,16 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     name: 'Keen Strike — Critical Might',
     profileKind: 'skill-variant',
     parentId: ID.KEEN_STRIKE,
-    effects: [{ name: 'Might', type: 'boon', boon: 'might', stacks: 1, duration: 5 }]
+    effects: [
+      {
+        name: 'Might',
+        type: 'boon',
+        audience: { recipients: 'party', maximumRecipients: 5 },
+        boon: 'might',
+        stacks: 1,
+        duration: 5
+      }
+    ]
   },
   {
     id: WARRIOR_CORE_BALANCE_PROFILE_IDS.resources,

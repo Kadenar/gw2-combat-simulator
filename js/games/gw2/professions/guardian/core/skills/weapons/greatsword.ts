@@ -127,6 +127,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       // Self Resolution follows each pulse even when the symbol misses.
       ...[200, 1200, 2200, 3200, 4200].map((atMs) => ({
         type: 'boon' as const,
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'resolution',
         duration: 1,
         stacks: 1,

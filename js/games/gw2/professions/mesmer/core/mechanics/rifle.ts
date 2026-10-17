@@ -55,7 +55,8 @@ export function expireInspiringImagery(context: MesmerRuntime, cast: RuntimeCast
         skillName: cast.skill.name,
         kind: String(effect.boon),
         stacks: effect.stacks ?? 1,
-        duration: effect.duration
+        duration: effect.duration,
+        audience: effect.audience
       });
       context.effects.emit({
         kind: 'packet',

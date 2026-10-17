@@ -33,7 +33,8 @@ function illuminatedSpearEffects(
   const state = runtime.profession.core;
   const luminance = state.spearLuminanceUntil > cast.start;
 
-  if (!luminance && state.spearIlluminatedUntil <= cast.start) return effects;
+  if (!luminance && state.spearIlluminatedUntil <= cast.start)
+    return cast.skill.id === ID.HELIO_RUSH ? effects.filter((effect) => effect.type !== 'boon') : effects;
 
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   const multiplier = balanceProfileNumber(profile, 'damageMultiplier');
@@ -178,9 +179,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     // Capture illumination at acceptance and settle only that captured charge on commitment.
     effectVariants: [
       {
-        when: (runtime, cast) =>
-          runtime.profession.core.spearLuminanceUntil > cast.start ||
-          runtime.profession.core.spearIlluminatedUntil > cast.start,
+        when: () => true,
         profileId: PROFILE.spearHelioRush,
         transform: (runtime, cast) =>
           illuminatedSpearEffects(runtime, cast, PROFILE.spearHelioRush, cast.skill.effects ?? [])
@@ -204,6 +203,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, affectsSelf: false, maximumRecipients: 5 },
         boon: 'Resolution',
         duration: 4
       }

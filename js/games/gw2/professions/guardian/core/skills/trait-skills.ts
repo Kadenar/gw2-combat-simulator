@@ -79,6 +79,7 @@ export const GUARDIAN_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
       ),
       {
         type: 'boon',
+        audience: { recipients: 'party', maximumRecipients: 5 },
         name: 'resolution',
         boon: 'resolution',
         stacks: 1,

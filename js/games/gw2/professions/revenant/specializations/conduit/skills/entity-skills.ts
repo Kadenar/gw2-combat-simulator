@@ -347,6 +347,18 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     legendId: 'LegendaryEntity'
   },
   [ID.GLADIATORS_DEFENSE]: {
+    // Dwarf resonance broadens only this skill's boons; other equipped legends keep them personal.
+    effectVariants: [
+      {
+        when: (runtime) => runtime.profession.core.selectedLegendIds.includes(LEGEND.DWARF),
+        transform: (_runtime, _cast, effects) =>
+          effects.map((effect) =>
+            effect.type === 'boon'
+              ? { ...effect, audience: { recipients: 'party' as const, maximumRecipients: 5 } }
+              : effect
+          )
+      }
+    ],
     // The default input cancels the remaining animation after the committed impact.
     castTimeMs: 240,
     interruptCommitMs: 40,

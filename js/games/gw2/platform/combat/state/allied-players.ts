@@ -121,34 +121,34 @@ export function gw2BoonApplicationRecipients(
 
   if (event.actorType !== 'summon') return gw2AlliedEffectRecipients(config, audience);
 
-  // A summon-cast effect always includes that summon, while the controlled
-  // player is selected only by a party scope with room beyond the caster.
-  const party = gw2AlliedPlayerAssumptions(config);
+  // Allied players have priority over a summon caster; the caster can receive a spare slot.
+  // Summon-origin grants are independent of the toggle for sharing player-origin boons.
+  if (audience.recipients === 'party')
+    return gw2AlliedEffectRecipients(
+      { ...config, sharePlayerBoonsWithSummons: true },
+      {
+        ...audience,
+        eligibleCompanionIds: [
+          ...(audience.eligibleCompanionIds ?? []),
+          ...(event.summonOwner ? [String(event.summonOwner)] : [])
+        ]
+      }
+    );
+
+  // Personal summon grants stay on their caster; summon-only grants can include other companions.
   const shared = audience.recipients !== 'self';
   const limit = audience.maximumRecipients ?? (shared ? 5 : 1);
-  const includesSelf = audience.recipients === 'party' && audience.affectsSelf !== false && limit > 1;
-  const eligiblePlayers =
-    audience.alliedPlayerIndex == null ? party.count : Number(audience.alliedPlayerIndex <= party.count);
-  const alliedPlayerCount =
-    audience.recipients === 'party' ? clamp(limit - 1 - Number(includesSelf), 0, eligiblePlayers) : 0;
-  const remaining = limit - 1 - Number(includesSelf) - alliedPlayerCount;
   const casterId = String(event.summonOwner || '');
   const candidates = [...new Set((audience.eligibleCompanionIds || []).map(String).filter(Boolean))].filter(
     (id) => id !== casterId
   );
-  const summonsEligible =
-    audience.recipients === 'summons' ||
-    (audience.recipients === 'party' && config.sharePlayerBoonsWithSummons !== false);
-  const selectedCompanions = summonsEligible ? candidates.slice(0, remaining) : [];
+  const selectedCompanions = audience.recipients === 'summons' ? candidates.slice(0, limit - 1) : [];
   return Object.freeze({
-    includesSelf,
+    includesSelf: false,
     includesSummons: true,
-    alliedPlayerCount,
-    ...(alliedPlayerCount && audience.alliedPlayerIndex != null
-      ? { alliedPlayerIndex: audience.alliedPlayerIndex }
-      : {}),
+    alliedPlayerCount: 0,
     companionIds: Object.freeze(casterId ? [casterId, ...selectedCompanions] : selectedCompanions),
-    recipientCount: 1 + Number(includesSelf) + alliedPlayerCount + selectedCompanions.length
+    recipientCount: 1 + selectedCompanions.length
   });
 }
 

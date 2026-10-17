@@ -109,6 +109,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'might',
         duration: 8,
         stacks: 2
@@ -124,12 +125,14 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         },
         {
           type: 'boon',
+          audience: { recipients: 'party' as const, maximumRecipients: 5 },
           boon: 'might',
           duration: 8,
           stacks: 4
         },
         {
           type: 'boon',
+          audience: { recipients: 'party' as const, maximumRecipients: 5 },
           boon: 'fury',
           duration: 8,
           stacks: 1
@@ -156,6 +159,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'boon',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         boon: 'protection',
         duration: 5,
         stacks: 1

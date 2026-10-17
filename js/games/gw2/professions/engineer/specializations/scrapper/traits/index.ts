@@ -180,7 +180,14 @@ const massMomentum = defineTrait<EngineerSkill>({
     pulseInterval: 1,
     effects: [
       { name: 'might', type: 'boon', boon: 'might', stacks: 1, duration: 5 },
-      { name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 3 }
+      {
+        name: 'stability',
+        type: 'boon',
+        audience: { recipients: 'party', maximumRecipients: 5 },
+        boon: 'stability',
+        stacks: 1,
+        duration: 3
+      }
     ]
   },
   // Reactions may start a pulse loop; its admitted task retains live Stability and selection stop checks.

@@ -35,6 +35,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         boon: 'resistance',
+        audience: { recipients: 'party', maximumRecipients: 5 },
         duration: 3,
         stacks: 1
       },

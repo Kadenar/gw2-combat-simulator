@@ -515,7 +515,7 @@ test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () =
   );
   assert.equal(
     helioAlone.events.some((event) => event.type === 'buff' && event.kind === 'resolution' && event.duration === 4),
-    true
+    false
   );
   assert.equal(
     gleamingAlone.procSteps.some((step) => step.skill === 'Illuminated'),
