@@ -21,7 +21,7 @@ import type {
   TraitSelectionContext
 } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { RechargeRule, TraitTrigger, TriggerListener } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent, Gw2ResolverReactions } from '#gw2/platform/resolver/types.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
@@ -142,14 +142,5 @@ export interface RuntimeProfession<T extends object, TSkill extends Skill = Skil
   readonly eventHandlers?: Readonly<
     Record<string, (runtime: MechanicContext<T, TSkill>, event: Gw2ResolverEvent) => void>
   >;
-  readonly reactions?: Partial<
-    Record<
-      Gw2ResolverStage,
-      (
-        runtime: MechanicContext<T, TSkill>,
-        event: Gw2ResolverEvent,
-        details: Record<string, unknown>
-      ) => Record<string, unknown> | void
-    >
-  >;
+  readonly reactions?: Gw2ResolverReactions<MechanicContext<T, TSkill>>;
 }

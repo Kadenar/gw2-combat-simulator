@@ -440,20 +440,16 @@ test('absolute horizons reject unfinished commands, lanes and recovery instead o
   );
 });
 
-test('empty rotations finalize at zero and environment work remains bounded with an unknown end', () => {
-  const sizes = [];
+test('empty rotations finalize at zero and environment damage respects the observation boundary', () => {
   const profession = fixture();
-  // Inspect pending engine work through execution setup, outside the mechanic contract.
-  const engineInitialize = (runtime) => sizes.push(runtime.queue.length);
+  // Queue bounds are covered by condition-resolution; this boundary owns the observed damage window.
   const ambient = { ...config, target: { ...config.target, conditions: { Bleeding: 2 } } };
-  const empty = run([], { config: ambient, profession, engineInitialize });
+  const empty = run([], { config: ambient, profession });
   const tail = run([], {
     config: ambient,
     profession,
-    engineInitialize,
     observation: { kind: 'tail', durationMs: 3000 }
   });
-  assert.deepEqual(sizes, [2, 2]);
   assert.equal(empty.observationEndTime, 0);
   assert.equal(empty.environmentDamage, 0);
   assert.equal(tail.rotationEndTime, 0);

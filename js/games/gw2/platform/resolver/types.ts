@@ -105,17 +105,15 @@ export interface Gw2ResolverHelpers {
   >;
 }
 
-export type Gw2EventQueue = StableEventQueue<Gw2ResolverEvent>;
+/** Resolution schedules packets but cannot inspect or dispatch the coordinator's mixed work heap. */
+export type Gw2EventQueue = Pick<
+  StableEventQueue<Gw2ResolverEvent>,
+  'enqueue' | 'cancel' | 'currentCausalOrder' | 'currentTime' | 'currentPhase'
+>;
 
 type Gw2ResolverEventHandler = (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => unknown;
 
 export type Gw2ResolverEventHandlers = Readonly<Record<string, Gw2ResolverEventHandler>>;
-
-export type Gw2ResolverReaction = (
-  context: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-  details?: Record<string, unknown>
-) => Record<string, unknown> | void;
 
 export type Gw2ResolverStage =
   | 'aura.applied'
@@ -127,19 +125,38 @@ export type Gw2ResolverStage =
   | 'condition-tick.resolved'
   | 'control.resolved';
 
-export type Gw2ResolverReactions = Readonly<Partial<Record<Gw2ResolverStage, Gw2ResolverReaction>>>;
+/** Only pre-hit resolution transforms a packet; all other stages observe accepted facts. */
+export type Gw2ResolverReactions<TContext = Gw2ResolverRuntime> = Readonly<{
+  [Stage in Gw2ResolverStage]?: (
+    context: TContext,
+    event: Gw2ResolverEvent,
+    details: Record<string, unknown>
+  ) => Stage extends 'damage.resolving' ? Record<string, unknown> | void : void;
+}>;
 
-interface Gw2ResolverReactionHook {
+interface Gw2ResolverReactionHook<Stage extends Gw2ResolverStage> {
   readonly id: string;
   readonly order: number;
-  readonly handler: Gw2ResolverReaction;
+  readonly handler: NonNullable<Gw2ResolverReactions[Stage]>;
 }
 
-export type Gw2ResolverReactionContributions = Readonly<
-  Partial<Record<Gw2ResolverStage, readonly Gw2ResolverReactionHook[]>>
->;
+export type Gw2ResolverReactionContributions = Readonly<{
+  [Stage in Gw2ResolverStage]?: readonly Gw2ResolverReactionHook<Stage>[];
+}>;
 
 export interface Gw2ResolverReactionRegistry {
+  dispatch(
+    stage: 'damage.resolving',
+    context: Gw2ResolverRuntime,
+    event: Gw2ResolverEvent,
+    details?: Record<string, unknown>
+  ): Record<string, unknown> | void;
+  dispatch(
+    stage: Exclude<Gw2ResolverStage, 'damage.resolving'>,
+    context: Gw2ResolverRuntime,
+    event: Gw2ResolverEvent,
+    details?: Record<string, unknown>
+  ): void;
   dispatch(
     stage: Gw2ResolverStage,
     context: Gw2ResolverRuntime,

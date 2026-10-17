@@ -50,9 +50,7 @@ export interface MechanicCombatServices {
   expireField(fieldId: string, at: number): void;
   allocateEffectActivation(prefix: string): string;
   warn(message: string): void;
-  react(
-    ...args: Parameters<Gw2ResolverRuntime['dispatchReaction']>
-  ): ReturnType<Gw2ResolverRuntime['dispatchReaction']>;
+  readonly react: Gw2ResolverRuntime['dispatchReaction'];
 }
 
 /** Mechanics request shared-state changes at their existing phase; resolver stores never leave their owner. */
@@ -158,6 +156,7 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
     warn(message: string): void {
       runtime.warnings.push(message);
     },
+    // Resolve the dispatcher when used so query-only contexts need not provide reaction capabilities.
     react: (...args: Parameters<Gw2ResolverRuntime['dispatchReaction']>) => runtime.dispatchReaction(...args)
   });
 }

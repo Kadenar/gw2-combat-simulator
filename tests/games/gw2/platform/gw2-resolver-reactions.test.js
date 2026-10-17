@@ -7,12 +7,13 @@ import { StableEventQueue } from '#kernel/events/queue.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/equipment-reactions.js';
-import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
+import { createGw2ResolverReactionRegistry, GW2_RESOLVER_STAGES } from '#gw2/platform/resolver/reaction-registry.js';
+import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 
-test('GW2 resolver registry orders hooks stably and returns the last result', () => {
+test('GW2 resolver registry orders notifications stably and discards their results', () => {
   const calls = [];
   const professionReactions = {
     'damage.resolved': () => {
@@ -48,7 +49,7 @@ test('GW2 resolver registry orders hooks stably and returns the last result', ()
     }
   });
 
-  assert.deepEqual(registry.dispatch('damage.resolved', {}, { type: 'damage', at: 0 }), { owner: 'last' });
+  assert.equal(registry.dispatch('damage.resolved', {}, { type: 'damage', at: 0 }), undefined);
   assert.deepEqual(calls, ['early', 'profession', 'tie-a', 'tie-b']);
   assert.equal(
     registry.dispatch(
@@ -58,6 +59,60 @@ test('GW2 resolver registry orders hooks stably and returns the last result', ()
     ),
     undefined
   );
+});
+
+// Transform semantics do not depend on whether contributors belong to a module, nested module, or registry.
+test('pre-hit patches propagate across module and registry boundaries without mutating the input', () => {
+  const first = () => ({ coefficient: 2, forceCrit: true });
+  const observe = (_context, event) => {
+    assert.equal(event.coefficient, 2);
+  };
+
+  const last = (_context, event) => ({ coefficient: event.coefficient * 3 });
+  const module = (...handlers) =>
+    composeRuntimeHooks(handlers.map((handler) => ({ reactions: { 'damage.resolving': handler } })));
+  const contributions = (handlers) => ({
+    'damage.resolving': handlers.map((handler, order) => ({ id: String(order), order, handler }))
+  });
+  const nested = composeRuntimeHooks([module(first), module(observe, last)]);
+  const registries = [
+    createGw2ResolverReactionRegistry({ professionReactions: module(first, observe, last).reactions }),
+    createGw2ResolverReactionRegistry({ professionReactions: nested.reactions }),
+    createGw2ResolverReactionRegistry({ contributions: contributions([first, observe, last]) }),
+    createGw2ResolverReactionRegistry({
+      professionReactions: module(observe, last).reactions,
+      contributions: { 'damage.resolving': [{ id: 'early', order: -1, handler: first }] }
+    })
+  ];
+  const event = Object.freeze({ type: 'damage', at: 0, coefficient: 1 });
+  for (const registry of registries)
+    assert.deepEqual(registry.dispatch('damage.resolving', {}, event), { coefficient: 6, forceCrit: true });
+  assert.equal(event.coefficient, 1);
+});
+
+// Returned notification objects never change what later listeners observe, even in nested composition.
+test('every notification stage preserves the original event and returns nothing', () => {
+  const event = Object.freeze({ type: 'damage', at: 0, coefficient: 1 });
+  for (const stage of GW2_RESOLVER_STAGES.filter((stage) => stage !== 'damage.resolving')) {
+    let calls = 0;
+    const first = { reactions: { [stage]: () => ({ coefficient: 99 }) } };
+    const next = {
+      reactions: {
+        [stage]: (_context, actual) => {
+          calls++;
+          assert.equal(actual, event);
+          return { coefficient: 100 };
+        }
+      }
+    };
+    const single = composeRuntimeHooks([first]);
+    const nested = composeRuntimeHooks([single, composeRuntimeHooks([next])]);
+    assert.equal(single.reactions[stage]({}, event, {}), undefined);
+    assert.equal(nested.reactions[stage]({}, event, {}), undefined);
+    const registry = createGw2ResolverReactionRegistry({ professionReactions: nested.reactions });
+    assert.equal(registry.dispatch(stage, {}, event), undefined);
+    assert.equal(calls, 2);
+  }
 });
 
 // Generic buffs share the stage with boons but must not activate relic boon rules.
@@ -88,7 +143,7 @@ test('GW2 resolver registry rejects unknown stages and duplicate hook ids', () =
           ]
         }
       }),
-    /Duplicate eventReactions\.buff\.applied hook id: same/
+    /Duplicate reaction buff\.applied hook id: same/
   );
 });
 

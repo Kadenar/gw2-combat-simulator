@@ -1,7 +1,6 @@
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { validateResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
+import { composeGw2Reactions } from '#gw2/platform/resolver/reaction-registry.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 
@@ -252,7 +251,6 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
     return Object.fromEntries(entries) as RuntimeProfession<State, TSkill>[K];
   };
 
-  const stages = new Set(hooks.flatMap((hook) => Object.keys(hook.reactions ?? {}))) as Set<Gw2ResolverStage>;
   const structure = {
     traitTriggers: hooks.flatMap((hook) => hook.traitTriggers ?? []),
     rechargeRules: hooks.flatMap((hook) => hook.rechargeRules ?? []),
@@ -265,36 +263,7 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
     backgroundTasks: hooks.flatMap((hook) => hook.backgroundTasks ?? []),
     sideEffectHandlers: merged('sideEffectHandlers'),
     eventHandlers: merged('eventHandlers'),
-    reactions: Object.fromEntries(
-      [...stages].map((stage) => {
-        const handlers = hooks.flatMap((hook) => (hook.reactions?.[stage] ? [hook.reactions[stage]] : []));
-        const [only] = handlers;
-
-        // A single handler still returns a copy of its updates, exactly as the merging loop would.
-        if (handlers.length === 1)
-          return [
-            stage,
-            (context: MechanicContext<State, TSkill>, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
-              const result = only(context, event, details);
-              return result ? { ...result } : undefined;
-            }
-          ];
-
-        return [
-          stage,
-          (context: MechanicContext<State, TSkill>, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
-            let updates: Record<string, unknown> | undefined;
-            for (const handler of handlers) {
-              const result = handler(context, updates ? { ...event, ...updates } : event, details);
-
-              if (result) updates = { ...updates, ...result };
-            }
-
-            return updates;
-          }
-        ];
-      })
-    )
+    reactions: composeGw2Reactions(hooks.map((hook) => hook.reactions ?? {}))
   } satisfies RuntimeHooks<State, TSkill> & Record<Exclude<HookKey, CallbackKey>, unknown>;
   // A new accepted field must be implemented above; unknown JavaScript declarations fail instead of disappearing.
   for (const hook of hooks)

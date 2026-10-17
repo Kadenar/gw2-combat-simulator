@@ -1,12 +1,12 @@
 import type { PacketIdentity } from '#gw2/platform/events/identity.js';
 import type { RuntimeDriverContext } from '#gw2/platform/execution/driver-contract.js';
 import { gw2ResolverPhase } from '#gw2/platform/resolver/event-phase.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2EventQueue, Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import type { RuntimeWork } from '#gw2/platform/simulation/work-contract.js';
+import { isRuntimeWork, type RuntimeQueueEntry, type RuntimeWork } from '#gw2/platform/simulation/work-contract.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { StableEventQueue } from '#kernel/events/queue.js';
+import { canonicalEvent, StableEventQueue } from '#kernel/events/queue.js';
 import { DEFAULT_EXECUTION_ITERATION_LIMIT } from '#kernel/execution/limits.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import { observationEndTime } from '#kernel/execution/observation.js';
@@ -16,11 +16,32 @@ const SHARED_PULSE_TYPES = new Set(['condition_tick', 'condition_buffer']);
 
 /** The coordinator is the sole clock authority and retains causal scope on the same stable event heap. */
 export function createExecutionCoordinator<T extends object>(getRuntime: () => Gw2Runtime<T>) {
-  // Resolver code may enqueue directly; those packets receive the same identity and cause as emitted ones.
-  const queue = new StableEventQueue<Gw2ResolverEvent>({
-    phaseFor: gw2ResolverPhase,
-    prepare: (event) => identify(event)
+  const queue = new StableEventQueue<RuntimeQueueEntry>({
+    phaseFor: gw2ResolverPhase
   });
+  // Resolution submits packets without acquiring access to internal work or the coordinator's dispatch frontier.
+  const packets: Gw2EventQueue = {
+    enqueue(event) {
+      if (event.kind === 'internal') throw new TypeError('Internal work must use the work factory.');
+
+      const packet = canonicalEvent(identify(event));
+      queue.enqueue(packet);
+      return packet;
+    },
+    cancel: (event) => queue.cancel(event),
+    get currentCausalOrder() {
+      return queue.currentCausalOrder;
+    },
+    set currentCausalOrder(order) {
+      queue.currentCausalOrder = order;
+    },
+    get currentTime() {
+      return queue.currentTime;
+    },
+    get currentPhase() {
+      return queue.currentPhase;
+    }
+  };
   let eventOrder = 0;
   // The event whose handlers or reactions are running; packets created meanwhile are its reactions.
   let currentCause: Gw2ResolverEvent | null = null;
@@ -65,7 +86,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
    * Gives engine-owned pulse output an identity and parent consistent with service-submitted effects.
    */
   function identify<E extends PacketIdentity>(event: E): E {
-    if (event.kind === 'internal' || event.eventOrder != null || SHARED_PULSE_TYPES.has(event.type)) return event;
+    if (event.eventOrder != null || SHARED_PULSE_TYPES.has(event.type)) return event;
 
     const order = ++eventOrder;
     const parent = event.parentEventOrder ?? reactionParent(event);
@@ -91,7 +112,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     }
   }
 
-  /** Internal packets share queue ordering but cannot become public history or report rows. */
+  /** Internal work shares queue ordering without acquiring public packet identity. */
   function enqueueWork(work: RuntimeWork, independent = false): void {
     if (work.at < getRuntime().time) throw new RangeError('Internal work cannot backdate the live clock.');
 
@@ -101,7 +122,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     if (independent) queue.currentCausalOrder = null;
 
     try {
-      const queued = queue.enqueue({ ...work, source: 'Runtime', sourceId: work.type, actorType: 'effect' });
+      const queued = queue.enqueue(work);
 
       // Delayed work acts for whatever scheduled it, so its unattributed effects stay that event's reactions.
       if (!independent && currentCause) workCauses.set(queued, currentCause);
@@ -117,11 +138,13 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
   ): { at: number; cause: Gw2ResolverEvent }[] {
     const summonOwners = new Set(executed.flatMap((event) => (event.summonOwner == null ? [] : [event.summonOwner])));
     return queue.pending().flatMap((event) => {
-      if (event.actorType === 'summon' || event.summonOwner != null || SHARED_PULSE_TYPES.has(event.type)) return [];
+      if (!isRuntimeWork(event)) {
+        if (event.actorType === 'summon' || event.summonOwner != null || SHARED_PULSE_TYPES.has(event.type)) return [];
 
-      if (event.kind !== 'internal') return [{ at: event.at, cause: event }];
+        return [{ at: event.at, cause: event }];
+      }
 
-      const work = event as unknown as RuntimeWork;
+      const work = event;
 
       if (
         work.type === 'runtime.flip-expiry' ||
@@ -140,7 +163,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     execution: RuntimeExecution<T>,
     policy: ObservationPolicy,
     driverContext: RuntimeDriverContext<T>,
-    dispatch: (event: Gw2ResolverEvent) => void,
+    dispatch: (event: RuntimeQueueEntry) => void,
     flushEffects: () => void,
     completion?: () => number
   ): void {
@@ -217,6 +240,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
 
   return {
     queue,
+    packets,
     identify,
     reactionParent,
     withCause,
@@ -228,6 +252,6 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     nextEventOrder: () => ++eventOrder,
     recordAction: (id: string, event: Gw2ResolverEvent) => castActions.set(id, event),
     castAction: (id: string) => castActions.get(id),
-    workCause: (event: Gw2ResolverEvent) => workCauses.get(event)
+    workCause: (work: RuntimeWork) => workCauses.get(work)
   };
 }

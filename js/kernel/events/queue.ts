@@ -73,20 +73,16 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   private current: { at: number; phase: number } | null = null;
   private sameTimeCount = 0;
   private readonly phaseFor?: (event: T, current: Readonly<{ at: number; phase: number }> | null) => number;
-  private readonly prepare?: (event: T) => T;
   private readonly safetyLimit: number;
 
-  /** Start empty so every event passes through enqueue preparation after its owner's initialization finishes. */
+  /** Start empty so every event receives canonical ordering keys through enqueue. */
   constructor(
     options: {
       phaseFor?: (event: T, current: Readonly<{ at: number; phase: number }> | null) => number;
-      /** Lets the owner stamp identity on every enqueued event before its ordering keys are captured. */
-      prepare?: (event: T) => T;
       safetyLimit?: number;
     } = {}
   ) {
     this.phaseFor = options.phaseFor;
-    this.prepare = options.prepare;
     this.safetyLimit = options.safetyLimit ?? DEFAULT_EXECUTION_ITERATION_LIMIT;
 
     if (!Number.isSafeInteger(this.safetyLimit) || this.safetyLimit < 1) {
@@ -142,7 +138,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   }
 
   enqueue(event: T): T {
-    const entry = this.entry(this.prepare ? this.prepare(event) : event, this.nextSequence);
+    const entry = this.entry(event, this.nextSequence);
     this.nextSequence += 1;
     this.heap.push(entry);
     let index = this.heap.length - 1;

@@ -27,49 +27,19 @@ test('event normalization and queue insertion reject missing or invalid timestam
   }
 });
 
-// Construction cannot prepare work before its owner exists; every event uses the same insertion path afterward.
-test('queues start empty and prepare every enqueued event once before capturing its ordering keys', () => {
-  const prepared = [];
-  const queue = new StableEventQueue({
-    prepare(event) {
-      assert.equal(queue.currentTime, null);
-      prepared.push(event.name);
-      return { ...event, eventOrder: prepared.length };
-    }
-  });
+// Canonical insertion returns the actual queued identity without mutating the caller's event.
+test('queues start empty and return canonical handles for every enqueued event', () => {
+  const queue = new StableEventQueue();
   assert.equal(queue.length, 0);
   assert.equal(queue.peek(), undefined);
-  assert.deepEqual(prepared, []);
   const first = Object.freeze({ at: 0.56 + 0.04, name: 'first' });
   const firstHandle = queue.enqueue(first);
   const secondHandle = queue.enqueue(Object.freeze({ at: 0.6, name: 'second' }));
-  assert.deepEqual(prepared, ['first', 'second']);
-  assert.equal(firstHandle.eventOrder, 1);
-  assert.equal(secondHandle.eventOrder, 2);
   assert.equal(firstHandle.at, 0.6);
   assert.equal(first.eventOrder, undefined);
   assert.equal(first.at, 0.56 + 0.04);
   assert.equal(queue.dequeue(), firstHandle);
   assert.equal(queue.dequeue(), secondHandle);
-  assert.deepEqual(prepared, ['first', 'second']);
-});
-
-// A rejected preparation never inserts a partial event or disrupts already accepted work.
-test('a throwing preparation leaves the queue usable', () => {
-  const queue = new StableEventQueue({
-    prepare(event) {
-      if (event.name === 'invalid') throw new Error('Preparation failed');
-
-      return event;
-    }
-  });
-  const first = queue.enqueue({ at: 1, name: 'first' });
-  assert.throws(() => queue.enqueue({ at: 0, name: 'invalid' }), /Preparation failed/);
-  assert.equal(queue.length, 1);
-  const second = queue.enqueue({ at: 1, name: 'second' });
-  assert.equal(queue.dequeue(), first);
-  assert.equal(queue.dequeue(), second);
-  assert.equal(queue.dequeue(), undefined);
 });
 
 // Peeking may discard canceled work, but must never advance time or consume the inclusive boundary.

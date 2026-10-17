@@ -1,5 +1,6 @@
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { QueuedEvent } from '#kernel/events/queue.js';
 
@@ -19,6 +20,14 @@ export type RuntimeWork =
       { name: string; cast: Omit<RuntimeCast, 'skill'>; skillId: SkillId; data: Record<string, unknown> }
     >
   | InternalWork<'runtime.task', { name: string; data: unknown }>;
+
+/** Packets and private work share ordering, but only packets carry gameplay source identity. */
+export type RuntimeQueueEntry = Gw2ResolverEvent | RuntimeWork;
+
+/** Packet admission reserves this kind for factory-created work, so the heap can recover its payload union. */
+export function isRuntimeWork(entry: RuntimeQueueEntry): entry is RuntimeWork {
+  return entry.kind === 'internal';
+}
 
 /** A lifetime is separate from cast attribution: committed projectiles can outlive their originating cast. */
 export interface WorkOwner {

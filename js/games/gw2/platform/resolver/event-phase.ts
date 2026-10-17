@@ -1,10 +1,8 @@
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-
 export const GW2_RESOLVER_PHASE = Object.freeze({ Sample: 0, Settle: 1, Ordinary: 2 });
 
 /** Settlement reactions expose state before strikes, while direct attacks and future work retain their own phase. */
 export function gw2ResolverPhase(
-  event: Gw2ResolverEvent,
+  event: Readonly<{ type: string; at: number }>,
   current: Readonly<{ at: number; phase: number }> | null
 ): number {
   if (event.type === 'condition_buffer') return GW2_RESOLVER_PHASE.Sample;

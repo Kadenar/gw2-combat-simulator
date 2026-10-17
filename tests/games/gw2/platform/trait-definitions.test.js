@@ -662,7 +662,7 @@ test('hook notifications, transforms, decisions, reactions, and lifetime retain 
       ...effects,
       { type: 'condition', condition: label, stacks: 1, duration: 1 }
     ],
-    reactions: { 'damage.resolved': (_runtime, event) => ({ amount: (event.amount ?? 0) + 1 }) }
+    reactions: { 'damage.resolving': (_runtime, event) => ({ coefficient: (event.coefficient ?? 0) + 1 }) }
   });
   const first = defineTrait({
     id: 101,
@@ -705,7 +705,7 @@ test('hook notifications, transforms, decisions, reactions, and lifetime retain 
   );
   assert.equal(runtime.prepareEvent(context, { cancelled: true }), null);
   assert.equal(runtime.prepareEvent(context, {}).amount, 2);
-  assert.equal(runtime.reactions['damage.resolved'](context, { amount: 0 }, {}).amount, 3);
+  assert.equal(runtime.reactions['damage.resolving'](context, { coefficient: 0 }, {}).coefficient, 3);
   assert.equal(runtime.availability(context, skill, {}).retryAt, 4);
   context.profession.core.count = 5;
   runtime.tasks['trait.expire'](context);

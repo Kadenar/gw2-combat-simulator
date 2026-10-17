@@ -60,7 +60,7 @@ import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-wor
 import type { FlipWindowOptions } from '#gw2/platform/execution/skill-flips.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeWork } from '#gw2/platform/simulation/work-contract.js';
+import { isRuntimeWork, type RuntimeQueueEntry, type RuntimeWork } from '#gw2/platform/simulation/work-contract.js';
 import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { normalizeObservationPolicy } from '#kernel/execution/observation.js';
@@ -181,7 +181,7 @@ export function runRuntime<T extends object>(
       Object.entries(execution.professionReactions ?? {}).map(([stage, handler]) => [
         stage,
         (_context, event, details) => {
-          return handler(runtime.mechanics, event, details ?? {});
+          return handler(runtime.mechanics, event, details);
         }
       ])
     )
@@ -213,7 +213,7 @@ export function runRuntime<T extends object>(
     damageDiagnostics: output === 'damage' || damageDiagnostics,
     horizon: policy.kind === 'absolute' ? canonicalTime(policy.endTimeMs / 1000) : null,
     query,
-    queue,
+    queue: coordinator.packets,
     effects,
     professionState: profession.createState(config),
     helpers: { conditionName: canonicalTargetConditionName, ...profession.catalog },
@@ -324,13 +324,10 @@ export function runRuntime<T extends object>(
       );
     },
     cancelOwner(owner: { id: string; generation: number }) {
-      queue.cancelWhere(
-        (event) =>
-          (event.kind === 'internal' ? (event.owner as RuntimeWork['owner']) : deliveryOwner.owner(event))?.id ===
-            owner.id &&
-          (event.kind === 'internal' ? (event.owner as RuntimeWork['owner']) : deliveryOwner.owner(event))
-            ?.generation === owner.generation
-      );
+      queue.cancelWhere((event) => {
+        const candidate = isRuntimeWork(event) ? event.owner : deliveryOwner.owner(event);
+        return candidate?.id === owner.id && candidate.generation === owner.generation;
+      });
     },
     fireTrigger(point: TriggerPoint, input: object) {
       // Listeners settle before the firing mechanic continues; isolated payload runtimes compile none.
@@ -460,13 +457,9 @@ export function runRuntime<T extends object>(
   captureEffects();
 
   /** Hostile rejection never stops self-state or command execution; lethal siblings settle before the combat capture. */
-  function dispatch(event: Gw2ResolverEvent): void {
-    if (event.kind === 'internal') {
-      withCause(
-        coordinator.workCause(event) ?? null,
-        () => internal.dispatch(event as unknown as RuntimeWork, runtime),
-        true
-      );
+  function dispatch(event: RuntimeQueueEntry): void {
+    if (isRuntimeWork(event)) {
+      withCause(coordinator.workCause(event) ?? null, () => internal.dispatch(event, runtime), true);
       captureEffects();
       return;
     }

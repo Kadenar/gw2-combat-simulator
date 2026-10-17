@@ -4,7 +4,6 @@ import type { Gw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js'
 import type {
   Gw2ResolverEvent,
   Gw2ResolverEventHandlers,
-  Gw2ResolverReaction,
   Gw2ResolverReactionRegistry
 } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -31,7 +30,7 @@ interface CreateGw2ResolverEventHandlersOptions {
 
 import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
 
-const noop: Gw2ResolverReaction = () => {};
+const noop = () => {};
 
 function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions: Gw2ResolverReactionRegistry): void {
   const kind = (event.kind || '').toLowerCase();

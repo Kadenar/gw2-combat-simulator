@@ -85,13 +85,13 @@ test('composition preserves notification order, transforms, suppression, and rea
       onCastStart: () => calls.push('first'),
       rechargeWork: (_context, _skill, work) => work + 2,
       prepareEvent: (_context, event) => ({ ...event, selected: true }),
-      reactions: { 'damage.resolved': () => ({ first: true }) }
+      reactions: { 'damage.resolving': () => ({ coefficient: 2 }) }
     },
     {
       onCastStart: () => calls.push('second'),
       rechargeWork: (_context, _skill, work) => work * 3,
       prepareEvent: (_context, event) => (event.selected ? null : event),
-      reactions: { 'damage.resolved': (_context, event) => ({ second: event.first }) }
+      reactions: { 'damage.resolving': (_context, event) => ({ flatStrikeMultiplier: event.coefficient * 3 }) }
     },
     {
       prepareEvent: () => {
@@ -103,7 +103,10 @@ test('composition preserves notification order, transforms, suppression, and rea
   assert.deepEqual(calls, ['first', 'second']);
   assert.equal(hooks.rechargeWork({}, {}, 4), 18);
   assert.equal(hooks.prepareEvent({}, { type: 'damage', at: 0 }), null);
-  assert.deepEqual(hooks.reactions['damage.resolved']({}, {}, {}), { first: true, second: true });
+  assert.deepEqual(hooks.reactions['damage.resolving']({}, { coefficient: 1 }, {}), {
+    coefficient: 2,
+    flatStrikeMultiplier: 6
+  });
 });
 
 test('composition preserves retry boundaries, permanent denials, and exclusive policy precedence', () => {

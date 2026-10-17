@@ -245,6 +245,16 @@ export interface Gw2ResolverRuntime {
   weaponStrengthRolls: Map<string, { profileId: string; value: number }>;
   weaponStrengthActivationOrder: number;
   dispatchReaction(
+    stage: 'damage.resolving',
+    event: Gw2ResolverEvent,
+    details?: Record<string, unknown>
+  ): Record<string, unknown> | void;
+  dispatchReaction(
+    stage: Exclude<Gw2ResolverStage, 'damage.resolving'>,
+    event: Gw2ResolverEvent,
+    details?: Record<string, unknown>
+  ): void;
+  dispatchReaction(
     stage: Gw2ResolverStage,
     event: Gw2ResolverEvent,
     details?: Record<string, unknown>

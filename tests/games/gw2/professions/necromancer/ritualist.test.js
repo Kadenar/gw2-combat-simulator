@@ -551,12 +551,8 @@ for (const strikesPerSecond of [0, 2]) {
       assert.equal(track.terminal.count, grant.charges);
     }
 
-    assert.deepEqual(
-      observedRuntime(result)
-        .queue.pending()
-        .filter((event) => event.type === 'runtime.allied-strike'),
-      []
-    );
+    // Defensive windows do not create pending offensive grants in the allied-strike owner.
+    assert.deepEqual(observedRuntime(result).alliedStrikeController.pendingEffects(), []);
     assert.deepEqual(result.warnings, []);
   });
 }

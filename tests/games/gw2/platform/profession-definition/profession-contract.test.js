@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
-import { createEventReactions, defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
+import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
+import { planningState } from '#gw2/platform/results/planning-state.js';
 
 // JavaScript definitions must fail before obsolete or misspelled declarations can lose their formulas.
 test('profession normalization rejects unsupported modifier declarations', () => {
@@ -44,17 +45,48 @@ test('profession contract supplies defaults and deterministic hook ordering', ()
 
   profession.modifyAttributes({}, {});
   assert.deepEqual(calls, ['first', 'same', 'later']);
-  createEventReactions({
-    control: [
-      { id: 'later', order: 20, handler: () => calls.push('later-control') },
-      { id: 'first', order: 10, handler: () => calls.push('first-control') }
-    ]
-  }).control({}, { type: 'control' });
-  assert.deepEqual(calls, ['first', 'same', 'later', 'first-control', 'later-control']);
   assert.deepEqual(profession.createState({}), {});
   assert.equal(profession.modifyStrikeDamage({}, 12), 12);
   assert.equal(Object.hasOwn(profession, 'ui'), false);
   assert.equal(Object.hasOwn(profession, 'createBuildDefaults'), false);
+});
+
+// Projection has one callback; absent or undefined output delegates to the observer's detached fallback.
+test('planning projection preserves the selected callback and rejects hook descriptors', () => {
+  const project = ({ profession }) => ({ value: profession.value });
+  const definition = { id: 'projection-callback', name: 'Projection callback' };
+  const selected = defineProfession({ ...definition, resources: { projectPlanningState: project } });
+  assert.equal(selected.projectPlanningState, project);
+  assert.deepEqual(selected.projectPlanningState({ profession: { value: 3 } }), { value: 3 });
+  assert.equal(defineProfession(definition).projectPlanningState({ profession: {} }), undefined);
+  for (const invalid of [[project], { id: 'projection', handler: project }])
+    assert.throws(
+      () => defineProfession({ ...definition, resources: { projectPlanningState: invalid } }),
+      /resources.projectPlanningState must be a function/
+    );
+
+  const family = defineTestProfession({ ...definition, resources: { createState: () => ({ nested: { value: 3 } }) } });
+  for (const projectPlanningState of [undefined, () => undefined]) {
+    const runtime = { ...family.runtimeFor({}), projectPlanningState };
+    // The result boundary, rather than callback normalization, owns the detached fallback.
+    const state = runtime.createState({});
+    const result = planningState(
+      {
+        profession: state,
+        time: 0,
+        activeWeaponSet: 1,
+        config: {},
+        catalog: runtime.catalog,
+        combatActive: false,
+        cooldownController: { cooldownSkillIds: () => [], ammoSkillIds: () => [] }
+      },
+      runtime.projectPlanningState,
+      () => ({ ready: true }),
+      []
+    );
+    result.profession.nested.value = 9;
+    assert.equal(state.nested.value, 3);
+  }
 });
 
 // Chained hooks receive the previous result even when an intermediate hook only observes it.

@@ -25,39 +25,15 @@ interface OrderedHook {
   readonly index: number;
 }
 
-type EventReaction<TContext, TEvent, TDetails, TResult> = (
-  context: TContext,
-  event: TEvent,
-  details?: TDetails
-) => TResult | undefined;
-
-type HookCategory = 'modifier' | 'resource';
-
-/**
- * Each hook belongs to one definition container; state projection belongs to
- * resources. Derive composition lists from this order so new hooks cannot
- * silently miss a subset list.
- */
-const HOOK_DEFINITIONS = Object.freeze([
-  ['projectPlanningState', 'resource'],
-  ['modifyAttributes', 'modifier'],
-  ['modifyConditionAttributes', 'modifier'],
-  ['modifyCriticalChance', 'modifier'],
-  ['modifyCriticalDamage', 'modifier'],
-  ['modifyConditionBaseDuration', 'modifier'],
-  ['modifyConditionDuration', 'modifier']
-] as const satisfies readonly (readonly [string, HookCategory])[]);
-
-// Filtering by category preserves the corresponding container's finite set of hook names.
-const hookNamesWith = <TCategory extends HookCategory>(category: TCategory) =>
-  Object.freeze(HOOK_DEFINITIONS.filter(([, owner]) => owner === category).map(([name]) => name)) as readonly Extract<
-    (typeof HOOK_DEFINITIONS)[number],
-    readonly [string, TCategory]
-  >[0][];
-
-const HOOK_NAMES = Object.freeze(HOOK_DEFINITIONS.map(([name]) => name));
-
-export const MODIFIER_HOOK_NAMES = hookNamesWith('modifier');
+/** Only modifier transforms compose here; the selected modules already compose their planning projection. */
+export const MODIFIER_HOOK_NAMES = Object.freeze([
+  'modifyAttributes',
+  'modifyConditionAttributes',
+  'modifyCriticalChance',
+  'modifyCriticalDamage',
+  'modifyConditionBaseDuration',
+  'modifyConditionDuration'
+] as const);
 
 const MODIFIER_FIELDS: readonly string[] = [...MODIFIER_HOOK_NAMES, 'modifierRules', 'damageBuckets'];
 
@@ -75,8 +51,6 @@ export function assertModifierDefinition(value: unknown, scope = 'modifiers'): v
 
   if (rules != null && !Array.isArray(rules)) throw new TypeError(`${scope}.modifierRules must be an array.`);
 }
-
-const NOOP: ComposableHook = (..._args) => undefined;
 
 const IDENTITY_SECOND_ARGUMENT: ComposableHook = (...args) => args[1];
 
@@ -126,64 +100,17 @@ function orderedHooks(value: unknown, hookName: string): OrderedHook[] {
   return hooks;
 }
 
-/**
- * Chains modifier values in order and retains the last defined state projection.
- */
-function composeHooks(value: unknown, hookName: string, fallback: ComposableHook): ComposableHook {
+/** Chain modifier values in order, preserving the input when a contributor only observes it. */
+function composeModifierHooks(value: unknown, hookName: string): ComposableHook {
   const hooks = orderedHooks(value, hookName);
 
-  if (!hooks.length) return fallback;
+  if (!hooks.length) return IDENTITY_SECOND_ARGUMENT;
 
-  // Modifiers preserve the current value when a hook returns undefined.
-  if (hookName.startsWith('modify')) {
-    const composed = (context: unknown, initialValue: unknown) =>
-      hooks.reduce((chainedValue: unknown, hook) => {
-        const next = hook.handler(context, chainedValue);
-        return next === undefined ? chainedValue : next;
-      }, initialValue);
-
-    return composed;
-  }
-
-  return (context: unknown, value: unknown) => {
-    let result: unknown;
-    for (const hook of hooks) {
+  return (context: unknown, initialValue: unknown) =>
+    hooks.reduce((value: unknown, hook) => {
       const next = hook.handler(context, value);
-
-      if (next !== undefined) result = next;
-    }
-
-    return result;
-  };
-}
-
-/**
- * Normalizes resolver event reactions into deterministic per-event dispatchers.
- */
-export function createEventReactions<
-  TContext = UnvalidatedFields,
-  TEvent = UnvalidatedFields,
-  TDetails extends object = UnvalidatedFields,
-  TResult = unknown
->(
-  value: Readonly<Record<string, unknown>> | null | undefined
-): Readonly<Record<string, EventReaction<TContext, TEvent, TDetails, TResult>>> {
-  const reactions: Record<string, EventReaction<TContext, TEvent, TDetails, TResult>> = {};
-  for (const [eventType, handlers] of Object.entries(value || {})) {
-    const hooks = orderedHooks(handlers, `eventReactions.${eventType}`);
-    reactions[eventType] = (context: TContext, event: TEvent, details = {} as TDetails) => {
-      let result: TResult | undefined;
-      for (const hook of hooks) {
-        const next = hook.handler(context, event, details) as TResult | undefined;
-
-        if (next !== undefined) result = next;
-      }
-
-      return result;
-    };
-  }
-
-  return Object.freeze(reactions);
+      return next === undefined ? value : next;
+    }, initialValue);
 }
 
 /**
@@ -237,24 +164,12 @@ export function defineProfession<TProfessionState extends object, TSkill extends
   // Compile even empty declarations so equipment always participates exactly once in the damage bucket.
   const compiled = compileGw2ModifierRules(modifiers.modifierRules ?? [], modifiers.damageBuckets);
   assertCallbackContainer(resources, ['createState', 'projectPlanningState'], 'resources');
-  const sources: UnvalidatedFields = {
-    projectPlanningState: resources.projectPlanningState,
-    modifyAttributes: modifiers.modifyAttributes,
-    modifyConditionAttributes: modifiers.modifyConditionAttributes,
-    modifyCriticalChance: modifiers.modifyCriticalChance,
-    modifyCriticalDamage: modifiers.modifyCriticalDamage,
-    modifyConditionBaseDuration: modifiers.modifyConditionBaseDuration,
-    modifyConditionDuration: modifiers.modifyConditionDuration
-  };
-
   const composedHooks: DynamicFields = {};
-  for (const name of HOOK_NAMES) {
-    const fallback = name.startsWith('modify') ? IDENTITY_SECOND_ARGUMENT : NOOP;
-    const source = sources[name];
-    const ruleHook =
-      name === 'projectPlanningState' || name === 'modifyConditionAttributes' ? undefined : compiled[name];
+  for (const name of MODIFIER_HOOK_NAMES) {
+    const source = modifiers[name];
+    const ruleHook = name === 'modifyConditionAttributes' ? undefined : compiled[name];
     const hooks = source == null ? [] : Array.isArray(source) ? source : [source];
-    composedHooks[name] = composeHooks(ruleHook ? [...hooks, ruleHook] : hooks, name, fallback);
+    composedHooks[name] = composeModifierHooks(ruleHook ? [...hooks, ruleHook] : hooks, name);
   }
 
   if (definition.canSwapWeaponSetsInCombat != null && typeof definition.canSwapWeaponSetsInCombat !== 'boolean')
@@ -269,6 +184,8 @@ export function defineProfession<TProfessionState extends object, TSkill extends
     catalog: definition.catalog ?? createCanonicalCatalog<TSkill>(),
     createState: (config: Readonly<ProfessionConfig>, balanceContext?: ProfessionBalanceContext) =>
       resources.createState?.(config, balanceContext) ?? {},
+    // An absent projector delegates to the planning observer's detached state fallback.
+    projectPlanningState: resources.projectPlanningState ?? (() => undefined),
     ...composedHooks,
     modifyStrikeDamage: compiled.modifyStrikeDamage,
     modifyConditionDamage: compiled.modifyConditionDamage

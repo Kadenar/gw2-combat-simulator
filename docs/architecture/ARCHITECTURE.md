@@ -118,6 +118,10 @@ executable policies belong in `hooks.resources` and `hooks.endurance`. Native ru
 execution entry validate policy declarations before use; live controllers validate their returned tuning and clocks.
 Optional native hooks default to no-op or identity behavior. A module with only declarative skill data needs no hooks.
 
+`resources.projectPlanningState` is one callback receiving the planning observation input, not an ordered hook list. An
+absent callback or an `undefined` result uses the observer's detached profession-state fallback. Native module
+projections compose before profession normalization.
+
 - `planningState.availability` captures the composed runtime profession gate for each player-castable candidate and its
   default command. It is detached, excludes scheduler cooldown/lane checks, and is omitted from score runs. Retry times
   are absolute seconds for reevaluation, not guaranteed cast times. The palette reports startup as unevaluated and
@@ -173,6 +177,10 @@ the rotation driver consumes commands through its operations. `resolver/effect-d
 preparation, immediate condition settlement, target gates, and reaction settlement. `results/project-runtime.ts`
 projects the settled run without advancing it.
 
+The coordinator's single heap stores the union of resolver packets and internal work. Work retains its typed payload and
+lifetime owner without public packet identity. The resolver receives only packet scheduling, cancellation, and current
+ordering capabilities; dispatch, pending-work inspection, and owner cancellation stay with execution.
+
 Mechanic contributions use the explicit `RuntimeHooks` surface in `profession-definition/runtime-hooks.ts`; unknown
 fields and duplicate named handlers fail. Notification order, transform propagation, retry precedence, and policy
 selection remain explicit. Module declarations, rule compilation, and hook composition use
@@ -227,9 +235,14 @@ Schema (version 1) lives in `platform/events/events.ts`:
 
 `platform/resolver` owns standard types. Common handlers resolve damage and conditions; the runtime owns queue draining
 and combat/death gates. Professions react to named stages (listed in `platform/resolver/reaction-registry.ts`; bare
-names like `damage` are rejected). Reaction details include resolved facts such as `hitContext`; producers submit
-effects through `runtime.effects.emit`. Conditions that must become visible within the current reaction use a packet
-request with `settlement: 'reaction'` at the live clock:
+names like `damage` are rejected). Only `damage.resolving` returns packet patches: each handler sees earlier patches,
+and the merged result is applied before hit resolution. Every other stage is a void notification; returned objects are
+discarded and subsequent handlers receive the original event. Module composition and the resolver registry use the same
+stage rules, preserving their established handler order.
+
+Reaction details include resolved facts such as `hitContext`; producers submit effects through `runtime.effects.emit`.
+Conditions that must become visible within the current reaction use a packet request with `settlement: 'reaction'` at
+the live clock:
 
 ```js
 hooks: {
