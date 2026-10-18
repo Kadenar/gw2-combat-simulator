@@ -309,7 +309,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
       [
         { type: 'strike', coefficient: 0.75, canCrit: true },
         { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 8, duration: 10, metadata: {} },
-        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+        { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
       ]
     )
   },

@@ -373,7 +373,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.7, canCrit: true },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.PULL }
     ])
   },
   [ID.ETCHING_JO_KULHLAUP]: {
@@ -565,7 +565,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         canCrit: true
       },
       { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 10, metadata: {} },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.FLOAT }
     ])
   },
   [ID.ETCHING_DERECHO]: {
@@ -615,7 +615,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2, canCrit: true },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
     ])
   },
   [ID.DERECHO]: {
@@ -632,7 +632,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 4, canCrit: true },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
     ])
   },
   [ID.STONE_STRIKE]: {

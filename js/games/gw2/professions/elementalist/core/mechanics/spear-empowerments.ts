@@ -54,7 +54,7 @@ export function empowerElementalistSpearPacket(
 
   if (followup.control) {
     followup.control = false;
-    context.effects.emit(elementalistControlRequest({ ...event, controlKind: CONTROL.CROWD_CONTROL }, emissionCast));
+    context.effects.emit(elementalistControlRequest({ ...event, controlKind: CONTROL.DAZE }, emissionCast));
   }
 
   return {

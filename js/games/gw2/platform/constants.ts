@@ -41,11 +41,8 @@ export const AURA = Object.freeze({
   SHOCKING: 'Shocking Aura'
 });
 
-/** Control effects and runtime markers share event classification without implying the same disable behavior. */
+/** Named disables; INITIAL_STATE restores imported proc windows without inventing a preceding disable. */
 export const CONTROL = Object.freeze({
-  GENERIC: 'control',
-  CROWD_CONTROL: 'crowd-control',
-  DEFIANCE: 'defiance',
   INITIAL_STATE: 'initial-state',
   DAZE: 'daze',
   FEAR: 'fear',

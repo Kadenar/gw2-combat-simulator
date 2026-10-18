@@ -194,7 +194,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'control',
-        controlKind: CONTROL.GENERIC
+        controlKind: CONTROL.PULL
       }
     ]
   }

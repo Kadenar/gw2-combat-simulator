@@ -405,7 +405,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3, metadata: {} },
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3, metadata: {} },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
     ])
   },
   // Nine-packet flurry; the shared tick table keeps one Vulnerability stack aligned to each strike.

@@ -157,7 +157,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
         metadata: {},
         canCrit: true
       },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
     ])
   },
   // --- Conjures ---------------------------------------------------------------
@@ -236,7 +236,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Glyph',
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5, canCrit: true },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
     ])
   },
   [ID.GLYPH_OF_ELEMENTAL_POWER_EARTH]: {

@@ -45,7 +45,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
       {
         type: 'control',
         actorType: ACTOR.SUMMON,
-        controlKind: CONTROL.DEFIANCE
+        controlKind: CONTROL.STUN
       }
     ]
   },

@@ -178,7 +178,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         { type: 'strike', coefficient: 0.25, canCrit: true },
         { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 8, duration: 8, metadata: {} },
         { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 4, metadata: {} },
-        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+        { type: 'control', applications: 1, controlKind: CONTROL.KNOCKBACK }
       ]),
       {
         type: 'strike',
@@ -271,7 +271,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         metadata: {},
         canCrit: true
       },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
     ]),
     specialization: 'Weaver'
   }

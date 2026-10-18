@@ -165,7 +165,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        controlKind: CONTROL.CROWD_CONTROL
+        controlKind: CONTROL.STUN
       }
     ]
   },
@@ -259,7 +259,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     skillFamily: 'Familiar',
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.65, canCrit: true },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
     ])
   },
   [ID.SEISMIC_IMPACT]: {
@@ -297,7 +297,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 6, duration: 10, metadata: {} },
       // The initial knockdown triggers disable passives before the later damage and barrier pulses.
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL, atMs: 1320 },
+      { type: 'control', applications: 1, controlKind: CONTROL.KNOCKDOWN, atMs: 1320 },
       // The barrier supplies party Protection independently of hitting an enemy; its pulses keep a fixed cadence.
       {
         type: 'boon',

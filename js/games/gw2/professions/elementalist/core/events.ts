@@ -1,4 +1,4 @@
-import { ACTOR, CONTROL } from '#gw2/platform/constants.js';
+import { ACTOR, type ControlKind } from '#gw2/platform/constants.js';
 import { normalizeEffectMetadata } from '#gw2/platform/effects/audience-metadata-validation.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -138,8 +138,11 @@ export function elementalistBuffRequest(
   };
 }
 
-/** Controls retain their authored category while joining the shared accepted-control pipeline. */
-export function elementalistControlRequest(packet: Packet, emissionCast?: EffectDelivery['cast']): PacketEmission {
+/** Controls require a named type so procedural riders cannot silently invent unspecified disables. */
+export function elementalistControlRequest(
+  packet: Packet & { controlKind: ControlKind },
+  emissionCast?: EffectDelivery['cast']
+): PacketEmission {
   return {
     kind: 'packet',
     cause: packet.cause,
@@ -148,7 +151,7 @@ export function elementalistControlRequest(packet: Packet, emissionCast?: Effect
       ...fields(packet),
       type: 'control',
       at: packet.at,
-      controlKind: packet.controlKind ?? CONTROL.CROWD_CONTROL
+      controlKind: packet.controlKind
     }
   };
 }

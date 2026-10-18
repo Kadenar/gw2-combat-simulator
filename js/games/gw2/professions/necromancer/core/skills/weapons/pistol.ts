@@ -25,7 +25,7 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
         coefficient: 1
       },
       { type: 'condition', condition: CONDITION.POISONED, stacks: 5, duration: 6 },
-      { type: 'control', controlKind: CONTROL.GENERIC }
+      { type: 'control', controlKind: CONTROL.STUN }
     ])
   },
   [ID.WEEPING_SHOTS]: {

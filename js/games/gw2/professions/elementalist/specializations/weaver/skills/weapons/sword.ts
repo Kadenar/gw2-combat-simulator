@@ -180,6 +180,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     specialization: 'Weaver'
   },
   [ID.GALE_STRIKE]: {
+    // The initial lift disables once; cyclone damage does not repeatedly trigger disable procs.
     name: 'Gale Strike',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -194,31 +195,27 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         { type: 'strike', coefficient: 0.275, canCrit: true },
         { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5, metadata: {} },
         { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, metadata: {} },
-        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+        { type: 'control', applications: 1, controlKind: CONTROL.FLOAT }
       ]),
       ...impactEffects({ atMs: 920, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.275, canCrit: true },
         { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5, metadata: {} },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, metadata: {} },
-        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, metadata: {} }
       ]),
       ...impactEffects({ atMs: 1320, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.275, canCrit: true },
         { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5, metadata: {} },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, metadata: {} },
-        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, metadata: {} }
       ]),
       ...impactEffects({ atMs: 1720, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.275, canCrit: true },
         { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5, metadata: {} },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, metadata: {} },
-        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, metadata: {} }
       ]),
       ...impactEffects({ atMs: 2120, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.275, canCrit: true },
         { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5, metadata: {} },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, metadata: {} },
-        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5, metadata: {} }
       ])
     ],
     specialization: 'Weaver'

@@ -25,10 +25,6 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         hits: 1
       },
       {
-        type: 'control',
-        controlKind: CONTROL.GENERIC
-      },
-      {
         type: 'condition',
         condition: CONDITION.BLINDNESS,
         stacks: 1,
@@ -79,7 +75,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       },
       {
         type: 'control',
-        controlKind: CONTROL.GENERIC
+        controlKind: CONTROL.STUN
       }
     ]
   },
@@ -209,7 +205,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: []
   },
   [ID.QUICK_RETRIBUTION]: {
-    // A committed follow-up consumes its window and restores the parent.
+    // The follow-up owns the outgoing daze; Roiling Light only breaks the player's stun and opens this window.
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.QUICK_RETRIBUTION } }],
     castTimeMs: 200,
     effects: [
@@ -217,6 +213,10 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         type: 'strike',
         coefficient: 1,
         hits: 1
+      },
+      {
+        type: 'control',
+        controlKind: CONTROL.DAZE
       }
     ]
   }

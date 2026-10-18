@@ -267,7 +267,7 @@ function applySleightOfHand(runtime: ThiefRuntime, { cast }: StealAcceptance): v
       sourceId: TRAIT.SLEIGHT_OF_HAND,
       activationId: cast.id,
       name: 'Sleight of Hand - Daze',
-      controlKind: String(control.kind)
+      controlKind: CONTROL.DAZE
     })
   });
 }

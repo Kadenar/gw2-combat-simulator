@@ -253,7 +253,7 @@ const weaverPistolSideEffects: RuntimeProfession<ElementalistRuntimeState, Eleme
           actorType: ACTOR.PLAYER,
           skillName: skill.name,
           skillId: skill.id,
-          controlKind: CONTROL.CROWD_CONTROL
+          controlKind: CONTROL.DAZE
         },
         { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
       )

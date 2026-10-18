@@ -192,7 +192,7 @@ test('Earth familiar Protection shares an internal cooldown across accepted play
                 skillId: 42,
                 skillName: 'Fixture disable',
                 actorType,
-                controlKind: CONTROL.CROWD_CONTROL
+                controlKind: CONTROL.STUN
               }
             });
           }

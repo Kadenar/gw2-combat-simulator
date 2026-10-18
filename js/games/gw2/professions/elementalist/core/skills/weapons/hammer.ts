@@ -484,7 +484,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.3, canCrit: true },
       { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3, metadata: {} },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.KNOCKDOWN }
     ])
   },
   // Two-stage skill: a small hit at cast end, then the delayed blast finisher and crowd control together.
@@ -525,7 +525,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
           metadata: {},
           canCrit: true
         },
-        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+        { type: 'control', applications: 1, controlKind: CONTROL.STUN }
       ])
     ]
   },

@@ -590,7 +590,7 @@ describe('Mechanist grandmaster active effects', () => {
         TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
         TRAIT.MECH_CORE_J_DRIVE
       ],
-      target: { conditions: {} }
+      target: { defiant: true, conditions: {} }
     });
     const punch = fighter.resolvedEvents.find(
       (event) => event.type === 'damage' && event.name === 'Rocket Punch (Mech)'
@@ -629,7 +629,10 @@ describe('Mechanist grandmaster active effects', () => {
     assert.ok(
       fighter.events.some(
         (event) =>
-          event.type === 'control' && event.skillName === 'Rocket Punch (Mech)' && event.controlKind === 'defiance'
+          event.type === 'control' &&
+          event.skillName === 'Rocket Punch (Mech)' &&
+          event.controlKind === 'stun' &&
+          event.actorType === 'summon'
       )
     );
   });

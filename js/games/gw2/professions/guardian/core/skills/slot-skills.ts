@@ -46,7 +46,7 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'control',
-        controlKind: CONTROL.GENERIC
+        controlKind: CONTROL.KNOCKDOWN
       }
     ]
   },
@@ -64,7 +64,7 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'control',
-        controlKind: CONTROL.GENERIC
+        controlKind: CONTROL.KNOCKDOWN
       }
     ]
   },

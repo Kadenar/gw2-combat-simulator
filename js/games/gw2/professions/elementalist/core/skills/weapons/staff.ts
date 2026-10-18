@@ -469,7 +469,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        controlKind: CONTROL.CROWD_CONTROL
+        controlKind: CONTROL.KNOCKBACK
       }
     ]
   },
@@ -496,7 +496,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
       { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3, metadata: {} }
     ])
   },
-  // Two crowd-control pulses (the field's edges) at 200ms and 680ms, each with its own strike.
   [ID.STATIC_FIELD]: {
     name: 'Static Field',
     type: 'Weapon',
@@ -516,13 +515,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     ],
     skillFamily: 'Weapon skill',
     effects: [
-      ...impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
-        { type: 'strike', coefficient: 0.5, canCrit: true },
-        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
-      ]),
       ...impactEffects({ atMs: 680, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.5, canCrit: true },
-        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+        { type: 'control', controlKind: CONTROL.STUN }
       ])
     ]
   },
@@ -651,7 +646,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        controlKind: CONTROL.CROWD_CONTROL
+        controlKind: CONTROL.KNOCKBACK
       }
     ]
   },

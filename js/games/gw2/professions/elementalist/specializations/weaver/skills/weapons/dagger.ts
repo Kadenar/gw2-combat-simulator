@@ -149,11 +149,11 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         },
         { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3, metadata: {} },
         { type: 'boon', boon: BOON.REGENERATION, stacks: 1, duration: 4, metadata: {} },
-        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+        { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
       ]),
       ...impactEffects({ atMs: 1520, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1.25, canCrit: true },
-        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+        { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
       ])
     ],
     specialization: 'Weaver'
@@ -172,7 +172,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 960, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.15, canCrit: true },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.KNOCKDOWN }
     ]),
     specialization: 'Weaver'
   },

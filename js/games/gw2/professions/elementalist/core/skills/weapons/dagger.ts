@@ -473,7 +473,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
       { atMs: 840, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 1.5, canCrit: true },
-        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+        { type: 'control', applications: 1, controlKind: CONTROL.STUN }
       ]
     )
   },
@@ -520,7 +520,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         coefficient: 0
       },
       { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 10, metadata: {} },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.LAUNCH }
     ])
   },
   [ID.IMPALE]: {
@@ -617,7 +617,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         metadata: {},
         canCrit: true
       },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.KNOCKDOWN }
     ])
   },
   // The zero-coefficient packet at cast start exists only to fire the blast finisher at channel start;

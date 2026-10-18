@@ -151,7 +151,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
         metadata: {},
         canCrit: true
       },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
     ])
   },
   // Projectile-destruction bubble with no offensive packets; the fragment only models its cast time and recharge.
@@ -185,7 +185,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        controlKind: CONTROL.CROWD_CONTROL
+        controlKind: CONTROL.KNOCKDOWN
       }
     ]
   },

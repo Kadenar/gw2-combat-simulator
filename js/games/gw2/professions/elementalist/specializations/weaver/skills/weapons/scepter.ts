@@ -152,7 +152,7 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       { type: 'strike', coefficient: 2, canCrit: true },
       { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 4, metadata: {} },
       { type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5, metadata: {} },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
     ]),
     specialization: 'Weaver'
   },
@@ -241,7 +241,7 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       ...impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1, canCrit: true },
-        { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+        { type: 'control', applications: 1, controlKind: CONTROL.STUN }
       ])
     ],
     specialization: 'Weaver'

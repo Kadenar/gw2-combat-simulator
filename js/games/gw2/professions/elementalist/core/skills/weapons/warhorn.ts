@@ -156,7 +156,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         metadata: {},
         canCrit: true
       },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.KNOCKBACK }
     ])
   },
   // Contributes only a water combo field; no strike or condition packets are modelled.
@@ -202,7 +202,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         metadata: {}
       },
       { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 2.5, metadata: {} },
-      { type: 'control', applications: 1, controlKind: CONTROL.CROWD_CONTROL }
+      { type: 'control', applications: 1, controlKind: CONTROL.PULL }
     ])
   },
   // Travelling orb whose damage decays over nineteen hits down to a 0.05 floor; each hit also

@@ -34,7 +34,7 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
         coefficient: 1.2
       },
       { type: 'condition', condition: CONDITION.TORMENT, stacks: 2, duration: 9 },
-      { type: 'control', controlKind: CONTROL.GENERIC }
+      { type: 'control', controlKind: CONTROL.KNOCKDOWN }
     ])
   },
   [ID.HARROWING_WAVE]: {

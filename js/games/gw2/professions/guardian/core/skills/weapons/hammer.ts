@@ -23,7 +23,7 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       {
         type: 'control',
-        controlKind: CONTROL.GENERIC
+        controlKind: CONTROL.LAUNCH
       }
     ]
   },

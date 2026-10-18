@@ -339,7 +339,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     // Only the committed follow-up consumes its own flip.
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.LUCENT_THRUST } }],
     castTimeMs: 440,
-    // Share the melee control and blind timing without moving the separate projectile declaration.
+    // The melee hit blinds; the separate projectile adds damage without a disable.
     effects: [
       {
         weaponStrengthProfileId: 'transform.radiant-forge',
@@ -357,10 +357,6 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
         timingScale: 'cast'
       },
       ...impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
-        {
-          type: 'control',
-          controlKind: CONTROL.GENERIC
-        },
         {
           type: 'condition',
           condition: CONDITION.BLINDNESS,

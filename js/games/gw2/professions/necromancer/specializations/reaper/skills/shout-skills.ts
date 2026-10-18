@@ -14,10 +14,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.YOU_ARE_ALL_WEAKLINGS]: {
     castTimeMs: 0,
-    effects: [
-      { type: 'strike', coefficient: 2.5, hits: 1 },
-      { type: 'control', controlKind: CONTROL.GENERIC }
-    ]
+    effects: [{ type: 'strike', coefficient: 2.5, hits: 1 }]
   },
   [ID.NOTHING_CAN_SAVE_YOU]: {
     castTimeMs: 360,
@@ -30,7 +27,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 680,
     effects: [
       { type: 'strike', coefficient: 3, hits: 1 },
-      { type: 'control', controlKind: CONTROL.GENERIC },
+      { type: 'control', controlKind: CONTROL.STUN },
       { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 4 }
     ]
   },

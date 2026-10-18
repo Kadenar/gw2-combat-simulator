@@ -16,7 +16,7 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, P
       },
       {
         type: 'control',
-        controlKind: CONTROL.GENERIC
+        controlKind: CONTROL.KNOCKBACK
       }
     ])
   },

@@ -191,7 +191,7 @@ test('removed Ignite tier stays empty while the next named tier retains its dura
   assert.ok(burns.every((event) => event.duration === 9));
 });
 
-test('Rocket Punch keeps Burning and control when its strike is removed', () => {
+test('Rocket Punch keeps Burning and stun when its strike is removed', () => {
   // Electric Artillery triggers the punch; Lightning Rod only prepares the spear flip.
   const result = run(
     engineerProfession,
@@ -207,7 +207,7 @@ test('Rocket Punch keeps Burning and control when its strike is removed', () => 
     false
   );
   assert.ok(packets.some((event) => event.type === 'condition'));
-  assert.ok(packets.some((event) => event.type === 'control'));
+  assert.ok(packets.some((event) => event.type === 'control' && event.controlKind === 'stun'));
 });
 
 test('patched resource capacities seed simulation and presentation from the same catalog', () => {
