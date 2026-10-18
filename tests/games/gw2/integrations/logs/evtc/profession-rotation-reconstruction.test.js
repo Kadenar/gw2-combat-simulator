@@ -1,3 +1,4 @@
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
@@ -75,7 +76,7 @@ test('packet evidence distinguishes empty, partial, and explicitly timed matches
       'mirage',
       Array.from({ length: eventCount }, () => event({ time: 200, skillId: 1000, value: 100 }))
     );
-    c.catalog = { skills: [{ id: 1000, name: 'Mind Stab', castTimeMs: 100, effects }] };
+    c.catalog = rotationCatalog([{ id: 1000, name: 'Mind Stab', castTimeMs: 100, effects }]);
     const result = createStrikePacketMatcher(c)({
       start: 100,
       end: 200,
@@ -482,12 +483,13 @@ test('every profession imports incomplete evidence without inventing setup from 
         event({ time: 800, skillId: 900002, value: 200 })
       ]
     });
-    const out = reconstructEvtcRotation(fixture, {
-      skills: [
+    const out = reconstructEvtcRotation(
+      fixture,
+      rotationCatalog([
         { id: 900001, name: 'Dependent input', castTimeMs: 400, effects: [] },
         { id: 900002, name: 'Missing instant', castTimeMs: 0, effects: [] }
-      ]
-    });
+      ])
+    );
     assert.deepEqual(
       out.sourceActions.map((a) => a.rawSkillId),
       [900001],

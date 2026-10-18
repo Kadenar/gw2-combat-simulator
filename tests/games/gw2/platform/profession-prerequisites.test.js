@@ -95,7 +95,7 @@ test('target-condition queries combine assumptions and chronological runtime sta
         {
           stacks: [
             { appliedAt: 0, expiresAt: 2, weight: 2 },
-            { appliedAt: 1, expiresAt: 3, weight: 3, removedAt: 2.5 }
+            { appliedAt: 1, expiresAt: 2.5, weight: 3 }
           ]
         }
       ],
@@ -154,7 +154,7 @@ test('combat queries honor canonical caps on combined permanent and live target 
       assert.equal(query.targetConditionStacks(name, at, runtime), Number(permanent), `${name} at ${at}`);
     }
 
-    stack.removedAt = 2;
+    stack.expiresAt = 2;
     assert.equal(query.targetConditionStacks(name, 2, runtime), Number(permanent), `${name} removed`);
   }
 });
@@ -413,7 +413,7 @@ test('permanent Vulnerability at the cap skips history while uncapped queries ob
     assert.equal(query.vulnerabilityStacksAt(0, runtime), Math.min(25, configured));
     assert.equal(query.vulnerabilityStacksAt(1, runtime), Math.min(25, configured + 10));
     assert.equal(query.vulnerabilityStacksAt(3, runtime), Math.min(25, configured));
-    stack.removedAt = 1;
+    stack.expiresAt = 1;
     assert.equal(query.targetConditionStacks('vulnerability', 1, runtime), Math.min(25, configured));
 
     if (configured >= 25) assert.equal(reads, 0);

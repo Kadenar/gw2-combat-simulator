@@ -109,7 +109,7 @@ test('Ranger condition-count bonuses use canonical active conditions and query p
   const config = { target: { conditions: { Burning: true } } };
   const cases = [
     [{ config, runtime }, 1],
-    ...[{ appliedAt: 6 }, { removedAt: 5 }, { expiresAt: 5 }, { weight: 0 }].map((patch) => [
+    ...[{ appliedAt: 6 }, { expiresAt: 5 }, { weight: 0 }].map((patch) => [
       { runtime: { conditionState: new Map([['Burning', { stacks: [{ ...stack, ...patch }] }]]) } },
       0
     ]),

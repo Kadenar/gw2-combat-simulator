@@ -1,3 +1,4 @@
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { rotationActionSummary } from '#gw2/integrations/logs/shared/rotation/summary.js';
@@ -38,7 +39,7 @@ test('action summaries preserve catalog, canonical, and unmatched identities', (
 });
 
 test('both adapters retain source provenance beside the common resolved identity', () => {
-  const catalog = { skills: [{ id: 2000, name: 'Observed', type: 'Weapon', castTimeMs: 500, effects: [] }] };
+  const catalog = rotationCatalog([{ id: 2000, name: 'Observed', type: 'Weapon', castTimeMs: 500, effects: [] }]);
   const report = reconstructDpsReportRotation(
     {
       players: [

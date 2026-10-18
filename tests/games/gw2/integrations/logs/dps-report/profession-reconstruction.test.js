@@ -1,3 +1,4 @@
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -540,9 +541,7 @@ test('collapses Rend animation rows into one Warrior cast', () => {
     },
     2_000
   );
-  const catalog = {
-    skills: [skill(80_247, 'Rend', { type: 'weapon', slot: 'weapon_3', castTimeMs: 960 })]
-  };
+  const catalog = rotationCatalog([skill(80_247, 'Rend', { type: 'weapon', slot: 'weapon_3', castTimeMs: 960 })]);
 
   const result = reconstructDpsReportRotation(report, catalog);
   const rend = result.actions.find((action) => action.name === 'Rend');
@@ -659,25 +658,23 @@ test('normalizes Renegade warband variants and ignores generated Spear mine sign
       s41858: { name: 'Legendary Renegade Stance', isInstantCast: true }
     }
   );
-  const catalog = {
-    skills: [
-      skill(28287, 'Embrace the Darkness', { castTimeMs: 440, upkeepCost: 6 }),
-      skill(72938, 'Abyssal Blitz', { type: 'weapon', weapon: 'Spear', castTimeMs: 520 }),
-      skill(73015, 'Abyssal Strike', {
-        type: 'weapon',
-        weapon: 'Spear',
-        slot: 'weapon_1',
-        castTimeMs: 480
-      }),
-      skill(73149, 'Blitz Mines', { type: 'weapon', weapon: 'Spear', castTimeMs: 0 }),
-      skill(41220, "Darkrazor's Daring", { castTimeMs: 500 }),
-      skill(72366, "Darkrazor's Daring", { castTimeMs: 0, simulatorExcluded: true }),
-      // A release is identified by its upkeep flip parent.
-      skill(26693, 'Resist the Darkness', { castTimeMs: 0, flipParentId: 28287 }),
-      skill(41858, 'Legendary Renegade Stance', { castTimeMs: 0 }),
-      skill(-4, 'Swap Legends', { castTimeMs: 0 })
-    ]
-  };
+  const catalog = rotationCatalog([
+    skill(28287, 'Embrace the Darkness', { castTimeMs: 440, upkeepCost: 6 }),
+    skill(72938, 'Abyssal Blitz', { type: 'weapon', weapon: 'Spear', castTimeMs: 520 }),
+    skill(73015, 'Abyssal Strike', {
+      type: 'weapon',
+      weapon: 'Spear',
+      slot: 'weapon_1',
+      castTimeMs: 480
+    }),
+    skill(73149, 'Blitz Mines', { type: 'weapon', weapon: 'Spear', castTimeMs: 0 }),
+    skill(41220, "Darkrazor's Daring", { castTimeMs: 500 }),
+    skill(72366, "Darkrazor's Daring", { castTimeMs: 0, simulatorExcluded: true }),
+    // A release is identified by its upkeep flip parent.
+    skill(26693, 'Resist the Darkness', { castTimeMs: 0, flipParentId: 28287 }),
+    skill(41858, 'Legendary Renegade Stance', { castTimeMs: 0 }),
+    skill(-4, 'Swap Legends', { castTimeMs: 0 })
+  ]);
 
   const result = reconstructDpsReportRotation(report, catalog);
 
@@ -710,25 +707,23 @@ test('normalizes Power Herald split weapon animations and automatic upkeep relea
       s62713: { name: "Phantom's Onslaught (Hit)" }
     }
   );
-  const catalog = {
-    skills: [
-      skill(27074, 'Deathstrike', { type: 'weapon', weapon: 'Sword', castTimeMs: 720 }),
-      skill(28625, 'Deathstrike', { type: 'weapon', weapon: 'Sword', castTimeMs: 0 }),
-      skill(27107, 'Impossible Odds', { castTimeMs: 0, upkeepCost: 5 }),
-      skill(28382, 'Relinquish Power', { castTimeMs: 0, flipParentId: 27107 }),
-      skill(-4, 'Swap Legends', { castTimeMs: 0 }),
-      skill(62895, "Phantom's Onslaught", {
-        type: 'weapon',
-        weapon: 'Greatsword',
-        castTimeMs: 440
-      }),
-      skill(62713, "Phantom's Onslaught", {
-        type: 'weapon',
-        weapon: 'Greatsword',
-        castTimeMs: 440
-      })
-    ]
-  };
+  const catalog = rotationCatalog([
+    skill(27074, 'Deathstrike', { type: 'weapon', weapon: 'Sword', castTimeMs: 720 }),
+    skill(28625, 'Deathstrike', { type: 'weapon', weapon: 'Sword', castTimeMs: 0 }),
+    skill(27107, 'Impossible Odds', { castTimeMs: 0, upkeepCost: 5 }),
+    skill(28382, 'Relinquish Power', { castTimeMs: 0, flipParentId: 27107 }),
+    skill(-4, 'Swap Legends', { castTimeMs: 0 }),
+    skill(62895, "Phantom's Onslaught", {
+      type: 'weapon',
+      weapon: 'Greatsword',
+      castTimeMs: 440
+    }),
+    skill(62713, "Phantom's Onslaught", {
+      type: 'weapon',
+      weapon: 'Greatsword',
+      castTimeMs: 440
+    })
+  ]);
 
   const result = reconstructDpsReportRotation(report, catalog);
   // Composite animation segments must collapse to one player input for each weapon skill.
@@ -762,15 +757,13 @@ test('maps Conduit Cosmic Wisdom variants and split Mace animations to player in
       s26923: { name: 'Frigid Blitz' }
     }
   );
-  const catalog = {
-    skills: [
-      skill(28287, 'Embrace the Darkness', { type: 'elite', castTimeMs: 440 }),
-      skill(27505, 'Banish Enchantment', { type: 'utility', castTimeMs: 440 }),
-      skill(27917, 'Call to Anguish', { type: 'utility', castTimeMs: 800 }),
-      skill(76503, 'Unyielding Impact', { type: 'utility', castTimeMs: 920 }),
-      skill(28029, 'Frigid Blitz', { type: 'weapon', castTimeMs: 960 })
-    ]
-  };
+  const catalog = rotationCatalog([
+    skill(28287, 'Embrace the Darkness', { type: 'elite', castTimeMs: 440 }),
+    skill(27505, 'Banish Enchantment', { type: 'utility', castTimeMs: 440 }),
+    skill(27917, 'Call to Anguish', { type: 'utility', castTimeMs: 800 }),
+    skill(76503, 'Unyielding Impact', { type: 'utility', castTimeMs: 920 }),
+    skill(28029, 'Frigid Blitz', { type: 'weapon', castTimeMs: 960 })
+  ]);
 
   const result = reconstructDpsReportRotation(report, catalog);
 

@@ -1,3 +1,4 @@
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -109,7 +110,7 @@ test('synthesized inputs have explicit evidence without borrowing a source row o
     [ENGINEER_SKILL_IDS.SUN_RIPPER_NON_HOLOSMITH, 'Sun Ripper', 1600, 2000]
   ];
   const sunEdge = { id: ENGINEER_SKILL_IDS.SUN_EDGE_NON_HOLOSMITH, name: 'Sun Edge', castTimeMs: 400, effects: [] };
-  const catalog = { skills: [...rows.map(([id, name]) => ({ id, name, castTimeMs: 400, effects: [] })), sunEdge] };
+  const catalog = rotationCatalog([...rows.map(([id, name]) => ({ id, name, castTimeMs: 400, effects: [] })), sunEdge]);
   const fixture = log({
     agents: [{ ...log().agents[0], profession: 3, elite: 0 }],
     skills: catalog.skills,
@@ -152,7 +153,7 @@ test('synthesized inputs have explicit evidence without borrowing a source row o
 });
 
 test('Conduit import requires Haze timing only for discovered Haze actions', () => {
-  const catalog = { skills: [{ id: 77141, name: 'Beguiling Haze', castTimeMs: 1000 }] };
+  const catalog = rotationCatalog([{ id: 77141, name: 'Beguiling Haze', castTimeMs: 1000 }]);
   const action = { start: 0, end: 1000, eventIndex: 0, rawSkillId: 1, status: 'completed' };
   assert.deepEqual(normalizeConduitHazeActions([action], catalog), [action]);
   assert.throws(

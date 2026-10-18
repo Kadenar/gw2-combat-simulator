@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
-import { loadProfessionAppAdapter, professionOptions } from '#gw2/profession-registry.js';
+import { professionOptions } from '#gw2/profession-registry.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 // Every profession must preserve empty tiers and minor opt-outs through the shared build codec and trait resolver.
 test('disabled traits survive saving and loading for every profession', async () => {

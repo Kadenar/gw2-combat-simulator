@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 test('Soulbeast spear diagnostic import loads and simulates with the requested equipment', async () => {
   const [savedBuild, savedRotation, adapter] = await Promise.all([

@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createDefaultBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
-import { loadProfessionAppAdapter, professionRegistry } from '#gw2/profession-registry.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { createBuildContext } from '#gw2/professions/guardian/build/context.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 

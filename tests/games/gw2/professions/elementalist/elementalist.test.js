@@ -4,12 +4,8 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import {
-  loadProfession,
-  loadProfessionAppAdapter,
-  professionOptions,
-  professionRegistry
-} from '#gw2/profession-registry.js';
+import { loadProfession, professionOptions, professionRegistry } from '#gw2/profession-registry.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import {
   ELEMENTALIST_BUILD_SCHEMA_VERSION,
   createElementalistBuildDefaults,

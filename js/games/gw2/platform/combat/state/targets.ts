@@ -148,17 +148,14 @@ export function permanentTargetConditionStacks(config: Gw2Config, name: string):
 function activeRuntimeStackWeight(stack: Gw2RuntimeConditionStack, at: number): number {
   const appliedAt = stack.appliedAt ?? -Infinity;
   const expiresAt = stack.expiresAt ?? Infinity;
-  const removedAt = stack.removedAt ?? Infinity;
-  return isTimeInWindow(at, appliedAt, Math.min(expiresAt, removedAt))
-    ? Math.max(0, stack.weight ?? stack.stacks ?? 0)
-    : 0;
+  return isTimeInWindow(at, appliedAt, expiresAt) ? Math.max(0, stack.weight ?? stack.stacks ?? 0) : 0;
 }
 
 /**
  * Gets the active player-applied stacks recorded by scheduler or resolver
- * runtime state. Half-open expiry/removal boundaries preserve chronological
- * same-time behavior: a stack is visible only after its application has been
- * inserted into runtime state and is inactive at its expiry/removal timestamp.
+ * runtime state. Retirement shortens expiry, so one half-open lifetime governs
+ * both condition queries and resolver stack counts. A stack is visible only
+ * after insertion and becomes inactive at its expiry timestamp.
  */
 export function runtimeTargetConditionStacks(
   runtime: Gw2RuntimeStateLike | null | undefined,
@@ -232,7 +229,6 @@ export interface Gw2TargetConfig {
 export interface Gw2RuntimeConditionStack {
   readonly appliedAt?: number;
   readonly expiresAt?: number;
-  readonly removedAt?: number;
   readonly weight?: number;
   readonly stacks?: number;
 }

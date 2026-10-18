@@ -23,7 +23,8 @@ import { clampStartingResourceValues, selectSpecialization } from '#gw2/app/buil
 import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
 import { applyBuildFileImport, previewBuildFileImport } from '#gw2/app/import-export/build-file-import.js';
 import { loadManifestBuilds } from '#gw2/app/import-export/rotation-import-dialog.js';
-import { loadProfessionAppAdapter, professionOptions, professionRegistry } from '#gw2/profession-registry.js';
+import { professionOptions, professionRegistry } from '#gw2/profession-registry.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import {
   displayedSkillTiles,
   displayedWeaponSkills,

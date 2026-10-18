@@ -16,7 +16,7 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { getActiveTraits as getRevenantActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';

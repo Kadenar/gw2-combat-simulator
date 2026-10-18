@@ -1,3 +1,4 @@
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -73,32 +74,30 @@ function reportFixture() {
 }
 
 function catalogFixture() {
-  return {
-    skills: [
-      skill(5822, 'Galvanic Bomb', { type: 'weapon', castTimeMs: 600, kitId: 5812 }),
-      skill(5812, 'Bomb Kit', {
-        type: 'utility',
-        castTimeMs: 0,
-        kitTransition: 'equip'
-      }),
-      skill(6111, 'Stow Bomb Kit', {
-        type: 'utility',
-        castTimeMs: 0,
-        kitTransition: 'stow',
-        kitId: 5812
-      }),
-      skill(6161, 'Throw Mine', { type: 'utility', castTimeMs: 400 }),
-      skill(6162, 'Detonate', { type: 'utility', castTimeMs: 0 }),
-      skill(5823, 'Fire Bomb', { type: 'weapon', castTimeMs: 600, kitId: 5812 }),
-      skill(77163, 'Defensive Protocol: Thorns', { type: 'profession', castTimeMs: 0 }),
-      skill(77104, 'Defensive Protocol: Thorns', { type: 'profession', castTimeMs: 0 }),
-      skill(76693, 'Offensive Protocol: Demolish', { type: 'profession', castTimeMs: 1_560 }),
-      skill(77013, 'Offensive Protocol: Demolish', { type: 'profession', castTimeMs: 560 }),
-      skill(76927, 'Offensive Protocol: Demolish', { type: 'profession', castTimeMs: 1_560 }),
-      skill(6154, 'Overcharged Shot', { type: 'weapon', castTimeMs: 400 }),
-      skill(-3, 'Swap Weapons', { type: 'action', castTimeMs: 0 })
-    ]
-  };
+  return rotationCatalog([
+    skill(5822, 'Galvanic Bomb', { type: 'weapon', castTimeMs: 600, kitId: 5812 }),
+    skill(5812, 'Bomb Kit', {
+      type: 'utility',
+      castTimeMs: 0,
+      kitTransition: 'equip'
+    }),
+    skill(6111, 'Stow Bomb Kit', {
+      type: 'utility',
+      castTimeMs: 0,
+      kitTransition: 'stow',
+      kitId: 5812
+    }),
+    skill(6161, 'Throw Mine', { type: 'utility', castTimeMs: 400 }),
+    skill(6162, 'Detonate', { type: 'utility', castTimeMs: 0 }),
+    skill(5823, 'Fire Bomb', { type: 'weapon', castTimeMs: 600, kitId: 5812 }),
+    skill(77163, 'Defensive Protocol: Thorns', { type: 'profession', castTimeMs: 0 }),
+    skill(77104, 'Defensive Protocol: Thorns', { type: 'profession', castTimeMs: 0 }),
+    skill(76693, 'Offensive Protocol: Demolish', { type: 'profession', castTimeMs: 1_560 }),
+    skill(77013, 'Offensive Protocol: Demolish', { type: 'profession', castTimeMs: 560 }),
+    skill(76927, 'Offensive Protocol: Demolish', { type: 'profession', castTimeMs: 1_560 }),
+    skill(6154, 'Overcharged Shot', { type: 'weapon', castTimeMs: 400 }),
+    skill(-3, 'Swap Weapons', { type: 'action', castTimeMs: 0 })
+  ]);
 }
 
 function appFixture() {
@@ -179,9 +178,10 @@ test('dps.report weapon stows become waits for Warrior and other professions', (
       phases: [{ start: 0, end: 1000, name: 'Full Fight', phaseType: 'Encounter' }],
       skillMap: { s1000: { name: 'Fixture Skill' }, s23285: { name: 'Weapon Stow' } }
     });
-    const result = reconstructDpsReportRotation(report, {
-      skills: [skill(1000, 'Fixture Skill', { type: 'weapon', castTimeMs: 400 })]
-    });
+    const result = reconstructDpsReportRotation(
+      report,
+      rotationCatalog([skill(1000, 'Fixture Skill', { type: 'weapon', castTimeMs: 400 })])
+    );
     assert.deepEqual(result.rotation, [
       { type: 'combat-start' },
       { type: 'cast', skillId: 1000 },
@@ -211,9 +211,10 @@ test('snaps reconstructed dps.report waits to the nearest 40 ms action tick', ()
     phases: [{ start: 0, end: 1_000, name: 'Full Fight', phaseType: 'Encounter' }],
     skillMap: { s1000: { name: 'Mind Stab' } }
   });
-  const result = reconstructDpsReportRotation(report, {
-    skills: [skill(1_000, 'Mind Stab', { type: 'weapon', castTimeMs: 400 })]
-  });
+  const result = reconstructDpsReportRotation(
+    report,
+    rotationCatalog([skill(1_000, 'Mind Stab', { type: 'weapon', castTimeMs: 400 })])
+  );
 
   assert.deepEqual(
     result.rotation.filter((command) => command.type === 'wait').map((command) => command.durationMs),
@@ -280,8 +281,10 @@ test('keeps Vent Exhaust trait-proc rows out of Engineer rotations without relyi
   const fixture = reportFixture();
   fixture.players[0].rotation.push({ id: 43630, skills: [{ castTime: 2_750, duration: 0, timeGained: 0 }] });
   fixture.skillMap.s43630 = { name: 'Vent Exhaust', isInstantCast: true };
-  const catalog = catalogFixture();
-  catalog.skills.push(skill(43630, 'Vent Exhaust', { type: 'profession', castTimeMs: 0 }));
+  const catalog = rotationCatalog([
+    ...catalogFixture().skills,
+    skill(43630, 'Vent Exhaust', { type: 'profession', castTimeMs: 0 })
+  ]);
 
   const result = reconstructDpsReportRotation(parseDpsReport(fixture), catalog, {
     selectedSkillIds: [76927, 77104]
@@ -396,10 +399,10 @@ test('Forge replaces an equipped kit without a redundant stow or cancelling over
     { id: -2, skills: [101, 699, 701, 1001, 2001, 2201, 2500, 2800].map((castTime) => ({ castTime, duration: 0 })) }
   ];
   for (const [id, name] of entries) fixture.skillMap[`s${id}`] = { name };
-  const catalog = catalogFixture();
-  catalog.skills.push(
+  const catalog = rotationCatalog([
+    ...catalogFixture().skills,
     ...entries.slice(1, -1).map(([id, name, , duration]) => skill(id, name, { castTimeMs: duration }))
-  );
+  ]);
   const result = reconstructDpsReportRotation(parseDpsReport(fixture), catalog);
 
   assert.deepEqual(
@@ -456,8 +459,10 @@ test('keeps simulator-generated Engineer packets out of imported rotations', () 
   const fixture = reportFixture();
   fixture.players[0].rotation.push({ id: 73064, skills: [{ castTime: 2_750, duration: 0, timeGained: 0 }] });
   fixture.skillMap.s73064 = { name: 'Focused Devastation', isInstantCast: true, isNotAccurate: true };
-  const catalog = catalogFixture();
-  catalog.skills.push(skill(73064, 'Focused Devastation', { type: 'weapon', castTimeMs: 0, simulatorExcluded: true }));
+  const catalog = rotationCatalog([
+    ...catalogFixture().skills,
+    skill(73064, 'Focused Devastation', { type: 'weapon', castTimeMs: 0, simulatorExcluded: true })
+  ]);
 
   const result = reconstructDpsReportRotation(parseDpsReport(fixture), catalog, {
     selectedSkillIds: [76927, 77104]

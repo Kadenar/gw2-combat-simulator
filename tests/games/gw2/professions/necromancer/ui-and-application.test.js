@@ -7,7 +7,8 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { inertContainer } from '#tests/helpers/dom.js';
-import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/profession-registry.js';
+import { loadProfession, professionOptions } from '#gw2/profession-registry.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { formatResourceValue } from '#gw2/app/rotation/palette/resource-view.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';

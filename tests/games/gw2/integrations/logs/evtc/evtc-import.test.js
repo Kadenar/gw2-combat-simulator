@@ -1,3 +1,4 @@
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -138,42 +139,40 @@ test('ZIP inflation accepts valid output and retains size and CRC validation', a
   await assert.rejects(decompressEvtcInput(archive), { code: 'INVALID_ZIP', message: /CRC/ });
 });
 
-const catalog = {
-  skills: [
-    {
-      id: 1_000,
-      name: 'Mind Stab',
-      type: 'Weapon',
-      slot: 'Weapon_2',
-      castTimeMs: 800,
-      effects: []
-    },
-    {
-      id: 2_000,
-      name: 'Time Sink',
-      type: 'Profession',
-      slot: 'Profession_3',
-      castTimeMs: 0,
-      effects: [{ type: 'strike', atMs: 0 }]
-    },
-    {
-      id: 3_000,
-      name: 'Blink',
-      type: 'Utility',
-      slot: 'Utility',
-      castTimeMs: 500,
-      effects: []
-    },
-    {
-      id: -3,
-      name: 'Swap Weapons',
-      type: 'Action',
-      slot: 'Action',
-      castTimeMs: 0,
-      effects: []
-    }
-  ]
-};
+const catalog = rotationCatalog([
+  {
+    id: 1_000,
+    name: 'Mind Stab',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    castTimeMs: 800,
+    effects: []
+  },
+  {
+    id: 2_000,
+    name: 'Time Sink',
+    type: 'Profession',
+    slot: 'Profession_3',
+    castTimeMs: 0,
+    effects: [{ type: 'strike', atMs: 0 }]
+  },
+  {
+    id: 3_000,
+    name: 'Blink',
+    type: 'Utility',
+    slot: 'Utility',
+    castTimeMs: 500,
+    effects: []
+  },
+  {
+    id: -3,
+    name: 'Swap Weapons',
+    type: 'Action',
+    slot: 'Action',
+    castTimeMs: 0,
+    effects: []
+  }
+]);
 
 test('requires an address when multiple players have equal action evidence', () => {
   const secondAddress = 0x2000n;

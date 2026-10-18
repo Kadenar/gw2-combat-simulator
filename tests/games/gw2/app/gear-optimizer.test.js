@@ -2,7 +2,7 @@ import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lo
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { runOrdinaryOptimizer } from '#tests/helpers/gear-optimizer.js';
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { GearOptimizerRunner } from '#gw2/app/optimizer/gear/runner.js';
 import { createGroupedOptimizer } from '#gw2/app/optimizer/gear/search-space.js';
 import { createFastOptimizer, OPTIMIZER_SEARCH_BUDGET } from '#gw2/app/optimizer/gear/fast-search.js';

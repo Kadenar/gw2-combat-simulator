@@ -1,4 +1,4 @@
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import assert from 'node:assert/strict';

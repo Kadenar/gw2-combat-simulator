@@ -1,3 +1,4 @@
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readDpsReportRotationData } from '#gw2/app/import-export/logs/dps-report-rotation-import.js';
@@ -33,7 +34,7 @@ test('Warrior replay preserves idle gaps with the selected trait and active offh
     }));
     const resolveSkill = createRotationSkillResolver({
       profile,
-      catalog: { skills: [skill] },
+      catalog: rotationCatalog([skill]),
       recordedActions: actions,
       professionConfig: { selectedTraitIds, secondaryWeapon, startingWeaponSet, weaponSet2Secondary: 'Sword' }
     });

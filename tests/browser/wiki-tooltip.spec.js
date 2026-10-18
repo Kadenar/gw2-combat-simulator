@@ -165,8 +165,8 @@ test('hover hands the overlay from one item to the next', async ({ page }) => {
 test('Revenant energy appears beside recharge without duplicating base effects', async ({ page }) => {
   await page.evaluate(async () => {
     const { skillTooltipAttributes } = await import('/js/games/gw2/app/shared/tooltip-overlay.ts');
-    const { loadProfessionAppAdapter } = await import('/js/games/gw2/profession-registry.ts');
-    const adapter = await loadProfessionAppAdapter('revenant');
+    const { getProfessionEntry } = await import('/js/games/gw2/profession-registry.ts');
+    const adapter = await getProfessionEntry('revenant').loadAppAdapter();
     const skill = adapter.profession.catalog.skillsByName.get('Beguiling Haze');
     const model = adapter.skillTooltip(skill);
     const wrapper = document.createElement('div');
@@ -206,8 +206,8 @@ test('Revenant requirement tabs group effects and wrap within the tooltip', asyn
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(async () => {
     const { traitTooltipAttributes } = await import('/js/games/gw2/app/shared/tooltip-overlay.ts');
-    const { loadProfessionAppAdapter } = await import('/js/games/gw2/profession-registry.ts');
-    const adapter = await loadProfessionAppAdapter('revenant');
+    const { getProfessionEntry } = await import('/js/games/gw2/profession-registry.ts');
+    const adapter = await getProfessionEntry('revenant').loadAppAdapter();
     const wrapper = document.createElement('div');
     wrapper.innerHTML = ['Song of the Mists', 'Spirit Boon', 'Shared Wisdom']
       .map((name) => {
@@ -282,8 +282,8 @@ test('Combustive Shot burst tabs show one field with the combo icon', async ({ p
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(async () => {
     const { skillTooltipAttributes } = await import('/js/games/gw2/app/shared/tooltip-overlay.ts');
-    const { loadProfessionAppAdapter } = await import('/js/games/gw2/profession-registry.ts');
-    const adapter = await loadProfessionAppAdapter('warrior');
+    const { getProfessionEntry } = await import('/js/games/gw2/profession-registry.ts');
+    const adapter = await getProfessionEntry('warrior').loadAppAdapter();
     const skill = adapter.profession.catalog.skillsByName.get('Combustive Shot');
     const wrapper = document.createElement('div');
     wrapper.innerHTML = `<button ${skillTooltipAttributes(skill, adapter.skillTooltip(skill))}>Inspect Combustive Shot</button>`;
@@ -324,8 +324,8 @@ test('Harbinger effect tabs switch payloads while retaining shared costs', async
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(async () => {
     const { skillTooltipAttributes } = await import('/js/games/gw2/app/shared/tooltip-overlay.ts');
-    const { loadProfessionAppAdapter } = await import('/js/games/gw2/profession-registry.ts');
-    const adapter = await loadProfessionAppAdapter('necromancer');
+    const { getProfessionEntry } = await import('/js/games/gw2/profession-registry.ts');
+    const adapter = await getProfessionEntry('necromancer').loadAppAdapter();
     for (const name of ['Elixir of Risk', 'Devouring Cut']) {
       const skill = adapter.profession.catalog.skillsByName.get(name);
       const wrapper = document.createElement('div');

@@ -7,8 +7,7 @@ import {
   warriorDualWieldingActive
 } from '#gw2/professions/warrior/data/dual-wielding.js';
 
-export type RotationCatalog = Pick<CanonicalCatalog, 'skills'> &
-  Partial<Pick<CanonicalCatalog, 'skillsById' | 'skillsByName' | 'balanceProfilesById'>>;
+export type RotationCatalog = Pick<CanonicalCatalog, 'skills' | 'skillsById'>;
 
 interface RecordedActionIdentity {
   readonly rawSkillId: number;
@@ -76,16 +75,12 @@ function parentSkill(skill: Skill, catalog: RotationCatalog, profile: RotationPr
   return parent || skill;
 }
 
-/** Uses the canonical ID index when available while retaining array-only catalog and legacy-ID support. */
+/** Resolves external skill identities through the canonical catalog index. */
 export function catalogSkillById(catalog: RotationCatalog | null, rawSkillId: number): Skill | null {
   if (!catalog) return null;
 
   const skillId = canonicalGw2SkillId(rawSkillId);
-  return (
-    catalog.skillsById?.get(skillId) ||
-    catalog.skills.find((skill) => typeof skill.id === 'number' && Number(skill.id) === skillId) ||
-    null
-  );
+  return catalog.skillsById.get(skillId) ?? null;
 }
 
 /** Resolves and canonicalizes a recorded identity without depending on either combat-log format. */

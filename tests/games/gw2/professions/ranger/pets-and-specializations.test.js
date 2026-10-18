@@ -19,7 +19,6 @@ import {
 } from '#gw2/professions/ranger/build/build.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_HAMMER_VARIANT_PAIRS } from '#gw2/professions/ranger/data/hammer-variants.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
@@ -95,8 +94,22 @@ test('Ranger scheduler snapshots expose flat profession state', () => {
 });
 
 test('Ranger public state is composed from Core and specialization-owned manifests', () => {
-  assert.equal(RANGER_CORE_PUBLIC_END_STATE_KEYS.includes('beastmodeActive'), false);
-  assert.equal(RANGER_CORE_PUBLIC_END_STATE_KEYS.includes('astralClock'), false);
+  // Expected public fields stay independent of the production projection manifest.
+  const coreKeys = [
+    'activePet',
+    'activePetSlot',
+    'petNames',
+    'activePetSkillIds',
+    'endurance',
+    'availableFlips',
+    'stealthUntil',
+    'revealedUntil',
+    'autoattackChains',
+    'winterBiteReady',
+    'quickDraw',
+    'sharpeningStoneGrants',
+    'pet'
+  ];
   for (const [specialization, projection] of [
     ['Druid', DRUID_PUBLIC_STATE_PROJECTION],
     ['Soulbeast', SOULBEAST_PUBLIC_STATE_PROJECTION],
@@ -106,10 +119,7 @@ test('Ranger public state is composed from Core and specialization-owned manifes
     const runtime = rangerProfession.runtimeFor({ specialization });
     const state = runtime.createState({ specialization });
     const projected = runtime.projectPlanningState({ profession: state, time: 0 });
-    assert.deepEqual(
-      Object.keys(projected).sort(),
-      [...new Set([...RANGER_CORE_PUBLIC_END_STATE_KEYS, ...projection.keys])].sort()
-    );
+    assert.deepEqual(Object.keys(projected).sort(), [...new Set([...coreKeys, ...projection.keys])].sort());
   }
 });
 

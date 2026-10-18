@@ -22,11 +22,9 @@ function checkChilled({ conditions = {}, applications = [], at = 1, removedAt, e
       ...native,
       tasks: {
         ...native.tasks,
-        'test.remove-chill'() {
-          // Exercise the resolver's existing removal marker; no profession-owned deadline should outlive it.
-          const stacks = engine.conditionState.get('Chilled').stacks;
-          assert.ok(stacks.length > 0);
-          for (const stack of stacks) stack.removedAt = removedAt;
+        'test.remove-chill'(context) {
+          // Retirement must end Chilled eligibility through the same lifetime used by the resolver.
+          context.combat.retireCompanion('chill-source', context.time);
         },
         'test.probe'(context) {
           assert.equal(context.combat.targetHasCondition('Chilled', at), expected);
@@ -67,7 +65,8 @@ function checkChilled({ conditions = {}, applications = [], at = 1, removedAt, e
             sourceId: ID.SPINAL_SHIVERS,
             skillId: ID.SPINAL_SHIVERS,
             skillName: 'Chill setup',
-            actorType: 'player',
+            actorType: removedAt == null ? 'player' : 'summon',
+            ...(removedAt == null ? {} : { summonOwner: 'chill-source', independentConditionOwner: true }),
             condition: 'Chilled',
             stacks: 1,
             ...application

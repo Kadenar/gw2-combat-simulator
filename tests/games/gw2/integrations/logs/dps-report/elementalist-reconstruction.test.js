@@ -1,3 +1,4 @@
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -54,30 +55,28 @@ test('tracks Elementalist attunements when resolving EI-only skill names', () =>
       s90001: { name: 'Earth Air Attunement', isInstantCast: true, isSwap: true }
     }
   );
-  const catalog = {
-    skills: [
-      skill(ID.GLYPH_OF_STORMS_AIR, 'Glyph of Storms (Air)', {
-        type: 'Utility',
-        attunement: 'Air',
-        castTimeMs: 600
-      }),
-      skill(ID.PRIMORDIAL_STANCE_AIR, 'Primordial Stance (Air)', {
-        type: 'Utility',
-        castTimeMs: 0,
-        independentCast: true
-      }),
-      skill(ID.EARTH_ATTUNEMENT, 'Earth Attunement', {
-        type: 'Profession',
-        castTimeMs: 0,
-        independentCast: true
-      }),
-      skill(ID.PRIMORDIAL_STANCE_EARTH, 'Primordial Stance (Earth)', {
-        type: 'Utility',
-        castTimeMs: 0,
-        independentCast: true
-      })
-    ]
-  };
+  const catalog = rotationCatalog([
+    skill(ID.GLYPH_OF_STORMS_AIR, 'Glyph of Storms (Air)', {
+      type: 'Utility',
+      attunement: 'Air',
+      castTimeMs: 600
+    }),
+    skill(ID.PRIMORDIAL_STANCE_AIR, 'Primordial Stance (Air)', {
+      type: 'Utility',
+      castTimeMs: 0,
+      independentCast: true
+    }),
+    skill(ID.EARTH_ATTUNEMENT, 'Earth Attunement', {
+      type: 'Profession',
+      castTimeMs: 0,
+      independentCast: true
+    }),
+    skill(ID.PRIMORDIAL_STANCE_EARTH, 'Primordial Stance (Earth)', {
+      type: 'Utility',
+      castTimeMs: 0,
+      independentCast: true
+    })
+  ]);
 
   const result = reconstructDpsReportRotation(report, catalog);
 

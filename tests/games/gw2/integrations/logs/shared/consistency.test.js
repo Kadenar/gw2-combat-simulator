@@ -1,3 +1,4 @@
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -22,7 +23,7 @@ const fixtureSkill = {
   castTimeMs: 400,
   effects: []
 };
-const catalog = { skills: [fixtureSkill] };
+const catalog = rotationCatalog([fixtureSkill]);
 
 test('the shared timeline keeps tied shroud attacks between entry and exit for every shroud', () => {
   // Reverse source ordering and nearby timestamps distinguish a true tie from a separate transition.

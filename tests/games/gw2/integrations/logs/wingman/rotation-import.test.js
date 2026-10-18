@@ -1,3 +1,4 @@
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -100,9 +101,12 @@ test('fetches a gw2wingman log and reconstructs it through the exact dps.report 
   assert.equal(report.players[0].profession, 'Dragonhunter');
 
   // The adapter retains player inputs while excluding automatic trait procs.
-  const result = reconstructDpsReportRotation(report, {
-    skills: [skill(9_081, 'Whirling Wrath', { type: 'weapon', castTimeMs: 1_480, interruptMode: 'per-packet' })]
-  });
+  const result = reconstructDpsReportRotation(
+    report,
+    rotationCatalog([
+      skill(9_081, 'Whirling Wrath', { type: 'weapon', castTimeMs: 1_480, interruptMode: 'per-packet' })
+    ])
+  );
   assert.ok(result.rotation.some((command) => command.skillId === 9_081));
   // The trait-proc entry (id 90001) is filtered out, exactly like an automatic proc from dps.report.
   assert.equal(

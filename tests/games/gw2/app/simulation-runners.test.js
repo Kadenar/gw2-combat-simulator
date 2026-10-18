@@ -10,7 +10,7 @@ import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contrib
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
 import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 const STRIKE_ROTATION = [{ type: 'cast', skillId: 'Strike' }];
 

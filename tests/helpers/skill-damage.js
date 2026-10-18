@@ -2,7 +2,7 @@ import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lo
 // Headless application state for skill damage tests: a saved build loaded through the real adapter, without a DOM.
 import { readFile } from 'node:fs/promises';
 
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 const repoUrl = (path) => new URL(`../../${path}`, import.meta.url);
 

@@ -96,8 +96,6 @@ const RANGER_PLAYER_PUBLIC_STATE_KEYS = Object.freeze([
   'sharpeningStoneGrants'
 ] as const satisfies readonly (keyof RangerCoreState)[]);
 
-export const RANGER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([...RANGER_PLAYER_PUBLIC_STATE_KEYS, 'pet'] as const);
-
 /** Public consumers see only projected fields; adding runtime state never expands the presentation contract. */
 export type RangerCorePublicState = Pick<RangerCoreState, (typeof RANGER_PLAYER_PUBLIC_STATE_KEYS)[number]> & {
   pet: Pick<RangerPetState, 'id' | 'ferociousSymbiosis' | 'wutheringWindReady'> | null;

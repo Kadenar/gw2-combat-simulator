@@ -1,3 +1,4 @@
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
@@ -128,7 +129,7 @@ test('phase selection preserves crossing inputs and excludes casts wholly outsid
     { s1000: { name: 'Observed' } },
     'Chronomancer'
   );
-  const catalog = { skills: [{ id: 1000, name: 'Observed', castTimeMs: 400, effects: [] }] };
+  const catalog = rotationCatalog([{ id: 1000, name: 'Observed', castTimeMs: 400, effects: [] }]);
   const full = reconstructDpsReportRotation(input, catalog);
   assert.equal(full.sourceActions[0].startMs, -200);
   const selected = reconstructDpsReportRotation(input, catalog, { phaseIndex: 1 });
@@ -184,12 +185,10 @@ test('report chronology retains same-skill duplicates and stable exported traver
     { s1000: { name: 'First' }, s2000: { name: 'Second' } },
     'Chronomancer'
   );
-  const catalog = {
-    skills: [
-      { id: 1000, name: 'First', castTimeMs: 0 },
-      { id: 2000, name: 'Second', castTimeMs: 0 }
-    ]
-  };
+  const catalog = rotationCatalog([
+    { id: 1000, name: 'First', castTimeMs: 0 },
+    { id: 2000, name: 'Second', castTimeMs: 0 }
+  ]);
   const out = reconstructDpsReportRotation(input, catalog);
   assert.deepEqual(
     out.sourceActions.map((a) => [a.rawSkillId, a.startMs]),

@@ -1,3 +1,4 @@
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
@@ -11,7 +12,7 @@ import { parseEvtc } from '#gw2/integrations/logs/evtc/parser.js';
 import { event, log, expandedEvtcFixture } from '#tests/helpers/evtc-fixture.js';
 import { encounterStartTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 
-const catalog = { skills: [{ id: 1000, name: 'Mind Stab', castTimeMs: 400, type: 'Weapon', effects: [] }] };
+const catalog = rotationCatalog([{ id: 1000, name: 'Mind Stab', castTimeMs: 400, type: 'Weapon', effects: [] }]);
 const cast = (start = 0, end = 400) => [
   event({ time: start, stateChange: 67, skillId: 1000, value: end - start }),
   event({ time: end, stateChange: 68, skillId: 1000, value: end - start, activation: 5 })

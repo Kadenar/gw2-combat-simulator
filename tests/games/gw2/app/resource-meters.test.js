@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 

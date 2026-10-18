@@ -535,12 +535,3 @@ export async function loadProfession(professionId: string): Promise<RegisteredPr
   const entry = getProfessionEntry(professionId);
   return entry ? entry.loadProfession() : null;
 }
-
-/**
- * Loads a profession's shared-shell adapter for tests, or `null` for an unknown ID.
- * Keeps test setup on the same lazy adapter path used by registered application entries.
- */
-export async function loadProfessionAppAdapter(professionId: string): Promise<Gw2AppAdapter | null> {
-  const entry = getProfessionEntry(professionId);
-  return entry ? entry.loadAppAdapter() : null;
-}

@@ -12,7 +12,7 @@ import {
 } from '#gw2/app/page/benchmark-comparison/model.js';
 import { ComparisonRunner } from '#gw2/app/page/benchmark-comparison/runner.js';
 import { prepareComparisonRequest } from '#gw2/app/page/benchmark-comparison/request.js';
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 // A minimal observation window protects packet ownership, tied boundaries, and rolling-DPS semantics.

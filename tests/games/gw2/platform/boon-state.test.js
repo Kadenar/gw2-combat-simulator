@@ -162,7 +162,7 @@ test('status queries retain the last microsecond and exclude canonical expiry', 
 // Presence respects each accepted lifetime, including historical reads after newer stacks expire or are removed.
 test('condition presence preserves history, removals, same-time edits, and permanent assumptions', () => {
   const older = { appliedAt: 0, expiresAt: 8, weight: 1 };
-  const newer = { appliedAt: 2, expiresAt: 6, removedAt: 4, weight: 2 };
+  const newer = { appliedAt: 2, expiresAt: 4, weight: 2 };
   const state = { conditionState: new Map([['Bleeding', { stacks: [older, newer] }]]) };
   assert.equal(targetHasCondition({}, 'Bleeding', -1, state), false);
   assert.equal(targetHasCondition({}, 'Bleeding', 1, state), true);
@@ -170,7 +170,7 @@ test('condition presence preserves history, removals, same-time edits, and perma
   older.weight = 0;
   assert.equal(targetHasCondition({}, 'Bleeding', 4, state), false);
   assert.equal(targetHasCondition({}, 'Bleeding', 3, state), true);
-  newer.removedAt = 3;
+  newer.expiresAt = 3;
   assert.equal(targetHasCondition({}, 'Bleeding', 3, state), false);
   assert.equal(targetHasCondition({ target: { conditions: { Bleeding: true } } }, 'Bleeding', 8, state), true);
   assert.equal(targetHasCondition({}, 'Burning', 0, state), false);

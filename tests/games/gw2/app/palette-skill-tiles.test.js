@@ -3,7 +3,8 @@ import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/profession-registry.js';
+import { loadProfession, professionOptions } from '#gw2/profession-registry.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { renderPaletteMarkup } from '#tests/helpers/palette.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';

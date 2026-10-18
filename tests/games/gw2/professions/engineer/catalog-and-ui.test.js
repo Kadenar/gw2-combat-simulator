@@ -10,7 +10,8 @@ import {
 } from '#gw2/integrations/patches/authoring/patches.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { loadProfession, loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { loadProfession } from '#gw2/profession-registry.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,
