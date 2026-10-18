@@ -3,7 +3,6 @@ import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-fl
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
@@ -40,20 +39,20 @@ const engineerTurretTasks: RuntimeProfession<EngineerRuntimeState, EngineerSkill
   'engineer.turret-pulse'(runtime, data) {
     const skill = runtime.helpers.skillsById.get(ID.CLEANSING_BURST)!;
     const activationId = `${data}:cleansing-burst`;
-    for (const effect of skill.effects ?? [])
-      if (effect.type === 'boon' || effect.type === 'buff') {
-        buildEngineerPackets(
-          'buff',
-          {
-            at: runtime.time,
-            activationId,
-            kind: String(effect.boon ?? effect.kind).toLowerCase(),
-            stacks: Number(effect.stacks),
-            duration: effect.duration
-          },
-          skill
-        ).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
+    // Materialize the selected payload with its audience and generation lifetime, without replaying manual cast actions.
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: skill,
+      owner: { id: 'engineer.turret', generation: runtime.profession.core.healingTurretGeneration },
+      attribution: {
+        source: 'engineer',
+        sourceId: skill.id,
+        actorType: ACTOR.PLAYER,
+        skillId: skill.id,
+        skillName: skill.name,
+        activationId
       }
+    });
 
     produceRuntimeCombos(runtime, runtime.helpers, {
       type: 'action',
