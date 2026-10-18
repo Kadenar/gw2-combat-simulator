@@ -1,3 +1,4 @@
+import { PROFESSION_IDENTITIES } from '#gw2/profession-identities.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST_ID } from '#gw2/professions/elementalist/data/ids.js';
@@ -18,55 +19,27 @@ export interface RotationProfessionProfile {
   readonly skillIdAliases: Readonly<Record<number, SkillId>>;
 }
 
-interface RotationProfileSource {
-  readonly id: string;
-  readonly name: string;
-  readonly specializations: Readonly<Record<string, string>>;
-  readonly dodgeId?: SkillId;
+interface RotationProfileOverrides {
   readonly dodgeBySpecialization?: Readonly<Record<string, RotationActionIdentity>>;
   readonly aliases?: Readonly<Record<string, string>>;
+  readonly skillIdAliases?: Readonly<Record<number, SkillId>>;
   readonly skillIdAliasesBySpecialization?: Readonly<Record<string, Readonly<Record<number, SkillId>>>>;
 }
 
-const sources: readonly RotationProfileSource[] = [
-  {
-    id: 'elementalist',
-    name: 'Elementalist',
-    specializations: {
-      core: 'Core',
-      tempest: 'Tempest',
-      weaver: 'Weaver',
-      catalyst: 'Catalyst',
-      evoker: 'Evoker'
-    },
-    dodgeId: SHARED_SKILL_IDS.DODGE,
-    skillIdAliasesBySpecialization: Object.fromEntries(
-      ['core', 'tempest', 'weaver', 'catalyst', 'evoker'].map((specialization) => [
-        specialization,
-        {
-          5736: ELEMENTALIST_ID.GLYPH_OF_STORMS_FIRE,
-          5737: ELEMENTALIST_ID.GLYPH_OF_STORMS_AIR
-        }
-      ])
-    )
+// External log identities stay here; shared identity metadata owns the supported profession/spec inventory.
+const overrides: Partial<Record<keyof typeof PROFESSION_IDENTITIES, RotationProfileOverrides>> = {
+  elementalist: {
+    skillIdAliases: {
+      5736: ELEMENTALIST_ID.GLYPH_OF_STORMS_FIRE,
+      5737: ELEMENTALIST_ID.GLYPH_OF_STORMS_AIR
+    }
   },
-  {
-    id: 'mesmer',
-    name: 'Mesmer',
-    specializations: {
-      core: 'Core',
-      chronomancer: 'Chronomancer',
-      mirage: 'Mirage',
-      virtuoso: 'Virtuoso',
-      troubadour: 'Troubadour'
-    },
+  mesmer: {
     dodgeBySpecialization: {
       mirage: { name: 'Dodge / Mirage Cloak', skillId: -1 },
       troubadour: { name: 'Dodge', skillId: SHARED_SKILL_IDS.DODGE }
     },
-    aliases: {
-      dodge: 'Dodge / Mirage Cloak'
-    },
+    aliases: { dodge: 'Dodge / Mirage Cloak' },
     skillIdAliasesBySpecialization: {
       core: { [-63]: 10191, 49068: 10191 },
       chronomancer: { 56925: 56930 },
@@ -75,96 +48,15 @@ const sources: readonly RotationProfileSource[] = [
       virtuoso: { 62560: 69311, 62586: 62617 }
     }
   },
-  {
-    id: 'necromancer',
-    name: 'Necromancer',
-    specializations: {
-      core: 'Core',
-      reaper: 'Reaper',
-      scourge: 'Scourge',
-      harbinger: 'Harbinger',
-      ritualist: 'Ritualist'
-    }
-  },
-  {
-    id: 'ranger',
-    name: 'Ranger',
-    specializations: {
-      core: 'Core',
-      druid: 'Druid',
-      soulbeast: 'Soulbeast',
-      untamed: 'Untamed',
-      galeshot: 'Galeshot'
-    }
-  },
-  {
-    id: 'thief',
-    name: 'Thief',
-    specializations: {
-      core: 'Core',
-      daredevil: 'Daredevil',
-      deadeye: 'Deadeye',
-      specter: 'Specter',
-      antiquary: 'Antiquary'
-    }
-  },
-  {
-    id: 'engineer',
-    name: 'Engineer',
-    specializations: {
-      core: 'Core',
-      scrapper: 'Scrapper',
-      holosmith: 'Holosmith',
-      mechanist: 'Mechanist',
-      amalgam: 'Amalgam'
-    }
-  },
-  {
-    id: 'guardian',
-    name: 'Guardian',
-    specializations: {
-      core: 'Core',
-      dragonhunter: 'Dragonhunter',
-      firebrand: 'Firebrand',
-      willbender: 'Willbender',
-      luminary: 'Luminary'
-    }
-  },
-  {
-    id: 'warrior',
-    name: 'Warrior',
-    specializations: {
-      core: 'Core',
-      berserker: 'Berserker',
-      spellbreaker: 'Spellbreaker',
-      bladesworn: 'Bladesworn',
-      paragon: 'Paragon'
-    }
-  },
-  {
-    id: 'revenant',
-    name: 'Revenant',
-    specializations: {
-      core: 'Core',
-      herald: 'Herald',
-      renegade: 'Renegade',
-      vindicator: 'Vindicator',
-      conduit: 'Conduit'
-    },
-    aliases: {
-      'legend swap': 'Swap Legends'
-    },
+  revenant: {
+    aliases: { 'legend swap': 'Swap Legends' },
     skillIdAliasesBySpecialization: {
-      conduit: {
-        78191: 28287,
-        78203: 27917,
-        78351: 76503
-      }
+      conduit: { 78191: 28287, 78203: 27917, 78351: 76503 }
     }
   }
-];
+};
 
-function aliasesFor(source: RotationProfileSource, specializationId: string): Readonly<Record<string, string>> {
+function aliasesFor(source: RotationProfileOverrides, specializationId: string): Readonly<Record<string, string>> {
   const aliases = { ...(source.aliases || {}) };
 
   if (specializationId !== 'mirage') delete aliases.dodge;
@@ -172,30 +64,29 @@ function aliasesFor(source: RotationProfileSource, specializationId: string): Re
   return Object.freeze(aliases);
 }
 
-/** Provides one source-neutral profession inventory and canonicalization profile to every combat-log adapter. */
+/** Combines the shared profession inventory with source-specific action and skill normalization rules. */
 export const ROTATION_PROFILES: readonly RotationProfessionProfile[] = Object.freeze(
-  sources.flatMap((source) =>
-    Object.entries(source.specializations).map(([specializationId, specializationName]) =>
+  Object.entries(PROFESSION_IDENTITIES).flatMap(([professionId, identity]) => {
+    const source = overrides[professionId as keyof typeof PROFESSION_IDENTITIES] ?? {};
+    return Object.entries(identity.specializations).map(([specializationId, specializationName]) =>
       Object.freeze({
-        professionId: source.id,
-        professionName: source.name,
+        professionId,
+        professionName: identity.name,
         specializationId,
         specializationName,
         dodge:
           source.dodgeBySpecialization?.[specializationId] ||
           Object.freeze({
             name: 'Dodge',
-            skillId: source.dodgeId ?? SHARED_SKILL_IDS.DODGE
+            skillId: SHARED_SKILL_IDS.DODGE
           }),
-        weaponSwap: Object.freeze({
-          name: 'Swap Weapons',
-          skillId: SHARED_SKILL_IDS.SWAP_WEAPONS
-        }),
+        weaponSwap: Object.freeze({ name: 'Swap Weapons', skillId: SHARED_SKILL_IDS.SWAP_WEAPONS }),
         skillNameAliases: aliasesFor(source, specializationId),
         skillIdAliases: Object.freeze({
-          ...(source.skillIdAliasesBySpecialization?.[specializationId] || {})
+          ...source.skillIdAliases,
+          ...source.skillIdAliasesBySpecialization?.[specializationId]
         })
       })
-    )
-  )
+    );
+  })
 );

@@ -341,7 +341,7 @@ export const poisonousStrikesLifecycle = {
 } satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;
 
 /** Add Stalker's Strike's bonus poison only against movement-impaired targets. */
-export function triggerStalkersStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+function triggerStalkersStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const skill = context.helpers.skillsById.get(event.skillId!)!;
   // The base packet owns its own Poison; the impaired-target profile owns only the additional application.
   emitRangerProfile(context, event.at, requireBalanceProfileFromContext(context, PROFILE.stalkersStrikeImpaired), {

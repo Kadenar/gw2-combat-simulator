@@ -189,7 +189,7 @@ export const rangerAttackOfOpportunityModifier: Gw2ModifierRule = {
 };
 
 /** Each Maul ID grants its own recipient's next-attack bonus after its strike resolves. */
-export function grantMaulAttackOfOpportunity(
+function grantMaulAttackOfOpportunity(
   context: RangerResolverContext,
   event: Gw2ResolverEvent,
   recipient: 'pet' | typeof ACTOR.PLAYER

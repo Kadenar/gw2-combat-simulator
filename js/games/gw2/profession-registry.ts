@@ -1,3 +1,4 @@
+import { PROFESSION_IDENTITIES } from '#gw2/profession-identities.js';
 import type { BuildContextModule } from '#gw2/build-context/types.js';
 /**
  * Lazy profession manifest shared by browser pages, simulation workers, and tooling.
@@ -43,6 +44,7 @@ export interface ProfessionRegistryEntry {
   readonly loadAppAdapter: () => Promise<Gw2AppAdapter>;
 }
 
+// Names come from shared identity metadata; artwork and lazy loaders remain application registry concerns.
 // Entries are ordered by armor class so navigation surfaces group
 // professions Light → Medium → Heavy: the shared UI (landing card grid and
 // simulator header select) renders in registry order.
@@ -52,37 +54,37 @@ const entries: readonly ProfessionRegistryEntry[] = [
     id: 'elementalist',
     buildTemplateCode: 6,
     armorWeight: 'light',
-    name: 'Elementalist',
+    name: PROFESSION_IDENTITIES.elementalist.name,
     icon: 'https://render.guildwars2.com/file/BBED46EB20C80D0DDE0F99402493C7E6FFAE1530/156629.png',
     route: 'elementalist.html',
     themeClass: 'elementalist-theme',
     specializationArtwork: [
       {
-        name: 'Core',
+        name: PROFESSION_IDENTITIES.elementalist.specializations.core,
         conceptArt: new URL('@images/professions/elementalist.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/2FEEkQBNxzaWIIx21vmnpc7dccL6om02MDNmNuZ1.webp'
       },
       {
-        name: 'Tempest',
+        name: PROFESSION_IDENTITIES.elementalist.specializations.tempest,
         conceptArt: new URL('@images/professions/tempest.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/DY1QuOFHqxbVsqC1jBryNm66eoZglhMgMDhrVShJ.webp'
       },
       {
-        name: 'Weaver',
+        name: PROFESSION_IDENTITIES.elementalist.specializations.weaver,
         conceptArt: new URL('@images/professions/weaver.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/79g5CiydrrztYx6qIvmNMmUobwRvdGzskIqwI5cn.webp'
       },
       {
-        name: 'Catalyst',
+        name: PROFESSION_IDENTITIES.elementalist.specializations.catalyst,
         conceptArt: new URL('@images/professions/catalyst.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/uFKRbwhHh5GKyGV9Evohhx0UTd4T8YZjrW44uawP.webp'
       },
       {
-        name: 'Evoker',
+        name: PROFESSION_IDENTITIES.elementalist.specializations.evoker,
         conceptArt: new URL('@images/professions/evoker.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/7HNOxiXpl9wkAl2ykM3D2jrSFtciZfLgseLcEgpG.jpg'
@@ -102,37 +104,37 @@ const entries: readonly ProfessionRegistryEntry[] = [
     id: 'mesmer',
     buildTemplateCode: 7,
     armorWeight: 'light',
-    name: 'Mesmer',
+    name: PROFESSION_IDENTITIES.mesmer.name,
     icon: 'https://render.guildwars2.com/file/AF61567E16A83F145D6FB35D63BF01074A3A5AB9/156635.png',
     route: 'mesmer.html',
     themeClass: 'mesmer-theme',
     specializationArtwork: [
       {
-        name: 'Core',
+        name: PROFESSION_IDENTITIES.mesmer.specializations.core,
         conceptArt: new URL('@images/professions/mesmer.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/AdKbIsuTW9tQQRRRSqOGFiU46rjSyHylChEyUq1D.jpg'
       },
       {
-        name: 'Chronomancer',
+        name: PROFESSION_IDENTITIES.mesmer.specializations.chronomancer,
         conceptArt: new URL('@images/professions/chronomancer.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/wYMly4iJbZEwdZPG2oWwqnCb7ly4VTvI58oBnW5K.jpg'
       },
       {
-        name: 'Mirage',
+        name: PROFESSION_IDENTITIES.mesmer.specializations.mirage,
         conceptArt: new URL('@images/professions/mirage.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/somZhFPIsB4GHxrhjqtlPy4loceNBcvW3SrZY7uQ.webp'
       },
       {
-        name: 'Virtuoso',
+        name: PROFESSION_IDENTITIES.mesmer.specializations.virtuoso,
         conceptArt: new URL('@images/professions/virtuoso.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/6YCwMKZA9ZT278R4F3N5fGLVGXeCU9Yls54CRuq0.webp'
       },
       {
-        name: 'Troubadour',
+        name: PROFESSION_IDENTITIES.mesmer.specializations.troubadour,
         conceptArt: new URL('@images/professions/troubadour.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/JL0RMiFPQYZYr3LaxWcd92JoT98SPNniwSeTRkxj.jpg'
@@ -152,37 +154,37 @@ const entries: readonly ProfessionRegistryEntry[] = [
     id: 'necromancer',
     buildTemplateCode: 8,
     armorWeight: 'light',
-    name: 'Necromancer',
+    name: PROFESSION_IDENTITIES.necromancer.name,
     icon: 'https://render.guildwars2.com/file/CA5A4E96080FCF057C9DA0ED35C693477580421C/156637.png',
     route: 'necromancer.html',
     themeClass: 'necromancer-theme',
     specializationArtwork: [
       {
-        name: 'Core',
+        name: PROFESSION_IDENTITIES.necromancer.specializations.core,
         conceptArt: new URL('@images/professions/necromancer.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/DDW5i9E5dyuhaXywvO2Wiqn0nQYOwjxZg9GQn6ni.webp'
       },
       {
-        name: 'Reaper',
+        name: PROFESSION_IDENTITIES.necromancer.specializations.reaper,
         conceptArt: new URL('@images/professions/reaper.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/BkrNHpfZ3rdgQvRcCSZHzh8ErnakQYRi5jpekaMt.webp'
       },
       {
-        name: 'Scourge',
+        name: PROFESSION_IDENTITIES.necromancer.specializations.scourge,
         conceptArt: new URL('@images/professions/scourge.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/DsG45NgUXhOYGI6fuQUB6pvkLQJlbjI2iQU4nvYz.webp'
       },
       {
-        name: 'Harbinger',
+        name: PROFESSION_IDENTITIES.necromancer.specializations.harbinger,
         conceptArt: new URL('@images/professions/harbinger.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/5c9lVrJthmDO46fBpYEFVxQM3NJdsEpQbcfwiS6B.webp'
       },
       {
-        name: 'Ritualist',
+        name: PROFESSION_IDENTITIES.necromancer.specializations.ritualist,
         conceptArt: new URL('@images/professions/ritualist.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/DEw7Kgg3cI1stZM9dboksGtGmo4r4v5uP8y5lCcp.jpg'
@@ -203,37 +205,37 @@ const entries: readonly ProfessionRegistryEntry[] = [
     id: 'ranger',
     buildTemplateCode: 4,
     armorWeight: 'medium',
-    name: 'Ranger',
+    name: PROFESSION_IDENTITIES.ranger.name,
     icon: 'https://render.guildwars2.com/file/49B10316B424F4E20139EB5E51ADCF24A8724E9B/156640.png',
     route: 'ranger.html',
     themeClass: 'ranger-theme',
     specializationArtwork: [
       {
-        name: 'Core',
+        name: PROFESSION_IDENTITIES.ranger.specializations.core,
         conceptArt: new URL('@images/professions/ranger.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/yl95i2EFNwe4qI4F8Vo0a81LhvSnVFZ9w2evSsig.jpg'
       },
       {
-        name: 'Druid',
+        name: PROFESSION_IDENTITIES.ranger.specializations.druid,
         conceptArt: new URL('@images/professions/druid.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/YIwgxjG1E7FiKqSAaXrCiuQfh7w5eTEOYXK0Id8x.webp'
       },
       {
-        name: 'Soulbeast',
+        name: PROFESSION_IDENTITIES.ranger.specializations.soulbeast,
         conceptArt: new URL('@images/professions/soulbeast.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/95KRcPOeigpwlQQRzh6aFVIxixWXbTgQUtNSJQZN.webp'
       },
       {
-        name: 'Untamed',
+        name: PROFESSION_IDENTITIES.ranger.specializations.untamed,
         conceptArt: new URL('@images/professions/untamed.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/e5vuxTdgb41Dnjrb9jKmNF9tRYD1jVS6incDVoAY.webp'
       },
       {
-        name: 'Galeshot',
+        name: PROFESSION_IDENTITIES.ranger.specializations.galeshot,
         conceptArt: new URL('@images/professions/galeshot.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/dVd7Wrx57mbdUHAIfZyUmuCFv5YxdH8yQ4Vij4Em.jpg'
@@ -253,37 +255,37 @@ const entries: readonly ProfessionRegistryEntry[] = [
     id: 'thief',
     buildTemplateCode: 5,
     armorWeight: 'medium',
-    name: 'Thief',
+    name: PROFESSION_IDENTITIES.thief.name,
     icon: 'https://render.guildwars2.com/file/13A2C0EF23F23FF2084875629465279DDA807E3D/103581.png',
     route: 'thief.html',
     themeClass: 'thief-theme',
     specializationArtwork: [
       {
-        name: 'Core',
+        name: PROFESSION_IDENTITIES.thief.specializations.core,
         conceptArt: new URL('@images/professions/thief.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/mLAhlUPnakYgM3FwEni1Mfr16Oi8VMVZ4TpSMgZE.jpg'
       },
       {
-        name: 'Daredevil',
+        name: PROFESSION_IDENTITIES.thief.specializations.daredevil,
         conceptArt: new URL('@images/professions/daredevil.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/Z324ofTh0ZEVH1ix916jvmBa8gy0LmBsxwBJ5MMY.webp'
       },
       {
-        name: 'Deadeye',
+        name: PROFESSION_IDENTITIES.thief.specializations.deadeye,
         conceptArt: new URL('@images/professions/deadeye.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/n0TGLINi59LKvimT7g1Txsq618vG6weOUWASLGZc.webp'
       },
       {
-        name: 'Specter',
+        name: PROFESSION_IDENTITIES.thief.specializations.specter,
         conceptArt: new URL('@images/professions/specter.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/hh7tsjXK3pWbwcX3NpOLlNuqwxPPnZ7mIMHc8J4U.webp'
       },
       {
-        name: 'Antiquary',
+        name: PROFESSION_IDENTITIES.thief.specializations.antiquary,
         conceptArt: new URL('@images/professions/antiquary.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/vz40JTGUEZc62s7ywMA5jsC1qq9hbgpGrcIgi9Ai.jpg'
@@ -303,37 +305,37 @@ const entries: readonly ProfessionRegistryEntry[] = [
     id: 'engineer',
     buildTemplateCode: 3,
     armorWeight: 'medium',
-    name: 'Engineer',
+    name: PROFESSION_IDENTITIES.engineer.name,
     icon: 'https://render.guildwars2.com/file/A94D00911BD47CDE39A104F90C7D07DE623554ED/156631.png',
     route: 'engineer.html',
     themeClass: 'engineer-theme',
     specializationArtwork: [
       {
-        name: 'Core',
+        name: PROFESSION_IDENTITIES.engineer.specializations.core,
         conceptArt: new URL('@images/professions/engineer.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/emJ476M3DgTpLt6Bn19FwqRn6lOslq571PD6XUU6.jpg'
       },
       {
-        name: 'Scrapper',
+        name: PROFESSION_IDENTITIES.engineer.specializations.scrapper,
         conceptArt: new URL('@images/professions/scrapper.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/HBhHXtTeUoT4FYywlQRAK2vh3qSlYIKF6nprLb9N.webp'
       },
       {
-        name: 'Holosmith',
+        name: PROFESSION_IDENTITIES.engineer.specializations.holosmith,
         conceptArt: new URL('@images/professions/holosmith.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/nX4xZk6pSAioBVDtGNPvxMzFiLnXeh57XYDLYpwy.webp'
       },
       {
-        name: 'Mechanist',
+        name: PROFESSION_IDENTITIES.engineer.specializations.mechanist,
         conceptArt: new URL('@images/professions/mechanist.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/vxW0dgd4EWscl9ZnTj64PUGWnvxKvtoKzP9No71Y.webp'
       },
       {
-        name: 'Amalgam',
+        name: PROFESSION_IDENTITIES.engineer.specializations.amalgam,
         conceptArt: new URL('@images/professions/amalgam.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/dx0sO3S57jI2vBT2Zq60BTR8wmwVU4njs8vQKz2a.jpg'
@@ -354,37 +356,37 @@ const entries: readonly ProfessionRegistryEntry[] = [
     id: 'guardian',
     buildTemplateCode: 1,
     armorWeight: 'heavy',
-    name: 'Guardian',
+    name: PROFESSION_IDENTITIES.guardian.name,
     icon: 'https://render.guildwars2.com/file/6E0D0AC6E0CE5C0C29B3D736ABEA070F4A58540E/156633.png',
     route: 'guardian.html',
     themeClass: 'guardian-theme',
     specializationArtwork: [
       {
-        name: 'Core',
+        name: PROFESSION_IDENTITIES.guardian.specializations.core,
         conceptArt: new URL('@images/professions/guardian.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/OaGAg9GNDYCgR4oUSafRsSP2MpciqXbYQysSCRFO.webp'
       },
       {
-        name: 'Dragonhunter',
+        name: PROFESSION_IDENTITIES.guardian.specializations.dragonhunter,
         conceptArt: new URL('@images/professions/dragonhunter.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/y9EFXtfsvw5Zu4G79YOK5l44t1ApVxouqCl0X3sc.webp'
       },
       {
-        name: 'Firebrand',
+        name: PROFESSION_IDENTITIES.guardian.specializations.firebrand,
         conceptArt: new URL('@images/professions/firebrand.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/Y7P9W6bnJxXwXdYhJFZjFYorQNoTYxmX6bQNhQwp.webp'
       },
       {
-        name: 'Willbender',
+        name: PROFESSION_IDENTITIES.guardian.specializations.willbender,
         conceptArt: new URL('@images/professions/willbender.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/8jddMTYX5c9ANlYyMv3mHNtfbO4k0OU9t7dtU0za.webp'
       },
       {
-        name: 'Luminary',
+        name: PROFESSION_IDENTITIES.guardian.specializations.luminary,
         conceptArt: new URL('@images/professions/luminary.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/urNqWJC2Sjr9WPMLNmjB2mIPOFSbYIZC7oXZ2RIp.jpg'
@@ -404,37 +406,37 @@ const entries: readonly ProfessionRegistryEntry[] = [
     id: 'warrior',
     buildTemplateCode: 2,
     armorWeight: 'heavy',
-    name: 'Warrior',
+    name: PROFESSION_IDENTITIES.warrior.name,
     icon: 'https://render.guildwars2.com/file/0A97E13F29B3597A447EEC04A09BE5BD699A2250/156643.png',
     route: 'warrior.html',
     themeClass: 'warrior-theme',
     specializationArtwork: [
       {
-        name: 'Core',
+        name: PROFESSION_IDENTITIES.warrior.specializations.core,
         conceptArt: new URL('@images/professions/warrior.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/BwqIcVAqPfQMWCIfONQAnADqQaZ9SCxqhE1TwbqP.jpg'
       },
       {
-        name: 'Berserker',
+        name: PROFESSION_IDENTITIES.warrior.specializations.berserker,
         conceptArt: new URL('@images/professions/berserker.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/30Nm9xGdYbTK2sGTctH0NjgDZCXNpF638rNdzf21.webp'
       },
       {
-        name: 'Spellbreaker',
+        name: PROFESSION_IDENTITIES.warrior.specializations.spellbreaker,
         conceptArt: new URL('@images/professions/spellbreaker.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/BFaJz8HGGRHbqeyiRQBjFAQLSPs5I0h6cFtfYqQ5.webp'
       },
       {
-        name: 'Bladesworn',
+        name: PROFESSION_IDENTITIES.warrior.specializations.bladesworn,
         conceptArt: new URL('@images/professions/bladesworn.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/VMJqAcWz49leISknOREwMe70o9UGtQ07411QnvUQ.webp'
       },
       {
-        name: 'Paragon',
+        name: PROFESSION_IDENTITIES.warrior.specializations.paragon,
         conceptArt: new URL('@images/professions/paragon.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/Tlvlqv76IwR5gPErYmQd3hITnSdwl63uSDIoZHXG.jpg'
@@ -454,36 +456,36 @@ const entries: readonly ProfessionRegistryEntry[] = [
     id: 'revenant',
     buildTemplateCode: 9,
     armorWeight: 'heavy',
-    name: 'Revenant',
+    name: PROFESSION_IDENTITIES.revenant.name,
     icon: 'https://render.guildwars2.com/file/696A48DD61EE01FD1F4FBBBDB82D74611E04EA39/965717.png',
     route: 'revenant.html',
     themeClass: 'revenant-theme',
     specializationArtwork: [
       {
-        name: 'Core',
+        name: PROFESSION_IDENTITIES.revenant.specializations.core,
         conceptArt: new URL('@images/professions/revenant.png', import.meta.url).href,
         image: new URL('@images/professions/revenant.png', import.meta.url).href
       },
       {
-        name: 'Herald',
+        name: PROFESSION_IDENTITIES.revenant.specializations.herald,
         conceptArt: new URL('@images/professions/herald.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/l0wPR2fHc2w93nRdDVXWrnclAyD5umThxEZ2SEKX.webp'
       },
       {
-        name: 'Renegade',
+        name: PROFESSION_IDENTITIES.revenant.specializations.renegade,
         conceptArt: new URL('@images/professions/renegade.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/5Q6RzaTlf5rbcKnWQWvC3UsWm7k1s2OtIshJf1lL.webp'
       },
       {
-        name: 'Vindicator',
+        name: PROFESSION_IDENTITIES.revenant.specializations.vindicator,
         conceptArt: new URL('@images/professions/vindicator.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/NICSEOqnu3qzL2b6BTpzcSg7V9CG7UZ6HPDT4Vv7.webp'
       },
       {
-        name: 'Conduit',
+        name: PROFESSION_IDENTITIES.revenant.specializations.conduit,
         conceptArt: new URL('@images/professions/conduit.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/ANbyHo4hZbVvjvEEuKHomAJ4iXkccxEAXZ77IJdg.jpg'

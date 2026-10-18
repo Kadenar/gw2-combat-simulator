@@ -17,7 +17,7 @@ interface TroubadourTaleInvocation {
 }
 
 /** Resolves a Tale's profile boons, matching-instrument note, and Troubadour trait effects together. */
-export function resolveTroubadourTale({ context, skill, at, eligible }: TroubadourTaleInvocation): void {
+function resolveTroubadourTale({ context, skill, at, eligible }: TroubadourTaleInvocation): void {
   const profileId = skill.tale?.profileId;
   const profile = profileId ? requireBalanceProfileFromContext(context, profileId) : null;
   const partyRecipients = { audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } };

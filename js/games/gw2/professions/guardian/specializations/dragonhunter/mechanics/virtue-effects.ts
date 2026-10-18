@@ -38,7 +38,7 @@ import type {
 } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-export function reactToDragonhunterJusticeHit(
+function reactToDragonhunterJusticeHit(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
   dependencies: Pick<NativeResolvedDamageDetails, 'hitContext'> = {}

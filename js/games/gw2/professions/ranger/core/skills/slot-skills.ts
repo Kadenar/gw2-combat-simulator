@@ -35,7 +35,7 @@ import type {
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 
 /** All spirit slams and their first shakes share this delay after the summoning cast completes. */
-export const RANGER_SPIRIT_SLAM_DELAY_MS = 920;
+const RANGER_SPIRIT_SLAM_DELAY_MS = 920;
 
 /** Identify slam packets so Nature's Vengeance repeats neither summon rewards nor boon shakes. */
 function spiritSlam(effects: readonly SkillEffect[]): SkillEffect[] {
@@ -503,7 +503,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
 });
 
 /** Copy both actors from one executed-time snapshot so the first copy never feeds the second. */
-export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
+function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   const activePet = runtime.profession.core.pet;
   const companionId = activePet?.id ?? null;
   const copies = (cast.skill.effects ?? [])
@@ -603,7 +603,7 @@ export function emitStormSpiritSlam(
 }
 
 /** Select the live recipient at activation; Core always registers this action, including unmerged builds. */
-export function activateSicEm(runtime: RangerRuntime, skill: Skill): void {
+function activateSicEm(runtime: RangerRuntime, skill: Skill): void {
   const merged = rangerMerged(runtime.profession);
   for (const kind of [...(runtime.profession.core.pet ? ['sic-em-pet'] : []), ...(merged ? ['sic-em'] : [])])
     runtime.effects.emit({

@@ -21,7 +21,7 @@ import type {
 } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-export const WEAVE_SELF_ACTIVATION_TASK = 'elementalist.weave-self-activation';
+const WEAVE_SELF_ACTIVATION_TASK = 'elementalist.weave-self-activation';
 
 /** Schedules Weave Self at its profiled mid-cast activation point. */
 export function startWeaveSelfCast(
@@ -51,7 +51,7 @@ function modifyWeaveSelfRechargeStart(
 }
 
 /** Opens the Weave Self window and seeds it with the current attunement. */
-export function handleWeaveSelfActivation(
+function handleWeaveSelfActivation(
   context: ElementalistRuntime,
   data: unknown,
   emissionCast?: EffectDelivery['cast']

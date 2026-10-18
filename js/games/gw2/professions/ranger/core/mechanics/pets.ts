@@ -211,7 +211,7 @@ export function startRangerPet(context: RangerRuntime): void {
 }
 
 /** Retire the pet under the causing skill's identity; cooldown work survives after its Alacrity is discarded. */
-export function retireRangerPet(context: RangerRuntime, sourceId: SkillId): void {
+function retireRangerPet(context: RangerRuntime, sourceId: SkillId): void {
   const state = context.profession.core;
 
   if (!state.pet) return;

@@ -151,13 +151,13 @@ export function formatInputBinding(code: string): string {
 }
 
 /** Accept known physical codes only; unsupported imports remain unbound rather than becoming defaults. */
-export function physicalInput(code: string): boolean {
+function physicalInput(code: string): boolean {
   return /^(Key[A-Z]|Digit[0-9]|F(?:[1-9]|1[0-9]|2[0-4])|Numpad(?:[0-9]|Add|Subtract|Multiply|Divide|Decimal|Enter|Equal|Clear)|Mouse[1-5]|Arrow(?:Up|Down|Left|Right)|(?:Control|Alt|Shift|Meta)(?:Left|Right)|Backquote|Backslash|BracketLeft|BracketRight|Comma|Equal|Minus|Period|Quote|Semicolon|Slash|Space|Tab|Enter|Escape|Backspace|Delete|Insert|Home|End|PageUp|PageDown|CapsLock|NumLock|ScrollLock|PrintScreen|Pause|IntlBackslash|IntlRo|IntlYen)$/.test(
     code
   );
 }
 
-export const INPUT_MODIFIERS = ['Ctrl', 'Alt', 'Shift'] as const;
+const INPUT_MODIFIERS = ['Ctrl', 'Alt', 'Shift'] as const;
 
 export type InputModifier = (typeof INPUT_MODIFIERS)[number];
 

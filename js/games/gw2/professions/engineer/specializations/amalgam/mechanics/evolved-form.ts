@@ -62,7 +62,7 @@ function selectedMorphKinds(context: EngineerRuntime): Set<AmalgamMorphKind> {
 }
 
 /** Schedules six one-second Thorns Retaliation pulses when damaging-field uptime is explicitly assumed. */
-export function scheduleThornsRetaliation(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
+function scheduleThornsRetaliation(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   // Build assumptions reach combat through the canonical runtime field; absent uptime grants no retaliation.
   if (!context.config.professionAssumptions?.inDamagingField) return;
 
@@ -93,7 +93,7 @@ export function scheduleThornsRetaliation(context: EngineerRuntime, skill: Engin
 }
 
 /** Activates the casting skill's Plasmatic State duration with its first strike. */
-export function activatePlasmaticState(context: EngineerRuntime, skill: EngineerSkill): void {
+function activatePlasmaticState(context: EngineerRuntime, skill: EngineerSkill): void {
   const at = context.time;
   amalgamState.from(context).plasmaticStateUntil = Math.max(
     amalgamState.from(context).plasmaticStateUntil,
@@ -102,7 +102,7 @@ export function activatePlasmaticState(context: EngineerRuntime, skill: Engineer
 }
 
 /** Activates Evolved, grants selected strains, and resolves Evolve trait interactions. */
-export function evolveAmalgam(context: EngineerRuntime, skill: EngineerSkill): void {
+function evolveAmalgam(context: EngineerRuntime, skill: EngineerSkill): void {
   const at = context.time;
   const state = amalgamState.from(context);
   const selected = selectedMorphKinds(context);

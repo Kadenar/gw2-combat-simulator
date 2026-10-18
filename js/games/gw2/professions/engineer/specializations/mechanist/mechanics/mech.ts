@@ -166,7 +166,7 @@ export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerRe
 }
 
 /** Capture the concrete mech owner before queued packets can outlive their originating activation. */
-export function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
+function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
   // These grants explicitly exempt the active mech from the allied target cap.
   if (
     event.type === 'buff' &&
@@ -249,7 +249,7 @@ export const mechanistCastCompleted = defineTriggerPoint<MechanistCastCompletion
 ]);
 
 /** Applies post-cast mech lane recovery, then completes the cast for Mechanist traits. */
-export function completeEngineerMechCast(context: EngineerRuntime, skill: EngineerSkill): void {
+function completeEngineerMechCast(context: EngineerRuntime, skill: EngineerSkill): void {
   if (context.config.specialization !== 'Mechanist') return;
 
   const state = mechanistState.from(context);
@@ -267,7 +267,7 @@ export function completeEngineerMechCast(context: EngineerRuntime, skill: Engine
 }
 
 /** Starts the autonomous mech attack loop when the specialization begins with an active mech. */
-export function initializeEngineerMech(context: EngineerRuntime): void {
+function initializeEngineerMech(context: EngineerRuntime): void {
   const state = mechanistState.from(context);
 
   if (!autonomousActionsAllowed(context) || !state.mech.enabled || !state.mech.active || state.mech.attackLoopStarted)
@@ -279,7 +279,7 @@ export function initializeEngineerMech(context: EngineerRuntime): void {
 }
 
 /** Executes one autonomous mech attack phase and schedules the next phase on the mech lane. */
-export function stepMechAttack(
+function stepMechAttack(
   context: EngineerRuntime,
   at: number,
   payload: MechAttackPayload
@@ -308,7 +308,7 @@ export function stepMechAttack(
 }
 
 /** Reserves the mech lane and emits Overclock Signet's timed Jade Buster Cannon burst. */
-export function activateOverclockSignet(context: EngineerRuntime, skill: EngineerSkill): void {
+function activateOverclockSignet(context: EngineerRuntime, skill: EngineerSkill): void {
   const state = mechanistState.from(context);
 
   if (!state.mech.active) return;
