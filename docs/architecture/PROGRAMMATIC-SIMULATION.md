@@ -13,7 +13,7 @@ Save this example as `run-engineer.mjs` in the repository root, then run `node r
 
 ```js
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 
@@ -132,7 +132,7 @@ Names are convenient for experiments; canonical IDs are preferable for persisted
 `engineerProfession.catalog.skills` for the full family catalog, or
 `engineerProfession.runtimeFor({ specialization: 'Core' }).catalog` for the active runtime.
 
-`RotationCommand` in `platform/execution/rotation.ts` defines optional cast controls: `offTarget`, `impactDelayMs`,
+`RotationCommand` in `platform/builds/rotation.ts` defines optional cast controls: `offTarget`, `impactDelayMs`,
 `concurrentOffsetMs`, `interruptAfterMs`, `releaseAtCharges`, `releaseDelayMs`, and `doubleEdgeOutcome`. Use them only
 when the skill or import scenario supports that behavior. Antiquary Double Edge recasts default to success unless
 explicitly set to `'backfire'`; ready casts always succeed.

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { baseAttributeInputs, attributeSeed, validateAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
-import { attributeContext, resolveAttributeContributions } from '#gw2/platform/builds/attribute-evaluation.js';
+import { baseAttributeInputs, attributeSeed, validateAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { attributeContext, resolveAttributeContributions } from '#gw2/platform/attributes/evaluation.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 

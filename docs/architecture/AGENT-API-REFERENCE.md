@@ -11,7 +11,7 @@ repository APIs. Keep scripts inside the repository and pinned to its revision.
 
 ```js
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
 // Supply base attributes so the runtime can apply profession and combat bonuses once.
@@ -42,7 +42,7 @@ console.log({ dps: result.dps, warnings: result.warnings });
 - Saved builds differ from run configs: `selectedSkillIds` is slot-keyed in builds and a flat ID array in configs.
   Omitted run loadouts permit sandbox casts; `[]` equips no slot skills. Preserve catalog ID types.
 - `rotation`: ordered skill names, numeric IDs, or canonical `RotationCommand` objects from
-  `platform/execution/rotation.ts`. Prefer `{ type: 'cast', skillId }` for persistent scripts. Other commands:
+  `platform/builds/rotation.ts`. Prefer `{ type: 'cast', skillId }` for persistent scripts. Other commands:
   `{ type: 'wait', durationMs }`, `{ type: 'combat-start' }`, `{ type: 'cooldown-reset' }`. Use
   `normalizeRotation(input, catalog, { strict: true })` to reject malformed input.
 - `observationPolicy`: `{ kind: 'rotation' }` (default), `{ kind: 'tail', durationMs }`, or
@@ -61,13 +61,13 @@ console.log({ dps: result.dps, warnings: result.warnings });
 - `js/kernel/`: game-neutral clock, queue, seeded randomness, and observation contracts; imports no GW2 or UI code.
 - `platform/simulation/`: `runtime.ts` assembles a run; `coordinator.ts` owns the single queue, clock, and execution
   loop.
-- `platform/execution/`: cast admission, cooldowns, ammo, resources at cast time, chains, and rotation commands.
+- `platform/execution/`: cast admission, cooldowns, ammo, resources at cast time, chains, and rotation traversal.
 - `platform/resolver/`: ordered packet delivery, strikes, conditions, combos, and reactions on the shared clock.
 - `platform/effects/`: declarations, validated emissions, and action dispatch; `platform/events/` defines event
   contracts.
 - `platform/combat/`: formulas and live combat state, resources, targets, and executed facts used by mechanics.
-- `platform/builds/` and `platform/equipment/`: build codecs, validation, attribute seeds/calculation, and equipment
-  rules. `app/simulation/build-config.ts` exposes `createGw2SimulationConfig(...)` for application build conversion.
+- `platform/builds/` and `platform/equipment/`: build codecs, validation, rotation commands, and equipment rules;
+  `platform/attributes/` owns attribute seeds and calculation. `app/simulation/build-config.ts` exposes `createGw2SimulationConfig(...)` for application build conversion.
 - `platform/profession-definition/`: `defineNativeProfession(...)` in `profession.ts` compiles native modules;
   `runtime-hooks.ts` defines hook contributions, and `mechanic-context.ts` defines query/combat/lifecycle capabilities.
 - `professions/<name>/`: owns `profession.ts`, `catalog.ts`, `build/`, `core/`, and `specializations/`

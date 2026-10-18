@@ -1,4 +1,4 @@
-import { normalizeRotation, validateRotationCommand } from '#gw2/platform/execution/rotation.js';
+import { normalizeRotation, validateRotationCommand } from '#gw2/platform/builds/rotation.js';
 import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';

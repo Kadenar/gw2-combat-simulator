@@ -1,5 +1,5 @@
-import { resolveAttributeContributions } from '#gw2/platform/builds/attribute-evaluation.js';
-import { ATTRIBUTE_NAMES } from '#gw2/platform/builds/attribute-inputs.js';
+import { resolveAttributeContributions } from '#gw2/platform/attributes/evaluation.js';
+import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { criticalChanceFractionFromPrecision, STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';

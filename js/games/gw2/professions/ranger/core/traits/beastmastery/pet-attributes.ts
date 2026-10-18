@@ -1,5 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
+import type { Gw2AttributeEffect } from '#gw2/platform/attributes/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';

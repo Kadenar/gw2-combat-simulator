@@ -1,6 +1,6 @@
 import { BOON } from '#gw2/platform/constants.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';

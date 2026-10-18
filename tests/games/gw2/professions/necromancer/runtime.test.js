@@ -1,5 +1,5 @@
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';

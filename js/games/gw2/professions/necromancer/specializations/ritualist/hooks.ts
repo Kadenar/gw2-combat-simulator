@@ -4,7 +4,7 @@ import { spiritsStrengthCreatureMultiplier } from '#gw2/professions/necromancer/
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import {
   balanceNumberFromContext,
   requireBalanceProfileFromContext as damageProfile

@@ -3,7 +3,7 @@ import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 

@@ -140,7 +140,7 @@ test('combat reports detach nested settlements, environment ticks, proc state, a
   const proc = { start: 0, effectState: { stacks: 2, maximumStacks: 5 } };
   runtime.resolved.push(application);
   runtime.environmentConditions.set('Fixture', environment);
-  runtime.procSteps.push(proc);
+  runtime.procRecorder.steps.push(proc);
   const score = buildSimulationScore(runtime, 1, false);
   const result = buildCombatResult(runtime, score, [action]);
   result.events[0].audience.maximumRecipients = -1;

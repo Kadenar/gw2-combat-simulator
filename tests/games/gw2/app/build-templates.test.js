@@ -5,7 +5,7 @@ import test from 'node:test';
 
 import { loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/library/actions.js';
 import { templateBoon, templateCategory, templateSpecializations } from '#gw2/app/build/library/model.js';
-import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
+import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 import { MESMER_SKILL_IDS as MESMER_ID } from '#gw2/professions/mesmer/data/ids.js';

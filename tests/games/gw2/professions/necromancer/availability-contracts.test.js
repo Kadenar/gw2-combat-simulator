@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { necromancerAvailability } from '#gw2/professions/necromancer/core/mechanics/availability.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';

@@ -2,7 +2,7 @@ import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lo
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { paletteActionSkills } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { getActiveTraits as getElementalistActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';

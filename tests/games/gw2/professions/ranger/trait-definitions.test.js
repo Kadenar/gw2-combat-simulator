@@ -2,7 +2,7 @@ import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/bui
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
 import { getActiveTraits as getRangerActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { rangerCatalog, rangerNativeModules } from '#gw2/professions/ranger/catalog.js';

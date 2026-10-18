@@ -1,6 +1,6 @@
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { recordProcStep } from '#gw2/platform/results/proc-steps.js';
+import { ProcStepRecorder } from '#gw2/platform/results/proc-steps.js';
 import { effectStateAt, effectSummary } from '#gw2/platform/results/effect-report.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { comboDefinition } from '#gw2/platform/combos/definitions.js';
@@ -36,11 +36,12 @@ function conditionResolver() {
     horizon: 20,
     query: createGw2CombatQuery({ profession: testProfession, config }),
     helpers: { conditionName: (name) => name },
-    queue: new StableEventQueue()
+    queue: new StableEventQueue(),
+    procRecorder: new ProcStepRecorder()
   });
   ctx.effects = captureEffectEmissions({
     submit: (event) => conditions.applyCondition(ctx, event),
-    announce: (request) => recordProcStep(ctx, request.announcement)
+    announce: (request) => ctx.procRecorder.record(request.announcement, ctx.deathTime)
   }).effects;
   return { ctx, conditions };
 }
@@ -229,7 +230,7 @@ test('one-time multi-stack Burning skills expose each stack to Last Tyrant at th
         applications.every((event) => event.stacks === 1 && event.at === canonicalTime(packets[0].at)),
         skill.name
       );
-      const explosions = ctx.procSteps.filter((proc) => proc.detail === 'explosion');
+      const explosions = ctx.procRecorder.steps.filter((proc) => proc.detail === 'explosion');
       assert.equal(explosions.length, 1, skill.name);
       const relicBurning = ctx.resolved.filter((event) => event.sourceId === `relic.${RELIC_IDS.LAST_TYRANT}`);
       assert.equal(
@@ -288,7 +289,10 @@ test('profiled condition procs preserve fractional totals and source attribution
           event.at === 3 && event.duration === 7 && event.sourceId === 123 && event.triggeredBy === 'Fixture Skill'
       )
     );
-    assert.equal(ctx.procSteps.filter((proc) => proc.detail === 'explosion').length, condition === 'Burning' ? 1 : 0);
+    assert.equal(
+      ctx.procRecorder.steps.filter((proc) => proc.detail === 'explosion').length,
+      condition === 'Burning' ? 1 : 0
+    );
   }
 });
 

@@ -4,7 +4,7 @@ import {
   grantRefreshedStacks,
   type RefreshedStacks
 } from '#gw2/platform/combat/resources/refreshed-stacks.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext } from '#gw2/platform/equipment/relics/types.js';
 

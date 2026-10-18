@@ -1,5 +1,5 @@
 import type { Gw2Build, ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
-import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
+import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ProfessionFamilyContract } from '#gw2/platform/profession-definition/family-contract.js';
@@ -8,7 +8,7 @@ import type { ProfessionModifierDefinition } from '#gw2/platform/profession-defi
 import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
 import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
-import type { Gw2AttributeContributionCalculator } from '#gw2/platform/builds/types.js';
+import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2AutoattackChainOptions } from '#gw2/platform/execution/autoattack-chains.js';
 import type { Gw2ProfessionContract } from '#gw2/platform/profession-definition/family-contract.js';

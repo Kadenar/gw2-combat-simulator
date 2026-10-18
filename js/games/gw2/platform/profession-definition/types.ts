@@ -1,6 +1,6 @@
 import type { Gw2DamageBucketPolicies, Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2AttributeContributions } from '#gw2/platform/builds/types.js';
-import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
+import type { Gw2AttributeContributions } from '#gw2/platform/attributes/types.js';
+import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';

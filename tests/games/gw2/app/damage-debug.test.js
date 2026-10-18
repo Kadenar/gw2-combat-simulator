@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { calculateBaselineSimulation } from '#gw2/app/simulation/baseline/baseline-simulation.js';

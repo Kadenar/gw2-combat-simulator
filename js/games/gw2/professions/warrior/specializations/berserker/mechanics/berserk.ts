@@ -1,6 +1,6 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';

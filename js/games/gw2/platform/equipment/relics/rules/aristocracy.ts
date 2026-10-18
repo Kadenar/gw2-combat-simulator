@@ -4,7 +4,7 @@ import { isTimeInWindow, canonicalTime } from '#kernel/core/clock.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';

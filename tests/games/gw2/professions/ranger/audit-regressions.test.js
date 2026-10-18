@@ -1,6 +1,6 @@
 import { CONTROL } from '#gw2/platform/constants.js';
 import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import {
   rangerPetCombatMetadata,
   rangerPetCompanionId

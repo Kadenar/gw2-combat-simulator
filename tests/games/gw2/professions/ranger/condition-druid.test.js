@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';

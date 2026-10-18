@@ -1,4 +1,4 @@
-import type { Gw2AttributeContributionCalculator } from '#gw2/platform/builds/types.js';
+import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState

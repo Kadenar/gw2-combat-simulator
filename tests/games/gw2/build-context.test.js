@@ -4,7 +4,7 @@ import test from 'node:test';
 import { loadBuildContext } from '#gw2/build-context/load.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { bindBuildContext } from '#gw2/build-context/create.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';

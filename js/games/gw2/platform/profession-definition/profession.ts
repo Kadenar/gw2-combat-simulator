@@ -2,20 +2,20 @@ import {
   applyAttributeContributions,
   applyFinalConditionAttributes,
   attributeContext
-} from '#gw2/platform/builds/attribute-evaluation.js';
-import { attributeSeed } from '#gw2/platform/builds/attribute-inputs.js';
+} from '#gw2/platform/attributes/evaluation.js';
+import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-build.js';
 import { validateCatalogActionHandlers } from '#gw2/platform/effects/action-declarations.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
+import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type {
   Gw2AttributeContext,
   Gw2AttributeContributionCalculator,
-  Gw2AttributeContributions,
-  Gw2Build
-} from '#gw2/platform/builds/types.js';
+  Gw2AttributeContributions
+} from '#gw2/platform/attributes/types.js';
 import type { EndurancePolicy, ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   denyCast,
@@ -71,7 +71,7 @@ import {
   validateTriggerPoints,
   type TraitTrigger
 } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import type { DamageEffectDefinition } from '#gw2/platform/skill-damage/types.js';
 import { nativeSkillModifierRules } from '#gw2/platform/skills/modifiers.js';
 
@@ -582,7 +582,7 @@ export function defineNativeProfession<
       order: -10000,
       handler: (
         context: import('#gw2/platform/combat/modifiers.js').Gw2ModifierContext,
-        attributes: import('#gw2/platform/combat/stats.js').Gw2Stats
+        attributes: import('#gw2/platform/attributes/stats.js').Gw2Stats
       ) =>
         applyAttributeContributions(
           attributeSeed(context.config ?? {}, context.runtime?.activeWeaponSet ?? context.config?.startingWeaponSet),
@@ -627,7 +627,7 @@ export function defineNativeProfession<
             order: 10000,
             handler: (
               context: import('#gw2/platform/combat/modifiers.js').Gw2ModifierContext,
-              attributes: import('#gw2/platform/combat/stats.js').Gw2Stats
+              attributes: import('#gw2/platform/attributes/stats.js').Gw2Stats
             ) => applyFinalConditionAttributes(context, attributes, queryContributions(context))
           }
         ],

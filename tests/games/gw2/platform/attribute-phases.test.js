@@ -1,6 +1,6 @@
-import { equipmentAttributeConversions } from '#gw2/platform/builds/attribute-inputs.js';
+import { equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
 import { getActiveTraits as getWarriorActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
@@ -12,8 +12,8 @@ import {
   applyMightAttributes,
   attributeContext,
   resolveAttributeContributions
-} from '#gw2/platform/builds/attribute-evaluation.js';
-import { attributeSeed, baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+} from '#gw2/platform/attributes/evaluation.js';
+import { attributeSeed, baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 

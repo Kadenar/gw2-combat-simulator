@@ -2,7 +2,7 @@ import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import {
   createDefaultBuild as createDefaultBuildFor,
   replaceBuild as replaceBuildFor
@@ -20,7 +20,7 @@ import {
   createCalculateAttributes,
   finalizeBuildAttributes,
   resolveAttributeEffects
-} from '#gw2/platform/builds/attributes.js';
+} from '#gw2/platform/attributes/calculation.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { aggregateSigilSet, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';

@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';

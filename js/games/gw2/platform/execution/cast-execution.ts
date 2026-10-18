@@ -31,7 +31,7 @@ import {
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import type { CastCommand } from '#gw2/platform/execution/rotation.js';
+import type { CastCommand } from '#gw2/platform/builds/rotation.js';
 import {
   createCastDetailContext,
   createRechargeStartContext

@@ -9,7 +9,7 @@ import {
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { Gw2ProcStep, Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { cloneData } from '#kernel/core/clone.js';
@@ -60,6 +60,12 @@ export interface ProfileEmission extends EffectDelivery, EmissionOptions {
   readonly transform?: (event: SimulationEventBase, effect: SkillEffect) => SimulationEventBase | null;
 }
 
+/** Mechanic-owned stack state published with an announcement after activation. */
+export interface AnnouncedEffectState {
+  readonly stacks: number;
+  readonly maximumStacks: number;
+}
+
 export interface AnnouncementEmission extends EffectDelivery, EmissionOptions {
   readonly kind: 'announcement';
   readonly attribution?: EffectEventBase;
@@ -75,7 +81,7 @@ export interface AnnouncementEmission extends EffectDelivery, EmissionOptions {
     readonly cooldownReduction?: number | null;
     readonly expiresAt?: number | null;
     /** Publish mechanic-owned state only when no accepted buff packet already supplies its chart track. */
-    readonly effectState?: Gw2ProcStep['effectState'];
+    readonly effectState?: AnnouncedEffectState;
   };
 }
 

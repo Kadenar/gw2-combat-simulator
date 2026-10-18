@@ -2,7 +2,7 @@ import { WEAPON } from '#gw2/platform/constants.js';
 import { MESMER_SKILL_IDS as SKILL } from '#gw2/professions/mesmer/data/ids.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
+import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
 import { getMesmerBuildRotationLookup, mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import type { MesmerCanonicalBuild } from '#gw2/professions/mesmer/types.js';
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';

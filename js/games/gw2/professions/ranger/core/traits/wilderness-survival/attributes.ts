@@ -1,5 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
+import type { Gw2AttributeEffect } from '#gw2/platform/attributes/types.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';

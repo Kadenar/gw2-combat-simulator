@@ -1,8 +1,5 @@
-import type {
-  Gw2CanonicalBuild,
-  Gw2FinalizedAttributeResult,
-  ProfessionAssumptionControl
-} from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
+import type { Gw2FinalizedAttributeResult } from '#gw2/platform/attributes/types.js';
 import type { ResolvedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import type { TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { CatalogEntity, SkillId } from '#gw2/platform/skills/types.js';

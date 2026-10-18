@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
+import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { createWarriorBuildDefaults, validateWarriorBuild } from '#gw2/professions/warrior/build/build.js';

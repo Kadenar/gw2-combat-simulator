@@ -1,5 +1,5 @@
 import { ACTOR, type ControlKind } from '#gw2/platform/constants.js';
-import { normalizeEffectMetadata } from '#gw2/platform/effects/audience-metadata-validation.js';
+import { normalizeEffectMetadata } from '#gw2/platform/events/audience-metadata-validation.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import {

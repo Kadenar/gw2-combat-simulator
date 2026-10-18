@@ -1,6 +1,6 @@
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { GUARDIAN_SKILL_IDS as G, GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';

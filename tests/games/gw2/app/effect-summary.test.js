@@ -1,8 +1,8 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { recordProcStep } from '#gw2/platform/results/proc-steps.js';
+import { ProcStepRecorder } from '#gw2/platform/results/proc-steps.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildChartSeries } from '#gw2/app/results/model.js';
@@ -372,9 +372,14 @@ test('effect summaries integrate sub-sample transitions and never resurrect repl
 
 test('relic proc state survives recording and refreshes replace stack counts', () => {
   // This reporting fixture composes its observer explicitly, just like the simulation entry point.
-  const context = createGw2ResolverRuntimeState({ config: { relic: 'Thief' }, effectRecorder: new EffectRecorder() });
+  const effectRecorder = new EffectRecorder();
+  const context = createGw2ResolverRuntimeState({
+    config: { relic: 'Thief' },
+    effectRecorder,
+    procRecorder: new ProcStepRecorder(effectRecorder)
+  });
   context.effects = captureEffectEmissions({
-    announce: (request) => recordProcStep(context, request.announcement)
+    announce: (request) => context.procRecorder.record(request.announcement, context.deathTime)
   }).effects;
   const hit = (at) => ({ type: 'damage', actorType: 'player', at, skillName: 'Weapon' });
   context.relic.rules.afterHit(context, context.relic.state, hit(0), { type: 'Weapon', cooldown: 1 });
@@ -385,7 +390,7 @@ test('relic proc state survives recording and refreshes replace stack counts', (
     combatEndTime: 8,
     ...effectFields([], 8),
     effectReport: context.effectRecorder.finish(8),
-    procSteps: context.procSteps
+    procSteps: context.procRecorder.steps
   }).effectSummaries['Relic of the Thief'];
   assert.equal(summary.uptime, 7 / 8);
   assert.equal(summary.averageStacks, 13 / 8);
@@ -393,12 +398,14 @@ test('relic proc state survives recording and refreshes replace stack counts', (
   assert.equal(summary.maximumStackUptime, 0);
 
   // A persistent state without an expiry ends at the observation horizon and uses a fresh value on replacement.
+  const thornsRecorder = new EffectRecorder();
   const thorns = createGw2ResolverRuntimeState({
     config: { relic: 'Thorns', initialThornsStacks: 9 },
-    effectRecorder: new EffectRecorder()
+    effectRecorder: thornsRecorder,
+    procRecorder: new ProcStepRecorder(thornsRecorder)
   });
   thorns.effects = captureEffectEmissions({
-    announce: (request) => recordProcStep(thorns, request.announcement)
+    announce: (request) => thorns.procRecorder.record(request.announcement, thorns.deathTime)
   }).effects;
   thorns.relic.rules.passiveTimeline(thorns, thorns.relic.state, 5);
   const ramp = buildChartSeries({
@@ -407,7 +414,7 @@ test('relic proc state survives recording and refreshes replace stack counts', (
     combatEndTime: 5,
     ...effectFields([], 5),
     effectReport: thorns.effectRecorder.finish(5),
-    procSteps: thorns.procSteps
+    procSteps: thorns.procRecorder.steps
   }).effectSummaries['Relic of Thorns'];
   assert.equal(ramp.uptime, 1);
   assert.equal(ramp.averageStacks, 9.4);

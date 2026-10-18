@@ -2,7 +2,7 @@ import { ACTOR, RECIPIENT, WEAPON, BOON } from '#gw2/platform/constants.js';
 import { boonKey, GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
-import type { Gw2AttributeContext, Gw2AttributeContributions } from '#gw2/platform/builds/types.js';
+import type { Gw2AttributeContext, Gw2AttributeContributions } from '#gw2/platform/attributes/types.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { gw2EventOwnerActorType, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';

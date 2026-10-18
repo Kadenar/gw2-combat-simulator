@@ -2,8 +2,8 @@ import { COMBO_FINISHER, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platfo
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { passiveAttribute } from '#gw2/platform/builds/attribute-passives.js';
-import type { Gw2AttributeContext, Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
+import { passiveAttribute } from '#gw2/platform/attributes/passives.js';
+import type { Gw2AttributeContext, Gw2AttributeEffect } from '#gw2/platform/attributes/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';

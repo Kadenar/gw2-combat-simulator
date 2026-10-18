@@ -78,22 +78,6 @@ export interface Gw2EnvironmentConditionBreakdownEntry extends Gw2ConditionBreak
   damageTicks: Gw2EnvironmentConditionTick[];
 }
 
-export interface Gw2ProcStep {
-  ri: number;
-  type: string;
-  skill: string;
-  sourceSkill: string;
-  detail: string;
-  icon: string;
-  start: number;
-  end: number;
-  cooldownReduction?: number;
-  /** Absolute effect-expiry time in milliseconds when the proc starts a timed state. */
-  expiresAt?: number;
-  /** Stack state after activation; a missing expiry keeps it until the next state or the result horizon. */
-  effectState?: { readonly stacks: number; readonly maximumStacks: number };
-}
-
 export interface Gw2ResolverHelpers {
   readonly balanceDataContext?: { readonly professionId: string; readonly patchId: string };
   conditionName(value: unknown): string;

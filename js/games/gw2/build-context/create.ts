@@ -7,7 +7,8 @@ import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
-import type { Gw2CalculateAttributes, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CalculateAttributes } from '#gw2/platform/attributes/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type {

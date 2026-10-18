@@ -6,15 +6,17 @@ simulation entry point, `simulateGw2`; consumers import every contract directly 
 
 | Directory                  | Owns                                                                                                                                          | Delegates                                                        |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `builds/`                  | Saved schemas, normalization, validation, attributes, loadouts, selections, assumptions, chat codes                                           | Live resources, scheduling, rendering                            |
+| `constants.ts` | Shared boon, condition, aura, control, combo, actor, recipient, weapon, and status vocabulary | Domain behavior |
+| `builds/`                  | Saved schemas and rotation commands, normalization, validation, loadouts, selections, assumptions | Live resources, scheduling, rendering                            |
 | `skills/`                  | Skill identities, immutable catalogs, validation, balance profiles, shared actions, chain indexes                                             | Cast acceptance, recharge, effect application                    |
-| `events/`                  | Event schemas, actor identities, packet identity contracts                                                                                    | Queues, clocks, handlers, history                                |
-| `effects/`                 | Effect declarations, validation, materialization, emission, actions, packet builders, duration/expiry                                         | Cast acceptance, target gating, hit resolution, resource storage |
-| `combat/`                  | Stats, formulas, modifiers, primitive state queries, target/boon state, resources, procs, executed history, action ticks, recharge arithmetic | Equipment aggregation, rotation driving and result assembly      |
+| `events/`                  | Event schemas, audience/metadata validation, actor identities, packet identity contracts                                                                                    | Queues, clocks, handlers, history                                |
+| `attributes/` | Attribute inputs and seeds, stat contracts, common/finalized calculation, contributions, passives | Saved-build schemas, live-state mutation and damage resolution |
+| `effects/`                 | Effect declarations, validation, materialization, emission, actions, packet builders                                         | Cast acceptance, target gating, hit resolution, resource storage |
+| `combat/`                  | Formulas, modifiers, primitive state queries, target/boon state, resources, procs, executed history, action ticks, effect duration/expiry, recharge arithmetic | Equipment aggregation, rotation driving and result assembly      |
 | `combat-calculation/`      | Effective combat attributes and multipliers from combat primitives, equipment rules, profession hooks, and timestamped state                  | State mutation, scheduling and isolated skill measurement        |
 | `combos/`                  | Fields, finishers, descriptors, combo state and rules                                                                                         | Clock ownership and damage resolution                            |
 | `equipment/`               | Gear, consumables, weapons, sigils, relics, item-owned state and proc rules                                                                   | Global scheduling and rotation traversal                         |
-| `execution/`               | Rotation commands, cast lifecycle, readiness, cooldown/ammo progress, lockouts, flips, live attack chains                                     | Hit/condition resolution and reporting                           |
+| `execution/`               | Rotation traversal, cast lifecycle, readiness, cooldown/ammo progress, lockouts, flips, live attack chains                                     | Hit/condition resolution and reporting                           |
 | `resolver/`                | Packet admission/delivery, event phases, handlers, reactions, strikes, conditions, combos                                                     | Rotation decisions and clock advancement                         |
 | `profession-definition/`   | Authoring APIs, module/catalog assembly, compilation, runtime/family contracts, capability contexts                                           | Concrete profession mechanics and browser integration            |
 | `profession-presentation/` | Headless UI contracts/composition, display groups and preview-control hooks                                                                   | Saved-build validation and damage calculation contracts          |
@@ -117,7 +119,7 @@ reporting history, but reporting cannot advance gameplay or supply required game
 death. Combat results use the earlier combat boundary. These observations are not resumable checkpoints.
 
 Live clock and event timestamps use seconds; authored `*Ms` fields, rotation step times, and public cooldown projections
-use milliseconds. `execution/cast-timing.ts` owns cast timing. `effects/timing.ts` keeps duration rounding separate from
+use milliseconds. `execution/cast-timing.ts` owns cast timing. `combat/effect-timing.ts` keeps duration rounding separate from
 absolute expiry; both can use the shared GW2 action-tick arithmetic in `combat/action-tick.ts`.
 
 Player health is fixed at 100% during every combat simulation. Only the isolated attribute preview may vary player

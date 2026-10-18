@@ -1,5 +1,5 @@
 import { AURA } from '#gw2/platform/constants.js';
-import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
+import type { Gw2ProcStep } from '#gw2/platform/results/types.js';
 import { RELIC_DATA, RELIC_BY_ID } from '#gw2/platform/equipment/relics/data.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 

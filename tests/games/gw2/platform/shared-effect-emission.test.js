@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';

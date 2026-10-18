@@ -1,6 +1,6 @@
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { catalystAttributePool } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
-import { attributeSourcePool } from '#gw2/platform/builds/attribute-inputs.js';
+import { attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { calculateBuffedAttributes } from '#gw2/app/build/buffed-attributes.js';

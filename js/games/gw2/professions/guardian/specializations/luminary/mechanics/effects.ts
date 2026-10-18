@@ -2,7 +2,7 @@ import { ACTOR, CONTROL } from '#gw2/platform/constants.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';

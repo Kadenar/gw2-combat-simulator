@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,

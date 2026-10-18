@@ -1,5 +1,5 @@
 import { RECIPIENT } from '#gw2/platform/constants.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
 import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';

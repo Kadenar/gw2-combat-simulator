@@ -1,6 +1,6 @@
 import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import { bindBuildContext } from '#gw2/build-context/create.js';
-import type { Gw2CalculateAttributes } from '#gw2/platform/builds/types.js';
+import type { Gw2CalculateAttributes } from '#gw2/platform/attributes/types.js';
 import type { BuildContextProfession } from '#gw2/build-context/types.js';
 import { createBuildContext, toApplicationBuild } from '#gw2/professions/engineer/build/context.js';
 import { toApplicationBuild as thiefBuild } from '#gw2/professions/thief/build/context.js';

@@ -1,10 +1,10 @@
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
 import { getActiveTraits as getGuardianActiveTraits } from '#gw2/professions/guardian/data/traits-data.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { guardianVirtueForSlot } from '#gw2/professions/guardian/core/mechanics/virtues.js';

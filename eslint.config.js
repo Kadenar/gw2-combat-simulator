@@ -174,7 +174,8 @@ export default [
     files: [
       'js/kernel/core/simulation-random.ts',
       'js/kernel/execution/observation.ts',
-      'js/games/gw2/platform/builds/{codec,assumptions,attributes}.ts',
+      'js/games/gw2/platform/builds/{codec,assumptions}.ts',
+      'js/games/gw2/platform/attributes/calculation.ts',
       'js/games/gw2/platform/combat/modifiers.ts',
       'js/games/gw2/platform/combos/{definitions,descriptors}.ts',
       'js/games/gw2/platform/profession-definition/compile-contract.ts',
@@ -194,7 +195,6 @@ export default [
       'js/kernel/execution/observation.ts',
       'js/games/gw2/platform/builds/codec.ts',
       'js/games/gw2/platform/builds/assumptions.ts',
-      'js/games/gw2/platform/builds/attribute-provenance.ts',
       'js/games/gw2/platform/skills/catalog.ts',
       'js/games/gw2/platform/skills/validation.ts',
       'js/games/gw2/platform/effects/validation.ts',

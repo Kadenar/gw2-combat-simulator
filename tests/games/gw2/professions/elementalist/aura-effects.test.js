@@ -1,5 +1,5 @@
 import { enteredCombat } from '#tests/helpers/engagement.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { attunementChanged, auraAccepted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';

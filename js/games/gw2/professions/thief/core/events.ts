@@ -1,7 +1,7 @@
 import { ACTOR, type ControlKind, type SimulationActorType } from '#gw2/platform/constants.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { normalizeEffectAudience } from '#gw2/platform/effects/audience-metadata-validation.js';
+import { normalizeEffectAudience } from '#gw2/platform/events/audience-metadata-validation.js';
 import { proceduralSkillWeapon, splitStrikeHits } from '#gw2/platform/effects/packet-builders.js';
 import type { EffectAudience, EffectMetadata, SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';

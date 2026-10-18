@@ -10,7 +10,7 @@ import { activeChargeCount, consumeCharge, grantCharges } from '#gw2/platform/co
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';

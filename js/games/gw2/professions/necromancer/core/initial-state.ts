@@ -1,6 +1,6 @@
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
+import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import { necromancerLifeForceCapacity, type NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';

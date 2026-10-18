@@ -1,5 +1,5 @@
 import { rotationActionSummary } from '#gw2/integrations/logs/shared/rotation/summary.js';
-import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import { replayActionCommand } from '#gw2/integrations/logs/shared/rotation/commands.js';
 import {
   isMushroomKingsBlessing,

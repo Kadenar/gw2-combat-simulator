@@ -3,7 +3,7 @@ import { boonKey } from '#gw2/platform/combat/boons.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';

@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import {
   formatConcurrentTimelineBadge,

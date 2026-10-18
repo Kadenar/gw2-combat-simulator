@@ -1,7 +1,7 @@
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { INFUSION_BONUS } from '#gw2/platform/equipment/gear/infusions.js';
 import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
-import { PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
+import { PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
 import type { OptimizerContext } from '#gw2/app/optimizer/gear/context.js';
 import {
   createOptimizerResultGroups,

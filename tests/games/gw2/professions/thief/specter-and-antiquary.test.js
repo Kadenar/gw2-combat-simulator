@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';

@@ -2,11 +2,8 @@ import type { EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
-import type {
-  Gw2EnvironmentConditionBreakdownEntry,
-  Gw2ProcStep,
-  Gw2ResolverEvent
-} from '#gw2/platform/resolver/types.js';
+import type { AnnouncedEffectState } from '#gw2/platform/effects/emission.js';
+import type { Gw2EnvironmentConditionBreakdownEntry, Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RotationApm } from '#gw2/platform/results/rotation-apm.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
@@ -151,4 +148,21 @@ export interface Gw2ResolverResult {
     mode: SimulationRandom['mode'];
     seed: number;
   };
+}
+
+/** A detached timeline row for an executed announcement; rows never feed back into gameplay. */
+export interface Gw2ProcStep {
+  ri: number;
+  type: string;
+  skill: string;
+  sourceSkill: string;
+  detail: string;
+  icon: string;
+  start: number;
+  end: number;
+  cooldownReduction?: number;
+  /** Absolute effect-expiry time in milliseconds when the proc starts a timed state. */
+  expiresAt?: number;
+  /** Stack state after activation; a missing expiry keeps it until the next state or the result horizon. */
+  effectState?: AnnouncedEffectState;
 }

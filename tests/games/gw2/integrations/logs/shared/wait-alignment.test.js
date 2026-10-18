@@ -4,7 +4,7 @@ import test from 'node:test';
 import { readDpsReportRotationData } from '#gw2/app/import-export/logs/dps-report-rotation-import.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
-import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
+import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { event, log } from '#tests/helpers/evtc-fixture.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';

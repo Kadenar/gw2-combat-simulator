@@ -3,7 +3,7 @@ import { controlOnSkillBar } from '#gw2/platform/skills/input-controls.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { revenantBuffPolicies, revenantEffectStates } from '#gw2/professions/revenant/core/effect-state.js';

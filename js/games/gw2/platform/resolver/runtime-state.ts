@@ -16,13 +16,13 @@ import type {
   Gw2ConditionBreakdownEntry,
   Gw2EnvironmentConditionBreakdownEntry,
   Gw2EventQueue,
-  Gw2ProcStep,
   Gw2ResolverEvent,
   Gw2ResolverHelpers,
   Gw2ResolverReactionRegistry,
   Gw2ResolverStage
 } from '#gw2/platform/resolver/types.js';
 import type { EffectReportObserver } from '#gw2/platform/results/effect-report.js';
+import type { ProcStepObserver } from '#gw2/platform/results/proc-steps.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2CriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
@@ -40,6 +40,7 @@ export function createGw2ResolverRuntimeState({
   engagement = createCombatEngagement().query,
   reporting = true,
   effectRecorder = null,
+  procRecorder = null,
   damageDiagnostics = false,
   config,
   traits = new Set(),
@@ -63,6 +64,8 @@ export function createGw2ResolverRuntimeState({
     reporting,
     // Damage previews retain resolved packets without constructing chart histories.
     effectRecorder,
+    // Timeline proc rows are an optional observer; resolution only announces executed procs.
+    procRecorder,
     damageDiagnostics: reporting && damageDiagnostics,
     config,
     traits,
@@ -79,8 +82,6 @@ export function createGw2ResolverRuntimeState({
     environmentConditions: new Map(),
     conditionState: new Map(),
     resolved: [],
-    procSteps: [],
-    procKeys: new Set(),
     procs: createProcRegistry(() => runtime),
     boons: new Map(),
     buffs: new Map(),
@@ -203,6 +204,7 @@ export function createGw2ResolverRuntimeState({
 export interface Gw2ResolverRuntime {
   readonly combat: MechanicCombatServices;
   readonly effectRecorder: EffectReportObserver | null;
+  readonly procRecorder: ProcStepObserver | null;
   readonly criticalDamageMode: Gw2CriticalDamageMode;
   readonly procs: ProcRegistry;
   readonly reporting: boolean;
@@ -224,8 +226,6 @@ export interface Gw2ResolverRuntime {
   conditionBufferAt?: number;
   conditionBufferedAt?: number;
   resolved: Gw2ResolverEvent[];
-  procSteps: Gw2ProcStep[];
-  procKeys: Set<string>;
   boons: Map<string, Gw2TimedBuffApplication[]>;
   /** Retirement ends a companion's live effects while retaining pre-removal history. */
   retiredCompanions: Map<string, number>;
@@ -274,6 +274,7 @@ export interface Gw2ResolverRuntime {
 interface CreateGw2ResolverRuntimeStateOptions {
   readonly engagement?: CombatEngagementQueries;
   readonly effectRecorder?: EffectReportObserver | null;
+  readonly procRecorder?: ProcStepObserver | null;
   readonly damageDiagnostics?: boolean;
   readonly reporting?: boolean;
   readonly config: Gw2Config;

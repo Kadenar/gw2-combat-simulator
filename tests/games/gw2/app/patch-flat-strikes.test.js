@@ -16,7 +16,7 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { grantNecromancerSoulShards } from '#gw2/professions/necromancer/core/mechanics/soul-shards.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 // The authoring reference and executable patch grammar must agree for aggregate and inherited tick formulas.

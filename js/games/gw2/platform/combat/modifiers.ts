@@ -6,7 +6,7 @@ import type {
   Gw2QueryRuntime
 } from '#gw2/platform/combat-calculation/combat-query.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/attributes/stats.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
@@ -692,7 +692,7 @@ export interface Gw2ModifierState {
 /** Modifier queries retain observed combat state and source identity when no event is available. */
 export interface Gw2ModifierContext {
   /** One query samples declarations once; no result survives a separate read at the same timestamp. */
-  readonly attributeContributions?: readonly import('#gw2/platform/builds/types.js').Gw2AttributeContributions[];
+  readonly attributeContributions?: readonly import('#gw2/platform/attributes/types.js').Gw2AttributeContributions[];
   /** Explicit selected catalog for detached queries and profile overrides. */
   readonly catalog?: Readonly<CanonicalCatalog>;
   /** Supplied only by the isolated attribute preview, outside persisted builds and simulation configuration. */

@@ -1,7 +1,7 @@
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
 import { loadProfession } from '#gw2/profession-registry.js';
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { getActiveTraits as getGuardianActiveTraits } from '#gw2/professions/guardian/data/traits-data.js';

@@ -6,7 +6,7 @@ function notorietyAttributes(context, attributes) {
   return applyMightAttributes(attributes, activeBoonStacks(context, 'might'), [notoriety.attributes(facts)]);
 }
 
-import { applyMightAttributes, attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
+import { applyMightAttributes, attributeContext } from '#gw2/platform/attributes/evaluation.js';
 import { notoriety } from '#gw2/professions/revenant/core/traits/devastation/index.js';
 import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';

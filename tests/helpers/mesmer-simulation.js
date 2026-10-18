@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { prepareSimulationConfig } from '#tests/helpers/simulation-config.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';

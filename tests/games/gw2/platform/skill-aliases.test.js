@@ -13,7 +13,7 @@ import {
   recordedActionSkill
 } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
-import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
+import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
 import { canonicalGw2SkillId, GW2_SKILL_ID_ALIASES } from '#gw2/platform/skills/external-skill-ids.js';
 
 const ALIASES = Object.entries(GW2_SKILL_ID_ALIASES).map(([alias, canonical]) => [Number(alias), canonical]);

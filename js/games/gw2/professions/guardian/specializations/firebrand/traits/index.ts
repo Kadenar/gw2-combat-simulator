@@ -20,7 +20,7 @@ import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 
 import { effectNumber } from '#gw2/platform/skills/balance-profiles.js';
 import {

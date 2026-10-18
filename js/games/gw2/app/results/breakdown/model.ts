@@ -1,5 +1,5 @@
 import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
-import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
+import type { Gw2ProcStep } from '#gw2/platform/results/types.js';
 import type { OwnerConditionDamage, SkillBreakdownRow } from '#gw2/app/results/skill-breakdown.js';
 
 export interface ResultRow {

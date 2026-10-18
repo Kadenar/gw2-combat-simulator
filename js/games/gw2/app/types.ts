@@ -16,7 +16,7 @@ import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/resu
 import type { Gw2SimulationOptions } from '#gw2/platform/simulation/options.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import type { CanonicalCatalog, CatalogLookup, SkillId, Skill, CatalogEntity } from '#gw2/platform/skills/types.js';
-import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type {
   PatchComparison,
   BaselineSimulationOutput,

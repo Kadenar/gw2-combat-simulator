@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { inertContainer } from '#tests/helpers/dom.js';

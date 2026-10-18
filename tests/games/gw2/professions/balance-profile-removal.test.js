@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { procChanceFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';

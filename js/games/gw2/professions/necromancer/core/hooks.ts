@@ -4,7 +4,7 @@ import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import { necromancerBuffPolicies, necromancerEffectStates } from '#gw2/professions/necromancer/core/effect-state.js';
 import { necromancerAvailability } from '#gw2/professions/necromancer/core/mechanics/availability.js';
 import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';

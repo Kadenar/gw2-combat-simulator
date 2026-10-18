@@ -16,7 +16,7 @@ import type {
   ProfessionSkillBarGroup,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import {
   engineerToolbeltSkillIds,

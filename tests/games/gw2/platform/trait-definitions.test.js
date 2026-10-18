@@ -1,8 +1,8 @@
-import { equipmentAttributeConversions } from '#gw2/platform/builds/attribute-inputs.js';
+import { equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { createCalculateAttributes, resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { createCalculateAttributes, resolveAttributeEffects } from '#gw2/platform/attributes/calculation.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';

@@ -6,7 +6,7 @@ import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2RelicState, Gw2RelicContext, Gw2RelicRule } from '#gw2/platform/equipment/relics/types.js';
 

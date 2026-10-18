@@ -1,4 +1,4 @@
-import type { Gw2AttributeContributionCalculator } from '#gw2/platform/builds/types.js';
+import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { wieldedConjure } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';

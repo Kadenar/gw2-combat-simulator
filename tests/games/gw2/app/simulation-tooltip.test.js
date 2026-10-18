@@ -2,7 +2,7 @@ import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/bui
 import { getActiveTraits as getNecromancerActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import { necromancerAppAdapter } from '#gw2/professions/necromancer/app/app-definition.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
@@ -17,7 +17,7 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
 import { necromancerTooltips } from '#gw2/professions/necromancer/app/tooltips.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { createNecromancerBuildDefaults, toApplicationBuild } from '#gw2/professions/necromancer/build/build.js';

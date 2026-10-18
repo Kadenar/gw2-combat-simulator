@@ -1,7 +1,7 @@
 import { enteredCombat } from '#tests/helpers/engagement.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { applyRuntimeSigils, applyRuntimeSigilStrike } from '#gw2/platform/equipment/sigils/runtime.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';

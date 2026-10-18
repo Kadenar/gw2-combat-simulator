@@ -1,5 +1,5 @@
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';

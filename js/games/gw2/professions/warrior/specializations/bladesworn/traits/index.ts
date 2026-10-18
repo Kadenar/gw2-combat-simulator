@@ -7,7 +7,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 

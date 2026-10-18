@@ -1,7 +1,7 @@
 import { CONDITION, BOON } from '#gw2/platform/constants.js';
 import { boonKey, MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
-import { ATTRIBUTE_NAMES } from '#gw2/platform/builds/attribute-inputs.js';
-import { resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
+import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
+import { resolveAttributeEffects } from '#gw2/platform/attributes/calculation.js';
 import type {
   Gw2AttributeContext,
   Gw2AttributeContributions,
@@ -9,11 +9,11 @@ import type {
   Gw2AttributeEffect,
   Gw2AttributeLoadout,
   Gw2NumericAttributes
-} from '#gw2/platform/builds/types.js';
+} from '#gw2/platform/attributes/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
+import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 

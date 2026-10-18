@@ -1,6 +1,6 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
-import { CONDITION_DURATION_ATTRIBUTES, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
+import { CONDITION_DURATION_ATTRIBUTES, PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
 
 // Build-panel metadata centralizes the attribute, condition, and armor choices shared by renderers.
 

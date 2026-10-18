@@ -1,7 +1,7 @@
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { captureEffectEmissions, captureAcceptedBuffEmissions } from '#tests/helpers/effect-emission.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';

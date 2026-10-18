@@ -1,7 +1,7 @@
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
-import { attributeSourcePool } from '#gw2/platform/builds/attribute-inputs.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';

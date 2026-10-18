@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { effectPlanningState } from '#tests/helpers/effect-report.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';

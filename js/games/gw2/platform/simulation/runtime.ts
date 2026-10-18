@@ -5,6 +5,7 @@ import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { validateResourceGrantSupport } from '#gw2/platform/effects/action-validation.js';
 import { validateCatalogResourceGrants } from '#gw2/platform/effects/action-declarations.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
+import { ProcStepRecorder } from '#gw2/platform/results/proc-steps.js';
 import { prepareSelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
@@ -204,13 +205,15 @@ export function runRuntime<T extends object>(
     announce: (request) => deliveryOwner.announceEffect(request)
   });
 
+  // Reporting observers are composed here; resolution never constructs result services.
+  const effectRecorder = output === 'detailed' && collectChartData ? new EffectRecorder() : null;
   const base = createGw2ResolverRuntimeState({
     engagement: engagementController.query,
     config,
     traits: normalizeSelectedTraitIds(config.selectedTraitIds),
     reporting: output !== 'score',
-    // Reporting is an optional observer composed here; resolution never constructs result services.
-    effectRecorder: output === 'detailed' && collectChartData ? new EffectRecorder() : null,
+    effectRecorder,
+    procRecorder: output === 'score' ? null : new ProcStepRecorder(effectRecorder),
     damageDiagnostics: output === 'damage' || damageDiagnostics,
     horizon: policy.kind === 'absolute' ? canonicalTime(policy.endTimeMs / 1000) : null,
     query,

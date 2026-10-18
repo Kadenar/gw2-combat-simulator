@@ -27,7 +27,6 @@ import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-han
 import { HandlerRegistry, OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { createGw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverEvent, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
-import { recordProcStep } from '#gw2/platform/results/proc-steps.js';
 import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { RuntimeWork, WorkInput } from '#gw2/platform/simulation/work-contract.js';
@@ -281,7 +280,7 @@ export function createEffectDelivery<T extends object>(
 
   function publishAnnouncement(request: AnnouncementEmission, event: Gw2ResolverEvent): void {
     const info = request.announcement;
-    recordProcStep(runtime, info);
+    runtime.procRecorder?.record(info, runtime.deathTime);
 
     if (request.log && runtime.reporting) executed.push(event);
   }
@@ -419,16 +418,19 @@ export function createEffectDelivery<T extends object>(
 
     // Proc rows keep recharge reductions for timeline badges and timed procs keep their deadline.
     if (event.type === 'proc')
-      recordProcStep(runtime, {
-        type: event.procType ?? 'skill',
-        name: event.name ?? '',
-        at: event.at,
-        sourceSkill: event.sourceSkill,
-        detail: event.detail,
-        icon: event.icon,
-        cooldownReduction: event.cooldownReduction,
-        expiresAt: Number(event.duration) > 0 ? event.at + Number(event.duration) : null
-      });
+      runtime.procRecorder?.record(
+        {
+          type: event.procType ?? 'skill',
+          name: event.name ?? '',
+          at: event.at,
+          sourceSkill: event.sourceSkill,
+          detail: event.detail,
+          icon: event.icon,
+          cooldownReduction: event.cooldownReduction,
+          expiresAt: Number(event.duration) > 0 ? event.at + Number(event.duration) : null
+        },
+        runtime.deathTime
+      );
 
     if (event.type === 'weapon_set' || event.type === 'sigil_swap') host.weaponSwap?.(event);
 

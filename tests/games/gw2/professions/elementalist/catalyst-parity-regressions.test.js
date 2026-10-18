@@ -1,7 +1,7 @@
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { elementalEmpowermentAttributes } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { catalystAttributePool } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';

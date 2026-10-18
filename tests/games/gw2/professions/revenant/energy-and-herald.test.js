@@ -10,10 +10,10 @@ function notorietyAttributes(context, attributes) {
   return applyMightAttributes(attributes, activeBoonStacks(context, 'might'), [notoriety.attributes(facts)]);
 }
 
-import { applyMightAttributes, attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
+import { applyMightAttributes, attributeContext } from '#gw2/platform/attributes/evaluation.js';
 import { notoriety } from '#gw2/professions/revenant/core/traits/devastation/index.js';
 import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
@@ -22,7 +22,7 @@ import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { displayedSkillTiles, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
 import {
   createRevenantBuildDefaults,
   migrateRevenantBuild,

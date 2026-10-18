@@ -1,4 +1,8 @@
-import type { Gw2AttributeContext, Gw2AttributeContributions, Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
+import type {
+  Gw2AttributeContext,
+  Gw2AttributeContributions,
+  Gw2AttributeEffect
+} from '#gw2/platform/attributes/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';

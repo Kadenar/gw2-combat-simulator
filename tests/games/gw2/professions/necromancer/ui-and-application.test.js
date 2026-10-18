@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';

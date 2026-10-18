@@ -6,7 +6,7 @@ import {
 } from '#gw2/platform/skills/input-controls.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { CastCommand } from '#gw2/platform/execution/rotation.js';
+import type { CastCommand } from '#gw2/platform/builds/rotation.js';
 
 /** Execution resolves logical controls and records accepted activations for downstream observers. */
 export type InputControl =

@@ -1,4 +1,4 @@
-import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { SimulationStep } from '#gw2/platform/results/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { rankedInputWindows } from '#gw2/platform/results/input-windows.js';

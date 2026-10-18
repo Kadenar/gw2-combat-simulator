@@ -1,6 +1,6 @@
 import { enteredCombat } from '#tests/helpers/engagement.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';

@@ -1,9 +1,10 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { isGw2IllusionEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2ProcStep, Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ProcStep } from '#gw2/platform/results/types.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import type {
   RandomDistributionDriver,

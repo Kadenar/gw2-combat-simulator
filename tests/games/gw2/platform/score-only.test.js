@@ -1,5 +1,5 @@
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';

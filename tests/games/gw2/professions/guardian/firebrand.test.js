@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';

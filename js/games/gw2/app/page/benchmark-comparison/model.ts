@@ -3,7 +3,7 @@ import type { ChartPoint } from '#gw2/app/results/charts/time-series-model.js';
 import type { Gw2ResolverResult } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { GameContentAddress } from '#browser/game/contracts.js';
-import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 

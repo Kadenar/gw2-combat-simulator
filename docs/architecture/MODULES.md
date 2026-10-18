@@ -18,6 +18,7 @@ For how the simulator works (layers, phases, profession contracts, events, timin
 | `js/games/gw2/app/`                   | GW2 build editor, rotation workspace, browser lifecycle, and presentation adapters                           |
 | `js/games/gw2/integrations/logs/`     | EVTC, dps.report, and gw2wingman parsing and rotation reconstruction                                         |
 | `js/games/gw2/integrations/keybinds/` | Optional GW2 keybind import                                                                                  |
+| `js/games/gw2/integrations/chat-code/` | GW2 build-template chat-code decoding and generated palette data |
 | `js/games/gw2/integrations/patches/`  | Patch-preview manifest, authoring model, and optional browser UI                                             |
 | `data/games.json`                     | Canonical runtime game-data roots                                                                            |
 | `data/gw2/builds/`                    | Saved GW2 build presets                                                                                      |

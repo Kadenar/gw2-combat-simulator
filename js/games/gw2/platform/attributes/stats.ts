@@ -1,4 +1,4 @@
-import { attributeSeed } from '#gw2/platform/builds/attribute-inputs.js';
+import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 /** Combat attributes: configured stats, their resolved form, and the static per-weapon-set view stat queries start from. */

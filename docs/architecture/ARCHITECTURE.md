@@ -307,7 +307,7 @@ skills not on the active set unless the caller supplies no equipment config (mec
 { type: "cast", skillId, releaseAtCharges: 3 }
 ```
 
-`platform/execution/rotation.ts` normalizes every rotation input to these commands. It also accepts the documented
+`platform/builds/rotation.ts` normalizes every rotation input to these commands. It also accepts the documented
 shorthand (a numeric skill ID or a skill-name string; see [PROGRAMMATIC-SIMULATION.md](./PROGRAMMATIC-SIMULATION.md))
 Saved presets use canonical `{ type, skillId }` commands.
 
@@ -338,7 +338,7 @@ normalized. `toApplicationBuild()` additionally turns on console Quickness and A
 normalized commands. Unreadable local data falls back to defaults; explicit imports surface wrong-profession and
 future-version errors.
 
-`platform/builds/attributes.ts` owns attribute assembly: `calculateCommonAttributes()` handles equipment, consumables,
+`platform/attributes/calculation.ts` owns attribute assembly: `calculateCommonAttributes()` handles equipment, consumables,
 infusions, sigils, and base derived stats; professions pass their trait/skill deltas to `finalizeBuildAttributes()`,
 which recomputes crit chance, crit damage, boon duration, and condition duration.
 

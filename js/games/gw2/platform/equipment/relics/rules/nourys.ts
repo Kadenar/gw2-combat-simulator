@@ -1,5 +1,5 @@
 import { timeKey } from '#kernel/core/clock.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 /** Nourys relic rules. */
 import { defineRelic, explicitCombatStartTime } from '#gw2/platform/equipment/relics/rules/shared.js';
 

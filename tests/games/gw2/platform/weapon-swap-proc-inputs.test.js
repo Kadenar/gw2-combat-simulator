@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';

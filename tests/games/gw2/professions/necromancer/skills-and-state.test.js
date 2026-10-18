@@ -1,6 +1,6 @@
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { resourceAnchor } from '#gw2/platform/combat/resources/clock.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';

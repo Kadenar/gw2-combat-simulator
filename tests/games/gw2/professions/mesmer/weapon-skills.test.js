@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';

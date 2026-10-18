@@ -3,11 +3,11 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 /** Electric Enchantment owns its shared identity, charge lifecycle, combat payload, and damage preview. */
 import { activeChargeGrants, consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import type { DamageEffectDefinition } from '#gw2/platform/skill-damage/types.js';
 
 import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';

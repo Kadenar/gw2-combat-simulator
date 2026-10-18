@@ -5,11 +5,11 @@ import {
   type ParsedEvtc,
   type ParsedEvtcEvent
 } from '#gw2/integrations/logs/evtc/types.js';
-import { applyAttributeContributions, attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
-import { attributeSeed } from '#gw2/platform/builds/attribute-inputs.js';
-import type { Gw2AttributeContributionCalculator } from '#gw2/platform/builds/types.js';
+import { applyAttributeContributions, attributeContext } from '#gw2/platform/attributes/evaluation.js';
+import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
+import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import { gw2ConditionDurationMultiplier } from '#gw2/platform/combat/formulas.js';
-import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
+import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { balanceProfileNumber, effectNumber } from '#gw2/platform/skills/balance-profiles.js';

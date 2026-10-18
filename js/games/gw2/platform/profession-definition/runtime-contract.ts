@@ -10,7 +10,7 @@ import type {
 } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import type { CastCommand } from '#gw2/platform/execution/rotation.js';
+import type { CastCommand } from '#gw2/platform/builds/rotation.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type {
   CastDetailContext,

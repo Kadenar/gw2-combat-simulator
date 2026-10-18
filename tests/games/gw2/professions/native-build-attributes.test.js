@@ -1,9 +1,9 @@
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { equipmentAttributeConversions } from '#gw2/platform/builds/attribute-inputs.js';
+import { equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { createCalculateAttributes, resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
+import { createCalculateAttributes, resolveAttributeEffects } from '#gw2/platform/attributes/calculation.js';
 import { getActiveTraits as getEngineerActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';

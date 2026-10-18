@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { withSkill, withProfile } from '#tests/helpers/catalog-overrides.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';

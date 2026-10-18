@@ -1,4 +1,4 @@
-import type { Gw2AttributeContributionCalculator } from '#gw2/platform/builds/types.js';
+import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import { signetAttributeEffects } from '#gw2/professions/warrior/core/skills/slot-skills.js';
 
 /** Selected skill passives use the same readiness and tuning for build previews and live attribute queries. */

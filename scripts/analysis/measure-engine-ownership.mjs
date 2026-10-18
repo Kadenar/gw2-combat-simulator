@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { performance } from 'node:perf_hooks';
 import { loadProfession } from '#gw2/profession-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';

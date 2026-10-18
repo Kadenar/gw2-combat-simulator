@@ -1,5 +1,5 @@
-import { attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { attributeContext } from '#gw2/platform/attributes/evaluation.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';

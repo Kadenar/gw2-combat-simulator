@@ -4,7 +4,7 @@ import test from 'node:test';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { calculateContributionComparisons } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';

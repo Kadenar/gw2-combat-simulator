@@ -4,7 +4,7 @@ import { bloodReaction } from '#gw2/professions/warrior/specializations/berserke
 import { attackersInsight } from '#gw2/professions/warrior/specializations/spellbreaker/traits/index.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';

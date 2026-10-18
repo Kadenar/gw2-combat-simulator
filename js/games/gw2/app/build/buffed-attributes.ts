@@ -9,10 +9,10 @@ import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/bui
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
 import type { AttributePreviewState } from '#gw2/app/build/types.js';
-import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
+import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2NumericStatKey } from '#gw2/platform/combat/stats.js';
+import type { Gw2NumericStatKey } from '#gw2/platform/attributes/stats.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';

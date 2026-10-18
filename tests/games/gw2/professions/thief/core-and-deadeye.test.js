@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { daredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';

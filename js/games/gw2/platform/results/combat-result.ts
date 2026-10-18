@@ -128,7 +128,7 @@ export function buildCombatResult(
       effectiveEnd
     ).sort((left, right) => left.at - right.at),
     procSteps: cloneData(
-      ctx.procSteps
+      (ctx.procRecorder?.steps ?? [])
         .filter((step) => step.start <= Math.round(effectiveEnd * 1000 + 0.1))
         .sort((left, right) => left.start - right.start)
     ),

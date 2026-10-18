@@ -1,5 +1,5 @@
-import { passiveAttribute } from '#gw2/platform/builds/attribute-passives.js';
-import type { Gw2AttributeContributionCalculator } from '#gw2/platform/builds/types.js';
+import { passiveAttribute } from '#gw2/platform/attributes/passives.js';
+import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import { buffActive, hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';

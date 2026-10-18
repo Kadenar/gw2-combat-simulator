@@ -1,4 +1,4 @@
-import { attributeSeedFromCommon, equipmentAttributeConversions } from '#gw2/platform/builds/attribute-inputs.js';
+import { attributeSeedFromCommon, equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
 import {
   conditionDurationPercentFromExpertise,
   criticalChancePercentFromPrecision,
@@ -18,18 +18,18 @@ import {
 } from '#gw2/platform/equipment/sigils/loadout.js';
 import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 
+import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type {
   Gw2ApplyBuildAttributeRules,
   Gw2AttributeBreakdown,
   Gw2AttributeEffect,
   Gw2AttributeConversionInputs,
   Gw2AttributeMap,
-  Gw2Build,
   Gw2CalculateAttributes,
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
-} from '#gw2/platform/builds/types.js';
+} from '#gw2/platform/attributes/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Level-80 character baseline that gear and food attributes build on top of. */
@@ -553,7 +553,7 @@ export function finalizeBuildAttributes(
  */
 export function createCalculateAttributes(
   applyBuildAttributeRules: Gw2ApplyBuildAttributeRules,
-  attributeContributions?: import('#gw2/platform/builds/types.js').Gw2AttributeContributionCalculator
+  attributeContributions?: import('#gw2/platform/attributes/types.js').Gw2AttributeContributionCalculator
 ): Gw2CalculateAttributes {
   return function calculateAttributes(
     build: Gw2Build,

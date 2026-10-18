@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 
 // Supply fresh sandbox defaults without loading application or simulation modules.
 export function defaultSimulationConfig(overrides = {}) {

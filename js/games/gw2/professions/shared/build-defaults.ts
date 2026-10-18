@@ -1,7 +1,7 @@
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { DEFAULT_PERMANENT_COMBO_FIELD_ASSUMPTIONS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 
 const DEFAULT_TARGET_CONDITIONS: Readonly<Record<string, number | boolean>> = Object.freeze({

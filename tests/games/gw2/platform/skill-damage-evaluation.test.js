@@ -1,5 +1,5 @@
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { playerHealthFraction, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
 import assert from 'node:assert/strict';

@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import assert from 'node:assert/strict';

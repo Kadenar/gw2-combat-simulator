@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { mesmerCoreModule } from '#gw2/professions/mesmer/core/module.js';
 import { MESMER_TRAIT_IDS as TRAIT, MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';

@@ -1,6 +1,6 @@
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';

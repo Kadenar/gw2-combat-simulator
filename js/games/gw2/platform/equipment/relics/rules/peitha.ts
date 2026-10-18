@@ -5,7 +5,7 @@ import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/rel
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 const PEITHA_BUFF = 'relic-peitha';

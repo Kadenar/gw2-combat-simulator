@@ -1,5 +1,5 @@
 import { WEAPON } from '#gw2/platform/constants.js';
-import { GW2_BUILD_TEMPLATE_PROFESSIONS } from '#gw2/platform/builds/chat-code/palette-data.js';
+import { GW2_BUILD_TEMPLATE_PROFESSIONS } from '#gw2/integrations/chat-code/palette-data.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/external-skill-ids.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2BuildSpecialization } from '#gw2/platform/builds/types.js';

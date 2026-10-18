@@ -1,8 +1,8 @@
 import { BOON, type BoonName, RECIPIENT } from '#gw2/platform/constants.js';
 import type { ResolvedEffectAudience, SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
-import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
-import { gw2EffectExpiresAt, roundEffectDuration } from '#gw2/platform/effects/timing.js';
+import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
+import { gw2EffectExpiresAt, roundEffectDuration } from '#gw2/platform/combat/effect-timing.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
 import { clamp } from '#kernel/core/numeric.js';

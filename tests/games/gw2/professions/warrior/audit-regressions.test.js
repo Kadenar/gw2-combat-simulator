@@ -1,7 +1,7 @@
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
 import { getActiveTraits as getWarriorActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';

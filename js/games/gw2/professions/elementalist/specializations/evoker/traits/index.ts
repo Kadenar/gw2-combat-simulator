@@ -9,7 +9,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, targetConditionActive, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';

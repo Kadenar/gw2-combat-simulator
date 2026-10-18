@@ -1,5 +1,5 @@
-import { applyAttributeContributions, attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
-import { attributeSeed } from '#gw2/platform/builds/attribute-inputs.js';
+import { applyAttributeContributions, attributeContext } from '#gw2/platform/attributes/evaluation.js';
+import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
 
 /** Isolate an owner's declarations while preserving patch context and the shared arithmetic stages. */
 export function evaluateAttributeDeclarations(context, initial, calculate) {

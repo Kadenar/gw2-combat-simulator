@@ -1,5 +1,5 @@
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';

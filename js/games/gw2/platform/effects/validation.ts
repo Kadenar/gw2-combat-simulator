@@ -6,10 +6,7 @@ import {
   MAX_EFFECT_EXPANSION,
   requireEffectExpansionCount
 } from '#gw2/platform/effects/expansion-budget.js';
-import {
-  normalizeEffectAudience,
-  normalizeEffectMetadata
-} from '#gw2/platform/effects/audience-metadata-validation.js';
+import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/events/audience-metadata-validation.js';
 import type { ConditionTick, SkillEffect, StrikeTick } from '#gw2/platform/effects/types.js';
 import { ACTOR_TYPES } from '#gw2/platform/events/actors.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';

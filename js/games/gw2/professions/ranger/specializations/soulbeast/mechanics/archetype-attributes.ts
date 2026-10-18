@@ -4,7 +4,7 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
-import type { Gw2NumericStatKey } from '#gw2/platform/combat/stats.js';
+import type { Gw2NumericStatKey } from '#gw2/platform/attributes/stats.js';
 
 /** Build and runtime use the same patch values for the selected pet archetype. */
 export function soulbeastArchetypeAttributes(

@@ -5,8 +5,8 @@ import type {
   Gw2SeedAttributeConversion,
   Gw2CommonAttributeResult,
   Gw2NumericAttributes
-} from '#gw2/platform/builds/types.js';
-import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
+} from '#gw2/platform/attributes/types.js';
+import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { UTILITY_DATA } from '#gw2/platform/equipment/consumables/utilities.js';
 

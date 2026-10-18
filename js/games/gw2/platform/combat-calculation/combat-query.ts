@@ -1,7 +1,7 @@
 import { ACTOR, CONDITION, BOON } from '#gw2/platform/constants.js';
 import { boonKey, type Gw2TimedBuffApplication, MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
-import { applyMightAttributes } from '#gw2/platform/builds/attribute-evaluation.js';
+import { applyMightAttributes } from '#gw2/platform/attributes/evaluation.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
@@ -23,8 +23,8 @@ import {
   targetConditionStacks,
   targetHasCondition
 } from '#gw2/platform/combat/state/targets.js';
-import { gw2StaticAttributes, type Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
-import { roundEffectDuration } from '#gw2/platform/effects/timing.js';
+import { gw2StaticAttributes, type Gw2ResolvedStats } from '#gw2/platform/attributes/stats.js';
+import { roundEffectDuration } from '#gw2/platform/combat/effect-timing.js';
 import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
 import {
   relicConditionDamageBonus,

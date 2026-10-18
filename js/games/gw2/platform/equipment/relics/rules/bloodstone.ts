@@ -10,7 +10,7 @@ import {
   relicBuffActive,
   timedStrikeBuff
 } from '#gw2/platform/equipment/relics/rules/shared.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 
 // The fourth qualifying blast consumes the native three-stack pool.

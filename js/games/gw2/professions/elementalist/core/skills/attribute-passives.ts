@@ -1,5 +1,5 @@
-import { passiveAttribute } from '#gw2/platform/builds/attribute-passives.js';
-import type { Gw2AttributeContributionCalculator } from '#gw2/platform/builds/types.js';
+import { passiveAttribute } from '#gw2/platform/attributes/passives.js';
+import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,

@@ -1,5 +1,5 @@
 import { enteredCombat } from '#tests/helpers/engagement.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';

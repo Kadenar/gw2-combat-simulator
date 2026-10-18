@@ -8,7 +8,7 @@ import {
   remainingDurationStackSeconds,
   timedBuffApplicationsAt
 } from '#gw2/platform/combat/boons.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { assertSimulationEvent } from '#gw2/platform/events/events.js';

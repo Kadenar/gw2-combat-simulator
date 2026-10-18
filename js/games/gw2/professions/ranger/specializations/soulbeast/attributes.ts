@@ -1,5 +1,5 @@
-import { ATTRIBUTE_NAMES } from '#gw2/platform/builds/attribute-inputs.js';
-import type { Gw2AttributeContributionCalculator } from '#gw2/platform/builds/types.js';
+import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
+import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import { activeRangerPet, beastmodeActive } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { soulbeastArchetypeAttributes } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
 

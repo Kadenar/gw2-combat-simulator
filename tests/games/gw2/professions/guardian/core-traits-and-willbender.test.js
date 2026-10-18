@@ -1,4 +1,4 @@
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';

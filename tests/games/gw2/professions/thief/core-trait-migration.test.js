@@ -1,5 +1,5 @@
 import { applyBoonExtension, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';

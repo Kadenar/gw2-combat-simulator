@@ -2,7 +2,7 @@ import { ACTOR, type SimulationActorType } from '#gw2/platform/constants.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 
-import { normalizeEffectMetadata } from '#gw2/platform/effects/audience-metadata-validation.js';
+import { normalizeEffectMetadata } from '#gw2/platform/events/audience-metadata-validation.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';

@@ -1,8 +1,8 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import { attributeContext, resolveAttributeContributions } from '#gw2/platform/builds/attribute-evaluation.js';
-import { ATTRIBUTE_NAMES, attributeSeed, attributeSourcePool } from '#gw2/platform/builds/attribute-inputs.js';
+import { attributeContext, resolveAttributeContributions } from '#gw2/platform/attributes/evaluation.js';
+import { ATTRIBUTE_NAMES, attributeSeed, attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2AttributeContributions, Gw2NumericAttributes } from '#gw2/platform/builds/types.js';
+import type { Gw2AttributeContributions, Gw2NumericAttributes } from '#gw2/platform/attributes/types.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
@@ -15,7 +15,7 @@ import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { strengthOfStone } from '#gw2/professions/elementalist/core/traits/earth/index.js';
 import { burningRage } from '#gw2/professions/elementalist/core/traits/fire/index.js';
 
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';

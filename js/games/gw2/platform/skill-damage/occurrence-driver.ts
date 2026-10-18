@@ -1,25 +1,10 @@
-import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { DamageInputs, SkillDamageCastOptions } from '#gw2/platform/skill-damage/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-
-/** Payload provenance carries timing and selected inputs, without creating or resolving a qualifying attack. */
-export function damageInputEvent(runtime: { readonly time: number }): Gw2ResolverEvent {
-  return {
-    type: 'proc',
-    at: runtime.time,
-    source: 'Damage preview',
-    sourceId: 'damage:occurrence',
-    actorType: ACTOR.EFFECT,
-    activationId: 'damage:occurrence',
-    skillName: 'Damage preview'
-  };
-}
 
 /** An isolated occurrence enters below command eligibility; this contract is never a saved simulation setting. */
 export interface DamageExecutionOptions<T extends object> {

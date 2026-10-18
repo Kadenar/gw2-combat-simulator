@@ -1,5 +1,5 @@
 import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';

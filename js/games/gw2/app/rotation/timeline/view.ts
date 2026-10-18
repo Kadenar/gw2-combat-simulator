@@ -5,7 +5,7 @@ import { currentTimelineResults, procFilterKey } from '#gw2/app/rotation/timelin
 import { timelineRowsView, type TimelineRowRender } from '#gw2/app/rotation/timeline/rows.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
+import type { Gw2ProcStep } from '#gw2/platform/results/types.js';
 import { closeFloatingEditor } from '#ui/rotation/editing/floating-editor.js';
 import { mountRotationInsertionCursor } from '#ui/rotation/insertion-cursor.js';
 

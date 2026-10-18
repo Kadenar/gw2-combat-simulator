@@ -3,7 +3,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
