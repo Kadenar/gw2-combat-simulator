@@ -97,7 +97,7 @@ test('combat-log and legacy selected-skill loading use the shared alias map', ()
   assert.equal(findRotationSkill(77159, 'Unknown', revenantCatalog, conduit)?.id, 77141);
 });
 
-test('combat-log catalog helpers share canonical action, alias, and array fallback behavior', () => {
+test('combat-log catalog helpers resolve canonical actions and aliases through the canonical catalog', () => {
   const profile = ROTATION_PROFILES.find((candidate) => candidate.specializationId === 'spellbreaker');
   assert.ok(profile);
 
@@ -107,8 +107,12 @@ test('combat-log catalog helpers share canonical action, alias, and array fallba
     canonicalSkillId: 69_297,
     canonicalName: 'Unknown'
   };
+  // Both log lookup paths must resolve external aliases using the canonical catalog shape.
   assert.equal(recordedActionSkill(action, { catalog: warriorCatalog, profile })?.id, 45_252);
-  assert.equal(catalogSkillById({ skills: warriorCatalog.skills }, 69_297)?.id, 45_252);
+  assert.equal(catalogSkillById(warriorCatalog, 69_297), warriorCatalog.skillsById.get(45_252));
+  assert.equal(catalogSkillById(warriorCatalog, 45_252), warriorCatalog.skillsById.get(45_252));
+  assert.equal(catalogSkillById(warriorCatalog, 999_999), null);
+  assert.equal(catalogSkillById(null, 69_297), null);
 });
 
 test('protected variants and unreviewed IDs remain distinct', () => {
