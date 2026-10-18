@@ -13,6 +13,7 @@
  */
 
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 
 /** Absolute expiry timestamps, one per live application. */
 type Gw2TimedStackExpiries = readonly number[];
@@ -31,13 +32,13 @@ interface Gw2TimedStackConsumption {
 
 /** Drops closed windows while retaining application order for oldest/newest consumption. */
 export function purgeExpiredStacks(expiries: Gw2TimedStackExpiries, at: number): number[] {
-  return expiries.filter((expiresAt) => expiresAt > at);
+  return expiries.filter((expiresAt) => isTimeInWindow(at, -Infinity, expiresAt));
 }
 
 /** Counts the applications still live at `at` without rebuilding the array. */
 export function activeStackCount(expiries: Gw2TimedStackExpiries, at: number): number {
   let count = 0;
-  for (const expiresAt of expiries) if (expiresAt > at) count += 1;
+  for (const expiresAt of expiries) if (isTimeInWindow(at, -Infinity, expiresAt)) count += 1;
   return count;
 }
 
@@ -51,7 +52,9 @@ export function addTimedStacks(
 ): Gw2TimedStackGrant {
   const active = purgeExpiredStacks(expiries, at);
   const added = boundedInteger(stacks, 0, 0, Math.max(0, maximum - active.length));
-  active.push(...Array.from({ length: added }, () => at + duration));
+  // Match event-clock precision without changing exact lifetimes or unbounded preview stacks.
+  const expiresAt = at + duration === Infinity ? Infinity : canonicalTime(at + duration);
+  active.push(...Array.from({ length: added }, () => expiresAt));
   return { expiries: active, added };
 }
 
@@ -128,9 +131,12 @@ export function grantTimedStacks(expiries: Gw2TimedStackExpiries, options: Gw2Ti
 
   if (maximum === 0) return [];
 
-  const granted = options.expiresAt > options.at ? boundedInteger(options.count, 0, 0, Number.MAX_SAFE_INTEGER) : 0;
+  const expiresAt = options.expiresAt === Infinity ? Infinity : canonicalTime(options.expiresAt);
+  const granted = isTimeInWindow(options.at, -Infinity, expiresAt)
+    ? boundedInteger(options.count, 0, 0, Number.MAX_SAFE_INTEGER)
+    : 0;
   const deadlines = purgeExpiredStacks(expiries, options.at);
-  for (let stack = 0; stack < granted; stack += 1) deadlines.push(options.expiresAt);
+  for (let stack = 0; stack < granted; stack += 1) deadlines.push(expiresAt);
 
   if (options.retain === 'latest-expiry') return deadlines.sort((a, b) => b - a).slice(0, maximum);
 

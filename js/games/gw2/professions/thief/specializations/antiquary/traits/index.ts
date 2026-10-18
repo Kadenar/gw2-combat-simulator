@@ -1,4 +1,5 @@
 import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
@@ -317,7 +318,7 @@ export const antiquaryTraits = Object.freeze([
   cardSwap
 ]);
 
-/** Combat High replaces its stacks with staggered expiries, losing one stack per interval. */
+/** Combat High replaces its stacks with canonical staggered expiries, losing one stack per interval. */
 function grantCombatHigh(runtime: ThiefRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.COMBAT_HIGH);
   const maximum = Math.max(0, Math.trunc(balanceProfileNumber(profile, 'maximumStacks')));
@@ -326,7 +327,7 @@ function grantCombatHigh(runtime: ThiefRuntime): void {
   antiquaryState.from(runtime).combatHighExpirations =
     interval > 0
       ? purgeExpiredStacks(
-          Array.from({ length: maximum }, (_, index) => expiresAt - index * interval),
+          Array.from({ length: maximum }, (_, index) => canonicalTime(expiresAt - index * interval)),
           runtime.time
         )
       : [];

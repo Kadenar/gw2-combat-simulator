@@ -11,6 +11,70 @@ import {
 } from '#gw2/platform/combat/resources/charges.js';
 import { advanceDiscreteResource, resourceValueAt } from '#gw2/platform/combat/resources/clock.js';
 
+// Canonical expiry closes entitlement even when addition drifts above an exact action tick or off-grid deadline.
+for (const [at, duration, expiry] of [
+  [0.56, 0.04, 0.6],
+  [0.137, 5, 5.137]
+]) {
+  test(`charges close at canonical expiry ${expiry} without extending their lifetime`, () => {
+    const grant = grantCharges(1, at + duration);
+    assert.equal(grant.expiresAt, expiry);
+    assert.equal(activeChargeCount(grant, expiry - 0.000001), 1);
+    assert.equal(activeChargeCount(grant, expiry), 0);
+    assert.equal(consumeCharge(grant, expiry), false);
+    assert.equal(consumeChargeBatch([grant], expiry), false);
+    assert.deepEqual(activeChargeGrants([grant], expiry), []);
+    expireCharges(grant, expiry);
+    assert.equal(grant.charges, 0);
+
+    const inclusive = grantCharges(2, at + duration);
+    expireCharges(inclusive, expiry, true);
+    assert.equal(activeChargeCount(inclusive, expiry, true), 2);
+    assert.equal(consumeCharge(inclusive, expiry, 0, true), true);
+    expireCharges(inclusive, expiry + 0.000001, true);
+    assert.equal(inclusive.charges, 0);
+  });
+}
+
+test('charge readers and expiry compare canonical observations and deadlines', () => {
+  const grant = { charges: 1, expiresAt: 0.56 + 0.04 };
+  assert.equal(activeChargeCount(grant, 0.6), 0);
+  assert.equal(consumeChargeBatch([grant], 0.6), false);
+  expireCharges(grant, 0.6);
+  assert.equal(grant.charges, 0);
+  assert.equal(activeChargeCount(grantCharges(1, 0.1), 0.3 - 0.2), 0);
+  assert.equal(activeChargeCount(grantCharges(1, 0.6), 0.56 + 0.04, true), 1);
+});
+
+test('canonical charge refresh resets expired ICDs and preserves live grants against old expiry work', () => {
+  const prior = grantCharges(2, 0.56 + 0.04);
+  assert.equal(consumeCharge(prior, 0.56, 0.04), true);
+  assert.equal(prior.readyAt, 0.6);
+  const live = grantCharges(1, 0.137 + 5, prior, 0.599999);
+  assert.equal(live.charges, 2);
+  assert.equal(live.readyAt, 0.6);
+  assert.equal(consumeCharge(live, 0.599999, 0.04), false);
+  expireCharges(live, 0.6);
+  // Internal cooldowns remain blocked through their deadline even though this grant survives its old expiry.
+  assert.equal(consumeCharge(live, 0.6, 0.04), false);
+  assert.equal(consumeCharge(live, 0.600001, 0.04), true);
+  assert.deepEqual(grantCharges(1, 0.137 + 5, prior, 0.6), { charges: 1, expiresAt: 5.137, readyAt: 0 });
+});
+
+test('independent charge grants free capacity exactly at canonical expiry', () => {
+  const pool = { grants: {} };
+  grantChargePool(pool, 'player', 0.56, 1, 0.04, 2);
+  grantChargePool(pool, 'player', 0.56, 1, 1, 2);
+  const survivor = pool.grants.player[1];
+  grantChargePool(pool, 'player', 0.6, 1, 0.04, 2);
+  assert.deepEqual(
+    pool.grants.player.map((grant) => grant.expiresAt),
+    [0.64, 1.56]
+  );
+  assert.equal(pool.grants.player[1], survivor);
+  assert.equal(survivor.charges, 1);
+});
+
 test('charge refresh survives old expiry, preserves ICD, and keeps independent recipient grants isolated', () => {
   let grant = grantCharges(2, 5);
   assert.equal(consumeCharge(grant, 1, 2), true);

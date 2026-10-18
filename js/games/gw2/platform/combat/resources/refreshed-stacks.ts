@@ -1,3 +1,5 @@
+import { canonicalTime } from '#kernel/core/clock.js';
+
 /** A capped buff whose stacks share one owner-calculated absolute deadline. */
 export interface RefreshedStacks {
   stacks: number;
@@ -12,7 +14,10 @@ export function activeRefreshedStacks(
 ): number {
   if (!state) return 0;
 
-  return (expiry === 'inclusive' ? at <= state.expiresAt : at < state.expiresAt) ? state.stacks : 0;
+  // Compare canonical instants while retaining the owner's final-timestamp and unbounded-preview policies.
+  const time = canonicalTime(at);
+  const expiresAt = state.expiresAt === Infinity ? Infinity : canonicalTime(state.expiresAt);
+  return (expiry === 'inclusive' ? time <= expiresAt : time < expiresAt) ? state.stacks : 0;
 }
 
 /** Settles expiration before adding to the cap, refreshing the common deadline even when already full. */
@@ -24,5 +29,8 @@ export function grantRefreshedStacks(
   maximum: number,
   expiry: 'inclusive' | 'exclusive'
 ): RefreshedStacks {
-  return { stacks: Math.min(maximum, activeRefreshedStacks(state, at, expiry) + count), expiresAt };
+  return {
+    stacks: Math.min(maximum, activeRefreshedStacks(state, at, expiry) + count),
+    expiresAt: expiresAt === Infinity ? Infinity : canonicalTime(expiresAt)
+  };
 }

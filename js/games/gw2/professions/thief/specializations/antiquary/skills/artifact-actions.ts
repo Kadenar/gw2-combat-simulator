@@ -1,4 +1,5 @@
 import { CONDITION } from '#gw2/platform/constants.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
@@ -129,7 +130,11 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
       const { duration } = artifactWindow(runtime);
-      state.holoUtilityCooldownReductionExpirations = [...state.holoUtilityCooldownReductionExpirations, at + duration];
+      // Store the exact canonical deadline so an expiry-tick utility cannot spend this grant.
+      state.holoUtilityCooldownReductionExpirations = [
+        ...state.holoUtilityCooldownReductionExpirations,
+        canonicalTime(at + duration)
+      ];
     },
     'thief.surfer-window'(runtime) {
       const state = antiquaryState.from(runtime);

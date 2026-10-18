@@ -10,6 +10,48 @@ import {
   purgeExpiredStacks
 } from '#gw2/platform/combat/resources/timed-stacks.js';
 
+// Tick-aligned and off-grid lifetimes must close at the same instant as the event clock.
+for (const [at, duration, expiry] of [
+  [0.56, 0.04, 0.6],
+  [0.137, 5, 5.137]
+]) {
+  test(`timed stacks expire at their canonical deadline ${expiry}`, () => {
+    const grant = addTimedStacks([], 1, at, duration, 1);
+    assert.deepEqual(grant, { expiries: [expiry], added: 1 });
+    assert.equal(activeStackCount(grant.expiries, expiry - 0.000001), 1);
+    assert.equal(activeStackCount(grant.expiries, expiry), 0);
+    assert.deepEqual(purgeExpiredStacks(grant.expiries, expiry), []);
+    assert.equal(consumeOldestStacks(grant.expiries, 1, expiry).consumed, 0);
+    assert.equal(consumeNewestStacks(grant.expiries, 1, expiry).consumed, 0);
+    assert.equal(addTimedStacks(grant.expiries, 1, expiry, 1, 1).added, 1);
+
+    for (const retain of ['latest-expiry', 'newest-grant']) {
+      const options = { at, expiresAt: at + duration, count: 1, maximumStacks: 1, retain };
+      assert.deepEqual(grantTimedStacks([], options), [expiry]);
+      assert.deepEqual(grantTimedStacks([], { ...options, at: expiry }), []);
+    }
+  });
+}
+
+test('timed-stack queries compare canonical instants and preserve unbounded preview stacks', () => {
+  const expiries = Object.freeze([0.56 + 0.04, Infinity]);
+  assert.equal(activeStackCount(expiries, 0.6), 1);
+  assert.deepEqual(purgeExpiredStacks(expiries, 0.6), [Infinity]);
+  assert.equal(activeStackCount([0.1], 0.3 - 0.2), 0);
+  assert.equal(consumeNewestStacks(expiries, 2, 0.6).consumed, 1);
+  assert.deepEqual(addTimedStacks([], 1, 0.137, Infinity, 1).expiries, [Infinity]);
+  assert.deepEqual(
+    grantTimedStacks([], {
+      at: 0.137,
+      expiresAt: Infinity,
+      count: 1,
+      maximumStacks: 1,
+      retain: 'latest-expiry'
+    }),
+    [Infinity]
+  );
+});
+
 test('purge and count drop applications expiring exactly at the observation time', () => {
   const expiries = Object.freeze([4, 5, 6]);
   assert.deepEqual(purgeExpiredStacks(expiries, 5), [6]);

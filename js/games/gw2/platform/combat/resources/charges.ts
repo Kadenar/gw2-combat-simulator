@@ -1,4 +1,5 @@
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
+import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 /** One recipient's finite grant, consumed and expired directly by its owning mechanic. */
 export interface ChargeGrant {
@@ -36,10 +37,11 @@ export function grantCharges(charges: number, expiresAt: number, previous?: Char
     throw new TypeError('Charge grants require non-negative finite charges and a finite expiry.');
   }
 
-  const live = previous && previous.charges > 0 && previous.expiresAt > at;
+  // Resource deadlines and refresh eligibility share the event clock's exact expiry boundary.
+  const live = previous && activeChargeCount(previous, at) > 0;
   return {
     charges: charges + (live ? previous.charges : 0),
-    expiresAt,
+    expiresAt: canonicalTime(expiresAt),
     readyAt: live ? (previous.readyAt ?? 0) : 0
   };
 }
@@ -50,9 +52,11 @@ export function activeChargeCount(
   at: number,
   inclusiveExpiry = false
 ): number {
-  return grant && grant.charges > 0 && (inclusiveExpiry ? at <= grant.expiresAt : at < grant.expiresAt)
-    ? grant.charges
-    : 0;
+  if (!grant || grant.charges <= 0) return 0;
+
+  const time = timeKey(at);
+  const expiry = timeKey(grant.expiresAt);
+  return (inclusiveExpiry ? time <= expiry : time < expiry) ? grant.charges : 0;
 }
 
 /** Consumes only the selected recipient's grant, preserving each mechanic's explicit expiry boundary and ICD. */
@@ -71,14 +75,17 @@ export function consumeCharge(
 
   grant.charges -= 1;
 
-  if (cooldown > 0) grant.readyAt = at + cooldown;
+  if (cooldown > 0) grant.readyAt = canonicalTime(at + cooldown);
 
   return true;
 }
 
 /** Expiry records cannot clear a refreshed grant whose deadline is later than the old event. */
 export function expireCharges(grant: ChargeGrant, at: number, inclusiveExpiry = false): void {
-  if (inclusiveExpiry ? at > grant.expiresAt : at >= grant.expiresAt) grant.charges = 0;
+  const time = timeKey(at);
+  const expiry = timeKey(grant.expiresAt);
+
+  if (inclusiveExpiry ? time > expiry : time >= expiry) grant.charges = 0;
 }
 
 /** Filters live batches, defaulting to earliest expiry while allowing owners to retain insertion order. */
@@ -87,8 +94,8 @@ export function activeChargeGrants<T extends ChargeGrant>(
   at: number,
   order: 'earliest-expiry' | 'insertion' = 'earliest-expiry'
 ): T[] {
-  const active = grants.filter((grant) => grant.charges > 0 && grant.expiresAt > at);
-  return order === 'insertion' ? active : active.sort((a, b) => a.expiresAt - b.expiresAt);
+  const active = grants.filter((grant) => activeChargeCount(grant, at) > 0);
+  return order === 'insertion' ? active : active.sort((a, b) => timeKey(a.expiresAt) - timeKey(b.expiresAt));
 }
 
 /** Appends a separate batch without refreshing survivors, retaining the owner's explicit consumption order. */
@@ -107,7 +114,7 @@ export function consumeChargeBatch<T extends ChargeGrant>(
   at: number,
   eligible: (grant: T) => boolean = () => true
 ): boolean {
-  const index = grants.findIndex((grant) => eligible(grant) && grant.charges > 0 && grant.expiresAt > at);
+  const index = grants.findIndex((grant) => eligible(grant) && activeChargeCount(grant, at) > 0);
 
   if (index < 0) return false;
 
