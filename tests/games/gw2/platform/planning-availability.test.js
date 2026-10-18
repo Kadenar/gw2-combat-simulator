@@ -30,9 +30,7 @@ for (const { id } of professionOptions) {
     for (const module of family.nativeDefinition.modules) {
       const config = { specialization: module.id };
       const profession = family.runtimeFor(config);
-      const candidates = profession.catalog.skills.filter(
-        (skill) => !skill.simulatorExcluded && !skill.initialStateOnly
-      );
+      const candidates = profession.catalog.skills.filter((skill) => !skill.simulatorExcluded);
       const result = observeGw2Runtime({ profession, config, rotation: [] });
       const runtime = observedRuntime(result);
       assert.deepEqual(

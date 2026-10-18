@@ -6,10 +6,7 @@ import { luminaryStanceModifiers } from '#gw2/professions/guardian/specializatio
 import { luminaryWeaponModifiers } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { bindLuminaryUi } from '#gw2/professions/guardian/specializations/luminary/presentation.js';
 import { LUMINARY_BALANCE_PROFILES } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
-import {
-  LUMINARY_EXTRA_SKILLS,
-  LUMINARY_SKILL_MECHANICS
-} from '#gw2/professions/guardian/specializations/luminary/skills/index.js';
+import { LUMINARY_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/luminary/skills/index.js';
 import {
   LUMINARY_PUBLIC_STATE_PROJECTION,
   luminaryState
@@ -21,7 +18,6 @@ export const luminaryModule = defineNativeModule({
   id: 'Luminary',
   data: createGuardianModuleData('Luminary', {
     skillMechanics: LUMINARY_SKILL_MECHANICS,
-    extraSkills: LUMINARY_EXTRA_SKILLS,
     balanceProfiles: LUMINARY_BALANCE_PROFILES
   }),
   state: { create: luminaryState.create, project: createPublicStateProjector(LUMINARY_PUBLIC_STATE_PROJECTION) },

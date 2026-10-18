@@ -30,10 +30,8 @@ export interface InputTrace {
   readonly actions: readonly InputAction[];
 }
 
-/** Both reports exclude reconstructed state and automatic attacks using the same canonical classification. */
-export function activationInputKind(catalog: CanonicalCatalog, skill: Skill, command: CastCommand) {
-  if (command.initialStateDurationMs != null || skill.initialStateOnly) return 'excluded';
-
+/** Both reports distinguish automatic attacks from manual activations using the same canonical classification. */
+export function activationInputKind(catalog: CanonicalCatalog, skill: Skill) {
   return isAutoattackSkill(catalog, skill) ? 'autoattack' : 'manual';
 }
 

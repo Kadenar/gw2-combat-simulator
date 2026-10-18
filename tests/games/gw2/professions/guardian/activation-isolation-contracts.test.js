@@ -6,7 +6,6 @@ import { swiftScholar } from '#gw2/professions/guardian/specializations/firebran
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { skillEffectKey } from '#gw2/platform/effects/validation.js';
 import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
-import { LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
@@ -326,12 +325,21 @@ test('Luminary trait aura admission obeys selection and isolation, independently
         }
 });
 
-test('Luminary retains imported and admitted aura delivery and consumes an old aura before its replacement', () => {
+test('Luminary retains admitted aura delivery and consumes an old aura before its replacement', () => {
   for (const traitTriggers of [false, true]) {
-    const { result, runtime } = run('Luminary', [LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID, ID.RADIANT_JUSTICE], {
-      traitTriggers,
-      selectedTraitIds: [TRAIT.JUSTICE_IS_BLIND, TRAIT.SOVEREIGN_OF_LIGHT]
-    });
+    const { result, runtime } = run(
+      'Luminary',
+      [ID.RADIANT_JUSTICE],
+      {
+        traitTriggers,
+        selectedTraitIds: [TRAIT.JUSTICE_IS_BLIND, TRAIT.SOVEREIGN_OF_LIGHT]
+      },
+      {
+        initialize(runtime) {
+          state(runtime).lightAuraUntil = 10;
+        }
+      }
+    );
     assert.equal(
       result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Sovereign of Light').length,
       Number(traitTriggers)

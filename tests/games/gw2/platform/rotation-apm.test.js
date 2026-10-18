@@ -19,7 +19,6 @@ const catalog = createCanonicalCatalog({
     { id: 980005, name: 'Ammo', castTimeMs: 0, ammo: 2, ammoRecharge: 10 },
     { id: 980006, name: 'Swap', castTimeMs: 0, inputCategory: 'weapon-swap' },
     { id: 980007, name: 'Bar', castTimeMs: 0, inputCategory: 'bar-swap' },
-    { id: 980008, name: 'Initial', castTimeMs: 0, initialStateOnly: true },
     { id: 980009, name: 'Pet command', castTimeMs: 1000, independentCast: true },
     { id: 980010, name: 'Standalone auto', castTimeMs: 1000, autoattack: true },
     {
@@ -90,12 +89,10 @@ test('multi-hit effects, passive activations and duplicate scheduler records can
   assert.equal(rotationApm(duplicated, rotation, catalog).actionCount, 1);
 });
 
-test('an interrupted activation and its explicit swap count, but invalid and synthetic records do not', () => {
+test('an interrupted activation and its explicit swap count, but invalid and cooldown-reset commands do not', () => {
   const { scheduled, metrics } = analyze([
     { name: 'Replacement', interruptMs: 0 },
     'Swap',
-    'Initial',
-    { name: 'Instant', initialStateDurationMs: 500 },
     '__cooldown_reset',
     { type: 'wait', durationMs: 1000 }
   ]);

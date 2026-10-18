@@ -41,9 +41,8 @@ export const AURA = Object.freeze({
   SHOCKING: 'Shocking Aura'
 });
 
-/** Named disables; INITIAL_STATE restores imported proc windows without inventing a preceding disable. */
+/** Named control effects shared by skill declarations and disable-triggered reactions. */
 export const CONTROL = Object.freeze({
-  INITIAL_STATE: 'initial-state',
   DAZE: 'daze',
   FEAR: 'fear',
   FLOAT: 'float',

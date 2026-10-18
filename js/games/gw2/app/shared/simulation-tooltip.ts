@@ -438,9 +438,6 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
 
 /** Ordinary descriptions summarize declared effects; skill overrides retain their locally authored explanations. */
 function ordinarySkillDescription(skill: Skill): string {
-  if (skill.initialStateOnly)
-    return 'Restore this combat state for the duration recorded at the start of the imported encounter.';
-
   const effects = skill.effects || [];
   const sentences: string[] = [];
   const strikes = effects.filter((effect) => effect.type === 'strike');

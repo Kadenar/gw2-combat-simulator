@@ -288,8 +288,7 @@ const catalog = createCanonicalCatalog({
     { id: 990002, name: 'Auto', slot: 'Weapon_1', autoattack: true, castTimeMs: 100 },
     { id: 990003, name: 'Utility', type: 'Utility', castTimeMs: 0 },
     { id: 990004, name: 'Flip', flipParentId: 990003, castTimeMs: 0 },
-    { id: 990005, name: 'Bar change', slot: 'Profession_1', castTimeMs: 0 },
-    { id: 990006, name: 'Initial state', initialStateOnly: true, castTimeMs: 0 }
+    { id: 990005, name: 'Bar change', slot: 'Profession_1', castTimeMs: 0 }
   ]
 });
 const bars = [
@@ -328,7 +327,7 @@ test('accepted controls follow the live loadout before mutations and retain flip
   assert.equal(new Set(result.inputTrace.actions.map((a) => a.activationId)).size, 3);
 });
 
-test('input traces exclude precasts, autos, waits, initial state and invalid commands but retain interrupted inputs', () => {
+test('input traces exclude precasts, autos, waits and invalid commands but retain interrupted inputs', () => {
   const result = simulateGw2({
     profession,
     rotation: [
@@ -337,7 +336,6 @@ test('input traces exclude precasts, autos, waits, initial state and invalid com
       'Auto',
       { name: 'Manual', interruptMs: 0 },
       'Unknown',
-      'Initial state',
       '__cooldown_reset',
       { type: 'wait', durationMs: 6000 }
     ],

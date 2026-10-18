@@ -1,4 +1,3 @@
-import { CONTROL } from '#gw2/platform/constants.js';
 import type { MechanicResourceSpend, ProfessionTimelineMarker } from '#gw2/platform/profession-presentation/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
@@ -128,7 +127,6 @@ export function timelineImpactOffsets(
     if (
       !event.activationId ||
       !['damage', 'condition', 'control'].includes(event.type) ||
-      event.controlKind === CONTROL.INITIAL_STATE ||
       (damagingActivations.has(event.activationId) &&
         !(event.type === 'damage' || (event.type === 'condition' && isDamagingCondition(event.condition))))
     )

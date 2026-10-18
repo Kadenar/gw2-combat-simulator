@@ -55,7 +55,7 @@ export function planningState<T extends object>(
     availability: structuredClone(
       Object.fromEntries(
         input.catalog.skills
-          .filter((skill) => !skill.simulatorExcluded && !skill.initialStateOnly)
+          .filter((skill) => !skill.simulatorExcluded)
           .map((skill) => [String(skill.id), availability(skill)])
       )
     ),

@@ -89,7 +89,6 @@ const SKILL_FIELDS = new Set([
   'impactDelay',
   'independentCast',
   'independentCastCanOverlap',
-  'initialStateOnly',
   'initiativeCost',
   'inputCategory',
   'inputControl',

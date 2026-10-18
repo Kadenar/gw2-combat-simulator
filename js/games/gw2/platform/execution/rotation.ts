@@ -14,8 +14,6 @@ export interface CastCommand {
   readonly impactDelayMs?: number;
   readonly concurrentOffsetMs?: number;
   readonly interruptAfterMs?: number;
-  /** Exact remaining duration carried by a hidden combat-log initial-state action. */
-  readonly initialStateDurationMs?: number;
   readonly releaseAtCharges?: number;
   /** Extra hold after the selected Dragon Charge threshold; holding spends no additional Flow. */
   readonly releaseDelayMs?: number;
@@ -47,18 +45,10 @@ export type RotationCommand = CastCommand | WaitCommand | CombatStartCommand | C
 const MILLISECOND_FIELDS = Object.entries({
   concurrentOffsetMs: 'Concurrent offset',
   interruptAfterMs: 'Interrupt duration',
-  initialStateDurationMs: 'Initial-state duration',
   impactDelayMs: 'Impact delay',
   releaseDelayMs: 'Release delay'
 });
-const CAST_FIELDS = [
-  'interruptAfterMs',
-  'initialStateDurationMs',
-  'releaseAtCharges',
-  'doubleEdgeOutcome',
-  'impactDelayMs',
-  'offTarget'
-];
+const CAST_FIELDS = ['interruptAfterMs', 'releaseAtCharges', 'doubleEdgeOutcome', 'impactDelayMs', 'offTarget'];
 
 /** Validate decoded command intent before normalization discards zero values or irrelevant payloads. */
 export function validateRotationCommand(
@@ -204,9 +194,6 @@ function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup | null)
     ...(Number(candidate.impactDelayMs) > 0 ? { impactDelayMs: Number(candidate.impactDelayMs) } : {}),
     ...(candidate.concurrentOffsetMs == null ? {} : { concurrentOffsetMs: Number(candidate.concurrentOffsetMs) }),
     ...(candidate.interruptAfterMs == null ? {} : { interruptAfterMs: Number(candidate.interruptAfterMs) }),
-    ...(candidate.initialStateDurationMs == null
-      ? {}
-      : { initialStateDurationMs: Number(candidate.initialStateDurationMs) }),
     ...(candidate.releaseAtCharges == null ? {} : { releaseAtCharges: Number(candidate.releaseAtCharges) }),
     ...(candidate.doubleEdgeOutcome == null
       ? {}

@@ -214,7 +214,7 @@ export function createCastExecution<T extends object>(
   function acceptCast(skill: Skill, command: CastCommand): void {
     const start = runtime.time;
     // Resolve before recharge reservations or cast effects can mutate the active bar.
-    const manualInput = runtime.reporting && activationInputKind(profession.catalog, skill, command) === 'manual';
+    const manualInput = runtime.reporting && activationInputKind(profession.catalog, skill) === 'manual';
     const professionInput = manualInput
       ? profession.resolveInputControl?.(runtime.mechanicQueries, skill, command)
       : null;

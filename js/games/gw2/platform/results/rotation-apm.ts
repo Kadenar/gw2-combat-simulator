@@ -71,8 +71,7 @@ export function rotationApm(
   for (const step of steps) {
     const command = commands[step.ri];
 
-    if (step.invalid || !step.activationId || command?.type !== 'cast' || command.initialStateDurationMs != null)
-      continue;
+    if (step.invalid || !step.activationId || command?.type !== 'cast') continue;
 
     const activation = activations.get(step.activationId);
     const skill = step.skillId == null ? undefined : catalog.skillsById.get(step.skillId);
@@ -83,13 +82,12 @@ export function rotationApm(
       command.skillId !== skill.id ||
       activation.skillId !== skill.id ||
       activation.at > end ||
-      skill.initialStateOnly ||
       seen.has(step.activationId)
     )
       continue;
 
     seen.add(step.activationId);
-    const autoattack = activationInputKind(catalog, skill, command) === 'autoattack';
+    const autoattack = activationInputKind(catalog, skill) === 'autoattack';
     const castEnd = Number(activation.endsAt);
 
     // Precasts may still occupy the player inside combat; only their activation is excluded from input counts.

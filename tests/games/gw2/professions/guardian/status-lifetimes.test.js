@@ -5,7 +5,6 @@ import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { luminaryModule } from '#gw2/professions/guardian/specializations/luminary/module.js';
 import { bindLuminaryUi } from '#gw2/professions/guardian/specializations/luminary/presentation.js';
-import { LUMINARY_INITIAL_STATE_SKILL_IDS as INITIAL } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
@@ -59,7 +58,7 @@ test('Empowered Armaments extends only its live remainder and shares the display
   }
 });
 
-test('Piercing Stance extends its live duration and imported armaments preserve the supplied duration', () => {
+test('Piercing Stance extends its live duration', () => {
   const result = runGuardian([wait(1), ID.PIERCING_STANCE, ID.PIERCING_STANCE], config);
   const buffs = result.events.filter((event) => event.kind === 'guardian-piercing-stance');
   const first = timedBuffApplicationsAt(result.events, buffs[0].kind, buffs[0].at)[0];
@@ -67,13 +66,6 @@ test('Piercing Stance extends its live duration and imported armaments preserve 
   assert.equal(
     state(result).piercingStanceUntil,
     timedBuffApplicationsAt(result.events, buffs[0].kind, buffs[1].at).at(-1).expiresAt
-  );
-  const imported = runGuardian([{ skillId: INITIAL.empoweredArmaments, initialStateDurationMs: 14514 }], config);
-  const buff = imported.events.find((event) => event.kind === 'guardian-empowered-armaments');
-  assert.equal(buff.duration, 14.514);
-  assert.equal(
-    state(imported).empoweredArmamentsUntil,
-    timedBuffApplicationsAt(imported.events, buff.kind, buff.at)[0].expiresAt
   );
 });
 

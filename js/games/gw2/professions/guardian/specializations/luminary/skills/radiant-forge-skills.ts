@@ -31,74 +31,11 @@ import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 /**
- * Owns Radiant Forge weapon fragments and supplemental reconstruction identities.
+ * Owns Radiant Forge weapon fragments.
  * Persistent forge resources and weapon behavior remain under `mechanics/`.
  */
 
-export const LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID = 25_518;
-
-export const LUMINARY_INITIAL_STATE_SKILL_IDS = Object.freeze({
-  resolution: 873,
-  claw: 73_955,
-  empoweredArmaments: 77_169,
-  radiantHammer: 77_360
-});
-
-export const LUMINARY_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
-  {
-    id: LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID,
-    name: 'Initial Light Aura',
-    initialStateOnly: true, // Imported state is not an activation the player performs.
-    description: 'Replays an initial Light Aura state recorded before the EVTC timeline.',
-    icon: '',
-    type: 'Action',
-    slot: 'Action',
-    specialization: 'Luminary',
-    castTimeMs: 0,
-    cooldown: 0,
-    // Reconstruction actions must remain castable; palette visibility is a separate concern.
-    paletteAction: false,
-    simulatorExcluded: false,
-    effects: []
-  },
-  ...[
-    [LUMINARY_INITIAL_STATE_SKILL_IDS.resolution, 'Initial Resolution'],
-    [LUMINARY_INITIAL_STATE_SKILL_IDS.claw, 'Initial Relic of the Claw'],
-    [LUMINARY_INITIAL_STATE_SKILL_IDS.empoweredArmaments, 'Initial Empowered Armaments'],
-    [LUMINARY_INITIAL_STATE_SKILL_IDS.radiantHammer, 'Initial Radiant Hammer']
-  ].map(([id, name]) => ({
-    id: Number(id),
-    name: String(name),
-    initialStateOnly: true,
-    description: 'Replays an exact-duration initial state observed in an EVTC log.',
-    icon: '',
-    type: 'Action',
-    slot: 'Action',
-    specialization: 'Luminary',
-    castTimeMs: 0,
-    cooldown: 0,
-    paletteAction: false,
-    simulatorExcluded: false,
-    effects: []
-  }))
-]);
-
 export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID]: {
-    simulatorExcluded: false,
-    castTimeMs: 0,
-    effects: []
-  },
-  ...Object.fromEntries(
-    Object.values(LUMINARY_INITIAL_STATE_SKILL_IDS).map((skillId) => [
-      skillId,
-      {
-        simulatorExcluded: false,
-        castTimeMs: 0,
-        effects: []
-      }
-    ])
-  ),
   [ID.EXIT_RADIANT_FORGE]: {
     // Commit changes the form once through its shared lifetime controller.
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.exit-forge' } }],

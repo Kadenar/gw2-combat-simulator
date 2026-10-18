@@ -1,5 +1,4 @@
-import { ACTOR, CONTROL, BOON } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
+import { ACTOR, CONTROL } from '#gw2/platform/constants.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -22,10 +21,6 @@ import {
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
-import {
-  LUMINARY_INITIAL_STATE_SKILL_IDS as INITIAL,
-  LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID
-} from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianSkill, GuardianRuntime, GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -53,65 +48,13 @@ export function grantLuminaryAura(runtime: GuardianRuntime, event: Gw2ResolverEv
   luminaryState.from(runtime).lightAuraUntil = gw2EffectExpiresAt(runtime.time, duration);
 }
 
-/** Imported armaments already own their final duration and remain valid without current trait selection. */
-function restoreLuminaryArmaments(
-  runtime: GuardianRuntime,
-  cast: RuntimeCast<GuardianSkill>,
-  duration: number
-): boolean {
-  const empowered = cast.skill.id === INITIAL.empoweredArmaments;
-
-  if (!empowered && cast.skill.id !== INITIAL.radiantHammer) return false;
-
-  if (empowered) luminaryState.from(runtime).empoweredArmamentsUntil = gw2EffectExpiresAt(runtime.time, duration);
-
-  runtime.effects.emit({
-    kind: 'packet',
-    event: {
-      ...guardianCastCause(runtime, cast),
-      duration,
-      stacks: 1,
-      kind: empowered ? 'guardian-empowered-armaments' : 'guardian-radiant-armaments',
-      ...(!empowered ? { metadata: { radiantWeapon: 'hammer' } } : {})
-    }
-  });
-  return true;
-}
-
-/** Imported boundary state is an explicit input, applied once without restoring subsequent live state. */
-function initialState(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
-  const duration = Math.max(0, cast.command.initialStateDurationMs ?? 0) / 1000;
-
-  if (!(duration > 0)) return;
-
-  const event = { ...guardianCastCause(runtime, cast), duration, stacks: 1 };
-  const id = cast.skill.id;
-
-  if (id === INITIAL.claw) {
-    runtime.effects.emit({
-      kind: 'packet',
-      event: { ...event, type: 'control', controlKind: CONTROL.INITIAL_STATE, initialStateDuration: duration }
-    });
-    return;
-  }
-
-  if (restoreLuminaryArmaments(runtime, cast, duration)) return;
-
-  if (id === INITIAL.resolution)
-    runtime.effects.emit({ kind: 'packet', event: { ...event, kind: boonKey(BOON.RESOLUTION) } });
-}
-
 /** Schedule finite activation effects; all state mutations happen when their boundary executes. */
 export function startLuminaryEffects(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
-  initialState(runtime, cast);
   const skill = cast.skill;
   const event = guardianCastCause(runtime, cast);
   const hostile = { ...event, offTarget: cast.command.offTarget === true };
   // Sovereign of Light schedules detonation before this cast's replacement aura.
   runtime.fireTrigger(luminaryCastStarted, { cast });
-
-  if (skill.id === LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID)
-    runtime.schedule(AURA_GRANT, cast.start, hostile, undefined, -10);
 
   // Announce the accepted virtue independently of selection; the trait owns both aura and Blind admission.
   if (skill.categories?.includes('Virtue') && skill.slot === 'Profession_1')

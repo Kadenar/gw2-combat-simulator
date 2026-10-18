@@ -1,4 +1,3 @@
-import { CONTROL } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Claw relic rules. */
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -12,8 +11,7 @@ export const claw = defineRelic({
     recordTimedBuffProc(ctx, event, {
       relicId: RELIC_IDS.CLAW,
       kind: 'relic-claw',
-      // EVTC imports carry the exact remaining opening window without fabricating the CC that created it.
-      duration: event.controlKind === CONTROL.INITIAL_STATE ? Math.max(0, Number(event.initialStateDuration || 0)) : 8,
+      duration: 8,
       name: 'Relic of the Claw'
     });
   },

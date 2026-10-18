@@ -133,9 +133,9 @@ Names are convenient for experiments; canonical IDs are preferable for persisted
 `engineerProfession.runtimeFor({ specialization: 'Core' }).catalog` for the active runtime.
 
 `RotationCommand` in `platform/execution/rotation.ts` defines optional cast controls: `offTarget`, `impactDelayMs`,
-`concurrentOffsetMs`, `interruptAfterMs`, `releaseAtCharges`, `releaseDelayMs`, `initialStateDurationMs`, and
-`doubleEdgeOutcome`. Use them only when the skill or import scenario supports that behavior. Antiquary Double Edge
-recasts default to success unless explicitly set to `'backfire'`; ready casts always succeed.
+`concurrentOffsetMs`, `interruptAfterMs`, `releaseAtCharges`, `releaseDelayMs`, and `doubleEdgeOutcome`. Use them only
+when the skill or import scenario supports that behavior. Antiquary Double Edge recasts default to success unless
+explicitly set to `'backfire'`; ready casts always succeed.
 
 Use `normalizeRotation(input, catalog, { strict: true })` to reject malformed input. Unavailable or mistimed actions can
 produce simulation warnings; inspect `result.warnings` on every run.

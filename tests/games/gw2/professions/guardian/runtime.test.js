@@ -8,10 +8,6 @@ import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as DH_PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as FB_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as LUM_PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
-import {
-  LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID,
-  LUMINARY_INITIAL_STATE_SKILL_IDS as LUM_INITIAL
-} from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS as WB_PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runGuardian as run } from '#tests/helpers/guardian-simulation.js';
@@ -250,10 +246,15 @@ test('Luminary auras require actual combos and detonate only for eligible Lumina
   assert.equal(lum(unbound).lightAuraUntil, 0);
   const combo = run([ID.ENTER_RADIANT_FORGE, ID.LUMINOUS_STAFF, ID.DAZZLING_HAMMER], luminary);
   assert.ok(lum(combo).lightAuraUntil > observedRuntime(combo).time);
-  const detonation = run([LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID, ID.PIERCING_STANCE], config);
+  const auraSetup = {
+    initialize: (runtime) => {
+      runtime.profession.specialization.state.lightAuraUntil = 10;
+    }
+  };
+  const detonation = run([ID.PIERCING_STANCE], config, auraSetup);
   assert.ok(detonation.resolvedEvents.some((event) => event.skillId === ID.SOVEREIGN_OF_LIGHT_DAMAGE));
   assert.equal(lum(detonation).lightAuraUntil, 0);
-  const coreLeap = run([LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID, ID.SYMBOL_OF_RESOLUTION, ID.LEAP_OF_FAITH], config);
+  const coreLeap = run([ID.SYMBOL_OF_RESOLUTION, ID.LEAP_OF_FAITH], config, auraSetup);
   assert.equal(
     coreLeap.resolvedEvents.some((event) => event.skillId === ID.SOVEREIGN_OF_LIGHT_DAMAGE),
     false
@@ -294,21 +295,15 @@ test('Luminary selected component removal preserves independent effects and neve
   );
 });
 
-test('Luminary imported durations and live state agree in score and detailed modes', () => {
-  const rotation = [
-    { skillId: LUM_INITIAL.empoweredArmaments, initialStateDurationMs: 1000 },
-    ID.EFFULGENT_STANCE,
-    ID.ENTER_RADIANT_FORGE,
-    ID.DAZZLING_HAMMER,
-    ID.GLARING_BURST,
-    wait(4000)
-  ];
-  const detailed = run(rotation, luminary);
-  const score = run(rotation, luminary, { initialize: () => {}, profession: guardianProfession, output: 'score' });
+test('Luminary live state agrees in score and detailed modes', () => {
+  const rotation = [ID.EFFULGENT_STANCE, ID.ENTER_RADIANT_FORGE, ID.DAZZLING_HAMMER, ID.GLARING_BURST, wait(4000)];
+  const config = { ...luminary, selectedTraitIds: [TRAIT.EMPOWERED_ARMAMENTS] };
+  const detailed = run(rotation, config);
+  const score = run(rotation, config, { initialize: () => {}, profession: guardianProfession, output: 'score' });
   assert.deepEqual(detailed.warnings, []);
   assert.deepEqual(lum(score), lum(detailed));
   assert.equal(score.dps, detailed.dps);
-  assert.equal(lum(detailed).empoweredArmamentsUntil, 1);
+  assert.ok(lum(detailed).empoweredArmamentsUntil > 0);
   assert.equal(
     detailed.events.some(
       (event) => event.type.startsWith('guardian.radiant-forge-') || event.type.startsWith('guardian.effulgent-')

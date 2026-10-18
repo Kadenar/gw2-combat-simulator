@@ -42,13 +42,15 @@ test('canonical command validation reports matching errors for builds and strict
     { type: 'wait', durationMs: -1 },
     { type: 'wait', durationMs: 1, concurrentOffsetMs: 0 },
     { type: 'combat-start', concurrentOffsetMs: Infinity },
-    ...['interruptAfterMs', 'initialStateDurationMs', 'impactDelayMs', 'releaseAtCharges', 'releaseDelayMs'].map(
-      (field) => ({ type: 'wait', durationMs: 100, [field]: 1 })
-    ),
+    ...['interruptAfterMs', 'impactDelayMs', 'releaseAtCharges', 'releaseDelayMs'].map((field) => ({
+      type: 'wait',
+      durationMs: 100,
+      [field]: 1
+    })),
     { type: 'combat-start', offTarget: true },
     { type: 'cooldown-reset', doubleEdgeOutcome: 'success' },
-    ...['concurrentOffsetMs', 'interruptAfterMs', 'initialStateDurationMs', 'impactDelayMs', 'releaseDelayMs'].flatMap(
-      (field) => [-1, Infinity, NaN].map((value) => ({ ...slash, [field]: value }))
+    ...['concurrentOffsetMs', 'interruptAfterMs', 'impactDelayMs', 'releaseDelayMs'].flatMap((field) =>
+      [-1, Infinity, NaN].map((value) => ({ ...slash, [field]: value }))
     )
   ];
   for (const command of invalid) {

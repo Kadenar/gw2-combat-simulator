@@ -38,8 +38,6 @@ export interface Skill extends CatalogEntity {
   readonly removedEffectKeys?: readonly string[];
   /** Explicit classification when absent from the chain index, or when a manual follow-up reuses that index. */
   readonly autoattack?: boolean;
-  /** Imported state reconstruction executes for playback but never represents a player input. */
-  readonly initialStateOnly?: boolean;
   /** Explicit control for synthetic actions whose metadata has no physical bar slot. */
   readonly inputControl?: import('#gw2/platform/skills/input-controls.js').InputControlId;
   readonly inputCategory?: 'weapon-swap' | 'bar-swap';

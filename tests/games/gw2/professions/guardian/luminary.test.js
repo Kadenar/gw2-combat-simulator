@@ -10,7 +10,6 @@ import { buildChartSeries } from '#gw2/app/results/model.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import { LUMINARY_INITIAL_STATE_SKILL_IDS } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 
 const config = {
   attributeInputs: baseAttributeInputs({
@@ -1141,34 +1140,6 @@ test('off-target Luminary precasts retain setup without damaging the target', ()
   );
   assert.equal(result.planningState.profession.radiantWeapon, 'hammer');
   assert.ok(result.planningState.profession.lightAuraUntil > 0);
-});
-
-test('Luminary hidden actions restore supplied opening-state durations', () => {
-  const durations = {
-    resolution: 9_280,
-    claw: 8_000,
-    empoweredArmaments: 14_514,
-    radiantHammer: 7_320
-  };
-  const result = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    specialization: 'Luminary',
-    relic: 'Claw'
-  })(
-    undefined,
-    Object.entries(LUMINARY_INITIAL_STATE_SKILL_IDS).map(([kind, skillId]) => ({
-      type: 'cast',
-      skillId,
-      initialStateDurationMs: durations[kind]
-    }))
-  );
-  const buffDuration = (kind) => result.events.find((event) => event.type === 'buff' && event.kind === kind).duration;
-  const claw = result.procSteps.find((step) => step.skill === 'Relic of the Claw');
-
-  assert.equal(buffDuration('resolution'), durations.resolution / 1000);
-  assert.equal(buffDuration('guardian-empowered-armaments'), durations.empoweredArmaments / 1000);
-  assert.equal(buffDuration('guardian-radiant-armaments'), durations.radiantHammer / 1000);
-  assert.equal(claw.expiresAt, durations.claw);
 });
 
 test('Luminary Light Aura follows resolved combos instead of hardcoded leap casts', () => {
