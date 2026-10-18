@@ -1,8 +1,5 @@
-import type {
-  Gw2ResolverEvent,
-  Gw2ResolverReactionRegistry,
-  Gw2ResolverReactions
-} from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverReactionRegistry, Gw2ResolverReactions } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { ProfessionDefinition } from '#gw2/platform/profession-definition/types.js';
 import type { MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';

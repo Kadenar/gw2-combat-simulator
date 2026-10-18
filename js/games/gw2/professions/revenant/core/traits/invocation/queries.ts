@@ -3,7 +3,7 @@ import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isFlatLifeStealPacket } from '#gw2/platform/effects/packet-builders.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantResolverContext } from '#gw2/professions/revenant/types.js';

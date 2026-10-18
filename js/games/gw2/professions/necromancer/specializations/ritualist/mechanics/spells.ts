@@ -9,7 +9,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';

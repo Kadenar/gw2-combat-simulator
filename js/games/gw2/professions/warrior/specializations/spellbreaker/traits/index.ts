@@ -9,7 +9,7 @@ import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,

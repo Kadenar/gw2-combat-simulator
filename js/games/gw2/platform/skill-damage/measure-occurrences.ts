@@ -2,7 +2,7 @@ import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
 import type { Gw2DamageCalculation } from '#gw2/platform/events/events.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 import type { Gw2ResolvedConditionApplication } from '#gw2/platform/resolver/condition-resolution.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { DamageCalculationError } from '#gw2/platform/skill-damage/errors.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import type {

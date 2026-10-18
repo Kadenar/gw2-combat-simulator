@@ -1,5 +1,5 @@
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 
 const observers = new WeakMap<ElementalistRuntime, (runtime: ElementalistRuntime, event: Gw2ResolverEvent) => void>();
 

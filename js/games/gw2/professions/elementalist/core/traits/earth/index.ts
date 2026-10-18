@@ -10,7 +10,7 @@ import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import type { MechanicCombatContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,

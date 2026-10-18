@@ -2,11 +2,8 @@ import { materializeComboOutcome } from '#gw2/platform/combos/definitions.js';
 import { registerComboField, resolveComboAttempt } from '#gw2/platform/combos/resolution.js';
 
 import type { ComboFieldEvent, ComboFinisherEvent } from '#gw2/platform/combos/types.js';
-import type {
-  Gw2ResolverEvent,
-  Gw2ResolverEventHandlers,
-  Gw2ResolverReactionRegistry
-} from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEventHandlers, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 
 /** Resolver-authoritative registration, binding, chance, and materialization. */

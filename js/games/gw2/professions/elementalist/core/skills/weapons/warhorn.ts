@@ -31,7 +31,7 @@ import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hi
 import { isTimeInWindow } from '#kernel/core/clock.js';
 import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 
 // Layers keep same-time Vulnerability behind its matching Lightning Orb strike while retaining multi-tick effects.
 const LIGHTNING_ORB_STRIKE_TICK_LAYERS = [

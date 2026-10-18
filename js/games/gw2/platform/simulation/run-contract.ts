@@ -1,7 +1,8 @@
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeDriver } from '#gw2/platform/execution/driver-contract.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import type { Gw2ResolverEvent, Gw2ResolverReactionContributions } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverReactionContributions } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SimulationOptions } from '#gw2/platform/simulation/options.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';

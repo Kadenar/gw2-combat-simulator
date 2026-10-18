@@ -1,6 +1,6 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { balanceProfileNumber, effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';

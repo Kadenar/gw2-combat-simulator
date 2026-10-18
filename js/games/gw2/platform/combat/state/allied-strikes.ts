@@ -1,6 +1,6 @@
 import { autonomousActionsAllowed, type CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 

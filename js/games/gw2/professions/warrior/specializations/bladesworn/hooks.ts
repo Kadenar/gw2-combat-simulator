@@ -2,7 +2,7 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
 import { dragonSlashCompleted, dragonSlashReleased } from '#gw2/professions/warrior/core/mechanics/trigger-points.js';

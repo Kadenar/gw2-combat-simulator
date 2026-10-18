@@ -1,5 +1,5 @@
 import type { ConditionEventFields } from '#gw2/platform/events/events.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Packet builders for profession mechanics; all submission belongs to the shared emission service. */

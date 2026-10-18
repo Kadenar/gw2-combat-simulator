@@ -1,7 +1,7 @@
 import { ACTOR, RECIPIENT, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,

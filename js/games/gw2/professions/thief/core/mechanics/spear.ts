@@ -12,7 +12,7 @@ import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';

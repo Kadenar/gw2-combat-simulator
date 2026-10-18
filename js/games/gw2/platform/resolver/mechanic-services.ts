@@ -4,7 +4,7 @@ import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/attributes/stats.js';
 import { activeBoonStacks, activeBuffStacks, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import type { EffectRecipient } from '#gw2/platform/combat/query/effect-stacks.js';

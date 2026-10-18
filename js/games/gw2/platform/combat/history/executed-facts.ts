@@ -1,4 +1,4 @@
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 
 /** Queries observe executed gameplay in every output mode without acquiring its recording capability. */
 export interface ExecutedFactsReader {

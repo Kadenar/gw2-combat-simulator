@@ -1,7 +1,7 @@
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 /** Accepted strike rewards retain life-steal, shroud-slot, critical, then remaining life-steal order. */

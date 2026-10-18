@@ -5,7 +5,7 @@ import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { assertSimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { removeNecromancerSelfCondition } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
 import { necromancerPartyAudience } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';

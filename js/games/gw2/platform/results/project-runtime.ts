@@ -1,7 +1,7 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import { projectInputTrace } from '#gw2/platform/results/input-trace.js';
 import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { buildCombatResult, buildSimulationScore } from '#gw2/platform/results/combat-result.js';
 import { planningState } from '#gw2/platform/results/planning-state.js';
 import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';

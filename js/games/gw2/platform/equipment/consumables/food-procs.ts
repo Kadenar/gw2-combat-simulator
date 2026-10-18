@@ -1,7 +1,7 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 
 /** Critical-strike food procs: the selected food's proc data and the packets a successful proc emits. */
 

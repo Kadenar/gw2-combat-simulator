@@ -1,5 +1,5 @@
 import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isActivePetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';

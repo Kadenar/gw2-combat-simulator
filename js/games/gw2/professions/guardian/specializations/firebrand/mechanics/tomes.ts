@@ -10,7 +10,7 @@ import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,

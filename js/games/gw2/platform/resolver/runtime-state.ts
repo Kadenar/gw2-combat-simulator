@@ -16,11 +16,11 @@ import type {
   Gw2ConditionBreakdownEntry,
   Gw2EnvironmentConditionBreakdownEntry,
   Gw2EventQueue,
-  Gw2ResolverEvent,
   Gw2ResolverHelpers,
   Gw2ResolverReactionRegistry,
   Gw2ResolverStage
 } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { EffectReportObserver } from '#gw2/platform/results/effect-report.js';
 import type { ProcStepObserver } from '#gw2/platform/results/proc-steps.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';

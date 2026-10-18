@@ -6,7 +6,7 @@ import { effectNumber, requireBalanceProfileFromContext } from '#gw2/platform/sk
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type { NecromancerCoreState, NecromancerSelfCondition } from '#gw2/professions/necromancer/core/state.js';

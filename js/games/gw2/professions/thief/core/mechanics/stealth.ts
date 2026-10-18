@@ -4,7 +4,7 @@ import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefSkill } from '#gw2/professions/thief/core/events.js';
 import { hiddenKillerLinger } from '#gw2/professions/thief/core/traits/critical-strikes/index.js';

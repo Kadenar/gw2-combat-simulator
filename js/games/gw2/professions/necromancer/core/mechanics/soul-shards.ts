@@ -2,7 +2,7 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import { expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,

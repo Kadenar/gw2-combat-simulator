@@ -1,5 +1,5 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { WEAVER_SPEAR_FOLLOWUPS } from '#gw2/professions/elementalist/specializations/weaver/skills/weapons/spear.js';
 import type { ElementalistResolverContext } from '#gw2/professions/elementalist/types.js';

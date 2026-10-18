@@ -26,7 +26,8 @@ import type { Gw2ConditionResolution } from '#gw2/platform/resolver/condition-re
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { HandlerRegistry, OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { createGw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
-import type { Gw2ResolverEvent, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { RuntimeWork, WorkInput } from '#gw2/platform/simulation/work-contract.js';

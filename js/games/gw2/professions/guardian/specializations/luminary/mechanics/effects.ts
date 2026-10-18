@@ -5,7 +5,7 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,

@@ -5,7 +5,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,

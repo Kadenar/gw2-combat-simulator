@@ -45,7 +45,7 @@ import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guard
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 
 const refundByCast = new WeakMap<RuntimeCast<GuardianSkill>, number>();
 

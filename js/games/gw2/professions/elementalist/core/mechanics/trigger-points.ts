@@ -3,7 +3,7 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { Skill } from '#gw2/platform/skills/types.js';

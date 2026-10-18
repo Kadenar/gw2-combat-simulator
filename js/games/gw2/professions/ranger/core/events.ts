@@ -3,7 +3,7 @@ import { splitStrikeHits } from '#gw2/platform/effects/packet-builders.js';
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 
 /** Cast and trait effects supply their own attribution; pet ownership is captured by the pet producer. */

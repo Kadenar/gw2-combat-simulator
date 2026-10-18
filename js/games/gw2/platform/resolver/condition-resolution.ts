@@ -15,7 +15,8 @@ import {
   GW2_DAMAGING_CONDITIONS
 } from '#gw2/platform/combat/state/targets.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2ResolverEvent, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
+import type { Gw2ConditionWorkEvent, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { canonicalTime, isTimeInWindow, timeKey } from '#kernel/core/clock.js';
 import { canonicalEvent } from '#kernel/events/queue.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
@@ -571,7 +572,7 @@ export function createGw2ConditionResolution({
   }
 
   /** Round the complete owner/condition packet once, then attribute integer shares without changing its total. */
-  function handleConditionTick(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2ConditionTickResult | null {
+  function handleConditionTick(ctx: Gw2ResolverRuntime, event: Gw2ConditionWorkEvent): Gw2ConditionTickResult | null {
     const group = event.conditionGroup;
 
     if (!group || event.wakeToken !== group.wakeToken || group.wakeAt == null) return null;
@@ -741,7 +742,7 @@ interface Gw2ConditionTickResult {
 export interface Gw2ConditionResolution {
   activeConditionStackCount(context: Gw2ResolverRuntime, name: string, at: number): number;
   applyCondition(context: Gw2ResolverRuntime, event: SimulationEventBase): Gw2ResolvedConditionApplication[];
-  handleConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2ConditionTickResult | null;
+  handleConditionTick(context: Gw2ResolverRuntime, event: Gw2ConditionWorkEvent): Gw2ConditionTickResult | null;
   handleConditionBuffer(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void;
   initializeEnvironment(context: Gw2ResolverRuntime): void;
   startDamageClock(context: Gw2ResolverRuntime): void;

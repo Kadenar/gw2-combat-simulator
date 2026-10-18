@@ -6,7 +6,7 @@ import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js'
 import type { StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 

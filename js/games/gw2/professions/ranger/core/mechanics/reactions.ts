@@ -1,5 +1,5 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   bloodThirstApplied,
   packStrikeApplied,

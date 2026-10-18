@@ -6,7 +6,7 @@ import {
   type CriticalProcApplication
 } from '#gw2/platform/combat/procs/critical.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 
 export interface ResolvedCriticalHitOptions<
   TContext extends Pick<MechanicCombatContext, 'random'>,

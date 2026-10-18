@@ -1,7 +1,7 @@
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';

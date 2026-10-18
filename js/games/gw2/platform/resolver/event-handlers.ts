@@ -3,11 +3,8 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import { recordCompanionBuff } from '#gw2/platform/combat/state/companion.js';
 import type { Gw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
-import type {
-  Gw2ResolverEvent,
-  Gw2ResolverEventHandlers,
-  Gw2ResolverReactionRegistry
-} from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEventHandlers, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import {
   gw2BoonApplicationRecipients,

@@ -21,7 +21,8 @@ import type {
   TraitSelectionContext
 } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { RechargeRule, TraitTrigger, TriggerListener } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { Gw2ResolverEvent, Gw2ResolverReactions } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverReactions } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';

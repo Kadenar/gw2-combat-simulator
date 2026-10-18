@@ -4,7 +4,7 @@ import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import type { RangerRuntimeState, RangerSkill, RangerResolverContext } from '#gw2/professions/ranger/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 
 import { deliverChargedHit, grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';

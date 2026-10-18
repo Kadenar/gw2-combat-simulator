@@ -1,7 +1,7 @@
 import { ACTOR, COMBO_FIELD } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { guardianTraitIcon, guardianTraitName } from '#gw2/professions/guardian/core/traits/metadata.js';
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';

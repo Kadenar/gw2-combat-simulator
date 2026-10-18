@@ -7,7 +7,7 @@ import type {
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext } from '#gw2/platform/profession-presentation/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { BalanceProfile, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 

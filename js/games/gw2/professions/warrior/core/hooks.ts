@@ -7,7 +7,7 @@ import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,

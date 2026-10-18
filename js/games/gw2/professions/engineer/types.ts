@@ -6,7 +6,7 @@ import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/pla
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 
 import type { EngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import type { AmalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';

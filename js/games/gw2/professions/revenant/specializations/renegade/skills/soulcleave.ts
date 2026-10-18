@@ -1,5 +1,5 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';

@@ -5,7 +5,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';

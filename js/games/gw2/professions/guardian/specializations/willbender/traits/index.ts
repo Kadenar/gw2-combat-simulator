@@ -10,7 +10,7 @@ import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
   requireBalanceProfileFromContext,

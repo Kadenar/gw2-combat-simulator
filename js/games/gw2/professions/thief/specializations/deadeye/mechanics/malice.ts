@@ -4,7 +4,7 @@ import { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { maliceGained, maliceSpent } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';

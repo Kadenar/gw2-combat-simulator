@@ -18,7 +18,7 @@ import {
   summonQuicknessCastTimeMs
 } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import {
   rangerPetCombatMetadata,

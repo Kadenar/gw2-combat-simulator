@@ -16,7 +16,7 @@ import { strengthOfStone } from '#gw2/professions/elementalist/core/traits/earth
 import { burningRage } from '#gw2/professions/elementalist/core/traits/fire/index.js';
 
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import type { CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';

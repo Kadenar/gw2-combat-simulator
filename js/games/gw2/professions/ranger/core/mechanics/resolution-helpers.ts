@@ -3,7 +3,7 @@ import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
 import type { ConditionEffect, StatusEffect } from '#gw2/platform/effects/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import {
   rangerPetCombatMetadata,

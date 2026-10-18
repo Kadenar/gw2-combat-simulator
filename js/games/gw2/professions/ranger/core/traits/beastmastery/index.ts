@@ -11,7 +11,7 @@ import { professionCoreState, readProfessionSpecializationState } from '#gw2/pla
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
   effectNumber,

@@ -37,6 +37,7 @@ import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import { severanceCriticalContribution } from '#gw2/platform/equipment/sigils/severance.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Gw2CriticalChanceContributor } from '#gw2/platform/events/resolver-event.js';
 import type { NormalizedProfessionContract } from '#gw2/platform/profession-definition/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { boundedNumber, clamp } from '#kernel/core/numeric.js';
@@ -738,12 +739,6 @@ export interface Gw2QueryRuntime extends Gw2RuntimeStateLike {
   readonly activeWeaponSet?: number;
   readonly relic?: Gw2RelicRuntime;
   readonly profession?: object | null;
-}
-
-export interface Gw2CriticalChanceContributor {
-  readonly id: string;
-  readonly label: string;
-  readonly amount: number;
 }
 
 export interface Gw2CriticalResult {

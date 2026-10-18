@@ -5,7 +5,7 @@ import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profes
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';

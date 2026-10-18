@@ -7,7 +7,7 @@ import { armSkillFlip, consumeSkillFlip, expireSkillFlip } from '#gw2/platform/e
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceProfileNumber,
   effectNumber,

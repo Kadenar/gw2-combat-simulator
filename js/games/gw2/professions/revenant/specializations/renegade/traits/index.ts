@@ -17,7 +17,7 @@ import { defineTrait, traitAttributeBonuses } from '#gw2/platform/profession-def
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,

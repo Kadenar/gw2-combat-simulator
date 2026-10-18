@@ -14,7 +14,8 @@ import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2ResolverEvent, Gw2ResolverReactionContributions } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverReactionContributions } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 
 const GW2_REACTION_ORDER = Object.freeze({
   EARLY_COMMON: -200,

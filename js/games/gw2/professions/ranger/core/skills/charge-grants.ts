@@ -1,5 +1,5 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import {

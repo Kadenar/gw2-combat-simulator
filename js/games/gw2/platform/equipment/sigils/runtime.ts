@@ -4,7 +4,7 @@ import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
 import { SIGIL_IDS, SIGIL_PROCS, SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
 import { createSigilConditionEvent, createSigilDamagePayload } from '#gw2/platform/equipment/sigils/proc-events.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2SigilProc, Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
 import { SEVERANCE_BUFF_POLICY } from '#gw2/platform/equipment/sigils/severance.js';
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';

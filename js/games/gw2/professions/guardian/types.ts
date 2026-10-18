@@ -5,7 +5,7 @@ import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { EffectMetadata } from '#gw2/platform/events/events.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 
 import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import type { GuardianDragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';

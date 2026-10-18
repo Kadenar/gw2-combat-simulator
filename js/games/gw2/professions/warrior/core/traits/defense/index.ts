@@ -7,7 +7,7 @@ import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { burstFirstHit, controlAccepted } from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
 import { warriorBoonActive } from '#gw2/professions/warrior/core/traits/modifier-queries.js';

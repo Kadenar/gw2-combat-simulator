@@ -12,7 +12,7 @@ import { alliedBarrierGranted } from '#gw2/professions/thief/specializations/spe
 
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,

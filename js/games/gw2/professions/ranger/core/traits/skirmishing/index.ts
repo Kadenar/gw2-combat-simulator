@@ -18,7 +18,7 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,

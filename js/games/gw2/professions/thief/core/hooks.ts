@@ -3,7 +3,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { pruneSkillFlips } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';

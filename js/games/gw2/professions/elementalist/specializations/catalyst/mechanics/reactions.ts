@@ -3,7 +3,7 @@ import type { MechanicCombatContext } from '#gw2/platform/profession-definition/
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';

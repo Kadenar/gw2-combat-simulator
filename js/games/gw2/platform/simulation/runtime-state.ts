@@ -9,7 +9,7 @@ import type { SimulationStep } from '#gw2/platform/results/types.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { EffectReactionRegistry } from '#gw2/platform/resolver/effect-reactions.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 

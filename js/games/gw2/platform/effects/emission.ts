@@ -9,7 +9,7 @@ import {
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { cloneData } from '#kernel/core/clone.js';

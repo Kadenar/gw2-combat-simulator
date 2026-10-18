@@ -16,7 +16,7 @@ import { professionCoreState } from '#gw2/platform/profession-definition/state.j
 import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,

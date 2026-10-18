@@ -15,7 +15,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,

@@ -1,6 +1,6 @@
 import { playerDamageTotal } from '#gw2/platform/combat/state/target-health.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { buildBoonGeneration, projectedPartyEffects } from '#gw2/platform/results/boon-generation.js';
 import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
 import type { Gw2ResolverResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';

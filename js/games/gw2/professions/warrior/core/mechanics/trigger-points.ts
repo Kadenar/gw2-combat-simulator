@@ -1,5 +1,5 @@
 import type { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';

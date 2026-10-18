@@ -1,4 +1,4 @@
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { cloneData } from '#kernel/core/clone.js';
 
 /** Clip detached application observations without changing the resolver's natural lifetimes or settlement state. */

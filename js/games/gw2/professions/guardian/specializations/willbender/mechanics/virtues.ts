@@ -9,7 +9,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,

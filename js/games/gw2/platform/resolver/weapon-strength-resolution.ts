@@ -11,7 +11,7 @@ import { isGw2NonWeaponEffectEvent } from '#gw2/platform/combat/state/event-owne
 
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/weapons/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
