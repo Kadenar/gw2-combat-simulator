@@ -1,3 +1,5 @@
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
+
 /** Logical player controls belong to the engine, independently of physical key bindings. */
 export const INPUT_CONTROL_IDS = [
   'dodge',
@@ -31,4 +33,40 @@ export function inputControlForSkillSlot(slot: unknown): InputControlId | '' {
 
   const action = match[2] ? `weapon-${match[2]}` : `profession-${match[3]}`;
   return actionIds.has(action) ? (action as InputControlId) : '';
+}
+
+/** A selected skill bar maps logical controls to canonical skill identities. */
+export interface InputSkillBar {
+  readonly id: string;
+  readonly slots: Readonly<Partial<Record<InputControlId, SkillId>>>;
+}
+
+/** Follow declared replacements within the selected bar, never a global skill-to-utility-slot map. */
+export function controlOnSkillBar(catalog: CanonicalCatalog, skill: Skill, bar: InputSkillBar): InputControlId | null {
+  const ancestors = new Set<SkillId>();
+  const visit = (id: SkillId | null | undefined): void => {
+    if (id == null || ancestors.has(id)) return;
+
+    ancestors.add(id);
+    const candidate = catalog.skillsById.get(id);
+
+    if (!candidate) return;
+
+    visit(candidate.flipParentId);
+    visit(candidate.parentId);
+    visit(candidate.loadoutSkillId);
+    visit(candidate.weaponVariantRootId);
+  };
+
+  visit(skill.id);
+  for (const [control, id] of Object.entries(bar.slots)) {
+    if (ancestors.has(id)) return control as InputControlId;
+
+    const parent = catalog.skillsById.get(id);
+
+    if (parent?.flipSkillId === skill.id || (parent?.loadoutSkillId != null && ancestors.has(parent.loadoutSkillId)))
+      return control as InputControlId;
+  }
+
+  return null;
 }

@@ -85,7 +85,7 @@ export interface RuntimeProfession<T extends object, TSkill extends Skill = Skil
     context: MechanicQueryContext<T, TSkill>,
     skill: TSkill,
     command: CastCommand
-  ): import('#gw2/platform/results/input-trace.js').InputControl | null | undefined;
+  ): import('#gw2/platform/execution/input-controls.js').InputControl | null | undefined;
   /** Resolve contextual inputs such as swapping out of a kit before checking cast eligibility. */
   resolveCastSkill?(context: MechanicQueryContext<T, TSkill>, skill: TSkill): TSkill;
   /** Restricts equipped-set changes after combat entry, independently of temporary bars. */

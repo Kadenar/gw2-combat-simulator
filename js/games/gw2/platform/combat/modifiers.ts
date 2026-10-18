@@ -9,7 +9,6 @@ import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 
 interface NormalizeResolverOptions {
@@ -684,7 +683,13 @@ type Gw2DamageModifierTarget = 'strikeDamage' | 'conditionDamage';
 
 type Gw2ModifierOperation = 'add' | 'damage-additive' | 'multiply';
 
-/** Modifier queries retain scheduler state and source identity when no event is available. */
+/** Modifier state observations expose profession data and boon applications without scheduler or mutation services. */
+export interface Gw2ModifierState {
+  readonly profession?: object;
+  readonly boons?: ReadonlyMap<string, readonly Gw2TimedBuffApplication[]>;
+}
+
+/** Modifier queries retain observed combat state and source identity when no event is available. */
 export interface Gw2ModifierContext {
   /** One query samples declarations once; no result survives a separate read at the same timestamp. */
   readonly attributeContributions?: readonly import('#gw2/platform/builds/types.js').Gw2AttributeContributions[];
@@ -696,7 +701,7 @@ export interface Gw2ModifierContext {
   readonly sourceId?: SkillId | null;
   readonly actorType?: SimulationEvent['actorType'] | null;
   readonly profession?: { readonly catalog?: CanonicalCatalog };
-  readonly state?: Partial<Gw2Runtime> & { readonly boons?: Map<string, Gw2TimedBuffApplication[]> };
+  readonly state?: Gw2ModifierState;
 
   readonly config?: Gw2Config;
   readonly time: number;

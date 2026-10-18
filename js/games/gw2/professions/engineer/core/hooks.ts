@@ -2,7 +2,7 @@ import { WEAPON } from '#gw2/platform/constants.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
-import { controlOnSkillBar } from '#gw2/platform/results/input-trace.js';
+import { controlOnSkillBar } from '#gw2/platform/skills/input-controls.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';

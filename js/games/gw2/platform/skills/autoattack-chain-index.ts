@@ -110,3 +110,8 @@ export function resolveAutoattackChainStep(
     matchesExpectedStep: normalizedSkillId === expectedSkillId
   };
 }
+
+/** Execution and reporting distinguish automatic attacks from manual activations using the same canonical classification. */
+export function activationInputKind(catalog: CanonicalCatalog, skill: Skill) {
+  return isAutoattackSkill(catalog, skill) ? 'autoattack' : 'manual';
+}

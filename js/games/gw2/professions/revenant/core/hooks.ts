@@ -1,5 +1,5 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import { controlOnSkillBar } from '#gw2/platform/results/input-trace.js';
+import { controlOnSkillBar } from '#gw2/platform/skills/input-controls.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';

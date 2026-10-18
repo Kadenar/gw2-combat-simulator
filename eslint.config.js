@@ -21,6 +21,14 @@ const aggregateRuntimePattern = {
   regex: '^#gw2/platform/simulation/runtime-state\\.js$',
   message: 'Declarations use domain capabilities rather than the aggregate simulation runtime.'
 };
+const combatRuntimePattern = {
+  regex: '^#gw2/platform/(?:simulation|resolver)/runtime-state\\.js$',
+  message: 'Combat primitives declare the capabilities they need rather than depend on aggregate runtime state.'
+};
+const inputTracePattern = {
+  regex: '^#gw2/platform/results/input-trace\\.js$',
+  message: 'Skills and execution own input resolution and accepted facts; results only project input traces.'
+};
 const professionBoundaryPattern = {
   regex: '(^|/)(app|integrations)(/|$)',
   message: 'Headless profession content must not depend on application or integration code.'
@@ -315,7 +323,8 @@ export default [
       'no-restricted-imports': restrictedImports(
         sharedPlatformBoundaryPattern,
         simulationImplementationPattern,
-        aggregateRuntimePattern
+        aggregateRuntimePattern,
+        inputTracePattern
       )
     }
   },
@@ -328,14 +337,30 @@ export default [
       })
     }
   },
+  // Combat primitives retain explicit capabilities even when their caller supplies a full runtime.
+  {
+    files: ['js/games/gw2/platform/combat/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': restrictedImports(
+        sharedPlatformBoundaryPattern,
+        simulationImplementationPattern,
+        combatRuntimePattern
+      )
+    }
+  },
   // History is authoritative gameplay state and cannot require an optional report or output projection.
   {
     files: ['js/games/gw2/platform/combat/history/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': restrictedImports(sharedPlatformBoundaryPattern, simulationImplementationPattern, {
-        regex: '^#gw2/platform/results/',
-        message: 'Executed gameplay facts must be independent of result collection.'
-      })
+      'no-restricted-imports': restrictedImports(
+        sharedPlatformBoundaryPattern,
+        simulationImplementationPattern,
+        combatRuntimePattern,
+        {
+          regex: '^#gw2/platform/results/',
+          message: 'Executed gameplay facts must be independent of result collection.'
+        }
+      )
     }
   },
 
@@ -344,10 +369,15 @@ export default [
   {
     files: ['js/games/gw2/platform/execution/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': restrictedImports(sharedPlatformBoundaryPattern, simulationImplementationPattern, {
-        regex: '(^|/)(resolution|resolver)(/|$)',
-        message: 'Execution modules must communicate with resolution through shared contracts and events.'
-      })
+      'no-restricted-imports': restrictedImports(
+        sharedPlatformBoundaryPattern,
+        simulationImplementationPattern,
+        inputTracePattern,
+        {
+          regex: '(^|/)(resolution|resolver)(/|$)',
+          message: 'Execution modules must communicate with resolution through shared contracts and events.'
+        }
+      )
     }
   },
   {

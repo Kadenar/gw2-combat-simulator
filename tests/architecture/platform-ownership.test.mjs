@@ -65,6 +65,16 @@ test('platform imports preserve declaration, composition, history, and presentat
       assert.notEqual(specifier, '#gw2/platform/simulation/runtime-state.js', label);
     }
 
+    // Input facts originate in execution; declarations and execution never acquire reporting projections.
+    if (/^(skills|effects|events|profession-definition|execution)\//.test(file)) {
+      assert.notEqual(specifier, '#gw2/platform/results/input-trace.js', label);
+    }
+
+    // Primitive state and proc contracts cannot widen back to either aggregate runtime through a type import.
+    if (file.startsWith('combat/')) {
+      assert.doesNotMatch(specifier, /^#gw2\/platform\/(simulation|resolver)\/runtime-state\.js$/, label);
+    }
+
     if (file.startsWith('execution/')) assert.doesNotMatch(specifier, /^#gw2\/platform\/resolver\//, label);
 
     if (file.startsWith('resolver/')) assert.doesNotMatch(specifier, /^#gw2\/platform\/execution\//, label);

@@ -40,6 +40,11 @@ unrounded deadlines and settle only the requested magazine; cast admission and p
 rounding. Recharge rate and progress arithmetic is a combat primitive in `combat/recharge.ts`. Static chain indexes live
 in `skills/autoattack-chain-index.ts`, while `execution/autoattack-chains.ts` owns live transitions.
 
+`skills/input-controls.ts` owns logical control identities, selected skill bars, and replacement ancestry lookup.
+`skills/autoattack-chain-index.ts` classifies automatic versus manual activations. `execution/input-controls.ts`
+resolves the control at cast acceptance and declares accepted input facts; `results/input-trace.ts` only projects those
+facts into detached reporting windows. Consumers import each contract directly from its owner.
+
 `resolver/effect-delivery.ts` owns packet admission/preparation, target gates, immediate conditions, and reaction
 settlement. `effects/emission.ts` validates and detaches requests, materializes declarations, and returns immutable
 receipts. `effects/actions.ts` declares actions; `effects/action-dispatch.ts` applies them through explicit resource,
@@ -62,6 +67,11 @@ attribute previews, and timestamped queries; `combat-calculation/timeline-index.
 those queries. `combat/query/runtime-query.ts` and `combat/query/effect-stacks.ts` retain primitive state checks and
 stack lookup without importing equipment implementations. `skill-damage/` runs and measures isolated skill occurrences
 using the shared combat calculations.
+
+Combat primitives declare narrow capabilities instead of importing aggregate simulation or resolver runtimes.
+`combat/procs/registry.ts` reads the live clock, selected balance profiles, and recharge intervals through
+`ProcRegistryContext`. `combat/modifiers.ts` uses `Gw2ModifierState` for profession and boon observations without
+exposing scheduling, cast control, or reporting stores.
 
 `skills/catalog.ts` merges declarations and builds immutable indexes. `skills/validation.ts` validates skill fields and
 catalog references; `effects/validation.ts` validates effect payloads and canonical effect lists. External GW2 identity

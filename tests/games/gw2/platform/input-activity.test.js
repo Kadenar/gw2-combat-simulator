@@ -7,7 +7,7 @@ import { summarizeInputAnalysis } from '#gw2/app/input-profile/summary.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
-import { controlOnSkillBar } from '#gw2/platform/results/input-trace.js';
+import { controlOnSkillBar } from '#gw2/platform/skills/input-controls.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';

@@ -1,10 +1,21 @@
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { projectRecharge, type RechargeProgress } from '#gw2/platform/combat/recharge.js';
+
+/** Proc deadlines read only the live clock, selected balance data, and received recharge rates. */
+export interface ProcRegistryContext {
+  readonly time?: number;
+  readonly config?: { readonly profession?: string; readonly patchId?: string };
+  readonly helpers: Partial<Pick<CanonicalCatalog, 'balanceProfilesById' | 'balanceDataContext'>>;
+  readonly query: {
+    readonly timeline: {
+      rechargeIntervals(skill: Skill, start: number, end: number, companionId?: string): Iterable<RateInterval>;
+    };
+  };
+}
 
 /** Per-run proc deadlines shared by traits, sigils, relics, and food; observations receive detached copies. */
 export interface ProcRegistry {
@@ -19,7 +30,7 @@ export interface ProcRegistry {
 }
 
 /** One registry per simulation owns proc deadlines; profile IDs and equipment namespaces isolate unrelated claims. */
-export function createProcRegistry(context: () => Gw2ResolverRuntime & { readonly time?: number }): ProcRegistry {
+export function createProcRegistry(context: () => ProcRegistryContext): ProcRegistry {
   const readyAt: Record<string, number> = Object.create(null);
   const recharges = new Map<string, { skill: Skill; progress: RechargeProgress }>();
   // Summon proc work integrates the captured companion's received recharge boons.

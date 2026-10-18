@@ -1,6 +1,7 @@
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import { activationInputKind, resolveInputControl } from '#gw2/platform/results/input-trace.js';
+import { activationInputKind } from '#gw2/platform/skills/autoattack-chain-index.js';
+import { resolveInputControl } from '#gw2/platform/execution/input-controls.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { relicWeaponSwapRechargeReduction } from '#gw2/platform/equipment/relics/catalog.js';
