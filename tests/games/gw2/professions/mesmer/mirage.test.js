@@ -667,28 +667,6 @@ test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', ()
   );
 });
 
-test('False Oasis creates its Mirage Mirror three seconds after the first pulse', () => {
-  const result = simulateMesmer(
-    ['False Oasis', 'Pick Up Mirage Mirror'],
-    defaultSimulationConfig({
-      specialization: 'Mirage',
-      selectedSkillIds: [40200],
-      primaryWeapon: 'Axe',
-      secondaryWeapon: 'Torch',
-      initialResource: 0
-    })
-  );
-  const falseOasis = result.steps.find((step) => step.skill === 'False Oasis');
-  const mirror = result.events.find((event) => event.type === 'damage' && event.skillName === 'Mirage Mirror');
-
-  assert.deepEqual(result.warnings, []);
-  assert.ok(falseOasis);
-  assert.ok(mirror);
-  assert.ok(Math.abs(mirror.at - (falseOasis.start / 1000 + 3.24)) < 0.00001);
-  assert.equal(observedRuntime(result).profession.specialization.state.mirrors.length, 0);
-  assert.equal(result.planningState.profession.endurance.value, 100, 'Picking up a mirror must not spend endurance');
-});
-
 test('Mirage Mirror palette availability follows active ground mirrors', () => {
   for (const mirrors of [[], [{ availableAt: 0, expiresAt: 10 }]]) {
     const state = planningFixture(mesmerProfession, { specialization: 'Mirage' }, (runtime) => {

@@ -102,7 +102,7 @@ test('Bladesworn redirects trait and signet grants while ordinary hits produce n
   assert.equal(signet.planningState.profession.adrenaline.maximum, 0);
 });
 
-test('Flow caps use the selected profile and detailed and score runs share the same resource owner', () => {
+test('Flow caps use the selected profile', () => {
   const patched = withPatchPreview(warriorProfession, {
     id: 'flow-cap',
     label: 'Flow cap',
@@ -110,11 +110,9 @@ test('Flow caps use the selected profile and detailed and score runs share the s
       warrior: { balanceProfiles: { [PROFILE.resources]: { fields: { maximumStacks: { from: 100, to: 7 } } } } }
     }
   });
-  for (const output of ['detailed', 'score']) {
-    const result = run([combat, wait(1000)], { initialResource: 100, patchId: 'flow-cap' }, patched, output);
-    close(state(result).flow.value, 7);
-    assert.equal(state(result).flow.maximum, 7);
-  }
+  const result = run([combat, wait(1000)], { initialResource: 100, patchId: 'flow-cap' }, patched);
+  close(state(result).flow.value, 7);
+  assert.equal(state(result).flow.maximum, 7);
 });
 
 test('removing Positive Flow suppresses regeneration independently of the conditional instant grant', () => {

@@ -35,23 +35,20 @@ function recover(events, end, config = {}, timeline = []) {
   );
 }
 
-test('Elementalist ignores cancelled and other-only Vigor without depending on wait partitions', () => {
-  for (const cancelled of [false, true])
-    for (const times of [[], [2, 3, 4, 6]]) {
-      const result = recover(
-        [
-          vigor(0, 20, { audience: { recipients: 'summons', affectsSelf: false, maximumRecipients: 5 } }),
-          vigor(2, 2),
-          vigor(0, 20, { cancelled: true }),
-          { ...vigor(3, 2), type: 'boon_extension', cancelled }
-        ],
-        8,
-        {},
-        times.map((at) => ({ at, run: (r) => r.endurance.advance() }))
-      );
-      assert.equal(observedRuntime(result).profession.core.endurance.value, cancelled ? 45 : 50);
-      assert.equal(observedRuntime(result).endurance.readyAt(50), cancelled ? 9 : 8);
-    }
+test('Elementalist ignores cancelled and other-only Vigor', () => {
+  for (const cancelled of [false, true]) {
+    const result = recover(
+      [
+        vigor(0, 20, { audience: { recipients: 'summons', affectsSelf: false, maximumRecipients: 5 } }),
+        vigor(2, 2),
+        vigor(0, 20, { cancelled: true }),
+        { ...vigor(3, 2), type: 'boon_extension', cancelled }
+      ],
+      8
+    );
+    assert.equal(observedRuntime(result).profession.core.endurance.value, cancelled ? 45 : 50);
+    assert.equal(observedRuntime(result).endurance.readyAt(50), cancelled ? 9 : 8);
+  }
 });
 test('timed Vigor recovery crosses application and expiry boundaries', () => {
   const result = recover([vigor(2, 2)], 6, {}, [

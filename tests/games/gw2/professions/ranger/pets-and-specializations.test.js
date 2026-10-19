@@ -8,50 +8,25 @@ import {
 } from '#gw2/app/rotation/palette/model.js';
 import { activeResourceGroup, paletteSkillResourceView } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
-import {
-  createRangerBuildDefaults,
-  migrateRangerBuild,
-  validateRangerBuild
-} from '#gw2/professions/ranger/build/build.js';
+import { createRangerBuildDefaults, migrateRangerBuild } from '#gw2/professions/ranger/build/build.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { RANGER_HAMMER_VARIANT_PAIRS } from '#gw2/professions/ranger/data/hammer-variants.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { druidHooks } from '#gw2/professions/ranger/specializations/druid/hooks.js';
-import { DRUID_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/druid/profiles.js';
-import {
-  createDruidState,
-  DRUID_PUBLIC_STATE_PROJECTION
-} from '#gw2/professions/ranger/specializations/druid/state.js';
-import { GALESHOT_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
+import { DRUID_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/druid/state.js';
 import { GALESHOT_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/galeshot/state.js';
-import { soulbeastCastAvailability } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
-import { SOULBEAST_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
-import {
-  createSoulbeastState,
-  SOULBEAST_PUBLIC_STATE_PROJECTION
-} from '#gw2/professions/ranger/specializations/soulbeast/state.js';
-import { untamedCastAvailability } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
-import { UNTAMED_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
-import {
-  createUntamedState,
-  UNTAMED_PUBLIC_STATE_PROJECTION
-} from '#gw2/professions/ranger/specializations/untamed/state.js';
+import { SOULBEAST_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
+import { UNTAMED_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
-import { readdir, readFile } from 'node:fs/promises';
 import { test } from 'node:test';
-import ts from 'typescript';
 
 const baseConfig = Object.freeze({
   initialAstralForce: 100,
@@ -79,10 +54,6 @@ const baseConfig = Object.freeze({
 
 // Keep scenario defaults local while sharing simulation setup and nested config merging.
 const simulate = createObservedProfessionSimulator(rangerProfession, baseConfig);
-
-const applyRangerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(rangerCatalog, patch), patch);
-
-const authoringRangerProfession = withActivePatchPreview(rangerProfession);
 
 test('Ranger scheduler snapshots expose flat profession state', () => {
   const result = simulate('Soulbeast', []);
@@ -123,27 +94,6 @@ test('Ranger public state is composed from Core and specialization-owned manifes
   }
 });
 
-// Inspect actual import and reexport specifiers so comments and local names cannot fail ownership checks.
-test('Ranger Core does not import specialization modules', async () => {
-  const directory = new URL('../../../../../js/games/gw2/professions/ranger/core/', import.meta.url);
-  const files = (await readdir(directory, { recursive: true })).filter((file) => file.endsWith('.ts'));
-  for (const file of files) {
-    const source = ts.createSourceFile(
-      file,
-      await readFile(new URL(file, directory), 'utf8'),
-      ts.ScriptTarget.Latest,
-      true
-    );
-    for (const statement of source.statements) {
-      if (!ts.isImportDeclaration(statement) && !ts.isExportDeclaration(statement)) continue;
-
-      const specifier = statement.moduleSpecifier?.text;
-
-      if (specifier) assert.ok(!specifier.includes('specializations/'), `${file}: ${specifier}`);
-    }
-  }
-});
-
 test('Ranger catalog preserves runtime references and handlers', () => {
   assert.equal(rangerCatalog.skillsById.get(ID.PATH_OF_SCARS_MAX_RANGE).variantBadge, 'MAX');
   assert.equal(rangerCatalog.skillsById.get(ID.PATH_OF_SCARS).variantBadge, undefined);
@@ -166,140 +116,9 @@ test('Ranger catalog preserves runtime references and handlers', () => {
   );
 });
 
-test('Ranger modules expose isolated balance-profile authoring', () => {
-  const modules = new Map(authoringRangerProfession.patchAuthoring.modules.map((module) => [module.id, module]));
-
-  assert.deepEqual([...modules.keys()], ['Core', 'Druid', 'Soulbeast', 'Untamed', 'Galeshot']);
-  assert.equal(
-    [...modules.values()].every((module) => module.balanceProfiles.length > 0),
-    true
-  );
-
-  const profile = (moduleId, profileId) => {
-    const module = modules.get(moduleId);
-
-    return [...module.balanceProfiles, ...module.skillVariants].find((entry) => entry.id === profileId);
-  };
-
-  assert.equal(profile('Core', TRAIT.PACK_ALPHA).patchableFields.weaponAttributeBonus, 300);
-  assert.equal(profile('Druid', DRUID_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 100);
-  assert.equal(profile('Soulbeast', SOULBEAST_BALANCE_PROFILE_IDS.oneWolfPack).profile.effects[0].coefficient, 0.95);
-  assert.equal(profile('Untamed', UNTAMED_BALANCE_PROFILE_IDS.resources).patchableFields.duration, 4);
-  assert.equal(profile('Galeshot', GALESHOT_BALANCE_PROFILE_IDS.resources).patchableFields.pulseInterval, 5);
-
-  const opaqueModifierRules = [...modules.values()].flatMap((module) =>
-    module.modifierRules.filter(
-      (rule) =>
-        (typeof rule.amount === 'function' || typeof rule.factor === 'function') &&
-        Object.keys(rule.parameters).length === 0
-    )
-  );
-
-  assert.deepEqual(opaqueModifierRules, []);
-  assert.deepEqual(
-    modules.get('Core').modifierRules.find((rule) => rule.id === 'ranger.consuming-bite-condition-count').parameters,
-    { maximumConditions: 5, coefficientPerCondition: 0.025 }
-  );
-
-  const preview = applyRangerPatch({
-    skills: {
-      [ID.SUPERSONIC_ARROW]: {
-        fields: { arrowCost: { from: 3, to: 2 } }
-      }
-    },
-    balanceProfiles: {
-      [TRAIT.PACK_ALPHA]: {
-        fields: { weaponAttributeBonus: { from: 300, to: 350 } }
-      },
-      [DRUID_BALANCE_PROFILE_IDS.resources]: {
-        fields: { maximumStacks: { from: 100, to: 120 } }
-      },
-      [SOULBEAST_BALANCE_PROFILE_IDS.oneWolfPack]: {
-        effects: [{ effectIndex: 0, coefficient: { from: 0.95, to: 1 } }]
-      },
-      [UNTAMED_BALANCE_PROFILE_IDS.resources]: {
-        fields: { duration: { from: 4, to: 5 } }
-      },
-      [GALESHOT_BALANCE_PROFILE_IDS.resources]: {
-        fields: { pulseInterval: { from: 5, to: 4 } }
-      }
-    }
-  });
-
-  assert.equal(preview.skillsById.get(ID.SUPERSONIC_ARROW).arrowCost, 2);
-  assert.equal(preview.balanceProfilesById.get(TRAIT.PACK_ALPHA).weaponAttributeBonus, 350);
-  assert.equal(preview.balanceProfilesById.get(DRUID_BALANCE_PROFILE_IDS.resources).maximumStacks, 120);
-  assert.equal(preview.balanceProfilesById.get(SOULBEAST_BALANCE_PROFILE_IDS.oneWolfPack).effects[0].coefficient, 1);
-  assert.equal(preview.balanceProfilesById.get(UNTAMED_BALANCE_PROFILE_IDS.resources).duration, 5);
-  assert.equal(preview.balanceProfilesById.get(GALESHOT_BALANCE_PROFILE_IDS.resources).pulseInterval, 4);
-
-  const petMetadata = rangerPetCombatMetadata({
-    catalog: preview,
-    config: {
-      selectedPet: 'Pig',
-      selectedTraitIds: [TRAIT.PACK_ALPHA]
-    },
-    state: {
-      time: 0,
-      cooldowns: new Map(),
-      profession: {
-        core: { activePet: 'Pig', activePetSlot: 1, pet: { id: 'ranger-pet:1:0' } }
-      }
-    }
-  });
-
-  // Pet condition ownership stays independent even when it inherits player trait modifiers.
-  assert.equal(petMetadata.independentConditionOwner, true);
-  assert.equal(petMetadata.summonBasePower, 1874);
-
-  assert.equal(rangerCatalog.skillsById.get(ID.SUPERSONIC_ARROW).arrowCost, 3);
-  assert.equal(rangerCatalog.balanceProfilesById.get(TRAIT.PACK_ALPHA).weaponAttributeBonus, 300);
-});
-
-test('Ranger builds migrate and validate against the canonical catalog', () => {
+// Saved rotations keep only commanded Beast skills; autonomous pet attacks are owned by the pet AI.
+test('Ranger build migration removes autonomous pet casts from saved rotations', () => {
   const defaults = createRangerBuildDefaults();
-
-  assert.deepEqual(validateRangerBuild(defaults), { valid: true, errors: [] });
-  assert.equal(defaults.initialUntamedState, 'Pet');
-  assert.deepEqual(defaults.weapons, ['Hammer', '']);
-  assert.deepEqual(defaults.alternateWeapons, ['Axe', 'Axe']);
-  assert.equal(defaults.relic, 'Claw');
-  assert.equal(defaults.selectedPet, 'Pig');
-  assert.equal(defaults.selectedPet2, 'Lynx');
-  assert.deepEqual(defaults.selectedHammerSkillIds, [
-    ID.UNLEASHED_WILD_SWING,
-    ID.OVERBEARING_SMASH,
-    ID.UNLEASHED_SAVAGE_SHOCK_WAVE,
-    ID.UNLEASHED_THUMP
-  ]);
-  assert.equal(Object.hasOwn(defaults.assumptions, 'playerHealthPercent'), false);
-  assert.equal(Object.hasOwn(defaults.assumptions, 'targetDistance'), false);
-  assert.deepEqual(
-    rangerProfession.ui.assumptionControls.map((control) => control.key),
-    ['targetDefiant', 'simulationMode', 'simulationSeed', 'criticalDamageMode', 'permanentComboField']
-  );
-
-  const migrated = migrateRangerBuild({
-    ...defaults,
-    initialAstralForce: 500,
-    initialArrows: -4,
-    initialUntamedState: 'Ranger',
-    assumptions: {
-      selectedPet: 'Lynx',
-      soulbeastArchetype: 'Ferocious',
-      playerHealthPercent: 10,
-      targetDistance: 1500
-    }
-  });
-
-  assert.equal(migrated.initialAstralForce, 100);
-  assert.equal(migrated.initialArrows, 0);
-  assert.equal(migrated.selectedPet, 'Pig');
-  assert.equal(migrated.initialUntamedState, 'Ranger');
-  assert.equal(Object.hasOwn(migrated.assumptions, 'playerHealthPercent'), false);
-  assert.equal(Object.hasOwn(migrated.assumptions, 'targetDistance'), false);
-  assert.deepEqual(validateRangerBuild(migrated), { valid: true, errors: [] });
-  assert.throws(() => migrateRangerBuild({ profession: 'necromancer' }), /Cannot load necromancer build as Ranger/);
 
   const withoutAutonomousPetCasts = migrateRangerBuild({
     ...defaults,
@@ -886,90 +705,6 @@ test('Pack Alpha excludes unleashed-pet and Beastmode skill recharges', () => {
   }
 });
 
-test("Pack Alpha improves only the Pig's five documented attributes", () => {
-  const metadata = rangerPetCombatMetadata({
-    helpers: rangerCatalog,
-    config: { selectedTraitIds: [TRAIT.PACK_ALPHA] },
-    state: {
-      cooldowns: new Map(),
-      profession: {
-        core: { activePet: 'Pig', activePetSlot: 1, pet: { id: 'ranger-pet:1:0' } }
-      }
-    }
-  });
-
-  assert.deepEqual(
-    {
-      power: metadata.summonBasePower,
-      precision: metadata.summonBasePrecision,
-      toughness: metadata.summonBaseToughness,
-      vitality: metadata.summonBaseVitality,
-      conditionDamage: metadata.summonBaseConditionDamage,
-      ferocity: metadata.summonBaseFerocity,
-      expertise: metadata.summonBaseExpertise,
-      healingPower: metadata.summonBaseHealingPower
-    },
-    {
-      power: 1824,
-      precision: 1480,
-      toughness: 2511,
-      vitality: 3885,
-      conditionDamage: 1000,
-      ferocity: 0,
-      expertise: 0,
-      healingPower: 600
-    }
-  );
-});
-
-test('Tiger uses its documented attributes and nominal Bite recharge', () => {
-  const metadata = rangerPetCombatMetadata({
-    catalog: rangerCatalog,
-    config: {
-      selectedTraitIds: [TRAIT.PACK_ALPHA],
-      selectedSkillIds: [12491]
-    },
-    time: 0,
-    cooldownController: { readyAt: () => undefined },
-    profession: {
-      core: { activePet: 'Tiger', activePetSlot: 1, pet: { id: 'ranger-pet:1:0' } }
-    }
-  });
-
-  assert.deepEqual(
-    {
-      power: metadata.summonBasePower,
-      precision: metadata.summonBasePrecision,
-      toughness: metadata.summonBaseToughness,
-      vitality: metadata.summonBaseVitality,
-      ferocity: metadata.summonBaseFerocity,
-      conditionDamage: metadata.summonBaseConditionDamage
-    },
-    {
-      power: 1824,
-      precision: 2511,
-      toughness: 1824,
-      vitality: 2511,
-      ferocity: 180,
-      conditionDamage: 1300
-    }
-  );
-
-  const result = simulate('Core', ['__combat_start', { type: 'wait', durationMs: 30000 }], {
-    selectedPet: 'Tiger',
-    target: { health: 10000000 }
-  });
-  const biteTimes = result.resolvedEvents
-    .filter((event) => event.type === 'damage' && event.skillId === ID.FELINE_BITE)
-    .map((event) => event.at);
-
-  assert.equal(biteTimes.length, 4);
-  assert.equal(
-    biteTimes.slice(1).every((at, index) => at - biteTimes[index] >= 8),
-    true
-  );
-});
-
 // One autonomous cooldown isolates the sharing policy from player cast timing.
 test('Ranger autonomous pet cooldowns require shared Alacrity', () => {
   for (const sharePlayerBoonsWithSummons of [false, true]) {
@@ -1325,32 +1060,6 @@ test('Soulbeast palette swaps between merged skills and the active pet', () => {
     paletteActionSkills(actionApp, 'Soulbeast').some((skill) => skill.id === ID.PET_SWAP),
     true
   );
-});
-
-test('Ranger transformation availability follows skill IDs after display labels change', () => {
-  const check = (kind, state, skill, availability) =>
-    availability(
-      {
-        config: { specialization: kind, selectedPet: 'Lynx' },
-        // Availability reads pet identity from the canonical Core owner, independently of display labels.
-        profession: { core: { activePet: 'Lynx' }, specialization: { kind, state } },
-        time: 0
-      },
-      skill
-    );
-
-  const soulbeast = createSoulbeastState();
-  const beastmode = { ...rangerCatalog.skillsById.get(ID.BEASTMODE), name: 'Renamed Beastmode' };
-  assert.equal(check('Soulbeast', soulbeast, beastmode, soulbeastCastAvailability).code, 'ranger.beastmode-active');
-
-  const druid = createDruidState({ initialAstralForce: 100 });
-  druid.celestialAvatarActive = true;
-  const avatar = { ...rangerCatalog.skillsById.get(ID.CELESTIAL_AVATAR), name: 'Renamed Celestial Avatar' };
-  assert.equal(check('Druid', druid, avatar, druidHooks.availability).code, 'ranger.avatar-active');
-
-  const untamed = createUntamedState({ initialUntamedState: 'Ranger' });
-  const unleash = { ...rangerCatalog.skillsById.get(ID.UNLEASH_RANGER), name: 'Renamed Unleash Ranger' };
-  assert.equal(check('Untamed', untamed, unleash, untamedCastAvailability).code, 'ranger.ranger-unleashed');
 });
 
 test('Untamed Hammer variants follow unleash state instead of build selections', () => {

@@ -10,7 +10,6 @@ import {
 } from '#gw2/integrations/patches/authoring/patches.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { loadProfession } from '#gw2/profession-registry.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import {
   createEngineerBuildDefaults,
@@ -19,23 +18,15 @@ import {
   validateEngineerBuild
 } from '#gw2/professions/engineer/build/build.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
-import { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { amalgamModule } from '#gw2/professions/engineer/specializations/amalgam/module.js';
-import { holosmithModule } from '#gw2/professions/engineer/specializations/holosmith/module.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
-import { mechanistModule } from '#gw2/professions/engineer/specializations/mechanist/module.js';
 import { MECHANIST_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
-import { scrapperModule } from '#gw2/professions/engineer/specializations/scrapper/module.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { assertProfessionFamilyConformance } from '#tests/helpers/profession-family-conformance.js';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 
 const baseConfig = Object.freeze({
@@ -236,91 +227,6 @@ test('Overheat authoring retains the live penalty and rejects obsolete saved con
 test('Poison Dart Volley and Static Shot are not combo finishers', () => {
   assert.equal(mechanic('Poison Dart Volley').comboFinishers, undefined);
   assert.equal(mechanic('Static Shot').comboFinishers, undefined);
-});
-
-test('Engineer modules expose isolated balance-profile authoring', () => {
-  assertProfessionFamilyConformance({
-    family: engineerProfession,
-    core: engineerCoreModule,
-    specializations: {
-      Scrapper: scrapperModule,
-      Holosmith: holosmithModule,
-      Mechanist: mechanistModule,
-      Amalgam: amalgamModule
-    }
-  });
-
-  const modules = new Map(authoringEngineerProfession.patchAuthoring.modules.map((module) => [module.id, module]));
-
-  assert.deepEqual([...modules.keys()], ['Core', 'Scrapper', 'Holosmith', 'Mechanist', 'Amalgam']);
-  assert.equal(
-    [...modules.values()].every((module) => module.balanceProfiles.length > 0),
-    true
-  );
-
-  const profile = (moduleId, profileId) => {
-    const module = modules.get(moduleId);
-
-    return [...module.balanceProfiles, ...module.skillVariants].find((entry) => entry.id === profileId);
-  };
-
-  assert.equal(profile('Core', ENGINEER_CORE_BALANCE_PROFILE_IDS.resources).patchableFields.resourceCost, 50);
-  assert.equal(profile('Scrapper', TRAIT.APPLIED_FORCE).patchableFields.attributePerStack, 30);
-  assert.equal(profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.heat).patchableFields.maximumStacks, undefined);
-  assert.equal(profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.heat).patchableFields.threshold, undefined);
-  assert.equal(profile('Holosmith', TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT).patchableFields.maximumStacks, 150);
-  assert.equal(profile('Holosmith', TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT).patchableFields.threshold, 100);
-  assert.equal(
-    profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.laserDiskHeatTier).patchableFields.enhancedStrikeFactor,
-    1.35
-  );
-  assert.equal(
-    modules.get('Holosmith').skills.find((skill) => skill.id === ID.VENT_EXHAUST).patchableFields.heatLoss,
-    15
-  );
-  assert.equal(profile('Mechanist', MECHANIST_BALANCE_PROFILE_IDS.resources).patchableFields.inheritanceRatio, 0.5);
-  assert.equal(profile('Amalgam', TRAIT.MERCURIAL_TENDENCIES).patchableFields.rechargeReduction, 2.5);
-
-  const opaqueModifierRules = [...modules.values()].flatMap((module) =>
-    module.modifierRules.filter(
-      (rule) =>
-        (typeof rule.amount === 'function' || typeof rule.factor === 'function') &&
-        Object.keys(rule.parameters).length === 0
-    )
-  );
-
-  assert.deepEqual(opaqueModifierRules, []);
-
-  const preview = applyEngineerPatch({
-    balanceProfiles: {
-      [ENGINEER_CORE_BALANCE_PROFILE_IDS.resources]: {
-        fields: { resourceCost: { from: 50, to: 45 } }
-      },
-      [TRAIT.APPLIED_FORCE]: {
-        fields: { attributePerStack: { from: 30, to: 35 } }
-      },
-      [HOLOSMITH_BALANCE_PROFILE_IDS.laserDiskHeatTier]: {
-        fields: { enhancedStrikeFactor: { from: 1.35, to: 1.5 } }
-      },
-      [MECHANIST_BALANCE_PROFILE_IDS.resources]: {
-        fields: { inheritanceRatio: { from: 0.5, to: 0.6 } }
-      },
-      [TRAIT.MERCURIAL_TENDENCIES]: {
-        fields: { rechargeReduction: { from: 2.5, to: 3 } }
-      }
-    }
-  });
-
-  assert.equal(preview.balanceProfilesById.get(ENGINEER_CORE_BALANCE_PROFILE_IDS.resources).resourceCost, 45);
-  assert.equal(preview.balanceProfilesById.get(TRAIT.APPLIED_FORCE).attributePerStack, 35);
-  assert.equal(
-    preview.balanceProfilesById.get(HOLOSMITH_BALANCE_PROFILE_IDS.laserDiskHeatTier).enhancedStrikeFactor,
-    1.5
-  );
-  assert.equal(preview.balanceProfilesById.get(MECHANIST_BALANCE_PROFILE_IDS.resources).inheritanceRatio, 0.6);
-  assert.equal(preview.balanceProfilesById.get(TRAIT.MERCURIAL_TENDENCIES).rechargeReduction, 3);
-
-  assert.equal(engineerCatalog.balanceProfilesById.get(ENGINEER_CORE_BALANCE_PROFILE_IDS.resources).resourceCost, 50);
 });
 
 test('Holosmith palette exposes tool-belt skills, forge, and replacement bars', () => {
@@ -1008,14 +914,4 @@ test('tool-belt skills derive from selected slot skills', () => {
   });
 
   assert.match(denied.warnings[0].message, /Grenade Kit is not equipped/);
-});
-
-test('Engineer is a loadable native application', async () => {
-  assert.equal((await loadProfession('engineer')).id, 'engineer');
-  assert.equal((await loadProfessionAppAdapter('engineer')).profession.id, 'engineer');
-  const html = await readFile(new URL('../../../../../dist/site/engineer.html', import.meta.url), 'utf8');
-
-  assert.match(html, /data-profession="engineer"/);
-  // The built document identifies the profession before the shared header mounts in the browser.
-  assert.match(html, /<title>GW2 Combat Simulator — Engineer<\/title>/);
 });

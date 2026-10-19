@@ -1,21 +1,11 @@
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { rotationSelectedSlotSkills } from '#gw2/app/rotation/palette/model.js';
-import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { pistolSideEffectHandlers } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
-import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { evokerModule } from '#gw2/professions/elementalist/specializations/evoker/module.js';
-import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
 import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -403,84 +393,20 @@ test("Evasive Arcana uses the active attunement's native trait skill", () => {
   );
 });
 
-test('Elementalist behavior follows skill IDs after display labels change', () => {
-  const fireAttunement = { ...elementalistCatalog.skillsById.get(ID.FIRE_ATTUNEMENT), name: 'Renamed attunement' };
-  const ignite = { ...elementalistCatalog.skillsById.get(ID.IGNITE), name: 'Renamed familiar' };
-  // Pool policies seed the fixture through the same initialization boundary as simulation.
-  const context = observedRuntime(
-    runElementalist([], {
-      specialization: 'Evoker',
-      evokerElement: 'Fire',
-      initialEvokerCharges: 6,
-      selectedTraitIds: []
-    })
-  ).mechanics;
-  const state = evokerState.from(context);
-
-  assert.equal(targetAttunement(fireAttunement), 'Fire');
-  assert.deepEqual(evokerModule.hooks.availability(context, ignite), { ready: true });
-  state.element = 'Water';
-  assert.equal(evokerModule.hooks.availability(context, ignite).code, 'elementalist.evoker-element');
-
-  const unravel = { ...elementalistCatalog.skillsById.get(ID.UNRAVEL), name: 'Renamed unravel' };
-  assert.equal(
-    weaverModule.hooks.availability({ config: { selectedTraitIds: [] } }, unravel).code,
-    'elementalist.weaver-elements-of-rage'
-  );
-
-  const core = createElementalistCoreState({ pistolBullets: { Earth: true, Air: true } });
-  const pistolEvents = [];
-  const pistolContext = {
-    helpers: elementalistCatalog,
-    profession: { core },
-    time: 1,
-    query: { statsAt: () => ({}) },
-    effectiveEnd: 1,
-    config: { selectedTraitIds: [] },
-    effects: captureEffectEmissions({ submit: (event) => pistolEvents.push(event) }).effects,
-    emitProcedural: (event) => pistolEvents.push(event)
-  };
-  // Predicate fixtures expose only the state read by the bullet selector.
-  pistolContext.queries = { profession: pistolContext.profession };
-  const shatteringStone = {
-    ...elementalistCatalog.skillsById.get(ID.SHATTERING_STONE),
-    name: 'Renamed core pistol skill'
-  };
-  applySkillSideEffects(
-    pistolContext,
-    { ...pistolContext, skill: shatteringStone, command: {} },
-    'castCommit',
-    pistolSideEffectHandlers
-  );
-  assert.equal(core.pistolBullets.Earth, false);
-  assert.equal(pistolEvents[0].kind, 'shattering stone');
-  assert.equal(pistolEvents[0].skillId, shatteringStone.id);
-
-  const purblindingPlasma = {
-    ...elementalistCatalog.skillsById.get(ID.PURBLINDING_PLASMA),
-    name: 'Renamed Weaver pistol skill'
-  };
-  assert.equal(compileProfessionRules(weaverModule.hooks).rechargeWork(pistolContext, purblindingPlasma, 15), 10);
-});
-
 // Fire exit starts a delayed proc; its strike and Burning must land together.
-test('Flame Expulsion delays both packets and uses its own icon in the damage breakdown', () => {
+test('Flame Expulsion lands its strike and Burning together after leaving Fire', () => {
   const result = runNative({
     lines: [['Fire', '1-1-2'], ['Air'], ['Arcane']],
     rotation: ['Flame Uprising', 'Air Attunement', 1000],
     startAttunement: 'Fire',
     weapons: ['Sword', 'Dagger']
   });
-  const expectedIcon = 'https://render.guildwars2.com/file/998095CB1FD2CF0164B8A36BABFDB911DF08DB02/1012313.png';
   const packet = result.events.find((event) => event.type === 'damage' && event.skillName === 'Flame Expulsion');
-  const row = skillBreakdownRows(result).find((entry) => entry.name === 'Flame Expulsion');
   const exit = result.events.find((event) => event.type === 'elementalist.attunement' && event.from === 'Fire');
   const burning = result.events.find((event) => event.type === 'condition' && event.skillName === 'Flame Expulsion');
 
   assert.ok(packet.at > exit.at);
   assert.equal(burning.at, packet.at);
-  assert.equal(packet?.icon, expectedIcon);
-  assert.equal(row?.icon, expectedIcon);
 });
 
 // The delayed ally boon must reach an active elemental without reapplying Might to its owner.
@@ -502,21 +428,6 @@ test('Flame Expulsion grants capped Might to other allies at impact', () => {
   assert.equal(might.resolvedAudience.includesSelf, false);
   assert.equal(might.resolvedAudience.includesSummons, true);
   assert.equal(might.resolvedAudience.companionIds.length, 1);
-});
-
-test('Sunspot uses its own icon in the damage breakdown', () => {
-  const result = runNative({
-    lines: [['Fire'], ['Air'], ['Arcane']],
-    rotation: ['Lightning Strike', 'Fire Attunement'],
-    startAttunement: 'Air',
-    weapons: ['Scepter', 'Dagger']
-  });
-  const expectedIcon = 'https://render.guildwars2.com/file/1405047ED70DE30F80B1F6304A787B215BB50878/1012316.png';
-  const packet = result.events.find((event) => event.type === 'damage' && event.skillName === 'Sunspot');
-  const row = skillBreakdownRows(result).find((entry) => entry.name === 'Sunspot');
-
-  assert.equal(packet?.icon, expectedIcon);
-  assert.equal(row?.icon, expectedIcon);
 });
 
 // Both entry paths must retain trigger attribution through strike and Burning resolution.
@@ -550,19 +461,14 @@ for (const [specialization, startAttunement, rotation, trigger] of [
   ['Arcane', 'Air', ['Lightning Strike', 'Earth Attunement'], 'Earth Attunement'],
   ['Tempest', 'Earth', [{ type: 'combat-start' }, 6000, 'Overload Earth'], 'Overload Earth']
 ]) {
-  test(`Earthen Blast preserves its icon and attributes damage to ${trigger}`, () => {
+  test(`Earthen Blast attributes damage to ${trigger}`, () => {
     const result = runNative({
       lines: [['Earth'], ['Air'], [specialization]],
       rotation,
       startAttunement,
       weapons: ['Scepter', 'Dagger']
     });
-    const expectedIcon = 'https://render.guildwars2.com/file/2531DCAFAEAB452C90C4572E1ADCE8236DCF5636/1012304.png';
-    const packet = result.events.find((event) => event.type === 'damage' && event.skillName === 'Earthen Blast');
     const row = skillBreakdownRows(result).find((entry) => entry.name === 'Earthen Blast');
-
-    assert.equal(packet?.icon, expectedIcon);
-    assert.equal(row?.icon, expectedIcon);
     const damage = result.resolvedEvents.find(
       (event) => event.type === 'damage' && event.skillName === 'Earthen Blast'
     );

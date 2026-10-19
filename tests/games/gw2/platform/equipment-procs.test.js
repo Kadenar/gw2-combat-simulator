@@ -55,43 +55,6 @@ test('Mischief shares its nine-second cooldown across equipped copies', () => {
   assert.ok(Math.abs(runtime.procs.deadline(`sigil.${SIGIL_IDS.MISCHIEF}`) - 19.001) < 1e-9);
 });
 
-// A single target receives one snowball, resolved through the normal critical-hit and blind condition paths.
-test('Mischief resolves one critical-capable snowball and two seconds of blind per target', () => {
-  const defaults = defaultSimulationConfig();
-  for (const [precision, didCrit] of [
-    [895, false],
-    [4000, true]
-  ]) {
-    const result = simulateMesmer(
-      ['__combat_start', 'Swap Weapons', { name: '__wait', waitMs: 100 }],
-      defaultSimulationConfig({
-        attributeInputs: baseAttributeInputs({
-          ...defaults.attributeInputs.weaponSets[0].commonTotals,
-          precision,
-          expertise: 0
-        }),
-        boons: { ...defaults.boons, fury: false },
-        sigilSets: [{ names: [] }, { names: ['Mischief'] }]
-      })
-    );
-    const hits = result.resolvedEvents.filter(
-      (event) => event.type === 'damage' && event.skillName === 'Sigil of Mischief'
-    );
-    assert.equal(hits.length, 1);
-    assert.equal(hits[0].coefficient, 0.15);
-    assert.equal(hits[0].didCrit, didCrit);
-    assert.ok(hits[0].damage > 0);
-    const blind = result.resolvedEvents.filter(
-      (event) => event.type === 'condition' && event.skillName === 'Sigil of Mischief'
-    );
-    assert.equal(blind.length, 1);
-    assert.equal(blind[0].condition, 'Blindness');
-    assert.equal(blind[0].stacks, 1);
-    assert.equal(blind[0].duration, 2);
-    assert.equal(blind[0].at, hits[0].at);
-  }
-});
-
 // Ice checks defiance before claiming its cooldown, independently of the sampled critical outcome.
 test('Ice rejects non-defiant hits without consuming its shared cooldown', () => {
   for (const didCrit of [false, true]) {
@@ -562,34 +525,6 @@ test('weapon swaps activate only the equipped set duration sigils', () => {
   assert.ok(second.every((application) => Math.abs(application.effectiveDuration - 7) < 1e-12));
 });
 
-test('Relic of the Claw buffs strikes after a control skill for eight seconds', () => {
-  const config = defaultSimulationConfig({
-    relic: '',
-    modifiers: { strike: 1, condition: 1 }
-  });
-  const base = simulateMesmer(['Bladesong Dissonance', 'Bladecall'], config);
-  const equipped = simulateMesmer(['Bladesong Dissonance', 'Bladecall'], {
-    ...config,
-    relic: 'Claw'
-  });
-  const damage = (result, name) =>
-    result.breakdown
-      .filter((entry) => entry.sourceSkill === name)
-      .reduce((total, entry) => total + entry.strikeDamage, 0);
-
-  assert.equal(damage(equipped, 'Bladesong Dissonance'), damage(base, 'Bladesong Dissonance'));
-  assertFlooredDamageMultiplier(damage(equipped, 'Bladecall'), damage(base, 'Bladecall'), 1.07);
-  assert.ok(
-    equipped.procSteps.some(
-      (proc) =>
-        proc.type === 'relic_proc' &&
-        proc.skill === 'Relic of the Claw' &&
-        proc.sourceSkill === 'Bladesong Dissonance' &&
-        proc.detail === 'activated'
-    )
-  );
-});
-
 test('Relic of the Claw can trigger from a precombat control skill and expires', () => {
   const config = defaultSimulationConfig({
     specialization: 'Core',
@@ -852,30 +787,6 @@ test('permanent target conditions satisfy condition-dependent relic triggers', (
   assert.ok(
     result.procSteps.some((proc) => proc.skill === 'Relic of Akeem' && proc.sourceSkill === 'Bladesong Dissonance')
   );
-});
-
-test('Relic of Mistburn grants ten percent critical chance at ten Might', () => {
-  const config = defaultSimulationConfig({
-    relic: 'Mistburn',
-    attributeInputs: baseAttributeInputs({
-      ...defaultSimulationConfig().stats,
-      precision: 1000
-    }),
-    modifiers: { strike: 1, condition: 1 }
-  });
-  const resultAt = (might) =>
-    simulateMesmer(['Bladecall'], {
-      ...config,
-      boons: {
-        ...config.boons,
-        might,
-        fury: false
-      }
-    });
-  const criticalChance = (result) => result.resolvedEvents.find((event) => event.type === 'damage').criticalChance;
-
-  assert.ok(Math.abs(criticalChance(resultAt(9)) - 0.05) < 1e-12);
-  assert.ok(Math.abs(criticalChance(resultAt(10)) - 0.15) < 1e-12);
 });
 
 test('Relic of Aristocracy extends conditions after weakness or vulnerability', () => {

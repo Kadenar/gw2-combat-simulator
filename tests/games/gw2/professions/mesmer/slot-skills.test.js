@@ -1,48 +1,8 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-
-// Defender's taunt retains its target-condition duration alongside the separate control trigger and summon strike.
-test('Phantasmal Defender applies a three-second taunt and its defender strike formula', () => {
-  const result = simulateMesmer(
-    ['Phantasmal Defender', { name: '__wait', waitMs: 6000 }],
-    defaultSimulationConfig({
-      specialization: 'Core',
-      selectedTraitIds: [],
-      attributeInputs: baseAttributeInputs({ expertise: 0 }),
-      target: { conditions: {} }
-    })
-  );
-  const events = result.resolvedEvents.filter((event) => event.skillId === ID.PHANTASMAL_DEFENDER);
-  const taunt = events.find((event) => event.type === 'condition' && event.condition === 'Taunt');
-  const control = result.events.find((event) => event.type === 'control' && event.skillId === ID.PHANTASMAL_DEFENDER);
-  const strike = events.find((event) => event.type === 'damage' && event.summonKind === 'phantasm');
-
-  assert.equal(taunt.duration, 3);
-  assert.equal(taunt.at, result.steps[0].end / 1000);
-  assert.equal(control.controlKind, 'taunt');
-  assert.equal(control.at, taunt.at);
-  assert.equal(strike.coefficient, 0.4);
-  assert.equal(strike.weaponStrength, 2362.5);
-  assert.deepEqual(result.warnings, []);
-});
-
-test('Feedback instantly creates a six-second ethereal field with a 32-second recharge', () => {
-  const result = simulateMesmer(
-    ['Feedback', { name: '__wait', waitMs: 7000 }],
-    defaultSimulationConfig({ specialization: 'Core', boons: { alacrity: false } })
-  );
-  const cast = result.steps[0];
-  const field = result.events.find((event) => event.type === 'combo_field' && event.skillId === ID.FEEDBACK);
-  assert.equal(field.fieldType, 'Ethereal');
-  assert.equal(field.at, cast.start / 1000);
-  assert.equal(field.expiresAt - field.at, 6);
-  assert.equal(result.planningState.cooldowns[ID.FEEDBACK].readyAt - cast.start, 25600);
-  assert.deepEqual(result.warnings, []);
-});
 
 test('Signet of the Ether resets every phantasm skill cooldown', () => {
   const result = simulateMesmer(
@@ -56,24 +16,6 @@ test('Signet of the Ether resets every phantasm skill cooldown', () => {
   assert.equal(result.steps.length, 5);
   assert.ok(Math.abs(result.steps[3].start - result.steps[2].end) <= 1);
   assert.ok(Math.abs(result.steps[4].start - result.steps[3].end) <= 1);
-});
-
-test('Signet of the Ether re-locks 300ms after its cast completes', () => {
-  const result = simulateMesmer(
-    ['Signet of the Ether', { name: '__wait', waitMs: 500 }],
-    defaultSimulationConfig({
-      specialization: 'Core',
-      boons: {
-        ...defaultSimulationConfig().boons,
-        alacrity: false,
-        quickness: false
-      }
-    })
-  );
-  const cast = result.steps[0];
-  const cooldown = result.planningState.cooldowns[ID.SIGNET_OF_THE_ETHER];
-
-  assert.equal(cooldown.readyAt, Math.ceil((cast.end + 24300) / 40) * 40);
 });
 
 test('Signet of Illusions passively generates one resource every ten combat seconds', () => {

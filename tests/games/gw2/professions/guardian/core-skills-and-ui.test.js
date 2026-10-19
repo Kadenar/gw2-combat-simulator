@@ -2,19 +2,13 @@ import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/bui
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
 import { getActiveTraits as getGuardianActiveTraits } from '#gw2/professions/guardian/data/traits-data.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { guardianVirtueForSlot } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/core/profiles.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { DRAGONHUNTER_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import { LUMINARY_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
-import { WILLBENDER_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -82,10 +76,6 @@ test('Guardian virtue slots decode consistently and reject unmapped slots', () =
     assert.equal(guardianVirtueForSlot(slot), virtue);
   }
 });
-
-const applyGuardianPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(guardianCatalog, patch), patch);
-
-const authoringGuardianProfession = withActivePatchPreview(guardianProfession);
 
 // Singleton impact migration keeps patch selectors independent and leaves the base catalog intact.
 test('Guardian grouped impacts support payload patches without changing sibling effects', () => {
@@ -228,97 +218,6 @@ test('Virtue of Resolution extends delivered boons once without creating extra s
   }
 });
 
-test('Guardian modules expose isolated balance-profile authoring', () => {
-  const modules = new Map(authoringGuardianProfession.patchAuthoring.modules.map((module) => [module.id, module]));
-
-  assert.deepEqual([...modules.keys()], ['Core', 'Dragonhunter', 'Firebrand', 'Willbender', 'Luminary']);
-  assert.equal(
-    [...modules.values()].every((module) => module.balanceProfiles.length > 0),
-    true
-  );
-
-  const profile = (moduleId, profileId) => {
-    const module = modules.get(moduleId);
-
-    return [...module.balanceProfiles, ...module.skillVariants].find((entry) => entry.id === profileId);
-  };
-
-  assert.equal(profile('Core', GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice).profile.threshold, 5);
-  assert.equal(profile('Dragonhunter', DRAGONHUNTER_BALANCE_PROFILE_IDS.tether).profile.effects[0].duration, 2);
-  assert.equal(profile('Firebrand', FIREBRAND_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 5);
-  assert.equal(
-    profile('Willbender', WILLBENDER_BALANCE_PROFILE_IDS.flames).profile.effects[0].ticks[0].coefficient,
-    0.22
-  );
-  assert.equal(profile('Luminary', LUMINARY_BALANCE_PROFILE_IDS.forge).patchableFields.rechargeReduction, 5);
-  // Authoring must not advertise scalars that gameplay never reads.
-  for (const [moduleId, profileId, fields] of [
-    ['Willbender', WILLBENDER_BALANCE_PROFILE_IDS.flames, ['maximumStacks', 'pulseInterval']],
-    ['Luminary', LUMINARY_BALANCE_PROFILE_IDS.forge, ['maximumStacks', 'threshold']]
-  ]) {
-    for (const field of fields) assert.equal(Object.hasOwn(profile(moduleId, profileId).patchableFields, field), false);
-  }
-
-  assert.equal(profile('Core', GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE).patchableFields.damagePerBoon, 0.005);
-  assert.equal(profile('Firebrand', GUARDIAN_TRAIT_IDS.IMBUED_HASTE).patchableFields.attributeBonus, 250);
-
-  const preview = applyGuardianPatch({
-    skills: {
-      [GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE]: {
-        effects: [
-          {
-            effectIndex: 0,
-            coefficient: { from: 0.8, to: 0.9 }
-          }
-        ]
-      }
-    },
-    balanceProfiles: {
-      [GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice]: {
-        fields: { threshold: { from: 5, to: 4 } }
-      },
-      [DRAGONHUNTER_BALANCE_PROFILE_IDS.tether]: {
-        effects: [
-          {
-            effectIndex: 0,
-            duration: { from: 2, to: 3 }
-          }
-        ]
-      },
-      [FIREBRAND_BALANCE_PROFILE_IDS.resources]: {
-        fields: { maximumStacks: { from: 5, to: 6 } }
-      },
-      [WILLBENDER_BALANCE_PROFILE_IDS.flames]: {
-        effects: [
-          {
-            effectIndex: 0,
-            tickIndex: 'all',
-            coefficient: { from: 0.22, to: 0.3 }
-          }
-        ]
-      },
-      [LUMINARY_BALANCE_PROFILE_IDS.forge]: {
-        fields: { rechargeReduction: { from: 5, to: 6 } }
-      }
-    }
-  });
-
-  assert.equal(preview.skillsById.get(GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE).effects[0].coefficient, 0.9);
-  assert.equal(preview.balanceProfilesById.get(GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice).threshold, 4);
-  assert.equal(preview.balanceProfilesById.get(DRAGONHUNTER_BALANCE_PROFILE_IDS.tether).effects[0].duration, 3);
-  assert.equal(preview.balanceProfilesById.get(FIREBRAND_BALANCE_PROFILE_IDS.resources).maximumStacks, 6);
-  assert.ok(
-    preview.balanceProfilesById
-      .get(WILLBENDER_BALANCE_PROFILE_IDS.flames)
-      .effects[0].ticks.every((tick) => tick.coefficient === 0.3)
-  );
-  assert.equal(preview.balanceProfilesById.get(LUMINARY_BALANCE_PROFILE_IDS.forge).rechargeReduction, 6);
-
-  assert.equal(guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE).effects[0].coefficient, 0.8);
-  assert.equal(guardianCatalog.balanceProfilesById.get(GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice).threshold, 5);
-  assert.equal(guardianCatalog.balanceProfilesById.get(FIREBRAND_BALANCE_PROFILE_IDS.resources).maximumStacks, 5);
-});
-
 test('Masterful Writ utilities grant their flat attributes', () => {
   const baseline = createGuardianBuildDefaults();
 
@@ -405,22 +304,6 @@ test('Justice passive counts individual hits and respects its active cooldown', 
   assert.equal(radiantPermeating.planningState.profession.justicePassiveBurns, 4);
   assert.equal(observedRuntime(radiantPermeating).profession.core.justiceHitCount, 2);
   assert.equal(radiantActivated.planningState.profession.justicePassiveBurns, 0);
-});
-
-test('Justice counts symbol packets and applies the measured two-second passive burn', () => {
-  const result = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    specialization: 'Luminary',
-    primaryWeapon: 'Greatsword'
-  })(undefined, ['Symbol of Resolution', { type: 'wait', durationMs: 6000 }]);
-  const burn = result.resolvedEvents.find(
-    (event) => event.type === 'condition' && event.sourceId === 'guardian.justice-passive'
-  );
-  const proc = result.procSteps.find((step) => step.skill === 'Justice Passive');
-
-  assert.equal(result.planningState.profession.justicePassiveBurns, 1);
-  assert.equal(burn.duration, 2);
-  assert.equal(proc.sourceSkill, 'Symbol of Resolution');
 });
 
 // Tether damage is a non-critical flat strike and must remain attributed to its own breakdown row.

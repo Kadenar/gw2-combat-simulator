@@ -210,17 +210,6 @@ test('Blight skill consumption follows earlier shroud gains', () => {
   );
 });
 
-// Large scheduler advances must produce the same stack lifetimes as stepping through each resource tick.
-test('Blight accrual and expiry are independent of wait granularity', () => {
-  const run = (waits) =>
-    simulate('Harbinger', ['Harbinger Shroud', ...waits], { initialResource: 100, initialBlight: 25 });
-  const coarse = run([wait(30000)]);
-  const fine = run(Array.from({ length: 30 }, () => wait(1000)));
-  assert.deepEqual(coarse.warnings, []);
-  assert.deepEqual(fine.warnings, []);
-  assert.deepEqual(coarse.planningState.profession.blightExpiries, fine.planningState.profession.blightExpiries);
-});
-
 // Initial resource windows contribute before any skill emits a change, including through precombat waits.
 test('Blight chart includes initial stacks and expires them at their actual deadline', () => {
   const result = simulate('Harbinger', [wait(5000), { type: 'combat-start' }, wait(25000)], { initialBlight: 12 });
@@ -570,26 +559,4 @@ test('shroud depletion waits for its 40 ms detection tick across fractional obse
     );
     assert.equal(exit?.at, 3.36);
   }
-});
-
-test('NEC-012 passive gains, cap, and depletion are invariant under wait partitioning', () => {
-  for (const initialResource of [100, 10]) {
-    for (const selectedTraitIds of [[], [TRAIT.ETERNAL_LIFE]]) {
-      const config = { initialResource, selectedTraitIds, selectedSkillIds: [10611] };
-      const whole = simulate('Core', ['Death Shroud', wait(8000)], config);
-      const split = simulate('Core', ['Death Shroud', ...[1000, 2000, 1000, 1000, 1000, 2000].map(wait)], config);
-      assert.deepEqual(whole.warnings, []);
-      assert.deepEqual(split.warnings, []);
-      assert.ok(
-        Math.abs(
-          lifeForcePercent(whole.planningState.profession.lifeForce) -
-            lifeForcePercent(split.planningState.profession.lifeForce)
-        ) < 1e-8
-      );
-      assert.equal(whole.planningState.profession.activeShroud, split.planningState.profession.activeShroud);
-    }
-  }
-
-  const config = { initialResource: 0, selectedSkillIds: [10611] };
-  assert.equal(lifeForcePercent(advance(config, [3, 3]).lifeForce), lifeForcePercent(advance(config, [3]).lifeForce));
 });

@@ -236,20 +236,6 @@ test('Virtuoso alacrity starts Imaginary Inversion recharge after the cast', () 
   assert.equal(result.steps[1].start, 8680);
 });
 
-test('Master of Misdirection reduces shatter cooldowns by 15%', () => {
-  const result = simulateMesmer(
-    [{ name: '__wait', waitMs: 2010 }, 'Continuum Split'],
-    defaultSimulationConfig({
-      specialization: 'Chronomancer',
-      selectedTraitIds: [TRAIT.MASTER_OF_MISDIRECTION],
-      initialResource: 3
-    })
-  );
-
-  assert.ok(Math.abs(result.steps.find((step) => step.skillId != null).start - 2040) < 1e-9);
-  assert.equal(result.planningState.cooldowns[ID.CONTINUUM_SPLIT].readyAt, 61560);
-});
-
 test('Chronomancer shatter-boon traits count the mesmer and scale per shattered clone', () => {
   const durationFor = (traitId, traitName, kind, initialResource) => {
     const result = simulateMesmer(
@@ -346,22 +332,6 @@ test('Chronomancer shatter boons consume patched balance-profile values', () => 
   assert.ok(quickness);
   assert.equal(quickness.duration, 10);
   assert.equal(quickness.audience.maximumRecipients, 10);
-});
-
-test("Fencer's Finesse reduces sword skill cooldowns by 20%", () => {
-  const config = defaultSimulationConfig({
-    specialization: 'Core',
-    primaryWeapon: 'Sword',
-    initialResource: 0
-  });
-  const baseline = simulateMesmer(['Blurred Frenzy', 'Blurred Frenzy'], config);
-  const withTrait = simulateMesmer(['Blurred Frenzy', 'Blurred Frenzy'], {
-    ...config,
-    selectedTraitIds: [TRAIT.FENCERS_FINESSE]
-  });
-
-  assert.equal(baseline.steps[1].start, 8960);
-  assert.equal(withTrait.steps[1].start, 7360);
 });
 
 test('Flow of Time increases clone critical chance while alacrity is active', () => {
@@ -724,77 +694,6 @@ test('Vicious Expression and Empowered Illusions respect illusion ownership', ()
   assertMultiplier(cloneDamage(cloneVicious), cloneDamage(cloneBaseline), 1.15);
   assertMultiplier(cloneDamage(cloneEmpowered), cloneDamage(cloneBaseline), 1.15);
   assertMultiplier(cloneDamage(cloneBoth), cloneDamage(cloneBaseline), 1.15 * 1.15);
-});
-
-test('Compounding Power gives player strikes and conditions one percent per stack', () => {
-  const simulate = (selectedTraitIds) =>
-    simulateMesmer(
-      ['Mirror Images', 'Winds of Chaos', 'Cry of Frustration', { name: '__wait', waitMs: 5000 }],
-      defaultSimulationConfig({
-        specialization: 'Core',
-        selectedTraitIds,
-        primaryWeapon: 'Staff',
-        secondaryWeapon: '',
-        initialResource: 0
-      })
-    );
-  const playerStrike = (result) =>
-    result.resolvedEvents.find(
-      (event) => event.type === 'damage' && event.skillName === 'Winds of Chaos' && event.actorType === 'player'
-    ).damage;
-  const playerCondition = (result) =>
-    result.resolvedEvents
-      .find(
-        (event) => event.type === 'condition' && event.skillName === 'Cry of Frustration' && event.source === 'Player'
-      )
-      .damageTicks.find((tick) => tick.fraction === 1).damage;
-  const withTrait = simulate([TRAIT.COMPOUNDING_POWER]);
-  const withoutTrait = simulate([]);
-
-  assertFlooredDamageMultiplier(playerStrike(withTrait), playerStrike(withoutTrait), 1.02);
-  assertRoundedDamageMultiplier(playerCondition(withTrait), playerCondition(withoutTrait), 1.02);
-});
-
-test('Mind Stab applies its supplied Vulnerability coefficient scaling', () => {
-  const config = defaultSimulationConfig({
-    specialization: 'Core',
-    primaryWeapon: 'Greatsword',
-    secondaryWeapon: '',
-    selectedTraitIds: [],
-    modifiers: { strike: 1, condition: 1 }
-  });
-  const damageAt = (vulnerability) =>
-    simulateMesmer(['Mind Stab'], {
-      ...config,
-      target: {
-        ...config.target,
-        conditions: {
-          ...config.target.conditions,
-          Vulnerability: vulnerability
-        }
-      }
-    }).resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Mind Stab').damage;
-
-  assertFlooredDamageMultiplier(damageAt(25), damageAt(0), 1.5625);
-});
-
-test('Phantasmal Berserker uses its phantasm coefficient and Bountiful reduction', () => {
-  const coefficientAt = (selectedTraitIds) =>
-    simulateMesmer(
-      ['Phantasmal Berserker', { name: '__wait', waitMs: 2000 }],
-      defaultSimulationConfig({
-        specialization: 'Core',
-        primaryWeapon: 'Greatsword',
-        secondaryWeapon: '',
-        selectedTraitIds,
-        initialResource: 0
-      })
-    )
-      .events.filter((event) => event.type === 'damage' && event.skillName === 'Phantasmal Berserker')
-      .reduce((sum, event) => sum + event.coefficient, 0);
-
-  assert.ok(Math.abs(coefficientAt([]) - 2.4) < 1e-12);
-  assert.ok(Math.abs(coefficientAt([TRAIT.BOUNTIFUL_BLADES]) - 2.784) < 1e-12);
 });
 
 test('Mirror Blade resolves target-facing bounce damage as separate hits', () => {

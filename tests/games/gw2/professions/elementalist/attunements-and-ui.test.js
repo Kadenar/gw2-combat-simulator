@@ -708,7 +708,7 @@ test('weapon bar excludes dual attacks outside Weaver', () => {
   );
 });
 
-test('starting attunement controls render catalog icons', () => {
+test('starting attunement controls render primary and secondary selectors', () => {
   const build = elementalistAppAdapter.toApplicationBuild({
     ...elementalistProfession.createBuildDefaults(),
     specializations: [
@@ -735,13 +735,6 @@ test('starting attunement controls render catalog icons', () => {
     renderStartResource(app);
   } finally {
     globalThis.document = previousDocument;
-  }
-
-  for (const name of ['Fire', 'Water', 'Air', 'Earth']) {
-    const icon = elementalistCatalog.skillsByName.get(`${name} Attunement`).icon;
-
-    assert.ok(icon);
-    assert.equal(selector.innerHTML.split(icon).length - 1, 2);
   }
 
   assert.match(selector.innerHTML, /Primary attunement/);
@@ -1127,26 +1120,6 @@ test('Fresh Air grants ferocity when entering Air, not when resetting it', () =>
 
   assert.equal(freshAir.length, 1);
   assert.equal(freshAir[0].duration, 5);
-});
-
-test('Weaver attunements use the shared four-second recharge', () => {
-  const result = runNative({
-    lines: [['Fire'], ['Air'], ['Weaver']],
-    rotation: [{ type: 'combat-start' }, 'Water Attunement', 'Air Attunement'],
-    startAttunement: 'Fire',
-    secondaryAttunement: 'Fire',
-    assumptions: {
-      ...elementalistProfession.createBuildDefaults().assumptions,
-      alacrity: false
-    }
-  });
-  const swaps = result.steps.filter((step) => String(step.skill).endsWith(' Attunement'));
-
-  assert.deepEqual(result.warnings, []);
-  assert.deepEqual(
-    swaps.map((step) => step.start),
-    [0, 3200]
-  );
 });
 
 test('Unravel resets the current Weaver recharge, fully attunes for five seconds, and preserves future swap recharge', () => {

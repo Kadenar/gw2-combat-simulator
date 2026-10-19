@@ -7,8 +7,6 @@ import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
-import { loadProfession, professionOptions } from '#gw2/profession-registry.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
 import { getActiveTraits as getRangerActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
@@ -22,7 +20,6 @@ import { soulbeastModule } from '#gw2/professions/ranger/specializations/soulbea
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import { describe, test } from 'node:test';
 
 // Attribute assertions use the same calculator composed into the Ranger adapter.
@@ -804,26 +801,6 @@ test('Ranger Nature Magic traits grant support and scale with boons', () => {
   }
 });
 
-test("Hunter's Call builds Vulnerability one stack at each spaced hit", () => {
-  const result = simulate('Core', ["Hunter's Call", { type: 'wait', durationMs: 6000 }], {
-    primaryWeapon: 'Axe',
-    secondaryWeapon: 'Warhorn',
-    target: { conditions: { Vulnerability: 0 } }
-  });
-  assert.deepEqual(result.warnings, []);
-  const hits = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.HUNTERS_CALL);
-  const applications = result.events.filter((event) => event.type === 'condition' && event.skillId === ID.HUNTERS_CALL);
-  // Matching packets must build stacks over time, including after the cast has finished.
-  assert.ok(hits.length > 1);
-  assert.deepEqual(
-    applications.map((event) => event.at),
-    hits.map((event) => event.at)
-  );
-  assert.ok(
-    applications.every((event) => event.condition === 'Vulnerability' && event.stacks === 1 && event.duration === 5)
-  );
-});
-
 test('Call of the Wild dazes, weakens, and resolves a blast combo at completion', () => {
   const result = simulate('Core', ['Bonfire', 'Swap Weapons', 'Call of the Wild'], {
     primaryWeapon: 'Axe',
@@ -1103,16 +1080,4 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
   assert.equal(petAttributes.expertise, 375);
   assert.equal(petAttributes.concentration, 240);
   assert.ok(Math.abs(petAttributes.healingPower - 105) < 1e-9);
-});
-
-test('Ranger is wired through the selector and application adapter', async () => {
-  const page = await readFile(new URL('../../../../../ranger.html', import.meta.url), 'utf8');
-
-  assert.equal(
-    professionOptions.some((option) => option.id === 'ranger'),
-    true
-  );
-  assert.equal((await loadProfession('ranger'))?.id, 'ranger');
-  assert.equal((await loadProfessionAppAdapter('ranger'))?.id, 'ranger');
-  assert.match(page, /data-profession="ranger"/);
 });

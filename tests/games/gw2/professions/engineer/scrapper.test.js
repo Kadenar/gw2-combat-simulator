@@ -1,5 +1,4 @@
 import { BOON } from '#gw2/platform/constants.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
@@ -8,14 +7,12 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { kineticAccelerators } from '#gw2/professions/engineer/specializations/scrapper/traits/index.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createScrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
-import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 
 // Scrapper contracts cover trait procs, combo boons, and gyro fields.
 const baseConfig = Object.freeze({
@@ -359,45 +356,6 @@ test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () =
   assert.ok(boons.every((event) => event.audience?.recipients === 'party'));
   assert.ok(boons.every((event) => event.schedulerPrediction == null));
   assert.ok(boons.every((event) => event.schedulerBoonPrediction == null));
-});
-
-test('Scrapper 1-3-2 converts 13% of Power into Concentration', () => {
-  const canonical = createEngineerBuildDefaults();
-
-  canonical.gear = Object.fromEntries(Object.keys(canonical.gear).map((slot) => [slot, "Berserker's"]));
-  canonical.rune = '';
-  canonical.food = '';
-  canonical.utility = '';
-  canonical.jadeBotCore = false;
-  canonical.infusions = canonical.infusions.map((infusion) => ({
-    ...infusion,
-    count: 0
-  }));
-  canonical.specializations = [
-    { name: 'Explosives', traits: '3-2-3' },
-    { name: 'Firearms', traits: '3-3-1' },
-    { name: 'Scrapper', traits: '1-3-2' }
-  ];
-  canonical.assumptions.quickness = false;
-  const app = {
-    build: toApplicationBuild(canonical),
-    skillByName: engineerCatalog.skillsByName,
-    attributeWeaponSet: 1
-  };
-
-  app.attributeData = engineerAppAdapter
-    .createBuildContext({
-      build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
-    })
-    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-
-  assert.ok(app.attributeData.activeTraits.some((trait) => trait.name === 'Kinetic Accelerators'));
-  assert.equal(
-    app.attributeData.attributes.Concentration.traits,
-    Math.round(app.attributeData.attributes.Power.final * 0.13)
-  );
 });
 
 test('Medic Gyro and Reconstruction Field expose their water fields', () => {

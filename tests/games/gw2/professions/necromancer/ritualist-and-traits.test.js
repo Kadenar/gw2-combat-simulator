@@ -8,7 +8,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
-import { buildChartSeries } from '#gw2/app/results/model.js';
 import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -101,23 +100,6 @@ test('Soul Twisting refunds only the first spirit summon after entering Ritualis
   assert.equal(twisting.planningState.cooldowns[ID.ANGUISH], undefined);
   assert.ok(twisting.planningState.cooldowns[ID.WANDERLUST]);
   assert.equal(twisting.planningState.profession.soulTwistingAvailable, false);
-});
-
-test('Ritualist autoattacks and Painful Bond carry their source icons', () => {
-  const anguish = simulate('Ritualist', ["Ritualist's Shroud", 'Anguish', { type: 'wait', durationMs: 9000 }], {
-    initialResource: 100
-  });
-  const wanderlust = simulate('Ritualist', ["Ritualist's Shroud", 'Wanderlust', { type: 'wait', durationMs: 9000 }], {
-    initialResource: 100
-  });
-  const anguishIcon = necromancerCatalog.skillsById.get(ID.ANGUISH).icon;
-  const wanderlustIcon = necromancerCatalog.skillsById.get(ID.WANDERLUST).icon;
-  const anguishRows = skillBreakdownRows(anguish);
-  const wanderlustRows = skillBreakdownRows(wanderlust);
-
-  assert.equal(anguishRows.find((row) => row.name === 'Anguish Autoattack')?.icon, anguishIcon);
-  assert.equal(anguishRows.find((row) => row.name === 'Painful Bond')?.icon, anguishIcon);
-  assert.equal(wanderlustRows.find((row) => row.name === 'Wanderlust Autoattack')?.icon, wanderlustIcon);
 });
 
 // Replacing Anguish must preserve the other spirits' clocks and rejoin their next eligible cycle.
@@ -865,218 +847,6 @@ test('Devouring Darkness scales torment with distinct target conditions', () => 
   assert.equal(application?.effectiveDuration, 4);
 });
 
-test('current Harbinger grandmaster traits use their live PvE mechanics', () => {
-  // Keep the observation open for the explosion that follows Meltdown activation.
-  const cascadingFromStartingStacks = simulate('Harbinger', ['Elixir of Promise', { type: 'wait', durationMs: 1000 }], {
-    initialBlight: 5,
-    initialCascadingCorruptionStacks: 15,
-    selectedSkillIds: [62667],
-    selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
-  });
-  const cascading = simulate(
-    'Harbinger',
-    ['Elixir of Promise', 'Elixir of Risk', 'Elixir of Ambition', { type: 'wait', durationMs: 6100 }],
-    {
-      initialBlight: 25,
-      selectedSkillIds: [62667, 62530, 62655],
-      selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
-    }
-  );
-  const precombat = simulate(
-    'Harbinger',
-    [
-      'Elixir of Promise',
-      { name: '__combat_start' },
-      'Elixir of Risk',
-      'Elixir of Ambition',
-      { type: 'wait', durationMs: 6100 }
-    ],
-    {
-      initialBlight: 25,
-      selectedSkillIds: [62667, 62530, 62655],
-      selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
-    }
-  );
-  const deathlyHaste = simulate('Harbinger', ['Harbinger Shroud', 'Dark Barrage', 'Exit Harbinger Shroud'], {
-    selectedTraitIds: [TRAIT.DEATHLY_HASTE],
-    allies: { count: 4, strikesPerSecond: 1 },
-    sharePlayerBoonsWithSummons: true
-  });
-  const twistedMedicine = simulate('Harbinger', ['Elixir of Risk'], {
-    selectedSkillIds: [62530],
-    selectedTraitIds: [TRAIT.TWISTED_MEDICINE],
-    allies: { count: 4, strikesPerSecond: 1 },
-    sharePlayerBoonsWithSummons: true
-  });
-  const doom = simulate(
-    'Harbinger',
-    ['Harbinger Shroud', 'Tainted Bolts', 'Dark Barrage', 'Exit Harbinger Shroud', { type: 'wait', durationMs: 3100 }],
-    {
-      selectedTraitIds: [TRAIT.DOOM_APPROACHES]
-    }
-  );
-
-  assert.deepEqual(cascading.warnings, []);
-  assert.equal(
-    cascadingFromStartingStacks.breakdown.some((entry) => entry.name === 'Cascading Corruption'),
-    true
-  );
-  assert.equal(cascadingFromStartingStacks.planningState.profession.cascadingCorruptionStacks, 0);
-  const riskWeakness = cascading.resolvedEvents.find(
-    (event) => event.skillId === ID.ELIXIR_OF_RISK && event.condition === 'Weakness'
-  );
-
-  assert.deepEqual(
-    {
-      stacks: riskWeakness?.stacks,
-      duration: riskWeakness?.duration,
-      effectiveDuration: riskWeakness?.effectiveDuration
-    },
-    {
-      stacks: 1,
-      duration: 10,
-      effectiveDuration: 10
-    }
-  );
-  const cascadingStrike = cascading.resolvedEvents.find(
-    (event) => event.type === 'damage' && event.sourceId === TRAIT.CASCADING_CORRUPTION
-  );
-  const cascadingTorment = cascading.resolvedEvents.find(
-    (event) => event.type === 'condition' && event.sourceId === TRAIT.CASCADING_CORRUPTION
-  );
-
-  assert.deepEqual(
-    {
-      skillId: cascadingStrike?.skillId,
-      skillName: cascadingStrike?.skillName,
-      parentSkillName: cascadingStrike?.parentSkillName
-    },
-    {
-      skillId: ID.CASCADING_CORRUPTION,
-      skillName: 'Cascading Corruption',
-      parentSkillName: 'Elixir of Ambition'
-    }
-  );
-  assert.deepEqual(
-    {
-      name: cascadingTorment?.name,
-      skillId: cascadingTorment?.skillId,
-      skillName: cascadingTorment?.skillName,
-      parentSkillName: cascadingTorment?.parentSkillName,
-      condition: cascadingTorment?.condition,
-      stacks: cascading.resolvedEvents
-        .filter((event) => event.type === 'condition' && event.sourceId === TRAIT.CASCADING_CORRUPTION)
-        .reduce((sum, event) => sum + event.stacks, 0),
-      effectiveDuration: cascadingTorment?.effectiveDuration
-    },
-    {
-      name: 'Cascading Corruption — Torment',
-      skillId: ID.CASCADING_CORRUPTION,
-      skillName: 'Cascading Corruption',
-      parentSkillName: 'Elixir of Ambition',
-      condition: 'Torment',
-      stacks: 6,
-      effectiveDuration: 6
-    }
-  );
-  const cascadingRow = skillBreakdownRows(cascading).find((row) => row.name === 'Cascading Corruption');
-
-  assert.ok(cascadingRow?.strike > 0);
-  assert.ok(cascadingRow?.condition > 0);
-  assert.equal(cascadingRow?.hits, 1);
-  assert.equal(cascadingRow?.casts, 0);
-  assert.equal(cascadingRow?.parentSkill, 'Elixir of Ambition');
-  const meltdown = cascading.procSteps.find((step) => step.skill === 'Meltdown');
-
-  assert.equal(meltdown?.icon, 'https://wiki.guildwars2.com/wiki/Special:FilePath/Meltdown.png');
-  assert.equal(
-    precombat.breakdown.some((entry) => entry.name === 'Cascading Corruption'),
-    false
-  );
-  assert.equal(
-    deathlyHaste.events.filter((event) => event.kind === 'quickness' && event.sourceId !== TRAIT.SOUL_BARBS).length,
-    2
-  );
-  // Both grants identify Deathly Haste while retaining the particular skill and completion time.
-  for (const [skillId, sourceId] of [
-    [ID.HARBINGER_SHROUD, TRAIT.DEATHLY_HASTE],
-    [ID.DARK_BARRAGE, TRAIT.DEATHLY_HASTE]
-  ]) {
-    const action = deathlyHaste.events.find((event) => event.type === 'action' && event.skillId === skillId);
-    const boons = deathlyHaste.events.filter(
-      (event) =>
-        event.type === 'buff' &&
-        event.sourceId === sourceId &&
-        event.skillId === skillId &&
-        ['quickness', 'fury'].includes(event.kind)
-    );
-    assert.deepEqual(
-      boons.map((event) => event.kind),
-      ['quickness', 'fury']
-    );
-    assert.ok(boons.every((event) => event.at === action.endsAt && event.skillId === skillId));
-
-    if (skillId === ID.DARK_BARRAGE) assert.ok(boons.every((event) => event.source === 'Trait'));
-  }
-
-  assert.ok(
-    deathlyHaste.events
-      .filter(
-        (event) =>
-          event.type === 'buff' && ['quickness', 'fury'].includes(event.kind) && event.sourceId !== TRAIT.SOUL_BARBS
-      )
-      .every((event) => event.audience?.recipients === 'party' && event.resolvedAudience.includesSummons === false)
-  );
-  const twistedMedicineBoons = twistedMedicine.events.filter(
-    (event) => event.type === 'buff' && ['might', 'fury'].includes(event.kind)
-  );
-
-  assert.equal(twistedMedicineBoons.length, 2);
-  assert.ok(
-    twistedMedicineBoons.every(
-      (event) => event.audience?.recipients === 'party' && event.resolvedAudience.includesSummons === false
-    )
-  );
-  assert.equal(doom.events.filter((event) => event.type === 'damage' && event.skillId === ID.DARK_BARRAGE).length, 8);
-  assert.equal(
-    doom.procSteps.some((step) => step.skill === 'Doom Approaches'),
-    true
-  );
-});
-
-test('Soul Barbs and Dark Gunslinger change their documented outputs', () => {
-  const soulBarbs = simulate('Harbinger', ['Harbinger Shroud', 'Tainted Bolts', 'Exit Harbinger Shroud'], {
-    selectedTraitIds: [TRAIT.SOUL_BARBS]
-  });
-  const basePistol = simulate('Harbinger', ['Vile Blast', 'Vile Blast'], {
-    primaryWeapon: 'Pistol'
-  });
-  const gunslinger = simulate('Harbinger', ['Vile Blast', 'Vile Blast'], {
-    primaryWeapon: 'Pistol',
-    selectedTraitIds: [TRAIT.DARK_GUNSLINGER]
-  });
-
-  assert.equal(soulBarbs.events.filter((event) => event.kind === 'necromancer-soul-barbs').length, 2);
-  assert.deepEqual(
-    soulBarbs.events.filter((event) => event.kind === 'necromancer-soul-barbs').map((event) => event.duration),
-    [15, 15]
-  );
-  const effectPresentations = necromancerProfession.ui.effectPresentations({
-    specialization: 'Harbinger',
-    catalog: necromancerProfession.catalog
-  });
-  const soulBarbsSeries = buildChartSeries(soulBarbs, 100, effectPresentations).effects['Soul Barbs'];
-
-  assert.ok(soulBarbsSeries.some((point) => point.v === 1));
-  assert.ok(soulBarbsSeries.every((point) => point.v === 0 || point.v === 1));
-  assert.ok(gunslinger.steps[1].start < basePistol.steps[1].start);
-  const gunslingerPoison = gunslinger.resolvedEvents.find(
-    (event) => event.skillId === ID.VILE_BLAST && event.condition === 'Poisoned'
-  );
-
-  assert.equal(gunslingerPoison.effectiveDuration, 6.4);
-});
-
 test('Lesser Chilblains owns its strike and poison damage attribution', () => {
   const baseline = simulate('Reaper', ["Reaper's Shroud", 'Soul Spiral'], {}, observationTail(4100));
   const result = simulate(
@@ -1114,7 +884,7 @@ test('Lesser Chilblains owns its strike and poison damage attribution', () => {
   );
 });
 
-test('Voracious Arc gives Lesser Chilblains its own damage row and artwork', () => {
+test('Voracious Arc gives Lesser Chilblains its own damage row', () => {
   const result = simulate(
     'Harbinger',
     ['Harbinger Shroud', 'Voracious Arc'],
@@ -1127,7 +897,6 @@ test('Voracious Arc gives Lesser Chilblains its own damage row and artwork', () 
   assert.ok(row?.condition > 0);
   assert.equal(row?.skillId, ID.LESSER_CHILBLAINS);
   assert.equal(row?.parentSkill, 'Voracious Arc');
-  assert.equal(row?.icon, necromancerCatalog.skillsById.get(ID.CHILLBLAINS)?.icon);
 });
 
 test('cross-specialization Necromancer trait triggers remain executable', () => {

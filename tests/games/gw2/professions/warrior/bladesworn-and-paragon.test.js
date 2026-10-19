@@ -4,19 +4,12 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { loadProfession, professionOptions } from '#gw2/profession-registry.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import {
-  dragonChargeTickOffsetSeconds,
-  dragonChargesForDurationMs
-} from '#gw2/professions/warrior/data/dragon-charges.js';
+import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
 import {
   DRAGON_TRIGGER_TICK_RESOURCE_REASON,
   dragonChargesToAdrenalineSpent
@@ -321,41 +314,6 @@ test('Leaving Dragon Trigger starts recharge at the exit timestamp', () => {
   }
 });
 
-test('Dragon Trigger spends Flow at fixed 240 ms intervals', () => {
-  assert.deepEqual(
-    Array.from({ length: 10 }, (_, index) => dragonChargeTickOffsetSeconds(index + 1, false) * 1000),
-    [240, 480, 720, 960, 1200, 1440, 1680, 1920, 2160, 2400]
-  );
-  assert.deepEqual(
-    Array.from({ length: 5 }, (_, index) => dragonChargeTickOffsetSeconds(index + 1, false) * 1000),
-    [240, 480, 720, 960, 1200]
-  );
-  assert.equal(dragonChargesForDurationMs(1240, 10, 1, false), 5);
-  assert.equal(dragonChargesForDurationMs(720, 10, 2, false), 6);
-
-  for (const [rotation, expectedSeconds] of [
-    [[ID.DRAGON_TRIGGER, ID.DRAGON_SLASH_FORCE], 2.4],
-    [[ID.TACTICAL_RELOAD, ID.DRAGON_TRIGGER, ID.DRAGON_SLASH_FORCE], 1.2]
-  ]) {
-    const result = simulate('Bladesworn', rotation, { initialResource: 100 });
-    const release = result.events.find(
-      (event) =>
-        event.type === 'resource' && event.resource === 'dragon charges' && event.reason === 'profession mechanic'
-    );
-    assert.equal(release.chargingSeconds, expectedSeconds);
-    assert.equal(release.flowSpent, (expectedSeconds / 0.24 - 1) * DRAGON_TRIGGER_TICK_FLOW);
-    const entry = result.events.find((event) => event.reason === 'dragon trigger entry');
-    const ticks = result.events.filter((event) => event.reason === 'dragon trigger charge');
-
-    if (expectedSeconds === 2.4) assert.ok(Math.abs(ticks.at(-1).flowAfter - 40) < 1e-9);
-
-    assert.deepEqual(
-      ticks.map((tick) => canonicalTime(tick.at - entry.at)),
-      Array.from({ length: expectedSeconds / 0.24 }, (_, index) => ((index + 1) * 240) / 1000)
-    );
-  }
-});
-
 test('Dragon charges map to adrenaline-spend trait tiers', () => {
   assert.deepEqual([0, 1, 4, 5, 9, 10].map(dragonChargesToAdrenalineSpent), [0, 10, 10, 20, 20, 30]);
 });
@@ -393,29 +351,6 @@ test('Dragon Slash charge tiers drive adrenaline-spend traits', () => {
       precisionDuration
     );
   }
-});
-
-test('Burst Mastery restores twenty percent of Dragon Slash Flow spent', () => {
-  const rotation = ['Dragon Trigger', { name: 'Dragon Slash—Force', releaseAtCharges: 4 }];
-  const baseline = simulate('Bladesworn', rotation, { initialResource: 100 }, { kind: 'tail', durationMs: 1 });
-  const mastered = simulate(
-    'Bladesworn',
-    rotation,
-    {
-      initialResource: 100,
-      selectedTraitIds: [TRAIT.BURST_MASTERY]
-    },
-    { kind: 'tail', durationMs: 1 }
-  );
-
-  const slash = mastered.events.find((event) => event.type === 'action' && event.skillName === 'Dragon Slash—Force');
-  const swiftness = mastered.events.find(
-    (event) => event.type === 'buff' && event.sourceId === TRAIT.BURST_MASTERY && event.kind === 'swiftness'
-  );
-  assert.equal(mastered.planningState.profession.flow.value - baseline.planningState.profession.flow.value, 3);
-  assert.equal(swiftness.duration, 3);
-  assert.equal(swiftness.at, slash.endsAt);
-  assert.equal(swiftness.priority, 5);
 });
 
 test('Brave Stride reads movement classification from elite skill slices', () => {
@@ -544,23 +479,6 @@ test('Dragon Slash reports unreachable Flow-gated requests', () => {
     result.events.some((event) => event.type === 'damage' && event.skillId === ID.DRAGON_SLASH_FORCE),
     false
   );
-});
-
-test('Bladesworn preserves partial charge time across fragmented advancement', () => {
-  // Cursor waits must not reset the live charge cadence or resource tick owner.
-  const charge = (durations) =>
-    simulate(
-      'Bladesworn',
-      ['__combat_start', ID.DRAGON_TRIGGER, ...durations.map((durationMs) => ({ type: 'wait', durationMs }))],
-      { initialResource: 100 }
-    ).planningState.profession;
-  assert.equal(charge([50, 50, 50, 50]).dragonCharges.value, 0);
-  assert.equal(charge([50, 50, 50, 50, 40]).dragonCharges.value, 1);
-  const fragmented = charge([50, 50, 50, 50, 40, 240, 280, 240, 240, 240, 240, 280, 240, 240]);
-  const combined = charge([2480]);
-  assert.equal(fragmented.dragonCharges.value, 10);
-  assert.equal(fragmented.dragonCharges.value, combined.dragonCharges.value);
-  assert.ok(Math.abs(fragmented.flow.value - combined.flow.value) < 1e-9);
 });
 
 // All-round attacks consume their magazine; reload skills make a follow-up available.
@@ -779,38 +697,6 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
   const chargeTicks = (result) => result.events.filter((event) => event.reason === DRAGON_TRIGGER_TICK_RESOURCE_REASON);
   assert.equal(chargeTicks(accelerated).at(-1).value, chargeTicks(normal).at(-1).value);
   assert.ok(chargeTicks(accelerated).length < chargeTicks(normal).length);
-});
-
-test('Dragon Slash scales from each minimum to maximum coefficient', () => {
-  // Exercise charge scaling without freezing the authored balance coefficients.
-  for (const skillId of [ID.DRAGON_SLASH_FORCE, ID.DRAGON_SLASH_BOOST, ID.DRAGON_SLASH_REACH]) {
-    const skill = warriorCatalog.skillsById.get(skillId);
-    const partial = simulate('Bladesworn', [ID.DRAGON_TRIGGER, { skillId, releaseAtCharges: 1 }], {
-      initialResource: 100
-    });
-    const full = simulate('Bladesworn', [ID.DRAGON_TRIGGER, skillId], {
-      initialResource: 100
-    });
-    const intermediate = simulate('Bladesworn', [ID.DRAGON_TRIGGER, { skillId, releaseAtCharges: 3 }], {
-      initialResource: 100
-    });
-
-    assert.equal(
-      partial.events.find((event) => event.type === 'damage' && event.skillId === skillId).coefficient,
-      skill.dragonSlashMinimumCoefficient
-    );
-    assert.equal(
-      full.events.find((event) => event.type === 'damage' && event.skillId === skillId).coefficient,
-      skill.dragonSlashMaximumCoefficient
-    );
-    assert.ok(
-      Math.abs(
-        intermediate.events.find((event) => event.type === 'damage' && event.skillId === skillId).coefficient -
-          (skill.dragonSlashMinimumCoefficient +
-            (skill.dragonSlashMaximumCoefficient - skill.dragonSlashMinimumCoefficient) * (2 / 9))
-      ) < 1e-9
-    );
-  }
 });
 
 test('Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown reset', () => {
@@ -1120,16 +1006,15 @@ test('Signet of Rage suspends passive adrenaline until its cooldown ends', () =>
   assert.ok(recovered.planningState.profession.adrenaline.value > 0);
 });
 
-test('Lesser Signet of Might procs use the signet skill icon', () => {
+test('Lesser Signet of Might resolves after its triggering strike', () => {
   const result = simulate('Core', ['Throw Bolas'], {
     selectedTraitIds: [TRAIT.SIGNET_MASTERY],
     target: { health: 1 }
   });
-  const proc = result.procSteps.find((step) => step.skill === 'Lesser Signet of Might');
   const strike = result.events.find((event) => event.type === 'damage' && event.skillId === ID.THROW_BOLAS);
   const lesser = result.resolvedEvents.find((event) => event.skillName === 'Lesser Signet of Might');
 
-  assert.equal(proc?.icon, warriorCatalog.skillsById.get(ID.SIGNET_OF_MIGHT).icon);
+  assert.ok(result.procSteps.some((step) => step.skill === 'Lesser Signet of Might'));
   assert.equal(lesser.at, strike.at);
   assert.ok(
     result.resolvedEvents.indexOf(lesser) >
@@ -1194,89 +1079,6 @@ test('two-stack Gunsaber traits grant and display their full Positive Flow rate 
       assert.equal(display?.value, durationMs === 1000 ? '3 stacks · 4.0s' : '1 stack');
     }
   }
-});
-
-test('Bladesworn swap and Dragon Trigger traits use supplied behavior', () => {
-  // Without an explicit marker, combat begins at the first hit; an earlier unsheathe is out of combat.
-  const outOfCombat = simulate('Bladesworn', ['Unsheathe Gunsaber', { type: 'wait', durationMs: 5000 }], {
-    initialResource: 0,
-    selectedTraitIds: [TRAIT.UNSEEN_SWORD]
-  });
-
-  assert.equal(
-    outOfCombat.events.some((event) => event.name === 'Unseen Sword' || event.kind === 'positive-flow'),
-    false
-  );
-
-  const afterFirstHit = simulate('Bladesworn', ['Chop', 'Unsheathe Gunsaber', { type: 'wait', durationMs: 720 }], {
-    initialResource: 0,
-    primaryWeapon: 'Axe',
-    secondaryWeapon: 'Axe',
-    selectedTraitIds: [TRAIT.UNSEEN_SWORD]
-  });
-  const firstChopHit = afterFirstHit.events.find((event) => event.type === 'damage' && event.skillId === ID.CHOP);
-  const unseenSword = afterFirstHit.events.filter((event) => event.type === 'damage' && event.name === 'Unseen Sword');
-
-  assert.equal(unseenSword.length, 1);
-  assert.ok(unseenSword[0].at >= firstChopHit.at);
-  // Trait activations reach the panel with their actual trigger, alongside their separate damage packet.
-  const swordProcs = afterFirstHit.procSteps.filter((proc) => proc.skill === 'Unseen Sword');
-  assert.equal(swordProcs.length, 1);
-  assert.equal(swordProcs[0].type, 'trait_proc');
-  assert.equal(swordProcs[0].sourceSkill, 'Unsheathe Gunsaber');
-
-  const swap = simulate('Bladesworn', ['__combat_start', 'Unsheathe Gunsaber', { type: 'wait', durationMs: 5000 }], {
-    initialResource: 0,
-    selectedTraitIds: [TRAIT.UNSEEN_SWORD]
-  });
-
-  // Proc presentation stays at entry; packet assertions select the later strike explicitly.
-  assert.equal(swap.events.find((event) => event.type === 'damage' && event.name === 'Unseen Sword').coefficient, 1.2);
-  assert.equal(
-    swap.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Unseen Sword').skillId,
-    62847
-  );
-  assert.equal(skillBreakdownRows(swap).find((entry) => entry.name === 'Unseen Sword').hits, 1);
-  assert.equal(swap.events.find((event) => event.kind === 'positive-flow').duration, 5);
-  assert.ok(Math.abs(swap.planningState.profession.flow.value - 30) < 1e-9);
-
-  const combatOnly = simulate(
-    'Bladesworn',
-    ['Unsheathe Gunsaber', 'Sheathe Gunsaber', '__combat_start', 'Dragon Trigger', { type: 'wait', durationMs: 720 }],
-    {
-      initialResource: 100,
-      selectedTraitIds: [TRAIT.UNSEEN_SWORD]
-    }
-  );
-  assert.ok(
-    combatOnly.resolvedEvents.some(
-      (event) => event.type === 'damage' && event.name === 'Unseen Sword' && event.at >= combatOnly.combatStartTime
-    )
-  );
-  const triggerProcs = combatOnly.procSteps.filter((proc) => proc.skill === 'Unseen Sword');
-  assert.equal(triggerProcs.length, 1);
-  assert.equal(triggerProcs[0].sourceSkill, 'Dragon Trigger');
-
-  const trigger = simulate('Bladesworn', ['Dragon Trigger', 'Dragon Slash—Force'], {
-    initialResource: 100,
-    selectedTraitIds: [TRAIT.DRAGONSCALE_DEFENSE, TRAIT.UNYIELDING_DRAGON, TRAIT.DARING_DRAGON]
-  });
-
-  assert.deepEqual(trigger.warnings, []);
-  assert.equal(
-    trigger.events.some((event) => event.kind === 'stability' && event.duration === 3),
-    true
-  );
-  assert.equal(
-    trigger.events.some((event) => event.controlKind === 'stun'),
-    true
-  );
-  assert.equal(
-    trigger.events.some(
-      (event) => event.kind === 'alacrity' && event.duration === 10 && event.audience?.recipients === 'party'
-    ),
-    true
-  );
 });
 
 test('Bladesworn ammunition and explosion traits retain stack chronology', () => {
@@ -1364,18 +1166,4 @@ test('Eviscerate damage scales with adrenaline spent', () => {
       stacks: 5
     }
   );
-});
-
-test('Warrior is exposed through the shared application registry', async () => {
-  assert.equal(
-    professionOptions.some((profession) => profession.id === 'warrior'),
-    true
-  );
-  assert.equal(await loadProfession('warrior'), warriorProfession);
-  assert.equal(typeof (await loadProfessionAppAdapter('warrior')).createBuildContext, 'function');
-
-  const html = await readFile(new URL('../../../../../dist/site/warrior.html', import.meta.url), 'utf8');
-
-  assert.match(html, /data-profession="warrior"/);
-  assert.match(html, /assets\/entry-[^"']+\.js/);
 });

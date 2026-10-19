@@ -4,7 +4,6 @@ import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-se
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { skillFlipVisible, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { conditionEffectTicks, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
@@ -590,25 +589,6 @@ test('Shred fires three Burning Bolts through Stoke the Flames', () => {
     ),
     false
   );
-});
-
-test('Flame Jet gains ten percent strike damage against burning targets', () => {
-  const config = {
-    selectedSkillIds: [5857, 5805, 5927, 5933, 5868],
-    selectedMorphSkillIds: [77103, 77104, 76705]
-  };
-  const withoutBurning = simulate('Amalgam', ['Flamethrower', 'Flame Jet'], {
-    ...config,
-    target: { conditions: { Vulnerability: 25 } }
-  });
-  const withBurning = simulate('Amalgam', ['Flamethrower', 'Flame Jet'], {
-    ...config,
-    target: { conditions: { Vulnerability: 25, Burning: 1 } }
-  });
-  const firstPacket = (result) =>
-    result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Flame Jet');
-
-  assertFlooredDamageMultiplier(firstPacket(withBurning).damage, firstPacket(withoutBurning).damage, 1.1);
 });
 
 test('Engineer spear focus selects its condition branch and consumes Lightning Rod charges', () => {

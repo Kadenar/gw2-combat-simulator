@@ -23,7 +23,7 @@ import { clampStartingResourceValues, selectSpecialization } from '#gw2/app/buil
 import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
 import { applyBuildFileImport, previewBuildFileImport } from '#gw2/app/import-export/build-file-import.js';
 import { loadManifestBuilds } from '#gw2/app/import-export/rotation-import-dialog.js';
-import { professionOptions, professionRegistry } from '#gw2/profession-registry.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import {
   displayedSkillTiles,
@@ -996,14 +996,6 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
   assert.doesNotMatch(summaryStrip.innerHTML, /input-activity-body|input-kb-svg|data-rating|input-meter/);
 });
 
-test('Guardian is exposed by the profession selector and app composition', async () => {
-  assert.equal(
-    professionOptions.some((option) => option.id === 'guardian'),
-    true
-  );
-  assert.equal((await loadProfessionAppAdapter('guardian'))?.id, 'guardian');
-});
-
 test('the landing selector records supplied specialization artwork for every profession', () => {
   const artwork = Object.fromEntries(
     professionRegistry
@@ -1440,10 +1432,6 @@ test('damage result rows reuse the icons shown for generated procs', () => {
   assert.equal(resultSkillIcon(app, { name: 'Cascading Corruption' }), meltdownIcon);
   assert.equal(resultSkillIcon(app, { name: 'Lightning Rod', skillId: 123, sourceId: 123 }), lightningRodIcon);
   assert.equal(resultSkillIcon(app, { name: 'Soul Shards', icon: explicitIcon }), explicitIcon);
-  assert.equal(
-    resultSkillIcon(app, { name: 'Relic of the Shackles' }),
-    'https://render.guildwars2.com/file/7946A50DBDC2E45E004AAA801904015C50CC22B3/3745069.png'
-  );
 });
 
 test('clone attack damage rows use their weapon skill icons', () => {

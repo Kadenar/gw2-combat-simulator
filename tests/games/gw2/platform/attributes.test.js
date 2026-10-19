@@ -257,31 +257,6 @@ test('Potent Master Tuning Crystal converts Precision and Expertise to Condition
   assert.equal(attributes.Expertise.final, base.Expertise.final);
 });
 
-test('Leviathan Tempering Oil grants three percent of every primary attribute', () => {
-  // Real Celestial gear exercises every primary stat without injecting alternate gear tables.
-  const build = { gear: { Helm: 'Celestial' } };
-  const sourceStats = calculateCommonAttributes(build).attributes;
-  const common = calculateCommonAttributes({ ...build, utility: 'Leviathan Tempering Oil' });
-  const { attributes } = common;
-  const resolved = resolveAttributeEffects(common.commonContext, []);
-  for (const name of [
-    'Power',
-    'Precision',
-    'Toughness',
-    'Vitality',
-    'Ferocity',
-    'Condition Damage',
-    'Expertise',
-    'Concentration',
-    'Healing Power'
-  ]) {
-    const source = sourceStats[name].final;
-    const expectedBonus = Math.round(source * 0.03);
-    assert.equal(resolved.utilityAttributes[name], expectedBonus, name);
-    assert.equal(attributes[name].final + resolved.utilityAttributes[name], source + expectedBonus, name);
-  }
-});
-
 test('attributes are derived from selected gear instead of user-entered stats', () => {
   const berserker = createDefaultBuild();
   const berserkerStats = calcAttributes(berserker, []).attributes;

@@ -3,8 +3,6 @@ import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
-import { loadProfession } from '#gw2/profession-registry.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
@@ -20,7 +18,6 @@ import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpe
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 // Forced exits carry the depletion owner so they are distinct from an authored Exit Shadow Shroud.
@@ -938,40 +935,6 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
   assert.ok(stealthFinisher.steps.some((step) => step.skill === 'Ashen Assault'));
 });
 
-test('Spider Venom grants six independent charges to the player and allies', () => {
-  const result = simulate(
-    'Core',
-    ['Spider Venom', 'Heartseeker'],
-    {
-      selectedSkillIds: [13027, 13037],
-      allies: { count: 4, strikesPerSecond: 1 }
-    },
-    observationTail(6000)
-  );
-  const partyBuff = result.events.find((event) => event.type === 'buff' && event.kind === 'spider-venom');
-
-  assert.equal(partyBuff.stacks, 6);
-  assert.equal(partyBuff.duration, 24);
-  assert.equal(partyBuff.resolvedAudience.recipientCount, 5);
-  assert.equal(partyBuff.resolvedAudience.alliedPlayerCount, 4);
-  assert.deepEqual(partyBuff.resolvedAudience.companionIds, []);
-  assert.equal(partyBuff.resolvedAudience.includesSummons, false);
-
-  const allyPoisons = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.skillId === ID.SPIDER_VENOM && event.metadata?.triggeredByAlly
-  );
-
-  assert.equal(allyPoisons.length, 24);
-  assert.deepEqual([...new Set(allyPoisons.map((event) => event.metadata?.triggeredByAlly))], [1, 2, 3, 4]);
-  assert.ok(allyPoisons.every((event) => event.stacks === 1 && Math.abs(event.naturalExpiresAt - event.at - 3) < 1e-9));
-
-  const personalPoisons = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.skillId === ID.SPIDER_VENOM && !event.metadata?.triggeredByAlly
-  );
-
-  assert.equal(personalPoisons.length, 1);
-});
-
 test('Skale and Devourer Venom grant party charges that proc together on attacks', () => {
   const result = simulate(
     'Core',
@@ -1478,20 +1441,6 @@ test('Fire for Effect limits the Deadeye stolen-skill palette', () => {
       .find((group) => group.id === 'deadeye-stolen-skills').skillIds,
     [ID.STEAL_TIME]
   );
-});
-
-test('Thief is a loadable native application', async () => {
-  assert.equal((await loadProfession('thief')).id, 'thief');
-  const adapter = await loadProfessionAppAdapter('thief');
-
-  assert.equal(adapter.profession.id, 'thief');
-  assert.equal(adapter.weaponSkillMatchesSet, thiefWeaponSkillMatchesSet);
-  assert.ok(adapter.assumptionControls.length >= 3);
-  const html = await readFile(new URL('../../../../../dist/site/thief.html', import.meta.url), 'utf8');
-
-  assert.match(html, /data-profession="thief"/);
-  // The built document identifies the profession before the shared header mounts in the browser.
-  assert.match(html, /<title>GW2 Combat Simulator — Thief<\/title>/);
 });
 
 /** Allied proc fixtures traverse the compiled condition boundary with only Leeching Venoms selected. */

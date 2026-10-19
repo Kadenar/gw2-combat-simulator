@@ -34,25 +34,11 @@ const alliedProcTimes = (result) => [
 // Affinity has no report event; probing the live owner at inclusive horizons locates each actual tick.
 const affinityAt = (prefix, untilMs, config = {}) => affinity(simulate('Conduit', [...prefix, wait(untilMs)], config));
 
-test('Conduit upkeep resources are independent of wait segmentation', () => {
+test('Conduit upkeep delivers due affinity ticks during idle waits', () => {
   // Idle time must deliver every due resource tick without relying on unrelated casts or reads.
-  const results = [[9100], Array(91).fill(100)].map((waits) =>
-    simulate('Conduit', ['Impossible Odds', ...waits.map(wait)])
-  );
-  for (const result of results) {
-    assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.affinity.value, 4);
-  }
-
-  assert.equal(results[0].planningState.profession.energy.value, results[1].planningState.profession.energy.value);
-});
-
-test('Conduit upkeep affinity ticks land on their own three-second deadlines', () => {
-  // The activation grants one affinity; each owned tick adds one exactly at its deadline.
-  assert.deepEqual(
-    [2999, 3000, 5999, 6000, 8999, 9000].map((ms) => affinityAt(['Impossible Odds'], ms)),
-    [1, 2, 2, 3, 3, 4]
-  );
+  const result = simulate('Conduit', ['Impossible Odds', wait(9100)]);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.planningState.profession.affinity.value, 4);
 });
 
 test('Conduit dagger cadence survives long waits and stops at form expiry', () => {

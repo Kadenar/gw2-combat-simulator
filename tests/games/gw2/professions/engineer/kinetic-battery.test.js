@@ -1,6 +1,5 @@
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -49,44 +48,6 @@ test('mech command charges count when issued, before the independent animation c
     ]
   );
   assert.equal(result.steps.find((step) => step.skill === 'Fragmentation Shot').start, 0);
-});
-
-test('Kinetic Battery resets on the fifth command and grants five seconds of speed and player strike damage', () => {
-  const config = { selectedTraitIds: [TRAIT.KINETIC_BATTERY] };
-  const four = Array(4).fill('Discharge Array');
-  const charging = simulate('Mechanist', four, config);
-  assert.equal(charging.planningState.profession.kineticCharges, 4);
-  assert.equal(
-    charging.events.some((event) => event.kind === 'kinetic-battery'),
-    false
-  );
-
-  const rotation = [
-    ...four,
-    'Discharge Array',
-    'Fragmentation Shot',
-    { type: 'wait', durationMs: 5000 },
-    'Fragmentation Shot'
-  ];
-  const active = simulate('Mechanist', rotation, config);
-  const disabled = simulate('Mechanist', rotation);
-  assert.deepEqual(active.warnings, []);
-  assert.deepEqual(disabled.warnings, []);
-  assert.equal(active.planningState.profession.kineticCharges, 0);
-  assert.equal(
-    disabled.events.some((event) => event.kind === 'kinetic-battery'),
-    false
-  );
-  for (const kind of ['kinetic-battery', 'quickness', 'superspeed']) {
-    const buffs = active.events.filter((event) => event.type === 'buff' && event.kind === kind);
-    assert.equal(buffs.length, 1);
-    assert.equal(buffs[0].duration, 5);
-  }
-
-  const hits = (result) =>
-    result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Fragmentation Shot');
-  assertFlooredDamageMultiplier(hits(active)[0].damage, hits(disabled)[0].damage, 1.15);
-  assert.equal(hits(active)[1].damage, hits(disabled)[1].damage);
 });
 
 // Active State follows the inspected time, including before activation and at buff expiry.

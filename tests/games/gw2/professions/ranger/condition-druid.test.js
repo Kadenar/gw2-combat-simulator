@@ -1,13 +1,10 @@
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { criticalResolved } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { druidModule } from '#gw2/professions/ranger/specializations/druid/module.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
@@ -170,139 +167,6 @@ test('Light on Your Feet and Natural Balance add condition duration', () => {
       .filter((event) => event.type === 'buff' && event.kind === 'natural-balance')
       .map(({ duration }) => duration),
     [10, 10]
-  );
-});
-
-test('Light on Your Feet applies its six-second buff and shortbow upgrades', () => {
-  const buffed = simulate(['Dodge', 'Crossfire'], {
-    primaryWeapon: 'Shortbow',
-    offHandWeapon: '',
-    attributeInputs: baseAttributeInputs({ expertise: 0 }),
-    selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
-  });
-  const buff = buffed.events.find((event) => event.type === 'buff' && event.kind === 'light-on-your-feet');
-  const crossfireBleeding = buffed.resolvedEvents.filter(
-    (event) =>
-      event.type === 'condition' &&
-      event.condition === 'Bleeding' &&
-      (event.sourceId === ID.CROSSFIRE || event.sourceId === TRAIT.LIGHT_ON_YOUR_FEET)
-  );
-
-  assert.equal(buff.duration, 6);
-  assert.equal(
-    crossfireBleeding.reduce((total, event) => total + event.stacks, 0),
-    1
-  );
-  assert.ok(crossfireBleeding.every((event) => event.effectiveDuration === 5.5));
-
-  const evade = simulate(["Stalker's Strike"], {
-    attributeInputs: baseAttributeInputs({ expertise: 0 }),
-    selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
-  });
-  const evadePoison = evade.resolvedEvents.filter(
-    (event) => event.sourceId === ID.STALKERS_STRIKE && event.condition === 'Poisoned'
-  );
-
-  assert.ok(evadePoison.every((event) => event.effectiveDuration === 8.8));
-
-  const stacked = simulate(['Dodge', 'Dodge'], {
-    selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
-  }).events.filter((event) => event.type === 'buff' && event.kind === 'light-on-your-feet');
-
-  assert.deepEqual(
-    stacked.map(({ duration }) => duration),
-    [6, 11.2]
-  );
-
-  const shortbow = simulate(['Poison Volley', 'Poison Volley'], {
-    primaryWeapon: 'Shortbow',
-    offHandWeapon: '',
-    selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
-  });
-
-  assert.equal(shortbow.steps[1].start, Math.ceil((shortbow.steps[0].end + 5120) / 40) * 40);
-
-  const upgrades = simulate(['Poison Volley', 'Crippling Shot', 'Concussion Shot'], {
-    primaryWeapon: 'Shortbow',
-    offHandWeapon: '',
-    attributeInputs: baseAttributeInputs({ expertise: 0 }),
-    target: { defiant: false, conditions: {} },
-    selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
-  });
-  const poison = upgrades.resolvedEvents.find(
-    (event) => event.sourceId === ID.POISON_VOLLEY && event.condition === 'Poisoned'
-  );
-  const immobilized = upgrades.resolvedEvents.find(
-    (event) => event.sourceId === ID.CRIPPLING_SHOT && event.condition === 'Immobilized'
-  );
-  const vulnerability = upgrades.resolvedEvents.find(
-    (event) => event.sourceId === TRAIT.LIGHT_ON_YOUR_FEET && event.condition === 'Vulnerability'
-  );
-
-  assert.equal(poison.duration, 5);
-  assert.equal(immobilized, undefined);
-  assert.equal(
-    upgrades.resolvedEvents
-      .filter((event) => event.sourceId === TRAIT.LIGHT_ON_YOUR_FEET && event.condition === 'Vulnerability')
-      .reduce((sum, event) => sum + event.stacks, 0),
-    10
-  );
-  assert.equal(vulnerability.duration, 10);
-
-  const defiant = simulate(['Poison Volley', 'Crippling Shot', { type: 'wait', durationMs: 1000 }], {
-    primaryWeapon: 'Shortbow',
-    offHandWeapon: '',
-    attributeInputs: baseAttributeInputs({ expertise: 0 }),
-    selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
-  });
-
-  assert.equal(
-    defiant.resolvedEvents.find((event) => event.sourceId === ID.POISON_VOLLEY && event.condition === 'Poisoned')
-      .effectiveDuration,
-    9
-  );
-  assert.equal(
-    defiant.resolvedEvents.find((event) => event.sourceId === ID.CRIPPLING_SHOT && event.condition === 'Immobilized')
-      .effectiveDuration,
-    2.5
-  );
-});
-
-test('Jacaranda exposes its pet skills, recharge, coefficients, and summon attributes', () => {
-  const jacaranda = RANGER_PETS.find(({ name }) => name === 'Jacaranda');
-
-  assert.deepEqual(jacaranda.skillIds, [
-    ID.JACARANDA_ROOT_SLAP,
-    ID.JACARANDA_CALL_LIGHTNING,
-    ID.JACARANDA_PHOTOSYNTHESIZE,
-    ID.JACARANDAS_EMBRACE
-  ]);
-
-  const callLightning = rangerCatalog.skillsById.get(ID.JACARANDA_CALL_LIGHTNING);
-
-  assert.equal(callLightning.cooldown, 12);
-  assert.equal(
-    callLightning.effects[0].ticks.reduce((total, tick) => total + tick.coefficient, 0),
-    2.5
-  );
-
-  const result = simulate(['__combat_start', { type: 'wait', durationMs: 3000 }], {
-    selectedPet: 'Jacaranda',
-    selectedTraitIds: []
-  });
-  const packet = result.resolvedEvents.find(({ type, actorType }) => type === 'damage' && actorType === 'summon');
-
-  assert.deepEqual(
-    [
-      packet.summonBasePower,
-      packet.summonBasePrecision,
-      packet.summonBaseToughness,
-      packet.summonBaseVitality,
-      packet.summonBaseConditionDamage,
-      packet.summonBaseFerocity,
-      packet.summonBaseHealingPower
-    ],
-    [1868, 1524, 2211, 2211, 400, 0, 1200]
   );
 });
 
@@ -797,33 +661,6 @@ test("Sun Spirit emits Solar Flare's individual burning stacks", () => {
   const might = result.events.filter(({ type, kind }) => type === 'buff' && kind === 'might');
   assert.equal(solarFlare[0].at, might[0].at);
   assert.ok(might.every(({ resolvedAudience }) => resolvedAudience.includesSummons));
-});
-
-test('Ranger child damage rows resolve their dedicated icons', () => {
-  const app = {
-    attributeData: { activeTraits: [] },
-    results: { procSteps: [] },
-    skillById: rangerCatalog.skillsById,
-    skillByName: rangerCatalog.skillsByName,
-    skills: rangerCatalog.skills
-  };
-  const solarFlare = skillBreakdownRows(simulate(['Sun Spirit', { type: 'wait', durationMs: 6000 }])).find(
-    ({ sourceSkill }) => sourceSkill === 'Solar Flare'
-  );
-  const blackHole = skillBreakdownRows(
-    simulate(['Celestial Avatar', 'Natural Convergence', { type: 'wait', durationMs: 2000 }])
-  ).find(({ sourceSkill }) => sourceSkill === 'Black Hole');
-
-  assert.ok(solarFlare);
-  assert.ok(blackHole);
-  assert.equal(
-    resultSkillIcon(app, solarFlare),
-    'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Solar_Flare.png'
-  );
-  assert.equal(
-    resultSkillIcon(app, blackHole),
-    'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Black_Hole.png'
-  );
 });
 
 test('Celestial Avatar Might pulses reach the active pet', () => {

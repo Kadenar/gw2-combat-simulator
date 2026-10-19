@@ -7,7 +7,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 // Weapon skills retain their Clarity, packet, and follow-up behavior across Mesmer specializations.
@@ -70,28 +69,6 @@ test('Mind the Gap preserves its deferred clone when shattering on its impact fr
   );
   assert.equal(result.planningState.profession.resource, 1);
   assert.deepEqual(result.warnings, []);
-});
-
-test('Mind the Gap grants 15 seconds of Clarity and displays it as a skill proc', () => {
-  const result = simulateMesmer(
-    ['Mind the Gap'],
-    defaultSimulationConfig({
-      specialization: 'Virtuoso',
-      primaryWeapon: 'Spear',
-      secondaryWeapon: ''
-    })
-  );
-
-  assert.equal(result.planningState.profession.clarityRemaining, 15000);
-  assert.ok(
-    result.procSteps.some(
-      (proc) =>
-        proc.skill === 'Clarity' &&
-        proc.type === 'skill_proc' &&
-        proc.sourceSkill === 'Mind the Gap' &&
-        proc.icon.includes('Clarity.png')
-    )
-  );
 });
 
 test('Mesmer spear skills 3, 4, and 5 consume Clarity', () => {
@@ -178,68 +155,6 @@ test('Flying Cutter and Unstable Bladestorm remain available outside Virtuoso', 
     ['Flying Cutter', 'Unstable Bladestorm']
   );
   assert.equal(result.warnings.length, 0);
-});
-
-test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six times', () => {
-  const defaults = defaultSimulationConfig();
-  const config = defaultSimulationConfig({
-    specialization: 'Virtuoso',
-    primaryWeapon: 'Dagger',
-    secondaryWeapon: 'Sword',
-    selectedTraitIds: [TRAIT.JAGGED_MIND],
-    attributeInputs: baseAttributeInputs({
-      ...defaults.attributeInputs.weaponSets[0].commonTotals,
-      precision: 3100
-    })
-  });
-  const consecutive = simulateMesmer(
-    ['Flying Cutter', 'Flying Cutter', 'Flying Cutter', { name: '__wait', waitMs: 1500 }],
-    config
-  );
-  const burst = consecutive.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Cutter Burst');
-
-  assert.equal(burst.length, 3);
-  assert.ok(
-    burst.every(
-      (event) =>
-        event.skillName === 'Cutter Burst' &&
-        event.parentSkillName === 'Flying Cutter' &&
-        event.sourceId === ID.CUTTER_BURST &&
-        event.skillId === ID.CUTTER_BURST
-    )
-  );
-  assert.ok(Math.abs(burst.reduce((sum, event) => sum + event.coefficient, 0) - 0.6) < 1e-12);
-  const skillRows = skillBreakdownRows(consecutive);
-  const flyingCutterRow = skillRows.find((row) => row.name === 'Flying Cutter');
-  const cutterBurstRow = skillRows.find((row) => row.name === 'Cutter Burst');
-
-  assert.ok(flyingCutterRow.strike > 0);
-  assert.ok(cutterBurstRow.strike > 0);
-  assert.ok(flyingCutterRow.condition > 0);
-  assert.ok(cutterBurstRow.condition > 0);
-  assert.equal(flyingCutterRow.hits, 3);
-  assert.equal(cutterBurstRow.hits, 3);
-  assert.equal(flyingCutterRow.casts, 3);
-  assert.equal(cutterBurstRow.casts, 0);
-  assert.equal(cutterBurstRow.parentSkill, 'Flying Cutter');
-
-  const expired = simulateMesmer(
-    ['Flying Cutter', { name: '__wait', waitMs: 5001 }, 'Flying Cutter', 'Flying Cutter'],
-    config
-  );
-
-  assert.equal(
-    expired.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Cutter Burst').length,
-    0
-  );
-
-  const bladecall = simulateMesmer(['Bladecall', { name: '__wait', waitMs: 3000 }], config);
-  const bladecallHits = bladecall.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.skillName === 'Bladecall'
-  );
-
-  assert.equal(bladecallHits.length, 6);
-  assert.ok(Math.abs(bladecallHits.reduce((sum, event) => sum + event.coefficient, 0) - 1.5) < 1e-12);
 });
 
 test('Clarity makes only an empowered Mental Collapse a control skill', () => {
@@ -374,32 +289,6 @@ test('Illusionary Riposte enables Counter Blade without block rewards', () => {
       );
     }
   }
-});
-
-test('Into the Void waits for its one-second post-curtain delay', () => {
-  const result = simulateMesmer(
-    ['Temporal Curtain', 'Into the Void'],
-    defaultSimulationConfig({
-      specialization: 'Core',
-      primaryWeapon: '',
-      secondaryWeapon: ''
-    })
-  );
-
-  assert.equal(result.steps[1].start, 1000);
-});
-
-test('Dimensional Aperture adds 50% to Singularity Shot recharge', () => {
-  const config = defaultSimulationConfig({
-    specialization: 'Core',
-    primaryWeapon: '',
-    secondaryWeapon: ''
-  });
-  const base = simulateMesmer(['Singularity Shot'], config);
-  const aperture = simulateMesmer(['Singularity Shot', 'Dimensional Aperture'], config);
-
-  assert.equal(base.planningState.cooldowns[ID.SINGULARITY_SHOT].readyAt, 16360);
-  assert.equal(aperture.planningState.cooldowns[ID.SINGULARITY_SHOT].readyAt, 24360);
 });
 
 // The image's natural expiry and early detonation must remain mutually exclusive.

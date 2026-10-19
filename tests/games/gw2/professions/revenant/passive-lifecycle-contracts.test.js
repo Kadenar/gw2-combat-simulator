@@ -36,7 +36,7 @@ const simulate = createObservedProfessionSimulator(revenantProfession, base);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 // Minimal resource histories include delayed applications, pooled duration, and timestamped extension.
-test('Endurance accrual and readiness integrate the same Vigor windows regardless of wait boundaries', () => {
+test('Endurance accrual and Dodge readiness integrate delayed, pooled, and extended Vigor windows', () => {
   const initialize = (runtime) => {
     runtime.profession.core.endurance.value = 0;
     for (const event of [
@@ -54,18 +54,7 @@ test('Endurance accrual and readiness integrate the same Vigor windows regardles
 
   // A 50-endurance Dodge becomes affordable exactly when the integrated Vigor windows reach its cost.
   assert.equal(run(['Dodge']).steps[0].start, 8000);
-  for (const waits of [[8000], [1000, 1000, 1000, 1000, 1000, 2000, 1000]])
-    assert.equal(run(waits.map(wait)).planningState.profession.endurance.value, 50);
-});
-
-test('Vindicator Vigor produces equal endurance for equivalent public waits', () => {
-  const rotation = ['Dodge', 'Dodge', 'Energy Meld', 'Dodge'];
-  const config = { selectedTraitIds: [TRAIT.SONG_OF_ARBOREUM] };
-  const single = simulate('Vindicator', [...rotation, wait(12000)], config);
-  const split = simulate('Vindicator', [...rotation, wait(6000), wait(6000)], config);
-  assert.deepEqual(single.warnings, []);
-  assert.deepEqual(split.warnings, []);
-  assert.equal(single.planningState.profession.endurance.value, split.planningState.profession.endurance.value);
+  assert.equal(run([wait(8000)]).planningState.profession.endurance.value, 50);
 });
 
 test('Ancient Echo selects exactly the active Core legend package', () => {

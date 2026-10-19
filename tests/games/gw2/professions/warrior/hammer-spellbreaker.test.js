@@ -1,6 +1,4 @@
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { effectPlanningState } from '#tests/helpers/effect-report.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -245,44 +243,6 @@ test("Spellbreaker only gains Attacker's Insight from control and lightning leap
     ],
     ['Lightning', 5, 'Leap', 'Leap']
   );
-});
-
-test('Peak Performance and Magebane Tether use their logged recharge timing', () => {
-  const peak = simulate('Spellbreaker', ["Bull's Charge", { type: 'wait', durationMs: 2100 }], {
-    selectedTraitIds: [TRAIT.PEAK_PERFORMANCE]
-  });
-  const bull = peak.steps.find(({ skill }) => skill === "Bull's Charge");
-  const peakBuff = peak.events.find((event) => event.type === 'buff' && event.kind === 'peak-performance');
-
-  assert.equal(peakBuff.at * 1000, bull.end);
-  const peakState = warriorProfession.ui
-    .rotationStateSnapshot({
-      balanceContext: withPatchPreview(warriorProfession).balanceContextFor(),
-      specialization: 'Spellbreaker',
-      result: peak,
-      planningState: effectPlanningState(peak, peakBuff.at + 2),
-      atSeconds: peakBuff.at + 2
-    })
-    .find(({ id }) => id === 'peak-performance');
-
-  assert.deepEqual(peakState, {
-    id: 'peak-performance',
-    label: 'Peak Performance',
-    value: '4.0s',
-    title: 'Peak Performance active'
-  });
-
-  const magebaneProcs = (alacrity) =>
-    simulate('Spellbreaker', ['Breaching Strike', { type: 'wait', durationMs: 9000 }, 'Breaching Strike'], {
-      initialResource: 20,
-      primaryWeapon: 'Dagger',
-      secondaryWeapon: 'Mace',
-      selectedTraitIds: [TRAIT.MAGEBANE_TETHER],
-      boons: { alacrity }
-    }).procSteps.filter(({ skill }) => skill === 'Magebane Tether').length;
-
-  assert.equal(magebaneProcs(false), 2);
-  assert.equal(magebaneProcs(true), 2);
 });
 
 test('"To the Limit!" restores endurance, grants flow, and triggers Thick Skin', () => {

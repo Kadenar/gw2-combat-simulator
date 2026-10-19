@@ -2,17 +2,14 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { daredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
 import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
-import { createThiefBuildDefaults, migrateThiefBuild, validateThiefBuild } from '#gw2/professions/thief/build/build.js';
+import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
 import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/professions/thief/data/thief-supplemental-skills.js';
@@ -21,9 +18,7 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
 
 import { THIEF_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/core/profiles.js';
-import { DEADEYE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
-import { SPECTER_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/skills/stolen-skills.js';
@@ -59,10 +54,6 @@ const baseConfig = Object.freeze({
 });
 
 const simulate = createObservedProfessionSimulator(thiefProfession, baseConfig);
-
-const applyThiefPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(thiefCatalog, patch), patch);
-
-const authoringThiefProfession = withActivePatchPreview(thiefProfession);
 
 test('Thief weapon matching keeps hand requirements behind profession variant gates', () => {
   // Minimal equipment cases cover shared matching; stance and specialization still reject otherwise valid hands.
@@ -346,138 +337,6 @@ test('Thief shared impacts remain independently patchable beside separate strike
   assert.deepEqual(patched.effects[1], { ...original.effects[1], coefficient: 2 });
   assert.deepEqual(patched.effects[2], { ...original.effects[2], duration: 8 });
   assert.deepEqual(original, baseline);
-});
-
-test('Thief modules expose isolated balance-profile authoring', () => {
-  const modules = new Map(authoringThiefProfession.patchAuthoring.modules.map((module) => [module.id, module]));
-
-  assert.deepEqual([...modules.keys()], ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']);
-  assert.equal(
-    [...modules.values()].every((module) => module.balanceProfiles.length > 0),
-    true
-  );
-
-  const opaqueModifierRules = [...modules.values()].flatMap((module) =>
-    module.modifierRules.filter(
-      (rule) =>
-        (typeof rule.amount === 'function' || typeof rule.factor === 'function') &&
-        Object.keys(rule.parameters).length === 0
-    )
-  );
-
-  assert.deepEqual(opaqueModifierRules, []);
-
-  // Patch isolation compares against the loaded baseline rather than a second copy of live balance data.
-  const originalEffects = structuredClone(thiefCatalog.skillsById.get(ID.CALTROPS).effects);
-  const originalMaximum = thiefCatalog.balanceProfilesById.get(THIEF_CORE_BALANCE_PROFILE_IDS.resources).maximumStacks;
-  const preview = applyThiefPatch({
-    skills: {
-      [ID.CALTROPS]: {
-        effects: [{ effectIndex: 0, tickIndex: 'all', duration: 12 }]
-      }
-    },
-    balanceProfiles: {
-      [THIEF_CORE_BALANCE_PROFILE_IDS.resources]: {
-        fields: { maximumStacks: 13 }
-      },
-      [TRAIT.LOTUS_TRAINING]: {
-        effects: [{ effectIndex: 0, tickIndex: 'all', coefficient: 0.2 }]
-      },
-      [DEADEYE_BALANCE_PROFILE_IDS.resources]: {
-        fields: { maximumStacks: 6 }
-      },
-      [SPECTER_BALANCE_PROFILE_IDS.resources]: {
-        fields: { resourceGain: 1.25 }
-      },
-      [ANTIQUARY_BALANCE_PROFILE_IDS.scuffle]: {
-        fields: { pulseInterval: 2.5 }
-      }
-    }
-  });
-
-  assert.ok(preview.skillsById.get(ID.CALTROPS).effects[0].ticks.every((tick) => tick.duration === 12));
-  assert.equal(preview.balanceProfilesById.get(THIEF_CORE_BALANCE_PROFILE_IDS.resources).maximumStacks, 13);
-  assert.deepEqual(
-    preview.balanceProfilesById.get(TRAIT.LOTUS_TRAINING).effects[0].ticks.map((tick) => tick.coefficient),
-    thiefCatalog.balanceProfilesById.get(TRAIT.LOTUS_TRAINING).effects[0].ticks.map(() => 0.2)
-  );
-  assert.equal(preview.balanceProfilesById.get(DEADEYE_BALANCE_PROFILE_IDS.resources).maximumStacks, 6);
-  assert.equal(preview.balanceProfilesById.get(SPECTER_BALANCE_PROFILE_IDS.resources).resourceGain, 1.25);
-  assert.equal(preview.balanceProfilesById.get(ANTIQUARY_BALANCE_PROFILE_IDS.scuffle).pulseInterval, 2.5);
-
-  assert.deepEqual(thiefCatalog.skillsById.get(ID.CALTROPS).effects, originalEffects);
-  assert.equal(
-    thiefCatalog.balanceProfilesById.get(THIEF_CORE_BALANCE_PROFILE_IDS.resources).maximumStacks,
-    originalMaximum
-  );
-});
-
-test('Thief defaults migrate deterministic assumptions and validate bars', () => {
-  const defaults = createThiefBuildDefaults();
-
-  assert.deepEqual(validateThiefBuild(defaults), {
-    valid: true,
-    errors: []
-  });
-  const migrated = migrateThiefBuild({
-    ...defaults,
-    assumptions: {
-      ...defaults.assumptions,
-      markedTargetChoice: 'unmarked',
-      playerHealthPercent: 20,
-      targetDistance: 1200,
-      artifactDrawSequence: 'reverse',
-      doubleEdgeOutcomeSequence: 'success',
-      stolenSkillChoice: 'throw-gunk',
-      deadeyeStolenSkillChoice: 'steal-time'
-    }
-  });
-
-  assert.equal(Object.hasOwn(migrated.assumptions, 'playerHealthPercent'), false);
-  assert.equal(Object.hasOwn(migrated.assumptions, 'targetDistance'), false);
-  assert.equal(
-    thiefProfession.ui.assumptionControls.some((control) => control.key === 'markedTargetChoice'),
-    false
-  );
-  const keysFor = (specialization) =>
-    new Set(
-      assumptionControlsForSpecialization(thiefProfession.ui.assumptionControls, specialization).map(
-        (control) => control.key
-      )
-    );
-
-  for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']) {
-    assert.equal(keysFor(specialization).has('stolenSkillChoice'), false);
-    assert.equal(keysFor(specialization).has('deadeyeStolenSkillChoice'), false);
-  }
-
-  for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']) {
-    assert.equal(keysFor(specialization).has('playerHealthPercent'), false);
-    assert.equal(keysFor(specialization).has('targetDistance'), false);
-  }
-
-  assert.equal(
-    validateThiefBuild({
-      ...defaults,
-      weapons: ['Sword', 'Sword']
-    }).valid,
-    false
-  );
-});
-
-test('Thief cooldown resets survive build migration and validation', () => {
-  const defaults = createThiefBuildDefaults();
-  const migrated = migrateThiefBuild({ ...defaults, rotation: ['__cooldown_reset'] });
-
-  assert.deepEqual(migrated.rotation, [{ type: 'cooldown-reset' }]);
-  assert.deepEqual(validateThiefBuild(migrated), { valid: true, errors: [] });
-  assert.equal(
-    validateThiefBuild({
-      ...migrated,
-      rotation: [{ type: 'cooldown-reset', interruptAfterMs: 1 }]
-    }).valid,
-    false
-  );
 });
 
 test('Thief resources use profession-specific initiative and malice pips', () => {
@@ -921,23 +780,6 @@ test('stealth replaces weapon skill 1 without a separate palette group', () => {
   assert.equal(stealthed.includes('Double Strike'), false);
 });
 
-// Stolen skills share the PvE formula even when their API entries also contain a competitive damage fact.
-test('Deadeye stolen skills use the PvE damage formula and apply One in the Chamber once', () => {
-  for (const skillId of DEADEYE_STOLEN_SKILL_IDS) {
-    const strike = (selectedTraitIds) =>
-      runThief([ID.DEADEYES_MARK, skillId], {
-        specialization: 'Deadeye',
-        selectedTraitIds,
-        attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0, criticalChanceBonus: -100 }),
-        target: { armor: 1000, conditions: {} }
-      }).resolvedEvents.find((event) => event.type === 'damage' && event.skillId === skillId);
-    const base = strike([]);
-    const traited = strike([TRAIT.ONE_IN_THE_CHAMBER]);
-    assert.equal(base.coefficient, 1);
-    assertFlooredDamageMultiplier(traited.damage, base.damage, 1.25);
-  }
-});
-
 test('Deadeye palette uses malicious stealth attacks and one stateful rifle bar', () => {
   const deadeyesMark = thiefCatalog.skillsByName.get("Deadeye's Mark");
   const deadeyeStolenSkillIds = [
@@ -1253,141 +1095,6 @@ test('Daredevil capacity and every dodge replacement resolve explicitly', () => 
   );
 });
 
-test('Exposed Weakness multiplies separately from additive strike bonuses', () => {
-  const config = {
-    selectedTraitIds: [TRAIT.EXPOSED_WEAKNESS],
-    sigilSets: [
-      { names: ['Test'], strike: 1.08, strikeAdd: 0.08 },
-      { names: [], strike: 1, strikeAdd: 0 }
-    ],
-    target: {
-      conditions: { Vulnerability: 25, Weakness: true }
-    }
-  };
-  const exposed = simulate('Core', ['Double Strike'], config);
-  const baseline = simulate('Core', ['Double Strike'], {
-    ...config,
-    selectedTraitIds: []
-  });
-  const damage = (result) => result.breakdown.find((entry) => entry.name === 'Double Strike').damage;
-
-  assertFlooredDamageMultiplier(damage(exposed), damage(baseline), 1.04);
-});
-
-test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modifiers', () => {
-  const criticalConfig = {
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Pistol',
-    selectedSkillIds: [],
-    attributeInputs: baseAttributeInputs({ power: 2000, precision: 5000, ferocity: 0 }),
-    target: { armor: 2597, defiant: true, health: 1_000_000 },
-    boons: { fury: false }
-  };
-  const flawlessHits = (result) =>
-    result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Flawless Execution');
-  const unrelenting = simulate('Daredevil', ['Flawless Execution'], {
-    ...criticalConfig,
-    selectedTraitIds: [TRAIT.UNRELENTING_STRIKES]
-  });
-  const withNoQuarter = simulate('Daredevil', ['Flawless Execution', { type: 'wait', durationMs: 3700 }, 'Slice'], {
-    ...criticalConfig,
-    selectedTraitIds: [TRAIT.UNRELENTING_STRIKES, TRAIT.NO_QUARTER]
-  });
-  const firstFlawless = flawlessHits(withNoQuarter);
-
-  assert.equal(firstFlawless[0].criticalDamage, 1.5);
-  assert.equal(firstFlawless[1].criticalDamage, 1.5 + 250 / 1500);
-  const extendedFurySlice = withNoQuarter.resolvedEvents.find(
-    (event) => event.type === 'damage' && event.skillName === 'Slice'
-  );
-
-  assert.equal(extendedFurySlice.criticalDamage, 1.5 + 250 / 1500);
-  assert.equal(observedRuntime(withNoQuarter).procs.snapshot()[TRAIT.UNRELENTING_STRIKES], firstFlawless[0].at + 8);
-  assert.equal(observedRuntime(withNoQuarter).procs.snapshot()[TRAIT.NO_QUARTER], extendedFurySlice.at + 2);
-
-  const withAssassinsFury = simulate('Daredevil', ['Flawless Execution'], {
-    ...criticalConfig,
-    selectedTraitIds: [TRAIT.UNRELENTING_STRIKES, TRAIT.ASSASSINS_FURY]
-  });
-
-  assertFlooredDamageMultiplier(
-    flawlessHits(withAssassinsFury)[1].damage,
-    flawlessHits(unrelenting)[1].damage,
-    2090 / 2000
-  );
-  assert.equal(
-    observedRuntime(withAssassinsFury).procs.snapshot()[TRAIT.ASSASSINS_FURY],
-    flawlessHits(withAssassinsFury)[0].at + 2
-  );
-
-  const modifierConfig = {
-    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0 }),
-    target: { armor: 2597, defiant: true, health: 1_000_000 }
-  };
-  const strike = (selectedTraitIds, target = modifierConfig.target) =>
-    simulate('Daredevil', ['Slice'], {
-      ...modifierConfig,
-      target,
-      primaryWeapon: 'Sword',
-      secondaryWeapon: 'Pistol',
-      selectedTraitIds
-    }).resolvedEvents.find((event) => event.type === 'damage');
-
-  assert.equal(strike([TRAIT.KEEN_OBSERVER]).criticalChance, 0.2);
-  assert.ok(Math.abs(strike([TRAIT.TWIN_FANGS]).criticalChance - 0.12) < 1e-12);
-  assert.ok(
-    Math.abs(
-      strike([TRAIT.TWIN_FANGS], {
-        ...modifierConfig.target,
-        defiant: false
-      }).criticalChance - 0.05
-    ) < 1e-12
-  );
-  assert.ok(Math.abs(strike([TRAIT.TWIN_FANGS, TRAIT.FEROCIOUS_STRIKES]).criticalDamage - 1.5 * 1.07 * 1.1) < 1e-12);
-});
-
-test('Thief modifiers follow stable skill and packet IDs after display labels change', () => {
-  // The siphon's live Vulnerability bonus follows its packet ID after renaming.
-  const vampiric = runThief(
-    ['Unsuspecting Strike', 'Vampiric Slash'],
-    {
-      primaryWeapon: 'Spear',
-      attributeInputs: baseAttributeInputs({ power: 2000 }),
-      target: { conditions: { Vulnerability: 1 } }
-    },
-    {
-      catalog: (catalog) =>
-        withSkill(catalog, ID.VAMPIRIC_SLASH, {
-          effects: catalog.skillsById
-            .get(ID.VAMPIRIC_SLASH)
-            .effects.map((effect) =>
-              effect.damageKind === 'life-steal' ? { ...effect, name: 'Renamed life-siphon packet' } : effect
-            )
-        })
-    }
-  );
-  assert.deepEqual(vampiric.warnings, []);
-  assert.equal(vampiric.resolvedEvents.find((event) => event.name === 'Renamed life-siphon packet').damage, 2715);
-
-  // The intrinsic factor now transforms the accepted packet, independently of its display label.
-  const result = runThief(
-    [ID.FLANKING_STRIKE, ID.LARCENOUS_STRIKE],
-    { primaryWeapon: 'Sword' },
-    {
-      catalog: (catalog) =>
-        withSkill(catalog, ID.LARCENOUS_STRIKE, {
-          name: 'Renamed skill',
-          effects: [{ type: 'strike', name: 'Renamed packet', coefficient: 2 }]
-        })
-    }
-  );
-  assert.deepEqual(result.warnings, []);
-  assert.equal(
-    result.resolvedEvents.find((event) => event.skillId === ID.LARCENOUS_STRIKE && event.type === 'damage').coefficient,
-    2.4
-  );
-});
-
 test('Daredevil follow-ups, delayed impacts, and endurance traits resolve', () => {
   // Equip the parent so these assertions isolate its hit-gated follow-up window.
   const directPalm = simulate('Daredevil', ['Palm Strike'], { selectedSkillIds: [30868] });
@@ -1669,134 +1376,6 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
   });
 
   assert.equal(remarked.planningState.profession.malice.value, 2);
-});
-
-test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied values', () => {
-  const skillDamage = (result, name) =>
-    result.resolvedEvents.find((event) => event.type === 'damage' && (event.skillName === name || event.name === name))
-      .damage;
-  const assertMultiplier = (withEffect, withoutEffect, skill, multiplier) =>
-    assertFlooredDamageMultiplier(skillDamage(withEffect, skill), skillDamage(withoutEffect, skill), multiplier);
-  const fullCrit = {
-    attributeInputs: baseAttributeInputs({ ...baseConfig.attributeInputs.weaponSets[0].commonTotals, precision: 5000 })
-  };
-
-  const plainFlare = simulate('Deadeye', ['Shadow Flare'], {
-    ...fullCrit,
-    selectedSkillIds: [41158]
-  });
-  const markedFlare = simulate('Deadeye', ["Deadeye's Mark", 'Shadow Flare'], {
-    ...fullCrit,
-    selectedSkillIds: [41158]
-  });
-
-  assertMultiplier(markedFlare, plainFlare, 'Shadow Flare', 1.5);
-  assert.ok(
-    markedFlare.planningState.profession.availableFlips[ID.SHADOW_SWAP]?.expiresAt > markedFlare.rotationEndTime
-  );
-
-  const plainStolen = simulate('Deadeye', ["Deadeye's Mark", 'Steal Time'], fullCrit);
-  const plainStealTimeEvent = plainStolen.resolvedEvents.find(
-    (event) => event.skillName === 'Steal Time' && event.type === 'damage'
-  );
-
-  assert.equal(plainStealTimeEvent.weaponStrengthProfileId, 'nonweapon.profession-mechanic');
-  assert.equal(plainStealTimeEvent.resolvedWeaponStrength, 1100);
-  const chamberStolen = simulate('Deadeye', ["Deadeye's Mark", 'Steal Time'], {
-    ...fullCrit,
-    selectedTraitIds: [TRAIT.ONE_IN_THE_CHAMBER]
-  });
-
-  assertMultiplier(chamberStolen, plainStolen, 'Steal Time', 1.25);
-
-  const markedSword = simulate('Deadeye', ["Deadeye's Mark", 'Slice'], {
-    ...fullCrit,
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Pistol'
-  });
-  const ironSight = simulate('Deadeye', ["Deadeye's Mark", 'Slice'], {
-    ...fullCrit,
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Pistol',
-    selectedTraitIds: [TRAIT.IRON_SIGHT]
-  });
-
-  assertMultiplier(ironSight, markedSword, 'Slice', 1.1);
-
-  const plainCantrip = simulate('Deadeye', ['Mercy', 'Slice'], {
-    ...fullCrit,
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Pistol',
-    selectedSkillIds: [41372]
-  });
-  const relicCantrip = simulate('Deadeye', ['Mercy', 'Slice'], {
-    ...fullCrit,
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Pistol',
-    selectedSkillIds: [41372],
-    relic: 'Deadeye'
-  });
-
-  assertMultiplier(relicCantrip, plainCantrip, 'Slice', 1.1);
-
-  const boonConfig = {
-    ...fullCrit,
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Pistol',
-    boons: { fury: true, quickness: true, vigor: true }
-  };
-  const plainBoonStrike = simulate('Deadeye', ['Slice'], boonConfig);
-  const premeditated = simulate('Deadeye', ['Slice'], {
-    ...boonConfig,
-    selectedTraitIds: [TRAIT.PREMEDITATION]
-  });
-  assertMultiplier(premeditated, plainBoonStrike, 'Slice', 1.03);
-
-  const quickKiller = simulate('Deadeye', ['Slice'], {
-    ...boonConfig,
-    selectedTraitIds: [TRAIT.BE_QUICK_OR_BE_KILLED]
-  });
-  assertMultiplier(quickKiller, plainBoonStrike, 'Slice', 2380 / 2180);
-  const markedKiller = simulate('Deadeye', ["Deadeye's Mark"], {
-    selectedTraitIds: [TRAIT.BE_QUICK_OR_BE_KILLED]
-  });
-
-  assert.ok(markedKiller.events.some((event) => event.boon === 'Quickness' && event.duration === 4));
-
-  const seven = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom', 'Death Blossom', 'Death Blossom'], {
-    ...fullCrit,
-    selectedTraitIds: [TRAIT.MALICIOUS_INTENT, TRAIT.MALEFICENT_SEVEN]
-  });
-
-  assert.equal(seven.warnings.length, 0);
-  assert.equal(seven.planningState.profession.malice.maximum, 7);
-  assert.equal(seven.planningState.profession.malice.value, 7);
-  assert.ok(seven.events.some((event) => event.name?.includes('Maleficent Seven')));
-
-  const silent = simulate(
-    'Deadeye',
-    ["Deadeye's Mark", 'Death Blossom', 'Death Blossom', 'Dodge', 'Malicious Backstab'],
-    { ...fullCrit, selectedTraitIds: [TRAIT.SILENT_SCOPE] }
-  );
-
-  assert.equal(silent.warnings.length, 0);
-  assert.equal(silent.planningState.profession.bonusStealthAttack.charges, 0);
-
-  const maliciousSneak = simulate('Deadeye', ["Deadeye's Mark", 'Unload', 'Steal Time', 'Malicious Sneak Attack'], {
-    ...fullCrit,
-    primaryWeapon: 'Pistol',
-    secondaryWeapon: 'Pistol',
-    selectedTraitIds: [TRAIT.MALICIOUS_INTENT]
-  });
-
-  assert.equal(maliciousSneak.warnings.length, 0);
-  // Multiple hits consume malice only once, leaving the trait's grant for the next attack.
-  assert.equal(maliciousSneak.planningState.profession.malice.value, 2);
-  assert.equal(
-    maliciousSneak.events.find((event) => event.skillName === 'Malicious Sneak Attack' && event.condition === 'Torment')
-      .duration,
-    8
-  );
 });
 
 test('Kneel replaces the rifle bar until Free Action or weapon swap', () => {

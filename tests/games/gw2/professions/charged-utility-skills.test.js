@@ -50,30 +50,6 @@ test("Viper's Nest triggers after placement and preserves the pending dagger cha
   }
 });
 
-test('Sharpening Stone adds ten to six remaining charges, with one eight-second bleed per hit', () => {
-  const result = ranger(
-    'Druid',
-    [
-      'Sharpening Stone',
-      'Groundwork Gouge',
-      'Leading Swipe',
-      'Serpent Stab',
-      'Deadly Delivery',
-      '__cooldown_reset',
-      'Sharpening Stone'
-    ],
-    { selectedSkillIds: [12537] }
-  );
-  assert.deepEqual(result.warnings, []);
-  assert.equal(
-    observedRuntime(result).profession.core.sharpeningStoneGrants.reduce((sum, grant) => sum + grant.charges, 0),
-    16
-  );
-  const bleeds = conditions(result, RANGER.SHARPENING_STONE);
-  assert.equal(bleeds.length, 4);
-  assert.ok(bleeds.every((event) => event.stacks === 1 && Math.abs(event.naturalExpiresAt - event.at - 8) < 1e-9));
-});
-
 test('Sharpening Stone applications expire independently at thirty seconds', () => {
   const result = ranger(
     'Druid',

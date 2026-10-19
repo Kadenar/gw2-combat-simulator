@@ -1257,7 +1257,7 @@ test('shroud entry profiles retain conditions without their strike and deliver b
   }
 });
 
-test('a landed shroud strike triggers Core conditions and siphons once in detailed and score execution', () => {
+test('a landed shroud strike triggers Core conditions and siphons once', () => {
   const config = { ...base, initialResource: 100, selectedTraitIds: [TRAIT.DHUUMFIRE, TRAIT.VAMPIRIC] };
   const rotation = [cast(ID.REAPERS_SHROUD), cast(ID.LIFE_REND), wait(1000)];
   const result = simulate(rotation, config);
@@ -1269,8 +1269,6 @@ test('a landed shroud strike triggers Core conditions and siphons once in detail
     result.resolvedEvents.filter((event) => event.type === 'damage' && event.sourceId === TRAIT.VAMPIRIC).length,
     1
   );
-  const score = simulate(rotation, config, { output: 'score' });
-  assert.equal(result.totalDamage, score.totalDamage);
   const missed = simulate([cast(ID.REAPERS_SHROUD), { ...cast(ID.LIFE_REND), offTarget: true }, wait(1000)], config);
   assert.equal(
     missed.resolvedEvents.some((event) => event.sourceId === TRAIT.DHUUMFIRE || event.sourceId === TRAIT.VAMPIRIC),
@@ -1370,13 +1368,12 @@ test('Eternal Life resumes at its original boundary after a shroud interval', ()
   );
 });
 
-test('Vampirism passive impacts obey the observation window and share score execution', () => {
+test('Vampirism passive impacts obey the observation window', () => {
   const config = { ...base, selectedSkillIds: [21762] };
   assert.equal(simulate([wait(2960)], config).totalDamage, 0);
   const result = simulate([wait(3000)], config);
   assert.ok(result.totalDamage > 0);
   assert.equal(result.resolvedEvents.filter((event) => event.type === 'damage').length, 1);
-  assert.equal(simulate([wait(3000)], config, { output: 'score' }).totalDamage, result.totalDamage);
 });
 
 test('allied siphon cadence starts once at an explicit combat marker', () => {

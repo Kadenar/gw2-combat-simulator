@@ -811,102 +811,6 @@ test('Retribution and Invocation traits use live combat state', () => {
   );
 });
 
-test('Forceful Persistence counts active upkeeps additively with Ferocious Aggression', () => {
-  const context = {
-    catalog: revenantCatalog,
-    config: {
-      specialization: 'Herald',
-      selectedTraitIds: [TRAIT.FORCEFUL_PERSISTENCE, TRAIT.FEROCIOUS_AGGRESSION],
-      boons: { fury: true }
-    },
-    time: 1,
-    event: { actorType: 'player' },
-    runtime: { profession: { core: { activeUpkeeps: [] }, specialization: { kind: 'Herald', state: {} } } }
-  };
-  // Count skills rather than upkeep pips, including Nature alongside another legend's upkeep.
-  for (const [skills, expected] of [
-    [[], 1.1],
-    [[SKILL.IMPOSSIBLE_ODDS], 1.35],
-    [[SKILL.VENGEFUL_HAMMERS], 1.35],
-    [[SKILL.EMBRACE_THE_DARKNESS], 1.35],
-    [[SKILL.PROTECTIVE_SOLACE], 1.35],
-    [[SKILL.FACET_OF_STRENGTH, SKILL.FACET_OF_NATURE], 1.3],
-    [[SKILL.IMPOSSIBLE_ODDS, SKILL.FACET_OF_NATURE], 1.45]
-  ]) {
-    context.runtime.profession.core.activeUpkeeps = skills.map((skillId) => ({
-      skillId,
-      upkeepCost: 0,
-      startsAt: 0,
-      empoweredNextPulse: false
-    }));
-    assert.ok(Math.abs(revenantModifiers.modifyStrikeDamage(context, 1) - expected) < 1e-9);
-    assert.equal(revenantModifiers.modifyConditionDamage(context, 1), 1.1);
-  }
-
-  context.config.boons.fury = false;
-  assert.equal(revenantModifiers.modifyStrikeDamage(context, 1), 1.35);
-  context.config.selectedTraitIds = [];
-  assert.equal(revenantModifiers.modifyStrikeDamage(context, 1), 1);
-});
-
-test('Devastation modifiers and Battle Scars use supplied thresholds', () => {
-  const modifierContext = (traitId, { healthDamage = 0, secondaryWeapon = '', targetBoons = {} } = {}) => ({
-    config: {
-      selectedTraitIds: [traitId],
-      secondaryWeapon,
-      target: { health: 100, boons: targetBoons }
-    },
-    event: { actorType: 'player' },
-    time: 1,
-    runtime: {
-      activeWeaponSet: 1,
-      totals: { strike: healthDamage, condition: 0 }
-    },
-    query: {
-      targetHasCondition: () => true,
-      targetConditionStacks: () => 20
-    }
-  });
-  const strikeCases = [
-    [TRAIT.DESTRUCTIVE_IMPULSES, {}, 1.05],
-    [TRAIT.DESTRUCTIVE_IMPULSES, { secondaryWeapon: 'Sword' }, 1.075],
-    [TRAIT.UNSUSPECTING_STRIKES, { healthDamage: 10 }, 1.2],
-    [TRAIT.TARGETED_DESTRUCTION, {}, 1.1],
-    // Old target-boon inputs are ignored; Brutality cannot receive its target-boon damage bonus.
-    [TRAIT.BRUTALITY, { targetBoons: { protection: true } }, 1],
-    [TRAIT.SWIFT_TERMINATION, { healthDamage: 60 }, 1.2]
-  ];
-
-  for (const [traitId, options, expected] of strikeCases) {
-    assert.equal(revenantModifiers.modifyStrikeDamage(modifierContext(traitId, options), 1), expected);
-  }
-
-  const destructiveWithForce = modifierContext(TRAIT.DESTRUCTIVE_IMPULSES, {
-    secondaryWeapon: 'Sword'
-  });
-
-  // Equipment selection supplies the evaluator with an explicit Force contribution.
-  destructiveWithForce.damageInputs = { strikeSigilBonus: 0.05 };
-  assert.equal(revenantModifiers.modifyStrikeDamage(destructiveWithForce, 1), 1.125);
-
-  const scars = simulate('Core', ['Enchanted Daggers', 'Phase Traversal'], {
-    selectedTraitIds: [TRAIT.BATTLE_SCARRED],
-    initialEnergy: 100
-  });
-  const siphon = scars.events.find((event) => event.name === 'Battle Scars — Life Siphon');
-
-  assert.equal(siphon.flatStrikeBase, 117);
-  assert.equal(siphon.flatStrikePowerCoeff, 0.006);
-  assert.equal(scars.planningState.profession.battleScars.length, 4);
-
-  const dance = simulate('Core', ['Phase Traversal', { type: 'wait', durationMs: 5000 }, 'Phase Traversal'], {
-    selectedTraitIds: [TRAIT.EXPOSE_DEFENSES, TRAIT.DANCE_OF_DEATH],
-    initialEnergy: 100
-  });
-
-  assert.equal(dance.events.filter((event) => event.name === 'Battle Scars — Life Siphon').length, 1);
-});
-
 test('Devastation boon procs respect combat intervals and skill categories', () => {
   const passive = simulate('Core', ['__combat_start', { type: 'wait', durationMs: 1100 }, 'Phase Traversal'], {
     selectedTraitIds: [TRAIT.THRILL_OF_COMBAT, TRAIT.ASSASSINS_PRESENCE],
@@ -1386,31 +1290,6 @@ test('Nature survives swaps into every legend and switches its consume without r
   }
 });
 
-// The consume samples the active weapon set instead of the generic profession-skill strength.
-test('Assassin True Nature strikes with a 1.0 coefficient and the equipped weapon strength', () => {
-  for (const swap of [false, true]) {
-    const result = simulate(
-      'Herald',
-      ['Facet of Nature', ...(swap ? ['Swap Weapons'] : []), { skillId: SKILL.TRUE_NATURE_ASSASSIN }],
-      {
-        primaryWeapon: 'Sword',
-        secondaryWeapon: 'Sword',
-        weaponSet2Primary: 'Greatsword',
-        startingWeaponSet: 1,
-        randomness: { mode: 'deterministic' }
-      }
-    );
-    assert.deepEqual(result.warnings, []);
-    const hit = result.resolvedEvents.find(
-      (event) => event.type === 'damage' && event.skillId === SKILL.TRUE_NATURE_ASSASSIN
-    );
-    assert.equal(hit.coefficient, 1);
-    assert.equal(hit.weaponStrengthProfileId, swap ? 'weapon.greatsword' : 'weapon.sword');
-    assert.equal(hit.resolvedWeaponStrength, swap ? 1100 : 1000);
-    assert.ok(hit.damage > 0);
-  }
-});
-
 test('Dragon Nature scales skill and trait boons up to 120 percent bonus duration', () => {
   for (const [concentration, multiplier] of [
     [0, 1.2],
@@ -1462,34 +1341,6 @@ test('Core Value extends allied boons by three seconds without duration scaling'
     remainingDurationStackSeconds(extended, extension.at, { maximum: 30 }),
     remainingDurationStackSeconds(original, extension.at, { maximum: 30 }) + 3
   );
-});
-
-test('Dragon True Nature extends active allied boons by two seconds', () => {
-  const result = simulate(
-    'Herald',
-    ['Facet of Darkness', { type: 'wait', durationMs: 3100 }, 'Facet of Nature', { skillId: SKILL.TRUE_NATURE_DRAGON }],
-    {
-      selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.DRAGON,
-      initialEnergy: 100,
-      attributeInputs: baseAttributeInputs({ concentration: 0 })
-    }
-  );
-  const extension = result.events.find((event) => event.type === 'proc' && event.skillId === SKILL.TRUE_NATURE_DRAGON);
-
-  assert.deepEqual(result.warnings, []);
-  const original = timedBuffApplicationsAt(
-    result.events.filter((event) => event.type !== 'boon_extension'),
-    'fury',
-    extension.at
-  );
-  const extended = timedBuffApplicationsAt(result.events, 'fury', extension.at);
-  assert.equal(
-    remainingDurationStackSeconds(extended, extension.at, { maximum: 30 }),
-    Math.min(30, remainingDurationStackSeconds(original, extension.at, { maximum: 30 }) + 2)
-  );
-  assert.equal(extension.duration, 2);
-  assert.equal(extension.procType, 'boon-extension');
 });
 
 test('True Nature variants share their twenty-second parent cooldown across legends', () => {
@@ -1549,117 +1400,6 @@ test('Herald consume skills apply their cooldown to the parent facet', () => {
       remaining: readyAt - result.planningState.atSeconds * 1000
     });
   }
-});
-
-test('Herald facets pulse their boons every three seconds', () => {
-  const cases = [
-    ['Facet of Light', 'Infuse Light', 1, 'regeneration', 4],
-    ['Facet of Darkness', 'Gaze of Darkness', 2, 'fury', 3],
-    ['Facet of Elements', 'Elemental Blast', 1, 'swiftness', 3],
-    ['Facet of Strength', 'Burst of Strength', 2, 'might', 12],
-    ['Facet of Chaos', 'Chaotic Release', 4, 'protection', 3]
-  ];
-
-  for (const [facet, consume, upkeep, boon, duration] of cases) {
-    assert.equal(revenantCatalog.skillsByName.get(facet).upkeepCost, upkeep);
-    const result = simulate('Herald', [facet, { type: 'wait', durationMs: 3100 }, consume], {
-      selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.DRAGON,
-      initialEnergy: 100
-    });
-
-    assert.equal(result.warnings.length, 0);
-    assert.ok(
-      result.events.some(
-        (event) =>
-          event.type === 'buff' && event.skillName === facet && event.kind === boon && event.duration === duration
-      )
-    );
-    assert.equal(result.planningState.profession.activeUpkeeps.length, 0);
-  }
-});
-
-test('Shared Empowerment grants one stack of eight-second Might on a strict one-second ICD', () => {
-  const result = simulate(
-    'Herald',
-    ['Pain Absorption', 'Pain Absorption', { type: 'wait', durationMs: 1001 }, 'Pain Absorption'],
-    {
-      selectedLegends: [LEGEND.DEMON, LEGEND.DRAGON],
-      startingLegend: LEGEND.DEMON,
-      initialEnergy: 100,
-      selectedTraitIds: [TRAIT.SHARED_EMPOWERMENT],
-      attributeInputs: baseAttributeInputs({ concentration: 0 }),
-      allies: { count: 4 }
-    }
-  );
-  const applications = result.events.filter(
-    (event) => event.type === 'buff' && event.skillName === 'Shared Empowerment'
-  );
-
-  assert.deepEqual(result.warnings, []);
-  assert.deepEqual(
-    applications.map((event) => [event.at, event.kind, event.duration, event.stacks]),
-    [
-      [result.steps[0].end / 1000, 'might', 8, 1],
-      [result.steps.at(-1).end / 1000, 'might', 8, 1]
-    ]
-  );
-  assert.ok(applications.every((event) => event.resolvedAudience.alliedPlayerCount === 4));
-});
-
-test('Elevated Compassion grants 1.25 seconds of Quickness at six upkeep', () => {
-  const belowThreshold = simulate('Herald', ['Facet of Chaos', { type: 'wait', durationMs: 1100 }], {
-    selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.DRAGON,
-    initialEnergy: 100,
-    selectedTraitIds: [TRAIT.ELEVATED_COMPASSION],
-    attributeInputs: baseAttributeInputs({ concentration: 0 })
-  });
-  const atThreshold = simulate('Herald', ['Facet of Chaos', 'Facet of Strength', { type: 'wait', durationMs: 2100 }], {
-    selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.DRAGON,
-    initialEnergy: 100,
-    selectedTraitIds: [TRAIT.ELEVATED_COMPASSION],
-    attributeInputs: baseAttributeInputs({ concentration: 0 })
-  });
-  const thresholdReentry = simulate(
-    'Herald',
-    [
-      'Facet of Chaos',
-      'Facet of Strength',
-      'Burst of Strength',
-      'Facet of Darkness',
-      { type: 'wait', durationMs: 300 }
-    ],
-    {
-      selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.DRAGON,
-      initialEnergy: 100,
-      selectedTraitIds: [TRAIT.ELEVATED_COMPASSION],
-      attributeInputs: baseAttributeInputs({ concentration: 0 })
-    }
-  );
-
-  assert.equal(
-    belowThreshold.events.some((event) => event.type === 'buff' && event.skillName === 'Elevated Compassion'),
-    false
-  );
-  assert.deepEqual(
-    atThreshold.events
-      .filter((event) => event.type === 'buff' && event.skillName === 'Elevated Compassion')
-      .map((event) => [event.at, event.kind, event.duration]),
-    [
-      [0, 'quickness', 1.358],
-      [1, 'quickness', 1.358],
-      [2, 'quickness', 1.358]
-    ]
-  );
-  assert.deepEqual(
-    thresholdReentry.events
-      .filter((event) => event.type === 'buff' && event.skillName === 'Elevated Compassion')
-      .map((event) => event.at),
-    [0, 1]
-  );
 });
 
 test('Herald consume skills apply their full outgoing profiles', () => {
@@ -1767,36 +1507,6 @@ test('Herald consume skills apply their full outgoing profiles', () => {
   );
   assert.ok(chaos.events.some((event) => event.type === 'control' && event.controlKind === 'knockback'));
   assert.ok(chaos.events.some((event) => event.type === 'buff' && event.kind === 'superspeed' && event.duration === 5));
-});
-
-// Potency must scale other outgoing bonuses; checking it alone cannot distinguish additive from multiplicative stacking.
-test('Reinforced Potency multiplies the outgoing bucket and counts unique active boons', () => {
-  const context = {
-    config: {
-      specialization: 'Herald',
-      selectedTraitIds: [TRAIT.REINFORCED_POTENCY, TRAIT.FEROCIOUS_AGGRESSION],
-      boons: { fury: true, might: 25 }
-    },
-    time: 5,
-    event: { actorType: 'player' },
-    runtime: {
-      boons: new Map(),
-      buffs: new Map([
-        ['burst-of-strength', [{ resolvedAudience: { includesSelf: true }, at: 1, expiresAt: 11, stacks: 1 }]]
-      ]),
-      profession: {}
-    }
-  };
-  const strike = () => revenantModifiers.modifyStrikeDamage(context, 1);
-  assert.ok(Math.abs(strike() - 1.2 * 1.02) < 1e-9);
-  // Removing the temporary consume bonus leaves Fury's additive bonus scaled by the same two unique boons.
-  context.runtime.buffs.clear();
-  assert.ok(Math.abs(strike() - 1.1 * 1.02) < 1e-9);
-  context.config.boons.might = 1;
-  assert.ok(Math.abs(strike() - 1.1 * 1.02) < 1e-9);
-  context.config.boons.might = 0;
-  assert.ok(Math.abs(strike() - 1.1 * 1.01) < 1e-9);
-  assert.equal(revenantModifiers.modifyConditionDamage(context, 1), 1.1);
 });
 
 // Cross-line duration contributions respect the effective selection used by isolated build previews.

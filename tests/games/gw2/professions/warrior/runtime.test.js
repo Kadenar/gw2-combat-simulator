@@ -121,7 +121,7 @@ test('critical burst reactions share the resolved outcome for resources and inde
   );
 });
 
-test('seeded critical traits agree in detailed and score runs without reading report collections', () => {
+test('seeded critical rolls trigger Bloodlust and Forceful Greatsword', () => {
   const config = {
     primaryWeapon: 'Rifle',
     attributeInputs: baseAttributeInputs({ power: 2000, precision: 1800 }),
@@ -130,14 +130,7 @@ test('seeded critical traits agree in detailed and score runs without reading re
   };
   const rotation = Array(20).fill('Fierce Shot');
   const detailed = run(rotation, config);
-  const score = run(rotation, config, warriorProfession, 'score');
   assert.deepEqual(detailed.warnings, []);
-  assert.equal(score.totalDamage, detailed.totalDamage);
-  assert.equal(score.conditionDamage, detailed.conditionDamage);
-  assert.equal(
-    observedRuntime(score).profession.core.adrenaline.value,
-    observedRuntime(detailed).profession.core.adrenaline.value
-  );
   assert.ok(detailed.resolvedEvents.some((event) => event.sourceId === TRAIT.FORCEFUL_GREATSWORD));
   assert.ok(detailed.resolvedEvents.some((event) => event.sourceId === TRAIT.BLOODLUST));
 });

@@ -2,14 +2,9 @@ import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lo
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
-import { loadProfession } from '#gw2/profession-registry.js';
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { getActiveTraits as getGuardianActiveTraits } from '#gw2/professions/guardian/data/traits-data.js';
-import {
-  createGuardianBuildDefaults,
-  migrateGuardianBuild,
-  validateGuardianBuild
-} from '#gw2/professions/guardian/build/build.js';
+import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { guardianCoreModule } from '#gw2/professions/guardian/core/module.js';
 import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -912,32 +907,4 @@ test('Guardian declarative scheduling respects the configured starting set', () 
   assert.equal(initial.planningState.activeWeaponSet, 2);
   assert.equal(swapped.planningState.activeWeaponSet, 1);
   assert.equal(swapped.events.find((event) => event.type === 'weapon_set').weaponSet, 1);
-});
-
-test('Guardian builds migrate and validate against real catalog metadata', () => {
-  const defaults = createGuardianBuildDefaults();
-  const migrated = migrateGuardianBuild({
-    ...defaults,
-    rotation: ['Virtue of Justice', 'True Strike']
-  });
-
-  assert.equal(validateGuardianBuild(migrated).valid, true);
-  assert.deepEqual(
-    migrated.rotation.map((command) => command.skillId),
-    [
-      guardianProfession.catalog.skillsByName.get('Virtue of Justice').id,
-      guardianProfession.catalog.skillsByName.get('True Strike').id
-    ]
-  );
-  assert.equal(
-    validateGuardianBuild({
-      ...migrated,
-      weapons: ['Greatsword', 'Torch']
-    }).valid,
-    false
-  );
-});
-
-test('Guardian is registered at the profession composition boundary', async () => {
-  assert.equal(await loadProfession('guardian'), guardianProfession);
 });

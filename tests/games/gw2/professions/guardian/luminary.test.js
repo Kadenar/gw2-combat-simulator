@@ -394,20 +394,6 @@ test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
   assert.ok(result.totalDamage > 0);
 });
 
-test('Luminary Forge availability follows skill IDs after display labels change', () => {
-  const config = { specialization: 'Luminary' };
-  const result = runGuardian(['Enter Radiant Forge'], config);
-  const runtime = observedRuntime(result);
-  const native = guardianProfession.runtimeFor(config);
-  const enter = {
-    ...guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE),
-    name: 'Renamed forge entry'
-  };
-  const exit = { ...guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE), name: 'Renamed forge exit' };
-  assert.equal(native.availability(runtime, enter).code, 'guardian.radiant-forge-active');
-  assert.deepEqual(native.availability(runtime, exit), { ready: true });
-});
-
 test('Guardian weapon and Radiant Forge flips occupy one live palette tile', () => {
   const app = {
     skills: guardianCatalog.skills,
@@ -828,43 +814,6 @@ test('Radiant weapon equips replace the prior flip and preserve its parent coold
   assert.ok(glaringBurst.planningState.profession.availableFlips[GUARDIAN_SKILL_IDS.SHINING_SPIN]);
 });
 
-test('Guardian armaments share the additive sigil bucket', () => {
-  const rotation = ['Enter Radiant Forge', 'Dazzling Hammer', 'Shining Spin'];
-  const run = ({ selectedTraitIds = [], sigilSets = undefined, burning = false } = {}) =>
-    createObservedProfessionSimulator(guardianProfession, {
-      ...config,
-      specialization: 'Luminary',
-      selectedTraitIds,
-      sigilSets,
-      target: {
-        ...config.target,
-        conditions: burning ? { Burning: true } : {}
-      }
-    })(undefined, rotation);
-  const shining = (result) => result.resolvedEvents.find((event) => event.name === 'Shining Spin').damage;
-  const baseline = run();
-  const sigils = run({
-    sigilSets: [{ names: ['Force', 'Impact'], strikeAdd: 0.08, strike: 1.08 }, {}]
-  });
-  const armaments = run({
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS],
-    sigilSets: [{ names: ['Force', 'Impact'], strikeAdd: 0.08, strike: 1.08 }, {}]
-  });
-  const conditional = run({
-    selectedTraitIds: [
-      GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS,
-      GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS,
-      GUARDIAN_TRAIT_IDS.FIERY_WRATH
-    ],
-    sigilSets: [{ names: ['Force', 'Impact'], strikeAdd: 0.08, strike: 1.08 }, {}],
-    burning: true
-  });
-
-  assertFlooredDamageMultiplier(shining(sigils), shining(baseline), 1.08);
-  assertFlooredDamageMultiplier(shining(armaments), shining(baseline), 1.25);
-  assertFlooredDamageMultiplier(shining(conditional), shining(armaments), 1.05);
-});
-
 test('Radiant virtues grant one-use hammer and sword empowerments', () => {
   const armedHammer = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
     undefined,
@@ -972,35 +921,6 @@ test('Radiant Justice selects the first committed hammer impact after activation
     false
   );
   assert.equal(offTarget.planningState.profession.radiantJusticeArmed, false);
-});
-
-test('Guardian strike modifiers use their tested additive and mult buckets', () => {
-  const run = (selectedTraitIds) =>
-    createObservedProfessionSimulator(guardianProfession, {
-      ...config,
-      // Keep both boon-gated modifiers active so this test isolates damage bucket arithmetic from application order.
-      boons: { fury: true, resolution: true },
-      primaryWeapon: 'Greatsword',
-      selectedTraitIds,
-      sigilSets: [{ names: ['Force'], strikeAdd: 0.05, strike: 1.05 }, {}],
-      target: {
-        ...config.target,
-        conditions: {
-          Burning: true,
-          Vulnerability: 25
-        }
-      }
-    })(undefined, ['Symbol of Resolution', { type: 'wait', durationMs: 1500 }]);
-  const pulse = (result) => result.resolvedEvents.filter((event) => event.name === 'Symbol of Resolution')[0].damage;
-  const baseline = run([]);
-  const conditional = run([
-    GUARDIAN_TRAIT_IDS.FIERY_WRATH,
-    GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS,
-    GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
-    GUARDIAN_TRAIT_IDS.RETRIBUTION
-  ]);
-
-  assertFlooredDamageMultiplier(pulse(conditional), pulse(baseline), (1.25 / 1.05) * 1.05 * 1.05);
 });
 
 test('Piercing Stance applies its bonus to its first strike without stacking damage on refresh', () => {

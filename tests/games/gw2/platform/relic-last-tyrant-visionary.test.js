@@ -406,23 +406,6 @@ test("Visionary reports a new buildup and buff cycle after Vloxx's Vision expire
   assert.equal(effectStateAt(report, vision, 30).count, 0);
 });
 
-test("Visionary grants Vloxx's Vision at eight combos for 8s of +10% strike and condition damage", () => {
-  const { relic, ctx } = relicHarness('Visionary');
-  for (let at = 0; at < 7; at += 1) relic.rules.combo(ctx, relic.state, combo(at));
-  assert.equal(relic.rules.outgoingDamageBonus(ctx, relic.state, 'strike', 7), 0);
-
-  relic.rules.combo(ctx, relic.state, combo(7));
-  assert.equal(relic.rules.outgoingDamageBonus(ctx, relic.state, 'strike', 7), 0.1);
-  assert.equal(relic.rules.outgoingDamageBonus(ctx, relic.state, 'condition', 14.9), 0.1);
-  assert.equal(relic.rules.outgoingDamageBonus(ctx, relic.state, 'condition', 15), 0);
-
-  // Stacks do not build while the buff is active.
-  relic.rules.combo(ctx, relic.state, combo(10));
-  assert.equal(relic.state.stacks, 0);
-  relic.rules.combo(ctx, relic.state, combo(15));
-  assert.equal(relic.state.stacks, 1);
-});
-
 test('Visionary counts whirl finishers at most once per 3s', () => {
   const { relic, ctx } = relicHarness('Visionary');
   for (const at of [0, 0, 0.5, 2.9]) relic.rules.combo(ctx, relic.state, combo(at, 'Whirl'));

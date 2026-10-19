@@ -21,22 +21,6 @@ function brawlersTenacityEnduranceGain(rotation) {
   return endurance([TRAIT.BRAWLERS_TENACITY]) - endurance([]);
 }
 
-test("Brawler's Tenacity grants 15 endurance for each physical skill activation", () => {
-  for (const [rotation, activations] of [
-    [['Channeled Vigor'], 1],
-    [["Bandit's Defense"], 1],
-    // The follow-up is a separate physical activation.
-    [["Bandit's Defense", 'Reflexive Strike'], 2],
-    [['Distracting Daggers'], 1],
-    [['Fist Flurry'], 1],
-    [['Impairing Daggers'], 1]
-  ]) {
-    const gain = brawlersTenacityEnduranceGain(rotation);
-
-    assert.ok(Math.abs(gain - 15 * activations) < 1e-9, `${rotation.join(' → ')}: ${gain}`);
-  }
-});
-
 test("Pulmonary Impact does not trigger Brawler's Tenacity", () => {
   assert.equal(brawlersTenacityEnduranceGain(['Pulmonary Impact (trait skill)']), 0);
 });

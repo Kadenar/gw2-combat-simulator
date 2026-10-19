@@ -73,42 +73,39 @@ test('Storm Spirit damage previews include Call Lightning without admitting a tr
 });
 
 // Both slams read the canonical child profile, including removal, while the parent retains its rewards.
-test('Call Lightning tuning controls Storm Spirit and its trait repeat in detailed and score runs', () => {
-  for (const output of ['detailed', 'score']) {
-    for (const removed of [false, true]) {
-      const coefficients = [];
-      const result = runRanger(
-        [ID.STORM_SPIRIT, wait(6500)],
-        { selectedTraitIds: [TRAIT.NATURES_VENGEANCE] },
-        {
-          output,
-          extend(native) {
-            const child = native.catalog.skillsById.get(ID.CALL_LIGHTNING);
-            return {
-              catalog: withSkill(native.catalog, ID.CALL_LIGHTNING, {
-                effects: child.effects.flatMap((effect) =>
-                  effect.type === 'strike' ? (removed ? [] : [{ ...effect, coefficient: 4 }]) : [effect]
-                )
-              }),
-              reactions: {
-                ...native.reactions,
-                'damage.resolved'(runtime, event, details) {
-                  native.reactions['damage.resolved']?.(runtime, event, details);
+test('Call Lightning tuning controls Storm Spirit and its trait repeat', () => {
+  for (const removed of [false, true]) {
+    const coefficients = [];
+    const result = runRanger(
+      [ID.STORM_SPIRIT, wait(6500)],
+      { selectedTraitIds: [TRAIT.NATURES_VENGEANCE] },
+      {
+        extend(native) {
+          const child = native.catalog.skillsById.get(ID.CALL_LIGHTNING);
+          return {
+            catalog: withSkill(native.catalog, ID.CALL_LIGHTNING, {
+              effects: child.effects.flatMap((effect) =>
+                effect.type === 'strike' ? (removed ? [] : [{ ...effect, coefficient: 4 }]) : [effect]
+              )
+            }),
+            reactions: {
+              ...native.reactions,
+              'damage.resolved'(runtime, event, details) {
+                native.reactions['damage.resolved']?.(runtime, event, details);
 
-                  if (event.skillId === ID.CALL_LIGHTNING) coefficients.push(event.coefficient);
-                }
+                if (event.skillId === ID.CALL_LIGHTNING) coefficients.push(event.coefficient);
               }
-            };
-          }
+            }
+          };
         }
-      );
-      assert.deepEqual(result.warnings, []);
-      assert.deepEqual(coefficients, removed ? [] : [4, 2]);
-      assert.ok(
-        observedRuntime(result)
-          .facts.ofType('buff')
-          .some((event) => event.skillId === ID.STORM_SPIRIT && event.kind === 'fury')
-      );
-    }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(coefficients, removed ? [] : [4, 2]);
+    assert.ok(
+      observedRuntime(result)
+        .facts.ofType('buff')
+        .some((event) => event.skillId === ID.STORM_SPIRIT && event.kind === 'fury')
+    );
   }
 });

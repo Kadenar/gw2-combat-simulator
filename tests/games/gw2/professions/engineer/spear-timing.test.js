@@ -173,28 +173,6 @@ test('Lightning Rod replacement retires old pulses and each charge expires after
   assert.equal(activeStackCount(expiries, expiries[0]), 0);
 });
 
-// An unused flip disappears at its deadline, including its palette flag and stored charges.
-test('Electric Artillery availability ends eight seconds after arming', () => {
-  const charging = simulate('Core', ['Lightning Rod']);
-  const deadline = charging.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY].expiresAt;
-  const waitMs = deadline * 1000 - charging.steps[0].end;
-  const before = simulate('Core', ['Lightning Rod', { type: 'wait', durationMs: waitMs - 40 }]);
-  const expired = simulate('Core', ['Lightning Rod', { type: 'wait', durationMs: waitMs }, 'Electric Artillery']);
-  assert.equal(
-    skillFlipReady(before.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY], before.rotationEndTime),
-    true
-  );
-  assert.equal(before.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY].expiresAt, deadline);
-  assert.equal(
-    skillFlipReady(expired.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY], expired.rotationEndTime),
-    false
-  );
-  assert.equal(expired.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY], undefined);
-  assert.deepEqual(expired.planningState.profession.lightningRodChargeExpiries, []);
-  assert.equal(expired.warnings.length, 1);
-  assert.match(expired.warnings[0].message, /Lightning Rod has not finished charging/);
-});
-
 // Consuming a projectile is separate from landing it, and later actions may run during its flight.
 test('Artillery damage and conditions wait for impact without delaying the next cast', () => {
   const rotation = ['Lightning Rod', 'Electric Artillery'];

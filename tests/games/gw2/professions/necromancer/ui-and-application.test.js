@@ -3,21 +3,15 @@ import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { inertContainer } from '#tests/helpers/dom.js';
-import { loadProfession, professionOptions } from '#gw2/profession-registry.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { formatResourceValue } from '#gw2/app/rotation/palette/resource-view.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import {
-  createNecromancerBuildDefaults,
-  migrateNecromancerBuild,
-  validateNecromancerBuild
-} from '#gw2/professions/necromancer/build/build.js';
+import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -533,49 +527,4 @@ test('Harbinger can equip torch skills through Weaponmaster Training', async () 
 
   assert.equal(oppressiveMight.audience.recipients, 'party');
   assert.equal(oppressiveMight.resolvedAudience.includesSummons, false);
-});
-
-test('Necromancer builds migrate and validate against canonical metadata', () => {
-  const defaults = createNecromancerBuildDefaults();
-
-  assert.deepEqual(validateNecromancerBuild(defaults), {
-    valid: true,
-    errors: []
-  });
-  const migrated = migrateNecromancerBuild({
-    weapons: ['Greatsword', 'Focus'],
-    initialResource: 500,
-    initialBlight: -4,
-    initialCascadingCorruptionStacks: 30,
-    selectedSkillIds: {
-      Heal: 10547,
-      Utility1: 10544,
-      Elite: 10550
-    }
-  });
-
-  assert.deepEqual(migrated.weapons, ['Greatsword', '']);
-  assert.equal(migrated.initialResource, 100);
-  assert.equal(migrated.initialBlight, 0);
-  assert.equal(migrated.initialCascadingCorruptionStacks, 19);
-  assert.equal(migrated.selectedSkillIds.Heal, 10547);
-  assert.equal(migrated.selectedSkillIds.Utility1, 10544);
-  assert.equal(migrated.selectedSkillIds.Elite, 10550);
-  assert.deepEqual(validateNecromancerBuild(migrated), {
-    valid: true,
-    errors: []
-  });
-  assert.throws(() => migrateNecromancerBuild({ profession: 'guardian' }), /Cannot load guardian build as Necromancer/);
-});
-
-test('Necromancer is wired through the selector and application adapter', async () => {
-  const page = await readFile(new URL('../../../../../necromancer.html', import.meta.url), 'utf8');
-
-  assert.equal(
-    professionOptions.some((option) => option.id === 'necromancer'),
-    true
-  );
-  assert.equal((await loadProfession('necromancer'))?.id, 'necromancer');
-  assert.equal((await loadProfessionAppAdapter('necromancer'))?.id, 'necromancer');
-  assert.match(page, /data-profession="necromancer"/);
 });

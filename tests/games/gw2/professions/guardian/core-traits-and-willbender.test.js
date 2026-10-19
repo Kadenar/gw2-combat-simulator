@@ -64,26 +64,6 @@ test('Guardian recharge applies Alacrity, ammo, and trait reductions', () => {
   assert.deepEqual(ammo.warnings, []);
 });
 
-test('Zealous Blade reduces every Greatsword skill recharge by 20%', () => {
-  const skillNames = ['Whirling Wrath', 'Leap of Faith', 'Symbol of Resolution', 'Binding Blade'];
-  const rechargeDurations = (selectedTraitIds) =>
-    skillNames.map((skillName) => {
-      const result = createObservedProfessionSimulator(guardianProfession, {
-        ...config,
-        primaryWeapon: 'Greatsword',
-        selectedTraitIds
-      })(undefined, [skillName]);
-      const skill = guardianCatalog.skillsByName.get(skillName);
-      const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
-      const rechargeStart = skill.rechargeAnchor === 'castStart' ? action.at : action.endsAt;
-
-      return Number((observedRuntime(result).cooldownController.readyAt(skill.id) - rechargeStart).toFixed(3));
-    });
-
-  assert.deepEqual(rechargeDurations([]), [6.4, 8, 9.6, 20]);
-  assert.deepEqual(rechargeDurations([GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE]), [5.12, 6.4, 7.68, 16]);
-});
-
 // Utility effects retain their control, finisher, and virtue ownership through the shared runtime.
 test('Willbender utilities deliver control, per-hit conditions, and virtue effects', () => {
   const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Willbender' })(

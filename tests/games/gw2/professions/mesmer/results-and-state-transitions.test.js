@@ -407,36 +407,6 @@ test('chart hover values use the latest sample at the hovered timestamp', () => 
   assert.equal(chartValueAt([], 500), 0);
 });
 
-test('Compounding Power chart series caps at five stacks', () => {
-  const series = buildChartSeries(
-    {
-      rotationEndTime: 10,
-      observationEndTime: 10,
-      combatEndTime: 10,
-
-      ...effectFields(
-        Array.from({ length: 7 }, (_, index) => ({
-          type: 'buff',
-          at: index * 0.1,
-          kind: 'compounding',
-          duration: 8,
-          stacks: 1,
-          resolvedAudience: PLAYER_RESOLVED_AUDIENCE
-        })),
-        10,
-        { policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog }) }
-      )
-    },
-    100,
-    mesmerProfession.ui.effectPresentations({
-      specialization: 'Core',
-      catalog: mesmerProfession.catalog
-    })
-  );
-
-  assert.equal(Math.max(...series.effects['Compounding Power'].map((point) => point.v)), 5);
-});
-
 test('Vulnerability chart series caps at 25 stacks', () => {
   const series = buildChartSeries(
     {

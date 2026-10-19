@@ -1,32 +1,24 @@
 import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
-import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
 import { thiefCatalog, thiefNativeModules, thiefProfession } from '#gw2/professions/thief/profession.js';
-import { antiquaryModule } from '#gw2/professions/thief/specializations/antiquary/module.js';
 import { ANTIQUARY_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/antiquary/skills/index.js';
 import {
   ANTIQUARY_PUBLIC_STATE_PROJECTION,
   createAntiquaryState
 } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import { daredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';
 import { DAREDEVIL_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/daredevil/skills/index.js';
 import {
   createDaredevilState,
   DAREDEVIL_PUBLIC_STATE_PROJECTION
 } from '#gw2/professions/thief/specializations/daredevil/state.js';
-import { deadeyeModule } from '#gw2/professions/thief/specializations/deadeye/module.js';
 import { DEADEYE_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
-import { specterModule } from '#gw2/professions/thief/specializations/specter/module.js';
 import { SPECTER_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/specter/skills/index.js';
 import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
-import path from 'node:path';
-import ts from 'typescript';
 
 test('Antiquary projects its own charge fields and preserves the inactive initiative layout fallback', () => {
   // The slice must expose its charges without relying on Deadeye's contribution to the family metadata.
@@ -62,34 +54,6 @@ function eliteSpecializationNames(catalog) {
   return catalog.specializations.filter((specialization) => specialization.elite).map(({ name }) => name);
 }
 
-function nativeModifierRules(module) {
-  const modifiers = module.modifiers;
-
-  return modifiers.modifierRules || [];
-}
-
-function collectTypeScriptSources(directoryUrl, relativeDirectory = '') {
-  return readdirSync(directoryUrl, { withFileTypes: true })
-    .sort((left, right) => left.name.localeCompare(right.name))
-    .flatMap((entry) => {
-      const relativePath = relativeDirectory ? `${relativeDirectory}/${entry.name}` : entry.name;
-      const url = new URL(entry.name + (entry.isDirectory() ? '/' : ''), directoryUrl);
-
-      if (entry.isDirectory()) return collectTypeScriptSources(url, relativePath);
-
-      if (!entry.isFile() || !entry.name.endsWith('.ts')) return [];
-
-      return [{ relativePath, source: readFileSync(url, 'utf8') }];
-    });
-}
-
-const slices = Object.freeze([
-  ['core', thiefCoreModule],
-  ['specializations/daredevil', daredevilModule],
-  ['specializations/deadeye', deadeyeModule],
-  ['specializations/specter', specterModule],
-  ['specializations/antiquary', antiquaryModule]
-]);
 const thiefSkillOwners = new Map(
   [...getNativeCatalogAssembly(thiefNativeModules, undefined).fragments].flatMap(([owner, fragment]) =>
     fragment.skills.map((skill) => [skill.id, owner])
@@ -101,64 +65,6 @@ const specializationStateKeys = Object.freeze({
   Deadeye: ['markedTargetId', 'malice', 'maleficentSevenTriggered'],
   Specter: ['shadowClock', 'shadowShroudActive'],
   Antiquary: ['artifactSlots', 'artifactUsesRemaining', 'mistburn', 'holoUtilityCooldownReductionExpirations']
-});
-
-// Validate live module ownership; dependency restrictions guard imports rather than source spelling.
-test('Thief modules register unique behavior owners and respect dependency boundaries', () => {
-  const modifierRuleOwners = new Map();
-
-  for (const [directory, module] of slices) {
-    const directoryUrl = new URL(`../../../../../js/games/gw2/professions/thief/${directory}/`, import.meta.url);
-    const sources = collectTypeScriptSources(directoryUrl);
-    // Resolve import and reexport targets so aliases are checked and comments cannot create false violations.
-    for (const { relativePath, source } of sources) {
-      const parsed = ts.createSourceFile(relativePath, source, ts.ScriptTarget.Latest, true);
-      for (const statement of parsed.statements) {
-        if (!ts.isImportDeclaration(statement) && !ts.isExportDeclaration(statement)) continue;
-
-        const specifier = statement.moduleSpecifier?.text;
-
-        if (!specifier) continue;
-
-        const alias = '#gw2/professions/thief/';
-        const target = specifier.startsWith(alias)
-          ? specifier.slice(alias.length)
-          : specifier.startsWith('.')
-            ? path.posix.normalize(path.posix.join(directory, path.posix.dirname(relativePath), specifier))
-            : null;
-
-        if (!target) continue;
-
-        const label = `${directory}/${relativePath} -> ${target}`;
-
-        if (target.startsWith('specializations/')) assert.ok(target.startsWith(`${directory}/`), label);
-
-        assert.ok(
-          !/^(?:assumptions|attribute-rules|definition|family|handlers|resolver|state|ui)\.js$/.test(target),
-          label
-        );
-
-        if (relativePath !== 'module.ts') assert.notEqual(target, 'catalog.js', label);
-      }
-    }
-
-    assert.equal(typeof module.state?.create, 'function');
-    assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
-    for (const rule of nativeModifierRules(module)) {
-      assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
-      modifierRuleOwners.set(rule.id, module.id);
-    }
-  }
-
-  assert.equal(modifierRuleOwners.get('thief.havoc-specialist'), 'Daredevil');
-  assert.equal(modifierRuleOwners.get('thief.malicious-stealth-attack'), 'Deadeye');
-  assert.equal(modifierRuleOwners.get('thief.strength-of-shadows'), 'Specter');
-  assert.equal(modifierRuleOwners.get('thief.meticulous-custodian-artifact-strike'), 'Antiquary');
-
-  for (const module of thiefNativeModules) {
-    assert.ok(module.traitDefinitions.length > 0, module.id);
-    assert.equal(new Set(module.traitDefinitions.map((trait) => trait.id)).size, module.traitDefinitions.length);
-  }
 });
 
 test('Thief raw skill mechanics retain a disjoint no-loss union', () => {

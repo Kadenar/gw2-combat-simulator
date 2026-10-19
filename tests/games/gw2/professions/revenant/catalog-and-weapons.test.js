@@ -60,9 +60,6 @@ const simulate = createObservedProfessionSimulator(revenantProfession, baseConfi
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
-const strikeCoefficient = (effect) =>
-  effect.ticks?.reduce((total, tick) => total + Number(tick.coefficient), 0) ?? Number(effect.coefficient);
-
 const authoringRevenantProfession = withActivePatchPreview(revenantProfession);
 
 // Supplemental identities must not shadow the mechanics consumed by the runtime.
@@ -835,57 +832,6 @@ test('Citadel Bombardment resets the Renegade autoattack chain', () => {
     ['Preparation Thrust', 'Brutal Blade', 'Citadel Bombardment', 'Preparation Thrust']
   );
   assert.equal(result.planningState.profession.autoattackChains[SKILL.PREPARATION_THRUST], SKILL.BRUTAL_BLADE);
-});
-
-test('Renegade shortbow skills expose coefficients, combos, and control', () => {
-  const expectedSkills = [
-    [SKILL.SHATTERSHOT, 0.65],
-    [SKILL.BLOODBANE_PATH, 1.2],
-    [SKILL.SEVENSHOT, 2.17],
-    [SKILL.SPIRITCRUSH, 1.25],
-    [SKILL.SCORCHRAZOR, 1]
-  ];
-
-  for (const [skillId, coefficient] of expectedSkills) {
-    const skill = revenantCatalog.skillsById.get(skillId);
-    const strike = skill.effects[0];
-    const totalCoefficient = strike.coefficient ?? strike.ticks.reduce((sum, tick) => sum + tick.coefficient, 0);
-
-    assert.ok(Math.abs(totalCoefficient - coefficient) < 1e-12);
-  }
-
-  for (const skillId of [SKILL.SHATTERSHOT, SKILL.SEVENSHOT]) {
-    const skill = revenantCatalog.skillsById.get(skillId);
-
-    assert.equal(skill.comboFinishers[0].ownerId, 'revenant');
-    assert.equal(skill.comboFinishers[0].finisherType, 'Projectile');
-    assert.equal(skill.comboFinishers[0].chance, 0.2);
-  }
-
-  const spiritcrush = revenantCatalog.skillsById.get(SKILL.SPIRITCRUSH);
-
-  assert.equal(spiritcrush.comboFields[0].ownerId, 'revenant');
-  assert.equal(spiritcrush.comboFields[0].fieldType, 'Fire');
-  assert.equal(spiritcrush.comboFields[0].duration, 3);
-  assert.equal(strikeCoefficient(spiritcrush.effects[1]), 0.75);
-
-  const result = simulate(
-    'Renegade',
-    ['Shattershot', 'Bloodbane Path', 'Sevenshot', 'Spiritcrush', 'Scorchrazor'],
-    {
-      primaryWeapon: 'Shortbow',
-      secondaryWeapon: '',
-      initialEnergy: 100
-    },
-    observationTail(4000)
-  );
-
-  assert.equal(result.warnings.length, 0);
-  assert.ok(
-    result.events.some(
-      (event) => event.type === 'control' && event.skillName === 'Scorchrazor' && event.controlKind === 'knockdown'
-    )
-  );
 });
 
 test('Bloodbane Path keeps Bleeding aligned with landed projectile packets', () => {

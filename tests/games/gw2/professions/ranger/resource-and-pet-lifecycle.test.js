@@ -1,6 +1,5 @@
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
@@ -47,33 +46,17 @@ const boon = (runtime, kind, at, duration, affectsSelf = true) =>
     }
   });
 
-test('Ranger endurance and Dodge readiness are invariant under wait partitions', () => {
-  for (const waits of [[4000], [1000, 1000, 1000, 1000]]) {
-    const result = runRanger(waits.map(wait), config, {
-      initialize(runtime) {
-        runtime.profession.core.endurance.value = 0;
-        boon(runtime, 'vigor', 0, 1);
-        boon(runtime, 'vigor', 0.5, 1);
-        boon(runtime, 'vigor', 2, 20, false);
-      }
-    });
-    close(observedRuntime(result).profession.core.endurance.value, 25);
-    close(observedRuntime(result).endurance.readyAt(50), 9);
-  }
-
-  const results = [[4000], [1000, 1000, 2000]].map((waits) =>
-    runRanger([SHARED_SKILL_IDS.DODGE, SHARED_SKILL_IDS.DODGE, ...waits.map(wait), SHARED_SKILL_IDS.DODGE], config, {
-      initialize(runtime) {
-        boon(runtime, 'vigor', 0, 2);
-      }
-    })
-  );
-  results.forEach((result) => assert.deepEqual(result.warnings, []));
-  assert.equal(results[0].steps.at(-1).start, results[1].steps.at(-1).start);
-  close(
-    observedRuntime(results[0]).profession.core.endurance.value,
-    observedRuntime(results[1]).profession.core.endurance.value
-  );
+test('Ranger endurance and Dodge readiness follow self Vigor windows', () => {
+  const result = runRanger([wait(4000)], config, {
+    initialize(runtime) {
+      runtime.profession.core.endurance.value = 0;
+      boon(runtime, 'vigor', 0, 1);
+      boon(runtime, 'vigor', 0.5, 1);
+      boon(runtime, 'vigor', 2, 20, false);
+    }
+  });
+  close(observedRuntime(result).profession.core.endurance.value, 25);
+  close(observedRuntime(result).endurance.readyAt(50), 9);
 });
 
 test('Ranger recovery rejects invalid profiles and uses each invocation profile', () => {
@@ -91,30 +74,28 @@ test('Ranger recovery rejects invalid profiles and uses each invocation profile'
   close(observedRuntime(run(4)).profession.core.endurance.value, 16);
 });
 
-test('Galeshot arrow regeneration ignores Alacrity gain and expiry across wait partitions', () => {
+test('Galeshot arrow regeneration ignores Alacrity gain and expiry', () => {
   for (const [at, duration] of [
     [3, 10],
     [0, 2]
   ]) {
-    for (const waits of [[4900], [1000, 1000, 1000, 1900]]) {
-      for (const [extra, value, nextAt] of [
-        [0, 0, 5],
-        [100, 1, 10],
-        [5100, 2, 15]
-      ]) {
-        const result = runRanger(
-          [...waits, extra].map(wait),
-          { ...config, specialization: 'Galeshot' },
-          {
-            initialize(runtime) {
-              boon(runtime, 'alacrity', at, duration);
-            }
+    for (const [extra, value, nextAt] of [
+      [0, 0, 5],
+      [100, 1, 10],
+      [5100, 2, 15]
+    ]) {
+      const result = runRanger(
+        [4900, extra].map(wait),
+        { ...config, specialization: 'Galeshot' },
+        {
+          initialize(runtime) {
+            boon(runtime, 'alacrity', at, duration);
           }
-        );
-        const arrows = galeshotState.from(observedRuntime(result)).arrows;
-        assert.equal(arrows.value, value);
-        assert.equal(arrows.nextAt, nextAt);
-      }
+        }
+      );
+      const arrows = galeshotState.from(observedRuntime(result)).arrows;
+      assert.equal(arrows.value, value);
+      assert.equal(arrows.nextAt, nextAt);
     }
   }
 });

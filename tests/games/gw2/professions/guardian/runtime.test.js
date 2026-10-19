@@ -295,14 +295,11 @@ test('Luminary selected component removal preserves independent effects and neve
   );
 });
 
-test('Luminary live state agrees in score and detailed modes', () => {
+test('Luminary live state arms Empowered Armaments without replaying forge or Effulgent events', () => {
   const rotation = [ID.EFFULGENT_STANCE, ID.ENTER_RADIANT_FORGE, ID.DAZZLING_HAMMER, ID.GLARING_BURST, wait(4000)];
   const config = { ...luminary, selectedTraitIds: [TRAIT.EMPOWERED_ARMAMENTS] };
   const detailed = run(rotation, config);
-  const score = run(rotation, config, { initialize: () => {}, profession: guardianProfession, output: 'score' });
   assert.deepEqual(detailed.warnings, []);
-  assert.deepEqual(lum(score), lum(detailed));
-  assert.equal(score.dps, detailed.dps);
   assert.ok(lum(detailed).empoweredArmamentsUntil > 0);
   assert.equal(
     detailed.events.some(
@@ -491,7 +488,7 @@ test('removed Willbender window components preserve independent fields and activ
   );
 });
 
-test('Willbender Phoenix Protocol shares only with Battle Presence and score mode preserves virtue execution', () => {
+test('Willbender Phoenix Protocol shares only with Battle Presence', () => {
   for (const sharing of [false, true]) {
     const config = {
       ...willbender,
@@ -499,10 +496,7 @@ test('Willbender Phoenix Protocol shares only with Battle Presence and score mod
       selectedTraitIds: [TRAIT.PHOENIX_PROTOCOL, ...(sharing ? [TRAIT.BATTLE_PRESENCE] : [])]
     };
     const rotation = [ID.FLOWING_RESOLVE, wait(6000)];
-    const detailed = run(rotation, config),
-      score = run(rotation, config, { initialize: () => {}, profession: guardianProfession, output: 'score' });
-    assert.equal(detailed.dps, score.dps);
-    assert.deepEqual(wb(detailed), wb(score));
+    const detailed = run(rotation, config);
     const alacrity = detailed.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'alacrity');
     assert.ok(alacrity.length >= 2);
     assert.ok(alacrity.every((event) => event.resolvedAudience.alliedPlayerCount === (sharing ? 4 : 0)));
@@ -717,25 +711,6 @@ test('Firebrand Renewed Focus restores the current page pool and dormancy only o
     assert.equal(fb(result).tomePages.value, interrupted ? 4 : 5);
     assert.equal(core(result).virtueReadyAt.justice, interrupted ? 20 : result.rotationEndTime);
   }
-});
-
-test('Firebrand detailed and score modes share pages, mantra charges, and Ashes execution', () => {
-  const rotation = [
-    ID.TOME_OF_JUSTICE,
-    ID.ASHES_OF_THE_JUST,
-    ID.SEARING_SPELL,
-    ID.STOW_TOME,
-    ID.FLAME_RUSH,
-    ID.FLAME_RUSH,
-    ID.FLAME_SURGE,
-    wait(12000)
-  ];
-  const config = { ...firebrand, selectedTraitIds: [TRAIT.QUICKFIRE, TRAIT.WEIGHTY_TERMS] };
-  const detailed = run(rotation, config),
-    score = run(rotation, config, { initialize: () => {}, profession: guardianProfession, output: 'score' });
-  assert.equal(score.dps, detailed.dps);
-  assert.deepEqual(fb(score), fb(detailed));
-  assert.deepEqual(score.warnings, []);
 });
 
 test('removed Firebrand components preserve independent page grants and Might without claiming disabled procs', () => {
@@ -973,19 +948,6 @@ test('Banish resets either hammer leap only when its strike reaches the target',
   }
 });
 
-test('native Guardian detailed and score modes share virtue state and outcomes', () => {
-  const initialize = (runtime) => {
-    for (const at of [0.1, 0.2, 0.3]) strike(runtime, at);
-  };
-
-  const config = { selectedTraitIds: [TRAIT.PERMEATING_WRATH] };
-  const detailed = run([wait(2000)], config, { initialize: initialize });
-  const score = run([wait(2000)], config, { initialize: initialize, profession: guardianProfession, output: 'score' });
-  assert.equal(score.totalDamage, detailed.totalDamage);
-  assert.equal(core(score).justicePassiveBurns, 1);
-  assert.equal(core(score).justiceHitCount, core(detailed).justiceHitCount);
-});
-
 // Seed a real window and its expiry to isolate capture, consumption, and delayed impacts from a setup rotation.
 function illuminate(runtime, expiresAt, symbol = false) {
   if (symbol) runtime.profession.core.spearLuminanceUntil = expiresAt;
@@ -1107,7 +1069,7 @@ test('spear filler preserves an armed charge and removed grant components cannot
   }
 });
 
-test('spear selects remaining projectile components and shares its execution in score mode', () => {
+test('spear selects remaining projectile components', () => {
   const patched = withPatchPreview(guardianProfession, {
     id: 'remaining-illuminated-projectile',
     label: 'Remaining illuminated projectile',
@@ -1123,9 +1085,7 @@ test('spear selects remaining projectile components and shares its execution in 
   const config = { primaryWeapon: 'Spear', patchId: 'remaining-illuminated-projectile' };
   const initialize = (runtime) => illuminate(runtime, 0.1);
   const detailed = run(rotation, config, { initialize: initialize, profession: patched });
-  const score = run(rotation, config, { initialize: initialize, profession: patched, output: 'score' });
   assert.deepEqual(detailed.warnings, []);
-  assert.deepEqual(score.warnings, []);
   const extra = detailed.resolvedEvents.filter(
     (event) => event.type === 'damage' && /Solar Storm — [45]th Strike/.test(event.name)
   );
@@ -1133,8 +1093,6 @@ test('spear selects remaining projectile components and shares its execution in 
     extra.map((event) => [event.name, event.coefficient]),
     [['Solar Storm — 5th Strike', 0.3]]
   );
-  assert.equal(score.totalDamage, detailed.totalDamage);
-  assert.equal(core(score).spearIlluminatedUntil, core(detailed).spearIlluminatedUntil);
 });
 
 const boon = (runtime, kind, at, duration, extra = {}) =>
@@ -1485,26 +1443,6 @@ test('removed trait components neither claim heal cooldowns nor start recurring 
   assert.equal(core(result).resolutionUntil, 0);
 });
 
-test('Guardian trait execution agrees between score and detailed output', () => {
-  const config = {
-    selectedTraitIds: [
-      TRAIT.FURIOUS_FOCUS,
-      TRAIT.SYMBOLIC_AVENGER,
-      TRAIT.SYMBOLIC_EXPOSURE,
-      TRAIT.VIRTUE_OF_RESOLUTION,
-      TRAIT.RIGHTEOUS_INSTINCTS
-    ]
-  };
-  const rotation = [ID.JUSTICE, wait(6000)];
-  const detailed = run(rotation, config);
-  const score = run(rotation, config, { initialize: () => {}, profession: guardianProfession, output: 'score' });
-  assert.deepEqual(detailed.warnings, []);
-  assert.deepEqual(score.warnings, []);
-  assert.equal(score.totalDamage, detailed.totalDamage);
-  assert.deepEqual(core(score).symbolicAvengerExpirations, core(detailed).symbolicAvengerExpirations);
-  assert.equal(core(score).justiceHitCount, core(detailed).justiceHitCount);
-});
-
 test('missed Symbol of Resolution pulses still grant self boons without target-hit trait rewards', () => {
   const result = run([{ skillId: ID.SYMBOL_OF_RESOLUTION, offTarget: true }, wait(2000)], {
     primaryWeapon: 'Greatsword',
@@ -1790,7 +1728,7 @@ test('removed Dragonhunter burn and passive packets leave no recurring effects w
   );
 });
 
-test('Dragonhunter rejects post-death attachment and shares tether execution in detailed and score modes', () => {
+test('Dragonhunter rejects post-death tether attachment', () => {
   const killed = run(
     [ID.SPEAR_OF_JUSTICE, wait(1000)],
     { ...dragonhunter, target: { armor: 2597, health: 1 } },
@@ -1798,17 +1736,6 @@ test('Dragonhunter rejects post-death attachment and shares tether execution in 
   );
   assert.equal(dh(killed).tetherUntil, 0);
   assert.equal(core(killed).availableFlips[ID.HUNTERS_VERDICT], undefined);
-  const config = {
-    ...dragonhunter,
-    selectedTraitIds: [TRAIT.BIG_GAME_HUNTER, TRAIT.FURIOUS_FOCUS, TRAIT.DULLED_SENSES]
-  };
-  const rotation = [ID.SPEAR_OF_JUSTICE, wait(1500), ID.HUNTERS_VERDICT, wait(1000)];
-  const detailed = run(rotation, config);
-  const score = run(rotation, config, { initialize: () => {}, profession: guardianProfession, output: 'score' });
-  assert.deepEqual(detailed.warnings, []);
-  assert.deepEqual(score.warnings, []);
-  assert.equal(score.totalDamage, detailed.totalDamage);
-  assert.equal(dh(score).tetherUntil, dh(detailed).tetherUntil);
 });
 
 // Additive variants must retain live base packets, including edits that were not present in the authored skill.

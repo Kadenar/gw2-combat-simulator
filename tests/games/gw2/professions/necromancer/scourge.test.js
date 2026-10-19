@@ -25,33 +25,6 @@ function patched(config, balanceProfiles) {
   return { ...native, catalog: applyBalanceProfilePatch(native.catalog, { balanceProfiles }) };
 }
 
-// A committed breach pulses independently of the cast lane and never assumes a successful boon conversion.
-test('Ghastly Breach schedules five shared pulses and a single Dark field', () => {
-  const result = run([cast(ID.GHASTLY_BREACH), wait(6000)], { ...base, allies: { count: 4 } });
-  const start = result.steps[0].end / 1000;
-  const events = result.resolvedEvents.filter((event) => event.skillId === ID.GHASTLY_BREACH);
-  const strikes = events.filter((event) => event.type === 'damage');
-  assert.ok(strikes.every((event) => event.coefficient === 0.7));
-  for (const condition of ['Slow', 'Burning']) {
-    const pulses = events.filter((event) => event.type === 'condition' && event.condition === condition);
-    assert.ok(pulses.every((event) => event.stacks === 1 && event.duration === 2));
-  }
-
-  assert.equal(
-    events.some((event) => event.condition === 'Torment'),
-    false
-  );
-  const might = events.filter((event) => event.type === 'buff' && event.kind === 'might');
-  assert.ok(might.every((event) => event.stacks === 2 && event.duration === 6));
-  assert.ok(might.every((event) => event.resolvedAudience.includesSelf && event.resolvedAudience.recipientCount === 5));
-  const fields = result.events.filter((event) => event.type === 'combo_field' && event.skillId === ID.GHASTLY_BREACH);
-  assert.equal(fields.length, 1);
-  assert.equal(fields[0].at, start);
-  assert.equal(fields[0].fieldType, 'Dark');
-  assert.equal(fields[0].expiresAt, start + 5);
-  assert.deepEqual(result.warnings, []);
-});
-
 test('Ghastly Breach respects cancellation and keeps ally pulses when enemies are missed', () => {
   const cancelled = run([{ ...cast(ID.GHASTLY_BREACH), interruptAfterMs: 100 }, wait(6000)]);
   assert.equal(

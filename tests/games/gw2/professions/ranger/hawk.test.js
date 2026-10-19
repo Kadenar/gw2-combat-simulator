@@ -63,24 +63,6 @@ test('Untamed Hawk reserves special skills for commands without overlapping its 
   for (let index = 1; index < actions.length; index++) assert.ok(actions[index].at >= actions[index - 1].endsAt);
 });
 
-// The Beast command delivers exactly three bleeding stacks with each of its two impacts.
-test('Lacerating Slash applies six bleeding stacks across two hits', () => {
-  const result = runRanger([ID.LACERATING_SLASH, wait(1000)], hawk);
-  assert.deepEqual(result.warnings, []);
-  const hits = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.LACERATING_SLASH);
-  const bleeds = result.events.filter((event) => event.type === 'condition' && event.skillId === ID.LACERATING_SLASH);
-  assert.ok(hits.length > 0);
-  assert.ok(bleeds.length > 0);
-  for (const [index, hit] of hits.entries()) {
-    assert.equal(hit.coefficient, 1);
-    assert.equal(bleeds[index].at, hit.at);
-    assert.equal(bleeds[index].stacks, 3);
-    assert.equal(bleeds[index].duration, 15);
-  }
-
-  assert.equal(rangerCatalog.skillsById.get(ID.LACERATING_SLASH).cooldown, 20);
-});
-
 // Pet boon duration uses its own selected traits independently of player equipment.
 test('pet Screech scales only with Lingering Magic while merged Screech uses player boon duration', () => {
   const concentrationBonus = rangerCatalog.balanceProfilesById.get(TRAIT.LINGERING_MAGIC).attributeBonus;

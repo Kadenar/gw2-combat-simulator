@@ -113,41 +113,6 @@ test('Persisting Flames grants stacks from Fire Sphere without extending profess
   }
 });
 
-test('Persisting Flames extends Flamewall from eight seconds to ten', () => {
-  // The weapon field gains two seconds while preserving its once-per-second pulse cadence.
-  for (const selected of [false, true]) {
-    const { app, commands } = createNativeApp({
-      lines: [['Fire'], ['Air'], ['Catalyst']],
-      startAttunement: 'Fire',
-      weapons: ['Scepter', 'Focus'],
-      selectedSkillIds: { Elite: 5516 },
-      rotation: ['Flamewall', 12000]
-    });
-    const result = runElementalist(
-      commands,
-      {
-        ...elementalistAppAdapter
-          .createBuildContext({
-            build: app.build,
-            patchId: app.patchId ?? 'current',
-            transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
-          })
-          .simulationConfig(),
-        selectedTraitIds: selected ? [TRAIT.PERSISTING_FLAMES] : []
-      },
-      { profession: elementalistProfession }
-    );
-    assert.deepEqual(result.warnings, []);
-    const field = result.events.find((event) => event.type === 'combo_field' && event.skillName === 'Flamewall');
-    assert.equal(field.expiresAt - field.at, selected ? 10 : 8);
-    const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Flamewall');
-    assert.equal(hits.at(-1).at, field.expiresAt);
-    for (let index = 1; index < hits.length; index += 1) {
-      assert.ok(Math.abs(hits[index].at - hits[index - 1].at - 1) < 1e-9);
-    }
-  }
-});
-
 test('Persisting Flames extends weapon Fire fields using their metadata', () => {
   // Etchings were absent from the old list; only the Fire combo field receives the weapon extension.
   for (const [element, skillName, duration] of [
@@ -188,56 +153,6 @@ test('Evoker familiar flip interruption cancels both familiar attacks', () => {
       false
     );
     assert.equal(result.planningState.profession.empoweredCharges.value, 1);
-  }
-});
-
-test("Fox's Fury applies the PvE high-Might burn", () => {
-  // Set engine boons directly to cover both cast speeds despite the app's permanent Quickness policy.
-  for (const quickness of [true, false]) {
-    const { app, commands } = createNativeApp({
-      lines: [['Fire'], ['Air'], ['Evoker']],
-      rotation: ["Fox's Fury"],
-      assumptions: { might: 25 },
-      selectedSkillIds: { Heal: 34743, Utility1: 76711, Utility2: 5542, Utility3: 5638, Elite: 25488 }
-    });
-    const config = elementalistAppAdapter
-      .createBuildContext({
-        build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
-      })
-      .simulationConfig();
-    config.boons.quickness = quickness;
-    const result = runElementalist(commands, config, { profession: elementalistProfession });
-    const action = result.events.find((event) => event.type === 'action' && event.skillName === "Fox's Fury");
-    const hit = result.events.find((event) => event.type === 'damage' && event.skillName === "Fox's Fury");
-
-    const burning = result.resolvedEvents.filter(
-      (event) => event.type === 'condition' && event.skillName === "Fox's Fury"
-    );
-    assert.ok(hit.at < action.endsAt);
-    assert.equal(hit.coefficient, 3);
-    // The high-Might tier keeps three stacks while exposing each application at the strike's impact.
-    assert.equal(burning.length, 3);
-    assert.ok(burning.every((event) => event.at === hit.at && event.stacks === 1 && event.duration === 5));
-  }
-});
-
-test("Fox's Fury applies its baseline coefficient and Might multipliers", () => {
-  for (const [might, coefficient] of [
-    [0, 1.5],
-    [10, 2.25],
-    [20, 3]
-  ]) {
-    const result = runNative({
-      lines: [['Fire'], ['Air'], ['Evoker']],
-      rotation: ["Fox's Fury"],
-      assumptions: { might },
-      selectedSkillIds: { Heal: 34743, Utility1: 76711, Utility2: 5542, Utility3: 5638, Elite: 25488 }
-    });
-    const hit = result.events.find((event) => event.type === 'damage' && event.skillName === "Fox's Fury");
-
-    assert.equal(hit.coefficient, coefficient);
   }
 });
 

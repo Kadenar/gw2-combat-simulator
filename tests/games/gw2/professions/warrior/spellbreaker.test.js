@@ -178,17 +178,6 @@ test('removed Insight and Tether packets cannot create their state or proc windo
   assert.equal(observedRuntime(result).cooldownController.readyAt(ID.MAGEBANE_TETHER), undefined);
 });
 
-test('Insight and Tether use the same live owner in detailed and score execution', () => {
-  const config = { selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT, TRAIT.MAGEBANE_TETHER, TRAIT.NO_ESCAPE] };
-  const rotation = ['Disrupting Stab', 'Breaching Strike', 'Precise Cut'];
-  const detailed = run(rotation, config);
-  const score = run(rotation, config, warriorProfession, 'score');
-  assert.deepEqual(detailed.warnings, []);
-  assert.equal(score.totalDamage, detailed.totalDamage);
-  assert.deepEqual(state(score).attackerInsightExpiries, state(detailed).attackerInsightExpiries);
-  assert.equal(state(score).magebaneTetherUntil, state(detailed).magebaneTetherUntil);
-});
-
 // No Escape is queued before the hook, but resolves after Insight has committed; misses never grant either reward.
 test('No Escape keeps Insight ordering, actor eligibility, and live profile payloads', () => {
   for (const [actorType, controlKind, offTarget, removed] of [

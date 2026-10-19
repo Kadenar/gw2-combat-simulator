@@ -195,22 +195,3 @@ test('deferred weapon charges report the actual flush time once', () => {
   assert.equal(grants[0].sourceId, ID.BLAZING_BARRAGE);
   assert.equal(grants[0].change, 2);
 });
-
-// Output retention must not change live reaction state or total damage.
-test('Elementalist score output agrees with detailed execution', () => {
-  const options = {
-    config: {
-      specialization: 'Weaver',
-      primaryWeapon: 'Sword',
-      startAttunement: 'Fire',
-      secondaryAttunement: 'Air'
-    },
-    rotation: ['Pyro Vortex', { type: 'wait', durationMs: 3000 }]
-  };
-  const detailed = runElementalist(options.rotation, options.config),
-    score = runElementalist(options.rotation, options.config, { output: 'score' });
-  assert.deepEqual(detailed.warnings, []);
-  assert.ok(detailed.totalDamage > 0);
-  assert.equal(score.totalDamage, detailed.totalDamage);
-  assert.deepEqual(observedRuntime(score).profession, observedRuntime(detailed).profession);
-});

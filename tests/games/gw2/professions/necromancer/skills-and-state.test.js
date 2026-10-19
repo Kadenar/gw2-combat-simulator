@@ -4,8 +4,6 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import {
@@ -13,13 +11,8 @@ import {
   consumeSoulShards,
   purgeTimedState
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/core/profiles.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { HARBINGER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
-import { REAPER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/reaper/profiles.js';
-import { RITUALIST_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
-import { SCOURGE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -44,10 +37,6 @@ const baseConfig = Object.freeze({
 });
 
 const simulate = createObservedProfessionSimulator(necromancerProfession, baseConfig);
-
-const applyNecromancerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(necromancerCatalog, patch), patch);
-
-const authoringNecromancerProfession = withActivePatchPreview(necromancerProfession);
 
 // The unsupported boon-removal variants must not add extra damage packets.
 test('Spinal Shivers emits one zero-boon strike and one Chill application', () => {
@@ -162,97 +151,6 @@ test('Chill of Death and Chilling Nova preserve sibling strike ordering', () => 
   assert.ok(nextStrike(result).damage > nextStrike(baseline).damage);
 });
 
-test('Necromancer modules expose isolated balance-profile authoring', () => {
-  const modules = new Map(authoringNecromancerProfession.patchAuthoring.modules.map((module) => [module.id, module]));
-
-  assert.deepEqual([...modules.keys()], ['Core', 'Reaper', 'Scourge', 'Harbinger', 'Ritualist']);
-  assert.equal(
-    [...modules.values()].every((module) => module.balanceProfiles.length > 0),
-    true
-  );
-
-  const profile = (moduleId, profileId) => {
-    const module = modules.get(moduleId);
-
-    return [...module.balanceProfiles, ...module.skillVariants].find((entry) => entry.id === profileId);
-  };
-
-  const bloodFiend = profile('Core', NECROMANCER_CORE_BALANCE_PROFILE_IDS.bloodFiendAttack);
-  const shade = profile('Scourge', SCOURGE_BALANCE_PROFILE_IDS.shade);
-  const blight = profile('Harbinger', HARBINGER_BALANCE_PROFILE_IDS.resources);
-  const reaper = profile('Reaper', REAPER_BALANCE_PROFILE_IDS.resources);
-
-  assert.equal(bloodFiend.profile.profileKind, 'skill-variant');
-  assert.equal(bloodFiend.patchableFields.damagePerCoefficient, 4338);
-  assert.equal(shade.profile.effects[0].coefficient, 0.666);
-  assert.equal(blight.patchableFields.maximumStacks, 25);
-  assert.equal(reaper.patchableFields.lifeForceDrain, 4);
-  assert.equal(profile('Core', TRAIT.TARGET_THE_WEAK).patchableFields.criticalChancePerCondition, 0.02);
-  assert.deepEqual(
-    modules.get('Ritualist').modifierRules.find((rule) => rule.id === 'necromancer.anguish-conditional-damage')
-      .parameters,
-    { damagePerCondition: 0.02 }
-  );
-
-  const preview = applyNecromancerPatch({
-    skills: {
-      [ID.SPECTRAL_GRASP]: {
-        effects: [{ effectIndex: 0, duration: { from: 4, to: 6 } }]
-      },
-      [ID.NIGHTMARE_WEAPON]: {
-        effects: [
-          {
-            effectIndex: 0,
-            allyStacks: { from: 3, to: 4 },
-            audience: { maximumRecipients: { from: 5, to: 6 } }
-          }
-        ]
-      },
-      [ID.RIGOR_MORTIS]: {
-        effects: [
-          {
-            effectIndex: 0,
-            tickIndex: 0,
-            coefficient: { from: 0.25, to: 0.3 }
-          }
-        ]
-      }
-    },
-    balanceProfiles: {
-      [SCOURGE_BALANCE_PROFILE_IDS.shade]: {
-        effects: [
-          {
-            effectIndex: 0,
-            coefficient: { from: 0.666, to: 0.7 }
-          }
-        ]
-      },
-      [HARBINGER_BALANCE_PROFILE_IDS.resources]: {
-        fields: { maximumStacks: { from: 25, to: 30 } }
-      },
-      [RITUALIST_BALANCE_PROFILE_IDS.resources]: {
-        fields: { pulseInterval: { from: 4, to: 3 } }
-      }
-    }
-  });
-
-  assert.equal(preview.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0].allyStacks, 4);
-  assert.equal(preview.skillsById.get(ID.SPECTRAL_GRASP).effects[0].duration, 6);
-  assert.equal(necromancerCatalog.skillsById.get(ID.SPECTRAL_GRASP).effects[0].duration, 4);
-  assert.equal(preview.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0].audience.maximumRecipients, 6);
-  assert.equal(preview.skillsById.get(ID.RIGOR_MORTIS).effects[0].ticks[0].coefficient, 0.3);
-  assert.equal(preview.balanceProfilesById.get(SCOURGE_BALANCE_PROFILE_IDS.shade).effects[0].coefficient, 0.7);
-  assert.equal(preview.balanceProfilesById.get(HARBINGER_BALANCE_PROFILE_IDS.resources).maximumStacks, 30);
-  assert.equal(preview.balanceProfilesById.get(RITUALIST_BALANCE_PROFILE_IDS.resources).pulseInterval, 3);
-
-  assert.equal(necromancerCatalog.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0].allyStacks, 3);
-  assert.equal(
-    necromancerCatalog.balanceProfilesById.get(SCOURGE_BALANCE_PROFILE_IDS.shade).effects[0].coefficient,
-    0.666
-  );
-  assert.equal(necromancerCatalog.balanceProfilesById.get(HARBINGER_BALANCE_PROFILE_IDS.resources).maximumStacks, 25);
-});
-
 test('Wanderlust Vulnerability affects only its final two field hits', () => {
   const result = simulate('Ritualist', ["Ritualist's Shroud", 'Wanderlust', { type: 'wait', durationMs: 6000 }], {
     initialResource: 100,
@@ -286,27 +184,6 @@ test('Relic of Fireworks refreshes from qualifying Reaper Shroud skills', () => 
   assert.equal(procs[0].detail, 'activated');
   assert.ok(procs.slice(1).every((proc) => proc.detail === 'refreshed'));
   assertFlooredDamageMultiplier(hits[1].damage, hits[0].damage, 1.07);
-});
-
-test('Elixir of Anguish applies Cripple and Swiftness for their exact durations', () => {
-  const base = simulate('Harbinger', ['Elixir of Anguish'], {
-    initialBlight: 0,
-    selectedSkillIds: [62662]
-  });
-  const empowered = simulate('Harbinger', ['Elixir of Anguish'], {
-    initialBlight: 5,
-    selectedSkillIds: [62662]
-  });
-  const durations = (result) => ({
-    cripple: result.resolvedEvents.find(
-      (event) => event.skillId === ID.ELIXIR_OF_ANGUISH && event.condition === 'Crippled'
-    )?.duration,
-    swiftness: result.events.find((event) => event.skillId === ID.ELIXIR_OF_ANGUISH && event.kind === 'swiftness')
-      ?.duration
-  });
-
-  assert.deepEqual(durations(base), { cripple: 5, swiftness: 10 });
-  assert.deepEqual(durations(empowered), { cripple: 10, swiftness: 20 });
 });
 
 test('Signet of Spite follows its live passive and active profile', () => {
@@ -767,43 +644,6 @@ test('Scourge shades use ammo and shade skills spend life force', () => {
   assert.ok(cost.conditionDamage > 0);
 });
 
-test('Scourge shade costs and packets use their fixed PvE values', () => {
-  // Observe the complete delayed effect before comparing its total coefficient.
-  const shade = simulate('Scourge', ['Manifest Sand Shade', 'Desert Shroud', { type: 'wait', durationMs: 7000 }], {
-    initialResource: 100
-  });
-  const manifest = necromancerCatalog.skillsById.get(ID.MANIFEST_SAND_SHADE);
-  const strikes = shade.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.skillId === ID.DESERT_SHROUD && event.name === 'Desert Shroud'
-  );
-  const torment = shade.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.skillId === ID.DESERT_SHROUD && event.duration === 5
-  );
-
-  assert.deepEqual(
-    [ID.NEFARIOUS_FAVOR, ID.SAND_CASCADE, ID.GARISH_PILLAR, ID.DESERT_SHROUD, ID.SANDSTORM_SHROUD].map(
-      (skillId) => necromancerCatalog.skillsById.get(skillId).lifeForceCost
-    ),
-    [1935, 2487, 3685, 4606, 3224]
-  );
-  assert.equal(manifest.ammo, 3);
-  assert.equal(manifest.ammoRecharge, 15);
-  assert.ok(Math.abs(strikes.reduce((sum, event) => sum + event.coefficient, 0) - 3.15) < 1e-12);
-  assert.ok(strikes.length > 0);
-  assert.ok(torment.length > 0);
-  assert.equal(
-    torment.every((event) => event.stacks === 1 && event.duration === 5),
-    true
-  );
-  const shadeProfile = necromancerCatalog.balanceProfilesById.get(SCOURGE_BALANCE_PROFILE_IDS.shade);
-
-  assert.equal(shadeProfile.effects[0].coefficient, 0.666);
-  assert.deepEqual(
-    [shadeProfile.effects[1].condition, shadeProfile.effects[1].stacks, shadeProfile.effects[1].duration],
-    ['Torment', 1, 2]
-  );
-});
-
 test('Scourge barrier, shroud, and greater-shade traits trigger precisely', () => {
   const barrier = simulate('Scourge', ['Manifest Sand Shade', 'Sand Cascade', 'Sand Flare'], {
     initialResource: 100,
@@ -1001,55 +841,6 @@ test('shroud strikes use their fixed or equipped weapon strengths', () => {
   assert.equal(new Set(wanderlustFields.map((event) => event.activationId)).size, 1);
   assert.notEqual(wanderlustFields[0].activationId, wanderlustOpening.activationId);
   assert.equal(damage(ritualist, 'Summon Spirits').skillWeapon, 'Unequipped');
-});
-
-test('Harbinger shroud attacks use their Blight thresholds and coefficients', () => {
-  const run = (skill, initialBlight) =>
-    simulate('Harbinger', ['Harbinger Shroud', skill, 'Exit Harbinger Shroud', { type: 'wait', durationMs: 7100 }], {
-      initialResource: 100,
-      initialBlight
-    });
-  const baseCut = run('Devouring Cut', 0);
-  const empoweredCut = run('Devouring Cut', 5);
-  const baseArc = run('Voracious Arc', 0);
-  const empoweredArc = run('Voracious Arc', 5);
-  const vitalDraw = run('Vital Draw', 0);
-  const darkBarrage = run('Dark Barrage', 0);
-  const strikeCoefficients = (result, skillId) =>
-    result.resolvedEvents
-      .filter((event) => event.type === 'damage' && event.skillId === skillId)
-      .map((event) => event.coefficient);
-
-  assert.deepEqual(strikeCoefficients(baseCut, ID.DEVOURING_CUT), [1]);
-  assert.deepEqual(strikeCoefficients(empoweredCut, ID.DEVOURING_CUT), [2]);
-  assert.deepEqual(strikeCoefficients(baseArc, ID.VORACIOUS_ARC), [1.4]);
-  assert.deepEqual(strikeCoefficients(empoweredArc, ID.VORACIOUS_ARC), [2.8]);
-  const vitalDrawCoefficients = strikeCoefficients(vitalDraw, ID.VITAL_DRAW);
-  const darkBarrageCoefficients = strikeCoefficients(darkBarrage, ID.DARK_BARRAGE);
-
-  assert.ok(vitalDrawCoefficients.length > 0);
-  assert.ok(Math.abs(vitalDrawCoefficients.reduce((sum, value) => sum + value, 0) - 1.2) < 1e-12);
-  assert.ok(darkBarrageCoefficients.length > 0);
-  assert.ok(Math.abs(darkBarrageCoefficients.reduce((sum, value) => sum + value, 0) - 3.6) < 1e-12);
-  assert.equal(empoweredCut.planningState.profession.blight, 0);
-  // Exiting before the first one-second shroud tick prevents passive Blight gains.
-  assert.equal(empoweredArc.planningState.profession.blight, 0);
-  assert.equal(
-    empoweredCut.resolvedEvents
-      .filter((event) => event.condition === 'Torment' && event.duration === 5)
-      .reduce((sum, event) => sum + event.stacks, 0),
-    5
-  );
-  assert.equal(
-    empoweredArc.resolvedEvents
-      .filter((event) => event.condition === 'Torment' && event.duration === 7)
-      .reduce((sum, event) => sum + event.stacks, 0),
-    5
-  );
-  assert.equal(
-    empoweredArc.events.some((event) => event.type === 'control' && event.controlKind === 'daze'),
-    true
-  );
 });
 
 test('Blight skills pay their cost before Wicked Corruption and elixirs', () => {

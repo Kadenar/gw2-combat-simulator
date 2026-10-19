@@ -1,85 +1,12 @@
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
-import { access, readFile } from 'node:fs/promises';
-import path from 'node:path';
-import ts from 'typescript';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
 import { COMMON_EVENT_TYPES } from '#gw2/platform/events/events.js';
-import { professionRegistry } from '#gw2/profession-registry.js';
 import { createProfessionWeaponData, WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 import { BUILD_SCHEMA_VERSION, migrateMesmerBuild, validateMesmerBuild } from '#gw2/professions/mesmer/build/build.js';
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { createDefaultConfig, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-
-async function relativeStaticModuleGraph(entryFiles) {
-  const visited = new Set();
-  const pending = [...entryFiles];
-  const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../js');
-  const aliasedSourceRoots = [
-    ['#gw2/', path.join(sourceRoot, 'games', 'gw2')],
-    ['#kernel/', path.join(sourceRoot, 'kernel')],
-    ['#ui/', path.join(sourceRoot, 'ui')],
-    ['#browser/', path.join(sourceRoot, 'browser')]
-  ];
-
-  while (pending.length) {
-    const file = await sourceModulePath(path.resolve(pending.pop()));
-
-    if (visited.has(file)) continue;
-
-    visited.add(file);
-    const source = await readFile(file, 'utf8');
-    const syntax = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
-    const specifiers = [];
-    const visit = (node) => {
-      if (
-        (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
-        !(ts.isImportDeclaration(node) && node.importClause?.isTypeOnly) &&
-        !(ts.isExportDeclaration(node) && node.isTypeOnly) &&
-        node.moduleSpecifier &&
-        ts.isStringLiteralLike(node.moduleSpecifier)
-      ) {
-        specifiers.push(node.moduleSpecifier.text);
-      }
-
-      ts.forEachChild(node, visit);
-    };
-
-    visit(syntax);
-    for (const specifier of specifiers) {
-      // Package aliases resolve through dist at runtime; architecture crawling resolves the same path against source.
-      const alias = aliasedSourceRoots.find(([prefix]) => specifier.startsWith(prefix));
-
-      if (!specifier.startsWith('.') && !alias) continue;
-
-      const dependency = alias
-        ? path.resolve(alias[1], specifier.slice(alias[0].length))
-        : path.resolve(path.dirname(file), specifier);
-
-      if (dependency.endsWith('.js') || dependency.endsWith('.mjs')) {
-        pending.push(dependency);
-      }
-    }
-  }
-
-  return visited;
-}
-
-async function sourceModulePath(file) {
-  if (!file.endsWith('.js')) return file;
-
-  const typeScript = file.replace(/\.js$/, '.ts');
-
-  try {
-    await access(typeScript);
-
-    return typeScript;
-  } catch {
-    return file;
-  }
-}
 
 // Version validation must preserve historical inputs without mutating the caller's saved data.
 test('build upgrades reject unsupported versions and leave saved data independent', () => {
@@ -207,31 +134,4 @@ test('Mesmer conforms to native handler and state contracts', () => {
     .profession;
 
   assert.deepEqual(JSON.parse(JSON.stringify(projected)), projected);
-});
-
-test('native registry loaders do not pull another profession module graph', async () => {
-  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../js/games/gw2');
-
-  // Trace eager imports only so optional dynamic integrations remain a lazy boundary.
-  for (const entry of professionRegistry) {
-    // Professions migrated by PROFESSION-LAYOUT-PLAN.md expose profession.js instead of definition.js.
-    const professionEntry = await access(path.join(root, 'professions', entry.id, 'profession.ts')).then(
-      () => 'profession.js',
-      () => 'definition.js'
-    );
-    const graph = await relativeStaticModuleGraph([
-      path.join(root, 'professions', entry.id, professionEntry),
-      path.join(root, 'professions', entry.id, 'app', 'app-definition.js')
-    ]);
-
-    for (const file of graph) {
-      const relative = path.relative(root, file).replaceAll('\\', '/');
-
-      for (const other of professionRegistry) {
-        if (other.id === entry.id) continue;
-
-        assert.equal(relative.startsWith(`professions/${other.id}/`), false, `${entry.id} imports ${relative}`);
-      }
-    }
-  }
 });

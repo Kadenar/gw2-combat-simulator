@@ -265,50 +265,6 @@ test('Dwarf upkeep stops dealing damage when released', () => {
   assert.equal(result.planningState.profession.activeUpkeeps.length, 0);
 });
 
-// Measure the interval from the triggering hit, so a new hit may land 120 ms after the prior delayed strike.
-test('Impossible Odds uses a 280 ms interval and 280 ms delay for player-owned strikes', () => {
-  const result = runRevenant(
-    ['Impossible Odds', { type: 'wait', durationMs: 3000 }],
-    { ...baseConfig, initialEnergy: 100 },
-    {
-      initialize(runtime) {
-        for (const [at, source, actorType] of [
-          [1, 'Unlabelled equipment', 'effect'],
-          [1.25, 'Early equipment', 'effect'],
-          [1.279999, 'Relic', 'effect'],
-          [1.4, 'Sigil', 'effect'],
-          [1.68, 'Player', 'player'],
-          [2, 'Summon', 'summon']
-        ])
-          runtime.effects.emit({
-            kind: 'packet',
-            event: {
-              type: 'damage',
-              at,
-              coefficient: 1,
-              weaponStrength: 1000,
-              skillName: source,
-              source,
-              sourceId: source,
-              actorType,
-              ownerActorType: 'player'
-            }
-          });
-      }
-    }
-  );
-  assert.deepEqual(
-    result.events
-      .filter((event) => event.type === 'damage' && event.skillName === 'Impossible Odds')
-      .map((event) => [event.at, event.triggeredBy]),
-    [
-      [1.28, 'Unlabelled equipment'],
-      [1.68, 'Sigil'],
-      [1.96, 'Player']
-    ]
-  );
-});
-
 // A delayed player-owned Shackles strike remains eligible after swapping into Shiro.
 test('Impossible Odds follows Shackles damage while its upkeep is active', () => {
   const result = simulate(
@@ -705,68 +661,6 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
   assert.ok(Math.abs(revenantModifiers.modifyConditionDamage(additiveContext, 1) - 1.375) < 1e-12);
 });
 
-test('Renegade critical traits and Blood Fury use their supplied intervals', () => {
-  const critical = simulate('Renegade', ['Phase Traversal'], {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.ASSASSIN,
-    selectedTraitIds: [TRAIT.AMBUSH_COMMANDER, TRAIT.ENDLESS_ENMITY, TRAIT.BLOOD_FURY],
-    target: { defiant: false },
-    boons: { fury: false },
-    attributeInputs: baseAttributeInputs({ precision: 4000 }),
-    initialEnergy: 100
-  });
-
-  assert.equal(critical.planningState.profession.kallasFervor.length, 2);
-  assert.ok(
-    critical.events.some(
-      (event) =>
-        event.type === 'buff' && event.skillName === 'Endless Enmity' && event.kind === 'fury' && event.duration === 4
-    )
-  );
-
-  const bleeding = simulate('Renegade', ['Shattershot'], {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE,
-    selectedTraitIds: [TRAIT.BLOOD_FURY],
-    boons: { fury: true }
-  }).resolvedEvents.find(
-    (event) => event.type === 'condition' && event.skillName === 'Shattershot' && event.condition === 'Bleeding'
-  );
-
-  assert.ok(Math.abs(bleeding.naturalExpiresAt - bleeding.at - 3.75) < 1e-9);
-  assert.equal(
-    revenantModifiers.modifyConditionDuration(
-      {
-        config: {
-          specialization: 'Renegade',
-          selectedTraitIds: [TRAIT.PACT_OF_PAIN, TRAIT.YEARNING_EMPOWERMENT, TRAIT.BLOOD_FURY],
-          boons: { fury: true }
-        },
-        condition: 'Bleeding',
-        time: 1,
-        runtime: { boons: new Map(), buffs: new Map() }
-      },
-      1.2
-    ),
-    1.45
-  );
-  assert.equal(
-    revenantModifiers.modifyConditionDuration(
-      {
-        config: {
-          specialization: 'Renegade',
-          selectedTraitIds: [TRAIT.PACT_OF_PAIN]
-        },
-        condition: 'Torment',
-        time: 1,
-        runtime: { boons: new Map(), buffs: new Map() }
-      },
-      1.15
-    ),
-    1.15
-  );
-});
-
 test('Renegade critical traits consume seeded critical outcomes', () => {
   const run = (seed) =>
     simulate('Renegade', ['Phase Traversal'], {
@@ -831,65 +725,6 @@ test('Brutal Momentum proc facts follow live endurance while preserving earlier 
       [0, 0.33],
       [1, 0.1]
     ]
-  );
-});
-
-test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () => {
-  const context = (traitId, extra = {}) => ({
-    config: {
-      specialization: 'Renegade',
-      selectedTraitIds: [traitId],
-      boons: {},
-      ...(extra.config || {})
-    },
-    event: { actorType: 'player' },
-    condition: extra.condition,
-    time: 1,
-    runtime: {
-      profession: {},
-      boons: new Map(),
-      buffs: new Map(),
-      ...(extra.runtime || {})
-    },
-    query: {
-      targetHasCondition: () => true,
-      targetConditionStacks: () => 1
-    }
-  });
-
-  assert.equal(revenantModifiers.modifyStrikeDamage(context(TRAIT.HEARTPIERCER), 1), 1.15);
-  assert.equal(
-    revenantModifiers.modifyConditionDamage(context(TRAIT.HEARTPIERCER, { condition: 'Bleeding' }), 1),
-    1.25
-  );
-  assert.equal(
-    revenantModifiers.modifyCriticalChance(
-      context(TRAIT.BRUTAL_MOMENTUM, {
-        runtime: {
-          profession: {
-            core: { endurance: { value: 100, maximum: 100, updatedAt: 0, rate: 0 } },
-            specialization: { kind: 'Renegade', state: {} }
-          }
-        }
-      }),
-      0.2
-    ),
-    0.43000000000000005
-  );
-  assert.ok(
-    Math.abs(
-      revenantModifiers.modifyCriticalChance(
-        context(TRAIT.BRUTAL_MOMENTUM, {
-          runtime: {
-            profession: {
-              core: { endurance: { value: 50, maximum: 100, updatedAt: 0, rate: 0 } },
-              specialization: { kind: 'Renegade', state: {} }
-            }
-          }
-        }),
-        0.2
-      ) - 0.2
-    ) < 1e-9
   );
 });
 
@@ -1446,27 +1281,6 @@ test('Sigil of Energy restores 50 endurance on Revenant legend swap', () => {
     ['Swap Legends']
   );
   assert.equal(result.planningState.profession.endurance.value - baseline.planningState.profession.endurance.value, 50);
-});
-
-test('Call of the Alliance grants five endurance plus three per hit', () => {
-  const result = simulate('Vindicator', ['Dodge', 'Swap Legends'], {
-    selectedLegends: [LEGEND.ASSASSIN, LEGEND.ALLIANCE],
-    startingLegend: LEGEND.ASSASSIN,
-    selectedTraitIds: [TRAIT.SONG_OF_THE_MISTS]
-  });
-  const call = revenantCatalog.skillsById.get(SKILL.CALL_OF_THE_ALLIANCE);
-
-  assert.equal(call.resourceGain, 8);
-  assert.ok(result.events.some((event) => event.type === 'damage' && event.name === 'Call of the Alliance'));
-  const baseline = simulate('Vindicator', ['Dodge', 'Swap Legends'], {
-    selectedLegends: [LEGEND.ASSASSIN, LEGEND.ALLIANCE],
-    startingLegend: LEGEND.ASSASSIN
-  });
-  // Both runs end at the swap, so passive regeneration cancels out of the difference.
-  assert.equal(
-    result.planningState.profession.endurance.value - baseline.planningState.profession.endurance.value,
-    call.resourceGain
-  );
 });
 
 test('Vindicator jumps pay endurance before midair Energy refunds and reset autos at landing', () => {

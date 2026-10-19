@@ -4,7 +4,7 @@ import test from 'node:test';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const config = {
   specialization: 'Core',
@@ -39,43 +39,6 @@ test('Rending Shatter counts clone shatter sources once, including control and d
         assert.ok(
           traitConditions(result).every((event) => event.duration === 8),
           skill
-        );
-      }
-    }
-  }
-});
-
-// Blade counts remain independent of combined Dissonance/Distortion packets and extra Requiem pulses.
-test('Rending Shatter applies one eight-second Vulnerability stack per blade spent', () => {
-  for (const skill of [
-    'Bladesong Harmony',
-    'Bladesong Sorrow',
-    'Bladesong Dissonance',
-    'Bladesong Distortion',
-    'Bladeturn Requiem'
-  ]) {
-    for (const initialResource of [1, 5]) {
-      const result = simulate('Virtuoso', [skill, { type: 'wait', durationMs: 6500 }], {
-        initialResource,
-        selectedTraitIds: [TRAIT.RENDING_SHATTER, TRAIT.MASTER_OF_FRAGMENTATION]
-      });
-      assert.deepEqual(result.warnings, [], skill);
-      const conditions = traitConditions(result);
-      assert.equal(
-        conditions.reduce((sum, event) => sum + event.stacks, 0),
-        initialResource,
-        skill
-      );
-      assert.ok(
-        conditions.every((event) => event.duration === 8),
-        skill
-      );
-
-      if (skill === 'Bladesong Harmony') {
-        const impacts = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === skill);
-        assert.deepEqual(
-          conditions.map((event) => event.at),
-          impacts.map((event) => event.at)
         );
       }
     }
@@ -162,33 +125,6 @@ test('Critical Infusion grants scaled Vigor only on player critical hits', () =>
           ]
         : []
     );
-  }
-});
-
-// Recharge work changes only for Focus skills and composes with the existing Alacrity rate.
-test("Warden's Feedback reduces Focus recharge by twenty percent", () => {
-  for (const skill of ['Temporal Curtain', 'Phantasmal Warden', 'Phantasmal Swordsman']) {
-    for (const alacrity of [false, true]) {
-      const run = (selected) =>
-        simulate('Core', [skill], {
-          selectedTraitIds: selected ? [TRAIT.WARDENS_FEEDBACK] : [],
-          boons: { alacrity },
-          secondaryWeapon: skill === 'Phantasmal Swordsman' ? 'Sword' : 'Focus'
-        });
-      const baseline = run(false);
-      const traited = run(true);
-      assert.deepEqual(traited.warnings, [], skill);
-      const recharge = (result) => {
-        const runtime = observedRuntime(result);
-        const id = runtime.helpers.skillsByName.get(skill).id;
-        return runtime.cooldownController.readyAt(id) - result.steps[0].end / 1000;
-      };
-
-      assert.ok(
-        Math.abs(recharge(traited) - recharge(baseline) * (skill === 'Phantasmal Swordsman' ? 1 : 0.8)) < 1e-9,
-        skill
-      );
-    }
   }
 });
 

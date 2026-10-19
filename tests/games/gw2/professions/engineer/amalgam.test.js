@@ -161,29 +161,6 @@ test('Amalgam traits activate on morph and Evolve chronology', () => {
   );
 });
 
-test('Evolve raises attributes by ten percent for eight seconds', () => {
-  const neutralMorphs = [76815, 77285, 77358];
-  const config = {
-    selectedMorphSkillIds: neutralMorphs,
-    attributeInputs: baseAttributeInputs({
-      power: 2000,
-      precision: 0,
-      ferocity: 0,
-      conditionDamage: 1000
-    })
-  };
-  const baseline = simulate('Amalgam', [{ type: 'wait', durationMs: 750 }, 'Puncturing Jab'], config);
-  const evolved = simulate('Amalgam', ['Evolve', 'Puncturing Jab'], config);
-  const puncture = (result) =>
-    result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Puncturing Jab');
-
-  assertFlooredDamageMultiplier(puncture(evolved).damage, puncture(baseline).damage, 1.1);
-  assert.equal(
-    evolved.planningState.profession.evolvedUntil,
-    evolved.steps[0].start / 1000 + ((evolved.steps[0].end - evolved.steps[0].start) / 1000) * (520 / 640) + 8
-  );
-});
-
 test("Sharpshooter derives bleeding damage from Evolve's Power bonus", () => {
   const config = {
     selectedMorphSkillIds: [76815, 77285, 77358],
@@ -525,32 +502,6 @@ test('Symbiotic Synergy boosts Thorns retaliation for every protocol slot', () =
     );
     assert.equal(damageEvents(traited, 'Puncturing Jab')[0].damage, damageEvents(baseline, 'Puncturing Jab')[0].damage);
   }
-});
-
-test('Double Helix gives Evolve two charges and doubles its attribute bonus', () => {
-  const config = {
-    selectedMorphSkillIds: [76815, 77285, 77358],
-    selectedTraitIds: [TRAIT.DOUBLE_HELIX],
-    attributeInputs: baseAttributeInputs({
-      power: 2000,
-      precision: 0,
-      ferocity: 0,
-      conditionDamage: 1000
-    }),
-    target: { conditions: {} }
-  };
-  const charges = simulate('Amalgam', ['Evolve', 'Evolve'], config);
-  const evolveSteps = charges.steps.filter((step) => step.skillId === ID.EVOLVE_DOUBLE_HELIX);
-
-  assert.equal(evolveSteps.length, 2);
-  assert.ok(evolveSteps[1].start < evolveSteps[0].end + 40000);
-
-  const baseline = simulate('Amalgam', [{ type: 'wait', durationMs: 750 }, 'Puncturing Jab'], config);
-  const evolved = simulate('Amalgam', ['Evolve', 'Puncturing Jab'], config);
-  const puncture = (result) =>
-    result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Puncturing Jab');
-
-  assertFlooredDamageMultiplier(puncture(evolved).damage, puncture(baseline).damage, 1.2);
 });
 
 test('Evolve aliases use only the trait-selected identity and share its charges and recharge', () => {

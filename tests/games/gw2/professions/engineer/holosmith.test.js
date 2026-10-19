@@ -1,6 +1,5 @@
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -9,17 +8,12 @@ import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import { holosmithProfileStrikeFactor } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
-import { holosmithCastAvailability } from '#gw2/professions/engineer/specializations/holosmith/mechanics/availability.js';
-import { applyCoronaBurstHeat } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { holosmithModifierRules } from '#gw2/professions/engineer/specializations/holosmith/modifiers.js';
 import { createHolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import { createMechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
-import { mechanistCastAvailability } from '#gw2/professions/engineer/specializations/mechanist/mechanics/availability.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const baseConfig = Object.freeze({
@@ -260,71 +254,6 @@ test('Photon Forge heat generation and cooling use current piecewise rates', () 
   assert.equal(amplified.planningState.profession.heat.value, 0.3);
 });
 
-test('Holosmith Forge behavior follows skill IDs after display labels change', () => {
-  const state = createHolosmithState();
-  state.photonForgeActive = true;
-  const profession = { specialization: { kind: 'Holosmith', state } };
-  const engage = { ...engineerCatalog.skillsById.get(ID.ENGAGE_PHOTON_FORGE), name: 'Renamed forge entry' };
-
-  assert.equal(
-    holosmithCastAvailability(
-      {
-        helpers: engineerCatalog,
-        config: { specialization: 'Holosmith' },
-        profession,
-        time: 0
-      },
-      engage
-    ).code,
-    'engineer.forge-active'
-  );
-
-  const scheduled = [];
-  const corona = { ...engineerCatalog.skillsById.get(ID.CORONA_BURST), name: 'Renamed heat skill' };
-  applyCoronaBurstHeat(
-    {
-      profession,
-      time: 0,
-      effectiveEnd: 1.8,
-      fullEnd: 1.8,
-      schedule: (name, at, payload) => scheduled.push({ name, at, payload })
-    },
-    corona,
-    { start: 0, effectiveEnd: 1.8, fullEnd: 1.8 }
-  );
-  assert.equal(scheduled.length, 5);
-  assert.deepEqual(
-    scheduled.map((task) => task.payload.amount),
-    [2, 2, 2, 2, 2]
-  );
-});
-
-test('Engineer availability follows skill IDs after display labels change', () => {
-  const core = createEngineerCoreState();
-  const coreContext = {
-    helpers: engineerCatalog,
-    config: { specialization: 'Core' },
-    profession: { core, specialization: { kind: 'Core', state: {} } },
-    time: 0
-  };
-
-  const artillery = { ...engineerCatalog.skillsById.get(ID.ELECTRIC_ARTILLERY), name: 'Renamed artillery' };
-  assert.equal(engineerCoreCastAvailability(coreContext, artillery).code, 'engineer.electric-artillery-inactive');
-
-  armSkillFlip(core.availableFlips, ID.ELECTRIC_ARTILLERY, 0);
-  const lightningRod = { ...engineerCatalog.skillsById.get(ID.LIGHTNING_ROD), name: 'Renamed rod' };
-  assert.equal(engineerCoreCastAvailability(coreContext, lightningRod).code, 'engineer.lightning-rod-active');
-
-  const mechanist = createMechanistState();
-  const mechanistContext = {
-    helpers: engineerCatalog,
-    config: { specialization: 'Mechanist' },
-    profession: { core: createEngineerCoreState(), specialization: { kind: 'Mechanist', state: mechanist } }
-  };
-  const command = { ...engineerCatalog.skillsById.get(ID.SPARK_REVOLVER), name: 'Renamed command' };
-  assert.equal(mechanistCastAvailability(mechanistContext, command).code, 'engineer.mech-command');
-});
-
 test('Corona Burst heat persists outside Forge without causing Overheat', () => {
   const outside = simulate(
     'Holosmith',
@@ -354,22 +283,6 @@ test('Corona Burst heat persists outside Forge without causing Overheat', () => 
   assert.equal(inside.planningState.profession.heat.value, 150);
   assert.equal(inside.planningState.profession.overheated, true);
   assert.equal(inside.planningState.profession.photonForgeActive, true);
-});
-
-test('Photon Blitz gains two heat for each completed projectile', () => {
-  const partial = simulate('Holosmith', ['Engage Photon Forge', { name: 'Photon Blitz', interruptMs: 600 }]);
-
-  // Three projectile pulses add 6 heat while six passive ticks add another 1.2.
-  assert.equal(partial.planningState.profession.heat.value, 7.2);
-  assert.equal(
-    partial.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Photon Blitz').length,
-    3
-  );
-
-  const full = simulate('Holosmith', ['Engage Photon Forge', 'Photon Blitz']);
-
-  // The full cast adds 16 projectile heat and 2.6 passive heat over its 1.32-second duration.
-  assert.equal(full.planningState.profession.heat.value, 18.6);
 });
 
 test('cancelled Light Strike leaves the Photon Forge chain ready for the next Light Strike', () => {

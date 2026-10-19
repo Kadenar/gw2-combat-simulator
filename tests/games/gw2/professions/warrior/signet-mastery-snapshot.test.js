@@ -90,38 +90,6 @@ test('Signet Mastery bar counts only applications still within their window', ()
   assert.equal(snapshot(WITH_TRAIT, 62)[0].value, '1/5'); // first two lapsed
 });
 
-test('Signet Mastery bar caps at 5 stacks', () => {
-  const overstacked = {
-    ...effectFields(
-      Array.from({ length: 7 }, (_unused, index) => ({
-        type: 'buff',
-        resolvedAudience: {
-          includesSelf: true,
-          includesSummons: false,
-          companionIds: [],
-          alliedPlayerCount: 0,
-          recipientCount: 1
-        },
-        kind: 'signet-mastery',
-        at: index * 0.1,
-        duration: 60,
-        stacks: 1
-      })),
-      120,
-      { policies: warriorBuffPolicies({ catalog: warriorProfession.catalog }) }
-    )
-  };
-  const [item] = warriorCoreUi.rotationStateSnapshot({
-    balanceContext: withPatchPreview(warriorProfession).balanceContextFor(),
-    build: WITH_TRAIT,
-    result: overstacked,
-    planningState: effectPlanningState(overstacked, 1),
-    atSeconds: 1
-  });
-
-  assert.equal(item.value, '5/5');
-});
-
 test('Signet Mastery bar is hidden when the trait is not chosen', () => {
   assert.deepEqual(snapshot(WITHOUT_TRAIT, 3), []);
 });

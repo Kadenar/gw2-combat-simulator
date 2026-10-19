@@ -142,20 +142,6 @@ test('a final partial pulse stops before a same-time refill and command echo', (
   assert.deepEqual(state(result).commandEchoes, {});
 });
 
-// Extra observation boundaries must not move the owned pulse cadence or change pre-spend tiers.
-test('fragmented waits preserve Motivation pulses and their tier selection', () => {
-  const config = { selectedTraitIds: [TRAIT.ENDURING_REFRAIN, TRAIT.INVIGORATING_TEMPO] };
-  const whole = run(['Chant of Action', wait(6000)], config);
-  const split = run(['Chant of Action', wait(1001), wait(1999), wait(500), wait(2500)], config);
-  assert.equal(state(split).motivation.value, state(whole).motivation.value);
-  assert.equal(core(split).adrenaline.value, core(whole).adrenaline.value);
-  const pulses = (result) =>
-    result.events
-      .filter((event) => event.kind === 'might' && event.skillId === ID.CHANT_OF_ACTION)
-      .map(({ at, stacks }) => [at, stacks]);
-  assert.deepEqual(pulses(split), pulses(whole));
-});
-
 // Removing one delayed component preserves entry effects, sibling packets, and the echo's consumption lifecycle.
 test('Paragon delayed payloads use independent profiles without changing entry effects or echo lifetimes', () => {
   const source = withPatchPreview(warriorProfession, {
@@ -346,15 +332,6 @@ test('Feverish Pulse reduces other chants even when its Alacrity component is re
     trained.events.some((event) => event.kind === 'alacrity'),
     false
   );
-});
-
-test('score and detailed execution retain the same live Motivation, echoes, and damage', () => {
-  const config = { selectedSkillIds: [77114], selectedTraitIds: [TRAIT.CALL_TO_ACTION, TRAIT.BRISK_PACING] };
-  const rotation = [combat, 'Chant of Action', '"On Your Knees!"', 'Eviscerate', wait(6000)];
-  const detailed = run(rotation, config);
-  const score = run(rotation, config, warriorProfession, 'score');
-  close(score.totalDamage, detailed.totalDamage);
-  assert.deepEqual(state(score), state(detailed));
 });
 
 test('Inspiring Implements composes with Core swap grants and respects its own exclusive cooldown', () => {

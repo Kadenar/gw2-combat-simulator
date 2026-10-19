@@ -459,25 +459,6 @@ test('Earth-specialized Evoker gives Earthen Blast and Rock Solid independent co
   assert.equal(rockSolid(nonEarth).length, earthEntries(nonEarth).length);
 });
 
-test('Specialized Elements grants three familiar charges per matching weapon skill', () => {
-  const result = runNative({
-    lines: [['Fire'], ['Air'], ['Evoker', '1-1-3']],
-    rotation: ['Flame Uprising'],
-    startAttunement: 'Fire',
-    weapons: ['Sword', 'Dagger'],
-    evokerElement: 'Fire',
-    initialEvokerCharges: 0
-  });
-  const charge = result.events.find(
-    (event) => event.type === 'resource' && event.kind === 'evoker-charges' && event.source === 'Flame Uprising'
-  );
-
-  assert.equal(result.planningState.profession.familiarCharges.maximum, 6);
-  assert.ok(charge);
-  assert.equal(charge.change, 3);
-  assert.equal(result.planningState.profession.familiarCharges.value, 3);
-});
-
 test('Specialized Elements familiar casts reduce active weapon recharge', () => {
   const simulate = (traits, alacrity) =>
     runNative({

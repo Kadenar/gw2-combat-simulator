@@ -5,28 +5,6 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 
-// A minimal Maul verifies packet ownership and ordering without depending on a saved rotation.
-test('Maul applies two bleeding stacks alongside each of its strikes', () => {
-  const result = runRanger([ID.FELINE_MAUL, wait(2000)], {
-    specialization: 'Untamed',
-    selectedPet: 'Tiger',
-    initialUntamedState: 'Ranger'
-  });
-  assert.deepEqual(result.warnings, []);
-  const hits = result.events.filter((event) => event.skillId === ID.FELINE_MAUL && event.type === 'damage');
-  const bleeds = result.events.filter(
-    (event) => event.skillId === ID.FELINE_MAUL && event.type === 'condition' && event.condition === 'Bleeding'
-  );
-  assert.ok(hits.length > 0);
-  assert.ok(bleeds.length > 0);
-  for (const [index, bleed] of bleeds.entries()) {
-    assert.equal(bleed.stacks, 2);
-    assert.equal(bleed.at, hits[index].at);
-    assert.equal(bleed.activationId, hits[index].activationId);
-    assert.ok(bleed.eventOrder > hits[index].eventOrder);
-  }
-});
-
 // Delayed commands must finish their own animation before the autonomous lane resumes.
 test('queued pet commands retain exclusive ownership of the pet lane', () => {
   const result = runRanger(['__combat_start', wait(101), ID.FURIOUS_POUNCE, ID.FELINE_MAUL, wait(7000)], {

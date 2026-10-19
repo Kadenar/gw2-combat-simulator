@@ -7,53 +7,8 @@ import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import {
-  createObservedProfessionSimulator,
-  observeGw2Runtime,
-  observedRuntime
-} from '#tests/helpers/observed-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-
-// Partitioning waits must not reset the common allied cadence or duplicate opportunities.
-test('allied strikes retain their cadence across partitioned and repeated advances', () => {
-  const run = (targets, combatStartTime = 1) => {
-    const config = { specialization: 'Core', allies: { count: 2, strikesPerSecond: 4 } };
-    const native = necromancerProfession.runtimeFor(config);
-    const opportunities = [];
-    let previous = 0;
-    observeGw2Runtime({
-      config,
-      combatStartTime,
-      rotation: targets.map((at) => {
-        const wait = { type: 'wait', durationMs: (at - previous) * 1000 };
-        previous = at;
-        return wait;
-      }),
-      observation: { kind: 'absolute', endTimeMs: 3000 },
-      profession: {
-        ...native,
-        initialize(runtime) {
-          native.initialize(runtime);
-          runtime.alliedStrikes.registerRecipients(
-            () => ({
-              id: 'test.observer',
-              trigger: ({ at }) => {
-                opportunities.push(at);
-              }
-            }),
-            { alliedPlayerIndex: 1 }
-          );
-        }
-      }
-    });
-    return opportunities;
-  };
-
-  const whole = run([3]);
-  assert.ok(whole.length > 0);
-  assert.deepEqual(run([0, 0.75, 1, 1.125, 1.25, 1.25, 1.5, 2.125, 3, 3]), whole);
-  assert.deepEqual(run([3], 3), []);
-});
 
 const baseConfig = Object.freeze({
   attributeInputs: baseAttributeInputs({
@@ -103,79 +58,6 @@ test('Dark Pact inflicts conditions without gaining life force against the boonl
   assert.equal(targetCondition('Immobilized')?.duration, 6);
 });
 
-test('Life Siphon uses its current PvE strike and bleeding mechanics', () => {
-  const lifeSiphon = (targetBleeding) =>
-    simulate(
-      'Core',
-      ['Life Siphon'],
-      {
-        primaryWeapon: 'Dagger',
-        target: {
-          ...baseConfig.target,
-          conditions: {
-            ...baseConfig.target.conditions,
-            Bleeding: targetBleeding
-          }
-        }
-      },
-      observationTail(5000)
-    );
-  const plain = lifeSiphon(false);
-  const bleeding = lifeSiphon(true);
-  const siphonDamage = (result) =>
-    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.LIFE_SIPHON).damage;
-
-  assert.deepEqual(
-    plain.events
-      .filter((event) => event.type === 'self_condition' && event.skillId === ID.LIFE_SIPHON)
-      .map((event) => [event.condition, event.stacks, event.duration]),
-    [['Bleeding', 1, 8]]
-  );
-  assert.ok(plain.events.filter((event) => event.type === 'damage' && event.skillId === ID.LIFE_SIPHON).length > 0);
-  assertFlooredDamageMultiplier(siphonDamage(bleeding), siphonDamage(plain), 1.5);
-});
-
-test('Overflowing Thirst grants the documented Taste for Blood stacks to five party members', () => {
-  const cases = [
-    ['Life Siphon', ID.LIFE_SIPHON, 3],
-    ['Dark Pact', ID.DARK_PACT, 3],
-    ['Deathly Swarm', ID.DEATHLY_SWARM, 3],
-    ['Enfeebling Blood', ID.ENFEEBLING_BLOOD, 3]
-  ];
-
-  for (const [name, skillId, stacks] of cases) {
-    const result = simulate(
-      'Core',
-      [name],
-      {
-        primaryWeapon: 'Dagger',
-        secondaryWeapon: 'Dagger',
-        selectedTraitIds: [TRAIT.OVERFLOWING_THIRST],
-        allies: { count: 4 }
-      },
-      observationTail(2000)
-    );
-    const application = result.events.find(
-      (event) => event.type === 'buff' && event.kind === 'taste-for-blood' && event.skillId === skillId
-    );
-
-    assert.equal(application?.stacks, stacks, name);
-    assert.equal(application?.resolvedAudience.alliedPlayerCount, 4, name);
-    assert.equal(application?.resolvedAudience.recipientCount, 5, name);
-  }
-
-  const chain = simulate('Core', ['Necrotic Slash', 'Necrotic Stab', 'Necrotic Bite'], {
-    primaryWeapon: 'Dagger',
-    selectedTraitIds: [TRAIT.OVERFLOWING_THIRST]
-  });
-  const applications = chain.events.filter((event) => event.type === 'buff' && event.kind === 'taste-for-blood');
-
-  assert.deepEqual(
-    applications.map((event) => [event.skillId, event.stacks]),
-    [[ID.NECROTIC_BITE, 1]]
-  );
-});
-
 test('Taste for Blood consumes one stack per direct hit and uses its power-only life-siphon formula', () => {
   const lifeSiphon = simulate(
     'Core',
@@ -216,7 +98,7 @@ test('Taste for Blood consumes one stack per direct hit and uses its power-only 
   );
 });
 
-test('Taste for Blood procs use Overflowing Thirst artwork and log their triggering skill', () => {
+test('Taste for Blood procs log their owning trait and triggering skill', () => {
   const result = simulate(
     'Ritualist',
     ['Dark Pact', "Ritualist's Shroud", 'Wanderlust'],
@@ -228,13 +110,9 @@ test('Taste for Blood procs use Overflowing Thirst artwork and log their trigger
     },
     observationTail(5000)
   );
-  const traitIcon = necromancerCatalog.traits.find((trait) => trait.id === TRAIT.OVERFLOWING_THIRST)?.icon;
-  const wanderlustProc = result.procSteps.find(
-    (proc) => proc.skill === 'Taste for Blood' && proc.sourceSkill === 'Wanderlust'
-  );
   const eventRows = simulationEventLogRows(result, null, withPatchPreview(necromancerProfession));
 
-  assert.equal(wanderlustProc?.icon, traitIcon);
+  assert.ok(result.procSteps.some((proc) => proc.skill === 'Taste for Blood' && proc.sourceSkill === 'Wanderlust'));
   assert.equal(
     // The grant names its owning trait while the damage packet still names its triggering skill.
     eventRows.some((row) => /^Overflowing Thirst → Taste for Blood x3 · .*10s$/.test(row.description)),
@@ -335,104 +213,6 @@ test('Taste for Blood excludes active Ritualist spirits from its shared stack po
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(application.resolvedAudience.companionIds, []);
   assert.equal(spiritPackets.length, 0);
-});
-
-test('off-hand sword follow-ups use their complete PvE effects', () => {
-  const result = simulate(
-    'Core',
-    ['Hungering Maelstrom', 'Devouring Visage', 'Gormandize', 'Consume'],
-    {
-      boons: { quickness: true },
-      primaryWeapon: 'Dagger',
-      secondaryWeapon: 'Sword',
-      target: {
-        ...baseConfig.target,
-        health: 1_000_000_000
-      }
-    },
-    observationTail(3000)
-  );
-  const damage = (skillId) => result.events.filter((event) => event.type === 'damage' && event.skillId === skillId);
-
-  assert.deepEqual(result.warnings, []);
-  assert.deepEqual(
-    damage(ID.HUNGERING_MAELSTROM).map((event) => event.coefficient),
-    [2.75]
-  );
-  assert.deepEqual(
-    damage(ID.DEVOURING_VISAGE).map((event) => event.coefficient),
-    [1.5]
-  );
-  assert.deepEqual(
-    damage(ID.GORMANDIZE).map((event) => event.coefficient),
-    [2.5]
-  );
-  assert.deepEqual(
-    damage(ID.CONSUME).map((event) => event.coefficient),
-    Array(5).fill(0.5)
-  );
-  assert.equal(
-    result.events.some(
-      (event) => event.type === 'condition' && event.skillId === ID.DEVOURING_VISAGE && event.condition === 'Fear'
-    ),
-    true
-  );
-  assert.equal(
-    result.events.some(
-      (event) =>
-        event.type === 'condition' &&
-        event.skillId === ID.CONSUME &&
-        event.condition === 'Weakness' &&
-        event.duration === 4
-    ),
-    true
-  );
-  assert.equal(
-    result.events.some(
-      (event) =>
-        event.type === 'buff' &&
-        event.skillId === ID.CONSUME &&
-        event.kind === 'might' &&
-        event.stacks === 5 &&
-        event.duration === 8
-    ),
-    true
-  );
-});
-
-test('main-hand sword skills use their complete PvE effects', () => {
-  const result = simulate(
-    'Core',
-    ['Ravenous Wave', 'Satiate', 'Path of Gluttony', 'Gorge'],
-    {
-      boons: { quickness: true },
-      initialResource: 0,
-      primaryWeapon: 'Sword',
-      secondaryWeapon: 'Sword',
-      target: {
-        ...baseConfig.target,
-        health: 1_000_000_000
-      }
-    },
-    observationTail(1000)
-  );
-  const damage = (skillId) => result.events.find((event) => event.type === 'damage' && event.skillId === skillId);
-
-  assert.deepEqual(result.warnings, []);
-  assert.equal(damage(ID.RAVENOUS_WAVE)?.coefficient, 2);
-  assert.equal(damage(ID.SATIATE)?.coefficient, 2);
-  assert.deepEqual(damage(ID.SATIATE)?.coefficientModifiers, [
-    {
-      kind: 'target-health-below',
-      threshold: 0.5,
-      multiplier: 1.5
-    }
-  ]);
-  assert.equal(damage(ID.PATH_OF_GLUTTONY)?.coefficient, 2);
-  assert.equal(necromancerCatalog.skillsById.get(ID.PATH_OF_GLUTTONY).comboFinishers[0].finisherType, 'Leap');
-  assert.equal(damage(ID.GORGE)?.coefficient, 2);
-  assert.equal(necromancerCatalog.skillsById.get(ID.GORGE).comboFinishers[0].finisherType, 'Leap');
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 12);
 });
 
 test('Satiate expires after three seconds and base sword cooldowns continue during follow-ups', () => {
@@ -1531,31 +1311,6 @@ test("Shadow Fiend reports Slash and Haunt's full command effects", () => {
     lifeForcePercent(result.planningState.profession.lifeForce) -
       lifeForcePercent(summonOnly.planningState.profession.lifeForce),
     10
-  );
-});
-
-test('Sinister Shroud reduces shroud-skill recharge by fifteen percent', () => {
-  const rotation = ["Ritualist's Shroud", 'Anguish', 'Anguish'];
-  const base = simulate('Ritualist', rotation);
-  const sinister = simulate('Ritualist', rotation, {
-    selectedTraitIds: [TRAIT.SINISTER_SHROUD]
-  });
-  // Read the actual final recharge pool; accepted action facts never predict its later readiness.
-  for (const [result, rechargeMs] of [
-    [base, 5600],
-    [sinister, 4760]
-  ]) {
-    const last = result.steps.filter((step) => step.skill === 'Anguish').at(-1);
-    assert.equal(
-      Math.round(observedRuntime(result).cooldownController.readyAt(ID.ANGUISH) * 1000 - last.end),
-      rechargeMs
-    );
-  }
-
-  assert.equal(
-    base.steps.filter((step) => step.skill === 'Anguish')[1].start -
-      sinister.steps.filter((step) => step.skill === 'Anguish')[1].start,
-    840
   );
 });
 

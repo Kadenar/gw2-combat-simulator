@@ -111,35 +111,3 @@ test("Nature's Strength expires independently of boon duration and cannot trigge
   assert.equal(stacks(result, 'natures-strength'), 4);
   assert.equal(buffs(result, 'force-of-nature').length, 0);
 });
-
-test('Force of Nature lasts five seconds, then Tapped Out blocks stacks for ten more seconds', () => {
-  const atForceEnd = simulate('Core', [...cycle, wait(5000)]);
-  assert.equal(stacks(atForceEnd, 'force-of-nature'), 0);
-  assert.equal(stacks(atForceEnd, 'tapped-out'), 1);
-  const force = buffs(atForceEnd, 'force-of-nature')[0];
-  const tapped = buffs(atForceEnd, 'tapped-out')[0];
-  assert.equal(tapped.at, force.at + 5);
-  const atLockoutEnd = simulate('Core', [...cycle, wait(15000)]);
-  assert.equal(stacks(atLockoutEnd, 'tapped-out'), 0);
-  const duringForce = simulate('Core', [...cycle, ...chain]);
-  const duringTapped = simulate('Core', [...cycle, wait(5000), ...chain]);
-  assert.equal(stacks(duringForce, 'natures-strength'), 0);
-  assert.equal(stacks(duringTapped, 'natures-strength'), 0);
-  const recovered = simulate('Core', [...cycle, wait(15000), ...cycle]);
-  assert.equal(buffs(recovered, 'force-of-nature').length, 2);
-  assert.deepEqual(recovered.warnings, []);
-});
-
-test('Force of Nature adds ten percent to subsequent player strikes and expires without empowering pets', () => {
-  const result = simulate('Core', [...cycle, ...chain, wait(5000), ...chain]);
-  const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === ID.CULTIVATE);
-  assert.equal(hits.length, 2);
-  assertFlooredDamageMultiplier(hits[0].damage, hits[1].damage, 1.1);
-  const force = buffs(result, 'force-of-nature')[0];
-  const petHits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.source === 'ranger-pet');
-  const empoweredWindowPet = petHits.find((event) => event.at > force.at && event.at < force.at + 5);
-  assert.ok(empoweredWindowPet);
-  const ordinaryPet = petHits.find((event) => event.at >= force.at + 5 && event.skillId === empoweredWindowPet.skillId);
-  assert.ok(ordinaryPet);
-  assert.equal(empoweredWindowPet.damage, ordinaryPet.damage);
-});

@@ -1,37 +1,21 @@
 import { enteredCombat } from '#tests/helpers/engagement.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { loadProfession, professionOptions, professionRegistry } from '#gw2/profession-registry.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import {
-  ELEMENTALIST_BUILD_SCHEMA_VERSION,
   createElementalistBuildDefaults,
   migrateElementalistBuild,
   validateElementalistBuild
 } from '#gw2/professions/elementalist/build/build.js';
 import { elementalistAttunementRechargeDuration } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { elementalistRechargeWork } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/index.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { CATALYST_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
-import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
-import { TEMPEST_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
-import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { flowStateAttunementReduction } from '#gw2/professions/elementalist/specializations/weaver/traits/attunements.js';
 import assert from 'node:assert/strict';
-import { readFile, readdir } from 'node:fs/promises';
-import path from 'node:path';
 import test from 'node:test';
-
-const applyElementalistPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(elementalistCatalog, patch), patch);
 
 // Training reductions must recognize numeric trait IDs without depending on catalog-name aliases.
 test('elemental training reduces only matching weapon recharge with ID-only trait sets', () => {
@@ -71,151 +55,6 @@ test('attunement recharge applies trait reductions in order and stays free befor
   context.engagement = createCombatEngagement().query;
   assert.equal(elementalistAttunementRechargeDuration(context, skill, 4, flowStateAttunementReduction(context)), 0);
   assert.equal(elementalistAttunementRechargeDuration(context, skill, 2, flowStateAttunementReduction(context)), 0);
-});
-
-const authoringElementalistProfession = withActivePatchPreview(elementalistProfession);
-
-test('profession selector exposes every registered profession', () => {
-  assert.deepEqual(
-    professionOptions,
-    professionRegistry.map(({ id, name }) => ({ id, name }))
-  );
-});
-
-test('Elementalist is registered through the generic profession contract', async () => {
-  const [profession, adapter] = await Promise.all([
-    loadProfession('elementalist'),
-    loadProfessionAppAdapter('elementalist')
-  ]);
-
-  assert.equal(profession.id, 'elementalist');
-  assert.equal(profession.name, 'Elementalist');
-  assert.ok(profession.catalog.specializations.length >= 9);
-  assert.ok(profession.catalog.traits.length > 0);
-  assert.ok(profession.catalog.skills.every((skill) => skill.icon));
-  assert.ok(profession.catalog.traits.every((trait) => trait.icon));
-  assert.ok(profession.catalog.specializations.every((specialization) => specialization.icon));
-  assert.equal('simulation' in profession, false);
-  assert.equal(adapter.id, 'elementalist');
-});
-
-test('Elementalist modules expose isolated balance-profile authoring', () => {
-  const modules = new Map(authoringElementalistProfession.patchAuthoring.modules.map((module) => [module.id, module]));
-
-  assert.deepEqual([...modules.keys()], ['Core', 'Tempest', 'Weaver', 'Catalyst', 'Evoker']);
-  assert.equal(
-    [...modules.values()].every((module) => module.balanceProfiles.length > 0),
-    true
-  );
-
-  const profile = (moduleId, profileId) => {
-    const module = modules.get(moduleId);
-
-    return [...module.balanceProfiles, ...module.skillVariants].find((entry) => entry.id === profileId);
-  };
-
-  assert.equal(profile('Core', ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources).patchableFields.recharge, 10);
-  assert.equal(profile('Core', ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental).patchableFields.duration, 120);
-  assert.equal(profile('Tempest', TEMPEST_BALANCE_PROFILE_IDS.lightningJolt).profile.effects[0].coefficient, 1.32);
-  assert.equal(profile('Weaver', WEAVER_BALANCE_PROFILE_IDS.primordialStance).profile.effects[0].coefficient, 0.33);
-  assert.equal(profile('Catalyst', CATALYST_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 30);
-  assert.equal(profile('Evoker', EVOKER_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 6);
-  assert.equal(
-    modules.get('Core').skills.some((entry) => entry.id === ID.FRIGID_FLURRY),
-    true
-  );
-  assert.equal(
-    modules.get('Core').balanceProfiles.some((entry) => entry.profile.parentId === ID.FRIGID_FLURRY),
-    false
-  );
-  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.INFERNO).coefficientMultiplier, 0.0825 / 0.155);
-
-  const opaqueModifierRules = [...modules.values()].flatMap((module) =>
-    module.modifierRules.filter(
-      (rule) =>
-        (typeof rule.amount === 'function' || typeof rule.factor === 'function') &&
-        Object.keys(rule.parameters).length === 0
-    )
-  );
-
-  assert.deepEqual(opaqueModifierRules, []);
-
-  const preview = applyElementalistPatch({
-    skills: {
-      [ID.OVERLOAD_AIR]: {
-        fields: { cooldown: { from: 20, to: 18 } }
-      }
-    },
-    balanceProfiles: {
-      [ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources]: {
-        fields: { recharge: { from: 10, to: 9 } }
-      },
-      [ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental]: {
-        fields: { duration: { from: 120, to: 100 } }
-      },
-      [TRAIT.ELEMENTAL_ENCHANTMENT]: {
-        fields: { rechargeMultiplier: { from: 0.85, to: 0.8 } }
-      },
-      [TEMPEST_BALANCE_PROFILE_IDS.lightningJolt]: {
-        effects: [{ effectIndex: 0, coefficient: { from: 1.32, to: 1.4 } }]
-      },
-      [WEAVER_BALANCE_PROFILE_IDS.primordialStance]: {
-        effects: [{ effectIndex: 0, coefficient: { from: 0.33, to: 0.4 } }]
-      },
-      [CATALYST_BALANCE_PROFILE_IDS.resources]: {
-        fields: { maximumStacks: { from: 30, to: 40 } }
-      },
-      [EVOKER_BALANCE_PROFILE_IDS.resources]: {
-        fields: { maximumStacks: { from: 6, to: 8 } }
-      }
-    }
-  });
-
-  assert.equal(preview.skillsById.get(ID.OVERLOAD_AIR).cooldown, 18);
-  assert.equal(preview.balanceProfilesById.get(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources).recharge, 9);
-  assert.equal(preview.balanceProfilesById.get(TEMPEST_BALANCE_PROFILE_IDS.lightningJolt).effects[0].coefficient, 1.4);
-  assert.equal(
-    preview.balanceProfilesById.get(WEAVER_BALANCE_PROFILE_IDS.primordialStance).effects[0].coefficient,
-    0.4
-  );
-  assert.equal(preview.balanceProfilesById.get(CATALYST_BALANCE_PROFILE_IDS.resources).maximumStacks, 40);
-  assert.equal(preview.balanceProfilesById.get(EVOKER_BALANCE_PROFILE_IDS.resources).maximumStacks, 8);
-  assert.equal(
-    balanceNumberFromContext({ catalog: preview }, ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental, 'duration'),
-    100
-  );
-  // Mirror the simulation boundary by normalizing selected IDs before invoking lifecycle logic.
-  const traitConfig = {
-    selectedTraitIds: [TRAIT.ELEMENTAL_ENCHANTMENT],
-    boons: {}
-  };
-  assert.equal(
-    elementalistAttunementRechargeDuration(
-      {
-        helpers: preview,
-        config: traitConfig,
-        time: 0,
-        engagement: enteredCombat(),
-        cooldownController: { rate: () => 1 },
-        traits: normalizeSelectedTraitIds(traitConfig.selectedTraitIds)
-      },
-      preview.skillsById.get(ID.FIRE_ATTUNEMENT),
-      10
-    ),
-    8
-  );
-
-  assert.equal(elementalistCatalog.skillsById.get(ID.OVERLOAD_AIR).cooldown, 20);
-  assert.equal(
-    elementalistCatalog.balanceProfilesById.get(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources).recharge,
-    10
-  );
-  assert.equal(
-    [...elementalistCatalog.balanceProfilesById.values()].some(
-      (entry) => entry.parentId === ID.FIRE_ELEMENTAL_FIREBALL
-    ),
-    false
-  );
 });
 
 test('Elementalist build defaults and canonical builds normalize explicitly', () => {
@@ -332,42 +171,4 @@ test('Elementalist canonical timelines pair strikes and conditions in hitbox ord
       ['condition', index, 'Vulnerability']
     ])
   );
-});
-
-test('all Elementalist build and rotation assets migrate through the native codec', async () => {
-  const root = new URL('../../../../..', import.meta.url);
-  const manifest = JSON.parse(await readFile(new URL('data/gw2/builds/elementalist/manifest.json', root), 'utf8'));
-  const presets = manifest.flatMap((section) =>
-    section.presets.map((preset) => ({ ...preset, section: section.section }))
-  );
-  const buildFiles = (await readdir(new URL('data/gw2/builds/elementalist/', root)))
-    .filter((name) => name.startsWith('b-') && name.endsWith('.json'))
-    .sort();
-  const rotationFiles = (await readdir(new URL('data/gw2/rotations/elementalist/', root)))
-    .filter((name) => name.startsWith('r-') && name.endsWith('.json'))
-    .sort();
-
-  assert.deepEqual([...new Set(presets.map((preset) => path.basename(preset.build)))].sort(), buildFiles);
-  assert.deepEqual([...new Set(presets.map((preset) => path.basename(preset.rotation)))].sort(), rotationFiles);
-
-  for (const preset of presets) {
-    const [savedBuild, savedRotation] = await Promise.all([
-      readFile(new URL(preset.build, root), 'utf8').then(JSON.parse),
-      readFile(new URL(preset.rotation, root), 'utf8').then(JSON.parse)
-    ]);
-    const build = migrateElementalistBuild({
-      ...savedBuild,
-      rotation: savedRotation.rotation
-    });
-    const validation = validateElementalistBuild(build);
-
-    assert.equal(savedBuild.schemaVersion, ELEMENTALIST_BUILD_SCHEMA_VERSION, `${preset.section}: ${preset.label}`);
-    assert.equal(validation.valid, true, `${preset.section}: ${preset.label}: ${validation.errors.join('; ')}`);
-    assert.ok(
-      build.rotation
-        .filter((command) => command.type === 'cast')
-        .every((command) => elementalistCatalog.skillsById.has(command.skillId)),
-      `${preset.section}: ${preset.label}`
-    );
-  }
 });

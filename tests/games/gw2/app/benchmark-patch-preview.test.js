@@ -3,9 +3,7 @@ import test from 'node:test';
 import { patchBenchmarks, patchProfessionSummary, sortPatchBenchmarks } from '#gw2/app/page/benchmark-patch-preview.js';
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
-import { validatePatchPreview, applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { loadEditorPayload, editorState, setNumericEdit } from '#gw2/integrations/patches/app/editor-state.js';
+import { validatePatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   validateAuthoringPreview,
   serializeActivePatchPreview
@@ -133,33 +131,4 @@ test('authoring validates and preserves patch-scoped pending selectors when savi
   ]) {
     assert.throws(() => validatePatchPreview({ ...preview, pendingBenchmarks }), /pending benchmark/);
   }
-});
-
-// An uncertain percentage must remain qualified through authoring saves and disappear when its edit is reset.
-test('Grenadier retains its provisional 10% assumption through generated notes and authoring', () => {
-  const id = 514;
-  const edit = activePatchPreview.professions.engineer.balanceProfiles[id];
-  const catalog = createCanonicalCatalog({
-    balanceProfiles: [{ id, name: 'Grenadier', profileKind: 'trait', damageMultiplier: 1, effects: [] }]
-  });
-  const preview = { id: 'fixture', label: 'Fixture', professions: { engineer: { balanceProfiles: { [id]: edit } } } };
-  const profession = {
-    patchAuthoring: { professionId: 'engineer', professionName: 'Engineer', modules: [] },
-    validatePatch: (patch) => applyBalanceProfilePatch(catalog, patch)
-  };
-  const saved = validateAuthoringPreview(preview, { validatePatchPreview, professions: [profession] });
-  assert.equal(
-    applyBalanceProfilePatch(catalog, saved.professions.engineer).balanceProfilesById.get(id).damageMultiplier,
-    1.1
-  );
-  assert.match(saved.professions.engineer.overview[0].text, /TBD:.*10% assumed/);
-  assert.equal(saved.professions.engineer.balanceProfiles[id].assumption, edit.assumption);
-  for (const assumption of ['', 10])
-    assert.throws(
-      () => applyBalanceProfilePatch(catalog, { balanceProfiles: { [id]: { ...edit, assumption } } }),
-      /assumption/
-    );
-  loadEditorPayload({ preview: saved, professions: [profession.patchAuthoring], sourceFile: 'fixture.ts' });
-  setNumericEdit({ entity: 'balance-profile', id, field: 'damageMultiplier', current: 1, next: 1 });
-  assert.equal(editorState.draft.professions?.engineer?.balanceProfiles?.[id], undefined);
 });

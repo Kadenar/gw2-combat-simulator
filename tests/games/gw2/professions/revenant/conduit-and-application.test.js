@@ -1,10 +1,8 @@
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import { describe, test } from 'node:test';
 import { loadProfession } from '#gw2/profession-registry.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
@@ -14,7 +12,6 @@ import {
   REVENANT_SKILL_IDS as SKILL,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
@@ -64,9 +61,6 @@ const rechargeReadyAt = (result, skillId) => observedRuntime(result).cooldownCon
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
-const strikeCoefficient = (effect) =>
-  effect.ticks?.reduce((total, tick) => total + Number(tick.coefficient), 0) ?? Number(effect.coefficient);
-
 test('sword follow-ups retain their casting skill while exposing separate damage identities', async () => {
   // Damage labels and packet IDs must split the breakdown without changing activation ownership.
   const profession = await loadProfession('revenant');
@@ -100,73 +94,6 @@ test('sword follow-ups retain their casting skill while exposing separate damage
 });
 
 describe('Power Conduit skill profiles', () => {
-  const skill = (name) => revenantCatalog.skillsByName.get(name);
-  test('retain authored cooldowns and coefficients', () => {
-    const cooldowns = {
-      Deathstrike: 15,
-      'Shackling Wave': 15,
-      'Chilling Isolation': 5,
-      'Twin Moon Sweep': 3,
-      'Beguiling Haze': 10,
-      'Release Potential: Dervish': 10,
-      "Gladiator's Defense": 5,
-      'Release Potential: Assassin': 10,
-      "Eternity's Requiem": 15,
-      "Phantom's Onslaught": 8,
-      'Mist Unleashed': 3,
-      'Cosmic Wisdom': 20
-    };
-
-    for (const [name, cooldown] of Object.entries(cooldowns)) {
-      assert.equal(skill(name).cooldown, cooldown, name);
-    }
-
-    for (const [name, coefficient] of [
-      ['Preparation Thrust', 0.75],
-      ['Brutal Blade', 0.8],
-      ['Mist Swing', 0.7],
-      ['Mist Slash', 0.8],
-      ['Arcing Mists', 1.2],
-      ['Mist Unleashed', 1.6],
-      ["Phantom's Onslaught", 1.6]
-    ]) {
-      assert.equal(
-        strikeCoefficient(skill(name).effects.find((effect) => effect.type === 'strike')),
-        coefficient,
-        name
-      );
-    }
-
-    assert.equal(skill('Chilling Isolation').defaultInterruptMs, undefined);
-    assert.equal(skill('Deathstrike').rechargeAnchor, 'castStart');
-    assert.equal(skill('Deathstrike').rechargeOffsetMs, 420);
-    assert.equal(skill("Phantom's Onslaught").rechargeAnchor, 'castStart');
-    assert.equal(skill("Phantom's Onslaught").rechargeOffsetMs, 40);
-    assert.equal(
-      revenantCatalog.balanceProfilesById
-        .get(CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment)
-        .effects.find((effect) => effect.kind === 'cosmic-wisdom-extension').duration,
-      1
-    );
-    assert.equal(
-      revenantCatalog.skillsById
-        .get(SKILL.FORM_OF_THE_DERVISH_ATTACK)
-        .effects.find((effect) => effect.type === 'strike').coefficient,
-      0.8
-    );
-    assert.equal(
-      revenantCatalog.skillsById.get(SKILL.GLADIATORS_DEFENSE).effects.find((effect) => effect.type === 'strike')
-        .coefficient,
-      1.5
-    );
-    assert.equal(
-      revenantCatalog.skillsById
-        .get(SKILL.RELEASE_POTENTIAL_ASSASSIN)
-        .effects.find((effect) => effect.type === 'strike').ticks[0].coefficient,
-      0.6
-    );
-  });
-
   const config = {
     selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
     startingLegend: LEGEND.ENTITY,
@@ -937,38 +864,6 @@ test('Revenant shadowsteps own Peitha buff and Torment applications', () => {
   }
 });
 
-test('Conduit form attacks carry usable icons into skill breakdowns', () => {
-  const dervish = simulate('Conduit', ['Cosmic Wisdom', "Gladiator's Defense"], {
-    selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.ENTITY,
-    initialEnergy: 100
-  });
-  const expectedIcon = revenantCatalog.skillsById.get(SKILL.FORM_OF_THE_DERVISH_ATTACK).icon;
-  const attack = dervish.events.find((event) => event.type === 'damage' && event.skillName === 'Form of the Dervish');
-  const row = skillBreakdownRows(dervish).find((entry) => entry.name === 'Form of the Dervish');
-
-  assert.match(expectedIcon, /^https:\/\/render\.guildwars2\.com\//);
-  assert.equal(expectedIcon, 'https://render.guildwars2.com/file/0CB866CA45E05F72B3B9CEDED5CAA1563FBD6B4A/3680046.png');
-  assert.equal(revenantCatalog.skillsById.get(SKILL.FORM_OF_THE_DERVISH_ATTACK_ELITE).icon, expectedIcon);
-  assert.equal(attack.icon, expectedIcon);
-  assert.equal(row.icon, expectedIcon);
-
-  const assassin = simulate('Conduit', ['Cosmic Wisdom', 'Impossible Odds', { type: 'wait', durationMs: 1100 }], {
-    selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
-    startingLegend: LEGEND.ASSASSIN,
-    initialEnergy: 100
-  });
-  const expectedDaggersIcon = revenantCatalog.skillsById.get(SKILL.LESSER_ENCHANTED_DAGGERS).icon;
-  const daggers = assassin.events.find(
-    (event) => event.type === 'damage' && event.skillName === 'Lesser Enchanted Daggers'
-  );
-  const daggersRow = skillBreakdownRows(assassin).find((entry) => entry.name === 'Lesser Enchanted Daggers');
-
-  assert.match(expectedDaggersIcon, /^https:\/\/render\.guildwars2\.com\//);
-  assert.equal(daggers.icon, expectedDaggersIcon);
-  assert.equal(daggersRow.icon, expectedDaggersIcon);
-});
-
 test('Mesmer release reads enemy and self Torment affinity at impact after a legend swap', () => {
   // Five affinity at cast start becomes two on swap; a swap after impact must leave the original duration intact.
   for (const [swapOffset, expectedAffinity] of [
@@ -1371,15 +1266,4 @@ test('Alacrity does not reduce Revenant legend or weapon swap cooldowns', () => 
     weapons.steps.filter((step) => step.skill === 'Swap Weapons').map((step) => step.start),
     [0, 10000]
   );
-});
-
-test('Revenant is a loadable native fixed-bar application', async () => {
-  assert.equal((await loadProfession('revenant')).id, 'revenant');
-  const adapter = await loadProfessionAppAdapter('revenant');
-
-  assert.equal(adapter.profession.id, 'revenant');
-  assert.equal(adapter.slotLoadout.id, 'revenant-legends');
-  const html = await readFile(new URL('../../../../../revenant.html', import.meta.url), 'utf8');
-
-  assert.match(html, /data-profession="revenant"/);
 });

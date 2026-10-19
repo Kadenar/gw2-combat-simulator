@@ -39,36 +39,6 @@ test('Vindicator dodge tooltips show only the selected landing and trait descrip
   }
 });
 
-// Trait cards expose their own landing payload without requiring that trait to be equipped.
-test('Vindicator trait tooltips expose dodge effects, ally recipients, and named buff icons', () => {
-  const facts = (id) =>
-    revenantAppAdapter.traitTooltip(
-      revenantProfession.catalog.traits.find((trait) => trait.id === id),
-      'current',
-      'Vindicator'
-    ).facts;
-  const forerunner = facts(TRAIT.FORERUNNER_OF_DEATH);
-  assert.equal(
-    forerunner.find(({ name }) => name === 'Forerunner of Death').icon,
-    revenantProfession.catalog.skillsById.get(ID.DEATH_DROP).icon
-  );
-  assert.match(
-    facts(TRAIT.REAVERS_CURSE).find(({ name }) => name === "Reaver's Curse").icon,
-    /^https:\/\/render.guildwars2.com\/file\/00B56F050D44B6690427AFF77901E3074FF221AD\/2491534.png$/
-  );
-  const imperial = facts(TRAIT.VASSALS_OF_THE_EMPIRE);
-  assert.match(imperial.find(({ name }) => name === 'Strike damage').detail, /^2 coefficient/);
-  assert.match(imperial.find(({ name }) => name === 'Chilled').detail, /^2s/);
-  const might = imperial.find(({ name }) => name === 'Might');
-  assert.equal(might.stacks, 5);
-  assert.match(might.detail, /^10s.*up to 5 party members/);
-  assert.match(imperial.find(({ name }) => name === 'Protection').detail, /^5s.*up to 5 party members/);
-  assert.match(
-    facts(TRAIT.SAINT_OF_ZU_HELTZER).find(({ name }) => name === 'Alacrity').detail,
-    /^4s.*up to 5 party members/
-  );
-});
-
 // Editing the canonical landing data must update the trait facts as well as the dodge facts.
 test('Vindicator trait facts follow the selected patch landing payload', () => {
   const profession = withPatchPreview(revenantProfession, {

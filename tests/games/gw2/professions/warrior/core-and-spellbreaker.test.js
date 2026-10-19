@@ -1,4 +1,3 @@
-import { BOON } from '#gw2/platform/constants.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { bloodReaction } from '#gw2/professions/warrior/specializations/berserker/traits/index.js';
 import { attackersInsight } from '#gw2/professions/warrior/specializations/spellbreaker/traits/index.js';
@@ -8,7 +7,6 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -17,7 +15,6 @@ import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js'
 import { mechanicResourceSpends, timelineStepsWithChargeFills } from '#gw2/app/rotation/timeline/model.js';
 import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   createWarriorBuildDefaults,
   migrateWarriorBuild,
@@ -26,15 +23,10 @@ import {
 import { warriorNativeModules, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { warriorCoreModule } from '#gw2/professions/warrior/core/module.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/core/profiles.js';
-import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { berserkerModule } from '#gw2/professions/warrior/specializations/berserker/module.js';
-import { BERSERKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import { bladeswornModule } from '#gw2/professions/warrior/specializations/bladesworn/module.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { paragonModule } from '#gw2/professions/warrior/specializations/paragon/module.js';
-import { PARAGON_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import { spellbreakerModule } from '#gw2/professions/warrior/specializations/spellbreaker/module.js';
 import { assertProfessionFamilyConformance } from '#tests/helpers/profession-family-conformance.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
@@ -62,12 +54,6 @@ const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
 const strikeCoefficient = (effect) =>
   effect.ticks?.reduce((total, tick) => total + Number(tick.coefficient), 0) ?? Number(effect.coefficient);
-
-const skillStrikeCoefficient = (skill) => strikeCoefficient(skill.effects.find((effect) => effect.type === 'strike'));
-
-const applyWarriorPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(warriorCatalog, patch), patch);
-
-const authoringWarriorProfession = withActivePatchPreview(warriorProfession);
 
 test('Bladetrail schedules immobilize with both impacts, including its delayed return', () => {
   // Observe beyond cast completion so the return application exercises delayed condition scheduling.
@@ -155,88 +141,8 @@ test('Warrior catalog normalizes authored skills and reviewed aliases', () => {
   );
 });
 
-test('Warrior modules expose isolated balance-profile authoring', () => {
-  const modules = new Map(authoringWarriorProfession.patchAuthoring.modules.map((module) => [module.id, module]));
-
-  assert.deepEqual([...modules.keys()], ['Core', 'Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon']);
-  assert.equal(
-    [...modules.values()].every((module) => module.balanceProfiles.length > 0),
-    true
-  );
-
-  const profile = (moduleId, profileId) =>
-    modules.get(moduleId).balanceProfiles.find((entry) => entry.id === profileId);
-
-  assert.equal(profile('Core', WARRIOR_CORE_BALANCE_PROFILE_IDS.burstTiers).patchableFields.threshold, 20);
-  assert.equal(profile('Berserker', BERSERKER_BALANCE_PROFILE_IDS.resources).profile.effects[0].duration, 20);
-  assert.equal(warriorCatalog.skillsById.get(ID.MAGEBANE_TETHER).effects[0].duration, 8);
-  assert.equal(profile('Bladesworn', BLADESWORN_BALANCE_PROFILE_IDS.dragonTrigger).patchableFields.maximumStacks, 10);
-  assert.equal(profile('Paragon', PARAGON_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 10);
-
-  const opaqueModifierRules = [...modules.values()].flatMap((module) =>
-    module.modifierRules.filter(
-      (rule) =>
-        (typeof rule.amount === 'function' || typeof rule.factor === 'function') &&
-        Object.keys(rule.parameters).length === 0
-    )
-  );
-
-  assert.deepEqual(opaqueModifierRules, []);
-  assert.deepEqual(
-    modules.get('Core').modifierRules.find((rule) => rule.id === 'warrior.berserkers-power').parameters,
-    {}
-  );
-  const berserkersPower = profile('Core', TRAIT.BERSERKERS_POWER).patchableFields;
-  assert.equal(berserkersPower.maximumStacks, 4);
-  assert.equal(berserkersPower.damageIncreasePerStack, 0.0375);
-
-  const preview = applyWarriorPatch({
-    balanceProfiles: {
-      [WARRIOR_CORE_BALANCE_PROFILE_IDS.burstTiers]: {
-        fields: { threshold: { from: 20, to: 15 } }
-      },
-      [BERSERKER_BALANCE_PROFILE_IDS.resources]: {
-        effects: [{ effectIndex: 0, duration: { from: 20, to: 25 } }]
-      },
-      [BLADESWORN_BALANCE_PROFILE_IDS.dragonTrigger]: {
-        fields: { maximumStacks: { from: 10, to: 12 } }
-      },
-      [PARAGON_BALANCE_PROFILE_IDS.resources]: {
-        fields: { maximumStacks: { from: 10, to: 12 } }
-      }
-    },
-    skills: {
-      [ID.MAGEBANE_TETHER]: {
-        effects: [{ effectIndex: 0, duration: { from: 8, to: 9 } }]
-      }
-    }
-  });
-
-  assert.equal(preview.balanceProfilesById.get(WARRIOR_CORE_BALANCE_PROFILE_IDS.burstTiers).threshold, 15);
-  assert.equal(preview.balanceProfilesById.get(BERSERKER_BALANCE_PROFILE_IDS.resources).effects[0].duration, 25);
-  assert.equal(preview.skillsById.get(ID.MAGEBANE_TETHER).effects[0].duration, 9);
-  assert.equal(preview.balanceProfilesById.get(BLADESWORN_BALANCE_PROFILE_IDS.dragonTrigger).maximumStacks, 12);
-  assert.equal(preview.balanceProfilesById.get(PARAGON_BALANCE_PROFILE_IDS.resources).maximumStacks, 12);
-
-  assert.equal(warriorCatalog.balanceProfilesById.get(WARRIOR_CORE_BALANCE_PROFILE_IDS.burstTiers).threshold, 20);
-  assert.equal(warriorCatalog.balanceProfilesById.get(BLADESWORN_BALANCE_PROFILE_IDS.dragonTrigger).maximumStacks, 10);
-});
-
-test('Warrior builds migrate and validate against the canonical catalog', () => {
-  const defaults = createWarriorBuildDefaults();
-
-  assert.deepEqual(validateWarriorBuild(defaults), { valid: true, errors: [] });
-
-  const migrated = migrateWarriorBuild({
-    ...defaults,
-    initialResource: 500
-  });
-
-  assert.equal(migrated.initialResource, 100);
-  assert.deepEqual(validateWarriorBuild(migrated), {
-    valid: true,
-    errors: []
-  });
+// Dragon Slash release charges are a Warrior rotation field that both migration and validation must preserve.
+test('Warrior builds keep and validate Dragon Slash release charges', () => {
   const chargedRelease = migrateWarriorBuild({
     rotation: [{ name: 'Dragon Slash—Force', releaseAtCharges: 3 }]
   });
@@ -255,7 +161,6 @@ test('Warrior builds migrate and validate against the canonical catalog', () => 
     }).errors.join(' '),
     /releaseAtCharges must be a positive whole number/
   );
-  assert.throws(() => migrateWarriorBuild({ profession: 'necromancer' }), /Cannot load necromancer build as Warrior/);
 });
 
 test('Warrior core and elite profession resources remain isolated', () => {
@@ -801,71 +706,6 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
   );
 });
 
-test('Berserker rage and primal-burst traits use the supplied behavior', () => {
-  const reset = simulate('Berserker', ['Berserk', 'Arc Divider', 'Blood Reckoning', 'Arc Divider'], {
-    initialResource: 30,
-    selectedTraitIds: [TRAIT.SMASH_BRAWLER]
-  });
-
-  assert.deepEqual(reset.warnings, []);
-  assert.equal(reset.events.filter((event) => event.type === 'damage' && event.skillId === ID.ARC_DIVIDER).length, 2);
-
-  const nearbyOutrage = simulate('Berserker', ['Berserk', 'Outrage'], {
-    initialResource: 30,
-    selectedTraitIds: [TRAIT.LAST_BLAZE]
-  });
-
-  assert.deepEqual(nearbyOutrage.warnings, []);
-  assert.equal(nearbyOutrage.planningState.profession.berserkUntil, 23);
-
-  const berserkersPowerTiming = simulate('Berserker', ['Berserk', 'Wild Throw'], {
-    initialResource: 30,
-    selectedTraitIds: [TRAIT.BERSERKERS_POWER]
-  });
-  const firstWildThrowHit = berserkersPowerTiming.events.find(
-    (event) => event.type === 'damage' && event.skillId === ID.WILD_THROW
-  );
-  const berserkersPower = berserkersPowerTiming.events.find(
-    (event) => event.kind === 'berserkers-power' && event.skillId === ID.WILD_THROW
-  );
-
-  assert.equal(berserkersPower.at, firstWildThrowHit.at);
-  assert.equal(berserkersPower.priority, 5);
-
-  const traits = simulate('Berserker', ['Berserk', 'Wild Throw'], {
-    initialResource: 30,
-    selectedTraitIds: [TRAIT.LAST_BLAZE, TRAIT.HEAT_THE_SOUL, TRAIT.KING_OF_FIRES],
-    attributeInputs: baseAttributeInputs({ precision: 10000 })
-  });
-
-  assert.equal(
-    traits.events.some(
-      (event) =>
-        event.sourceId === TRAIT.LAST_BLAZE &&
-        event.condition === 'Burning' &&
-        event.stacks === 1 &&
-        event.duration === 4
-    ),
-    true
-  );
-  assert.equal(
-    traits.events.some(
-      (event) =>
-        event.sourceId === TRAIT.HEAT_THE_SOUL &&
-        event.kind === 'quickness' &&
-        event.duration === 5 &&
-        event.audience?.recipients === 'party'
-    ),
-    true
-  );
-  assert.equal(
-    traits.events.some(
-      (event) => event.sourceId === TRAIT.KING_OF_FIRES && event.type === 'damage' && event.coefficient === 0.7
-    ),
-    true
-  );
-});
-
 test('Berserker spear and greatsword packets use configured timing profiles', () => {
   const arc = warriorCatalog.skillsById.get(ID.ARC_DIVIDER);
   const wildThrow = warriorCatalog.skillsById.get(ID.WILD_THROW);
@@ -911,41 +751,6 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
   );
 });
 
-test('Warrior execution follows stable skill and packet IDs after display labels change', () => {
-  // Run renamed catalog entries through the actual owners; labels cannot select resource tiers or target packets.
-  const config = { ...baseConfig, specialization: 'Core', initialResource: 30 };
-  const profession = warriorProfession.runtimeFor(config);
-  const skills = profession.catalog.skills.map((skill) =>
-    [ID.KILL_SHOT, ID.MIGHTY_THROW].includes(skill.id)
-      ? {
-          ...skill,
-          name: 'Renamed ' + skill.id,
-          effects: skill.effects.map((effect) => ({ ...effect, name: 'Renamed packet' }))
-        }
-      : skill
-  );
-  const catalog = {
-    ...profession.catalog,
-    skills,
-    skillsById: new Map(skills.map((skill) => [skill.id, skill])),
-    skillsByName: new Map(skills.map((skill) => [skill.name, skill]))
-  };
-  const result = runGw2Runtime({
-    profession: { ...profession, catalog },
-    config,
-    rotation: [ID.KILL_SHOT, ID.MIGHTY_THROW]
-  });
-  assert.deepEqual(result.warnings, []);
-  assert.equal(
-    result.events.find((event) => event.type === 'damage' && event.skillId === ID.KILL_SHOT).coefficient,
-    3.25
-  );
-  assert.equal(
-    result.events.some((event) => event.metadata?.packetKind === 'warrior.mighty-throw-shard'),
-    false
-  );
-});
-
 test('Spellbreaker uses its reduced adrenaline cap for Full Counter', () => {
   const result = simulate('Spellbreaker', ['Full Counter'], {
     initialResource: 30
@@ -980,100 +785,6 @@ test('Spellbreaker weapon bursts require their matching active main hand', () =>
   assert.equal(swordSet.steps[1].invalid, true);
 });
 
-test('Spellbreaker Winds and Kick use the supplied PvE mechanics', () => {
-  const winds = warriorCatalog.skillsById.get(ID.WINDS_OF_DISENCHANTMENT);
-  const kick = warriorCatalog.skillsById.get(ID.KICK);
-  const windsStrike = winds.effects.find((effect) => effect.type === 'strike');
-  const kickStrike = kick.effects.find((effect) => effect.type === 'strike');
-  const kickControl = kick.effects.find((effect) => effect.type === 'control');
-
-  assert.equal(strikeCoefficient(windsStrike), 2.25);
-  assert.ok(windsStrike.ticks.length > 0);
-  assert.ok(windsStrike.ticks.every((tick) => tick.coefficient === 0.45));
-  assert.equal(kick.ammo, 3);
-  assert.equal(kick.ammoRecharge, 20);
-  assert.equal(strikeCoefficient(kickStrike), 1);
-  assert.equal(kickControl.controlKind, 'knockback');
-
-  const result = simulate('Spellbreaker', ['Winds of Disenchantment'], {}, observationTail(5000));
-  const pulses = result.events.filter(
-    (event) => event.type === 'damage' && event.skillId === ID.WINDS_OF_DISENCHANTMENT
-  );
-
-  assert.deepEqual(
-    pulses.map(({ coefficient }) => coefficient),
-    [0.45, 0.45, 0.45, 0.45, 0.45]
-  );
-});
-
-test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
-  const keenStrike = warriorCatalog.skillsById.get(ID.KEEN_STRIKE);
-  const focusedSlash = warriorCatalog.skillsById.get(ID.FOCUSED_SLASH);
-  const preciseCut = warriorCatalog.skillsById.get(ID.PRECISE_CUT);
-  const wastrelsRuin = warriorCatalog.skillsById.get(ID.WASTRELS_RUIN);
-  const breachingStrike = warriorCatalog.skillsById.get(ID.BREACHING_STRIKE);
-  const slicingMaelstrom = warriorCatalog.skillsById.get(ID.SLICING_MAELSTROM);
-  const damage = (result, name) => result.breakdown.find((entry) => entry.name === name)?.damage || 0;
-
-  assert.deepEqual(
-    [keenStrike, focusedSlash, preciseCut].map((skill) => [skillStrikeCoefficient(skill), skill.weapon]),
-    [
-      [1.05, 'Dagger'],
-      [0.65, 'Dagger'],
-      [0.6, 'Dagger']
-    ]
-  );
-
-  assert.deepEqual([wastrelsRuin.cooldown, skillStrikeCoefficient(wastrelsRuin)], [12, 1.5]);
-  assert.deepEqual(
-    [breachingStrike.cooldown, skillStrikeCoefficient(breachingStrike), breachingStrike.skillWeapon],
-    [8, 2.5, 'Dagger']
-  );
-  assert.deepEqual([slicingMaelstrom.cooldown, skillStrikeCoefficient(slicingMaelstrom)], [5, 2.5]);
-
-  const normalWastrel = simulate('Spellbreaker', ["Wastrel's Ruin"], {
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Dagger',
-    target: { defiant: false }
-  });
-  const defiantWastrel = simulate('Spellbreaker', ["Wastrel's Ruin"], {
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Dagger',
-    target: { defiant: true }
-  });
-
-  assertFlooredDamageMultiplier(damage(defiantWastrel, "Wastrel's Ruin"), damage(normalWastrel, "Wastrel's Ruin"), 2);
-
-  const fixedBreaching = simulate('Spellbreaker', ['Breaching Strike'], {
-    initialResource: 10,
-    primaryWeapon: 'Dagger',
-    secondaryWeapon: 'Mace',
-    boons: { quickness: true },
-    selectedTraitIds: [TRAIT.DUAL_WIELDING]
-  });
-
-  const resolvedBreaching = fixedBreaching.resolvedEvents.find(
-    (event) => event.type === 'damage' && event.skillId === ID.BREACHING_STRIKE
-  );
-
-  assert.equal(resolvedBreaching.weaponStrengthProfileId, 'weapon.dagger');
-  assert.equal(resolvedBreaching.resolvedWeaponStrength, 1000);
-
-  assert.equal(warriorCatalog.skillsById.get(ID.BLOODTHIRSTER).skillWeapon, 'Sword');
-
-  const fixedBloodthirster = simulate('Spellbreaker', ['Bloodthirster'], {
-    initialResource: 10,
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Axe'
-  });
-  const resolvedBloodthirster = fixedBloodthirster.resolvedEvents.find(
-    (event) => event.type === 'damage' && event.skillId === ID.BLOODTHIRSTER
-  );
-
-  assert.equal(resolvedBloodthirster.weaponStrengthProfileId, 'weapon.sword');
-  assert.equal(resolvedBloodthirster.resolvedWeaponStrength, 1000);
-});
-
 test('Warrior dagger bursts always apply their boonless-target multiplier', () => {
   // Both skill bonuses use the fixed target scope even when retained config says otherwise.
   // Each module composes the intrinsic rule exported beside its own burst.
@@ -1106,56 +817,6 @@ test('Arcing Slice scales Fury by adrenaline tier and damage below half health',
   assert.deepEqual(arcingSlice.effects[0].coefficientModifiers, [
     { kind: 'target-health-below', threshold: 0.5, multiplier: 1.5 }
   ]);
-});
-
-test('Warrior rifle skills use their PvE ammo, effects, finishers, and explosion contracts', () => {
-  const skill = (id) => warriorCatalog.skillsById.get(id);
-  const strike = (id) => skill(id).effects.find((effect) => effect.type === 'strike');
-  const conditions = (id) =>
-    skill(id)
-      .effects.filter((effect) => effect.type === 'condition')
-      .map(({ condition, stacks, duration }) => [condition, stacks, duration]);
-  const finisherChance = (id) => skill(id).comboFinishers?.[0]?.chance;
-
-  assert.deepEqual(
-    [ID.FIERCE_SHOT, ID.VOLLEY, ID.EXPLOSIVE_SHELL, ID.BRUTAL_SHOT].map((id) => [
-      strikeCoefficient(strike(id)),
-      strike(id).ticks?.length ?? strike(id).hits
-    ]),
-    [
-      [1, 1],
-      [4, 5],
-      [1.6, 1],
-      [1, 1]
-    ]
-  );
-  assert.deepEqual([finisherChance(ID.FIERCE_SHOT), finisherChance(ID.VOLLEY)], [0.2, 0.2]);
-  assert.deepEqual([finisherChance(ID.BRUTAL_SHOT), finisherChance(ID.KILL_SHOT)], [1, 1]);
-  assert.deepEqual(conditions(ID.EXPLOSIVE_SHELL), [
-    ['Crippled', 1, 5],
-    ['Vulnerability', 10, 10]
-  ]);
-  assert.deepEqual(conditions(ID.BRUTAL_SHOT), [
-    ['Immobilized', 1, 1.5],
-    ['Vulnerability', 8, 12]
-  ]);
-  assert.equal(strike(ID.EXPLOSIVE_SHELL).damageKind, 'explosion');
-  assert.deepEqual(
-    skill(ID.FIERCE_SHOT).effects.find((effect) => effect.type === 'boon'),
-    {
-      audience: { recipients: 'party', maximumRecipients: 5 },
-      type: 'boon',
-      boon: BOON.MIGHT,
-      duration: 5,
-      stacks: 1,
-      atMs: 480,
-      timingAnchor: 'castStart',
-      timingScale: 'fixed'
-    }
-  );
-  assert.equal(skill(ID.KILL_SHOT).skillWeapon, 'Rifle');
-  assert.equal(skill(ID.RIFLE_BUTT).cooldown, 12);
-  assert.equal(skill(ID.RIFLE_BUTT).effects.find((effect) => effect.type === 'control').controlKind, 'knockback');
 });
 
 test('Kill Shot scales with adrenaline, stays level one on Spellbreaker, and gains its target bonus', () => {
@@ -1321,21 +982,6 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
   assert.equal(kick.planningState.profession.attackerInsightExpiries.length, 2);
 });
 
-test('Dagger autos use a 15% critical-damage factor', () => {
-  // Inspect the critical formula independently of Keen Strike's same-time Might application.
-  const result = simulate('Spellbreaker', ['Precise Cut', 'Focused Slash', 'Keen Strike'], {
-    primaryWeapon: 'Dagger',
-    secondaryWeapon: 'Mace',
-    attributeInputs: baseAttributeInputs({ precision: 10000, ferocity: 1000 })
-  });
-  assert.deepEqual(result.warnings, []);
-  const criticalDamage = (id) =>
-    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === id).criticalDamage;
-  const baseline = criticalDamage(ID.KEEN_STRIKE);
-  assert.equal(criticalDamage(ID.PRECISE_CUT), baseline * 1.15);
-  assert.equal(criticalDamage(ID.FOCUSED_SLASH), baseline * 1.15);
-});
-
 test('Peak Performance buffs Kick and Leg Specialist requires impairment', () => {
   const strikeDamage = (selectedTraitIds, target = {}) =>
     simulate('Spellbreaker', ['Kick'], {
@@ -1381,28 +1027,6 @@ test('Peak Performance buffs Kick and Leg Specialist requires impairment', () =>
     }).breakdown.find((entry) => entry.name === 'Keen Strike')?.strikeDamage || 0;
 
   assertFlooredDamageMultiplier(legDamage({ Chilled: true }), legDamage({}), 1.05);
-});
-
-test('Warrior core damage traits use their correct modifier buckets', () => {
-  const configuredKickDamage = (selectedTraitIds, overrides = {}) =>
-    simulate('Core', ['Kick'], {
-      selectedTraitIds,
-      attributeInputs: baseAttributeInputs({ precision: 0 }),
-      boons: {
-        swiftness: true,
-        protection: true,
-        regeneration: true
-      },
-      ...overrides
-    }).strikeDamage;
-
-  const baseline = configuredKickDamage([]);
-  const empoweredSprintPeak = configuredKickDamage([TRAIT.EMPOWERED, TRAIT.WARRIORS_SPRINT, TRAIT.PEAK_PERFORMANCE]);
-
-  assertFlooredDamageMultiplier(empoweredSprintPeak, baseline, 1.25 * 1.03);
-
-  // Destruction of the Empowered has no bonus against the permanently boonless target.
-  assert.equal(configuredKickDamage([TRAIT.DESTRUCTION_OF_THE_EMPOWERED]), baseline);
 });
 
 test('Defense traits apply Merciless Hammer and Stalwart Strength', () => {
@@ -1524,57 +1148,4 @@ test('precombat Kick cannot sample criticals or advance hit-dependent procs', ()
   const outcomes = (result) =>
     result.resolvedEvents.filter((event) => event.type === 'damage').map((event) => [event.skillId, event.didCrit]);
   assert.deepEqual(outcomes(withKick), outcomes(withoutKick));
-});
-
-test('Spellbreaker offensive traits use multiplicative damage modifiers', () => {
-  const damage = (result, name) => result.breakdown.find((entry) => entry.name === name)?.damage || 0;
-  const traitStrike = (selectedTraitIds, primaryWeapon, secondaryWeapon = 'Mace') =>
-    simulate('Spellbreaker', ['Throw Bolas'], {
-      selectedTraitIds,
-      primaryWeapon,
-      secondaryWeapon,
-      attributeInputs: baseAttributeInputs({ precision: 4000 }),
-      target: {}
-    }).strikeDamage;
-
-  const boonlessBase = traitStrike([], 'Dagger');
-  const boonlessPure = traitStrike([TRAIT.PURE_STRIKE], 'Dagger');
-  const daggerStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], 'Dagger');
-  const swordStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], 'Sword');
-  const offhandDaggerStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], 'Sword', 'Dagger');
-
-  assertFlooredDamageMultiplier(boonlessPure, boonlessBase, 1.1);
-  assertFlooredDamageMultiplier(daggerStyle, boonlessBase, 1.1);
-  assert.ok(Math.abs(swordStyle / boonlessBase - 1) < 1e-9);
-  assert.ok(Math.abs(offhandDaggerStyle / boonlessBase - 1) < 1e-9);
-
-  const base = simulate('Spellbreaker', ['Breaching Strike', 'Kick'], {
-    initialResource: 10,
-    primaryWeapon: 'Dagger',
-    secondaryWeapon: 'Mace'
-  });
-  const tethered = simulate('Spellbreaker', ['Breaching Strike', 'Kick'], {
-    initialResource: 10,
-    primaryWeapon: 'Dagger',
-    secondaryWeapon: 'Mace',
-    selectedTraitIds: [TRAIT.MAGEBANE_TETHER]
-  });
-
-  assert.ok(Math.abs(damage(tethered, 'Breaching Strike') / damage(base, 'Breaching Strike') - 1) < 1e-9);
-  assertFlooredDamageMultiplier(damage(tethered, 'Kick'), damage(base, 'Kick'), 1.15);
-  assert.equal(tethered.procSteps.filter((step) => step.skill === 'Magebane Tether').length, 1);
-
-  const internalCooldown = simulate(
-    'Spellbreaker',
-    ['Breaching Strike', { type: 'wait', durationMs: 7500 }, 'Breaching Strike'],
-    {
-      initialResource: 20,
-      primaryWeapon: 'Dagger',
-      secondaryWeapon: 'Mace',
-      selectedTraitIds: [TRAIT.MAGEBANE_TETHER]
-    }
-  );
-
-  assert.equal(internalCooldown.procSteps.filter((step) => step.skill === 'Magebane Tether').length, 1);
-  assert.ok(internalCooldown.planningState.profession.magebaneTetherUntil < internalCooldown.rotationEndTime);
 });

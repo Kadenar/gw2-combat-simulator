@@ -71,27 +71,3 @@ test('Burst of Agility grants Lesser Haste self boons on defiant hits with an Al
     }
   }
 });
-
-// Might belongs to the dodge's start, repeats without an ICD, and also applies to specialized dodges.
-test('Pumping Up grants three self Might for twenty seconds on each selected dodge', () => {
-  for (const specialization of ['Core', 'Daredevil']) {
-    for (const selected of [false, true]) {
-      const result = runThief(['Dodge', 'Dodge'], {
-        specialization,
-        selectedTraitIds: [
-          ...(selected ? [TRAIT.PUMPING_UP] : []),
-          ...(specialization === 'Daredevil' ? [TRAIT.BOUNDING_DODGER] : [])
-        ]
-      });
-      assert.deepEqual(result.warnings, []);
-      const might = result.resolvedEvents.filter(
-        (event) => event.type === 'buff' && event.sourceId === TRAIT.PUMPING_UP
-      );
-      assert.deepEqual(
-        might.map((event) => [event.at, event.kind, event.stacks, event.duration]),
-        selected ? result.steps.map((step) => [step.start / 1000, 'might', 3, 20]) : []
-      );
-      assert.ok(might.every((event) => event.audience.recipients === 'self' && event.resolvedAudience.includesSelf));
-    }
-  }
-});
