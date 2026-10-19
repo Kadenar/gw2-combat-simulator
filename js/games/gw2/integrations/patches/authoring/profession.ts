@@ -1,4 +1,4 @@
-import { generatePatchOverview } from '#gw2/integrations/patches/app/model.js';
+import { generatePatchOverview } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import { buildRelevantPatch } from '#gw2/integrations/patches/authoring/build-overview.js';
 import {
   balanceProfileAuthoringReference,

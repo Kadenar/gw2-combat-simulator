@@ -77,7 +77,7 @@ test('Refraction Cutter Blade rejects standalone names and IDs while parent blad
   for (const action of [blade.name, blade.id]) {
     const result = simulate('Holosmith', [action], config);
     assert.equal(result.warnings.length, 1);
-    assert.match(result.warnings[0], /unavailable for this build/);
+    assert.match(result.warnings[0].message, /unavailable for this build/);
     assert.equal(
       result.resolvedEvents.some((event) => event.type === 'damage'),
       false
@@ -219,7 +219,7 @@ test('Amalgam exposes only persisted F2-F4 morph choices', () => {
     selectedMorphSkillIds: [77103, 77203, 76954]
   });
 
-  assert.match(denied.warnings[0], /another morph is selected/);
+  assert.match(denied.warnings[0].message, /another morph is selected/);
 
   const groups = engineerProfession.ui.skillBarGroups({
     specialization: 'Amalgam',
@@ -353,7 +353,7 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
 
   const replaced = simulate('Holosmith', [{ type: 'cast', skillId: ID.SUN_EDGE_NON_HOLOSMITH }]);
 
-  assert.match(replaced.warnings[0], /Holosmith replaces this sword skill/);
+  assert.match(replaced.warnings[0].message, /Holosmith replaces this sword skill/);
 
   const quicknessDurations = [
     simulate('Holosmith', ['Radiant Arc'], { initialHeat: 0 }),
@@ -704,7 +704,7 @@ test('Electric Artillery is unavailable until Lightning Rod creates its flip', (
   });
 
   assert.equal(result.warnings.length, 1);
-  assert.match(result.warnings[0], /Lightning Rod has not finished charging/);
+  assert.match(result.warnings[0].message, /Lightning Rod has not finished charging/);
   assert.equal(
     result.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Electric Artillery'),
     false
@@ -897,7 +897,7 @@ test('manual Mine Field detonation cannot add damage or toolbelt activations', (
 
     // Identical rejections at one instant deduplicate; casting Mine Field separates the rejection times.
     assert.equal(result.warnings.length, rotation.length ? 2 : 1);
-    assert.ok(result.warnings.every((warning) => /unavailable for this build/.test(warning)));
+    assert.ok(result.warnings.every(({ message: warning }) => /unavailable for this build/.test(warning)));
     assert.equal(result.totalDamage, baseline.totalDamage);
     assert.equal(
       result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Static Discharge').length,

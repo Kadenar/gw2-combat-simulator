@@ -23,7 +23,7 @@ const result = () =>
     deathTime: null,
     totalDamage: 180,
     dps: 30,
-    warnings: ['Example warning'],
+    warnings: [{ message: 'Example warning' }],
     resolvedEvents: [
       { type: 'damage', at: 9, damage: 999 },
       { type: 'damage', at: 10, damage: 30 },
@@ -51,7 +51,7 @@ test('comparison uses exact damage at boundaries and omits events outside the ob
   assert.equal(comparisonDamageAt(output.damage, 1000), 90);
   assert.equal(comparisonDamageAt(output.damage, 6000), 180);
   assert.equal(comparisonDamageAt(output.damage, 9000), 180);
-  assert.deepEqual(output.warnings, ['Example warning']);
+  assert.deepEqual(output.warnings, [{ message: 'Example warning' }]);
   assert.equal(output.targetDied, false);
 });
 

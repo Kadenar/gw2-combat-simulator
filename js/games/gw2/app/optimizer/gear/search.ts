@@ -568,7 +568,7 @@ export function optimizerScore(result: OptimizerScore & Partial<Pick<Gw2Simulati
     dpsWindow,
     deathTime,
     lastHitTime,
-    warnings: [...warnings]
+    warnings: warnings.map((warning) => ({ ...warning }))
   };
 }
 

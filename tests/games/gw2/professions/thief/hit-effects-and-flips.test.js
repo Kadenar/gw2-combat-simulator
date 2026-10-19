@@ -60,7 +60,9 @@ test('Fist Flurry flips its equipped tile only after connecting and restores it 
 
   // Consuming the window must reject a second follow-up through the scheduler.
   assert.match(
-    simulate('Daredevil', ['Fist Flurry', 'Palm Strike', 'Palm Strike']).warnings.join('\n'),
+    simulate('Daredevil', ['Fist Flurry', 'Palm Strike', 'Palm Strike'])
+      .warnings.map(({ message }) => message)
+      .join('\n'),
     /Fist Flurry must connect/
   );
 });

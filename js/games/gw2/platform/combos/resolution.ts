@@ -8,6 +8,7 @@ import type {
 import { timeKey } from '#kernel/core/clock.js';
 import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/definitions.js';
 import { normalizeComboFieldType } from '#gw2/platform/combos/validation.js';
+import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 
 /**
  * Combo resolution rules: per-run field state, the shared field-window rule, field selection for a finisher, and
@@ -87,21 +88,29 @@ function warningLabel(event: ComboFinisherEvent): string {
   return String(event.skillName || event.name || event.source || event.sourceId);
 }
 
-function warnOnce(state: Gw2ComboRuntimeState, key: string, message: string, warn: (message: string) => void): void {
+type ComboWarn = (diagnostic: Gw2SimulationDiagnostic) => void;
+
+/** Reports a failed binding once per key, located at the finisher's field selection and originating activation. */
+function warnOnce(
+  state: Gw2ComboRuntimeState,
+  key: string,
+  message: string,
+  event: ComboFinisherEvent,
+  warn: ComboWarn
+): void {
   if (state.warningKeys.has(key)) return;
 
   state.warningKeys.add(key);
-  warn(message);
+  warn({
+    message,
+    at: event.fieldSelectionAt ?? event.at,
+    ...(event.activationId ? { activationId: event.activationId } : {})
+  });
 }
 
-function boundField(
-  state: Gw2ComboRuntimeState,
-  event: ComboFinisherEvent,
-  warn: (message: string) => void
-): ComboFieldEvent | null {
+function boundField(state: Gw2ComboRuntimeState, event: ComboFinisherEvent, warn: ComboWarn): ComboFieldEvent | null {
   const at = event.fieldSelectionAt ?? event.at;
   const label = warningLabel(event);
-  const time = at.toFixed(3);
 
   if (event.fieldBinding.kind === 'none') {
     // warnOnUnbound=false suppresses the warning for finishers that are
@@ -111,7 +120,8 @@ function boundField(
     warnOnce(
       state,
       `none|${label}`,
-      `Combo field binding is unspecified for ${label} at ${time}s; no combo resolved.`,
+      `Combo field binding is unspecified for ${label}; no combo resolved.`,
+      event,
       warn
     );
     return null;
@@ -125,7 +135,8 @@ function boundField(
     warnOnce(
       state,
       `inactive-id|${event.fieldBinding.fieldId}|${label}`,
-      `Combo field ${event.fieldBinding.fieldId} is not active for ${label} at ${time}s; no combo resolved.`,
+      `Combo field ${event.fieldBinding.fieldId} is not active for ${label}; no combo resolved.`,
+      event,
       warn
     );
     return null;
@@ -146,7 +157,8 @@ function boundField(
   warnOnce(
     state,
     `inactive-type|${binding.fieldType}|${label}`,
-    `${binding.fieldType} combo field is not active for ${label} at ${time}s; no combo resolved.`,
+    `${binding.fieldType} combo field is not active for ${label}; no combo resolved.`,
+    event,
     warn
   );
   return null;
@@ -154,7 +166,7 @@ function boundField(
 
 interface ResolveComboAttemptOptions {
   readonly roll: (probability: number, stream: string) => boolean;
-  readonly warn: (message: string) => void;
+  readonly warn: ComboWarn;
 }
 
 /** Resolves one explicitly bound attempt into zero or more semantic combos. */

@@ -424,7 +424,10 @@ test('Revenant import preserves an explicit follow-up without inventing its miss
   assert.equal(imported.actions.at(-1).skillId, 29256);
   assert.equal(simulation.steps.at(-1).skillId, 29256);
   assert.equal(simulation.steps.at(-1).invalid, true);
-  assert.match(simulation.warnings.join(' '), /Brutal Blade is unavailable — cast Preparation Thrust first/);
+  assert.match(
+    simulation.warnings.map(({ message }) => message).join(' '),
+    /Brutal Blade is unavailable — cast Preparation Thrust first/
+  );
 });
 
 test('rounds imported legend swap offsets to the nearest 40 ms relative to the preceding cast', () => {
@@ -572,7 +575,10 @@ for (const timeGained of [200, -200]) {
     assert.equal(imported.actions.at(-1).skillId, 9138);
     assert.ok(imported.rotation.some((command) => command.skillId === 9138));
     assert.equal(simulation.steps.at(-1).invalid, true);
-    assert.match(simulation.warnings.join(' '), /Vengeful Strike is unavailable — cast Strike first/);
+    assert.match(
+      simulation.warnings.map(({ message }) => message).join(' '),
+      /Vengeful Strike is unavailable — cast Strike first/
+    );
   });
 }
 

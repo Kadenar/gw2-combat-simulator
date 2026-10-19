@@ -317,7 +317,7 @@ describe('Galeshot Cyclone Bow', () => {
   test('enforces replacement rules and consumes Bow resources', () => {
     const blocked = simulate('Galeshot', ['Bluster']);
 
-    assert.match(blocked.warnings[0], /summon the Cyclone Bow/);
+    assert.match(blocked.warnings[0].message, /summon the Cyclone Bow/);
 
     const result = simulate(
       'Galeshot',
@@ -350,11 +350,11 @@ describe('Galeshot Cyclone Bow', () => {
       'Keen Shot'
     ]);
 
-    assert.match(keenBlocked.warnings[0], /Hawkeye replaces Keen Shot/);
+    assert.match(keenBlocked.warnings[0].message, /Hawkeye replaces Keen Shot/);
 
     const weaponBlocked = simulate('Galeshot', ['Summon Cyclone Bow', 'Rapid Fire'], { primaryWeapon: 'Longbow' });
 
-    assert.match(weaponBlocked.warnings[0], /replaces weapon skills/);
+    assert.match(weaponBlocked.warnings[0].message, /replaces weapon skills/);
   });
 
   test('renders grouped Arrow and Wind Force controls with stateful availability', () => {

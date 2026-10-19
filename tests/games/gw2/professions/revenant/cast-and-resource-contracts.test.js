@@ -535,7 +535,7 @@ test('Diminish Solace stops upkeep drain, retires its follow-up, and starts the 
   assert.equal(recovered.planningState.profession.energy.value - released.planningState.profession.energy.value, 10);
   assert.equal(observedRuntime(released).cooldownController.readyAt(SKILL.PROTECTIVE_SOLACE), 5);
   const unavailable = simulate('Core', ['Diminish Solace'], config);
-  assert.match(unavailable.warnings.join('\n'), /activate the matching upkeep/);
+  assert.match(unavailable.warnings.map(({ message }) => message).join('\n'), /activate the matching upkeep/);
 });
 
 test('Both Vindicator dodge inputs apply the selected landing conditions and boons once', () => {

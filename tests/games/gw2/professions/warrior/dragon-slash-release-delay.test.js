@@ -145,7 +145,7 @@ test('a hold does not survive its Trigger occurrence or postpone the Trigger exp
   const releases = held.events.filter((e) => e.resource === 'dragon charges' && e.reason === 'profession mechanic');
   close(releases[1].at - entries[1].at, 0.24);
   const expired = run([combat, 'Dragon Trigger', slash(10, 30000), wait(31000)]);
-  assert.ok(expired.warnings.some((w) => w.includes('additional release delay')));
+  assert.ok(expired.warnings.some(({ message: w }) => w.includes('additional release delay')));
   assert.equal(release(expired), undefined);
   assert.equal(observedRuntime(expired).profession.specialization.state.dragonTriggerActive, false);
 });

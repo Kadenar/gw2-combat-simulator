@@ -2,6 +2,7 @@ import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lo
 import { readAttributePreviewValues, renderAttributeStats } from '#gw2/app/build/panels/attributes.js';
 import { getProfessionEntry } from '#gw2/profession-registry.js';
 import { escapeHtml } from '#ui/shared/html.js';
+import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS } from '#gw2/app/shared/equipment/icons.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
@@ -133,7 +134,7 @@ export function renderOptimizerPreview(
   container.setAttribute('aria-label', title);
   container.innerHTML = `<div class="optimizer-preview-heading"><div class="optimizer-preview-title"><h3>${title}</h3><span>${currentGear ? 'Equipped' : 'Preview only'}</span></div><div class="optimizer-preview-actions">${candidate ? `<strong>${candidate.score.dps.toFixed(2)} DPS</strong>` : ''}${!currentGear && onApply ? `<button type="button" data-apply${canApply ? '' : ' disabled'}>Apply gear</button>` : ''}</div></div>
     <p class="optimizer-preview-note">Click a result row to preview its gear and stats.</p>
-    ${candidate?.score.warnings.length ? `<p class="optimizer-preview-note" role="status">${candidate.score.warnings.map(escapeHtml).join('<br>')}</p>` : ''}
+    ${candidate?.score.warnings.length ? `<p class="optimizer-preview-note" role="status">${candidate.score.warnings.map((warning) => escapeHtml(formatSimulationDiagnostic(warning))).join('<br>')}</p>` : ''}
     <div class="optimizer-character">
       <div class="optimizer-preview-equipment">${card('Armor', armor)}${card('Weapon sets', weapons)}</div>
       <div class="optimizer-preview-portrait">${artwork ? `<img src="${escapeHtml(artwork)}" alt="${escapeHtml(specialization)} artwork" width="600" height="600">` : ''}</div>

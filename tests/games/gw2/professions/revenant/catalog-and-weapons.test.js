@@ -747,7 +747,9 @@ test('Revenant scepter follow-ups replace and restore weapon slots 2 and 3', () 
     simulate('Core', ['Detonate Blossoming Aura'], {
       primaryWeapon: 'Scepter',
       secondaryWeapon: 'Sword'
-    }).warnings.join(' '),
+    })
+      .warnings.map(({ message }) => message)
+      .join(' '),
     /use Blossoming Aura first/
   );
   assert.deepEqual(paletteAfter([], ['Blossoming Aura']), ['Blossoming Aura']);

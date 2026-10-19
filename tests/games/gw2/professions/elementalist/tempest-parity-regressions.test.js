@@ -103,7 +103,7 @@ test('delayed Tempest shouts do not advance the serial rotation lane', () => {
   assert.equal(followingSerialCast.skill, 'Scorching Shot');
   assert.equal(followingSerialCast.start, shout.start);
   assert.equal(
-    result.warnings.some((warning) => warning.includes('Feel the Burn!')),
+    result.warnings.some(({ message: warning }) => warning.includes('Feel the Burn!')),
     false
   );
 });

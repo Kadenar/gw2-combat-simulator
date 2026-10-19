@@ -14,52 +14,14 @@ export interface LocatedRotationWarning extends RotationWarning {
   readonly rotationIndex?: number;
 }
 
-/** Projects diagnostics onto authored steps; deduplicated failures lead to their first occurrence. */
+/** Places result diagnostics on the rotation's combat-relative clock and keeps the location their owners supplied. */
 export function rotationWarningItems(result: Gw2SimulationResult | null | undefined): LocatedRotationWarning[] {
-  const rejectedSteps = (result?.steps || []).filter((step) => step.invalid && step.ri >= 0);
-  return (result?.warnings || []).map((rawWarning) => {
-    const message = String(rawWarning);
-    const rejectedStep = rejectedSteps.find(
-      (step) => `${step.skill} at ${(step.start / 1000).toFixed(3)}s: ${step.invalidReason}` === message
-    );
-    // Runtime diagnostics carry absolute simulation time; display it on the same combat-relative clock as the rotation.
-    const embeddedTime = message.match(/(?:^|\s)at\s+(-?\d+(?:\.\d+)?)s(?=[:;.,\s]|$)/i);
-
-    if (!embeddedTime) return { message, time: '' };
-
-    const matchIndex = embeddedTime.index ?? 0;
-    const cleanedMessage = `${message.slice(
-      0,
-      matchIndex
-    )}${message.slice(matchIndex + embeddedTime[0].length)}`.trim();
-    const timeSeconds = Number(embeddedTime[1]);
-    // Combo warnings can occur after a cast ends; follow the finisher's activation instead of the nearest skill.
-    const comboLabel = message.slice(0, matchIndex).match(/combo field.* for (.+)$/i)?.[1];
-    const comboActivations = new Set(
-      (comboLabel ? result?.events || [] : [])
-        .filter(
-          (event) =>
-            event.type === 'combo_finisher' &&
-            String(event.skillName || event.name || event.source || event.sourceId) === comboLabel &&
-            Number(event.fieldSelectionAt ?? event.at).toFixed(3) === timeSeconds.toFixed(3)
-        )
-        .map((event) => event.activationId)
-        .filter(Boolean)
-    );
-    const skippedSkill = message.slice(0, matchIndex).match(/^(.+) skipped$/)?.[1];
-    const candidates = (rejectedStep || (!comboLabel && !skippedSkill) ? [] : result?.steps || []).filter(
-      (step) =>
-        step.ri >= 0 &&
-        ((step.activationId && comboActivations.has(step.activationId)) ||
-          (skippedSkill === step.skill && (step.end / 1000).toFixed(3) === timeSeconds.toFixed(3)))
-    );
-    const source = rejectedStep ?? (candidates.length === 1 ? candidates[0] : undefined);
-    return {
-      message: cleanedMessage,
-      time: formatResultTimelineTime(timeSeconds * 1000, result),
-      ...(source ? { rotationIndex: source.ri } : {})
-    };
-  });
+  return (result?.warnings || []).map(({ message, at, rotationIndex }) => ({
+    message,
+    // Runtime diagnostics carry absolute simulation time; display it on the same clock as the rotation timeline.
+    time: at == null ? '' : formatResultTimelineTime(at * 1000, result),
+    ...(rotationIndex != null && rotationIndex >= 0 ? { rotationIndex } : {})
+  }));
 }
 
 /** Reveals and focuses a warning's source without clicking it or changing the authored rotation. */

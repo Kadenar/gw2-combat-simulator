@@ -422,7 +422,11 @@ test('slot skills are inaccessible in transformed shrouds', () => {
       selectedSkillIds: [10544]
     });
 
-    assert.match(result.warnings.join(' '), /Blood Is Power is unavailable/, specialization);
+    assert.match(
+      result.warnings.map(({ message }) => message).join(' '),
+      /Blood Is Power is unavailable/,
+      specialization
+    );
   }
 
   assert.equal(

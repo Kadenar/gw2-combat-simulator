@@ -61,7 +61,7 @@ test('a hostile impact locks restricted swaps while a precombat-only rotation le
   });
   assert.equal(result.planningState.combatActive, true);
   assert.equal(result.planningState.activeWeaponSet, 2);
-  assert.match(result.warnings[0], /cannot swap weapon sets in combat/);
+  assert.match(result.warnings[0].message, /cannot swap weapon sets in combat/);
 });
 
 test('Engineer swap input stows a kit in either phase without changing equipped sets', async () => {
@@ -137,7 +137,7 @@ test('Elementalist swap input drops every conjure before considering an equipped
         assert.equal(next.planningState.activeWeaponSet, inCombat ? startingWeaponSet : 3 - startingWeaponSet);
         assert.equal(next.warnings.length, inCombat ? 1 : 0);
 
-        if (inCombat) assert.match(next.warnings[0], /cannot swap weapon sets in combat/);
+        if (inCombat) assert.match(next.warnings[0].message, /cannot swap weapon sets in combat/);
       }
     }
   }
@@ -203,7 +203,11 @@ test('Gunsaber and Photon Forge must exit before changing the underlying equipme
     const blocked = runGw2Runtime({ profession: profession.runtimeFor(config), config, rotation: [cast(enter), swap] });
     assert.equal(blocked.planningState.activeWeaponSet, 1, specialization);
     assert.equal(blocked.planningState.availability[swap.skillId].ready, false, specialization);
-    assert.match(blocked.warnings.join(' '), /before swapping weapon sets/, specialization);
+    assert.match(
+      blocked.warnings.map(({ message }) => message).join(' '),
+      /before swapping weapon sets/,
+      specialization
+    );
     const allowed = runGw2Runtime({
       profession: profession.runtimeFor(config),
       config,
@@ -225,7 +229,7 @@ test('missing and explicitly empty destinations reject swaps in execution and pl
       const result = runGw2Runtime({ profession: profession.runtimeFor(config), config, rotation: [swap] });
       assert.equal(result.planningState.activeWeaponSet, startingWeaponSet);
       assert.equal(result.planningState.availability[swap.skillId].code, 'gw2.weapon-set-empty');
-      assert.match(result.warnings.join(' '), /other weapon set is not equipped/);
+      assert.match(result.warnings.map(({ message }) => message).join(' '), /other weapon set is not equipped/);
       assert.equal(
         result.events.some((event) => event.type === 'weapon_set'),
         false

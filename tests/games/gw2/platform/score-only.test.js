@@ -162,8 +162,8 @@ async function parity(
   assert.equal('planningState' in score, false);
   assert.ok(score.totalDamage > 0, `${id}: scenario must cause damage`);
   assert.ok(
-    !score.warnings.some((warning) => /unknown|not found/i.test(warning)),
-    `${id}: ${score.warnings.join(', ')}`
+    !score.warnings.some(({ message: warning }) => /unknown|not found/i.test(warning)),
+    `${id}: ${score.warnings.map(({ message }) => message).join(', ')}`
   );
   return { detailed, score };
 }

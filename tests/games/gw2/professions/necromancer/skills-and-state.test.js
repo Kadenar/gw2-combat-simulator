@@ -412,8 +412,8 @@ test('Core Death Shroud drains life force and gates transformed skills', () => {
   assert.ok(lifeForcePercent(result.planningState.profession.lifeForce) < 97);
   assert.ok(result.strikeDamage > 0);
   assert.equal(invalid.warnings.length, 2);
-  assert.match(invalid.warnings.join(' '), /Life Blast is unavailable/);
-  assert.match(invalid.warnings.join(' '), /Rending Claws is unavailable/);
+  assert.match(invalid.warnings.map(({ message }) => message).join(' '), /Life Blast is unavailable/);
+  assert.match(invalid.warnings.map(({ message }) => message).join(' '), /Rending Claws is unavailable/);
 });
 
 test('Reaper Shroud enforces its chain and four-percent drain', () => {
@@ -436,7 +436,7 @@ test('Reaper Shroud enforces its chain and four-percent drain', () => {
   assert.deepEqual(result.warnings, []);
   assert.ok(lifeForcePercent(result.planningState.profession.lifeForce) < 93);
   assert.ok(result.breakdown.some((entry) => entry.name === 'Life Reap'));
-  assert.match(skipped.warnings.join(' '), /Life Reap is unavailable/);
+  assert.match(skipped.warnings.map(({ message }) => message).join(' '), /Life Reap is unavailable/);
 });
 
 test('Death and Reaper shrouds drain a percentage of the maximum life-force pool', () => {
@@ -480,7 +480,7 @@ test('Scourge fixed costs preserve build scaling on the percentage meter', () =>
       assert.deepEqual(allowed.warnings, []);
       assert.ok(Math.abs(lifeForcePercent(allowed.planningState.profession.lifeForce) - 0.01) < 1e-10);
       assert.equal(denied.warnings.length, 1);
-      assert.match(denied.warnings[0], /requires .*lifeForce/);
+      assert.match(denied.warnings[0].message, /requires .*lifeForce/);
       assert.ok(Math.abs(lifeForcePercent(denied.planningState.profession.lifeForce) - (expectedCost - 0.01)) < 1e-8);
     }
   }
@@ -699,7 +699,7 @@ test('Necromancer sword autoattack progress expires three seconds after the late
 
   assert.deepEqual(retained.warnings, []);
   assert.equal(retained.planningState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
-  assert.match(expired.warnings.join(' '), /Enervation Echo is unavailable/);
+  assert.match(expired.warnings.map(({ message }) => message).join(' '), /Enervation Echo is unavailable/);
   assert.deepEqual(
     expired.events.filter((event) => event.type === 'action').map((event) => event.skillName),
     ['Enervation Blade', 'Enervation Blade']
@@ -1296,7 +1296,7 @@ test('Isolate and Distress expose the follow-up and reset Perforate', () => {
     ),
     true
   );
-  assert.match(expiredFollowUp.warnings.join(' '), /Distress is unavailable/);
+  assert.match(expiredFollowUp.warnings.map(({ message }) => message).join(' '), /Distress is unavailable/);
 });
 
 test('Perforate consumes one shard per strike after concurrent Distress', () => {

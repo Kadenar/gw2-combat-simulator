@@ -18,16 +18,14 @@ export interface ImportedDpsReportRotation {
   readonly phaseLabel: string;
 }
 
-/** Reconstructs the active build's rotation from validated Elite Insights report data. */
-export async function readDpsReportRotationData(
-  input: unknown,
+/**
+ * Reconstructs the active build's rotation from a report that already crossed the source validation boundary.
+ * Kept private so unvalidated JSON cannot bypass `parseDpsReport` by claiming the parsed type.
+ */
+async function reconstructParsedReport(
+  report: ParsedDpsReport,
   app: ProfessionAppState
 ): Promise<ImportedDpsReportRotation> {
-  if (!isDpsReportData(input)) {
-    throw new Error('The JSON is not an Elite Insights dps.report payload.');
-  }
-
-  const report = parseDpsReport(input);
   const rotationModule = await import('#gw2/integrations/logs/dps-report/rotation/index.js');
   const players = rotationModule.detectDpsReportRotationPlayers(report);
   const selected = selectActiveBuildLogPlayer(players, app, 'report', 'Select a single-player report.');
@@ -46,22 +44,32 @@ export async function readDpsReportRotationData(
   };
 }
 
-/** Fetches a public dps.report permalink and reconstructs it for the active build. */
+/** Validates raw Elite Insights JSON once, then reconstructs it for the active build. */
+export async function readDpsReportRotationData(
+  input: unknown,
+  app: ProfessionAppState
+): Promise<ImportedDpsReportRotation> {
+  if (!isDpsReportData(input)) {
+    throw new Error('The JSON is not an Elite Insights dps.report payload.');
+  }
+
+  return reconstructParsedReport(parseDpsReport(input), app);
+}
+
+/** Fetches a public dps.report permalink; the fetcher already validated the report it returns. */
 export async function readDpsReportRotationUrl(
   input: string,
   app: ProfessionAppState,
   fetchImplementation: typeof fetch = fetch
 ): Promise<ImportedDpsReportRotation> {
-  const report: ParsedDpsReport = await fetchDpsReport(input, fetchImplementation);
-  return readDpsReportRotationData(report, app);
+  return reconstructParsedReport(await fetchDpsReport(input, fetchImplementation), app);
 }
 
-/** Fetches a public gw2wingman log link and reconstructs it through the same dps.report rules. */
+/** Fetches a public gw2wingman log link and reconstructs its validated report through the same dps.report rules. */
 export async function readWingmanRotationUrl(
   input: string,
   app: ProfessionAppState,
   fetchImplementation: typeof fetch = fetch
 ): Promise<ImportedDpsReportRotation> {
-  const report: ParsedDpsReport = await fetchWingmanReport(input, fetchImplementation);
-  return readDpsReportRotationData(report, app);
+  return reconstructParsedReport(await fetchWingmanReport(input, fetchImplementation), app);
 }

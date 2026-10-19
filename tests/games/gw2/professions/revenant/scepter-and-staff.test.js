@@ -22,9 +22,9 @@ const auraDamage = (result) =>
 test('Enemy Attraction requires a mature tether and releases it with vulnerability and control', () => {
   // Follow-ups own the active tether; the pull consumes it and starts the parent recharge.
   const inactive = simulate('Core', ['Otherworldly Attraction (enemy)']);
-  assert.ok(inactive.warnings.some((warning) => warning.includes('unavailable')));
+  assert.ok(inactive.warnings.some(({ message: warning }) => warning.includes('unavailable')));
   const early = simulate('Core', ['Otherworldly Bond', 'Otherworldly Attraction (enemy)']);
-  assert.ok(early.warnings.some((warning) => warning.includes('unavailable')));
+  assert.ok(early.warnings.some(({ message: warning }) => warning.includes('unavailable')));
   const result = simulate('Core', [
     'Otherworldly Bond',
     { type: 'wait', durationMs: 4000 },

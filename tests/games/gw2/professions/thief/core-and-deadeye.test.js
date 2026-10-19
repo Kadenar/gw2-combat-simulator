@@ -621,7 +621,7 @@ test('dual-wield follow-ups require and consume their opening skill', () => {
     secondaryWeapon: 'Dagger'
   });
 
-  assert.match(denied.warnings[0], /opening dual-wield skill/);
+  assert.match(denied.warnings[0].message, /opening dual-wield skill/);
   const result = simulate('Core', ['Flanking Strike', 'Larcenous Strike'], {
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Dagger'
@@ -784,7 +784,7 @@ test('a pre-commit cancellation does not advance the Thief autoattack chain', ()
 test('stealth attacks remove stealth, apply Revealed, and block replacement', () => {
   const result = simulate('Core', ['Cloak and Dagger', 'Backstab', 'Cloak and Dagger', 'Backstab']);
 
-  assert.match(result.warnings.at(-1), /requires stealth/);
+  assert.match(result.warnings.at(-1).message, /requires stealth/);
   assert.ok(result.planningState.profession.revealedUntil > 0);
   assert.equal(result.planningState.profession.stealthUntil <= result.rotationEndTime, true);
 });
@@ -1167,7 +1167,7 @@ test('Steal exposes a choice pool and consumes whichever stolen skill is selecte
       const name = thiefCatalog.skillsById.get(id).name;
       const unavailable = simulate(specialization, [name]);
       assert.ok(
-        unavailable.warnings.some((warning) => /steal this skill/i.test(warning)),
+        unavailable.warnings.some(({ message: warning }) => /steal this skill/i.test(warning)),
         name
       );
       const consumed = simulate(specialization, ['Steal', name]);
@@ -1392,7 +1392,7 @@ test('Daredevil follow-ups, delayed impacts, and endurance traits resolve', () =
   // Equip the parent so these assertions isolate its hit-gated follow-up window.
   const directPalm = simulate('Daredevil', ['Palm Strike'], { selectedSkillIds: [30868] });
 
-  assert.match(directPalm.warnings[0], /Fist Flurry must connect/i);
+  assert.match(directPalm.warnings[0].message, /Fist Flurry must connect/i);
 
   const result = simulate('Daredevil', ['Dodge', 'Fist Flurry', 'Palm Strike', { name: '__wait', waitMs: 2100 }], {
     selectedSkillIds: [30868],
@@ -1819,13 +1819,13 @@ test('Deadeye rifle stance rejects every inactive replacement', () => {
   for (const skill of ['Deadly Aim', 'Three Round Burst', "Spotter's Shot", 'Free Action']) {
     const result = simulate('Deadeye', [skill], rifle);
 
-    assert.match(result.warnings[0], /kneel/i, skill);
+    assert.match(result.warnings[0].message, /kneel/i, skill);
   }
 
   for (const skill of ['Brutal Aim', 'Double Tap', "Skirmisher's Shot", 'Kneel']) {
     const result = simulate('Deadeye', ['Kneel', skill], rifle);
 
-    assert.match(result.warnings[0], /kneel|rifle skill/i, skill);
+    assert.match(result.warnings[0].message, /kneel|rifle skill/i, skill);
   }
 });
 

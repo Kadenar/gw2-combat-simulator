@@ -400,9 +400,12 @@ test('Pain Absorption grants its base boons and changes cost and recharge only i
       ]
     );
     assert.ok(Math.abs(base.planningState.profession.energy.value - base.planningState.atSeconds * 5) < 1e-9);
-    assert.match(simulate('Conduit', [skillId], { ...config, initialEnergy: 29 }).warnings[0], /requires 30 energy/);
     assert.match(
-      simulate('Conduit', ['Cosmic Wisdom', skillId], { ...config, initialEnergy: 9 }).warnings[0],
+      simulate('Conduit', [skillId], { ...config, initialEnergy: 29 }).warnings[0].message,
+      /requires 30 energy/
+    );
+    assert.match(
+      simulate('Conduit', ['Cosmic Wisdom', skillId], { ...config, initialEnergy: 9 }).warnings[0].message,
       /requires 10 energy/
     );
 
@@ -454,7 +457,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
     initialEnergy: 4
   });
 
-  assert.match(blocked.warnings[0], /requires 5 energy/);
+  assert.match(blocked.warnings[0].message, /requires 5 energy/);
 
   const result = simulate('Conduit', ['Cosmic Wisdom', 'Banish Enchantment', SKILL.BANISH_ENCHANTMENT_ID_78587], {
     selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
@@ -526,7 +529,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
     initialEnergy: 9
   });
 
-  assert.match(blockedAnguish.warnings[0], /requires 10 energy/);
+  assert.match(blockedAnguish.warnings[0].message, /requires 10 energy/);
 
   // Probe Energy immediately after each start-time spend through the registered owner.
   const spentEnergy = [];
@@ -566,7 +569,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
     initialEnergy: 0
   });
 
-  assert.match(normalEmbrace.warnings[0], /requires 5 energy/);
+  assert.match(normalEmbrace.warnings[0].message, /requires 5 energy/);
 
   const cosmicEmbrace = simulate('Conduit', ['Cosmic Wisdom', 'Embrace the Darkness'], {
     selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
@@ -574,7 +577,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
     initialEnergy: 0
   });
 
-  assert.match(cosmicEmbrace.warnings[0], /requires 1 energy/);
+  assert.match(cosmicEmbrace.warnings[0].message, /requires 1 energy/);
 
   const affordableEmbrace = simulate('Conduit', ['Cosmic Wisdom', 'Embrace the Darkness'], {
     selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],

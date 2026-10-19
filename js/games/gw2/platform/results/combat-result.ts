@@ -5,6 +5,7 @@ import { buildBoonGeneration, projectedPartyEffects } from '#gw2/platform/result
 import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
 import type { Gw2ResolverResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
 import { cloneData } from '#kernel/core/clone.js';
+import { uniqueDiagnostics } from '#gw2/platform/results/diagnostics.js';
 
 interface CastCount {
   readonly name: string;
@@ -66,7 +67,7 @@ export function buildSimulationScore(ctx: Gw2ResolverRuntime, rotationEndTime: n
     conditionDamage: ctx.totals.condition,
     environmentDamage: ctx.environmentDamage,
     environmentDps: environmentDamagePerSecond(ctx.environmentDamage),
-    warnings: [...new Set(ctx.warnings)]
+    warnings: uniqueDiagnostics(ctx.warnings)
   };
   return score;
 }
@@ -94,7 +95,7 @@ export function buildCombatResult(
   // Recorder reports already own detached snapshots; copy only fields still owned by the live resolver.
   return {
     ...numeric,
-    warnings: [...numeric.warnings],
+    warnings: numeric.warnings.map((diagnostic) => ({ ...diagnostic })),
     effectReport:
       effectReport && partyReport ? { ...effectReport, tracks: [...effectReport.tracks, ...partyReport.tracks] } : null,
     boonGeneration: generation

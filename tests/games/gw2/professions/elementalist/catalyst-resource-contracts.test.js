@@ -69,7 +69,7 @@ test('Catalyst deployment requires matching attunement and the selected fraction
     } else {
       assert.equal(result.warnings.length, 1);
       assert.match(
-        result.warnings[0],
+        result.warnings[0].message,
         startAttunement === 'Water' ? /requires Fire attunement/ : /requires 6.25 energy/
       );
     }

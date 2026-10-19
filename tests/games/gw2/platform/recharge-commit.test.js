@@ -170,7 +170,7 @@ test('rejected and cancelled Elementalist casts preserve empowerments for the ne
 
   const cancelled = runElementalist(rotation, config, { initialize });
   assert.equal(cancelled.warnings.length, 1);
-  assert.match(cancelled.warnings[0], /requires all four elemental bullets/);
+  assert.match(cancelled.warnings[0].message, /requires all four elemental bullets/);
   assert.equal(observedRuntime(cancelled).profession.core.dazingDischargeUntil, 10);
   assert.equal(observedRuntime(cancelled).profession.specialization.state.elementalBalanceUntil, 10);
   const committed = runElementalist([...rotation, 'Searing Salvo'], config, { initialize });
@@ -211,7 +211,7 @@ test('Holo-Dancer charges survive healing, unavailable utilities, and cancellati
     ]
   });
   assert.equal(result.warnings.length, 1);
-  assert.match(result.warnings[0], /not equipped/);
+  assert.match(result.warnings[0].message, /not equipped/);
   const cancelled = result.events.find((event) => event.type === 'action' && event.skillId === needles.id);
   assert.equal(cancelled.cancelled, true);
   assert.deepEqual(observed, [[35, 40], [35, 40], [40], []]);

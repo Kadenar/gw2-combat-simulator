@@ -452,7 +452,7 @@ test('Satiate expires after three seconds and base sword cooldowns continue duri
   ];
 
   assert.deepEqual(withinWindow.warnings, []);
-  assert.match(expired.warnings.join(' '), /Satiate is unavailable/);
+  assert.match(expired.warnings.map(({ message }) => message).join(' '), /Satiate is unavailable/);
   for (const [parent, followUp, cooldown] of immediatePairs) {
     const result = simulate('Core', [parent, followUp], config);
     const parentAction = result.events.find((event) => event.type === 'action' && event.skillName === parent);
@@ -483,9 +483,17 @@ test('off-hand sword follow-ups expire after three seconds and rearm after their
 
     assert.deepEqual(withinWindow.warnings, [], followUp);
     assert.equal(followUpActions(withinWindow).length, 1, followUp);
-    assert.match(expired.warnings.join(' '), new RegExp(`${followUp} is unavailable`), followUp);
+    assert.match(
+      expired.warnings.map(({ message }) => message).join(' '),
+      new RegExp(`${followUp} is unavailable`),
+      followUp
+    );
     assert.equal(followUpActions(expired).length, 0, followUp);
-    assert.match(rearmed.warnings.join(' '), new RegExp(`${followUp} is unavailable`), followUp);
+    assert.match(
+      rearmed.warnings.map(({ message }) => message).join(' '),
+      new RegExp(`${followUp} is unavailable`),
+      followUp
+    );
     assert.equal(followUpActions(rearmed).length, 1, followUp);
   }
 });
@@ -753,7 +761,7 @@ test('Lich Form swaps its bar and grants life force on exit', () => {
   assert.equal(result.planningState.profession.activeShroud, '');
   assert.ok(lifeForcePercent(result.planningState.profession.lifeForce) >= 15);
   assert.ok(result.breakdown.some((entry) => entry.name === 'Deathly Claws'));
-  assert.match(invalid.warnings.join(' '), /Rending Claws is unavailable/);
+  assert.match(invalid.warnings.map(({ message }) => message).join(' '), /Rending Claws is unavailable/);
 });
 
 test('minion summons persist, attack, and unlock their command', () => {
@@ -769,7 +777,7 @@ test('minion summons persist, attack, and unlock their command', () => {
   assert.equal(result.planningState.profession.activeMinions['bone-fiend'], 1);
   assert.ok(result.breakdown.some((entry) => entry.name === 'Bone Shard'));
   assert.ok(result.breakdown.some((entry) => entry.name === 'Rigor Mortis - Bone Shard'));
-  assert.match(invalid.warnings.join(' '), /Rigor Mortis is unavailable/);
+  assert.match(invalid.warnings.map(({ message }) => message).join(' '), /Rigor Mortis is unavailable/);
 });
 
 test('Bone Fiend uses paired Bone Shards and its fourth crippling volley', () => {
@@ -1292,7 +1300,7 @@ test('unequipped Necromancer slot skills cannot execute', () => {
     selectedSkillIds: [10541]
   });
 
-  assert.match(denied.warnings.join(' '), /skill is not equipped/);
+  assert.match(denied.warnings.map(({ message }) => message).join(' '), /skill is not equipped/);
   assert.equal(
     denied.resolvedEvents.some((event) => event.skillName === 'Summon Bone Minions - Minion Attack'),
     false
@@ -1308,7 +1316,7 @@ test('persistent minion summons cannot recharge until their minions die', () => 
     });
 
     assert.equal(result.steps.filter((step) => step.skill === summon && !step.invalid).length, 1, summon);
-    assert.match(result.warnings.join(' '), /summoned minion is still alive/, summon);
+    assert.match(result.warnings.map(({ message }) => message).join(' '), /summoned minion is still alive/, summon);
     assert.equal(result.planningState.cooldowns[necromancerCatalog.skillsByName.get(summon).id], undefined, summon);
     assert.equal(
       result.planningState.availability[necromancerCatalog.skillsByName.get(summon).id].ready,

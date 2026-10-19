@@ -1,4 +1,5 @@
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
@@ -31,7 +32,7 @@ interface ProfessionActionControllerOptions {
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly destroyClone: MesmerDestroyClone;
   readonly shatterFor: (id: SkillId) => MesmerShatter | undefined;
-  readonly warn: (message: string) => void;
+  readonly warn: (diagnostic: Gw2SimulationDiagnostic) => void;
   readonly shatterResolvers: Readonly<Record<string, MesmerShatterResolver>>;
 }
 
@@ -150,8 +151,12 @@ export function createProfessionActionController({
     const minimumResource = shatter.minimumResource || 0;
 
     if (resourcesSpent == null && currentResource() < minimumResource) {
-      // Preserve milliseconds so skipped actions can be located in the event log.
-      warn(`${skill.name} skipped at ${at.toFixed(3)}s: no ${resourceDefinition.plural}.`);
+      // The skipped cast's activation locates the notice on its authored step, independent of wording.
+      warn({
+        message: `${skill.name} skipped: no ${resourceDefinition.plural}.`,
+        at,
+        ...(delivery.cast ? { activationId: delivery.cast.activationId } : {})
+      });
       return null;
     }
 

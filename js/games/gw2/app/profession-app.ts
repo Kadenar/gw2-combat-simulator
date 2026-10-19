@@ -24,7 +24,7 @@ import { renderGearOptimizer } from '#gw2/app/optimizer/gear/panel.js';
 import { renderGearOptimizerView } from '#gw2/app/optimizer/view.js';
 import { renderRelicComparison } from '#gw2/app/optimizer/relic-comparison/panel.js';
 import { renderModifierContributions } from '#gw2/app/results/view.js';
-import { mountPatchPreviewControls } from '#gw2/integrations/patches/view.js';
+import { mountPatchPreviewControls } from '#gw2/app/patch-preview/view.js';
 import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/preferences.js';

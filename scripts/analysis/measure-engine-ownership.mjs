@@ -2,6 +2,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { performance } from 'node:perf_hooks';
 import { loadProfession } from '#gw2/profession-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 
 // Native workloads exercise accepted mechanics; validate them before collecting any timings.
@@ -107,7 +108,7 @@ for (const definition of definitions) {
   const smoke = simulateGw2(options);
 
   if (smoke.warnings.length || !(smoke.totalDamage > 0))
-    throw new Error(`Invalid ${definition.name}: ${smoke.warnings.join('; ')}`);
+    throw new Error(`Invalid ${definition.name}: ${smoke.warnings.map(formatSimulationDiagnostic).join('; ')}`);
 
   definition.verify?.(smoke);
   const runs = {

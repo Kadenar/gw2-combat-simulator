@@ -162,7 +162,7 @@ test('Gunsaber gates standard weapons, ordinary swaps, weapon bursts, and unavai
   ]) {
     const result = run(rotation);
     assert.equal(result.warnings.length, 1, rotation.join(', '));
-    assert.ok(!result.warnings[0].includes('Unknown skill'));
+    assert.ok(!result.warnings[0].message.includes('Unknown skill'));
     assert.equal(observedRuntime(result).activeWeaponSet, 1);
   }
 });
@@ -325,7 +325,7 @@ test('Dragon Trigger spends entry Flow once and owns actual charge ticks without
     observedRuntime(result).cooldownController.readyAt(ID.SHEATHE_GUNSABER)
   );
   const insufficient = run(['Dragon Trigger'], { initialResource: 14 });
-  assert.ok(insufficient.warnings[0].includes('15 flow'));
+  assert.ok(insufficient.warnings[0].message.includes('15 flow'));
   assert.equal(state(insufficient).gunsaberActive, false);
   assert.equal(state(insufficient).flow.value, 14);
 });
@@ -365,7 +365,7 @@ test('Dragon Trigger admits its exact deadline then expires autonomously and sta
   assert.equal(state(expired).nextDragonChargeAt, 0);
   assert.equal(observedRuntime(expired).cooldownController.rechargeFor(ID.DRAGON_TRIGGER).startedAt, 0.48);
   const stalled = run(['Dragon Trigger', slash(3), combat], config, patched);
-  assert.ok(stalled.warnings.some((warning) => warning.includes('reached 2')));
+  assert.ok(stalled.warnings.some(({ message: warning }) => warning.includes('reached 2')));
 });
 
 test('cast-bar skills exit charging at acceptance, while instant skills retain the active charge window', () => {

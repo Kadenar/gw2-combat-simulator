@@ -386,7 +386,7 @@ test('elemental glyphs require equipment while matching command flips and summon
       selectedSkillIds: { Elite: 5516 },
       rotation: [name]
     });
-    assert.match(rejected.warnings[0], /not equipped/);
+    assert.match(rejected.warnings[0].message, /not equipped/);
     assert.equal(rejected.planningState.profession.summonedElemental.element, null);
     const summoned = runNative({
       lines: [['Fire'], ['Air'], ['Arcane']],
@@ -444,7 +444,7 @@ test('native rotations reject nonexistent pickups and consume summoned ground co
     selectedSkillIds: { Utility1: 5567 }
   };
   const missing = runNative({ ...options, rotation: ['__pickup_Frost Bow'] });
-  assert.match(missing.warnings[0], /pickup is unavailable or expired/);
+  assert.match(missing.warnings[0].message, /pickup is unavailable or expired/);
   assert.equal(missing.planningState.profession.conjureEquipped, null);
 
   const pickedUp = runNative({
@@ -459,7 +459,7 @@ test('native rotations reject nonexistent pickups and consume summoned ground co
     ...options,
     rotation: ['Conjure Frost Bow', '__drop_bundle', 36000, '__pickup_Frost Bow']
   });
-  assert.match(expired.warnings[0], /pickup is unavailable or expired/);
+  assert.match(expired.warnings[0].message, /pickup is unavailable or expired/);
   assert.equal(expired.planningState.profession.conjureEquipped, null);
 });
 
@@ -479,7 +479,7 @@ test('Weaver autoattack roots require the primary attunement, even when the off 
     );
 
     if (expected) assert.deepEqual(result.warnings, []);
-    else assert.match(result.warnings[0], /matching Weaver hand/);
+    else assert.match(result.warnings[0].message, /matching Weaver hand/);
   }
 });
 

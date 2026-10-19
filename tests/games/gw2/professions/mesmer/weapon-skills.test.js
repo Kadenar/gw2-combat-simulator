@@ -291,7 +291,7 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
   const unavailable = simulateMesmer(['Counterspell'], config);
 
   assert.equal(unavailable.steps.filter((step) => !step.invalid).length, 0);
-  assert.match(unavailable.warnings[0], /Illusionary Counter is not active/);
+  assert.match(unavailable.warnings[0].message, /Illusionary Counter is not active/);
 
   const flipped = simulateMesmer(['Illusionary Counter', 'Counterspell', 'Counterspell'], config);
 
@@ -333,7 +333,7 @@ test('requested weapon flips require and consume their parent sequence skill', (
     const unavailable = simulateMesmer([flip], config);
 
     assert.equal(unavailable.steps.filter((step) => !step.invalid).length, 0, flip);
-    assert.match(unavailable.warnings[0], new RegExp(parent), flip);
+    assert.match(unavailable.warnings[0].message, new RegExp(parent), flip);
 
     const result = simulateMesmer([parent, flip, flip], config);
 
@@ -430,7 +430,7 @@ test('Inspiring Imagery grants boons at field expiry and closes Abstraction', ()
   );
   assert.equal(result.planningState.cooldowns[ID.INSPIRING_IMAGERY].readyAt, Math.ceil((cast.end + 9600) / 40) * 40);
   assert.equal(result.steps.at(-1).invalid, true);
-  assert.match(result.warnings[0], /Inspiring Imagery is not active/);
+  assert.match(result.warnings[0].message, /Inspiring Imagery is not active/);
 });
 
 test('Abstraction replaces boons with damage and conditions and blasts only its image', () => {

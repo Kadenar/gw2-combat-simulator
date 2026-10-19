@@ -636,9 +636,15 @@ test('Guardian autoattack chains and torch flips enforce sequence state', () => 
     secondaryWeapon: 'Torch'
   })(undefined, ["Zealot's Flame", "Zealot's Fire", { type: 'wait', durationMs: 3000 }]);
 
-  assert.match(invalidChain.warnings.join(' '), /Faithful Strike is unavailable — cast Pure Strike first\./);
+  assert.match(
+    invalidChain.warnings.map(({ message }) => message).join(' '),
+    /Faithful Strike is unavailable — cast Pure Strike first\./
+  );
   assert.equal(chain.resolvedEvents.filter((event) => event.type === 'damage').length, 3);
-  assert.match(invalidFlip.warnings.join(' '), /Zealot's Fire is unavailable — not currently armed\./);
+  assert.match(
+    invalidFlip.warnings.map(({ message }) => message).join(' '),
+    /Zealot's Fire is unavailable — not currently armed\./
+  );
   assert.ok(flip.strikeDamage > 0);
   assert.ok(flip.conditionDamage > 0);
 });

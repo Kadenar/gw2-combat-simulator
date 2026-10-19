@@ -58,7 +58,7 @@ test('Bladesworn gates gunsaber and Dragon Slash state', () => {
     initialResource: 100
   });
 
-  assert.match(blocked.warnings[0], /Unsheathe the gunsaber/);
+  assert.match(blocked.warnings[0].message, /Unsheathe the gunsaber/);
   assert.equal(blocked.planningState.profession.gunsaberActive, false);
 
   const standardWeaponBlocked = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Chop'], {
@@ -67,7 +67,7 @@ test('Bladesworn gates gunsaber and Dragon Slash state', () => {
     secondaryWeapon: 'Axe'
   });
 
-  assert.match(standardWeaponBlocked.warnings[0], /Sheathe the gunsaber/);
+  assert.match(standardWeaponBlocked.warnings[0].message, /Sheathe the gunsaber/);
 
   const result = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Swift Cut', 'Dragon Trigger', 'Dragon Slash—Force'], {
     initialResource: 100
@@ -211,7 +211,7 @@ test('Dragon Trigger spends its profile Flow cost on entry and expires after its
     initialResource: DRAGON_TRIGGER_ENTRY_FLOW - 1
   });
 
-  assert.match(blocked.warnings[0], new RegExp(`requires at least ${DRAGON_TRIGGER_ENTRY_FLOW} flow`));
+  assert.match(blocked.warnings[0].message, new RegExp(`requires at least ${DRAGON_TRIGGER_ENTRY_FLOW} flow`));
   assert.equal(blocked.planningState.profession.flow.value, DRAGON_TRIGGER_ENTRY_FLOW - 1);
 
   const active = simulate('Bladesworn', ['Dragon Trigger'], {
@@ -273,7 +273,7 @@ test('Dragon Trigger defers recharge while charging and still blocks re-entry', 
   assert.equal(active.planningState.cooldowns[ID.DRAGON_TRIGGER], undefined);
 
   const repeated = simulate('Bladesworn', [ID.DRAGON_TRIGGER, ID.DRAGON_TRIGGER], { initialResource: 100 });
-  assert.match(repeated.warnings[0], /Dragon Trigger is already active/);
+  assert.match(repeated.warnings[0].message, /Dragon Trigger is already active/);
 });
 
 test('Every Dragon Slash starts Dragon Trigger recharge at cast initiation', () => {
@@ -820,9 +820,10 @@ test('Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown res
     { initialResource: 100 }
   );
 
-  assert.deepEqual(concurrentTrigger.warnings, [
-    'Dragon Trigger at 0.000s: Dragon Trigger cannot be cast concurrently.'
-  ]);
+  assert.deepEqual(
+    concurrentTrigger.warnings.map(({ message, at }) => [message, at]),
+    [['Dragon Trigger: Dragon Trigger cannot be cast concurrently.', 0]]
+  );
   assert.equal(concurrentTrigger.steps.find((step) => step.skill === 'Dragon Trigger').invalid, true);
   const utility = simulate('Bladesworn', [ID.DRAGON_TRIGGER, ID.TRIGGERGUARD, ID.FLICKER_STEP], {
     initialResource: 100

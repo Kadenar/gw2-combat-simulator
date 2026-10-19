@@ -2,6 +2,7 @@ import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { INFUSION_BONUS } from '#gw2/platform/equipment/gear/infusions.js';
 import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
 import { PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
+import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { OptimizerContext } from '#gw2/app/optimizer/gear/context.js';
 import {
   createOptimizerResultGroups,
@@ -272,7 +273,8 @@ export function scoreOptimizerRange(
     const score = optimizerScore(result);
     simulations++;
 
-    for (const warning of score.warnings) {
+    // Worker progress aggregates display text; the timestamp keeps distinct failures in separate categories.
+    for (const warning of score.warnings.map(formatSimulationDiagnostic)) {
       const category =
         warnings.has(warning) || warnings.size < 32 ? warning : 'Additional warnings (see retained candidates)';
       warnings.set(category, (warnings.get(category) || 0) + 1);

@@ -1249,9 +1249,9 @@ test('trait skill replacements expose only their active variant', () => {
   });
 
   assert.deepEqual(scepterBase.warnings, []);
-  assert.match(scepterTrait.warnings.join(' '), /Feast of Corruption is unavailable/);
+  assert.match(scepterTrait.warnings.map(({ message }) => message).join(' '), /Feast of Corruption is unavailable/);
   assert.ok(scepterTrait.breakdown.some((entry) => entry.name === 'Devouring Darkness'));
-  assert.match(scourgeTrait.warnings.join(' '), /Desert Shroud is unavailable/);
+  assert.match(scourgeTrait.warnings.map(({ message }) => message).join(' '), /Desert Shroud is unavailable/);
   assert.ok(scourgeTrait.resolvedEvents.some((event) => event.name === 'Sandstorm Shroud'));
 });
 

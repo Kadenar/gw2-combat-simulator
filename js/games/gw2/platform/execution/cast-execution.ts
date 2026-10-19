@@ -184,8 +184,12 @@ export function createCastExecution<T extends object>(
       command?.type === 'cast'
         ? (profession.catalog.skillsById.get(command.skillId)?.name ?? String(command.skillId))
         : (command?.type ?? 'command');
-    // Carry the rejection time through scores and worker results, including repeated failures of the same input.
-    runtime.warnings.push(`${name} at ${runtime.time.toFixed(3)}s: ${reason}`);
+    // Carry the rejection time and authored input through scores and worker results, including repeated failures.
+    runtime.warnings.push({
+      message: `${name}: ${reason}`,
+      at: runtime.time,
+      ...(cursor.index >= 0 ? { rotationIndex: cursor.index } : {})
+    });
 
     if (runtime.reporting)
       runtime.steps.push({

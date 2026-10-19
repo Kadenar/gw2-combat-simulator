@@ -472,19 +472,19 @@ test('Bladesworn gunsaber autos follow the standard autoattack chain display', (
 
   const skippedFirstStep = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Steel Divide'], { initialResource: 100 });
 
-  assert.match(skippedFirstStep.warnings[0], /cast Swift Cut first/);
+  assert.match(skippedFirstStep.warnings[0].message, /cast Swift Cut first/);
 
   const skippedSecondStep = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Swift Cut', 'Explosive Thrust'], {
     initialResource: 100
   });
 
-  assert.match(skippedSecondStep.warnings[0], /cast Steel Divide first/);
+  assert.match(skippedSecondStep.warnings[0].message, /cast Steel Divide first/);
 
   const resetChain = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Swift Cut', 'Blooming Fire', 'Steel Divide'], {
     initialResource: 100
   });
 
-  assert.match(resetChain.warnings[0], /cast Swift Cut first/);
+  assert.match(resetChain.warnings[0].message, /cast Swift Cut first/);
 });
 
 test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
@@ -586,7 +586,7 @@ test('Paragon motivation renders as a compact emblem counter', () => {
 test('Core bursts require and consume adrenaline', () => {
   const blocked = simulate('Core', ['Eviscerate'], { initialResource: 0 });
 
-  assert.match(blocked.warnings[0], /requires 10 adrenaline/);
+  assert.match(blocked.warnings[0].message, /requires 10 adrenaline/);
 
   const result = simulate('Core', ['Eviscerate'], { initialResource: 30 });
 
@@ -627,7 +627,7 @@ test('Berserker gates primal bursts behind berserk mode', () => {
     initialResource: 30
   });
 
-  assert.match(blocked.warnings[0], /requires? berserk mode/);
+  assert.match(blocked.warnings[0].message, /requires? berserk mode/);
 
   const result = simulate('Berserker', ['Berserk', 'Arc Divider'], {
     initialResource: 30

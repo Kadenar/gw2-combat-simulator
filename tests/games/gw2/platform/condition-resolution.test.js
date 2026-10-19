@@ -74,7 +74,7 @@ test('condition applications shorter than one second deal fractional damage', ()
       }
     ],
     ...{
-      warnings: ['resolver handoff warning']
+      warnings: [{ message: 'resolver handoff warning' }]
     },
     endTime: 2
   };
@@ -111,7 +111,7 @@ test('condition applications shorter than one second deal fractional damage', ()
   for (const field of Object.keys(metadata)) assert.equal(Object.hasOwn(result.resolvedEvents[0], field), false);
   assert.equal(result.firstHitTime, 1);
   assert.equal(result.resolvedEvents[0].damagingStackSeconds, 0.5);
-  assert.deepEqual(result.warnings, ['resolver handoff warning']);
+  assert.deepEqual(result.warnings, [{ message: 'resolver handoff warning' }]);
 });
 
 test('staggered condition applications preserve fractional stack-seconds', () => {

@@ -59,7 +59,7 @@ test('Binding Blade flips back when its ten-second tether expires', () => {
     const pull = createObservedProfessionSimulator(guardianProfession, settings)(undefined, [...rotation, 'Pull']);
     assert.equal(Boolean(pull.steps.at(-1).invalid), expired);
 
-    if (expired) assert.match(pull.warnings.join(' '), /not currently armed/);
+    if (expired) assert.match(pull.warnings.map(({ message }) => message).join(' '), /not currently armed/);
     else assert.deepEqual(pull.warnings, []);
 
     assert.equal(pull.planningState.cooldowns[parent.id].readyAt, result.planningState.cooldowns[parent.id].readyAt);
@@ -156,7 +156,7 @@ test('Guardian slot skills require selection before casts can produce effects', 
         selectedSkillIds
       })(undefined, [name, { type: 'wait', durationMs: 5000 }]);
       assert.equal(result.steps[0].invalid, true, name);
-      assert.match(result.warnings.join(' '), /is unavailable.*not equipped/);
+      assert.match(result.warnings.map(({ message }) => message).join(' '), /is unavailable.*not equipped/);
       assert.equal(
         result.resolvedEvents.some((event) => event.skillName === name || event.name === name),
         false
@@ -188,7 +188,7 @@ test('Guardian mantra flips inherit selection from the root slot skill', () => {
       assert.ok(result.resolvedEvents.some((event) => event.name === 'Flame Surge'));
     } else {
       assert.ok(result.steps.every((step) => step.invalid));
-      assert.match(result.warnings.join(' '), /not equipped/);
+      assert.match(result.warnings.map(({ message }) => message).join(' '), /not equipped/);
       assert.equal(
         result.resolvedEvents.some((event) => ['Flame Rush', 'Flame Surge'].includes(event.name)),
         false
@@ -766,7 +766,7 @@ test('Guardian only casts weapon skills equipped on the active set', () => {
     result.resolvedEvents.filter((event) => event.skillName === 'Through the Heart' && event.type === 'damage').length,
     1
   );
-  assert.match(result.warnings.join(' '), /Through the Heart is unavailable/);
+  assert.match(result.warnings.map(({ message }) => message).join(' '), /Through the Heart is unavailable/);
 });
 
 test('Guardian cannot cast weapon skills while a tome or forge is active', () => {

@@ -170,7 +170,7 @@ test('ambush skills cannot be cast without an active ambush window', () => {
   );
 
   assert.equal(result.steps.filter((step) => !step.invalid).length, 0);
-  assert.match(result.warnings[0], /no active Mirage Cloak ambush window/);
+  assert.match(result.warnings[0].message, /no active Mirage Cloak ambush window/);
 });
 
 test('cancelling an ambush preserves the cloak window across a weapon swap', () => {
@@ -613,9 +613,15 @@ test('Mirage can queue an ambush before its window closes without extending the 
       assert.equal(ambush.start, 1600);
       assert.deepEqual(result.warnings, []);
     } else {
-      assert.deepEqual(result.warnings, [
-        `Fractured Glass at ${(ambush.start / 1000).toFixed(3)}s: Fractured Glass has no active Mirage Cloak ambush window.`
-      ]);
+      assert.deepEqual(
+        result.warnings.map(({ message, at }) => [message, at.toFixed(3)]),
+        [
+          [
+            'Fractured Glass: Fractured Glass has no active Mirage Cloak ambush window.',
+            (ambush.start / 1000).toFixed(3)
+          ]
+        ]
+      );
     }
   }
 });

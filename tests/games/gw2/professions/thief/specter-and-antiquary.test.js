@@ -1080,7 +1080,10 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
   });
 
   assert.equal(withoutCardSwap.steps[1].invalid, true);
-  assert.match(withoutCardSwap.warnings.join(' '), /Reshuffle is unavailable — requires the Card Swap trait\./);
+  assert.match(
+    withoutCardSwap.warnings.map(({ message }) => message).join(' '),
+    /Reshuffle is unavailable — requires the Card Swap trait\./
+  );
 
   const reshuffled = simulate('Antiquary', ['Skritt Swipe', 'Reshuffle'], {
     primaryWeapon: 'Axe',

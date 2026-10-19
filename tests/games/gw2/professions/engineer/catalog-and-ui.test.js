@@ -668,7 +668,7 @@ test('Amalgam protocol IDs survive application build conversion', () => {
 test('toolbelt IDs require the equipped parent and exclude unsupported racial skills', () => {
   const selectedSkillIds = [31248];
   assert.equal(simulate('Scrapper', [ID.BYPASS_COATING], { selectedSkillIds }).warnings.length, 0);
-  assert.match(simulate('Scrapper', [ID.BYPASS_COATING], { selectedSkillIds: [] }).warnings[0], /not equipped/);
+  assert.match(simulate('Scrapper', [ID.BYPASS_COATING], { selectedSkillIds: [] }).warnings[0].message, /not equipped/);
   for (const skillId of [12334, 12336, 17811, 17812, 17813, 29606]) {
     assert.equal(engineerCatalog.skillsById.has(skillId), false);
     assert.ok(simulate('Core', [skillId]).warnings.length > 0);
@@ -678,7 +678,7 @@ test('toolbelt IDs require the equipped parent and exclude unsupported racial sk
 test('kits replace the weapon bar and trigger swap procs', () => {
   const denied = simulate('Core', ['Grenade']);
 
-  assert.match(denied.warnings[0], /equip Grenade Kit first/);
+  assert.match(denied.warnings[0].message, /equip Grenade Kit first/);
 
   const result = simulate('Core', ['Grenade Kit', 'Shrapnel Grenade']);
 
@@ -689,7 +689,7 @@ test('kits replace the weapon bar and trigger swap procs', () => {
 
   const weaponDenied = simulate('Core', ['Grenade Kit', 'Blunderbuss']);
 
-  assert.match(weaponDenied.warnings[0], /active kit.*replaces weapon skills/);
+  assert.match(weaponDenied.warnings[0].message, /active kit.*replaces weapon skills/);
 
   for (const exitSkill of ['Stow Grenade Kit', 'Swap Weapons']) {
     const exited = simulate('Core', ['Grenade Kit', exitSkill, 'Blunderbuss']);
@@ -701,7 +701,7 @@ test('kits replace the weapon bar and trigger swap procs', () => {
 
   const swapDenied = simulate('Core', [{ type: 'combat-start' }, 'Swap Weapons']);
 
-  assert.match(swapDenied.warnings[0], /cannot swap weapon sets in combat/);
+  assert.match(swapDenied.warnings[0].message, /cannot swap weapon sets in combat/);
 });
 
 test('Photon Forge entry and exit start dedicated timeline rows', () => {
@@ -780,7 +780,8 @@ test('Scrapper F skills follow selected skill-slot order', () => {
   );
   const core = simulate('Core', ['Function Gyro']);
 
-  assert.match(core.warnings[0], /Function Gyro at 0\.000s: Unknown skill/);
+  assert.match(core.warnings[0].message, /Function Gyro: Unknown skill/);
+  assert.equal(core.warnings[0].at, 0);
 });
 
 test('Engineer slot selection excludes contextual and unsupported utilities', () => {
@@ -823,7 +824,7 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
     };
     const denied = simulate('Core', [flip], config);
 
-    assert.match(denied.warnings[0], new RegExp(`use ${parent} first`));
+    assert.match(denied.warnings[0].message, new RegExp(`use ${parent} first`));
 
     const result = simulate('Core', [parent, flip], config);
 
@@ -975,7 +976,7 @@ test('Engineer contextual weapon follow-ups are not standalone selections', () =
 
   const deniedGrenade = simulate('Core', ['Rifle Burst Grenade']);
 
-  assert.match(deniedGrenade.warnings[0], /unavailable for this build/);
+  assert.match(deniedGrenade.warnings[0].message, /unavailable for this build/);
 
   for (const [parent, flip] of [
     ['Magnetic Shield', 'Magnetic Inversion'],
@@ -983,7 +984,7 @@ test('Engineer contextual weapon follow-ups are not standalone selections', () =
   ]) {
     const denied = simulate('Core', [flip]);
 
-    assert.match(denied.warnings[0], new RegExp(`use ${parent} first`));
+    assert.match(denied.warnings[0].message, new RegExp(`use ${parent} first`));
 
     const used = simulate('Core', [parent, flip]);
 
@@ -1006,7 +1007,7 @@ test('tool-belt skills derive from selected slot skills', () => {
     selectedSkillIds: [5857, 6161, 5933, 5868]
   });
 
-  assert.match(denied.warnings[0], /Grenade Kit is not equipped/);
+  assert.match(denied.warnings[0].message, /Grenade Kit is not equipped/);
 });
 
 test('Engineer is a loadable native application', async () => {

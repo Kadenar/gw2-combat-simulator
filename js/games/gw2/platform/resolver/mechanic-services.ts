@@ -16,6 +16,7 @@ import {
 } from '#gw2/platform/combat/state/target-health.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import type { ComboFieldEvent } from '#gw2/platform/combos/types.js';
+import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 
 /** Combat capabilities granted to mechanics: shared-state queries plus phase-preserving mutation requests. */
 export interface MechanicCombatServices {
@@ -50,7 +51,7 @@ export interface MechanicCombatServices {
   fieldFor(skillId: SkillId, at: number | undefined): Readonly<ComboFieldEvent> | undefined;
   expireField(fieldId: string, at: number): void;
   allocateEffectActivation(prefix: string): string;
-  warn(message: string): void;
+  warn(diagnostic: Gw2SimulationDiagnostic): void;
   readonly react: Gw2ResolverRuntime['dispatchReaction'];
 }
 
@@ -154,8 +155,8 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
     allocateEffectActivation(prefix: string): string {
       return prefix + ++runtime.weaponStrengthActivationOrder;
     },
-    warn(message: string): void {
-      runtime.warnings.push(message);
+    warn(diagnostic: Gw2SimulationDiagnostic): void {
+      runtime.warnings.push(diagnostic);
     },
     // Resolve the dispatcher when used so query-only contexts need not provide reaction capabilities.
     react: (...args: Parameters<Gw2ResolverRuntime['dispatchReaction']>) => runtime.dispatchReaction(...args)

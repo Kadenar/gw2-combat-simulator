@@ -1,4 +1,5 @@
 import { escapeHtml as html } from '#ui/shared/html.js';
+import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { templateCategory, templateTileContent } from '#gw2/app/build/library/model.js';
 import type { Benchmark } from '#gw2/app/page/benchmarks.js';
@@ -201,7 +202,7 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
   function renderWarnings(): void {
     const completed = [...selected.values()].filter((row) => resultFor(row));
     const warnings = completed.flatMap((row) =>
-      resultFor(row)!.warnings.map((warning) => `${fullName(row)}: ${warning}`)
+      resultFor(row)!.warnings.map((warning) => `${fullName(row)}: ${formatSimulationDiagnostic(warning)}`)
     );
     let warningBox = root.querySelector<HTMLElement>('[data-bc-warnings]');
 

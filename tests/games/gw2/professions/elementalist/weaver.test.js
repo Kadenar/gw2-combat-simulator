@@ -99,7 +99,7 @@ test('Weaver hammer orbs require both distinct hands and respect Unravel replace
     assert.equal(Boolean(result.planningState.profession.hammerOrbs.Air), ready);
 
     if (ready) assert.deepEqual(result.warnings, []);
-    else assert.match(result.warnings[0], unravel ? /while Unravel is active/ : /matching Weaver hand/);
+    else assert.match(result.warnings[0].message, unravel ? /while Unravel is active/ : /matching Weaver hand/);
   }
 
   const single = runNative({
@@ -125,7 +125,7 @@ test('Unravel requires Elements of Rage and disables new dual attacks without ca
     unavailable.events.some((event) => event.type === 'action' && event.skillName === 'Unravel'),
     false
   );
-  assert.match(unavailable.warnings[0], /requires Elements of Rage/i);
+  assert.match(unavailable.warnings[0].message, /requires Elements of Rage/i);
 
   const dualAttack = runNative({
     lines: [['Fire'], ['Air'], ['Weaver', '1-1-1']],
@@ -139,7 +139,7 @@ test('Unravel requires Elements of Rage and disables new dual attacks without ca
     dualAttack.events.some((event) => event.type === 'action' && event.skillName === 'Pyro Vortex'),
     false
   );
-  assert.match(dualAttack.warnings[0], /while Unravel is active/i);
+  assert.match(dualAttack.warnings[0].message, /while Unravel is active/i);
 
   const unravel = elementalistCatalog.skillsByName.get('Unravel');
   const queuedDualAttack = runNative({

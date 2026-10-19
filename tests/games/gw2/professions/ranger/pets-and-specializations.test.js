@@ -508,7 +508,7 @@ test('Core Ranger exposes only the selected pet Beast skill', () => {
     selectedPet: 'Jungle Stalker'
   });
 
-  assert.match(wrongPet.warnings[0], /select the pet that owns/);
+  assert.match(wrongPet.warnings[0].message, /select the pet that owns/);
 
   const overlapping = simulate('Core', ['Rapid Fire', 'Rending Pounce', 'Point-Blank Shot'], {
     primaryWeapon: 'Longbow'
@@ -564,7 +564,7 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
     selectedPet: 'Carrion Devourer'
   });
 
-  assert.match(directAuto.warnings[0], /uses this skill automatically/);
+  assert.match(directAuto.warnings[0].message, /uses this skill automatically/);
 
   const result = simulate(
     'Core',
@@ -1091,7 +1091,7 @@ test('Druid gates, drains, and releases Celestial Avatar', () => {
     initialAstralForce: 100
   });
 
-  assert.match(blocked.warnings[0], /enter Celestial Avatar/);
+  assert.match(blocked.warnings[0].message, /enter Celestial Avatar/);
 
   const entered = simulate('Druid', ['Celestial Avatar']);
 
@@ -1122,12 +1122,12 @@ test('Druid gates, drains, and releases Celestial Avatar', () => {
 test("Soulbeast starts merged and grants only the selected pet's Beast skills", () => {
   const alreadyMerged = simulate('Soulbeast', ['Beastmode']);
 
-  assert.match(alreadyMerged.warnings[0], /already active/);
+  assert.match(alreadyMerged.warnings[0].message, /already active/);
 
   // The merged skill and natural Smokescale attack have separate canonical identities.
   const blocked = simulate('Soulbeast', [ID.SMOKE_ASSAULT]);
 
-  assert.match(blocked.warnings[0], /select the pet that grants/);
+  assert.match(blocked.warnings[0].message, /select the pet that grants/);
 
   const result = simulate('Soulbeast', [ID.SMOKE_ASSAULT], {
     selectedPet: 'Smokescale'
@@ -1140,7 +1140,7 @@ test("Soulbeast starts merged and grants only the selected pet's Beast skills", 
 
   const leftBeastmode = simulate('Soulbeast', ['Leave Beastmode', ID.SMOKE_ASSAULT], { selectedPet: 'Smokescale' });
 
-  assert.match(leftBeastmode.warnings[0], /enter Beastmode/);
+  assert.match(leftBeastmode.warnings[0].message, /enter Beastmode/);
   assert.equal(leftBeastmode.planningState.profession.beastmodeActive, false);
 });
 
@@ -1358,7 +1358,7 @@ test('Untamed Hammer variants follow unleash state instead of build selections',
     primaryWeapon: 'Hammer'
   });
 
-  assert.match(blocked.warnings[0], /required weapon is not equipped/);
+  assert.match(blocked.warnings[0].message, /required weapon is not equipped/);
 
   const result = simulate('Untamed', ['Unleash Ranger', 'Unleashed Wild Swing', 'Unleash Pet'], {
     primaryWeapon: 'Hammer'
@@ -1371,13 +1371,13 @@ test('Untamed Hammer variants follow unleash state instead of build selections',
 
   const standardWhileUnleashed = simulate('Untamed', ['Unleash Ranger', 'Wild Swing'], { primaryWeapon: 'Hammer' });
 
-  assert.match(standardWhileUnleashed.warnings[0], /required weapon is not equipped/);
+  assert.match(standardWhileUnleashed.warnings[0].message, /required weapon is not equipped/);
 
   const druidBlocked = simulate('Druid', ['Unleashed Wild Swing'], {
     primaryWeapon: 'Hammer'
   });
 
-  assert.match(druidBlocked.warnings[0], /required weapon is not equipped/);
+  assert.match(druidBlocked.warnings[0].message, /required weapon is not equipped/);
   const druidSelected = simulate('Druid', ['Unleashed Wild Swing'], {
     primaryWeapon: 'Hammer',
     selectedHammerSkillIds: [ID.UNLEASHED_WILD_SWING, ID.OVERBEARING_SMASH, ID.SAVAGE_SHOCK_WAVE, ID.THUMP]
@@ -1454,7 +1454,7 @@ test('Untamed exposes and executes all three natural pet commands only with the 
       )
     );
     const blocked = simulate('Untamed', [skillId], { ...config, initialUntamedState: 'Pet' });
-    assert.match(blocked.warnings.join(' '), /Unleash Ranger first/);
+    assert.match(blocked.warnings.map(({ message }) => message).join(' '), /Unleash Ranger first/);
   }
 
   const loaded = migrateRangerBuild({ ...build, rotation: [...commands, ID.FELINE_SLASH] });
@@ -1462,10 +1462,22 @@ test('Untamed exposes and executes all three natural pet commands only with the 
     loaded.rotation.map((command) => command.skillId),
     commands
   );
-  assert.match(simulate('Untamed', [ID.FELINE_SLASH], config).warnings.join(' '), /automatically/);
-  assert.match(simulate('Core', [ID.FELINE_BITE], config).warnings.join(' '), /automatically/);
   assert.match(
-    simulate('Untamed', [ID.FELINE_BITE], { ...config, selectedPet: 'Pig' }).warnings.join(' '),
+    simulate('Untamed', [ID.FELINE_SLASH], config)
+      .warnings.map(({ message }) => message)
+      .join(' '),
+    /automatically/
+  );
+  assert.match(
+    simulate('Core', [ID.FELINE_BITE], config)
+      .warnings.map(({ message }) => message)
+      .join(' '),
+    /automatically/
+  );
+  assert.match(
+    simulate('Untamed', [ID.FELINE_BITE], { ...config, selectedPet: 'Pig' })
+      .warnings.map(({ message }) => message)
+      .join(' '),
     /select the pet/
   );
 });
@@ -1564,8 +1576,8 @@ test('Ranger rejects out-of-order autoattack chain steps', () => {
     result.steps.filter((step) => !step.invalid).map((step) => step.skill),
     ['Hammer Strike']
   );
-  assert.match(result.warnings.join(' '), /cast Hammer Strike first/);
-  assert.match(result.warnings.join(' '), /cast Hammer Slam first/);
+  assert.match(result.warnings.map(({ message }) => message).join(' '), /cast Hammer Strike first/);
+  assert.match(result.warnings.map(({ message }) => message).join(' '), /cast Hammer Slam first/);
 });
 
 test('Selected unleashed Hammer skills remain castable after Overbearing Smash', () => {
@@ -1753,7 +1765,7 @@ test('Untamed ambush skills require the specialization and an active unleash pro
   assert.match(
     simulate('Untamed', ['Relentless Whirl'], {
       primaryWeapon: 'Hammer'
-    }).warnings[0],
+    }).warnings[0].message,
     /Unleash Ranger first/
   );
   assert.deepEqual(
@@ -1842,7 +1854,9 @@ test('Greatsword Counterattack flips to Counterattack Kick and restores its tile
     simulate('Core', ['Counterattack Kick'], {
       primaryWeapon: 'Greatsword',
       secondaryWeapon: ''
-    }).warnings.join(' '),
+    })
+      .warnings.map(({ message }) => message)
+      .join(' '),
     /use Counterattack first/
   );
   assert.ok(paletteAfter([]).includes('Counterattack'));
@@ -1889,7 +1903,9 @@ test("Panther's Prowl replaces all four Ranger spear stealth-attack slots", () =
     simulate('Core', ["Wolf's Onslaught"], {
       primaryWeapon: 'Spear',
       secondaryWeapon: ''
-    }).warnings.join(' '),
+    })
+      .warnings.map(({ message }) => message)
+      .join(' '),
     /use Panther's Prowl or gain stealth first/
   );
   assert.ok(ordinary.every((name) => paletteAfter([]).includes(name)));

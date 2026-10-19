@@ -558,7 +558,7 @@ test('Firebrand page exhaustion waits on the selected recovery policy and disabl
   );
   assert.equal(result.steps[1].invalid, true);
   assert.equal(result.warnings.length, 1);
-  assert.match(result.warnings[0], /tomePages/);
+  assert.match(result.warnings[0].message, /tomePages/);
   assert.equal(result.rotationEndTime, 0);
 });
 
@@ -952,7 +952,7 @@ test('Guardian flip cancellation requires a committed parent before accepting it
   assert.deepEqual(canceled.warnings, []);
   assert.deepEqual(core(canceled).availableFlips, {});
   const denied = run([ID.PULL], { primaryWeapon: 'Greatsword' });
-  assert.ok(denied.warnings.some((warning) => warning.includes('not currently armed')));
+  assert.ok(denied.warnings.some(({ message: warning }) => warning.includes('not currently armed')));
 });
 
 test('Banish resets either hammer leap only when its strike reaches the target', () => {

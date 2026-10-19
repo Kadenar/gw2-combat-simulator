@@ -165,7 +165,7 @@ test('a skill in the new attunement interrupts autoattack carryover', () => {
     false
   );
   assert.equal(
-    result.warnings.some((warning) => warning.includes('Fire Swipe')),
+    result.warnings.some(({ message: warning }) => warning.includes('Fire Swipe')),
     true
   );
 });
@@ -637,7 +637,7 @@ test('Pistol bullets grant, consume, and apply their payload', () => {
     unavailableExplosion.events.some((event) => event.type === 'action' && event.skillName === 'Elemental Explosion'),
     false
   );
-  assert.match(unavailableExplosion.warnings[0], /all four elemental bullets/i);
+  assert.match(unavailableExplosion.warnings[0].message, /all four elemental bullets/i);
 
   const explosion = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],
@@ -686,7 +686,7 @@ test('Hammer orbs block reuse and Grand Finale cancels future packets', () => {
       lines: [['Fire'], ['Air'], ['Arcane']],
       weapons: ['Hammer', ''],
       rotation: ['Flame Wheel', 'Flame Wheel']
-    }).warnings.some((warning) => warning.includes('Grand Finale must consume the active orb')),
+    }).warnings.some(({ message: warning }) => warning.includes('Grand Finale must consume the active orb')),
     true
   );
   const finale = result.events.find((event) => event.type === 'action' && event.skillName === 'Grand Finale');
@@ -780,7 +780,7 @@ test('Spear etchings expire at the field boundary and cannot charge afterward', 
       result.events.some((event) => event.type === 'action' && ['Volcano', 'Lesser Volcano'].includes(event.skillName)),
       false
     );
-    assert.ok(result.warnings.some((warning) => warning.includes('Volcano')));
+    assert.ok(result.warnings.some(({ message: warning }) => warning.includes('Volcano')));
   }
 
   const renewed = runNative({
@@ -813,7 +813,7 @@ test('Tempest overloads retain their full etching charge only within the active 
       );
 
       if (wait === 0) assert.deepEqual(result.warnings, []);
-      else assert.ok(result.warnings.some((warning) => warning.includes(payoff)));
+      else assert.ok(result.warnings.some(({ message: warning }) => warning.includes(payoff)));
     }
 
     const expired = runNative({

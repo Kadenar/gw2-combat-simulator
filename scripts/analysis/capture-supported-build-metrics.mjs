@@ -21,6 +21,7 @@ import path from 'node:path';
 
 import { loadBuildContext } from '#gw2/build-context/load.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
 import { targetHealthBandDps } from './health-band-dps.mjs';
 import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
@@ -122,7 +123,8 @@ async function captureProfession(professionId, gameId, patchId) {
         strikeDamage: result.strikeDamage,
         conditionDamage: result.conditionDamage,
         finalDamagingPacket: finalPacket,
-        warnings: [...result.warnings]
+        // Metrics are a printed report, so diagnostics carry their occurrence time as text.
+        warnings: result.warnings.map(formatSimulationDiagnostic)
       });
     }
   }

@@ -192,7 +192,7 @@ test('Electric Artillery availability ends eight seconds after arming', () => {
   assert.equal(expired.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY], undefined);
   assert.deepEqual(expired.planningState.profession.lightningRodChargeExpiries, []);
   assert.equal(expired.warnings.length, 1);
-  assert.match(expired.warnings[0], /Lightning Rod has not finished charging/);
+  assert.match(expired.warnings[0].message, /Lightning Rod has not finished charging/);
 });
 
 // Consuming a projectile is separate from landing it, and later actions may run during its flight.

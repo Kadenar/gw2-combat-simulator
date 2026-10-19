@@ -264,7 +264,7 @@ test('Power Return starts prepared, respects its recharge and use lockout, and e
   assert.equal(accepted[1].start - accepted[0].start, 800);
   assert.equal(exhausted.planningState.profession.availableFlips[ID.POWER_RETURN], undefined);
   assert.equal(exhausted.planningState.ammoBySkillId[ID.POWER_RETURN], undefined);
-  assert.match(exhausted.warnings.at(-1), /Mantra of Recovery is not active/);
+  assert.match(exhausted.warnings.at(-1).message, /Mantra of Recovery is not active/);
 });
 
 // Re-preparing either equipped mantra must leave the other mantra's spent charges untouched.
@@ -294,7 +294,7 @@ test('Power Return remains unavailable during Mantra of Recovery preparation', (
     defaultSimulationConfig({ specialization: 'Core', selectedSkillIds: [ID.MANTRA_OF_RECOVERY] })
   );
   assert.equal(result.steps.at(-1).invalid, true);
-  assert.match(result.warnings.at(-1), /Mantra of Recovery is still channeling/);
+  assert.match(result.warnings.at(-1).message, /Mantra of Recovery is still channeling/);
   assert.equal(result.planningState.ammoBySkillId[ID.POWER_RETURN].charges, 2);
 });
 
@@ -314,7 +314,7 @@ test('Power Spike opens with two charges and reverts to Mantra of Pain when spen
   assert.equal(result.planningState.profession.availableFlips[ID.POWER_SPIKE], undefined);
   assert.equal(result.planningState.ammoBySkillId[ID.POWER_SPIKE], undefined);
   assert.equal(result.planningState.ammoBySkillId[ID.POWER_SPIKE], undefined);
-  assert.match(result.warnings.at(-1), /Mantra of Pain is not active/);
+  assert.match(result.warnings.at(-1).message, /Mantra of Pain is not active/);
 });
 
 test('Re-channeling Mantra of Pain refills Power Spike to two charges', () => {
@@ -357,7 +357,7 @@ test('Power Spike woven into the Mantra of Pain channel is invalid and unsimulat
   assert.equal(result.steps.filter((step) => step.skill === 'Power Spike' && !step.invalid).length, 2);
   assert.equal(result.planningState.profession.availableFlips[ID.POWER_SPIKE].expiresAt, null);
   assert.equal(result.planningState.ammoBySkillId[ID.POWER_SPIKE].charges, 2);
-  assert.match(result.warnings.at(-1), /Mantra of Pain is still channeling/);
+  assert.match(result.warnings.at(-1).message, /Mantra of Pain is still channeling/);
 });
 
 test('Power Spike stays invalid even when another instant is chained into the channel first', () => {

@@ -217,7 +217,7 @@ test('explicit overlaps use the previous player start and waits join independent
   assert.equal(result.rotationEndTime, 2.16);
   assert.ok(result.events.some((event) => event.type === 'buff' && event.at === 0.52));
   const backdated = run([cast(990003), wait(1000), cast(990001, { concurrentOffsetMs: 100 })]);
-  assert.match(backdated.warnings[0], /cannot backdate/);
+  assert.match(backdated.warnings[0].message, /cannot backdate/);
 });
 
 // A Wait idles the player. An overlappable companion command animates beside the player, so it must not postpone
@@ -271,7 +271,7 @@ test('companion steps report executed animations instead of queued reservations'
 
 test('forbidden concurrent commands are rejected without reserving a cast lane', () => {
   const result = run([cast(990003), cast(990009, { concurrentOffsetMs: 500 }), cast(990002)]);
-  assert.match(result.warnings[0], /cannot be cast concurrently/);
+  assert.match(result.warnings[0].message, /cannot be cast concurrently/);
   assert.deepEqual(
     result.planningState.profession.accepted.map(([name]) => name),
     ['Long', 'Spend']
@@ -504,7 +504,7 @@ test('off-target and late packets grant no resource; hard denial does not wait f
   });
   assert.equal(result.totalDamage, 0);
   assert.equal(result.planningState.profession.hits, 0);
-  assert.match(result.warnings[0], /No resource/);
+  assert.match(result.warnings[0].message, /No resource/);
 });
 
 // Resource legality belongs to the earliest usable cast instant, after existing cooldown work and its intervening impacts.

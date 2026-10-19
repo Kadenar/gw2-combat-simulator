@@ -1,6 +1,7 @@
 import type { Benchmark } from '#gw2/app/page/benchmarks.js';
 import type { ChartPoint } from '#gw2/app/results/charts/time-series-model.js';
 import type { Gw2ResolverResult } from '#gw2/platform/results/types.js';
+import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { GameContentAddress } from '#browser/game/contracts.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
@@ -35,7 +36,7 @@ export interface ComparisonResult {
   readonly dps: number;
   readonly totalDamage: number;
   readonly targetDied: boolean;
-  readonly warnings: readonly string[];
+  readonly warnings: readonly Gw2SimulationDiagnostic[];
 }
 
 /** Asset identity keeps same-name variants distinct and reuses completed runs across picker filters. */

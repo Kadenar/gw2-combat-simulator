@@ -113,7 +113,7 @@ test('ordinary stealth unlocks spear and outgoing strikes apply Revealed without
     [ID.HUNTERS_SHOT, 'Swap Weapons', ID.DRAKES_SWIPE, ID.WOLFS_ONSLAUGHT],
     config
   );
-  assert.ok(revealed.warnings.some((warning) => warning.includes('gain stealth first')));
+  assert.ok(revealed.warnings.some(({ message: warning }) => warning.includes('gain stealth first')));
   const prowess = simulate('Soulbeast', [
     ID.PANTHERS_PROWL,
     ID.DRAKES_SWIPE,
@@ -124,7 +124,7 @@ test('ordinary stealth unlocks spear and outgoing strikes apply Revealed without
   assert.deepEqual(prowess.warnings, []);
   assert.ok(strike(prowess, ID.WOLFS_ONSLAUGHT));
   const expired = simulate('Soulbeast', [ID.PANTHERS_PROWL, wait(3100), ID.WOLFS_ONSLAUGHT]);
-  assert.ok(expired.warnings.some((warning) => warning.includes('gain stealth first')));
+  assert.ok(expired.warnings.some(({ message: warning }) => warning.includes('gain stealth first')));
 });
 
 test('spear finishers consume Smoke Cloud and Spider grants superspeed to the pet', () => {

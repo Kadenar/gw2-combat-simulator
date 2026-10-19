@@ -310,7 +310,7 @@ test('declarative boons can gate dynamic skill availability', () => {
   assert.ok(available.totalDamage > 0);
   assert.equal(expired.totalDamage, 0);
   assert.ok(extended.totalDamage > 0);
-  assert.match(expired.warnings.join(' '), /unavailable/);
+  assert.match(expired.warnings.map(({ message }) => message).join(' '), /unavailable/);
 });
 
 test('declarative generic buffs use shared timed state without boon-duration scaling', () => {

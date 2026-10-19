@@ -23,6 +23,7 @@ import type {
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { EffectReportObserver } from '#gw2/platform/results/effect-report.js';
 import type { ProcStepObserver } from '#gw2/platform/results/proc-steps.js';
+import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2CriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
@@ -217,7 +218,7 @@ export interface Gw2ResolverRuntime {
   helpers: Gw2ResolverHelpers;
   queue: Gw2EventQueue;
   readonly effects: EffectEmissionService;
-  warnings: string[];
+  warnings: Gw2SimulationDiagnostic[];
   breakdown: Map<string, Gw2DamageBreakdownEntry>;
   conditions: Map<string, Gw2ConditionBreakdownEntry>;
   environmentDamage: number;

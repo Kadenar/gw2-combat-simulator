@@ -137,7 +137,7 @@ test('autoattack chain steps unlock only after the preceding attack', () => {
   const locked = simulateMesmer(['Ether Blast', 'Ether Clone'], config);
 
   assert.equal(locked.steps.filter((step) => !step.invalid).length, 0);
-  assert.match(locked.warnings[0], /cast Ether Bolt first/);
+  assert.match(locked.warnings[0].message, /cast Ether Bolt first/);
 
   const skippedStep = simulateMesmer(['Ether Bolt', 'Ether Clone'], config);
 
@@ -146,7 +146,7 @@ test('autoattack chain steps unlock only after the preceding attack', () => {
     ['Ether Bolt']
   );
   assert.equal(skippedStep.planningState.profession.autoattackChains[ID.ETHER_BOLT], ID.ETHER_BLAST);
-  assert.match(skippedStep.warnings[0], /cast Ether Blast first/);
+  assert.match(skippedStep.warnings[0].message, /cast Ether Blast first/);
 
   const completed = simulateMesmer(['Ether Bolt', 'Ether Blast', 'Ether Clone'], config);
 
@@ -194,7 +194,7 @@ test('Imaginary Axes preserves the axe auto chain but other skills reset it', ()
     ['Lacerating Chop', 'Lingering Thoughts']
   );
   assert.equal(interrupted.planningState.profession.autoattackChains[ID.LACERATING_CHOP], ID.LACERATING_CHOP);
-  assert.match(interrupted.warnings[0], /cast Lacerating Chop first/);
+  assert.match(interrupted.warnings[0].message, /cast Lacerating Chop first/);
 });
 
 test('other auto chains reset on weapon skills and every chain resets on swap', () => {

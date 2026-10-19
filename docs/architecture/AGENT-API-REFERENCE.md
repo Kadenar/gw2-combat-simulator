@@ -51,7 +51,8 @@ console.log({ dps: result.dps, warnings: result.warnings });
   `strikeDamage`, `conditionDamage`, `warnings`, `steps`, `resolvedEvents`, breakdowns, and `planningState`.
 - `output: 'score'` returns `Gw2SimulationScore`: aggregate metrics and warnings without report histories.
   `damageDiagnostics: true` captures actual damage calculations in detailed events; it is never saved in builds.
-- Inspect `warnings` on every run. Planning snapshots are detached observations, not resumable runtime checkpoints.
+- Inspect `warnings` on every run; each is a `{ message, at?, rotationIndex? }` diagnostic, and
+  `formatSimulationDiagnostic` renders it as text. Planning snapshots are detached observations, not resumable runtime checkpoints.
 - Live timestamps and result boundaries use seconds; authored `*Ms`, step `start`/`end`, and cooldown projections use
   ms.
 - Player health is always 100%; only isolated attribute previews may vary it. Target health remains modeled.

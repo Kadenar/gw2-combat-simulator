@@ -94,8 +94,8 @@ test('a late ground pickup grants a fresh lifetime, is consumed once, and keeps 
     ...hammerOptions,
     rotation: ['Conjure Lightning Hammer', 30000, '__pickup_Lightning Hammer', 'Lightning Swing']
   });
-  assert.ok(expired.warnings.some((warning) => /pickup is unavailable or expired/.test(warning)));
-  assert.ok(expired.warnings.some((warning) => /requires the Lightning Hammer bundle/.test(warning)));
+  assert.ok(expired.warnings.some(({ message: warning }) => /pickup is unavailable or expired/.test(warning)));
+  assert.ok(expired.warnings.some(({ message: warning }) => /requires the Lightning Hammer bundle/.test(warning)));
 });
 
 test('Conjure Lightning Hammer keeps its sixty-second recharge across bundle expiry', () => {
@@ -145,7 +145,7 @@ test('Lightning Hammer advances its autoattack chain and resets it when dropped'
   );
   assert.equal(blind.duration, 3);
   const denied = runNative({ ...hammerOptions, rotation: ['Conjure Lightning Hammer', 'Static Swing'] });
-  assert.ok(denied.warnings.some((warning) => /Lightning Swing/.test(warning)));
+  assert.ok(denied.warnings.some(({ message: warning }) => /Lightning Swing/.test(warning)));
 });
 
 test('Lightning Hammer attributes follow the wielder through utility hits, drop, and expiry', () => {

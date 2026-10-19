@@ -66,7 +66,7 @@ test('live weapon swaps commit the destination set and its sigils before subsequ
   assert.equal(result.steps[0].invalid, true);
   assert.equal(result.steps.at(-1).invalid, true);
   assert.equal(result.warnings.length, 2);
-  assert.ok(result.warnings.every((warning) => warning.includes('required weapon is not equipped')));
+  assert.ok(result.warnings.every(({ message: warning }) => warning.includes('required weapon is not equipped')));
   assert.deepEqual(seen, [[2, true, 0.12]]);
   assert.equal(result.planningState.activeWeaponSet, 2);
   assert.deepEqual(result.planningState.profession.autoattackChains, {});
@@ -136,7 +136,7 @@ test('native live build eligibility rejects excluded skills and foreign speciali
   const result = simulate([cast(ID.LICH_FORM), cast(ID.GHASTLY_CLAWS)], base, { profession });
   assert.ok(result.steps.every((step) => step.invalid));
   assert.equal(result.warnings.length, 2);
-  assert.ok(result.warnings.every((warning) => warning.includes('unavailable for this build')));
+  assert.ok(result.warnings.every(({ message: warning }) => warning.includes('unavailable for this build')));
 });
 
 // Temporary horrors appear at their own spawn boundary and retain an independent lifetime after the form ends.
@@ -271,7 +271,7 @@ test('live sword chains advance, complete, and expire at their exclusive continu
   assert.deepEqual(complete.warnings, []);
   assert.deepEqual(complete.planningState.profession.autoattackChains, {});
   const expired = simulate([cast(ID.ENERVATION_BLADE), wait(3000), cast(ID.ENERVATION_ECHO)]);
-  assert.ok(expired.warnings.some((warning) => warning.includes('cast Enervation Blade first')));
+  assert.ok(expired.warnings.some(({ message: warning }) => warning.includes('cast Enervation Blade first')));
   assert.deepEqual(expired.planningState.profession.autoattackChains, {});
   const active = simulate([cast(ID.ENERVATION_BLADE), wait(2960), cast(ID.ENERVATION_ECHO)]);
   assert.deepEqual(active.warnings, []);
@@ -803,7 +803,7 @@ test('missed and late Ghastly Claws packets cannot fund shroud entry', () => {
     const result = simulate([{ ...cast(ID.GHASTLY_CLAWS), ...flags }, cast(ID.REAPERS_SHROUD)]);
     assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 0);
     assert.equal(result.planningState.profession.activeShroud, '');
-    assert.ok(result.warnings.some((warning) => warning.includes('life force')));
+    assert.ok(result.warnings.some(({ message: warning }) => warning.includes('life force')));
   }
 });
 
@@ -913,7 +913,7 @@ test('an interrupted summon creates neither a minion nor a usable command', () =
     wait(4000)
   ]);
   assert.deepEqual(result.planningState.profession.activeMinions, {});
-  assert.ok(result.warnings.some((warning) => warning.includes('not alive')));
+  assert.ok(result.warnings.some(({ message: warning }) => warning.includes('not alive')));
   assert.equal(result.totalDamage, 0);
 });
 
@@ -959,7 +959,7 @@ test('consumption cancels only the removed creature and starts summon recharge a
 test('an active death-gated minion cannot be replaced by recasting after a cooldown reset', () => {
   const result = simulate([cast(ID.SUMMON_SHADOW_FIEND), { type: 'cooldown-reset' }, cast(ID.SUMMON_SHADOW_FIEND)]);
   assert.equal(observedRuntime(result).profession.core.minionGenerations['shadow-fiend'], 1);
-  assert.ok(result.warnings.some((warning) => warning.includes('still alive')));
+  assert.ok(result.warnings.some(({ message: warning }) => warning.includes('still alive')));
 });
 
 test('Haunt grants life force once at its accepted impact, with no off-target or late grant', () => {
@@ -1149,7 +1149,7 @@ test('manual Lich exit cancels its old deadline before a replacement form begins
 
 test('Lich bar skills require the live form and ordinary skills remain unavailable inside it', () => {
   const blocked = simulate([cast(ID.DEATHLY_CLAWS)]);
-  assert.ok(blocked.warnings.some((warning) => warning.includes('Lich Form')));
+  assert.ok(blocked.warnings.some(({ message: warning }) => warning.includes('Lich Form')));
   const result = simulate([
     cast(ID.LICH_FORM),
     cast(ID.DEATHLY_CLAWS),
@@ -1157,7 +1157,7 @@ test('Lich bar skills require the live form and ordinary skills remain unavailab
     cast(ID.EXIT_LICH_FORM)
   ]);
   assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.DEATHLY_CLAWS));
-  assert.ok(result.warnings.some((warning) => warning.includes('cannot cast in shroud')));
+  assert.ok(result.warnings.some(({ message: warning }) => warning.includes('cannot cast in shroud')));
   assert.equal(result.planningState.profession.activeShroud, '');
 });
 
@@ -1428,23 +1428,25 @@ test('zero passive grants cannot advertise an endless affordability retry', () =
   const result = simulate([cast(ID.REAPERS_SHROUD)], config, { profession });
   assert.equal(result.rotationEndTime, 0);
   assert.deepEqual(observedRuntime(result).profession.core.passiveNextAt, {});
-  assert.ok(result.warnings.some((warning) => warning.includes('life force')));
+  assert.ok(result.warnings.some(({ message: warning }) => warning.includes('life force')));
 });
 
 // Legality is evaluated before any cast reserves recharge, creates a summon, or grants a trait effect.
 test('live slot selection and trait replacements reject unavailable commands without state changes', () => {
   const empty = simulate([cast(ID.SUMMON_BONE_MINIONS)], { ...base, selectedSkillIds: [] });
   assert.deepEqual(empty.planningState.profession.activeMinions, {});
-  assert.ok(empty.warnings.some((warning) => warning.includes('not equipped')));
+  assert.ok(empty.warnings.some(({ message: warning }) => warning.includes('not equipped')));
   const equipped = simulate([cast(ID.SUMMON_BONE_MINIONS), cast(ID.PUTRID_EXPLOSION)], {
     ...base,
     selectedSkillIds: [10541]
   });
   assert.deepEqual(equipped.warnings, []);
   assert.equal(equipped.planningState.profession.activeMinions['bone-minion'], 1);
-  assert.ok(simulate([cast(ID.DEVOURING_DARKNESS)]).warnings.some((warning) => warning.includes('Lingering Curse')));
+  assert.ok(
+    simulate([cast(ID.DEVOURING_DARKNESS)]).warnings.some(({ message: warning }) => warning.includes('Lingering Curse'))
+  );
   const replacement = simulate([cast(ID.FEAST_OF_CORRUPTION)], { ...base, selectedTraitIds: [TRAIT.LINGERING_CURSE] });
-  assert.ok(replacement.warnings.some((warning) => warning.includes('Devouring Darkness replaces')));
+  assert.ok(replacement.warnings.some(({ message: warning }) => warning.includes('Devouring Darkness replaces')));
   assert.equal([...observedRuntime(replacement).cooldownController.cooldownSkillIds()].length, 0);
 });
 
@@ -1453,17 +1455,17 @@ test('a completed parent arms one exclusive follow-up window and interruption ar
   const before = [cast(ID.DEATH_SHROUD), cast(ID.DARK_PATH)];
   const used = simulate([...before, cast(ID.DARK_PURSUIT), cast(ID.DARK_PURSUIT)], config);
   assert.equal(used.warnings.length, 1);
-  assert.match(used.warnings[0], /not currently armed/);
+  assert.match(used.warnings[0].message, /not currently armed/);
   assert.equal(used.planningState.profession.availableFlips[ID.DARK_PURSUIT], undefined);
   const expired = simulate([...before, wait(3000), cast(ID.DARK_PURSUIT)], config);
   assert.equal(expired.planningState.profession.availableFlips[ID.DARK_PURSUIT], undefined);
-  assert.ok(expired.warnings.some((warning) => warning.includes('not currently armed')));
+  assert.ok(expired.warnings.some(({ message: warning }) => warning.includes('not currently armed')));
   const cancelled = simulate(
     [cast(ID.DEATH_SHROUD), { ...cast(ID.DARK_PATH), interruptAfterMs: 40 }, cast(ID.DARK_PURSUIT)],
     config
   );
   assert.equal(cancelled.planningState.profession.availableFlips[ID.DARK_PURSUIT], undefined);
-  assert.ok(cancelled.warnings.some((warning) => warning.includes('not currently armed')));
+  assert.ok(cancelled.warnings.some(({ message: warning }) => warning.includes('not currently armed')));
   const rearmed = simulate(
     [...before, wait(1000), { type: 'cooldown-reset' }, cast(ID.DARK_PATH), wait(2000), cast(ID.DARK_PURSUIT)],
     config
@@ -1571,7 +1573,7 @@ test('Fear of Death follows accepted fear with one cooldown and cannot fund entr
     const result = simulate([{ ...cast(ID.REAPERS_MARK), ...flags }, cast(ID.REAPERS_SHROUD)], config);
     assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 0);
     assert.equal(observedRuntime(result).procs.deadline('necromancer.core.fearOfDeath'), 0);
-    assert.ok(result.warnings.some((warning) => warning.includes('life force')));
+    assert.ok(result.warnings.some(({ message: warning }) => warning.includes('life force')));
   }
 
   const native = necromancerProfession.runtimeFor(config);

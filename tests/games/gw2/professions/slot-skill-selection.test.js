@@ -68,7 +68,7 @@ for (const [profession, names, simulate = simulateGw2] of [
           config: { ...config, selectedSkillIds }
         });
         assert.equal(result.steps[0].invalid, true, name);
-        assert.match(result.warnings.join(' '), /is unavailable.*not equipped/, name);
+        assert.match(result.warnings.map(({ message }) => message).join(' '), /is unavailable.*not equipped/, name);
         assert.equal(
           result.resolvedEvents.some((event) => event.skillId === skill.id),
           false,
@@ -109,6 +109,6 @@ for (const [profession, parent, child, specialization = 'Core', simulate = simul
       config: { ...config, specialization, selectedSkillIds: [] }
     });
     assert.equal(removed.steps[0].invalid, true);
-    assert.match(removed.warnings.join(' '), /is unavailable.*not equipped/);
+    assert.match(removed.warnings.map(({ message }) => message).join(' '), /is unavailable.*not equipped/);
   });
 }

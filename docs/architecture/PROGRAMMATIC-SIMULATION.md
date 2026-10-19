@@ -138,7 +138,9 @@ when the skill or import scenario supports that behavior. Antiquary Double Edge 
 explicitly set to `'backfire'`; ready casts always succeed.
 
 Use `normalizeRotation(input, catalog, { strict: true })` to reject malformed input. Unavailable or mistimed actions can
-produce simulation warnings; inspect `result.warnings` on every run.
+produce simulation warnings; inspect `result.warnings` on every run. Each warning is a diagnostic record with a
+`message` and, when known, its absolute time `at` (seconds) and authored `rotationIndex`; use
+`formatSimulationDiagnostic` from `platform/results/diagnostics.ts` for plain-text output.
 
 ## Observation boundaries
 

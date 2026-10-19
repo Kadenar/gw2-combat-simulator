@@ -20,8 +20,8 @@ export function createGw2ComboResolution({
     combo_finisher(context, event) {
       const combos = resolveComboAttempt(context.combo, event as ComboFinisherEvent, {
         roll: context.random.roll,
-        warn(message) {
-          context.warnings.push(message);
+        warn(diagnostic) {
+          context.warnings.push(diagnostic);
         }
       });
       for (const combo of combos) {

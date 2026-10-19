@@ -106,7 +106,7 @@ test('Warrior resource gates share pool tolerance and a short Flow interval stal
     rotation: ['Dragon Trigger']
   });
   assert.equal(denied.steps[0].invalid, true);
-  assert.match(denied.warnings[0], /requires at least 15 flow/);
+  assert.match(denied.warnings[0].message, /requires at least 15 flow/);
   assert.equal(denied.planningState.profession.flow.value, config.initialResource);
 
   const charged = run({ specialization: 'Bladesworn', initialResource: 20 - 0.00005 }, [

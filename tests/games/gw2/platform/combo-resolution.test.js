@@ -243,13 +243,21 @@ test('field interaction is inclusive and remains valid after later expiry', () =
 test('expiry is exclusive and an unbound ambiguous finisher does nothing', () => {
   const expired = resolve([
     field('fire:expired', 'Fire', 0, 1),
-    finisher('expired', { kind: 'field-id', fieldId: 'fire:expired' })
+    finisher('expired', { kind: 'field-id', fieldId: 'fire:expired' }, { activationId: 'expired-cast' })
   ]);
 
   assert.equal(
     expired.resolvedEvents.some((event) => event.type === 'combo'),
     false
   );
+  // The failed binding names its finisher activation and selection time instead of embedding them in the wording.
+  assert.deepEqual(expired.warnings, [
+    {
+      message: 'Combo field fire:expired is not active for Fixture Finisher; no combo resolved.',
+      at: 1,
+      activationId: 'expired-cast'
+    }
+  ]);
 
   const ambiguous = resolve([
     field('dark:1', 'Dark'),

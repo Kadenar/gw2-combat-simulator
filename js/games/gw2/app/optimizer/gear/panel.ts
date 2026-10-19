@@ -9,6 +9,7 @@ import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { escapeHtml } from '#ui/shared/html.js';
+import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import {
   prefixOptionLabel,
   runeOptionLabel,
@@ -393,7 +394,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
 
   if (equippedScore?.warnings.length) {
     panel.querySelector('[data-role="optimizer-warnings"]')!.textContent +=
-      ` Current-build warnings: ${equippedScore.warnings.join(' • ')}`;
+      ` Current-build warnings: ${equippedScore.warnings.map(formatSimulationDiagnostic).join(' • ')}`;
   }
 
   const list = panel.querySelector<HTMLElement>('[data-role="optimizer-results"]')!;
@@ -454,7 +455,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
         )
         .join(
           ''
-        )}${equipmentCell('Rune', equipment.rune, true, EQUIPMENT_ICONS[equipment.rune])}${equipmentCell('Relic', equipment.relic, true, (RELIC_DATA as Record<string, { icon?: string }>)[equipment.relic]?.icon)}${equipmentCell('Food', equipment.food, false, EQUIPMENT_ICONS[equipment.food])}${equipmentCell('Utility', equipment.utility, false, EQUIPMENT_ICONS[equipment.utility])}${equipmentCell('Infusions', infusions(equipment))}</tr>${!pinned && candidate.score.warnings.length ? `<tr class="optimizer-result-warning"><td colspan="${slots.length + sets.length * 2 + 6}">${candidate.score.warnings.map(escapeHtml).join('<br>')}</td></tr>` : ''}`;
+        )}${equipmentCell('Rune', equipment.rune, true, EQUIPMENT_ICONS[equipment.rune])}${equipmentCell('Relic', equipment.relic, true, (RELIC_DATA as Record<string, { icon?: string }>)[equipment.relic]?.icon)}${equipmentCell('Food', equipment.food, false, EQUIPMENT_ICONS[equipment.food])}${equipmentCell('Utility', equipment.utility, false, EQUIPMENT_ICONS[equipment.utility])}${equipmentCell('Infusions', infusions(equipment))}</tr>${!pinned && candidate.score.warnings.length ? `<tr class="optimizer-result-warning"><td colspan="${slots.length + sets.length * 2 + 6}">${candidate.score.warnings.map((warning) => escapeHtml(formatSimulationDiagnostic(warning))).join('<br>')}</td></tr>` : ''}`;
     };
 
     list.innerHTML = best

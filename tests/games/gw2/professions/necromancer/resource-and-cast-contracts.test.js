@@ -290,11 +290,11 @@ test('NEC-002 transformed follow-ups require an unexpired, unconsumed parent act
   ]) {
     const result = simulate('Reaper', ["Reaper's Shroud", ...actions], { initialResource: 100 });
     assert.equal(result.warnings.length, denied);
-    for (const warning of result.warnings) assert.match(warning, /Terrify.*not currently armed/);
+    for (const { message: warning } of result.warnings) assert.match(warning, /Terrify.*not currently armed/);
   }
 
   const lich = simulate('Core', ['Lich Form', 'March of Undeath'], { selectedSkillIds: [10550] });
-  assert.match(lich.warnings.join(' '), /not currently armed/);
+  assert.match(lich.warnings.map(({ message }) => message).join(' '), /not currently armed/);
 });
 
 test('NEC-004 temporary horrors retain authored strike ticks and observation clipping', () => {
@@ -391,7 +391,7 @@ test('NEC-007 strike life force is spendable by the next shroud entry', () => {
     assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), accepted ? 11 : 9);
 
     if (accepted) assert.deepEqual(result.warnings, []);
-    else assert.match(result.warnings.join(' '), /requires more life force/);
+    else assert.match(result.warnings.map(({ message }) => message).join(' '), /requires more life force/);
   }
 
   const minion = simulate('Core', ['Summon Blood Fiend', wait(4000)], {

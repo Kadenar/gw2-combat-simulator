@@ -227,7 +227,10 @@ test('rotation warnings use timeline-relative timestamps', () => {
   const result = {
     events: [{ type: 'combat_start', at: 2 }],
     // Rejection warnings carry their own occurrence time, including results without detailed steps.
-    warnings: [`Unavailable Skill at 3.500s: ${invalidReason}`, 'Bladesong skipped at 4.250s: no blades.']
+    warnings: [
+      { message: `Unavailable Skill: ${invalidReason}`, at: 3.5 },
+      { message: 'Bladesong skipped: no blades.', at: 4.25 }
+    ]
   };
 
   assert.deepEqual(rotationWarningItems(result), [

@@ -116,7 +116,7 @@ export function scaleCastBoundTiming(
     ...(effect.intervalMs == null || effect.intervalTimingScale === 'fixed'
       ? {}
       : { intervalMs: projectCastRelativeEffectTimingMs(skill, adjustedCastMs, effect.intervalMs) })
-  } as SkillEffect;
+  };
 }
 
 /** Scheduling and readiness use the same cast-relative deadline, clamped to the live clock. */

@@ -1136,7 +1136,7 @@ test('optimizer rejects invalid rotation skills without suppressing other warnin
   );
   const valid = request({}, { rotation: [], weapons: ['Greatsword', ''] });
   const detailed = createOptimizerEvaluator(valid, adapter).evaluate(valid.build);
-  const warnings = ['A non-blocking simulation warning.'];
+  const warnings = [{ message: 'A non-blocking simulation warning.', at: 1 }];
   assert.deepEqual(optimizerScore({ ...detailed, warnings }).warnings, warnings);
 });
 

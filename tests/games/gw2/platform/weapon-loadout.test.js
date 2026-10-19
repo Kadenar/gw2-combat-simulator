@@ -53,7 +53,7 @@ test('profession weapon eligibility is shared with headless simulation', () => {
 
     if (specialization === 'Core') {
       assert.equal(result.totalDamage, 0);
-      assert.match(result.warnings.join(' '), /unavailable/);
+      assert.match(result.warnings.map(({ message }) => message).join(' '), /unavailable/);
     } else {
       assert.ok(result.totalDamage > 0);
       assert.deepEqual(result.warnings, []);
@@ -137,5 +137,5 @@ test('GW2 declarative policy enforces active weapons and skill weapon strength',
 
   assertFlooredDamageMultiplier(greatsword.strikeDamage, sword.strikeDamage, 1.1);
   assert.equal(unavailable.totalDamage, 0);
-  assert.match(unavailable.warnings.join(' '), /unavailable/);
+  assert.match(unavailable.warnings.map(({ message }) => message).join(' '), /unavailable/);
 });

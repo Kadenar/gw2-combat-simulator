@@ -65,7 +65,7 @@ for (const [parentId, childId] of [
     ]) {
       const rejected = simulate('Core', rotation);
       assert.equal(rejected.steps.at(-1).invalid, true);
-      assert.match(rejected.warnings.at(-1), /requires an active/);
+      assert.match(rejected.warnings.at(-1).message, /requires an active/);
     }
   });
 }

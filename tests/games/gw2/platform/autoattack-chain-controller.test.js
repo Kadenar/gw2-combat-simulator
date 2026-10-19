@@ -200,7 +200,7 @@ test('native professions automatically gate and advance autoattack chains', () =
   const afterSecond = simulateGw2({ profession, rotation: ['Root A', 'Second A'] });
   const completed = simulateGw2({ profession, rotation: ['Root A', 'Second A', 'Third A'] });
 
-  assert.match(outOfOrder.warnings[0], /cast Root A first/);
+  assert.match(outOfOrder.warnings[0].message, /cast Root A first/);
   assert.deepEqual(chainState(afterRoot), { 1: 2 });
   assert.deepEqual(chainState(afterSecond), { 1: 3 });
   assert.deepEqual(chainState(completed), {});
@@ -278,7 +278,7 @@ test('overrides are evaluated per pending root', () => {
 
   assert.deepEqual(preserved.warnings, []);
   assert.deepEqual(chainState(preserved), { 1: 3 });
-  assert.match(reset.warnings[0], /cast Root B first/);
+  assert.match(reset.warnings[0].message, /cast Root B first/);
   assert.deepEqual(chainState(reset), {});
 });
 

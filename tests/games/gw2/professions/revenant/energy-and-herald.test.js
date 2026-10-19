@@ -275,20 +275,20 @@ test('energy accumulates fractionally with elapsed time and skills pay their exp
   assert.equal(result.planningState.profession.energy.value, 20 + result.planningState.atSeconds * 5);
   const denied = simulate('Core', ['Jade Winds'], { initialEnergy: 34 });
 
-  assert.match(denied.warnings[0], /requires 35 energy/);
+  assert.match(denied.warnings[0].message, /requires 35 energy/);
 
   const utilityDenied = simulate('Core', ['Phase Traversal'], {
     initialEnergy: 29
   });
 
-  assert.match(utilityDenied.warnings[0], /requires 30 energy/);
+  assert.match(utilityDenied.warnings[0].message, /requires 30 energy/);
   const weaponDenied = simulate('Conduit', ['Chilling Isolation'], {
     initialEnergy: 4,
     selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
     startingLegend: LEGEND.ENTITY
   });
 
-  assert.match(weaponDenied.warnings[0], /requires 5 energy/);
+  assert.match(weaponDenied.warnings[0].message, /requires 5 energy/);
 
   // Store fractional accumulation even between action ticks; availability owns when it can be spent.
   for (const [durationMs, energy] of [
@@ -1311,7 +1311,7 @@ test('Call to Anguish arms Unyielding Impact in the rotation palette', () => {
 
   const unavailable = simulate('Core', ['Unyielding Impact'], config);
 
-  assert.match(unavailable.warnings[0], /cast Call to Anguish first/);
+  assert.match(unavailable.warnings[0].message, /cast Call to Anguish first/);
 
   const queuedForEnergy = simulate('Core', ['Call to Anguish', 'Unyielding Impact'], { ...config, initialEnergy: 30 });
 

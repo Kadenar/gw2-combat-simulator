@@ -632,7 +632,7 @@ test('Evoker queues early familiar inputs only when pending charges can make the
 
     if (initialEvokerCharges === 3) {
       assert.equal(familiar, undefined);
-      assert.match(result.warnings.join('\n'), /requires 6 charges/);
+      assert.match(result.warnings.map(({ message }) => message).join('\n'), /requires 6 charges/);
     } else {
       assert.deepEqual(result.warnings, []);
 
@@ -747,7 +747,7 @@ test('Specialized Elements forces and locks the selected attunement', () => {
     false
   );
   assert.equal(
-    result.warnings.some((warning) =>
+    result.warnings.some(({ message: warning }) =>
       String(warning).includes('attunement swapping is disabled by Specialized Elements')
     ),
     true

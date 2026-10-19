@@ -37,7 +37,7 @@ test('Berserk entry spends once, changes the cap, and expiry restores the Core c
   assert.equal(expired.planningState.profession.adrenaline.value, 10);
   const unavailable = run(['Decapitate']);
   assert.equal(unavailable.steps[0].invalid, true);
-  assert.match(unavailable.warnings[0], /Primal bursts require berserk/);
+  assert.match(unavailable.warnings[0].message, /Primal bursts require berserk/);
 });
 
 test('Rage extension survives the original expiry and cannot revive mode after expiration', () => {
@@ -55,7 +55,7 @@ test('Rage extension survives the original expiry and cannot revive mode after e
   const reentry = run(['Berserk', 'Berserk']);
   assert.equal(observedRuntime(reentry).time, 20);
   assert.equal(reentry.steps[1].invalid, true);
-  assert.match(reentry.warnings[0], /requires 30 adrenaline/);
+  assert.match(reentry.warnings[0].message, /requires 30 adrenaline/);
 });
 
 test('mode expiration during a Rage cast restores the cap before independent completion traits', () => {

@@ -53,7 +53,7 @@ test('a recharge reset cannot re-cast Counterblow while its Tactical Blow window
       [ID.TACTICAL_BLOW, false]
     ]
   );
-  assert.match(result.warnings.at(-1), /replaced by its active follow-up/);
+  assert.match(result.warnings.at(-1).message, /replaced by its active follow-up/);
 });
 
 test('Mace damage and accompanying conditions or control resolve together', () => {

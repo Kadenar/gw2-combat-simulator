@@ -3,6 +3,7 @@ import { projectInputTrace } from '#gw2/platform/results/input-trace.js';
 import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { buildCombatResult, buildSimulationScore } from '#gw2/platform/results/combat-result.js';
+import { locateDiagnostics } from '#gw2/platform/results/diagnostics.js';
 import { planningState } from '#gw2/platform/results/planning-state.js';
 import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
 import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
@@ -97,8 +98,11 @@ export function projectRuntimeResult<T extends object>(
     runtime.engagement.startTime ?? 0,
     runtime.rotationEndTime
   );
+  const combat = buildCombatResult(runtime, score, executed);
   const result = {
-    ...buildCombatResult(runtime, score, executed),
+    ...combat,
+    // Delayed notices name their activation; reported steps map it to the authored input once, for every consumer.
+    warnings: locateDiagnostics(combat.warnings, steps),
     output: 'detailed' as const,
     // Output consumers may edit their observations without changing accepted command history.
     steps: structuredClone(steps),

@@ -383,7 +383,7 @@ test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
     ['Enter Radiant Forge', 'Dazzling Hammer', 'Shining Spin', 'Glaring Burst']
   );
 
-  assert.match(unavailable.warnings.join(' '), /Dazzling Hammer is unavailable/);
+  assert.match(unavailable.warnings.map(({ message }) => message).join(' '), /Dazzling Hammer is unavailable/);
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.radiantForge, true);
   assert.equal(result.planningState.profession.radiantWeapon, 'hammer');
@@ -796,7 +796,7 @@ test('a committed radiant weapon cancel arms and consumes its flip while an unco
   assert.ok(committed.procSteps.some((step) => step.skill === 'Empowered Armaments'));
   assert.ok(committed.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Shining Spin'));
   const cancelled = run(0);
-  assert.ok(cancelled.warnings.some((warning) => warning.includes('Shining Spin')));
+  assert.ok(cancelled.warnings.some(({ message: warning }) => warning.includes('Shining Spin')));
   assert.equal(cancelled.planningState.profession.radiantWeaponsUsed.hammer, undefined);
 });
 

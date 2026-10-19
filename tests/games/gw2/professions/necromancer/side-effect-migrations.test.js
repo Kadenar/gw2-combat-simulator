@@ -212,7 +212,7 @@ test('Scourge declared costs retain vitality scaling and interrupted acceptance 
       } else {
         assert.equal(lifeForcePercent(core.lifeForce), 0);
         assert.equal(result.warnings.length, 1);
-        assert.match(result.warnings[0], /lifeForce/);
+        assert.match(result.warnings[0].message, /lifeForce/);
       }
     }
   }
