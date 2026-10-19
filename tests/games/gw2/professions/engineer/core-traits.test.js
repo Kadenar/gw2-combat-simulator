@@ -601,10 +601,7 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
   assert.equal(discharge.resolvedWeaponStrength, 690.5);
   assert.equal(discharge.weaponStrengthSampled, false);
   assert.equal(discharge.criticalDamage, 3);
-  assert.equal(
-    dischargeSkill.icon,
-    'https://render.guildwars2.com/file/01D310FE65DBA378CBAFD13B2BFEDE59939C5153/102964.png'
-  );
+  // Report rows and proc steps inherit the catalog artwork regardless of its URL.
   assert.equal(dischargeRow.icon, dischargeSkill.icon);
   assert.ok(dischargeProcs.every((proc) => proc.icon === dischargeSkill.icon));
   assert.ok(

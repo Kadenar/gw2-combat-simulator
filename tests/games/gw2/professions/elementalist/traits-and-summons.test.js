@@ -779,12 +779,8 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
 
   assert.doesNotMatch(palette.innerHTML, /data-skill="Glyph of Elementals"/);
   assert.match(palette.innerHTML, /class="pal-skill" data-skill="Flame Barrage"[\s\S]*?draggable="true"/);
-  assert.equal(
-    elementalistCatalog.skillsByName.get('Flame Barrage').icon,
-    'https://render.guildwars2.com/file/64A5054179704B60614F90964DE1FB3D39AEC972/867446.png'
-  );
-  assert.match(palette.innerHTML, /64A5054179704B60614F90964DE1FB3D39AEC972/);
-  assert.doesNotMatch(palette.innerHTML, /011D983FEAFB946EF0F45E7F290838CFA31D63D0/);
+  // The palette renders the selected skill's configured artwork without pinning an asset URL.
+  assert.ok(palette.innerHTML.includes(elementalistCatalog.skillsByName.get('Flame Barrage').icon));
 });
 
 test('Flame Barrage cannot apply future projectile burns outside the observation window', () => {

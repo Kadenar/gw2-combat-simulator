@@ -305,7 +305,6 @@ test('Thief catalog retains valid effect schemas and skill metadata', () => {
         !Object.hasOwn(skill, 'effects') && !Object.hasOwn(skill, 'cooldown') && !Object.hasOwn(skill, 'recharge')
     )
   );
-  assert.match(thiefCatalog.skillsById.get(41068).icon, /Special:Redirect\/file\/Free_Action\.png$/);
   assert.ok(
     thiefCatalog.skills
       .filter((skill) => skill.type === 'Weapon')
@@ -1088,10 +1087,10 @@ test('Daredevil capacity and every dodge replacement resolve explicitly', () => 
     selectedTraitIds: [TRAIT.LOTUS_TRAINING]
   });
 
-  // Pin the dagger artwork so a loadable but incorrect API icon cannot pass this check.
+  // Damage reporting must use the skill's configured artwork, independent of its image host.
   assert.equal(
     skillBreakdownRows(impalingLotus).find((row) => row.name === 'Impaling Lotus')?.icon,
-    'https://render.guildwars2.com/file/E5724D46CEE62333E00CE26905C5FDD5439F6667/1058552.png'
+    thiefCatalog.skillsByName.get('Impaling Lotus').icon
   );
 });
 

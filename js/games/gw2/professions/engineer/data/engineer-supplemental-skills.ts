@@ -952,7 +952,8 @@ const records: EngineerSupplementalSkill[] = [
     id: 45119,
     name: 'Refraction Cutter Blade',
     description: 'Launch a blade of light that bleeds your target.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Refraction_Cutter_Blade.png',
+    // Blade packets share Refraction Cutter's approved CDN artwork while keeping their reporting identity.
+    icon: 'https://render.guildwars2.com/file/C571A742D055DCA81F6FD70D38C0409DDC9ABEE5/1770408.png',
     type: 'Weapon',
     slot: 'Action',
     specialization: 'Holosmith',

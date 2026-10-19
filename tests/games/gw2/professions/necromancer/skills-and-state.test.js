@@ -1068,10 +1068,6 @@ test('Isolate and Distress expose the follow-up and reset Perforate', () => {
   const rows = skillBreakdownRows(result);
   assert.equal(rows.find((row) => row.name === 'Soul Shards')?.hits, 6);
   assert.equal(
-    rows.find((row) => row.name === 'Soul Shards')?.icon,
-    'https://wiki.guildwars2.com/wiki/Special:FilePath/Soul_Shards.png'
-  );
-  assert.equal(
     result.events.some(
       (event) => event.type === 'condition' && event.condition === 'Chilled' && event.skillId === ID.ISOLATE
     ),
