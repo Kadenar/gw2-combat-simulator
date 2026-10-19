@@ -8,6 +8,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.VILE_BLAST]: {
     castTimeMs: 600,
+    // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
+    interruptCommitMs: 560,
+    retainsCastLockoutAfterInterrupt: true,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {

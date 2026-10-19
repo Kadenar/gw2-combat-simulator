@@ -22,7 +22,9 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.PUTRID_CURSE]: {
     castTimeMs: 600,
-    interruptCommitMs: 520,
+    // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
+    interruptCommitMs: 480,
+    retainsCastLockoutAfterInterrupt: true,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects(
       { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
