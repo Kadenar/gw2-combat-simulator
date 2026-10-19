@@ -1,4 +1,4 @@
-import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { traitSkillTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   fromProfile,
@@ -41,7 +41,14 @@ export const rangerBeastmasteryTooltips = {
   [TRAIT.NATURAL_HEALING]: outsideScopeTooltip,
   [TRAIT.RESOUNDING_TIMBRE]: traitTooltip(
     'Completing a command copies your current boons to the active pet. In Beastmode, commands extend your boons instead.',
-    [['duration', 'Beastmode boon extension', tooltipSeconds]]
+    (context) => [
+      // Show the PvE copy limit alongside the merged duration so both command outcomes are explained.
+      { name: 'Maximum Boon Stacks Copied', detail: '25' },
+      {
+        name: 'Beastmode boon extension',
+        detail: tooltipSeconds(balanceNumberFromContext(context, TRAIT.RESOUNDING_TIMBRE, 'duration'))
+      }
+    ]
   ),
   [TRAIT.WILTING_STRIKE]: traitTooltip('The first hit of your merged Beast Ability weakens the target.'),
   [TRAIT.BESTIAL_RAGE]: traitTooltip('Control effects while playing Soulbeast grant might and fury.', [

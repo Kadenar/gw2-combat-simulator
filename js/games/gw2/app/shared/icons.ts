@@ -40,6 +40,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Skill recharge': 'https://render.guildwars2.com/file/AAB7C5387A08367C2F023F19FEE70E1556AD4375/1770202.png',
   // Pulse timing uses the game's Interval fact glyph.
   Interval: 'https://render.guildwars2.com/file/B75E91EB22E0DFCC1D08030204055946506D56F6/1770206.png',
+  // Nature's Vengeance uses its in-game clock glyph for the simulator's repeat-slam delay.
+  'Delay after final shake': 'https://render.guildwars2.com/file/B75E91EB22E0DFCC1D08030204055946506D56F6/1770206.png',
   'Attribute increase': 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
   // Warrior adrenaline facts use the game's Number glyph, shared with attribute increases.
   Adrenaline: 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
@@ -87,8 +89,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   "Reaver's Curse": 'https://render.guildwars2.com/file/00B56F050D44B6690427AFF77901E3074FF221AD/2491534.png',
   // Razorclaw's party buff shares its originating skill's icon in both base and enhanced tooltips.
   "Razorclaw's Rage": 'https://render.guildwars2.com/file/2449F064B1D3427FF311D3B4C101009C52250A0C/1770606.png',
-  // Both personal and pet Lesser Sic Em duration facts use the command's icon.
-  'Lesser Sic Em': 'https://render.guildwars2.com/file/0D6B235E679346723414607E61DE052576097545/104025.png',
+  // Match the command's canonical name so both pet and merged effect facts use its icon.
+  'Lesser "Sic \'Em!"': 'https://render.guildwars2.com/file/0D6B235E679346723414607E61DE052576097545/104025.png',
   // These temporary Ranger buffs use their granting traits' icons.
   'Quick Draw': 'https://render.guildwars2.com/file/CBCB2EC86BC85CC02DA7AAB25CBFB226B8956D1E/1012648.png',
   'Light on your Feet': 'https://render.guildwars2.com/file/4D37A694088038DA9266F6107C9604AD9CBC2752/1012649.png',
@@ -119,6 +121,10 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   Defiance: 'https://assets.gw2dat.com/1938788.png',
   Blind: 'https://render.guildwars2.com/file/09770136BB76FD0DBE1CC4267DEED54774CB20F6/102837.png',
   Ammunition: 'https://render.guildwars2.com/file/B4490FB81AA1E7C06F1B22056AE09A0F54CBE2C4/1770201.png',
+  // Boon-copy limits use the game's stack glyph; added boon duration uses the standard book glyph.
+  'Maximum Boon Stacks Copied':
+    'https://render.guildwars2.com/file/B4490FB81AA1E7C06F1B22056AE09A0F54CBE2C4/1770201.png',
+  'Boon extension': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   Combo: 'https://render.guildwars2.com/file/A513F3653D33FBA4220D2D307799F8A327A36A3B/156656.png',
   // Resource amounts and stack limits share the book icon; energy costs keep their own glyph.
   // Trigger chances use the book glyph; critical-strike chance bonuses retain the precision icon.
@@ -182,7 +188,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
 
 const tooltipIconNames = Object.keys(MODIFIER_EFFECT_ICONS)
   .sort((a, b) => b.length - a.length)
-  .map((name) => ({ icon: MODIFIER_EFFECT_ICONS[name], pattern: new RegExp(`\\b${name.toLowerCase()}\\b`) }));
+  // Names ending in punctuation must still match before a qualifier or the end of the fact label.
+  .map((name) => ({ icon: MODIFIER_EFFECT_ICONS[name], pattern: new RegExp(`\\b${name.toLowerCase()}(?!\\w)`) }));
 
 /** Qualifiers change a fact's wording, not its icon; conversions use the destination attribute. */
 export function tooltipFactIcon(name: string): string | undefined {
