@@ -172,7 +172,6 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   FORM_OF_THE_DERVISH_ATTACK: 76818, // Form of the Dervish (Attack)
   TWIN_MOON_SWEEP_ID_77001: 77001, // Twin Moon Sweep
   FORM_OF_THE_DERVISH_ATTACK_ELITE: 77116, // Form of the Dervish (Attack - Elite)
-  DWARVEN_RETRIBUTION: 77920, // Dwarven Retribution
   LESSER_ENCHANTED_DAGGERS: 78971 // Lesser Enchanted Daggers
 });
 

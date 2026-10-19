@@ -1,5 +1,6 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 /** Owns Conduit Cosmic Wisdom form and attack skills; Demon button aliases resolve to Core skills. */
+// Incoming-hit retaliation is outside combat scope and has no declared attack in this catalog.
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
@@ -55,20 +56,6 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Part
         kind: 'cosmic-wisdom',
         duration: 7,
         stacks: 1,
-        actorType: ACTOR.PLAYER
-      }
-    ]
-  },
-  [ID.DWARVEN_RETRIBUTION]: {
-    castTimeMs: 0,
-    cooldown: 0,
-    energyCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.1,
-        hits: 1,
-        name: 'Dwarven Retribution',
         actorType: ACTOR.PLAYER
       }
     ]

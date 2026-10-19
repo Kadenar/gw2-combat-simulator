@@ -1,4 +1,5 @@
 // Verified skill icons use ArenaNet render URLs directly so they share the simulator's CDN fallback handling.
+// Documented counterpart IDs supply artwork without changing the simulator's authored skill identities.
 /**
  * API-omitted skill identity and display metadata.
  *
@@ -11,7 +12,7 @@ const records: readonly Skill[] = [
     id: 26650,
     name: 'Legendary Dwarf Stance',
     description: 'Invoke the power of the legendary dwarf King Jalis Ironhammer.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Legendary_Dwarf_Stance.png',
+    icon: 'https://render.guildwars2.com/file/03C66FA8A89697A0C4D309484172080E3A1141EF/961410.png',
     type: 'Profession',
     slot: 'Profession_1',
     weapon: '',
@@ -37,7 +38,7 @@ const records: readonly Skill[] = [
     id: 27659,
     name: 'Legendary Assassin Stance',
     description: 'Invoke the power of the legendary assassin Shiro Tagachi.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Legendary_Assassin_Stance.png',
+    icon: 'https://render.guildwars2.com/file/67CDD35F6BC3072E0837715A5E0A90646529BAA2/1030005.png',
     type: 'Profession',
     slot: 'Profession_1',
     weapon: '',
@@ -50,7 +51,7 @@ const records: readonly Skill[] = [
     id: 28141,
     name: 'Legendary Centaur Stance',
     description: 'Invoke the power of the legendary centaur Ventari.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Legendary_Centaur_Stance.png',
+    icon: 'https://render.guildwars2.com/file/6CFF31B50AA00CAF3D35A02562964802B55AD292/1024105.png',
     type: 'Profession',
     slot: 'Profession_1',
     weapon: '',
@@ -63,7 +64,7 @@ const records: readonly Skill[] = [
     id: 28376,
     name: 'Legendary Demon Stance',
     description: 'Invoke the power of the legendary demon Mallyx the Unyielding.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Legendary_Demon_Stance.png',
+    icon: 'https://render.guildwars2.com/file/1A1407F7D34E5ED41B59A25F39EBF728CC926423/961413.png',
     type: 'Profession',
     slot: 'Profession_1',
     weapon: '',
@@ -185,7 +186,7 @@ const records: readonly Skill[] = [
     id: 56661,
     name: 'Soothing Stone',
     description: 'Remove conditions and heal yourself. Gain resolution.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Soothing_Stone.png',
+    icon: 'https://render.guildwars2.com/file/6B0331B3BBEB4603BA7780911C950401E498B294/961448.png',
     type: 'Heal',
     slot: 'Heal',
     weapon: '',
@@ -199,7 +200,7 @@ const records: readonly Skill[] = [
     name: 'Forced Engagement',
     description:
       'Launch a chain at your target. When the chain connects with a foe, it slows and taunts them. You take less damage from taunted foes.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Forced_Engagement.png',
+    icon: 'https://render.guildwars2.com/file/B244F19EA9F09D96D175BC0C2BC402A23D0EEFA5/961439.png',
     type: 'Utility',
     slot: 'Utility',
     weapon: '',
@@ -212,7 +213,7 @@ const records: readonly Skill[] = [
     id: 56752,
     name: 'Vengeful Hammers',
     description: 'Invoke hammers to circle around you, damaging foes.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vengeful_Hammers.png',
+    icon: 'https://render.guildwars2.com/file/04E220E8A8B4BD682B6A7D780D98B80FEDF5B410/961436.png',
     type: 'Utility',
     slot: 'Utility',
     weapon: '',
@@ -226,7 +227,7 @@ const records: readonly Skill[] = [
     name: 'Rite of the Great Dwarf',
     description:
       'Channel the power of the Rite of the Great Dwarf to turn yourself and nearby allies to stone to reduce incoming damage.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Rite_of_the_Great_Dwarf.png',
+    icon: 'https://render.guildwars2.com/file/D8AEB219F1A057F3F4E47E5E54A12BBABFC8474F/961437.png',
     type: 'Elite',
     slot: 'Elite',
     weapon: '',
@@ -240,7 +241,7 @@ const records: readonly Skill[] = [
     name: 'Inspiring Reinforcement',
     description:
       "Create a stone road that damages and weakens foes as it's created. Once it's created it will pulse, granting stability to allies.",
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Inspiring_Reinforcement.png',
+    icon: 'https://render.guildwars2.com/file/6405B93907AE1B1EEBB752AE52BE4280246ED3C4/961457.png',
     type: 'Utility',
     slot: 'Utility',
     weapon: '',
@@ -305,7 +306,7 @@ const records: readonly Skill[] = [
     id: 62713,
     name: "Phantom's Onslaught",
     description: 'Rush towards your opponent, cleaving the area.',
-    icon: "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Phantom's_Onslaught.png",
+    icon: 'https://render.guildwars2.com/file/59BA7946071713ECA0490726710D29E26FEB62FA/2491617.png',
     type: 'Proc',
     slot: '',
     weapon: 'Greatsword',
@@ -415,19 +416,6 @@ const records: readonly Skill[] = [
     description:
       'When you use a Legendary Entity skill, a magical scythe appears and spins around you, dealing damage to enemies.',
     icon: 'https://render.guildwars2.com/file/0CB866CA45E05F72B3B9CEDED5CAA1563FBD6B4A/3680046.png',
-    type: 'Action',
-    slot: 'Action',
-    weapon: '',
-    specialization: 'Conduit',
-    categories: ['Skill'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 77920,
-    name: 'Dwarven Retribution',
-    description: 'Deal damage to nearby enemies when struck.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Dwarven_Retribution.png',
     type: 'Action',
     slot: 'Action',
     weapon: '',

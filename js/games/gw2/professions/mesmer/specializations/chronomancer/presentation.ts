@@ -114,7 +114,8 @@ export const chronomancerUi: MesmerUiSlice = Object.freeze({
         at: event.at,
         color: '#d6b46b',
         badge: 'AUTO',
-        icon: 'https://wiki.guildwars2.com/images/d/d7/Continuum_Shift.png',
+        // Automatic expiry uses the same CDN artwork as the manual Continuum Shift action.
+        icon: 'https://render.guildwars2.com/file/4BD3BEF1DE31476B3E40002708049EA1026F1F0B/1012895.png',
         title: (time: string) =>
           ['Continuum Shift', `Continuum Split ended automatically at ${time}`, 'Cooldown state restored'].join('\n')
       })),

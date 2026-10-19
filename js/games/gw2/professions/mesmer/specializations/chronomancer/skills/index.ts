@@ -298,7 +298,8 @@ export const MESMER_CHRONOMANCER_EXTRA_SKILLS: readonly MesmerSkill[] = Object.f
     // The return face occupies the same profession control as Continuum Split.
     inputControl: 'profession-5',
     description: 'End Continuum Split early and restore the cooldown state captured when the split began.',
-    icon: 'https://wiki.guildwars2.com/images/d/d7/Continuum_Shift.png',
+    // Use official skill 30747's CDN artwork while retaining the simulator's synthetic action identity.
+    icon: 'https://render.guildwars2.com/file/4BD3BEF1DE31476B3E40002708049EA1026F1F0B/1012895.png',
     type: 'Action',
     slot: 'Action',
     castTimeMs: 0,

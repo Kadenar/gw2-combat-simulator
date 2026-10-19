@@ -19,7 +19,8 @@ export const ACTION_ICONS: Readonly<Record<string, string>> = {
   'Pick Up Mirage Mirror': 'https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png',
   'Mirage Mirror': 'https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png',
   'Swap Weapons': 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
-  'Continuum Shift': 'https://wiki.guildwars2.com/images/d/d7/Continuum_Shift.png'
+  // The synthetic action shares official skill 30747's CDN artwork.
+  'Continuum Shift': 'https://render.guildwars2.com/file/4BD3BEF1DE31476B3E40002708049EA1026F1F0B/1012895.png'
 };
 
 export const RESULT_PROC_NAMES: Readonly<Record<string, string>> = {
