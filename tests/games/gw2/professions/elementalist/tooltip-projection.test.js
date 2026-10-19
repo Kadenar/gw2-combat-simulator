@@ -13,7 +13,10 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import { AURA } from '#gw2/platform/constants.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -44,6 +47,51 @@ test('Depth of Elements tooltip shares the selected Catalyst energy capacity', (
     assert.equal(result.planningState.profession.catalystEnergy.maximum, maximum);
     assert.equal(result.planningState.profession.catalystEnergy.value, maximum);
   }
+});
+
+// One aura declaration drives the granted aura, its tooltip fact, and the transmute that consumes it.
+test('skill aura grants share one declaration between combat and tooltip facts', () => {
+  let declared;
+  const run = (rotation) => {
+    const result = runElementalist(
+      [{ type: 'cast', skillId: ID.FIRE_SHIELD }, { type: 'wait', durationMs: 1000 }, ...rotation],
+      {
+        specialization: 'Core',
+        startAttunement: 'Fire',
+        primaryWeapon: 'Scepter',
+        secondaryWeapon: 'Focus',
+        selectedTraitIds: []
+      },
+      {
+        catalog(catalog) {
+          const edited = withSkill(catalog, ID.FIRE_SHIELD, { aura: { kind: AURA.FIRE, duration: 7 } });
+          declared = edited.skillsById.get(ID.FIRE_SHIELD);
+          return edited;
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    return result;
+  };
+
+  const granted = run([]);
+  assert.deepEqual(
+    granted.events
+      .filter((event) => event.type === 'elementalist.aura')
+      .map((event) => [event.sourceId, event.aura, event.duration]),
+    [[ID.FIRE_SHIELD, AURA.FIRE, 7]]
+  );
+  assert.deepEqual(
+    observedRuntime(granted).profession.core.activeAuras.map(({ type, expiresAt }) => [type, expiresAt]),
+    [[AURA.FIRE, 7]]
+  );
+  assert.deepEqual(
+    observedRuntime(run([{ type: 'cast', skillId: ID.TRANSMUTE_FIRE }])).profession.core.activeAuras,
+    []
+  );
+  const model = describeSimulationSkill(preview().balanceContextFor('current'), declared, elementalistTooltips);
+  assert.ok(!model.incomplete);
+  assert.equal(model.facts.find(({ name }) => name === AURA.FIRE).detail, '7s');
 });
 
 /** Keep preview selection explicit so every edited tooltip can be compared with live tuning and combat. */

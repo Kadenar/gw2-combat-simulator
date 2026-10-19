@@ -7,17 +7,12 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
  * Weapon- and attunement-facing cast state for Core Elementalist.
  *
  * Slot-skill selection across attunement variants, weapon-skill attunement gating,
- * autoattack chain carryover across attunement swaps, and the Aerial Agility flip
- * window.
+ * and autoattack chain carryover across attunement swaps.
  */
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import {
-  resetAutoattackChains,
-  type AutoattackChainTransition,
-  type AutoattackChainTransitionResult
-} from '#gw2/platform/execution/autoattack-chains.js';
+import type { AutoattackChainTransitionResult } from '#gw2/platform/execution/autoattack-chains.js';
 import { denySkillCast as unavailable } from '#gw2/platform/execution/availability.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type {
@@ -29,8 +24,10 @@ import type {
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
-/** How long an advanced Aerial Agility stage stays offered before its chain resets. */
-const AERIAL_AGILITY_FLIP_WINDOW_SECONDS = 5;
+/** Slot-three flips reuse chain sequencing but cannot earn slot-one attunement carryover. */
+function isAttunementCarryoverChain(root: number): boolean {
+  return root !== ID.AERIAL_AGILITY;
+}
 
 function ready(): AvailabilityResult {
   return { ready: true };
@@ -101,9 +98,7 @@ export function progressedAutoattackCarryover(
   for (const [rawRoot, rawExpected] of Object.entries(state.autoattackChains)) {
     const root = Number(rawRoot);
 
-    // Aerial Agility is a slot-three flip and must not inherit slot-one
-    // autoattack carryover into a different attunement.
-    if (root === ID.AERIAL_AGILITY) continue;
+    if (!isAttunementCarryoverChain(root)) continue;
 
     if (rawExpected === root) continue;
 
@@ -126,7 +121,7 @@ export function inFlightAutoattackCarryover(
     const position = context.helpers.autoattackChainPositions.get(Number(skillId));
     const skill = context.helpers.skillsById.get(Number(skillId));
 
-    if (position && position.root !== ID.AERIAL_AGILITY && skill?.attunement === attunement) {
+    if (position && isAttunementCarryoverChain(position.root) && skill?.attunement === attunement) {
       return { root: position.root, attunement };
     }
   }
@@ -134,44 +129,10 @@ export function inFlightAutoattackCarryover(
   return null;
 }
 
-/** Every new stage replaces the old deadline; expiry checks the selected stage. */
-const elementalistWeaponStateTasks = {
-  'elementalist.aerial-agility-expire'(context: ElementalistRuntime, data: unknown): void {
-    const state = professionCoreState(context);
-
-    if (state.autoattackChains[ID.AERIAL_AGILITY] !== Number(data)) return;
-
-    // Carryover producers exclude this slot-three flip, so expiry only resets its chain.
-    resetAutoattackChains(context, [ID.AERIAL_AGILITY]);
-  }
-};
-
-/** Scheduled weapon-state work and autoattack chain transitions share one owner. */
+/** Attunement carryover follows the shared controller's chain transitions. */
 export const elementalistWeaponStateLifecycle = {
-  tasks: elementalistWeaponStateTasks,
   onAutoattackChainTransition: observeElementalistAutoattackTransition
 } satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;
-function updateAerialAgilityFlip(
-  context: ElementalistRuntime,
-  cast: RuntimeCast<ElementalistSkill>,
-  change: AutoattackChainTransition
-): void {
-  context.cancelOwner({ id: 'elementalist.aerial-agility', generation: 0 });
-
-  if (Number(cast.skill.id) === ID.AERIAL_AGILITY_CHAIN) {
-    const root = context.helpers.skillsById.get(ID.AERIAL_AGILITY);
-
-    if (root) context.cooldownController.startRecharge(root, context.time);
-  }
-
-  if (change.decision === 'advance' && change.nextSkillId != null)
-    context.schedule(
-      'elementalist.aerial-agility-expire',
-      context.time + AERIAL_AGILITY_FLIP_WINDOW_SECONDS,
-      change.nextSkillId,
-      { id: 'elementalist.aerial-agility', generation: 0 }
-    );
-}
 
 /** Keeps Elementalist's attunement carryover metadata synchronized with shared chain transition results. */
 function observeElementalistAutoattackTransition(
@@ -187,16 +148,7 @@ function observeElementalistAutoattackTransition(
     state.pendingAutoattackCarryover = null;
   }
 
-  // Aerial Agility rearms its own flip timeout on every advance or completion.
   const chainChange = result.transitions.find((change) => change.chainRootId === chainRoot);
-
-  if (
-    chainRoot === ID.AERIAL_AGILITY &&
-    chainChange &&
-    (chainChange.decision === 'advance' || chainChange.decision === 'complete')
-  ) {
-    updateAerialAgilityFlip(context, cast, chainChange);
-  }
 
   // Promote a pending capture only while its chain belongs to a now-inactive
   // attunement, and drop carryover once the chain completes or moves to another root.

@@ -38,6 +38,7 @@ import { type AvailabilityResult, denySkillCast } from '#gw2/platform/execution/
 import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 /**
  * Pistol weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -53,6 +54,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Frigid Flurry fires five shots at these offsets, each an independent Bleeding stack and Projectile finisher.
 const FRIGID_FLURRY_SHOT_OFFSETS_MS = [280, 440, 640, 800, 960];
+
+/** How long an advanced Aerial Agility stage stays offered before its chain resets. */
+const AERIAL_AGILITY_FLIP_WINDOW_SECONDS = 5;
 
 /**
  * Skill-id keyed fragments the Core module contributes to the pistol catalog.
@@ -765,9 +769,40 @@ export function elementalExplosionAvailability(
     : null;
 }
 
-/** Elemental Explosion's completion grants the current attunement's aura, then spends every stored bullet. */
+/** Pistol owns its flip deadlines and recharge, plus Elemental Explosion's aura and bullet consumption. */
 export const elementalistPistolLifecycle = {
+  onAutoattackChainTransition(context, cast, result) {
+    if (result.castChainRootId !== ID.AERIAL_AGILITY) return;
+
+    const change = result.transitions.find((transition) => transition.chainRootId === ID.AERIAL_AGILITY);
+
+    if (!change || (change.decision !== 'advance' && change.decision !== 'complete')) return;
+
+    // Replace the previous stage's deadline so it cannot expire a newer stage, even after a reset.
+    context.cancelOwner({ id: 'elementalist.aerial-agility', generation: 0 });
+
+    if (Number(cast.skill.id) === ID.AERIAL_AGILITY_CHAIN) {
+      const root = context.helpers.skillsById.get(ID.AERIAL_AGILITY);
+
+      if (root) context.cooldownController.startRecharge(root, context.time);
+    }
+
+    if (change.decision === 'advance' && change.nextSkillId != null)
+      context.schedule(
+        'elementalist.aerial-agility-expire',
+        context.time + AERIAL_AGILITY_FLIP_WINDOW_SECONDS,
+        change.nextSkillId,
+        { id: 'elementalist.aerial-agility', generation: 0 }
+      );
+  },
   tasks: {
+    'elementalist.aerial-agility-expire'(context, data) {
+      if (professionCoreState(context).autoattackChains[ID.AERIAL_AGILITY] !== Number(data)) return;
+
+      // This slot-three flip never carries across attunements; expiry resets only its own chain.
+      resetAutoattackChains(context, [ID.AERIAL_AGILITY]);
+    },
+    // Grant the current attunement's aura before consuming all four bullets.
     'elementalist.core.consume-elemental-explosion'(runtime, data) {
       const { cast } = data as SkillTaskData<ElementalistSkill>;
       const effect = requireEffect(

@@ -285,6 +285,42 @@ test('using the first Aerial Agility follow-up restarts its full cooldown', () =
   );
 });
 
+test('advancing Aerial Agility replaces the previous stage expiry', () => {
+  // Cross the old deadline while the dash is still offered, then let its replacement deadline expire.
+  for (const [wait, expected] of [
+    [3000, ID.AERIAL_AGILITY_DASH],
+    [5500, undefined]
+  ]) {
+    const result = runNative({
+      lines: [['Fire'], ['Air'], ['Arcane']],
+      rotation: ['Aerial Agility', 2000, 'Aerial Agility (chain)', wait],
+      startAttunement: 'Air',
+      weapons: ['Pistol', 'Dagger']
+    });
+
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.autoattackChains[ID.AERIAL_AGILITY], expected);
+    assert.ok(result.planningState.cooldowns[ID.AERIAL_AGILITY].remaining > 0);
+  }
+});
+
+test('Aerial Agility cannot gain attunement carryover before or after its cast completes', () => {
+  // Exercise both the in-flight and progressed capture paths without granting an off-attunement flip.
+  for (const swap of ['Fire Attunement', { type: 'cast', skillId: ID.FIRE_ATTUNEMENT, concurrentOffsetMs: 100 }]) {
+    const result = runNative({
+      lines: [['Fire'], ['Air'], ['Arcane']],
+      rotation: ['Aerial Agility', swap],
+      startAttunement: 'Air',
+      weapons: ['Pistol', 'Dagger']
+    });
+
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.primaryAttunement, 'Fire');
+    assert.equal(result.planningState.profession.autoattackCarryover, null);
+    assert.equal(result.planningState.availability[ID.AERIAL_AGILITY_CHAIN].ready, false);
+  }
+});
+
 test('rotation palette resolves equipped glyphs to the active attunement', () => {
   const build = elementalistAppAdapter.toApplicationBuild({
     ...elementalistProfession.createBuildDefaults(),

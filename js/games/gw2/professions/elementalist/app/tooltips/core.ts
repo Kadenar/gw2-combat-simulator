@@ -49,7 +49,7 @@ export const elementalistCoreTooltips = {
     ...(entity.resourceGain == null
       ? []
       : [{ name: 'Endurance gained', detail: tooltipDecimal(tooltipNumber(entity, 'resourceGain')) }]),
-    ...auraGrantFacts(entity as ElementalistSkill),
+    ...auraGrantFacts(entity),
     // Orb and conjure bonuses belong to their equipped state, including when created by a dual attack or pickup.
     ...(HAMMER_ORB_SKILLS[Number(entity.id)] === 'Fire' ||
     (String(entity.skillWeapon || entity.weapon) === WEAPON.HAMMER &&
