@@ -1,28 +1,19 @@
 import { RECIPIENT, ACTOR, WEAPON, BOON } from '#gw2/platform/constants.js';
 import { boonKey, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { impactEffects, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   guardianCastCompleted,
   type GuardianCastCompletion
 } from '#gw2/professions/guardian/core/mechanics/trigger-points.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
+import { writOfPersistenceEffects } from '#gw2/professions/guardian/core/traits/honor/writ-of-persistence.js';
 import { emitTraitSymbol } from '#gw2/professions/guardian/core/traits/symbols.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 /** Owns Empowering Might's live tuning and trait behavior. */
 export const empoweringMight = defineTrait({
@@ -73,54 +64,15 @@ export const protectorsRestoration = defineTrait({
   ]
 });
 
-/** Owns Writ of Persistence's live tuning and trait behavior. */
+/** Writ changes only symbol lifetimes; each symbol owns its fields, cadences, and repeated payloads. */
 export const writOfPersistence = defineTrait({
-  hooks: { modifyEffects: writOfPersistenceEffects },
-
   id: TRAIT.WRIT_OF_PERSISTENCE,
   name: 'Writ of Persistence',
-  balance: {
-    // Extended native symbol pulses and their self boons share this trait's tuning.
-    pulseInterval: 1,
-    boonDuration: 1,
-    boonStacks: 1,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: [
-      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
-        {
-          type: 'strike',
-          name: 'Smite',
-          metadata: { guardianSymbol: true },
-          // Writ adds four more spatial Smite packets during its two-second symbol extension.
-          ticks: [4240, 4760, 5240, 5760].map((atMs) => ({ atMs, coefficient: 0.2 })),
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'strike',
-          name: 'Symbol',
-          metadata: { guardianSymbol: true },
-          ticks: [5240, 6240].map((atMs) => ({ atMs, coefficient: 0.5 })),
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'boon',
-          name: boonKey(BOON.MIGHT),
-          boon: BOON.MIGHT,
-          stacks: 4,
-          duration: 5,
-          applications: 2,
-          atMs: 5240,
-          intervalMs: 1000,
-          actorType: ACTOR.PLAYER
-        }
-      ]),
-      {
-        type: 'buff',
-        name: 'symbol-duration-extension',
-        duration: 2,
-        actorType: ACTOR.PLAYER
-      }
-    ]
+  balance: { durationExtension: 2 },
+  // Field duration is extended by Core after its weapon-field selection; see guardian core hooks.
+  hooks: {
+    modifyEffects: (runtime: MechanicQueriesOf<GuardianRuntime>, cast, effects) =>
+      writOfPersistenceEffects(runtime, cast.skill, effects)
   }
 });
 
@@ -175,112 +127,8 @@ export const invigoratedBulwark = defineTrait({
   }
 });
 
-/**
- * Fields are selected before registration, so extensions never rewrite an already executed action. Core composes this
- * after its weapon-field selection, because a trait hook would run before Symbol of Ignition's field exists.
- */
-export function writOfPersistenceFields(
-  runtime: MechanicQueriesOf<GuardianRuntime>,
-  cast: RuntimeCast<GuardianSkill>,
-  fields: Skill['comboFields']
-): Skill['comboFields'] {
-  if (isGuardianSymbolSkill(cast.skill) && hasTrait(runtime, TRAIT.WRIT_OF_PERSISTENCE)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE);
-    const window = requireEffect(profile, 'buff', 'symbol-duration-extension');
-
-    if (window)
-      fields = fields?.map((field, index) =>
-        index === 0 ? { ...field, duration: Number(field.duration) + effectNumber(profile, window, 'duration') } : field
-      );
-  }
-
-  return fields;
-}
-
-/** Select authored trait extensions once and leave cancellation, impact delay, and boon sampling to the common runtime. */
-function writOfPersistenceEffects(
-  runtime: MechanicQueriesOf<GuardianRuntime>,
-  cast: RuntimeCast<GuardianSkill>,
-  effects: readonly SkillEffect[]
-): readonly SkillEffect[] {
-  const extra: SkillEffect[] = [];
-  const skill = cast.skill;
-  const field = skill.comboFields?.[0];
-
-  if (field && isGuardianSymbolSkill(skill) && hasTrait(runtime, TRAIT.WRIT_OF_PERSISTENCE)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE);
-
-    if (skill.id === ID.SYMBOL_OF_PUNISHMENT) {
-      for (const effect of profile.effects ?? []) {
-        if (effect.type === 'strike') extra.push({ ...effect, name: skill.name, weapon: WEAPON.SCEPTER });
-        else if (effect.type === 'boon') extra.push({ ...effect, audience: { recipients: RECIPIENT.PARTY } });
-      }
-    } else {
-      const window = requireEffect(profile, 'buff', 'symbol-duration-extension');
-      const extension = window ? effectNumber(profile, window, 'duration') : 0;
-      const interval = balanceProfileNumber(profile, 'pulseInterval');
-      const pulse = effects.filter((effect) => effect.type === 'strike' && strikeEffectTicks(effect).length > 1).at(-1);
-
-      if (pulse?.type === 'strike' && extension > 0 && interval > 0) {
-        const ticks = strikeEffectTicks(pulse);
-        const last = ticks.at(-1)!;
-        const fieldEnd =
-          (field.startAnchor === 'castEnd' ? cast.fullEnd : cast.start) +
-          Number(field.startMs ?? 0) / 1000 +
-          Number(field.duration);
-        const lastAt =
-          ticks.length >= 5
-            ? fieldEnd
-            : (pulse.timingAnchor === 'castStart' ? cast.start : cast.fullEnd) + last.atMs / 1000;
-        extra.push({
-          type: 'strike',
-          // Extended pulses retain the selected packet's semantic classification and tick overrides.
-          metadata: { ...pulse.metadata, ...last.metadata },
-          name: pulse.name ?? skill.name,
-          timingAnchor: 'castStart',
-          timingScale: 'fixed',
-          persistsAfterInterrupt: pulse.persistsAfterInterrupt,
-          ticks: Array.from({ length: Math.floor(extension / interval) }, (_, index) => ({
-            atMs: (lastAt - cast.start + (index + 1) * interval) * 1000,
-            coefficient: last.coefficient
-          }))
-        });
-      }
-    }
-  }
-
-  const selected = [...effects, ...extra];
-
-  // A symbol's self boon belongs to each pulse even when its hostile packet misses the target.
-  if (skill.id === ID.SYMBOL_OF_RESOLUTION || skill.id === ID.LUMINOUS_STAFF || skill.id === ID.SYMBOL_OF_FAITH)
-    for (const effect of extra) {
-      if (effect.type !== 'strike') continue;
-
-      for (const tick of strikeEffectTicks(effect))
-        selected.push({
-          type: 'boon',
-          boon: skill.id === ID.SYMBOL_OF_FAITH ? BOON.REGENERATION : BOON.RESOLUTION,
-          duration: balanceNumberFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE, 'boonDuration'),
-          stacks: balanceNumberFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE, 'boonStacks'),
-          atMs: tick.atMs,
-          timingAnchor: effect.timingAnchor,
-          timingScale: effect.timingScale,
-          persistsAfterInterrupt: effect.persistsAfterInterrupt
-        });
-    }
-
-  return selected;
-}
-
 /** A committed heal claims Protection's interval only when its selected symbol can emit. */
 function placeProtectorsSymbol(runtime: GuardianRuntime, { cast }: GuardianCastCompletion): void {
   const cause = { ...guardianCastCause(runtime, cast), type: 'action' as const };
-  emitTraitSymbol(runtime, TRAIT.PROTECTORS_RESTORATION, ID.LESSER_SYMBOL_OF_PROTECTION, cause, {
-    fieldDuration: (effect) => (effect.type === 'strike' ? (effect.ticks?.at(-1)?.atMs ?? 0) / 1000 : 0)
-  });
-}
-
-/** Field extensions use the authored skill tag; individual damage packets carry their own symbol eligibility. */
-function isGuardianSymbolSkill(skill: GuardianSkill | undefined): boolean {
-  return skill?.tags?.includes('symbol') === true;
+  emitTraitSymbol(runtime, TRAIT.PROTECTORS_RESTORATION, ID.LESSER_SYMBOL_OF_PROTECTION, cause);
 }

@@ -39,6 +39,9 @@ export function strikePacketOffsets(
   }
 
   const hits = Math.max(1, Math.trunc(Number(effect.hits || 1)));
+  const applications = Math.max(1, Math.trunc(Number(effect.applications || 1)));
+  const intervalMs = Number(effect.intervalMs || 0) * (effect.intervalTimingScale === 'fixed' ? 1 : castScale);
   const first = origin + (effect.atMs == null ? runtimeDurationMs - origin : Number(effect.atMs) * castScale);
-  return Array.from({ length: hits }, () => first);
+  // Repeated applications are spaced like the runtime schedules them; simultaneous hits share one offset.
+  return Array.from({ length: hits * applications }, (_, index) => first + Math.floor(index / hits) * intervalMs);
 }

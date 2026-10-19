@@ -87,8 +87,8 @@ export interface StrikeEffect extends SkillEffectBase {
   readonly hits?: number;
   /** Distinct packet timestamps and formulas. Mutually exclusive with aggregate fields. */
   readonly ticks?: readonly StrikeTick[];
-  /** Strike intervals are invalid; distinct timestamps belong in ticks. */
-  readonly intervalMs?: never;
+  /** Spacing of repeated applications; each application is one hit carrying the full coefficient. */
+  readonly intervalMs?: number;
   readonly coefficientModifiers?: DamageEvent['coefficientModifiers'];
   readonly weapon?: string;
   readonly weaponStrength?: number;

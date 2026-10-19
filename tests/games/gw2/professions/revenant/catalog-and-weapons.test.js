@@ -439,7 +439,7 @@ test('Renegade mechanics use authorable skills and trait balances', () => {
           {
             effectIndex: 0,
             applications: { from: 4, to: 5 },
-            intervalMs: { from: 1000, to: 750 }
+            intervalMs: { from: 1000, to: 760 }
           }
         ]
       },
@@ -467,7 +467,7 @@ test('Renegade mechanics use authorable skills and trait balances', () => {
       preview.skillsById.get(SKILL.ORDERS_FROM_ABOVE).effects[0].applications,
       preview.skillsById.get(SKILL.ORDERS_FROM_ABOVE).effects[0].intervalMs
     ],
-    [5, 750]
+    [5, 760]
   );
   assert.equal(preview.skillsById.get(soulcleaveProc.id).effects[1].flatStrikeBase, 400);
   assert.equal(preview.balanceProfilesById.get(kallasFervor.id).maximumStacks, 6);

@@ -18,7 +18,10 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         type: 'strike',
         metadata: { guardianSymbol: true },
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 320 + index * 1000, coefficient: 3.25 / 5 })),
+        coefficient: 3.25 / 5,
+        atMs: 320,
+        applications: 5,
+        intervalMs: 1000,
         persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'

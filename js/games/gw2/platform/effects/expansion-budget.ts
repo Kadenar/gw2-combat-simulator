@@ -18,7 +18,7 @@ export function effectApplicationCount(effect: SkillEffect, label: string): numb
     Array.isArray(effect.ticks)
       ? effect.ticks.length
       : effect.type === 'strike'
-        ? (effect.hits ?? 1)
+        ? (effect.hits ?? 1) * (effect.applications ?? 1)
         : (effect.applications ?? 1),
     Array.isArray(effect.ticks) ? `${label} ticks` : label
   );

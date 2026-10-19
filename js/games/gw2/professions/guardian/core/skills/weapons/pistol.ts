@@ -134,19 +134,22 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
       {
         type: 'strike',
         metadata: { guardianSymbol: true },
-        ticks: [280, 960, 1640, 2320, 3000].map((atMs) => ({
-          atMs,
-          coefficient: 0.4
-        }))
+        coefficient: 0.4,
+        // Ignition pulses on its own 680 ms cadence, independently of its four-second field.
+        atMs: 280,
+        applications: 5,
+        intervalMs: 680
       },
-      ...[280, 960, 1640, 2320, 3000].map((atMs) => ({
-        type: 'boon' as const,
+      {
+        type: 'boon',
         boon: BOON.MIGHT,
         stacks: 1,
         duration: 5,
         audience: { recipients: RECIPIENT.PARTY },
-        atMs
-      }))
+        atMs: 280,
+        applications: 5,
+        intervalMs: 680
+      }
     ])
   },
   [ID.THROUGH_THE_HEART]: {

@@ -37,9 +37,13 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         type: 'strike',
         metadata: { guardianSymbol: true },
-        coefficient: 2.5,
-        hits: 5,
-        atMs: 0
+        // The symbol pulses on placement and each second through its field, like the other four-second symbols.
+        coefficient: 2.5 / 5,
+        atMs: 0,
+        applications: 5,
+        intervalMs: 1000,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },

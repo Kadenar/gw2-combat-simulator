@@ -61,14 +61,16 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       // Allied symbol boons survive a missed hostile pulse.
-      ...[440, 1440, 2440, 3440].map((atMs) => ({
-        type: 'boon' as const,
+      {
+        type: 'boon',
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.RESOLUTION,
         duration: 1,
         stacks: 1,
-        atMs
-      })),
+        atMs: 440,
+        applications: 4,
+        intervalMs: 1000
+      },
       // The initial staff impact grants Protection independently of the symbol's Resolution pulses.
       {
         type: 'boon',
@@ -82,7 +84,10 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         metadata: { guardianSymbol: true },
         // EVTC records four Quickness packets at 440 ms and fixed one-second intervals.
-        ticks: [440, 1440, 2440, 3440].map((atMs) => ({ atMs, coefficient: 1.2 / 4 })),
+        coefficient: 1.2 / 4,
+        atMs: 440,
+        applications: 4,
+        intervalMs: 1000,
         name: 'Luminous Staff — Symbol Damage'
       }
     ])

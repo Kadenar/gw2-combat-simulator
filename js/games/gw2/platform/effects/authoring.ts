@@ -40,9 +40,12 @@ export const conditionTimeline = (
   ...withoutTimelineFields(options)
 });
 
-/** Expands canonical strike fields; an explicit empty derived timeline emits nothing instead of inventing a hit. */
+/**
+ * Expands canonical strike fields; an explicit empty derived timeline emits nothing instead of inventing a hit.
+ * Repeated applications land one full-coefficient hit per interval, like repeated condition applications.
+ */
 export function strikeEffectTicks(
-  effect: Pick<StrikeEffect, 'ticks' | 'hits' | 'coefficient' | 'atMs'>
+  effect: Pick<StrikeEffect, 'ticks' | 'hits' | 'coefficient' | 'atMs' | 'applications' | 'intervalMs'>
 ): readonly StrikeTick[] {
   if (effect.ticks) {
     for (const tick of effect.ticks) {
@@ -54,9 +57,14 @@ export function strikeEffectTicks(
   }
 
   const hits = Math.max(1, Math.trunc(effect.hits || 1));
+  const applications = Math.max(1, Math.trunc(effect.applications || 1));
+  const intervalMs = Math.max(0, effect.intervalMs || 0);
   const coefficient = requireBalanceNumber(effect.coefficient ?? 0, 'strike coefficient') / hits;
   const atMs = effect.atMs || 0;
-  return Array.from({ length: hits }, () => ({ atMs, coefficient }));
+  return Array.from({ length: hits * applications }, (_, index) => ({
+    atMs: atMs + Math.floor(index / hits) * intervalMs,
+    coefficient
+  }));
 }
 
 /** Expands canonical conditions with explicit payload values; catalog validation owns authored timeline validity. */

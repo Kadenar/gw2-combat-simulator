@@ -1,8 +1,11 @@
-import { ACTOR, COMBO_FIELD } from '#gw2/platform/constants.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import {
+  writOfPersistenceEffects,
+  writOfPersistenceFields
+} from '#gw2/professions/guardian/core/traits/honor/writ-of-persistence.js';
 import { guardianTraitIcon, guardianTraitName } from '#gw2/professions/guardian/core/traits/metadata.js';
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
@@ -11,11 +14,16 @@ export function emitTraitSymbol(
   runtime: GuardianRuntime,
   trait: number,
   symbolId: SkillId,
-  cause: Gw2ResolverEvent,
-  options: { fieldDuration?: (effect: SkillEffect) => number } = {}
+  cause: Gw2ResolverEvent
 ): boolean {
   const profile = runtime.helpers.skillsById.get(symbolId)!;
-  const components = (profile.effects ?? []).filter((effect) => effect.type === 'strike' || effect.type === 'boon');
+  // Triggered symbols take the same lifetime selection as cast symbols before any packet or field is emitted.
+  const components = writOfPersistenceEffects(runtime, profile, profile.effects ?? []).filter(
+    (effect) => effect.type === 'strike' || effect.type === 'boon'
+  );
+  const fields = writOfPersistenceFields(runtime, profile, profile.comboFields);
+  // The symbol's declared field is placed once, by its first surviving strike.
+  const fieldOwner = fields?.length ? components.find((effect) => effect.type === 'strike') : undefined;
 
   if (!components.length) return false;
 
@@ -26,8 +34,9 @@ export function emitTraitSymbol(
   const symbol = profile;
   const activationId = `guardian.symbol:${symbolId}:${cause.activationId ?? cause.eventOrder}:${runtime.time}`;
   for (const component of components) {
-    if (component.type === 'strike' && !component.ticks?.length)
-      throw new Error(`${profile.name} requires an explicit strike timeline.`);
+    // An instant symbol has no cast window to inherit, so each strike must carry its own pulse timing.
+    if (component.type === 'strike' && !component.ticks?.length && component.atMs == null)
+      throw new Error(`${profile.name} requires explicit strike timing.`);
 
     const effect = {
       ...component,
@@ -36,7 +45,6 @@ export function emitTraitSymbol(
         : {})
     };
     // Selected symbol components retain their field and activation while transport stays shared.
-    const fieldDuration = options.fieldDuration?.(component) ?? 0;
     runtime.effects.emit({
       kind: 'profile',
       profile: symbol,
@@ -54,9 +62,7 @@ export function emitTraitSymbol(
       transform: (event) => ({
         ...event,
         triggeredBy: cause.skillName,
-        ...(event.type === 'damage' && event.hitIndex === 1 && fieldDuration > 0
-          ? { comboFields: [{ ownerId: 'guardian', fieldType: COMBO_FIELD.LIGHT, duration: fieldDuration }] }
-          : {})
+        ...(component === fieldOwner && event.type === 'damage' && event.hitIndex === 1 ? { comboFields: fields } : {})
       })
     });
   }

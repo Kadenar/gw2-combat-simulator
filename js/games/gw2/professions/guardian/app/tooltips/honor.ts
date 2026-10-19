@@ -1,10 +1,7 @@
 import { traitSkillTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   outsideScopeTooltip,
-  profileFact,
-  simulationEffectFacts,
   tooltipFactorChange,
-  tooltipProfile,
   tooltipSeconds,
   traitTooltip,
   type ProfessionTooltips
@@ -35,25 +32,9 @@ export const guardianHonorTooltips = {
     [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
   ),
   [TRAIT.PURE_OF_VOICE]: outsideScopeTooltip,
-  [TRAIT.WRIT_OF_PERSISTENCE]: (balanceContext, entity) => {
-    const effects = tooltipProfile(balanceContext, entity.id).effects || [];
-    return {
-      description:
-        'Extend supported symbol fields and their strike pulses. Symbol of Punishment uses its separately authored extra strikes and might pulses; other symbols repeat their own final strike.',
-      facts: [
-        profileFact(balanceContext, entity.id, 'pulseInterval', 'Other symbol pulse interval', tooltipSeconds),
-        profileFact(balanceContext, entity.id, 'boonDuration', 'Extended self boon duration', tooltipSeconds),
-        profileFact(balanceContext, entity.id, 'boonStacks', 'Extended self boon stacks'),
-        ...simulationEffectFacts(
-          effects.filter((effect) => effect.type === 'buff'),
-          'field extension'
-        ).facts,
-        ...simulationEffectFacts(
-          effects.filter((effect) => effect.type !== 'buff'),
-          'Symbol of Punishment only'
-        ).facts
-      ]
-    };
-  },
+  [TRAIT.WRIT_OF_PERSISTENCE]: traitTooltip(
+    'Symbols last longer: their fields are extended, and each symbol keeps pulsing its own payload on its own cadence.',
+    [['durationExtension', 'Symbol duration increase', tooltipSeconds]]
+  ),
   [TRAIT.FORCE_OF_WILL]: traitTooltip('Gain vitality.', [['attributeBonus', 'Vitality']])
 } satisfies NonNullable<ProfessionTooltips['traits']>;

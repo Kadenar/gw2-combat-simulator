@@ -234,9 +234,7 @@ function placeFuriousFocusSymbol(runtime: GuardianRuntime, { cast }: JusticeActi
 
   const cause = { ...guardianCastCause(runtime, cast), type: 'action' as const };
   // The symbol reserves shared player recharge before its effects can trigger another activation.
-  emitTraitSymbol(runtime, TRAIT.FURIOUS_FOCUS, ID.LESSER_SYMBOL_OF_BLADES, cause, {
-    fieldDuration: () => Number(profile.duration)
-  });
+  emitTraitSymbol(runtime, TRAIT.FURIOUS_FOCUS, ID.LESSER_SYMBOL_OF_BLADES, cause);
 }
 
 /** Accepted symbol impacts add a Symbolic Avenger stack before Zealot's Resolution decides. */

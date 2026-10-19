@@ -28,7 +28,7 @@ test('Kinetic Battery expands the surviving fifth-charge package', () => {
         duration: 3,
         atMs: 400,
         applications: 2,
-        intervalMs: 300
+        intervalMs: 320
       }
     ]
   ]) {
@@ -50,7 +50,7 @@ test('Kinetic Battery expands the surviving fifth-charge package', () => {
       effects.length
         ? [
             [Number((result.events.find((event) => event.type === 'action').endsAt + 0.4).toFixed(6)), 3],
-            [Number((result.events.find((event) => event.type === 'action').endsAt + 0.7).toFixed(6)), 3]
+            [Number((result.events.find((event) => event.type === 'action').endsAt + 0.72).toFixed(6)), 3]
           ]
         : []
     );
@@ -114,7 +114,7 @@ test('Twin Moon Sweep emits only surviving authored components', () => {
             timingAnchor: 'castStart',
             atMs: 200,
             applications: 2,
-            intervalMs: 300
+            intervalMs: 320
           }
         ]
       })
@@ -123,7 +123,7 @@ test('Twin Moon Sweep emits only surviving authored components', () => {
   const packets = result.events.filter((event) => event.skillId === ID.TWIN_MOON_SWEEP);
   assert.deepEqual(
     packets.filter((event) => event.type === 'condition').map((event) => event.at),
-    [0.2, 0.5]
+    [0.2, 0.52]
   );
   assert.equal(
     packets.some((event) => event.type === 'damage' || event.type === 'buff'),

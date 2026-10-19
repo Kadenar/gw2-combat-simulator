@@ -70,7 +70,9 @@ export const guardianZealTooltips = {
       // The symbol skill owns its field duration independently of the trait's passive bonus.
       {
         name: 'Symbol field duration',
-        detail: tooltipSeconds(tooltipNumber(requireSkillFromContext(context, ID.LESSER_SYMBOL_OF_BLADES), 'duration'))
+        detail: tooltipSeconds(
+          tooltipNumber(requireSkillFromContext(context, ID.LESSER_SYMBOL_OF_BLADES).comboFields?.[0], 'duration')
+        )
       }
     ]
   )

@@ -361,24 +361,27 @@ test('Master of Consecrations keeps Burning when its extension strike is removed
   );
 });
 
-test('Writ window removal preserves independently authored Symbol of Punishment packets', () => {
-  const result = run(
-    { [TRAIT.WRIT_OF_PERSISTENCE]: remove('buff', 'symbol-duration-extension') },
-    'Core',
-    ['Symbol of Punishment', { type: 'wait', durationMs: 7000 }],
-    [TRAIT.WRIT_OF_PERSISTENCE],
-    { primaryWeapon: 'Scepter' }
-  );
-  const baseline = run({}, 'Core', ['Symbol of Punishment', { type: 'wait', durationMs: 7000 }], [], {
-    primaryWeapon: 'Scepter'
-  });
-  const field = (simulation) => simulation.events.find((event) => event.type === 'combo_field');
-  assert.equal(field(result).expiresAt, field(baseline).expiresAt);
-  for (const type of ['damage', 'buff']) {
-    const packets = (simulation) =>
-      simulation.events.filter((event) => event.type === type && event.skillId === SKILL.SYMBOL_OF_PUNISHMENT);
-    assert.ok(packets(result).length > packets(baseline).length);
-  }
+// One patched Writ value must lengthen the field and every periodic payload together, never either one alone.
+test('Writ duration patches extend the symbol field and its periodic pulses together', () => {
+  const simulate = (balanceProfiles, traits) =>
+    run(balanceProfiles, 'Core', ['Symbol of Faith', { type: 'wait', durationMs: 8000 }], traits, {
+      primaryWeapon: 'Mace'
+    });
+  const baseline = simulate({}, []);
+  const patched = simulate({ [TRAIT.WRIT_OF_PERSISTENCE]: { fields: { durationExtension: { from: 2, to: 1 } } } }, [
+    TRAIT.WRIT_OF_PERSISTENCE
+  ]);
+  const lifetime = (simulation) => {
+    const field = simulation.events.find((event) => event.type === 'combo_field');
+    return field.expiresAt - field.at;
+  };
+
+  const packets = (simulation, type) =>
+    simulation.events.filter((event) => event.type === type && event.skillId === SKILL.SYMBOL_OF_FAITH);
+  assert.equal(lifetime(patched), lifetime(baseline) + 1);
+  // One added second holds one more one-second pulse of both the strike and its Regeneration.
+  for (const type of ['damage', 'buff'])
+    assert.equal(packets(patched, type).length, packets(baseline, type).length + 1);
 });
 
 test('deleted Justice Burning does not increment burn counters or recreate packets', () => {

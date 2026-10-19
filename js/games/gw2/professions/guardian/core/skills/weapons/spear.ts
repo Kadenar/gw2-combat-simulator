@@ -81,6 +81,8 @@ function illuminatedSpearEffects(
         coefficient: undefined,
         hits: undefined,
         atMs: undefined,
+        applications: undefined,
+        intervalMs: undefined,
         ticks: ticks.map((tick, index) => ({
           ...tick,
           coefficient:
@@ -323,7 +325,10 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         type: 'strike',
         metadata: { guardianSymbol: true },
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 360 + index * 1000, coefficient: 2.5 / 5 })),
+        coefficient: 2.5 / 5,
+        atMs: 360,
+        applications: 5,
+        intervalMs: 1000,
         name: 'Symbol of Luminance'
       },
       {

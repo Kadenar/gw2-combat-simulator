@@ -215,7 +215,7 @@ test('Twin Moon Sweep selects patchable Shared Wisdom Might independently of tar
                             name: 'twin-moon-sweep',
                             stacks: 7,
                             applications: 3,
-                            intervalMs: 100
+                            intervalMs: 120
                           }
                         ]
                       }
@@ -236,8 +236,8 @@ test('Twin Moon Sweep selects patchable Shared Wisdom Might independently of tar
         mode === 'selected'
           ? [
               [0.3, 7],
-              [0.4, 7],
-              [0.5, 7]
+              [0.42, 7],
+              [0.54, 7]
             ]
           : []
       );

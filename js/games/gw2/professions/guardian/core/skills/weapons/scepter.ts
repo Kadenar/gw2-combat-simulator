@@ -24,7 +24,8 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
       {
         type: 'strike',
         metadata: { guardianSymbol: true },
-        // Model seven landed Smite hits, omitting the fifth spatial opportunity as in the reference build.
+        // Smite strikes random spots in the symbol, so some opportunities miss. Seven of eight landed in every logged
+        // cast; Writ's larger symbol makes later hits unreliable, so this calibrated timeline is not extended.
         ticks: [240, 760, 1240, 1760, 2760, 3240, 3760].map((atMs) => ({
           atMs,
           coefficient: 0.2
@@ -34,19 +35,22 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'strike',
         metadata: { guardianSymbol: true },
         // Main symbol damage begins one second after the initial boon pulse and lands once per second.
-        ticks: [1240, 2240, 3240, 4240].map((atMs) => ({
-          atMs,
-          coefficient: 0.5
-        }))
+        coefficient: 0.5,
+        atMs: 1240,
+        applications: 4,
+        intervalMs: 1000
       },
-      ...[240, 1240, 2240, 3240, 4240].map((atMs) => ({
-        type: 'boon' as const,
+      // Each symbol pulse grants party Might, beginning with placement.
+      {
+        type: 'boon',
         boon: BOON.MIGHT,
         stacks: 4,
         duration: 5,
         audience: { recipients: RECIPIENT.PARTY },
-        atMs
-      }))
+        atMs: 240,
+        applications: 5,
+        intervalMs: 1000
+      }
     ])
   },
   [ID.ORB_OF_WRATH]: {

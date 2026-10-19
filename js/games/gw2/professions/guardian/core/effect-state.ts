@@ -12,7 +12,6 @@ export function guardianBuffPolicies(context: unknown): BuffStatePolicy[] {
     { kind: 'illuminated', maximumStacks: 1 },
     { kind: 'guardian-spear-luminance', maximumStacks: 1 },
     { kind: 'guardian-symbol-of-ignition-field', maximumStacks: 1 },
-    { kind: 'symbol-duration-extension', maximumStacks: 1 },
     { kind: 'guardian-inspiring-virtue', maximumStacks: 1 }
   ];
   const profile = balanceProfileFromContext(context, TRAIT.SYMBOLIC_AVENGER);

@@ -59,7 +59,10 @@ export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
       {
         type: 'strike',
         metadata: { guardianSymbol: true },
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 760 + index * 1000, coefficient: 3.25 / 5 })),
+        coefficient: 3.25 / 5,
+        atMs: 760,
+        applications: 5,
+        intervalMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },

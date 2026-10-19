@@ -155,7 +155,7 @@ test('canonical strikes divide aggregate coefficients without changing total dam
           {
             id: 930029,
             name: 'Interval Aggregate',
-            effects: [{ type: 'strike', coefficient: 1.8, hits: 2, atMs: 360, intervalMs: 500 }]
+            effects: [{ type: 'strike', coefficient: 1.8, hits: 2, atMs: 360, intervalMs: 520 }]
           }
         ]
       }),

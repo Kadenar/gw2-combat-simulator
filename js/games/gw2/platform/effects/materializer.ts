@@ -148,11 +148,13 @@ export function materializeSkillEffectApplications({
   if (effect.type === 'strike') {
     const ticks = Array.isArray(effect.ticks) ? effect.ticks : null;
     const hits = count;
-    const equalCoefficient = (effect.coefficient || 0) / hits;
+    // Simultaneous hits share the coefficient; repeated applications each carry it, one hit per interval.
+    const equalCoefficient = (effect.coefficient || 0) / Math.max(1, Math.trunc(effect.hits || 1));
+    const interval = Math.max(0, effect.intervalMs || 0) / 1000;
     const origin = effect.timingAnchor === 'castStart' ? start : fullEnd;
     for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
       const tick = ticks?.[hitIndex - 1];
-      const at = tick ? origin + Number(tick.atMs) / 1000 : firstAt;
+      const at = tick ? origin + Number(tick.atMs) / 1000 : firstAt + (hitIndex - 1) * interval;
       applications.push({
         at,
         event: {

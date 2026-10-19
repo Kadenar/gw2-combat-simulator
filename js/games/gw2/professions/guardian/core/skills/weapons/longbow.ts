@@ -37,7 +37,10 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, P
       {
         type: 'strike',
         metadata: { guardianSymbol: true },
-        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 2.07 / 4 })),
+        coefficient: 2.07 / 4,
+        atMs: 1000,
+        applications: 4,
+        intervalMs: 1000,
         name: 'Symbol of Energy — Symbol Damage',
         timingAnchor: 'castEnd',
         timingScale: 'fixed'

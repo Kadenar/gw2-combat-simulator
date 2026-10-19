@@ -71,7 +71,10 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         metadata: { guardianSymbol: true },
         // The symbol hits on creation and once per second for its two-second lifetime.
-        ticks: [0, 1000, 2000].map((atMs) => ({ atMs, coefficient: 0.5 })),
+        coefficient: 0.5,
+        atMs: 0,
+        applications: 3,
+        intervalMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Symbol of Protection — Symbol Damage'

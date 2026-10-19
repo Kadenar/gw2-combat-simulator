@@ -23,7 +23,7 @@ const repeated = (applications) => ({
   stacks: 1,
   duration: 1,
   applications,
-  intervalMs: 1
+  intervalMs: 40
 });
 
 // Count boundaries are checked without allocating the accepted maximum or any rejected packet batch.

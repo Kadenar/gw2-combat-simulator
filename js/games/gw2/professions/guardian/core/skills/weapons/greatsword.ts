@@ -125,17 +125,19 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       }
     ],
     effects: [
-      // Self Resolution follows each pulse even when the symbol misses.
-      ...[200, 1200, 2200, 3200, 4200].map((atMs) => ({
+      // Self Resolution follows each pulse even when the symbol misses. Only pulses after commitment persist.
+      ...[
+        { atMs: 200, persistsAfterInterrupt: false },
+        { atMs: 1200, applications: 4, intervalMs: 1000, persistsAfterInterrupt: true }
+      ].map((pulses) => ({
         type: 'boon' as const,
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.RESOLUTION,
         duration: 1,
         stacks: 1,
-        atMs,
         timingAnchor: 'castStart' as const,
         timingScale: 'fixed' as const,
-        persistsAfterInterrupt: atMs !== 200
+        ...pulses
       })),
       {
         type: 'strike',
@@ -148,7 +150,10 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       {
         type: 'strike',
         metadata: { guardianSymbol: true },
-        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 1200 + index * 1000, coefficient: 2.6 / 4 })),
+        coefficient: 2.6 / 4,
+        atMs: 1200,
+        applications: 4,
+        intervalMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,

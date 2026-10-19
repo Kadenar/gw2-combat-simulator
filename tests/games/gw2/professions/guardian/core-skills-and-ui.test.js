@@ -124,8 +124,8 @@ test('Symbol of Blades and Symbol of Faith fields follow their pulse windows', (
     const field = skill.comboFields[0];
 
     assert.equal(field.startAnchor, strike.timingAnchor);
-    assert.equal(field.startMs, strike.ticks[0].atMs);
-    assert.equal(field.startMs + field.duration * 1000, strike.ticks.at(-1).atMs);
+    assert.equal(field.startMs, strike.atMs);
+    assert.equal(field.startMs + field.duration * 1000, strike.atMs + (strike.applications - 1) * strike.intervalMs);
   }
 });
 

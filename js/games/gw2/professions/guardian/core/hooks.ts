@@ -35,7 +35,7 @@ import {
 } from '#gw2/professions/guardian/core/skills/weapons/pistol.js';
 import { guardianSpearLifecycle } from '#gw2/professions/guardian/core/skills/weapons/spear.js';
 import { guardianTorchLifecycle } from '#gw2/professions/guardian/core/skills/weapons/torch.js';
-import { writOfPersistenceFields } from '#gw2/professions/guardian/core/traits/honor/index.js';
+import { writOfPersistenceFields } from '#gw2/professions/guardian/core/traits/honor/writ-of-persistence.js';
 import { masterOfConsecrationsFields } from '#gw2/professions/guardian/core/traits/virtues/index.js';
 import { GUARDIAN_TRAIT_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type {
@@ -137,7 +137,7 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
     modifyComboFields(runtime, cast, fields) {
       if (cast.skill.id === ID.SYMBOL_OF_IGNITION) fields = guardianIgnitionFields(runtime);
 
-      return writOfPersistenceFields(runtime, cast, masterOfConsecrationsFields(runtime, cast, fields));
+      return writOfPersistenceFields(runtime, cast.skill, masterOfConsecrationsFields(runtime, cast, fields));
     },
     availability(runtime, skill) {
       const flips = runtime.profession.core.availableFlips;

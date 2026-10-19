@@ -1,4 +1,5 @@
 import { ACTOR } from '#gw2/platform/constants.js';
+import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
 import { snapshotEffectReactions } from '#gw2/platform/effects/action-declarations.js';
 import {
@@ -445,12 +446,13 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   const hasInterval = normalizedEffect.intervalMs != null;
   const hasExplicitTiming = hasTicks || hasAtMs || hasInterval;
 
-  // `applications` drives repeated non-strike pulses (e.g. multi-application boons).
-  // Mutually exclusive with tick timelines because ticks already encode per-packet timing.
+  // `applications` drives regular repeated pulses (e.g. multi-application boons or symbol strikes), each carrying the
+  // effect's full payload. Mutually exclusive with tick timelines because ticks already encode per-packet timing.
   let applications = null;
 
   if (normalizedEffect.applications != null) {
     if (
+      normalizedEffect.type !== 'strike' &&
       normalizedEffect.type !== 'condition' &&
       normalizedEffect.type !== 'control' &&
       normalizedEffect.type !== 'boon' &&
@@ -543,6 +545,11 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
       if (!(intervalMs >= 0) || !Number.isFinite(intervalMs)) {
         throw new TypeError('Effect intervalMs must be a non-negative finite number.');
       }
+
+      // Repeated pulses happen on the server tick; an off-grid cadence such as 500 ms alternates around itself in game.
+      if (intervalMs % GW2_ACTION_TICK_MS !== 0) {
+        throw new TypeError(`Effect intervalMs must be a multiple of the ${GW2_ACTION_TICK_MS} ms server tick.`);
+      }
     }
   } else if (normalizedEffect.timingAnchor != null || normalizedEffect.timingScale != null) {
     throw new TypeError('Timing metadata is only valid for explicitly timed effects.');
@@ -584,8 +591,18 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   if (normalizedEffect.type === 'strike' && !strikeTicks)
     requireEffectExpansionCount(normalizedEffect.hits ?? 1, 'Strike effects hit count');
 
-  if (normalizedEffect.type === 'strike' && !strikeTicks && normalizedEffect.intervalMs != null) {
-    throw new TypeError('Strike intervals must be authored as an explicit tick timeline.');
+  // A repeated strike lands one hit per application; simultaneous hits and spaced pulses stay distinct forms.
+  if (
+    normalizedEffect.type === 'strike' &&
+    !strikeTicks &&
+    normalizedEffect.intervalMs != null &&
+    applications == null
+  ) {
+    throw new TypeError('Strike intervals require an applications count or an explicit tick timeline.');
+  }
+
+  if (normalizedEffect.type === 'strike' && Number(applications) > 1 && Number(normalizedEffect.hits ?? 1) > 1) {
+    throw new TypeError('Repeated strike applications land one hit each.');
   }
 
   if (

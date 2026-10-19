@@ -20,19 +20,19 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
         {
           type: 'strike',
           metadata: { guardianSymbol: true },
-          ticks: [680, 1680, 2680, 3680, 4680].map((atMs) => ({
-            atMs,
-            coefficient: 0.6
-          }))
+          coefficient: 0.6,
+          atMs: 680,
+          applications: 5,
+          intervalMs: 1000
         },
         {
           type: 'condition',
-          ticks: Array.from({ length: 5 }, (_, index) => ({
-            atMs: 680 + index * 1000,
-            condition: CONDITION.BLEEDING,
-            stacks: 1,
-            duration: 3
-          }))
+          condition: CONDITION.BLEEDING,
+          stacks: 1,
+          duration: 3,
+          atMs: 680,
+          applications: 5,
+          intervalMs: 1000
         }
       ]),
       {
@@ -42,16 +42,18 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
         duration: 1.5
       },
       // Later symbol pulses repeat Fury at their fixed offsets after the initial application.
-      ...[1680, 2680, 3680, 4680].map((atMs) => ({
-        type: 'boon' as const,
+      {
+        type: 'boon',
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.FURY,
         duration: 1.5,
-        atMs,
-        timingAnchor: 'castStart' as const,
-        timingScale: 'fixed' as const,
+        atMs: 1680,
+        applications: 4,
+        intervalMs: 1000,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true
-      })),
+      },
       {
         type: 'control',
         controlKind: CONTROL.DAZE
