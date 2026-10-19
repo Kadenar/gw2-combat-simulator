@@ -59,11 +59,7 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
   castDurationMs: (runtime, skill, duration) => (bandTogetherReady(runtime, skill.id) ? 0 : duration),
   // Band Together readiness is sampled before the accepted cast changes its state.
 
-  modifyEffects(_runtime, cast, effects) {
-    if (cast.skill.id === ID.HEROIC_COMMAND) return [];
-
-    return bandTogether.get(cast)?.enhanced ? [] : effects;
-  },
+  modifyEffects: (_runtime, cast, effects) => (bandTogether.get(cast)?.enhanced ? [] : effects),
   sideEffectHandlers: {
     'revenant.heroic-command'(runtime, context) {
       if (context.kind !== 'cast') return;

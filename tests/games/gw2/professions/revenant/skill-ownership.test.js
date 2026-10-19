@@ -198,11 +198,28 @@ test('Heroic Command refreshes only live Fervor at commitment, including when Mi
     const fervor = renegadeState.from(observedRuntime(result)).kallasFervor;
     assert.equal(fervor.length, 1);
     assert.ok(fervor[0].expiresAt > 2);
-    const might = result.events.find((event) => event.type === 'buff' && event.kind === 'might');
-    assert.equal(Boolean(might), !removed);
-
-    if (might) assert.equal(might.stacks, 2);
+    // Only the Fervor-scaled grant may emit; the authored payload never applies as an ordinary cast effect.
+    const might = result.events.filter((event) => event.type === 'buff' && event.kind === 'might');
+    assert.deepEqual(
+      might.map((event) => event.stacks),
+      removed ? [] : [2]
+    );
   }
+});
+
+// Without live Fervor the deferred payload has nothing to scale, so the cast grants no Might at all.
+test('Heroic Command without Fervor grants no Might', () => {
+  const result = runRevenant([{ skillId: ID.HEROIC_COMMAND }], {
+    specialization: 'Renegade',
+    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.RENEGADE
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(renegadeState.from(observedRuntime(result)).kallasFervor.length, 0);
+  assert.equal(
+    result.events.some((event) => event.type === 'buff' && event.kind === 'might'),
+    false
+  );
 });
 
 test('Cosmic Wisdom grants Core traits once before form activation', () => {

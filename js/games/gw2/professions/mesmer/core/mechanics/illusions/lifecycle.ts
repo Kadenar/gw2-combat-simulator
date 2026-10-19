@@ -7,7 +7,6 @@ import {
 } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerPendingResource } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerShatterDefinition } from '#gw2/professions/mesmer/family-mechanics.js';
 import {
@@ -65,7 +64,7 @@ export const mesmerIllusionHooks = {
     if (skill.phantasm)
       return effects.filter((effect) => effect.type === 'control' && effect.summonKind !== 'phantasm');
 
-    if (mesmerShatterDefinition(runtime, skill.id) || skill.id === ID.INSPIRING_IMAGERY) return [];
+    if (mesmerShatterDefinition(runtime, skill.id)) return [];
 
     return effects.filter((effect) => !(effect.type === 'buff' && effect.kind === 'clarity'));
   },

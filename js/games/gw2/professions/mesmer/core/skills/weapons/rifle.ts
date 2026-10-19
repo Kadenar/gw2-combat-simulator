@@ -43,6 +43,8 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Parti
     // The image grants boons after its field expires unless Abstraction detonates it first.
     comboFields: [{ ownerId: 'mesmer', fieldType: COMBO_FIELD.ETHEREAL, duration: 2, startAnchor: 'castEnd' }],
     tasks: [{ type: 'mesmer.core.imagery-expire', atMs: 2000, timingAnchor: 'castEnd' }],
+    // The cast emits nothing itself: the boons are the natural-expiry payload read by `expireInspiringImagery`.
+    effectVariants: [{ when: () => true, transform: () => [] }],
     effects: [
       {
         type: 'boon',
