@@ -1,10 +1,8 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
-import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   elementalistCoreSideEffectHandlers,
@@ -45,9 +43,9 @@ import {
   elementalistEventPreparing
 } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { elementalistWeaponStateLifecycle } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import {
   applyShatteringStoneBuff,
+  elementalistPistolLifecycle,
   triggerShatteringStone
 } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { shareHeatSyncBoon } from '#gw2/professions/elementalist/core/skills/weapons/warhorn.js';
@@ -74,6 +72,7 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
   elementalistWeaponStateLifecycle,
   elementalistRockBarrierLifecycle,
   elementalistSpearEmpowermentLifecycle,
+  elementalistPistolLifecycle,
   {
     damageEffects: [
       {
@@ -195,26 +194,7 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
     onCooldownReset: resetElementalistAttunementCooldowns,
     tasks: {
       'elementalist.expire-state': expireElementalistState,
-      'elementalist.fulgor-pulse': fulgorPulse,
-      'elementalist.core.consume-elemental-explosion'(runtime, data) {
-        const { cast } = data as SkillTaskData<ElementalistSkill>;
-        const effect = requireEffect(
-          requireBalanceProfileFromContext(runtime, PROFILE.elementalExplosion),
-          'buff',
-          runtime.profession.core.primaryAttunement
-        );
-
-        if (effect)
-          applyElementalistAura(runtime, {
-            at: runtime.time,
-            aura: String(effect.kind),
-            duration: effect.duration,
-            skillName: cast.skill.name,
-            sourceId: cast.skill.id
-          });
-
-        for (const element of ELEMENTALIST_ATTUNEMENTS) runtime.profession.core.pistolBullets[element] = false;
-      }
+      'elementalist.fulgor-pulse': fulgorPulse
     },
     eventHandlers: {
       'elementalist.conjure': OBSERVABLE_EVENT_HANDLER,

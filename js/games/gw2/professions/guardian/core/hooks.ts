@@ -4,7 +4,6 @@ import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -55,28 +54,6 @@ function completeCoreVirtue(runtime: GuardianRuntime, cast: RuntimeCast<Guardian
   runtime.fireTrigger(virtueActivated, { cast, virtue });
 
   if (virtue === 'justice') runtime.fireTrigger(justiceActivated, { cast });
-}
-
-/** Eligible completed skills release the post-Fire lockout; flip transitions remain skill-owned. */
-function clearTorchLockout(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
-  const skill = cast.skill;
-
-  // Profession bars and explicitly managed flips retain their specialization's sole transition owner.
-  if (
-    String(skill.slot ?? '').startsWith('Profession_') ||
-    skill.id === ID.FLASH_COMBO ||
-    skill.id === ID.REPOSE ||
-    skill.radiantForgeSkill ||
-    skill.tags?.includes('specialization-managed-flip') ||
-    (skill.flipSkillId != null &&
-      runtime.helpers.skillsById.get(skill.flipSkillId)?.tags?.includes('specialization-managed-flip'))
-  )
-    return;
-
-  if (skill.interruptMode === 'per-packet' && castWasInterrupted(cast)) return;
-
-  if (skill.id !== ID.ZEALOTS_FIRE && skill.type !== 'Action')
-    runtime.castController.clearLockout('guardian-zealots-flame-after-fire');
 }
 
 /** Shared virtue, symbol, and follow-up wiring composed with each Core skill owner's registered actions. */
@@ -142,9 +119,6 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
     availability(runtime, skill) {
       const flips = runtime.profession.core.availableFlips;
 
-      if (skill.id === ID.ZEALOTS_FLAME && skillFlipReady(flips[ID.ZEALOTS_FIRE], runtime.time))
-        return denySkillCast(skill, 'guardian.flip-parent-active', 'use the active flip skill first.');
-
       if (
         skill.flipParentId != null &&
         !skill.tags?.includes('specialization-managed-flip') &&
@@ -164,7 +138,6 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
       if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtueActivations.add(cast);
     },
     onCastCommit(runtime, cast) {
-      clearTorchLockout(runtime, cast);
       runtime.fireTrigger(guardianCastCompleted, { cast });
       const virtue = CORE_VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
 

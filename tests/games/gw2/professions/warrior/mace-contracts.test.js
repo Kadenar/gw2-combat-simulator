@@ -40,6 +40,22 @@ test('Counterblow arms one temporary Tactical Blow without dealing damage or gra
   }
 });
 
+test('a recharge reset cannot re-cast Counterblow while its Tactical Blow window is armed', () => {
+  // The shared weapon follow-up rule hides the parent behind its ready follow-up, independent of parent recharge.
+  const result = simulate('Core', [ID.COUNTERBLOW, { type: 'cooldown-reset' }, ID.COUNTERBLOW, ID.TACTICAL_BLOW]);
+  const casts = result.steps.filter((step) => step.skillId != null);
+
+  assert.deepEqual(
+    casts.map((step) => [step.skillId, !!step.invalid]),
+    [
+      [ID.COUNTERBLOW, false],
+      [ID.COUNTERBLOW, true],
+      [ID.TACTICAL_BLOW, false]
+    ]
+  );
+  assert.match(result.warnings.at(-1), /replaced by its active follow-up/);
+});
+
 test('Mace damage and accompanying conditions or control resolve together', () => {
   // Minimal casts and the required autoattack chain verify scheduling independently of the saved rotation.
   for (const [skillId] of [

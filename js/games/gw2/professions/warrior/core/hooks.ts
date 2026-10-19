@@ -3,7 +3,7 @@ import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { applySideEffect, sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
-import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import { weaponFlipBlock } from '#gw2/platform/execution/skill-flips.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
@@ -152,14 +152,29 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   rechargeWork: (_runtime, skill, work) => (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS ? Math.min(5, work) : work),
 
   availability(runtime, skill) {
-    const state = runtime.profession.core;
+    // Every weapon follow-up (Riposte, Impale, Counterblow) uses the shared bar-slot rule: the follow-up exists only
+    // while its window is ready, and its parent stays hidden behind it for that window.
+    const block = weaponFlipBlock(
+      runtime.profession.core.availableFlips,
+      runtime.helpers.skillsById,
+      skill,
+      runtime.time
+    );
 
-    if (skill.id === ID.TACTICAL_BLOW && !skillFlipReady(state.availableFlips[ID.TACTICAL_BLOW], runtime.time))
+    if (block?.kind === 'closed')
       return {
         ready: false,
         retryAt: null,
-        code: 'warrior.counterblow',
-        reason: 'Tactical Blow requires an active Counterblow.'
+        code: 'warrior.flip-inactive',
+        reason: `${skill.name} requires an active ${block.parent.name}.`
+      };
+
+    if (block?.kind === 'open')
+      return {
+        ready: false,
+        retryAt: null,
+        code: 'warrior.flip-active',
+        reason: `${skill.name} is replaced by its active follow-up.`
       };
 
     return warriorAdrenalineAvailability(runtime, skill);

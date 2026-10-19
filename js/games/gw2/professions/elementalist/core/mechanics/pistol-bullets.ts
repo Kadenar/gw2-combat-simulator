@@ -11,7 +11,12 @@ import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/profess
  * cast completion. Skill-specific payloads live beside their declarations in `skills/weapons/pistol.ts`.
  */
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
+import type {
+  ElementalistRuntime,
+  ElementalistRuntimeState,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
 
 /** Reads the completion-time bullet before the declaration's final load/spend action changes it. */
 export function hasPistolBullet(
@@ -21,6 +26,18 @@ export function hasPistolBullet(
   return readProfessionCoreState<ElementalistCoreState>(context.profession).pistolBullets![
     cast.skill.attunement as ElementalistAttunement
   ];
+}
+
+/** Elemental Explosion's prerequisite: one stored bullet of every element. */
+export function allPistolBulletsLoaded(context: MechanicQueriesOf<ElementalistRuntime>): boolean {
+  const bullets = professionCoreState(context).pistolBullets;
+  return ELEMENTALIST_ATTUNEMENTS.every((element) => bullets[element]);
+}
+
+/** Elemental Explosion empties the whole stock at once rather than spending one element's bullet. */
+export function spendAllPistolBullets(context: MechanicContext<ElementalistRuntimeState, ElementalistSkill>): void {
+  const bullets = professionCoreState(context).pistolBullets;
+  for (const element of ELEMENTALIST_ATTUNEMENTS) bullets[element] = false;
 }
 
 /** The final declared action updates bullet stock after any skill-specific enhancement reads it. */

@@ -1,9 +1,8 @@
-import { COMBO_FINISHER, RECIPIENT, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { COMBO_FINISHER, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { weaponFlipBlock } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
@@ -228,39 +227,11 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
   }
 });
 
-/** Sword follow-ups share their live windows with the palette and cannot be used outside those windows. */
+/** Riposte arms its follow-up for the block window; Core Warrior admission enforces every weapon follow-up window. */
 export const swordFlipLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   sideEffectHandlers: {
     'warrior.riposte-arm'(runtime, context) {
       if (context.kind === 'cast') runtime.armFlip(ID.ADRENALINE_RUSH, { expiresAt: context.cast.fullEnd });
     }
-  },
-  availability(runtime, skill) {
-    if (skill.weapon !== WEAPON.SWORD) return { ready: true };
-
-    const block = weaponFlipBlock(
-      runtime.profession.core.availableFlips,
-      runtime.helpers.skillsById,
-      skill,
-      runtime.time
-    );
-
-    if (block?.kind === 'closed')
-      return {
-        ready: false,
-        retryAt: null,
-        code: 'warrior.sword-flip-inactive',
-        reason: `${skill.name} requires an active ${block.parent.name}.`
-      };
-
-    if (block?.kind === 'open')
-      return {
-        ready: false,
-        retryAt: null,
-        code: 'warrior.sword-flip-active',
-        reason: `${skill.name} is replaced by its active follow-up.`
-      };
-
-    return { ready: true };
   }
 };

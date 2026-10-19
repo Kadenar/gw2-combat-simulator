@@ -33,26 +33,26 @@
         "label": "Condition Alacrity (Pistol / Torch + Scepter / Torch)",
         "build": "data/gw2/builds/necromancer/b-condi-alac-scourge.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-alac-scourge-bench.json",
-        "benchmarkDps": 30114,
+        "benchmarkDps": 29977,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-alacrity-scourge-scepter-torch-pistol",
-        "benchmarkApm": 79.7,
+        "benchmarkApm": 79.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 29746, "phase": 29746 },
-          "80-60": { "cumulative": 29437, "phase": 29128 },
-          "60-40": { "cumulative": 30244, "phase": 31988 },
-          "40-20": { "cumulative": 29535, "phase": 27603 },
-          "20-0": { "cumulative": 30114, "phase": 30114 }
+          "100-80": { "cumulative": 29709, "phase": 29709 },
+          "80-60": { "cumulative": 29346, "phase": 28984 },
+          "60-40": { "cumulative": 30182, "phase": 31988 },
+          "40-20": { "cumulative": 29492, "phase": 27612 },
+          "20-0": { "cumulative": 29977, "phase": 29977 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 30119,
+          "benchmarkDps": 29983,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 29816, "phase": 29816 },
-            "80-60": { "cumulative": 29524, "phase": 29232 },
-            "60-40": { "cumulative": 30195, "phase": 31643 },
-            "40-20": { "cumulative": 29459, "phase": 27422 },
-            "20-0": { "cumulative": 30119, "phase": 30119 }
+            "100-80": { "cumulative": 29792, "phase": 29792 },
+            "80-60": { "cumulative": 29456, "phase": 29120 },
+            "60-40": { "cumulative": 30132, "phase": 31592 },
+            "40-20": { "cumulative": 29510, "phase": 27817 },
+            "20-0": { "cumulative": 29983, "phase": 29983 }
           }
         }
       }

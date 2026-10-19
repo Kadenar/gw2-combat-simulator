@@ -5,9 +5,13 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
+import { weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
 
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 
@@ -97,9 +101,39 @@ const guardianTorchActions: RuntimeProfession<GuardianRuntimeState, GuardianSkil
   }
 };
 
-/** Registers torch actions with the Core hook assembly. */
+/** Another committed skill releases the post-Fire lockout; Fire itself and instant actions never do. */
+function clearTorchLockout(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
+  const skill = cast.skill;
+
+  // Profession-bar skills and specialization-managed flips do not release the lockout.
+  if (
+    String(skill.slot ?? '').startsWith('Profession_') ||
+    skill.id === ID.FLASH_COMBO ||
+    skill.id === ID.REPOSE ||
+    skill.radiantForgeSkill ||
+    skill.tags?.includes('specialization-managed-flip') ||
+    (skill.flipSkillId != null &&
+      runtime.helpers.skillsById.get(skill.flipSkillId)?.tags?.includes('specialization-managed-flip'))
+  )
+    return;
+
+  if (skill.interruptMode === 'per-packet' && castWasInterrupted(cast)) return;
+
+  if (skill.id !== ID.ZEALOTS_FIRE && skill.type !== 'Action')
+    runtime.castController.clearLockout('guardian-zealots-flame-after-fire');
+}
+
+/** Torch owns its follow-up arming, Flame's hidden-parent gate, and the post-Fire lockout lifecycle. */
 export const guardianTorchLifecycle = {
-  sideEffectHandlers: guardianTorchActions
+  sideEffectHandlers: guardianTorchActions,
+  // Radiant Fire's second charge can leave Flame off recharge, but its slot stays replaced while Fire is armed.
+  availability(runtime, skill) {
+    return skill.id === ID.ZEALOTS_FLAME &&
+      weaponFollowUpOpen(runtime.profession.core.availableFlips, skill, runtime.time)
+      ? denySkillCast(skill, 'guardian.flip-parent-active', 'use the active flip skill first.')
+      : { ready: true };
+  },
+  onCastCommit: clearTorchLockout
 } satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;
 
 /** Select the same duration multiplier for the torch flip window and its Burning packets. */

@@ -106,7 +106,6 @@ export const engineerCoreHooks = composeRuntimeHooks<EngineerRuntimeState, Engin
         );
       }
     },
-    reserveRecharge: (_runtime, skill, work) => (skill.id === ID.HEALING_TURRET ? 0 : work),
     onCastStart(runtime, cast) {
       if (cast.skill.independentCast) notifyToolbeltActivation(runtime, cast.skill, cast.id);
 

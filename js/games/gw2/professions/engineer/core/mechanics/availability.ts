@@ -4,7 +4,6 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { engineerKitAvailability } from '#gw2/professions/engineer/core/mechanics/kits.js';
 import { engineerSpearAvailability } from '#gw2/professions/engineer/core/mechanics/spear.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/availability.js';
@@ -16,11 +15,6 @@ export function engineerCoreCastAvailability(
   skill: EngineerSkill
 ): AvailabilityResult {
   const state = professionCoreState(context);
-
-  if (skill.id === ID.HEALING_TURRET && state.healingTurretActivationId) {
-    return denyEngineerCast(skill, 'engineer.healing-turret-active', 'the deployed turret must be detonated first.');
-  }
-
   const spear = engineerSpearAvailability(context, skill);
 
   if (!spear.ready) return spear;

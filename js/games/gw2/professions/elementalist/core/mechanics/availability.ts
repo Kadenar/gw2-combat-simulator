@@ -26,7 +26,7 @@ import {
 import { elementalistSlotSelectionPolicy } from '#gw2/professions/elementalist/core/mechanics/selection-policy.js';
 import { weaponAttunementAvailable } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
-import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
+import { elementalExplosionAvailability } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID,
@@ -38,21 +38,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 function ready(): AvailabilityResult {
   return { ready: true };
-}
-
-/** Pistol finishers require all four stored bullets. */
-function pistolAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult | null {
-  const state = professionCoreState(context);
-
-  // Pistol's finisher needs one stored bullet of every element.
-  if (
-    Number(skill.id) === ID.ELEMENTAL_EXPLOSION &&
-    !ELEMENTALIST_ATTUNEMENTS.every((element) => state.pistolBullets[element])
-  ) {
-    return unavailable(skill, 'elementalist.pistol-bullets', 'requires all four elemental bullets.');
-  }
-
-  return null;
 }
 
 /** Attunement swaps preserve same-element denials and Fresh Air retry deadlines. */
@@ -299,7 +284,7 @@ export function elementalistCoreAvailability(
 ): AvailabilityResult {
   return (
     elementalistElementalAvailability(context, skill) ??
-    pistolAvailability(context, skill) ??
+    elementalExplosionAvailability(context, skill) ??
     attunementAvailability(context, skill) ??
     conjureCommandAvailability(context, skill) ??
     slotAvailability(context, skill) ??

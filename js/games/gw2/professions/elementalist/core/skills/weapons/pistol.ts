@@ -29,9 +29,15 @@ import {
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import {
+  allPistolBulletsLoaded,
   hasPistolBullet,
-  pistolBulletSideEffectHandlers
+  pistolBulletSideEffectHandlers,
+  spendAllPistolBullets
 } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
+import { type AvailabilityResult, denySkillCast } from '#gw2/platform/execution/availability.js';
+import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 /**
  * Pistol weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -748,6 +754,41 @@ export function triggerShatteringStone(context: ElementalistResolverContext, eve
     }
   }
 }
+
+/** Elemental Explosion is castable only while one bullet of every element is stored. */
+export function elementalExplosionAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill
+): AvailabilityResult | null {
+  return Number(skill.id) === ID.ELEMENTAL_EXPLOSION && !allPistolBulletsLoaded(context)
+    ? denySkillCast(skill, 'elementalist.pistol-bullets', 'requires all four elemental bullets.')
+    : null;
+}
+
+/** Elemental Explosion's completion grants the current attunement's aura, then spends every stored bullet. */
+export const elementalistPistolLifecycle = {
+  tasks: {
+    'elementalist.core.consume-elemental-explosion'(runtime, data) {
+      const { cast } = data as SkillTaskData<ElementalistSkill>;
+      const effect = requireEffect(
+        requireBalanceProfileFromContext(runtime, PROFILE.elementalExplosion),
+        'buff',
+        runtime.profession.core.primaryAttunement
+      );
+
+      if (effect)
+        applyElementalistAura(runtime, {
+          at: runtime.time,
+          aura: String(effect.kind),
+          duration: effect.duration,
+          skillName: cast.skill.name,
+          sourceId: cast.skill.id
+        });
+
+      spendAllPistolBullets(runtime);
+    }
+  }
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;
 
 /** An accepted non-auto pistol cast consumes Dazing Discharge once and keeps its reserved recharge. */
 export function reservePistolRecharge(context: ElementalistRuntime, skill: Skill, duration: number): number {

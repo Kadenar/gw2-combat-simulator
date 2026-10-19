@@ -1,4 +1,5 @@
 import { ACTOR } from '#gw2/platform/constants.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
@@ -73,8 +74,16 @@ const engineerTurretTasks: RuntimeProfession<EngineerRuntimeState, EngineerSkill
   }
 };
 
-/** Turret deployment actions and autonomous attacks share one owner. */
+/** Turret deployment, its single-deployment gate, deferred recharge, and autonomous attacks share one owner. */
 export const engineerTurretLifecycle = {
   sideEffectHandlers: engineerTurretSideEffectHandlers,
-  tasks: engineerTurretTasks
+  tasks: engineerTurretTasks,
+  // One turret exists at a time; the parent stays unavailable until detonation retires the deployed generation.
+  availability(runtime, skill) {
+    return skill.id === ID.HEALING_TURRET && runtime.profession.core.healingTurretActivationId
+      ? denySkillCast(skill, 'engineer.healing-turret-active', 'the deployed turret must be detonated first.')
+      : { ready: true };
+  },
+  // Deployment reserves no recharge; detonation starts the parent's recharge instead.
+  reserveRecharge: (_runtime, skill, work) => (skill.id === ID.HEALING_TURRET ? 0 : work)
 } satisfies RuntimeHooks<EngineerRuntimeState, EngineerSkill>;
