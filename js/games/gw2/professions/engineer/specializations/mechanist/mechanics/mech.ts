@@ -19,6 +19,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { GW2_QUICKNESS_ACTION_RATE, scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -41,8 +42,6 @@ const MECH_REFERENCE_POWER = 1500;
 const MECH_TYPE_1_PROFILE_ID = 'summon.weapon-type-1';
 const MECH_TYPE_2_PROFILE_ID = 'summon.weapon-type-2';
 const MECH_TYPE_3_PROFILE_ID = 'summon.weapon-type-3';
-// The mech takes roughly one-third of a second after a command's activation
-// ends before resuming its basic attack chain.
 const MECH_BASIC_SKILL_IDS = new Set<SkillId>([
   ID.HARD_STRIKE,
   ID.HEAVY_SMASH_MECH,
@@ -51,6 +50,41 @@ const MECH_BASIC_SKILL_IDS = new Set<SkillId>([
   ID.JADE_ENERGY_SHOT_ID_63348,
   ID.ROCKET_PUNCH_MECH
 ]);
+
+// Paired 2026-10-19 logs measure impact independently of animation length.
+// Keys are unbuffed offsets; values are Quickness offsets, including projectile travel.
+const MECH_QUICKNESS_IMPACT_OFFSETS: Readonly<Record<number, Readonly<Record<number, number>>>> = Object.freeze({
+  [ID.HARD_STRIKE]: { 400: 280 },
+  [ID.HEAVY_SMASH_MECH]: { 400: 280 },
+  [ID.TWIN_STRIKE_MECH]: { 520: 360 },
+  [ID.JADE_ENERGY_SHOT]: { 480: 320 },
+  [ID.JADE_ENERGY_SHOT_ID_63348]: { 480: 320 },
+  [ID.CORE_REACTOR_SHOT]: { 840: 720 },
+  [ID.SPARK_REVOLVER]: { 1000: 760, 1200: 880, 1440: 1040, 1680: 1200, 1920: 1360, 2160: 1520 }
+});
+
+/** Select measured Quickness impacts without stretching travel time or aftercast by the animation-duration ratio. */
+function mechImpactEffects(
+  skillId: SkillId,
+  effects: readonly SkillEffect[],
+  quickness: boolean
+): readonly SkillEffect[] {
+  const offsets = MECH_QUICKNESS_IMPACT_OFFSETS[Number(skillId)];
+
+  if (!quickness || !offsets) return effects;
+
+  return effects.map((effect) => {
+    if (effect.timingAnchor !== 'castStart' || effect.timingScale !== 'fixed') return effect;
+
+    return {
+      ...effect,
+      ...(effect.atMs == null ? {} : { atMs: offsets[effect.atMs] ?? effect.atMs }),
+      ...(Array.isArray(effect.ticks)
+        ? { ticks: effect.ticks.map((tick) => ({ ...tick, atMs: offsets[tick.atMs] ?? tick.atMs })) }
+        : {})
+    };
+  });
+}
 
 const MECH_WEAPON_PROFILE_BY_SKILL_ID: ReadonlyMap<SkillId, string> = new Map<SkillId, string>([
   [ID.JADE_ENERGY_SHOT, MECH_TYPE_1_PROFILE_ID],
@@ -99,6 +133,11 @@ export interface MechAttackPayload {
   readonly previousCommandEnd: number;
 }
 
+interface MechImpactPayload {
+  readonly skillId: SkillId;
+  readonly previousCommandEnd: number;
+}
+
 /** Commands and basic attacks share the mech's direct or copied Quickness, evaluated at execution time. */
 export function engineerMechHasQuickness(context: MechanicQueriesOf<EngineerRuntime>, at: number): boolean {
   return (
@@ -114,14 +153,17 @@ function mechAttackRate(context: EngineerRuntime, at: number): number {
   return engineerMechHasQuickness(context, at) ? GW2_QUICKNESS_ACTION_RATE : 1;
 }
 
-/** The autonomous phase already reached impact; canonical ticks collapse onto that phase without changing replay timing. */
+/** Autonomous impacts have already waited through their windup; emit the canonical payload once at the current instant. */
 function emitMechAttack(context: EngineerRuntime, skillId: SkillId, at: number): void {
   const skill = context.helpers.skillsById.get(skillId)!;
   context.effects.emit({
     kind: 'profile',
     profile: skill,
     at,
-    effects: skill.effects?.map((effect) => scaleCastBoundTiming({ start: at, fullEnd: at }, skill, effect)),
+    effects: skill.effects?.map((effect) => ({
+      ...scaleCastBoundTiming({ start: at, fullEnd: at }, skill, effect),
+      atMs: 0
+    })),
     skillWeaponFallback: 'Unequipped',
     attribution: {
       source: 'engineer',
@@ -201,6 +243,8 @@ function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEve
   if (!engineerMech) return event;
 
   const updates: Record<string, unknown> = {
+    // Name every mech contribution so strike rows and condition disclosures share the same entity group.
+    entityName: 'Jade Mech',
     // All mech skills belong to the same concrete companion for shared condition rounding.
     summonOwner: 'engineer.mech',
     independentConditionOwner: true,
@@ -285,26 +329,27 @@ function stepMechAttack(
   payload: MechAttackPayload
 ): { at: number; state: MechAttackPayload } {
   const state = mechanistState.from(context);
-  const rate = mechAttackRate(context, at);
-  // Jade Cannons replaces the melee chain with alternating arm shots and
-  // distinct within-pair and between-pair delays.
-  const cannon = jadeCannonsAttack(context.config, payload.phase);
-
-  if (cannon) {
-    emitMechAttack(context, cannon.skillId, at);
-    return {
-      at: at + cannon.interval / rate,
-      state: { phase: cannon.nextPhase, previousCommandEnd: state.mech.busyUntil }
-    };
-  }
-
-  // Commands interrupt the melee chain; even a command completed between scheduled attacks restarts at Hard Strike.
+  // Commands restart either chain from its first attack, including commands completed between autonomous wakes.
   const phase = state.mech.busyUntil > payload.previousCommandEnd ? 0 : payload.phase;
-  const skillId = [ID.HARD_STRIKE, ID.HEAVY_SMASH_MECH, ID.TWIN_STRIKE_MECH][phase];
-  emitMechAttack(context, skillId, at);
+  const cannon = jadeCannonsAttack(context.config, phase);
+  const skillId = cannon?.skillId ?? [ID.HARD_STRIKE, ID.HEAVY_SMASH_MECH, ID.TWIN_STRIKE_MECH][phase];
+  const skill = context.helpers.skillsById.get(skillId)!;
+  const quickness = engineerMechHasQuickness(context, at);
+  const effects = mechImpactEffects(skillId, skill.effects || [], quickness);
+  // Separate windup from impact so a command can supersede an attack that has not landed yet.
+  const impactMs = effects.find((effect) => effect.type === 'strike')?.atMs || 0;
+  context.schedule('engineer.mech-impact', at + impactMs / 1000, {
+    skillId,
+    previousCommandEnd: state.mech.busyUntil
+  });
 
-  const nextAt = at + MECHANIST_ATTACK_TIMING.meleeChainIntervals[phase] / rate;
-  return { at: nextAt, state: { phase: (phase + 1) % 3, previousCommandEnd: state.mech.busyUntil } };
+  const castMs = quickness ? summonQuicknessCastTimeMs(skill) : skill.castTimeMs || 0;
+  const recovery = cannon?.recovery ?? MECHANIST_ATTACK_TIMING.meleeChainRecovery[phase];
+  const nextAt = at + castMs / 1000 + recovery;
+  return {
+    at: nextAt,
+    state: { phase: cannon?.nextPhase ?? (phase + 1) % 3, previousCommandEnd: state.mech.busyUntil }
+  };
 }
 
 /** Reserves the mech lane and emits Overclock Signet's timed Jade Buster Cannon burst. */
@@ -358,6 +403,9 @@ export const engineerMechLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerS
 
     return engineerMechHasQuickness(runtime, runtime.time) ? summonQuicknessCastTimeMs(skill) : skill.castTimeMs || 0;
   },
+  modifyEffects(runtime, cast, effects) {
+    return mechImpactEffects(cast.skill.id, effects, engineerMechHasQuickness(runtime, cast.start));
+  },
   prepareEvent(runtime, event) {
     return prepareEngineerMechEvent(
       runtime,
@@ -381,8 +429,23 @@ export const engineerMechLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerS
     completeEngineerMechCast(runtime, cast.skill);
   },
   // The mech's autonomous loop does not define the lifetime of a player skill or its reactions.
-  backgroundTasks: ['engineer.mech-attack'],
+  backgroundTasks: ['engineer.mech-attack', 'engineer.mech-impact'],
   tasks: {
+    'engineer.mech-impact'(runtime, data) {
+      const mech = mechanistState.from(runtime).mech;
+      const impact = data as MechImpactPayload;
+
+      // A command that took the lane after windup began cancels this pending basic attack.
+      if (
+        !autonomousActionsAllowed(runtime) ||
+        !mech.enabled ||
+        !mech.active ||
+        mech.busyUntil > impact.previousCommandEnd
+      )
+        return;
+
+      emitMechAttack(runtime, impact.skillId, runtime.time);
+    },
     'engineer.mech-attack'(runtime, data) {
       const mech = mechanistState.from(runtime).mech;
 

@@ -6,7 +6,6 @@ import { ACTOR, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/consta
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { MECHANIST_COMMAND_DURATIONS } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 
 // F1-F3 commands execute on the mech's own serial cast lane so their animations
 // can overlap the engineer without allowing non-instant mech commands to overlap.
@@ -21,10 +20,10 @@ function mechCommand(fragment: Partial<Skill>): Partial<Skill> {
   };
 }
 
-/** Supplies command fragments and their independent cast-lane metadata. */
+/** Explicit base/Quickness pairs retain measured aftercasts, including commands that Quickness does not accelerate. */
 export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
   [ID.JADE_MORTAR]: mechCommand({
-    quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.JADE_MORTAR] * 1000,
+    quicknessCastTimeMs: 1080,
     // Issuing the command starts recharge even though the mech remains busy
     // on its independent lane for the measured animation.
     rechargeAnchor: 'castStart',
@@ -55,7 +54,8 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
   }),
   [ID.BARRIER_BURST]: mechCommand({
     // Reserve the entire observed channel so autonomous melee attacks cannot run between barrier pulses.
-    quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.BARRIER_BURST] * 1000,
+    castTimeMs: 4440,
+    quicknessCastTimeMs: 4440,
     cooldown: 30,
     // Barrier and both boons pulse together; recipient resolution grants the mech its separate entitlement.
     effects: (
@@ -92,28 +92,20 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
     mechanicSlot: 3
   }),
   [ID.SPARK_REVOLVER]: mechCommand({
-    quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.SPARK_REVOLVER] * 1000,
+    castTimeMs: 2040,
+    quicknessCastTimeMs: 1400,
     rechargeAnchor: 'castStart',
     cooldown: 20,
     effects: [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 720, coefficient: 0.176 },
-          { atMs: 720, coefficient: 0.176 },
-          { atMs: 840, coefficient: 0.176 },
-          { atMs: 840, coefficient: 0.176 },
-          { atMs: 1000, coefficient: 0.176 },
-          { atMs: 1000, coefficient: 0.176 },
-          { atMs: 1160, coefficient: 0.176 },
-          { atMs: 1160, coefficient: 0.176 },
-          { atMs: 1320, coefficient: 0.176 },
-          { atMs: 1320, coefficient: 0.176 },
-          { atMs: 1480, coefficient: 0.176 },
-          { atMs: 1480, coefficient: 0.176 }
-        ],
+        // Both arms hit together; the last projectiles land after the animation ends.
+        ticks: [1000, 1200, 1440, 1680, 1920, 2160].flatMap((atMs) => [
+          { atMs, coefficient: 0.176 },
+          { atMs, coefficient: 0.176 }
+        ]),
         timingAnchor: 'castStart',
-        timingScale: 'cast',
+        timingScale: 'fixed',
         name: 'Spark Revolver',
         actorType: ACTOR.SUMMON
       }
@@ -121,7 +113,8 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
     mechanicSlot: 1
   }),
   [ID.SKY_CIRCUS]: mechCommand({
-    // Four logged Quickness animations last ~2120 ms; landing damage occurs at ~1320 ms.
+    // The jump and landing retain the same timings with and without Quickness.
+    castTimeMs: 2120,
     quicknessCastTimeMs: 2120,
     cooldown: 30,
     effects: [
@@ -137,7 +130,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
         },
         { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5, actorType: ACTOR.SUMMON }
       ]),
-      ...impactEffects({ atMs: 1320, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      ...impactEffects({ atMs: 1320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         { type: 'strike', coefficient: 1.2, hits: 1, name: 'Landing Damage', actorType: ACTOR.SUMMON },
         { type: 'control', actorType: ACTOR.SUMMON, controlKind: CONTROL.KNOCKBACK }
       ])
@@ -181,9 +174,10 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
   }),
   [ID.ROLLING_SMASH]: mechCommand({
     // The mech remains occupied through the full slam animation before restarting its basic chain.
-    quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.ROLLING_SMASH] * 1000,
+    castTimeMs: 1520,
+    quicknessCastTimeMs: 1520,
     cooldown: 20,
-    effects: [
+    effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.6,
@@ -198,15 +192,16 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
         duration: 8,
         actorType: ACTOR.SUMMON
       }
-    ],
+    ]),
     mechanicSlot: 1
   }),
   [ID.CORE_REACTOR_SHOT]: mechCommand({
-    quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.CORE_REACTOR_SHOT] * 1000,
+    castTimeMs: 1440,
+    quicknessCastTimeMs: 1000,
     rechargeAnchor: 'castStart',
     cooldown: 25,
-    // Share one impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 680, timingAnchor: 'castStart', timingScale: 'cast' }, [
+    // Use the close-range impact; explicit impact delays can account for additional projectile travel.
+    effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 2.5,
@@ -223,9 +218,10 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
     mechanicSlot: 2
   }),
   [ID.EXPLOSIVE_KNUCKLE]: mechCommand({
-    castTimeMs: 500,
+    castTimeMs: 1520,
+    quicknessCastTimeMs: 1520,
     cooldown: 15,
-    effects: [
+    effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.8,
@@ -241,7 +237,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
         duration: 5,
         actorType: ACTOR.SUMMON
       }
-    ],
+    ]),
     mechanicSlot: 1
   }),
   [ID.DISCHARGE_ARRAY]: mechCommand({

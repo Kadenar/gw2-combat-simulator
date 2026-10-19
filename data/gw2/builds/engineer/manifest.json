@@ -287,26 +287,26 @@
         "label": "Condition Spear (1 Kit)",
         "build": "data/gw2/builds/engineer/b-condi-mechanist-spear-1kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-mechanist-spear-1kit-bench.json",
-        "benchmarkDps": 40068,
+        "benchmarkDps": 40126,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-mechanist-one-kit-spear",
         "benchmarkApm": 86.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38743, "phase": 38743 },
-          "80-60": { "cumulative": 38634, "phase": 38525 },
-          "60-40": { "cumulative": 39160, "phase": 40321 },
-          "40-20": { "cumulative": 39923, "phase": 42376 },
-          "20-0": { "cumulative": 40068, "phase": 40068 }
+          "100-80": { "cumulative": 38832, "phase": 38832 },
+          "80-60": { "cumulative": 38277, "phase": 37709 },
+          "60-40": { "cumulative": 39213, "phase": 41210 },
+          "40-20": { "cumulative": 39975, "phase": 42419 },
+          "20-0": { "cumulative": 40126, "phase": 40126 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 40050,
+          "benchmarkDps": 40108,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 38726, "phase": 38726 },
-            "80-60": { "cumulative": 38616, "phase": 38507 },
-            "60-40": { "cumulative": 39141, "phase": 40301 },
-            "40-20": { "cumulative": 39905, "phase": 42358 },
-            "20-0": { "cumulative": 40050, "phase": 40050 }
+            "100-80": { "cumulative": 38815, "phase": 38815 },
+            "80-60": { "cumulative": 38259, "phase": 37690 },
+            "60-40": { "cumulative": 39195, "phase": 41191 },
+            "40-20": { "cumulative": 39956, "phase": 42401 },
+            "20-0": { "cumulative": 40108, "phase": 40108 }
           }
         }
       },
@@ -314,26 +314,26 @@
         "label": "Condition Alacrity Spear (1 Kit)",
         "build": "data/gw2/builds/engineer/b-condi-alac-mechanist-spear.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-mechanist-spear-wingman.json",
-        "benchmarkDps": 30085,
+        "benchmarkDps": 30098,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-alacrity-mechanist-one-kit-spear",
         "benchmarkApm": 79.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 29598, "phase": 29598 },
-          "80-60": { "cumulative": 29930, "phase": 30276 },
-          "60-40": { "cumulative": 30240, "phase": 30871 },
-          "40-20": { "cumulative": 30262, "phase": 30329 },
-          "20-0": { "cumulative": 30085, "phase": 29396 }
+          "100-80": { "cumulative": 29601, "phase": 29601 },
+          "80-60": { "cumulative": 29906, "phase": 30223 },
+          "60-40": { "cumulative": 30249, "phase": 30948 },
+          "40-20": { "cumulative": 30262, "phase": 30301 },
+          "20-0": { "cumulative": 30098, "phase": 29459 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 30074,
+          "benchmarkDps": 30086,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 29586, "phase": 29586 },
-            "80-60": { "cumulative": 29919, "phase": 30265 },
-            "60-40": { "cumulative": 30228, "phase": 30859 },
-            "40-20": { "cumulative": 30251, "phase": 30318 },
-            "20-0": { "cumulative": 30074, "phase": 29385 }
+            "100-80": { "cumulative": 29589, "phase": 29589 },
+            "80-60": { "cumulative": 29895, "phase": 30212 },
+            "60-40": { "cumulative": 30237, "phase": 30936 },
+            "40-20": { "cumulative": 30251, "phase": 30291 },
+            "20-0": { "cumulative": 30086, "phase": 29448 }
           }
         }
       },
@@ -342,25 +342,25 @@
         "build": "data/gw2/builds/engineer/b-power-mechanist-sword-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-mechanist-sword-pistol",
-        "benchmarkDps": 40843,
+        "benchmarkDps": 40763,
         "upToDate": true,
         "benchmarkApm": 58.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42702, "phase": 42702 },
-          "80-60": { "cumulative": 41550, "phase": 40448 },
-          "60-40": { "cumulative": 40543, "phase": 38675 },
-          "40-20": { "cumulative": 40537, "phase": 40517 },
-          "20-0": { "cumulative": 40843, "phase": 40843 }
+          "100-80": { "cumulative": 42517, "phase": 42517 },
+          "80-60": { "cumulative": 41460, "phase": 40448 },
+          "60-40": { "cumulative": 40426, "phase": 38508 },
+          "40-20": { "cumulative": 40459, "phase": 40559 },
+          "20-0": { "cumulative": 40763, "phase": 40763 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 40786,
+          "benchmarkDps": 40706,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 42637, "phase": 42637 },
-            "80-60": { "cumulative": 41480, "phase": 40373 },
-            "60-40": { "cumulative": 40480, "phase": 38624 },
-            "40-20": { "cumulative": 40543, "phase": 40733 },
-            "20-0": { "cumulative": 40786, "phase": 40786 }
+            "100-80": { "cumulative": 42452, "phase": 42452 },
+            "80-60": { "cumulative": 41159, "phase": 39952 },
+            "60-40": { "cumulative": 40362, "phase": 38827 },
+            "40-20": { "cumulative": 40320, "phase": 40194 },
+            "20-0": { "cumulative": 40706, "phase": 40706 }
           }
         }
       },
@@ -369,25 +369,25 @@
         "build": "data/gw2/builds/engineer/b-power-mechanist-rifle.json",
         "rotation": "data/gw2/rotations/engineer/r-power-mechanist-rifle-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-mechanist-rifle",
-        "benchmarkDps": 38749,
+        "benchmarkDps": 38555,
         "upToDate": true,
         "benchmarkApm": 76.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 41890, "phase": 41890 },
-          "80-60": { "cumulative": 38468, "phase": 35555 },
-          "60-40": { "cumulative": 37976, "phase": 37029 },
-          "40-20": { "cumulative": 38543, "phase": 40338 },
-          "20-0": { "cumulative": 38749, "phase": 39603 }
+          "100-80": { "cumulative": 41808, "phase": 41808 },
+          "80-60": { "cumulative": 38468, "phase": 35613 },
+          "60-40": { "cumulative": 38113, "phase": 37422 },
+          "40-20": { "cumulative": 38543, "phase": 39884 },
+          "20-0": { "cumulative": 38555, "phase": 38606 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 38547,
+          "benchmarkDps": 38445,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 41067, "phase": 41067 },
-            "80-60": { "cumulative": 38415, "phase": 36054 },
-            "60-40": { "cumulative": 37864, "phase": 36809 },
-            "40-20": { "cumulative": 38370, "phase": 39973 },
-            "20-0": { "cumulative": 38547, "phase": 39270 }
+            "100-80": { "cumulative": 41066, "phase": 41066 },
+            "80-60": { "cumulative": 38230, "phase": 35727 },
+            "60-40": { "cumulative": 37922, "phase": 37324 },
+            "40-20": { "cumulative": 38285, "phase": 39425 },
+            "20-0": { "cumulative": 38445, "phase": 39097 }
           }
         }
       }

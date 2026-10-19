@@ -508,7 +508,7 @@ test('Mechanist arm traits alter mech hits and their command skills', () => {
     )
   );
 
-  const meleeChain = simulate('Mechanist', [{ type: 'wait', durationMs: 3000 }], {
+  const meleeChain = simulate('Mechanist', [{ type: 'wait', durationMs: 4000 }], {
     selectedTraitIds: [
       TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
       TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,

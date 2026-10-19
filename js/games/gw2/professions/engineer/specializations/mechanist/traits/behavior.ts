@@ -14,17 +14,17 @@ export function mechArmsCommand(traits: EngineerConfig | ReadonlySet<SkillId>): 
   ]);
 }
 
-/** Jade Cannons replaces the basic chain while the mechanic retains attack emission and scheduling. */
+/** Jade Cannons selects the arm and post-animation recovery; the shared attack loop owns windup and impact. */
 export function jadeCannonsAttack(
   config: EngineerConfig,
   phase: number
-): { skillId: SkillId; interval: number; nextPhase: number } | undefined {
+): { skillId: SkillId; recovery: number; nextPhase: number } | undefined {
   if (!hasTrait(config, TRAIT.MECH_ARMS_JADE_CANNONS)) return;
 
   const firstArm = phase === 0;
   return {
     skillId: firstArm ? ID.JADE_ENERGY_SHOT : ID.JADE_ENERGY_SHOT_ID_63348,
-    interval: firstArm ? MECHANIST_ATTACK_TIMING.jadeCannonArmGap : MECHANIST_ATTACK_TIMING.jadeCannonCycleGap,
+    recovery: MECHANIST_ATTACK_TIMING.jadeCannonRecovery[firstArm ? 0 : 1],
     nextPhase: firstArm ? 1 : 0
   };
 }
