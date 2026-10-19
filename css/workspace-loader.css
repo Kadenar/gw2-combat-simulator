@@ -165,52 +165,69 @@
   margin: 16px 0 24px;
 }
 
+/* Group square placeholders and pulse in the profession's accent while startup status supplies progress. */
 .loader-skill-bar {
-  display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  gap: clamp(3px, 1vw, 8px);
+  --slot-bg: color-mix(in srgb, var(--accent) 6%, var(--bg-panel));
+  --slot-bg-pulse: color-mix(in srgb, var(--accent) 14%, var(--bg-panel));
+  --slot-border: color-mix(in srgb, var(--accent) 28%, transparent);
+  --slot-key: color-mix(in srgb, var(--accent) 55%, transparent);
+  --slot-radius: 4px;
+  --slot-gap: 8px;
+  --group-gap: 24px;
+  --key-size: 12px;
+  --pulse-duration: 1.6s;
+  --pulse-stagger: 120ms;
+  display: flex;
+  gap: var(--group-gap);
+  width: 100%;
 }
 
-/* Tint placeholder frames, symbols, and labels with the profession's existing accent. */
-.loader-skill-bar > span {
+.loader-skill-group {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: var(--slot-gap);
+}
+
+.loader-skill-slot {
   position: relative;
-  display: grid;
-  align-items: end;
+  flex: 1;
+  min-width: 0;
   aspect-ratio: 1;
-  padding-bottom: 2px;
-  overflow: hidden;
-  text-align: center;
-  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
-  border-radius: 3px;
-  background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent);
-  color: color-mix(in srgb, var(--accent) 44%, transparent);
-  font: 11px var(--mono);
-  animation: loader-skill-assemble 6s ease-in-out infinite both;
-  animation-delay: calc(var(--slot) * 0.14s);
+  border: 1px solid var(--slot-border);
+  border-radius: var(--slot-radius);
+  background: var(--slot-bg);
+  animation: loader-skill-pulse var(--pulse-duration) ease-in-out infinite;
+  animation-delay: calc(var(--slot) * var(--pulse-stagger));
 }
 
-.loader-skill-bar > span::before {
-  content: '';
+.loader-skill-key {
   position: absolute;
-  width: 22%;
-  height: 22%;
-  top: 25%;
-  left: 39%;
-  border: 1px solid currentColor;
-  transform: rotate(45deg);
+  top: 4px;
+  left: 6px;
+  font-size: var(--key-size);
+  line-height: 1;
+  color: var(--slot-key);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
 }
 
 .loader-panels {
+  --loader-panel-travel: 3px;
   display: grid;
   grid-template-columns: 1.4fr 1fr;
   gap: 12px;
   margin-top: 20px;
+  /* Keep rounded grid borders clear of the workspace clip when fractional columns round during painting. */
+  padding-right: 1px;
 }
 
 .loader-traits,
 .loader-gear {
   display: grid;
   gap: 8px;
+  /* Reserve the animation's downward travel so the final row stays within its container. */
+  padding-bottom: var(--loader-panel-travel);
 }
 
 .loader-gear {
@@ -219,9 +236,10 @@
 
 .loader-panels i {
   height: 20px;
-  border: 1px solid var(--border-light);
+  /* Carry the skill placeholders' profession tint through the trait and gear skeletons. */
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
   border-radius: 3px;
-  background: linear-gradient(90deg, #ffffff08, transparent);
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-panel));
   opacity: 0.55;
   transform-origin: left;
   animation: loader-panel-assemble 6s ease-in-out infinite both;
@@ -240,7 +258,7 @@
   --row: 2;
 }
 
-/* Only transform and opacity run continuously across the composition. */
+/* Artwork and panel motion stay separate from the skill tiles' background pulse. */
 @keyframes loader-art-drift {
   50% {
     transform: translate(-5px, -2px) scale(1.018);
@@ -257,23 +275,20 @@
   }
 }
 
-@keyframes loader-skill-assemble {
+@keyframes loader-skill-pulse {
   0%,
   100% {
-    opacity: 0.3;
-    transform: translateY(6px);
+    background: var(--slot-bg);
   }
-  24%,
-  72% {
-    opacity: 1;
-    transform: translateY(0);
+  50% {
+    background: var(--slot-bg-pulse);
   }
 }
 
 @keyframes loader-panel-assemble {
   0%,
   100% {
-    transform: translateY(3px) scaleX(0.92);
+    transform: translateY(var(--loader-panel-travel)) scaleX(0.92);
     opacity: 0.2;
   }
   36%,
@@ -320,11 +335,6 @@
     margin-top: 28px;
   }
 
-  .loader-skill-bar > span {
-    aspect-ratio: 0.8;
-    min-height: 40px;
-  }
-
   .loader-panels {
     gap: 8px;
   }
@@ -339,9 +349,5 @@
 
   .loader-sparks {
     display: none;
-  }
-
-  .loader-skill-bar > span {
-    color: var(--accent);
   }
 }

@@ -132,15 +132,49 @@ test('loading workspace follows startup and stays accessible on narrow screens',
     await expect(overlay.getByRole('status')).toHaveText('Loading Engineer data…');
     await expect(overlay.getByRole('status')).toBeVisible();
     await expect(page.locator('#app')).toHaveAttribute('inert', '');
-    const slot = overlay.locator('.loader-skill-bar > span').first();
-    await expect(slot).toHaveCSS('animation-name', 'loader-skill-assemble');
+    const slot = overlay.locator('.loader-skill-slot').first();
+    await expect(slot).toHaveCSS('animation-name', 'loader-skill-pulse');
     await expect(overlay.locator('.loader-crest')).toHaveAttribute('src', /\/professions\/engineer\/amalgam\.png$/);
     await expect(overlay.locator('.loader-crest')).toBeVisible();
     await expect
       .poll(() => overlay.locator('.loader-crest').evaluate((image) => image.naturalWidth))
       .toBeGreaterThan(0);
 
+    // Sample the assembly animation so its growth and movement stay inside the grid at either viewport size.
+    const expectContainedSkeleton = async () => {
+      const contained = await overlay.locator('.loader-panels').evaluate((panels) => {
+        const bars = [...panels.querySelectorAll('i')];
+        const animations = panels.getAnimations({ subtree: true });
+        const panelBounds = panels.getBoundingClientRect();
+        const contained = [0, 3600, 5999].every((time) => {
+          animations.forEach((animation) => {
+            animation.pause();
+            animation.currentTime = time;
+          });
+          return bars.every((bar) => {
+            const rect = bar.getBoundingClientRect();
+            const parent = bar.parentElement.getBoundingClientRect();
+            return (
+              rect.left >= parent.left &&
+              rect.right <= parent.right + 0.1 &&
+              // Leave painting room for the right border when fractional grid tracks round to device pixels.
+              rect.right <= panelBounds.right - 1 + 0.1 &&
+              rect.top >= parent.top &&
+              rect.bottom <= parent.bottom + 0.1
+            );
+          });
+        });
+        animations.forEach((animation) => animation.play());
+        return contained;
+      });
+      expect(contained).toBe(true);
+    };
+
+    await expectContainedSkeleton();
+    await page.setViewportSize({ width: 906, height: 729 });
+    await expectContainedSkeleton();
     await page.setViewportSize({ width: 320, height: 568 });
+    await expectContainedSkeleton();
     const preview = await overlay.locator('.loader-preview').boundingBox();
     expect(preview.x).toBeGreaterThanOrEqual(0);
     expect(preview.x + preview.width).toBeLessThanOrEqual(320);
