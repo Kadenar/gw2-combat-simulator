@@ -117,7 +117,7 @@ const willingHost = defineTrait({
   balance: {
     damageIncrease: 0.05,
     conditionDamageIncrease: 0.05,
-    durationMultiplier: 10
+    duration: 10
   },
   triggers: [onTriggerPoint(amalgamMorphed, { run: extendWillingHost })],
   modifierRules: [
@@ -246,7 +246,7 @@ function extendWillingHost(context: EngineerRuntime, { at }: AmalgamMorph): void
   const state = amalgamState.from(context);
   state.willingHostUntil = Math.max(
     state.willingHostUntil,
-    at + balanceNumberFromContext(context, TRAIT.WILLING_HOST, 'durationMultiplier')
+    at + balanceNumberFromContext(context, TRAIT.WILLING_HOST, 'duration')
   );
 }
 

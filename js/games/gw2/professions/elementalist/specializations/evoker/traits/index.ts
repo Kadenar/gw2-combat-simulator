@@ -102,7 +102,7 @@ const elementalBalance = defineTrait({
   name: 'Elemental Balance',
   balance: {
     threshold: 2,
-    durationMultiplier: 5,
+    duration: 5,
     rechargeMultiplier: 0.34
   },
   lifetime: { reserveRecharge: commitRechargeDuration }
@@ -155,7 +155,7 @@ function applyGalvanicEnchantment(
     grantElectricEnchantments(context, {
       at: cast.effectiveEnd,
       stacks: balanceProfileNumber(profile, 'playerStacks'),
-      duration: balanceProfileNumber(profile, 'durationMultiplier'),
+      duration: balanceProfileNumber(profile, 'duration'),
       skill,
       procType: 'trait'
     });
@@ -176,7 +176,7 @@ const galvanicEnchantment = defineTrait({
     // Trait and familiar grants consume the same Electric Enchantment pool.
     damagePreviewAttribution: 'shared',
     playerStacks: 2,
-    durationMultiplier: 6,
+    duration: 6,
     effects: [
       { name: 'Galvanic Enchantment', type: 'strike', coefficient: 0.4, hits: 1 },
       { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 1.5 }
@@ -246,7 +246,7 @@ const familiarsProwess = defineTrait({
   id: TRAIT.FAMILIARS_PROWESS,
   name: "Familiar's Prowess",
   balance: {
-    durationMultiplier: 5,
+    baseDuration: 5,
     maximumStacks: 15,
     durationPerTier: 5,
     damageIncrease: 0.05,
@@ -417,7 +417,7 @@ function applyElementalBalanceEntry(context: ElementalistRuntime, event: Simulat
 
     if (progress.reached) {
       // Temporary-effect expiry uses the absolute combat tick, including patched durations.
-      const duration = balanceProfileNumber(elementalBalanceProfile, 'durationMultiplier');
+      const duration = balanceProfileNumber(elementalBalanceProfile, 'duration');
       state.elementalBalanceUntil = gw2EffectExpiresAt(event.at, duration);
       context.effects.emit(
         elementalistAnnouncement({
@@ -557,7 +557,7 @@ function applyAltruisticAspect(context: ElementalistRuntime, cast: RuntimeCast<E
 function grantFamiliarProwess(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const at = cast.effectiveEnd;
   const familiarsProwessProfile = requireBalanceProfileFromContext(context, TRAIT.FAMILIARS_PROWESS);
-  const baseDuration = balanceProfileNumber(familiarsProwessProfile, 'durationMultiplier');
+  const baseDuration = balanceProfileNumber(familiarsProwessProfile, 'baseDuration');
   const extension = balanceProfileNumber(familiarsProwessProfile, 'durationPerTier');
   const maximumDuration = balanceProfileNumber(familiarsProwessProfile, 'maximumStacks');
   const current = activeElementalistBuffs(context, 'familiars-prowess', at).at(-1);

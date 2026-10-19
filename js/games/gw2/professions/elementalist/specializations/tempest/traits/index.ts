@@ -108,10 +108,10 @@ const tempestuousAria = defineTrait({
   balance: {
     damageIncrease: 0.1,
     conditionDamageIncrease: 0.05,
-    // Each aura extends the damage buff by `durationMultiplier` seconds, capped `maximumStacks`
+    // Each aura extends the damage buff by `durationExtension` seconds, capped `maximumStacks`
     // seconds past the triggering aura; `Shout Might` is the separate shout-completion payload.
     maximumStacks: 10,
-    durationMultiplier: 5,
+    durationExtension: 5,
     effects: [{ type: 'boon', name: 'Shout Might', boon: BOON.MIGHT, stacks: 2, duration: 10 }]
   },
   modifierRules: [
@@ -379,7 +379,7 @@ export const tempestTraits = [
 /** Aura acceptance refreshes the selected damage window before the later boon listeners. */
 function applyTempestuousAria(context: ElementalistResolverContext, { cause: event }: ElementalistReaction): void {
   const tempestuousAriaProfile = requireBalanceProfileFromContext(context, TRAIT.TEMPESTUOUS_ARIA);
-  const extension = balanceProfileNumber(tempestuousAriaProfile, 'durationMultiplier');
+  const extension = balanceProfileNumber(tempestuousAriaProfile, 'durationExtension');
   const maximum = balanceProfileNumber(tempestuousAriaProfile, 'maximumStacks');
   // Extend the newest live application instead of stacking a second one, clamping the new expiry
   // to the maximum window measured from this aura; with none live, start a fresh application.

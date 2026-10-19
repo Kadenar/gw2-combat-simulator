@@ -72,7 +72,6 @@ const SKILL_FIELDS = new Set([
   'dualWieldInterruptCommitMs',
   'dualWieldOpener',
   'duration',
-  'durationMultiplier',
   'effectVariants',
   'effects',
   'energyCost',
@@ -275,6 +274,18 @@ function validateSkillDeclarations(catalog: CanonicalCatalog, skill: Skill): voi
       throw new TypeError(`Skill ${skill.id} effect variant references missing profile ${variant.profileId}.`);
 }
 
+/** State lifetimes and duration additions use finite, nonnegative seconds, including explicit zero. */
+export function validateDurationFields(owner: Readonly<Record<string, unknown>>, label: string): void {
+  for (const field of ['duration', 'baseDuration', 'durationPerTier', 'durationExtension', 'flipDuration']) {
+    if (!Object.hasOwn(owner, field)) continue;
+
+    const value = owner[field];
+
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
+      throw new TypeError(`${label} field=${field} expected=finite nonnegative seconds.`);
+  }
+}
+
 /**
  * Enforces referential integrity and shape rules for a canonical catalog.
  */
@@ -290,8 +301,11 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
     }
   }
 
-  for (const profile of catalog.balanceProfiles)
+  for (const profile of catalog.balanceProfiles) {
+    validateDurationFields(profile, `profile=${profile.id}`);
     for (const effect of profile.effects ?? []) validateEffectReactions(catalog, profile, effect);
+  }
+
   const ids = new Set();
   for (const skill of catalog?.skills || []) {
     if (skill.id === undefined || skill.id === null || ids.has(skill.id)) {
@@ -363,6 +377,7 @@ export function normalizeSkill<TSkill extends Skill>(
   }
 
   const merged = skillNormalizer ? skillNormalizer(mergedSource) : mergedSource;
+  validateDurationFields(merged, `skill=${id}`);
 
   // Input observations accept only canonical control identifiers.
   if (merged.inputControl != null && !INPUT_CONTROL_IDS.includes(merged.inputControl))

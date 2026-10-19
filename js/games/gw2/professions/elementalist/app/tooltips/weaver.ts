@@ -49,7 +49,7 @@ export const weaverTooltips = {
         id,
         skillTooltip(
           'Create hammer orbs for both attunements and refresh all active orb durations. Grand Finale consumes those orbs. An existing matching orb must be consumed before this dual attack can create it again.',
-          [fromProfile(CORE.hammerOrbs, 'durationMultiplier', 'Refreshed orb duration', tooltipSeconds)]
+          [fromProfile(CORE.hammerOrbs, 'duration', 'Refreshed orb duration', tooltipSeconds)]
         )
       ])
     ),
@@ -78,7 +78,7 @@ export const weaverTooltips = {
     [ID.WEAVE_SELF]: skillTooltip(
       'Begin Weave Self and rapidly cycle attunements. Fire increases condition damage; Air increases strike damage. Visiting every element grants Perfect Weave and unlocks Tailored Victory. The recharge begins when the active sequence ends.',
       [
-        fromProfile(WEAVER.resources, 'durationMultiplier', 'Weave Self window', tooltipSeconds),
+        fromProfile(WEAVER.resources, 'duration', 'Weave Self window', tooltipSeconds),
         fromProfile(WEAVER.resources, 'recharge', 'Perfect Weave window', tooltipSeconds),
         fromModifier('elementalist.weave-self-air', 'amount', 'Air strike damage'),
         fromModifier('elementalist.weave-self-fire', 'amount', 'Fire condition damage')
@@ -90,7 +90,7 @@ export const weaverTooltips = {
     [ID.UNRAVEL]: skillTooltip(
       'Align both hands to your primary attunement and reset all attunement recharges. Gain the matching elemental boon; the hands remain aligned during the window.',
       (balanceContext) => [
-        profileFact(balanceContext, WEAVER.unravel, 'durationMultiplier', 'Unravel window', tooltipSeconds),
+        profileFact(balanceContext, WEAVER.unravel, 'duration', 'Unravel window', tooltipSeconds),
         ...simulationEffectFacts(
           tooltipProfile(balanceContext, WEAVER.unravel).effects,
           'primary attunement alternative'
@@ -100,7 +100,7 @@ export const weaverTooltips = {
     [ID.FERVENT_STANCE]: skillTooltip(
       "Apply the stance's immediate effects and arm might grants for completed dual attacks.",
       (balanceContext) => [
-        profileFact(balanceContext, WEAVER.ferventStance, 'durationMultiplier', 'Stance window', tooltipSeconds),
+        profileFact(balanceContext, WEAVER.ferventStance, 'duration', 'Stance window', tooltipSeconds),
         ...simulationEffectFacts(
           tooltipProfile(balanceContext, WEAVER.ferventStance).effects,
           'per completed dual attack'
@@ -137,7 +137,7 @@ export const weaverTooltips = {
     [TRAIT.ELEMENTS_OF_RAGE]: traitTooltip(
       'Fully attuning to an element grants a temporary strike- and condition-damage bonus.',
       [
-        ['durationMultiplier', 'Bonus duration', tooltipSeconds],
+        ['duration', 'Bonus duration', tooltipSeconds],
         fromProfile(TRAIT.ELEMENTS_OF_RAGE, 'damageIncrease', 'Strike damage', tooltipPercent),
         fromProfile(TRAIT.ELEMENTS_OF_RAGE, 'conditionDamageIncrease', 'Condition damage', tooltipPercent)
       ]

@@ -53,9 +53,7 @@ const stolenSkillTooltip: DescribeSimulationTooltip = skillTooltip(
 
 const prepareTrapTooltip: DescribeSimulationTooltip = skillTooltip(
   'Place a preparation. After its recharge-scaled arming delay, its trigger remains available until used. Placement starts the parent recharge independently.',
-  (_c, selected) => [
-    { name: 'Base arming delay', detail: tooltipSeconds(tooltipNumber(selected, 'durationMultiplier')) }
-  ]
+  (_c, selected) => [{ name: 'Base arming delay', detail: tooltipSeconds(tooltipNumber(selected, 'duration')) }]
 );
 
 const activateTrapTooltip: DescribeSimulationTooltip = skillTooltip(
@@ -78,7 +76,7 @@ const venomTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
         ...profileFact(context, profileId, 'maximumStacks', 'Charges granted per recipient'),
         icon: context.catalog.skillsById.get(entity.id)?.icon
       },
-      profileFact(context, profileId, 'durationMultiplier', 'Charge lifetime', tooltipSeconds)
+      profileFact(context, profileId, 'duration', 'Charge lifetime', tooltipSeconds)
     ],
     'per consumed charge'
   )(balanceContext, entity);
@@ -90,7 +88,7 @@ const assassinsSignetTooltip: DescribeSimulationTooltip = profileTooltip(
   [
     ['attributeBonus', 'Passive power'],
     ['attributePerStack', 'Active power'],
-    ['durationMultiplier', 'Active duration', tooltipSeconds]
+    ['duration', 'Active duration', tooltipSeconds]
   ]
 );
 
@@ -174,7 +172,7 @@ const spearChainTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
     description =
       'At the start of a spear chain, or after a finisher, this acts as a lead attack. Following a finisher also starts a strike-damage bonus.';
     facts.push(
-      profileFact(balanceContext, CORE.distractingThrow, 'durationMultiplier', 'Bonus duration', tooltipSeconds),
+      profileFact(balanceContext, CORE.distractingThrow, 'duration', 'Bonus duration', tooltipSeconds),
       modifierFact(balanceContext, 'thief.distracting-throw-finisher', 'amount', 'Strike damage after a finisher')
     );
   }

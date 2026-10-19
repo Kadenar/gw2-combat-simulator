@@ -61,7 +61,7 @@ export const catalystTooltips = {
         ['attributePerStack', 'Attribute increase per stack', tooltipPercent],
         ['maximumStacks', 'Maximum stacks'],
         ['playerStacks', 'Initial stacks'],
-        ['durationMultiplier', 'Initial stack duration', tooltipSeconds]
+        ['duration', 'Initial stack duration', tooltipSeconds]
       ]
     ),
     [TRAIT.ELEMENTAL_EPITOME]: traitTooltip(
@@ -83,7 +83,7 @@ export const catalystTooltips = {
         ['damageIncreasePerStack', 'Strike damage per stack', tooltipPercent],
         ['conditionDamageIncreasePerStack', 'Condition damage per stack', tooltipPercent],
         ['maximumStacks', 'Maximum stacks'],
-        ['durationMultiplier', 'Stack duration', tooltipSeconds]
+        ['duration', 'Stack duration', tooltipSeconds]
       ]
     ),
     [TRAIT.EVASIVE_EMPOWERMENT]: outsideScopeTooltip,

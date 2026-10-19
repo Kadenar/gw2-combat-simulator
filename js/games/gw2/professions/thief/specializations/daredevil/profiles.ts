@@ -19,7 +19,7 @@ export const DAREDEVIL_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     id: DAREDEVIL_BALANCE_PROFILE_IDS.palmStrike,
     name: 'Palm Strike Window',
     profileKind: 'mechanic',
-    durationMultiplier: 5,
+    flipDuration: 5,
     effects: []
   }
   // Trait tuning is shared by build calculations, combat, and tooltips.

@@ -70,7 +70,7 @@ export const tempestTooltips = {
       [
         fromProfile(TRAIT.TEMPESTUOUS_ARIA, 'damageIncrease', 'Strike damage during bonus', tooltipPercent),
         fromProfile(TRAIT.TEMPESTUOUS_ARIA, 'conditionDamageIncrease', 'Condition damage during bonus', tooltipPercent),
-        ['durationMultiplier', 'Bonus duration added per aura', tooltipSeconds],
+        ['durationExtension', 'Bonus duration added per aura', tooltipSeconds],
         ['maximumStacks', 'Maximum remaining bonus duration', tooltipSeconds]
       ],
       'shout might to party'
@@ -80,7 +80,7 @@ export const tempestTooltips = {
     [TRAIT.TRANSCENDENT_TEMPEST]: traitTooltip(
       'Singularities form sooner. Completing an overload grants a temporary strike- and condition-damage bonus.',
       [
-        fromProfile(TEMPEST.overloads, 'durationMultiplier', 'Base attunement dwell', tooltipSeconds),
+        fromProfile(TEMPEST.overloads, 'duration', 'Base attunement dwell', tooltipSeconds),
         fromProfile(TRAIT.TRANSCENDENT_TEMPEST, 'damageIncrease', 'Strike damage', tooltipPercent),
         fromProfile(TRAIT.TRANSCENDENT_TEMPEST, 'conditionDamageIncrease', 'Condition damage', tooltipPercent)
       ]

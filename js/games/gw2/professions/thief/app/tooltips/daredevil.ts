@@ -15,7 +15,7 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 export const daredevilTooltips = {
   skills: {
     [ID.FIST_FLURRY]: skillTooltip('Land the completed flurry to unlock Palm Strike for a limited window.', [
-      fromProfile(DD.palmStrike, 'durationMultiplier', 'Palm Strike window', tooltipSeconds)
+      fromProfile(DD.palmStrike, 'flipDuration', 'Palm Strike window', tooltipSeconds)
     ]),
     [ID.PALM_STRIKE]: skillTooltip('Consume the follow-up unlocked by a completed Fist Flurry.')
   },
@@ -26,7 +26,7 @@ export const daredevilTooltips = {
     [TRAIT.WEAKENING_STRIKES]: traitTooltip(
       'After dodging, your next landed player strike inflicts weakness. Deal increased strike damage to weakened targets.',
       [
-        ['durationMultiplier', 'Time to land the strike', tooltipSeconds],
+        ['duration', 'Time to land the strike', tooltipSeconds],
         fromProfile(
           TRAIT.WEAKENING_STRIKES,
           'damageMultiplier',
@@ -62,7 +62,7 @@ export const daredevilTooltips = {
       'Replace your dodge with Impaling Lotus, striking and applying conditions. Completing the dodge temporarily increases condition damage.',
       [
         fromProfile(TRAIT.LOTUS_TRAINING, 'conditionDamageIncrease', 'Condition damage', tooltipPercent),
-        ['durationMultiplier', 'Bonus duration', tooltipSeconds]
+        ['duration', 'Bonus duration', tooltipSeconds]
       ]
     ),
     [TRAIT.UNHINDERED_COMBATANT]: traitTooltip(
@@ -72,7 +72,7 @@ export const daredevilTooltips = {
       'Replace your dodge with Bound, striking the target. Completing the dodge temporarily increases strike damage.',
       [
         fromProfile(TRAIT.BOUNDING_DODGER, 'damageIncrease', 'Strike damage', tooltipPercent),
-        ['durationMultiplier', 'Bonus duration', tooltipSeconds]
+        ['duration', 'Bonus duration', tooltipSeconds]
       ]
     )
   }

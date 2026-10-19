@@ -11,7 +11,7 @@ export function activateAssassinsSignet(runtime: ThiefRuntime): void {
   replaceThiefBuff(
     runtime,
     'assassins-signet',
-    balanceNumberFromContext(runtime, PROFILE.assassinsSignet, 'durationMultiplier'),
+    balanceNumberFromContext(runtime, PROFILE.assassinsSignet, 'duration'),
     ID.ASSASSINS_SIGNET,
     "Assassin's Signet",
     'thief'

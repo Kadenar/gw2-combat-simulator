@@ -115,7 +115,7 @@ export const leadAttacks = defineTrait({
   ],
   balance: {
     maximumStacks: 15,
-    durationMultiplier: 10,
+    duration: 10,
     damageIncreasePerStack: 0.01,
     rechargeMultiplier: 0.85
   },
@@ -300,7 +300,7 @@ function grantLeadAttacks(runtime: ThiefRuntime, { cast, initiativeCost: cost }:
   const core = runtime.profession.core;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.LEAD_ATTACKS);
   const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
-  const duration = balanceProfileNumber(profile, 'durationMultiplier');
+  const duration = balanceProfileNumber(profile, 'duration');
   // A patched fractional cost grants a whole stack for its remainder, so round up before the integer boundary.
   core.leadAttackExpirations = grantTimedStacks(core.leadAttackExpirations, {
     at: runtime.time,

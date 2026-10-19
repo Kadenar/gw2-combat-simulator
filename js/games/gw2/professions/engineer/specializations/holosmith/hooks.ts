@@ -30,7 +30,7 @@ export const holosmithHooks: RuntimeHooks<EngineerRuntimeState, HolosmithSkill> 
       if (!Number.isInteger(charges) || charges > balanceProfileNumber(profile, 'maximumStacks'))
         throw new DamageCalculationError('missing-input', 'Choose a valid Solar Focusing Lens charge count.');
 
-      state.solarFocusingLens = grantCharges(charges, balanceProfileNumber(profile, 'durationMultiplier'));
+      state.solarFocusingLens = grantCharges(charges, balanceProfileNumber(profile, 'duration'));
     }
   },
   // Slot preparation precedes sword preparation; separate owners expose registry collisions to the composer.

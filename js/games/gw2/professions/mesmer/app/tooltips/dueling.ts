@@ -42,7 +42,7 @@ export const mesmerDuelingTooltips = {
   [TRAIT.FENCERS_FINESSE]: traitTooltip('Sword hits grant stacking ferocity. Sword skills recharge faster.', [
     ['attributePerStack', 'Ferocity per stack'],
     ['maximumStacks', 'Maximum stacks'],
-    ['durationMultiplier', 'Stack duration', tooltipSeconds],
+    ['duration', 'Stack duration', tooltipSeconds],
     ['rechargeMultiplier', 'Sword recharge', tooltipFactorChange]
   ]),
   [TRAIT.SUPERIORITY_COMPLEX]: traitTooltip(

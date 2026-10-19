@@ -67,6 +67,8 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   'threshold',
   // Skill-owned state lifetimes use duration, independently of durations on their individual effects.
   'duration',
+  // Follow-up availability is a lifetime in seconds, independently patchable from effect durations.
+  'flipDuration',
   'durationPerTier',
   'durationMultiplier',
   'durationExtension',

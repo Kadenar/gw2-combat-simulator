@@ -37,7 +37,7 @@ const dangerTime = defineTrait<MesmerSkill>({
   name: 'Danger Time',
   balance: {
     criticalDamage: 0.05,
-    durationMultiplier: 10
+    duration: 10
   },
   modifierRules: [
     {
@@ -189,7 +189,7 @@ const timeBomb = defineTrait<MesmerSkill>({
   name: 'Time Bomb',
   balance: {
     damageMultiplier: 1.1,
-    durationMultiplier: 5,
+    duration: 5,
     effects: [{ name: 'Strike', type: 'strike', coefficient: 3, hits: 1 }]
   },
   modifierRules: [
@@ -307,7 +307,7 @@ function observeChronomancerEvent(context: MesmerRuntime, event: SimulationEvent
       {
         kind: 'danger-time',
         stacks: 1,
-        duration: balanceNumberFromContext(context, TRAIT.DANGER_TIME, 'durationMultiplier'),
+        duration: balanceNumberFromContext(context, TRAIT.DANGER_TIME, 'duration'),
         sourceSkill: skillName
       }
     ];

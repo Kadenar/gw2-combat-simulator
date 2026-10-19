@@ -31,14 +31,14 @@ const artifactTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
       profileFact(
         balanceContext,
         ANTIQUARY.artifactWindows,
-        kryptis ? 'minimumStacks' : 'durationMultiplier',
+        kryptis ? 'minimumStacks' : 'duration',
         'Effect window',
         tooltipSeconds
       ),
       profileFact(
         balanceContext,
         TRAIT.METICULOUS_CUSTODIAN,
-        kryptis ? 'kryptisDuration' : 'durationMultiplier',
+        kryptis ? 'kryptisDuration' : 'duration',
         'Effect window with Meticulous Custodian',
         tooltipSeconds
       )
@@ -128,7 +128,7 @@ const skrittScuffleTooltip: DescribeSimulationTooltip = profileTooltip(
   ANTIQUARY.scuffle,
   'Summon an assistant that immediately pilfers artifacts and repeats while active. Each pilfer replaces artifact choices, including Unstable Skritt Bomb, and resets base uses. Multiple assistants run independently.',
   [
-    ['durationMultiplier', 'Assistant duration', tooltipSeconds],
+    ['duration', 'Assistant duration', tooltipSeconds],
     ['pulseInterval', 'Pilfer interval', tooltipSeconds]
   ]
 );
@@ -139,7 +139,7 @@ const forgedSurferTooltip: DescribeSimulationTooltip = (balanceContext) => ({
   facts: [
     profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'initialDelay', 'Dash delay', tooltipSeconds),
     profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'pulseInterval', 'Bomb interval', tooltipSeconds),
-    profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'durationMultiplier', 'Base buff duration', tooltipSeconds),
+    profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'duration', 'Base buff duration', tooltipSeconds),
     profileFact(
       balanceContext,
       ANTIQUARY.forgedSurfer,
@@ -264,7 +264,7 @@ export const antiquaryTooltips = {
       'Using an artifact extends a temporary strike-damage bonus, up to the maximum remaining duration.',
       [
         fromProfile(TRAIT.EXHILARATING_EPHEMERA, 'damageIncrease', 'Strike damage', tooltipPercent),
-        ['durationMultiplier', 'Duration added', tooltipSeconds],
+        ['durationExtension', 'Duration added', tooltipSeconds],
         ['maximumStacks', 'Maximum remaining duration', tooltipSeconds]
       ]
     ),
@@ -292,7 +292,7 @@ export const antiquaryTooltips = {
         fromProfile(TRAIT.COMBAT_HIGH, 'conditionDamageIncreasePerStack', 'Condition damage per stack', tooltipPercent),
         ['maximumStacks', 'Initial stacks'],
         ['pulseInterval', 'Time between stack expirations', tooltipSeconds],
-        ['durationMultiplier', 'Final stack duration', tooltipSeconds]
+        ['duration', 'Final stack duration', tooltipSeconds]
       ]
     )
   }

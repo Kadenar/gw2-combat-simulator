@@ -85,7 +85,7 @@ test('stealth entry and exits honor selected linger and venom grants without rep
         catalog: (catalog) =>
           withProfile(withProfile(catalog, TRAIT.HIDDEN_KILLER, { duration: 6 }), TRAIT.LEECHING_VENOMS, {
             resourceGain: 2,
-            durationMultiplier: 7,
+            duration: 7,
             maximumStacks: 3
           }),
         probes: [

@@ -51,7 +51,7 @@ test('Combat High shares staggered stack expiry across grants, modifiers, projec
           withProfile(instantSwipe(catalog), TRAIT.COMBAT_HIGH, {
             maximumStacks: 3,
             pulseInterval: interval,
-            durationMultiplier: 3
+            duration: 3
           })
       })
     ).profession.specialization.state.combatHighExpirations;

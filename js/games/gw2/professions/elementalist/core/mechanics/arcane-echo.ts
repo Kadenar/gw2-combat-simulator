@@ -12,7 +12,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 /** The skill's commit declaration opens the profiled window for the next recharging weapon cast. */
 export function armArcaneEcho(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   professionCoreState(context).arcaneEchoUntil = canonicalTime(
-    cast.effectiveEnd + balanceNumberFromContext(context, PROFILE.arcaneEcho, 'durationMultiplier')
+    cast.effectiveEnd + balanceNumberFromContext(context, PROFILE.arcaneEcho, 'duration')
   );
 }
 

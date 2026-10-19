@@ -123,6 +123,6 @@ export function smashBrawlerBerserkExtension(runtime: WarriorRuntime, cast: Runt
 /** Query Last Blaze's Rage extension without mutating the active mode. */
 export function lastBlazeBerserkExtension(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): number {
   return cast.skill.categories?.includes('Rage') && cast.skill.id !== ID.OUTRAGE && hasTrait(runtime, TRAIT.LAST_BLAZE)
-    ? balanceNumberFromContext(runtime, TRAIT.LAST_BLAZE, 'durationMultiplier')
+    ? balanceNumberFromContext(runtime, TRAIT.LAST_BLAZE, 'durationExtension')
     : 0;
 }

@@ -631,7 +631,7 @@ export const pistolSideEffectHandlers: RuntimeProfession<
     // Arms a window that shortens the next pistol skill's recharge; the
     // reduction is consumed by this weapon's recharge reservation.
     professionCoreState(context).dazingDischargeUntil =
-      at + balanceNumberFromContext(context, PROFILE.dazingDischarge, 'durationMultiplier');
+      at + balanceNumberFromContext(context, PROFILE.dazingDischarge, 'duration');
   },
   'elementalist.pistol.shattering-stone'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
@@ -650,7 +650,7 @@ export const pistolSideEffectHandlers: RuntimeProfession<
             source: skill.name,
             kind: 'shattering stone',
             stacks: balanceProfileNumber(shatteringStoneProfile, 'maximumStacks'),
-            duration: balanceProfileNumber(shatteringStoneProfile, 'durationMultiplier')
+            duration: balanceProfileNumber(shatteringStoneProfile, 'duration')
           },
           { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
         )
@@ -708,12 +708,12 @@ export const pistolBalanceProfiles: readonly BalanceProfile[] = Object.freeze([
     ]
   }),
   variant(PROFILE.dazingDischarge, ID.DAZING_DISCHARGE, 'Dazing Discharge - Air Bullet', {
-    durationMultiplier: 5,
+    duration: 5,
     rechargeMultiplier: 0.67
   }),
   variant(PROFILE.shatteringStone, ID.SHATTERING_STONE, 'Shattering Stone - Earth Bullet', {
     maximumStacks: 3,
-    durationMultiplier: 10,
+    duration: 10,
     effects: [{ type: 'condition', name: 'Triggered Bleeding', condition: CONDITION.BLEEDING, stacks: 1, duration: 5 }]
   })
 ]);

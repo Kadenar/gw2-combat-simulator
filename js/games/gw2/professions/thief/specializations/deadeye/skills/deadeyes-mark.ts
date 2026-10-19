@@ -44,9 +44,7 @@ function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   runtime.fireTrigger(stealAccepted, { cast });
   const remarking = state.markedTargetId === 'primary-target' && state.markExpiresAt > runtime.time;
   state.markedTargetId = 'primary-target';
-  state.markExpiresAt = canonicalTime(
-    runtime.time + balanceNumberFromContext(runtime, PROFILE.resources, 'durationMultiplier')
-  );
+  state.markExpiresAt = canonicalTime(runtime.time + balanceNumberFromContext(runtime, PROFILE.resources, 'duration'));
   state.markGeneration += 1;
 
   if (remarking) runtime.resourceController.grant('malice', initialMalice(runtime));

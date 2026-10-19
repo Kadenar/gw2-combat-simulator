@@ -32,7 +32,7 @@ export function completeSkrittScuffle(runtime: ThiefRuntime): void {
   const state = antiquaryState.from(runtime);
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.scuffle);
   const interval = balanceProfileNumber(profile, 'pulseInterval');
-  const expiresAt = canonicalTime(runtime.time + balanceProfileNumber(profile, 'durationMultiplier'));
+  const expiresAt = canonicalTime(runtime.time + balanceProfileNumber(profile, 'duration'));
   state.nextSkrittScufflePilferAt = runtime.time + interval;
   pilferArtifacts(runtime, 'scuffle');
 

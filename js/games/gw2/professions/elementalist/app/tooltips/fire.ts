@@ -61,7 +61,7 @@ export const elementalistFireTooltips = {
     [
       fromProfile(TRAIT.PERSISTING_FLAMES, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
       ['maximumStacks', 'Maximum stacks', tooltipDecimal],
-      ['durationMultiplier', 'Stack duration', tooltipSeconds],
+      ['duration', 'Stack duration', tooltipSeconds],
       ['durationPerTier', 'Additional weapon field duration', tooltipSeconds]
     ]
   ),

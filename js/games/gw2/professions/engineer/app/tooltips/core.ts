@@ -50,7 +50,7 @@ const dodgeTooltip: DescribeSimulationTooltip = skillTooltip(
 const conduitSurgeTooltip: DescribeSimulationTooltip = profileTooltip(
   CORE.conduitSurge,
   'Strike and burn the target, establishing Focused for subsequent spear attacks. Refreshing Focused preserves a longer existing window.',
-  [['durationMultiplier', 'Focused duration', tooltipSeconds]]
+  [['duration', 'Focused duration', tooltipSeconds]]
 );
 
 const lightningRodTooltip: DescribeSimulationTooltip = (balanceContext) => ({

@@ -269,7 +269,7 @@ const alteredChord = defineTrait<MesmerSkill>({
   balance: {
     damageIncrease: 0.25,
     rechargeReduction: 2,
-    durationMultiplier: 10,
+    duration: 10,
     effects: [{ name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 8, stacks: 5 }]
   },
   modifierRules: [
@@ -707,7 +707,7 @@ function resolveAlteredChord(
         priority: 5,
         kind: 'altered-chord',
         stacks: 1,
-        duration: balanceProfileNumber(alteredChordProfile, 'durationMultiplier')
+        duration: balanceProfileNumber(alteredChordProfile, 'duration')
       });
       context.effects.emit({
         ...delivery,

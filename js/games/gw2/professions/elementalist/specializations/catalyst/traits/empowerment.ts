@@ -74,7 +74,7 @@ export function applyCatalystEmpowerment(context: MechanicCombatContext, event: 
 /** Baseline stacks are granted by actual buff application; one task renews their profile window. */
 export function renewBaseEmpowerment(runtime: ElementalistRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.ELEMENTAL_EMPOWERMENT);
-  const duration = balanceProfileNumber(profile, 'durationMultiplier');
+  const duration = balanceProfileNumber(profile, 'duration');
   // Recurring work must advance the canonical clock, including sub-microsecond profile overrides.
   const renewAt = canonicalTime(runtime.time + duration);
 

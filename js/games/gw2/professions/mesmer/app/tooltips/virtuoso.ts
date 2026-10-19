@@ -29,7 +29,7 @@ export const virtuosoTooltips = {
       [
         fromProfile(TRAIT.DEADLY_BLADES, 'damageIncrease', 'Strike damage', tooltipPercent),
         fromProfile(TRAIT.DEADLY_BLADES, 'conditionDamageIncrease', 'Condition damage', tooltipPercent),
-        ['durationMultiplier', 'Damage-bonus duration', tooltipSeconds]
+        ['duration', 'Damage-bonus duration', tooltipSeconds]
       ]
     ),
     [TRAIT.QUIET_INTENSITY]: traitTooltip(

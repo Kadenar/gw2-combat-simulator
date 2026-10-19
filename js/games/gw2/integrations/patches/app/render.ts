@@ -639,7 +639,7 @@ function balanceProfileFieldRows(
         entity: 'balance-profile',
         id: String(entry.id),
         field,
-        label: authoringNumericFieldLabel(field, true),
+        label: authoringNumericFieldLabel(field),
         current,
         edit: edit?.fields?.[field]
       })

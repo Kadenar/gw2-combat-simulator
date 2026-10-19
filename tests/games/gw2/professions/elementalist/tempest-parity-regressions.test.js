@@ -205,7 +205,7 @@ test('Overload Air grants separate non-critical Lightning Jolts to the player an
 // Runtime availability uses the selected profile and the trait-adjusted singularity delay.
 test('patched overload dwell controls runtime availability with and without Transcendent Tempest', () => {
   const catalog = applyBalanceProfilePatch(elementalistProfession.catalog, {
-    balanceProfiles: { [PROFILE.overloads]: { fields: { durationMultiplier: 5 } } }
+    balanceProfiles: { [PROFILE.overloads]: { fields: { duration: 5 } } }
   });
   const state = { primaryAttunement: 'Fire', attunementEnteredAt: 2 };
   const skill = catalog.skillsById.get(ELEMENTALIST_OVERLOAD_SKILL_IDS.Fire);

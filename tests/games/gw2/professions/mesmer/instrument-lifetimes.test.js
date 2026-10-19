@@ -309,7 +309,7 @@ test('delayed performance packets survive instrument expiry without retaining it
     label: 'Short instrument window',
     professions: {
       mesmer: {
-        balanceProfiles: { [PROFILE.instruments]: { fields: { durationMultiplier: 0.1, durationPerTier: 0 } } }
+        balanceProfiles: { [PROFILE.instruments]: { fields: { baseDuration: 0.1, durationPerTier: 0 } } }
       }
     }
   });

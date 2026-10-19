@@ -231,7 +231,7 @@ test('Shadow Flare uses the shared follow-up window', () => {
               interruptCommitMs: 400
             }),
             DEADEYE_PROFILE.shadowFlare,
-            { durationMultiplier: 0.5 }
+            { flipDuration: 0.5 }
           ),
         probes: [
           [0.7, (runtime) => windows.push(Boolean(runtime.profession.core.availableFlips[THIEF.SHADOW_SWAP]))],

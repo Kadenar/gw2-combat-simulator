@@ -17,7 +17,7 @@ export function equipConjure(context: ElementalistRuntime, cast: RuntimeCast<Ele
   const weapon = CONJURE_SKILLS[Number(skill.id)];
   state.conjureEquipped = weapon;
   state.conjurePickups[weapon] =
-    cast.effectiveEnd + balanceNumberFromContext(context, PROFILE.conjurePickups, 'durationMultiplier');
+    cast.effectiveEnd + balanceNumberFromContext(context, PROFILE.conjurePickups, 'duration');
   context.fireTrigger(conjureEquipped, { cast });
   finishConjureSwap(context, cast, skill);
 }
@@ -50,7 +50,7 @@ function finishConjureSwap(context: ElementalistRuntime, cast: RuntimeCast<Eleme
   const state = professionCoreState(context);
   const at = cast.effectiveEnd;
   state.conjureExpiresAt = state.conjureEquipped
-    ? at + balanceNumberFromContext(context, PROFILE.conjurePickups, 'durationMultiplier')
+    ? at + balanceNumberFromContext(context, PROFILE.conjurePickups, 'duration')
     : 0;
   context.schedule('elementalist.expire-state', state.conjureExpiresAt || at, null);
   for (const deadline of Object.values(state.conjurePickups))

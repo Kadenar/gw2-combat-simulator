@@ -202,7 +202,7 @@ const silentScope = defineTrait({
   name: 'Silent Scope',
   balance: {
     threshold: 3,
-    durationMultiplier: 3,
+    duration: 3,
     attributeBonus: 120
   },
   attributes({ balanceContext }) {
@@ -297,10 +297,7 @@ function grantSilentScope(runtime: ThiefRuntime, { cast }: DeadeyeCast): void {
 
     if (state.malice.value > balanceProfileNumber(silentScope, 'threshold')) {
       // Reapplying Silent Scope replaces the prior bonus rather than stacking attacks.
-      state.bonusStealthAttack = grantCharges(
-        1,
-        runtime.time + balanceProfileNumber(silentScope, 'durationMultiplier')
-      );
+      state.bonusStealthAttack = grantCharges(1, runtime.time + balanceProfileNumber(silentScope, 'duration'));
     }
   }
 }

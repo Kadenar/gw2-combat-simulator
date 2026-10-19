@@ -31,7 +31,7 @@ export const mesmerIllusionsTooltips = {
         tooltipPercent
       ),
       ['maximumStacks', 'Maximum stacks'],
-      ['durationMultiplier', 'Stack duration', tooltipSeconds]
+      ['duration', 'Stack duration', tooltipSeconds]
     ]
   ),
   [TRAIT.MASTER_OF_MISDIRECTION]: traitTooltip('Shatters and instrument skills recharge faster.', [
@@ -68,7 +68,7 @@ export const mesmerIllusionsTooltips = {
       profileFact(
         balanceContext,
         entity.id,
-        'durationMultiplier',
+        'durationExtension',
         'Additional defensive-shatter duration',
         tooltipSeconds
       ),

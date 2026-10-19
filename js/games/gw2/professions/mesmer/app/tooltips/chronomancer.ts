@@ -48,7 +48,7 @@ export const chronomancerTooltips = {
       'Time Sink control effects temporarily increase critical damage for you and your illusions. Delayed Reactions allows other control effects to activate the bonus.',
       [
         ['criticalDamage', 'Critical damage', tooltipPercent],
-        ['durationMultiplier', 'Bonus duration', tooltipSeconds]
+        ['duration', 'Bonus duration', tooltipSeconds]
       ]
     ),
     [TRAIT.ILLUSIONARY_REVERSION]: traitTooltip('Shattering exactly the required number of clones restores a clone.', [
@@ -58,7 +58,7 @@ export const chronomancerTooltips = {
     [TRAIT.TIME_BOMB]: traitTooltip(
       'Completing Time Sink arms a delayed explosion. Your strike damage increases until it explodes; another bomb cannot be armed while the timer is active.',
       [
-        ['durationMultiplier', 'Explosion delay / bonus duration', tooltipSeconds],
+        ['duration', 'Explosion delay / bonus duration', tooltipSeconds],
         fromProfile(TRAIT.TIME_BOMB, 'damageMultiplier', 'Strike damage while armed', tooltipFactorChange)
       ]
     ),

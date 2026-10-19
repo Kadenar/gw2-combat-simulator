@@ -113,7 +113,7 @@ export function grantDistractingThrowWindow(runtime: ThiefRuntime): void {
   replaceThiefBuff(
     runtime,
     'distracting-throw',
-    balanceNumberFromContext(runtime, PROFILE.distractingThrow, 'durationMultiplier'),
+    balanceNumberFromContext(runtime, PROFILE.distractingThrow, 'duration'),
     ID.DISTRACTING_THROW,
     'Distracting Throw',
     'thief'

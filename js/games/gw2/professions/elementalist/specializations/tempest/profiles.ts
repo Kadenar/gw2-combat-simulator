@@ -10,8 +10,7 @@ export const TEMPEST_BALANCE_PROFILE_IDS = Object.freeze({
 /**
  * Balance-authorable Tempest data: the overload singularity dwell timings, the Overload Air
  * follow-up strike. Trait profiles are authored beside their behavior in traits/.
- * Field names follow the generic profile schema, so several traits reuse `durationMultiplier` and
- * `maximumStacks` for values that are simply durations or caps in seconds.
+ * The selected dwell duration is expressed in seconds before recharge-rate scaling.
  */
 export const TEMPEST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   {
@@ -19,9 +18,9 @@ export const TEMPEST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     name: 'Tempest Overload Singularity',
     profileKind: 'mechanic',
     // Seconds an attunement must be held before its overload unlocks: `initialDelay` normally,
-    // `durationMultiplier` once Transcendent Tempest shortens the wait.
+    // `duration` once Transcendent Tempest shortens the wait.
     initialDelay: 6,
-    durationMultiplier: 4,
+    duration: 4,
     effects: []
   },
   {

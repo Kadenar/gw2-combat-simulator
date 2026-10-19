@@ -144,7 +144,7 @@ const phantomPain = defineTrait<MesmerSkill>({
     damageIncreasePerStack: 0.0625,
     conditionDamageIncreasePerStack: 0.05,
     maximumStacks: 4,
-    durationMultiplier: 10
+    duration: 10
   },
   modifierRules: [
     {
@@ -162,7 +162,7 @@ const phantomPain = defineTrait<MesmerSkill>({
           timedStacks(
             context,
             'phantom-pain',
-            balanceNumberFromContext(context, TRAIT.PHANTOM_PAIN, 'durationMultiplier'),
+            balanceNumberFromContext(context, TRAIT.PHANTOM_PAIN, 'duration'),
             balanceNumberFromContext(context, TRAIT.PHANTOM_PAIN, 'maximumStacks')
           ) *
           (target === MODIFIER_TARGET.CONDITION_DAMAGE
@@ -190,7 +190,7 @@ const duneCloak = defineTrait<MesmerSkill>({
   balance: {
     threshold: 3,
     rechargeReduction: 1,
-    durationMultiplier: 1
+    duration: 1
   }
 });
 
@@ -541,7 +541,7 @@ function grantPhantomPain(
           priority: 5,
           kind: 'phantom-pain',
           stacks: Math.min(balanceProfileNumber(phantomPainProfile, 'maximumStacks'), spent + 1),
-          duration: balanceProfileNumber(phantomPainProfile, 'durationMultiplier')
+          duration: balanceProfileNumber(phantomPainProfile, 'duration')
         }
       ];
       const traitProfile = requireBalanceProfileFromContext(state, TRAIT.PHANTOM_PAIN);
@@ -614,7 +614,7 @@ function grantDuneCloak(state: MesmerRuntime, { resolution }: TriggerPointInput<
       at,
       'Dune Cloak',
       {
-        duration: balanceNumberFromContext(state, TRAIT.DUNE_CLOAK, 'durationMultiplier')
+        duration: balanceNumberFromContext(state, TRAIT.DUNE_CLOAK, 'duration')
       },
       delivery
     );

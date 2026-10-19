@@ -37,7 +37,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     cooldown: 30,
     rechargeAnchor: 'castStart',
     initiativeCost: 0,
-    durationMultiplier: 3,
+    duration: 3,
     effects: []
   },
   [ID.HIDE_IN_SHADOWS]: {
@@ -68,7 +68,6 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     interruptCommitMs: 800,
     cooldown: 24,
     initiativeCost: 0,
-    durationMultiplier: 3,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
@@ -158,7 +157,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     cooldown: 25,
     rechargeAnchor: 'castStart',
     initiativeCost: 0,
-    durationMultiplier: 3,
+    duration: 3,
     effects: []
   },
   [ID.SIGNET_OF_AGILITY]: {

@@ -44,7 +44,7 @@ export const compoundingPower = defineTrait<MesmerSkill>({
     damageIncreasePerStack: 0.01,
     conditionDamageIncreasePerStack: 0.01,
     maximumStacks: 5,
-    durationMultiplier: 8
+    duration: 8
   },
   modifierRules: [
     {
@@ -63,7 +63,7 @@ export const compoundingPower = defineTrait<MesmerSkill>({
           timedStacks(
             context,
             'compounding',
-            balanceNumberFromContext(context, TRAIT.COMPOUNDING_POWER, 'durationMultiplier'),
+            balanceNumberFromContext(context, TRAIT.COMPOUNDING_POWER, 'duration'),
             balanceNumberFromContext(context, TRAIT.COMPOUNDING_POWER, 'maximumStacks')
           ) *
           (target === MODIFIER_TARGET.STRIKE_DAMAGE
@@ -127,7 +127,7 @@ export const masterOfFragmentation = defineTrait<MesmerSkill>({
   name: 'Master of Fragmentation',
   balance: {
     criticalChance: 0.25,
-    durationMultiplier: 1,
+    durationExtension: 1,
     damageIncreasePerStack: 0.3,
     effects: [
       { name: CONDITION.CRIPPLED, type: 'condition', condition: CONDITION.CRIPPLED, duration: 3, stacks: 1 },
@@ -289,7 +289,7 @@ function triggerCompoundingPower(
 ): void {
   if (count <= 0) return;
 
-  const duration = balanceNumberFromContext(context, TRAIT.COMPOUNDING_POWER, 'durationMultiplier');
+  const duration = balanceNumberFromContext(context, TRAIT.COMPOUNDING_POWER, 'duration');
   // Simultaneous gains retain independent applications under one trait activation.
   {
     const grants: readonly MesmerEventExtra[] = Array.from({ length: count }, () => ({
@@ -416,7 +416,7 @@ export function shatterStormMaximumAmmo(
 /** Continuum duration is extended only by the currently selected Core trait. */
 export function masterOfFragmentationDuration(context: MesmerRuntime): number {
   return hasTrait(context, TRAIT.MASTER_OF_FRAGMENTATION)
-    ? balanceNumberFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION, 'durationMultiplier')
+    ? balanceNumberFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION, 'durationExtension')
     : 0;
 }
 

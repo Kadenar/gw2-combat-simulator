@@ -232,7 +232,7 @@ export function applyFerventStance(
 const ferventStanceTasks = {
   'elementalist.weaver.arm-fervent-stance'(runtime) {
     weaverState.from(runtime).ferventStanceUntil =
-      runtime.time + balanceNumberFromContext(runtime, PROFILE.ferventStance, 'durationMultiplier');
+      runtime.time + balanceNumberFromContext(runtime, PROFILE.ferventStance, 'duration');
   }
 } satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['tasks']>;
 

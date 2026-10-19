@@ -31,7 +31,7 @@ function releaseRockBarrier(runtime: ElementalistRuntime): void {
 /** The flip and its expiry share a deadline; replacing a barrier retires its previous timer. */
 const elementalistRockBarrierTasks = {
   'elementalist.core.open-rock-barrier'(runtime: ElementalistRuntime): void {
-    const expiresAt = runtime.time + balanceNumberFromContext(runtime, PROFILE.rockBarrier, 'durationMultiplier');
+    const expiresAt = runtime.time + balanceNumberFromContext(runtime, PROFILE.rockBarrier, 'flipDuration');
     armSkillFlip(runtime.profession.core.availableFlips, ID.HURL, runtime.time, expiresAt);
     runtime.cancelOwner({ id: 'elementalist.rock-barrier', generation: 0 });
     runtime.schedule('elementalist.core.release-rock-barrier', expiresAt, null, {

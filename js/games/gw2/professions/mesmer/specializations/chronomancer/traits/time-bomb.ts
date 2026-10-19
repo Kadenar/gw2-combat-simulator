@@ -36,7 +36,7 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
   // The removed explosion cannot arm a timer or emit a synthetic hit.
   if (!timeBomb) return;
 
-  const duration = balanceProfileNumber(profile, 'durationMultiplier');
+  const duration = balanceProfileNumber(profile, 'duration');
   // This is the delayed explosion timer; rearming is allowed exactly when it detonates.
   state.timeBombUntil = canonicalTime(at + duration);
   const delivery = mesmerCastDelivery(cast, skill, Infinity);

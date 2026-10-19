@@ -60,7 +60,7 @@ const deadlyBlades = defineTrait<MesmerSkill>({
   balance: {
     damageIncrease: 0.05,
     conditionDamageIncrease: 0.1,
-    durationMultiplier: 7,
+    duration: 7,
     effects: [
       { name: CONDITION.VULNERABILITY, type: 'condition', condition: CONDITION.VULNERABILITY, duration: 5, stacks: 1 }
     ]
@@ -308,7 +308,7 @@ function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerShatterRe
         priority: 5,
         kind: 'deadly-blades',
         stacks: 1,
-        duration: balanceNumberFromContext(context, TRAIT.DEADLY_BLADES, 'durationMultiplier')
+        duration: balanceNumberFromContext(context, TRAIT.DEADLY_BLADES, 'duration')
       }
     ];
     const traitProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_BLADES);

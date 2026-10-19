@@ -185,7 +185,7 @@ function summonElemental(context: ElementalistRuntime, at: number, element: Elem
     element,
     summonGeneration,
     actionGeneration: 0,
-    activeUntil: canonicalTime(at + balanceNumberFromContext(context, PROFILE.summonedElemental, 'durationMultiplier')),
+    activeUntil: canonicalTime(at + balanceNumberFromContext(context, PROFILE.summonedElemental, 'duration')),
     busyUntil: at,
     secondaryAttackReadyAt: at,
     currentActivationId: null,

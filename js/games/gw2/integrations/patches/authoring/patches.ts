@@ -7,7 +7,7 @@ import {
 } from '#gw2/integrations/patches/authoring/fields.js';
 import { deepFreeze, cloneCatalogData } from '#gw2/integrations/patches/authoring/immutable.js';
 import { normalizeSkillEffects, requireBalanceNumber, skillEffectKey } from '#gw2/platform/effects/validation.js';
-import { validateCanonicalCatalog } from '#gw2/platform/skills/validation.js';
+import { validateCanonicalCatalog, validateDurationFields } from '#gw2/platform/skills/validation.js';
 import type { NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
 import type { BalanceProfile, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type {
@@ -742,6 +742,7 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string): Skill {
   }
 
   Object.assign(mutable, patchEffects(clone, edit, ownerLabel));
+  validateDurationFields(mutable, ownerLabel);
   return deepFreeze(clone);
 }
 
@@ -770,6 +771,7 @@ function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit, labe
   }
 
   Object.assign(mutable, patchEffects(clone, edit, ownerLabel));
+  validateDurationFields(mutable, ownerLabel);
   return deepFreeze(clone);
 }
 

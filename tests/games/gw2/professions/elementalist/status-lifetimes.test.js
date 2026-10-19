@@ -92,7 +92,7 @@ test('an expired automatic elemental stays absent until an explicit glyph clears
     label: 'Elemental lifecycle',
     professions: {
       elementalist: {
-        balanceProfiles: { [PROFILE.summonedElemental]: { fields: { durationMultiplier: 2, recharge: 5 } } }
+        balanceProfiles: { [PROFILE.summonedElemental]: { fields: { duration: 2, recharge: 5 } } }
       }
     }
   });
@@ -242,7 +242,7 @@ test('the live queue resolves a final elemental command hit before same-time tea
       id: 'short-elemental',
       label: 'Short elemental lifetime',
       professions: {
-        elementalist: { balanceProfiles: { [PROFILE.summonedElemental]: { fields: { durationMultiplier: lifetime } } } }
+        elementalist: { balanceProfiles: { [PROFILE.summonedElemental]: { fields: { duration: lifetime } } } }
       }
     });
     const result = runElementalist(

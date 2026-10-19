@@ -196,6 +196,7 @@ const SECOND_FIELDS = new Set([
   'duration',
   'durationExtension',
   'durationPerTier',
+  'flipDuration',
   'enhancedDuration',
   'highDuration',
   'immobilizeDurationExtension',
@@ -208,9 +209,7 @@ const SECOND_FIELDS = new Set([
 ]);
 
 /** Produces author-facing labels and units without changing stable runtime field names. */
-export function authoringNumericFieldLabel(field: string, profile = false): string {
-  if (profile && field === 'durationMultiplier') return 'duration value (profile-specific)';
-
+export function authoringNumericFieldLabel(field: string): string {
   const label = patchFieldLabel(field);
 
   if (field.endsWith('Ms')) return `${label.replace(/ ms$/i, '')} (ms)`;

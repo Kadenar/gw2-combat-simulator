@@ -399,7 +399,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
                   actorType: ACTOR.PLAYER,
                   duration:
                     effectNumber(profile, torment, 'duration') +
-                    malice * balanceProfileNumber(profile, 'durationMultiplier'),
+                    malice * balanceProfileNumber(profile, 'durationPerTier'),
                   stacks: effectNumber(profile, torment, 'stacks')
                 }
               ]
@@ -522,7 +522,7 @@ function maliceTorment(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>, mal
   if (!torment) return;
 
   const baseDuration = effectNumber(profile, torment, 'duration');
-  const maliceDuration = malice * balanceProfileNumber(profile, 'durationMultiplier');
+  const maliceDuration = malice * balanceProfileNumber(profile, 'durationPerTier');
   runtime.effects.emit({
     kind: 'packet',
     event: buildThiefCondition(cast.skill, {

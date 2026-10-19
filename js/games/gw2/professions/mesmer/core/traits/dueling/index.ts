@@ -79,7 +79,7 @@ export const fencersFinesse = defineTrait<MesmerSkill>({
   balance: {
     attributePerStack: 15,
     maximumStacks: 10,
-    durationMultiplier: 6,
+    duration: 6,
     rechargeMultiplier: 0.8
   }
 });
@@ -479,7 +479,7 @@ function triggerSharperImages(context: MesmerRuntime, event: SimulationEvent, ch
 function prepareFencersFinesse(context: Gw2ModifierContext) {
   const profile = requireBalanceProfileFromContext(context, TRAIT.FENCERS_FINESSE);
   return {
-    duration: balanceProfileNumber(profile, 'durationMultiplier'),
+    duration: balanceProfileNumber(profile, 'duration'),
     maximum: balanceProfileNumber(profile, 'maximumStacks'),
     perStack: balanceProfileNumber(profile, 'attributePerStack')
   };
@@ -545,7 +545,7 @@ function applyFencersFinesse(runtime: MesmerRuntime, event: SimulationEvent): vo
       priority: 5,
       kind: 'fencer',
       stacks: 1,
-      duration: balanceProfileNumber(profile, 'durationMultiplier'),
+      duration: balanceProfileNumber(profile, 'duration'),
       ...traitSource,
       type: 'buff',
       at: event.at,

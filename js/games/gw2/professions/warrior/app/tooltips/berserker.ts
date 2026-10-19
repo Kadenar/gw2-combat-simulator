@@ -85,7 +85,7 @@ export const berserkerTooltips = {
     ),
     [TRAIT.LAST_BLAZE]: traitTooltip(
       'Completed Rage skills inflict burning. Rage skills other than Outrage additionally extend an active Berserk window.',
-      [['durationMultiplier', 'Additional Berserk extension', tooltipSeconds]]
+      [['durationExtension', 'Additional Berserk extension', tooltipSeconds]]
     ),
     [TRAIT.SAVAGE_INSTINCT]: outsideScopeTooltip,
     [TRAIT.BLOOD_REACTION]: traitTooltip(

@@ -187,7 +187,7 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
         fields: { attributePerStack: 20 }
       },
       [TRAIT.DANGER_TIME]: {
-        fields: { durationMultiplier: 12 }
+        fields: { duration: 12 }
       },
       [TRAIT.SEIZE_THE_MOMENT]: {
         fields: { durationPerTier: 2 },
@@ -221,7 +221,7 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
     4
   );
   assert.equal(preview.balanceProfilesById.get(TRAIT.FENCERS_FINESSE).attributePerStack, 20);
-  assert.equal(preview.balanceProfilesById.get(TRAIT.DANGER_TIME).durationMultiplier, 12);
+  assert.equal(preview.balanceProfilesById.get(TRAIT.DANGER_TIME).duration, 12);
   assert.equal(preview.balanceProfilesById.get(TRAIT.SEIZE_THE_MOMENT).durationPerTier, 2);
   const originalBoon = mesmerCatalog.balanceProfilesById.get(TRAIT.SEIZE_THE_MOMENT).effects[0];
   assert.deepEqual(preview.balanceProfilesById.get(TRAIT.SEIZE_THE_MOMENT).effects[0], {

@@ -136,7 +136,7 @@ export function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   const at = runtime.time;
   const profile = requireBalanceProfileFromContext(runtime, venom.profileId);
   const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
-  const duration = balanceProfileNumber(profile, 'durationMultiplier');
+  const duration = balanceProfileNumber(profile, 'duration');
   addVenomCharges(core, cast.skill.id, at, maximumStacks, duration);
   // Each cast adds an expiring batch; shared grouping spends older grants before newer ones.
   runtime.alliedStrikes.registerRecipients((allyIndex) => ({

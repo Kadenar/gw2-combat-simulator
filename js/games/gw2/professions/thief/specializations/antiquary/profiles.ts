@@ -23,7 +23,7 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     id: ANTIQUARY_BALANCE_PROFILE_IDS.artifactWindows,
     name: 'Antiquary Artifact Windows',
     profileKind: 'mechanic',
-    durationMultiplier: 10,
+    duration: 10,
     minimumStacks: 8,
     playerStacks: 5,
     resourceGain: 3,
@@ -43,7 +43,7 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Skritt Scuffle',
     profileKind: 'skill-variant',
     parentId: ID.SKRITT_SCUFFLE,
-    durationMultiplier: 15,
+    duration: 15,
     pulseInterval: 3,
     effects: []
   },
@@ -55,7 +55,7 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     initialDelay: 1,
     pulseInterval: 3,
     // Recasts add the selected buff duration, but never bank more than thirteen seconds of bomb drops.
-    durationMultiplier: 10,
+    duration: 10,
     maximumDuration: 13,
     effects: [
       { type: 'strike', name: 'Dash', coefficient: 2.4, hits: 1 },

@@ -70,7 +70,7 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
       profileFact(
         balanceContext,
         DE.maliciousSneakAttack,
-        'durationMultiplier',
+        'durationPerTier',
         'Additional torment duration per malice',
         tooltipSeconds
       )
@@ -126,7 +126,7 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
         profileFact(
           balanceContext,
           DE.maliciousAshenAssault,
-          'durationMultiplier',
+          'durationPerTier',
           'Additional torment duration per malice',
           tooltipSeconds
         ),

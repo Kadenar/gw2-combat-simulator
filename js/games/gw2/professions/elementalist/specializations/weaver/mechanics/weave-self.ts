@@ -60,7 +60,7 @@ function handleWeaveSelfActivation(
   const core = professionCoreState(context);
   const at = context.time;
   const sourceId = data as Skill['id'];
-  const duration = balanceNumberFromContext(context, PROFILE.resources, 'durationMultiplier');
+  const duration = balanceNumberFromContext(context, PROFILE.resources, 'duration');
   // Availability and emitted temporary buffs expire on the same combat tick.
   state.weaveSelfUntil = gw2EffectExpiresAt(at, duration);
   state.weaveSelfVisited = [core.primaryAttunement];

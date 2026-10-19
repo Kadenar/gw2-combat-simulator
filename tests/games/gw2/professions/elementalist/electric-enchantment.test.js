@@ -54,7 +54,7 @@ test('skill and trait providers share grant announcements while retaining patche
         fields: { resourceGain: 1 },
         effects: [{ type: 'buff', name: 'Lightning Blitz Enchantment', duration: 3 }]
       },
-      [TRAIT.GALVANIC_ENCHANTMENT]: { fields: { playerStacks: 4, durationMultiplier: 6 } }
+      [TRAIT.GALVANIC_ENCHANTMENT]: { fields: { playerStacks: 4, duration: 6 } }
     }
   });
   // The build selects Galvanic Enchantment throughout; the skill providers grant independently of it.

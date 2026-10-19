@@ -14,7 +14,7 @@ export const thiefAcrobaticsTooltips = {
   [TRAIT.FELINE_GRACE]: outsideScopeTooltip,
   [TRAIT.FLUID_STRIKES]: traitTooltip('Completing a movement skill temporarily increases strike damage.', [
     fromProfile(TRAIT.FLUID_STRIKES, 'damageIncrease', 'Strike damage', tooltipPercent),
-    ['durationMultiplier', 'Bonus duration', tooltipSeconds]
+    ['duration', 'Bonus duration', tooltipSeconds]
   ]),
   [TRAIT.INSTANT_REFLEXES]: outsideScopeTooltip,
   [TRAIT.PUMPING_UP]: traitTooltip('Dodging grants might to yourself.'),

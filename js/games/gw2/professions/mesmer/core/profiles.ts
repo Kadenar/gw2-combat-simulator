@@ -91,7 +91,7 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     expertiseBonus: 180
   }),
   variant(MESMER_CORE_BALANCE_PROFILE_IDS.mimic, ID.MIMIC, 'Mimic', {
-    durationMultiplier: 10
+    duration: 10
   })
 ]);
 
@@ -125,6 +125,6 @@ export function mesmerProfiledTraitDamage(context: unknown, balanceProfileId: Sk
     ...strike,
     name: undefined,
     cooldown: profile.internalCooldown === undefined ? undefined : balanceProfileNumber(profile, 'internalCooldown'),
-    duration: profile.durationMultiplier === undefined ? undefined : balanceProfileNumber(profile, 'durationMultiplier')
+    duration: profile.duration === undefined ? undefined : balanceProfileNumber(profile, 'duration')
   };
 }

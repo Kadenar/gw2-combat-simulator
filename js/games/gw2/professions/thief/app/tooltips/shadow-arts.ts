@@ -25,7 +25,7 @@ export const thiefShadowArtsTooltips = {
     [
       ['resourceGain', 'Spider Venom charges on breaking stealth'],
       ['maximumStacks', 'Maximum charges'],
-      ['durationMultiplier', 'Charge duration', tooltipSeconds]
+      ['duration', 'Charge duration', tooltipSeconds]
     ],
     'life siphon per venom application'
   ),

@@ -28,7 +28,7 @@ export interface TooltipFact {
 }
 
 export interface Skill extends CatalogEntity {
-  /** Duration in seconds of a skill-owned form or temporary state. */
+  /** Duration in seconds of a skill-owned form or state, including a preparation's arming phase. */
   readonly duration?: number;
   /** Multiplier applied by the skill's mechanic to its eligible attribute pool. */
   readonly attributeMultiplier?: number;
@@ -174,6 +174,16 @@ export interface Skill extends CatalogEntity {
  * catalog while retaining the same declarative effect vocabulary.
  */
 export interface BalanceProfile extends CatalogEntity {
+  /** Lifetime in seconds of the state or charges owned by this profile, separate from its effects. */
+  readonly duration?: number;
+  /** Initial seconds before resource-scaled additions or extensions. */
+  readonly baseDuration?: number;
+  /** Seconds added per resource tier, such as malice, notes, or shatter sources. */
+  readonly durationPerTier?: number;
+  /** Flat seconds added to an existing duration. */
+  readonly durationExtension?: number;
+  /** Seconds for which this profile's follow-up remains available. */
+  readonly flipDuration?: number;
   /** Proc claims use a fixed internalCooldown unless a captured companion owns summon recharge work. */
   readonly cooldownPolicy?: 'internal' | 'summonRecharge';
   /** Augmentations retain their skill/summon/shared owner instead of promising a separate trait proc row. */

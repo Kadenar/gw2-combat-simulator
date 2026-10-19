@@ -67,7 +67,7 @@ export const fluidStrikes = defineTrait({
   ],
   balance: {
     damageIncrease: 0.1,
-    durationMultiplier: 5
+    duration: 5
   }
 });
 
@@ -131,7 +131,7 @@ function applyFluidStrikes(runtime: ThiefRuntime): void {
   replaceThiefBuff(
     runtime,
     'fluid-strikes',
-    balanceNumberFromContext(runtime, TRAIT.FLUID_STRIKES, 'durationMultiplier'),
+    balanceNumberFromContext(runtime, TRAIT.FLUID_STRIKES, 'duration'),
     TRAIT.FLUID_STRIKES,
     'Fluid Strikes',
     'Trait'

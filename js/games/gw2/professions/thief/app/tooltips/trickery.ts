@@ -22,7 +22,7 @@ export const thiefTrickeryTooltips = {
   [TRAIT.LEAD_ATTACKS]: traitTooltip('Spending initiative grants temporary damage stacks. Steal recharges faster.', [
     ['damageIncreasePerStack', 'Strike and condition damage per stack', tooltipPercent],
     ['maximumStacks', 'Maximum stacks'],
-    ['durationMultiplier', 'Stack duration', tooltipSeconds],
+    ['duration', 'Stack duration', tooltipSeconds],
     ['rechargeMultiplier', 'Steal recharge', tooltipFactorChange]
   ]),
   // Triggered skill tooltips read the selected skill patch, just like their trait consumers.

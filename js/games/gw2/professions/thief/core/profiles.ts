@@ -64,7 +64,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     profileKind: 'skill-variant',
     parentId: ID.SPIDER_VENOM,
     maximumStacks: 6,
-    durationMultiplier: 24,
+    duration: 24,
     effects: [{ type: 'condition', name: CONDITION.POISONED, condition: CONDITION.POISONED, stacks: 1, duration: 3 }]
   },
   {
@@ -73,7 +73,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     profileKind: 'skill-variant',
     parentId: ID.SKALE_VENOM,
     maximumStacks: 4,
-    durationMultiplier: 24,
+    duration: 24,
     effects: [
       { type: 'condition', name: CONDITION.VULNERABILITY, condition: CONDITION.VULNERABILITY, stacks: 1, duration: 10 },
       { type: 'condition', name: CONDITION.TORMENT, condition: CONDITION.TORMENT, stacks: 1, duration: 3 }
@@ -85,7 +85,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     profileKind: 'skill-variant',
     parentId: ID.DEVOURER_VENOM,
     maximumStacks: 2,
-    durationMultiplier: 24,
+    duration: 24,
     effects: [
       { type: 'condition', name: CONDITION.IMMOBILIZED, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1 }
     ]
@@ -104,7 +104,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     name: 'Distracting Throw - Finisher Bonus',
     profileKind: 'skill-variant',
     parentId: ID.DISTRACTING_THROW,
-    durationMultiplier: 10,
+    duration: 10,
     effects: []
   },
   {
@@ -114,7 +114,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     parentId: ID.ASSASSINS_SIGNET,
     attributeBonus: 180,
     attributePerStack: 540,
-    durationMultiplier: 5,
+    duration: 5,
     effects: []
   }
   // Trait tuning is shared by build calculations, combat, and tooltips.

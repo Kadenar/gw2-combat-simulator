@@ -70,7 +70,7 @@ const boundingDodger = defineTrait({
   ],
   balance: {
     damageIncrease: 0.15,
-    durationMultiplier: 6,
+    duration: 6,
     effects: [{ type: 'strike', name: 'Bounding Dodger', coefficient: 3.5, hits: 1 }]
   }
 });
@@ -99,7 +99,7 @@ const lotusTraining = defineTrait({
   ],
   balance: {
     conditionDamageIncrease: 0.15,
-    durationMultiplier: 6,
+    duration: 6,
     effects: [
       {
         type: 'strike',
@@ -238,7 +238,7 @@ const weakeningStrikes = defineTrait({
   ],
   balance: {
     damageMultiplier: 1.1,
-    durationMultiplier: 4,
+    duration: 4,
     effects: [{ type: 'condition', name: CONDITION.WEAKNESS, condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 }]
   }
 });
@@ -294,7 +294,7 @@ function armWeakeningStrikes(runtime: ThiefRuntime, { cast }: DaredevilCast): vo
   // A removed Weakness cannot arm a pending grant.
   if (!requireEffect(weakening, 'condition', CONDITION.WEAKNESS)) return;
 
-  const duration = balanceProfileNumber(weakening, 'durationMultiplier');
+  const duration = balanceProfileNumber(weakening, 'duration');
   state.weakeningStrikeReady = true;
   state.weakeningStrikeExpiresAt = runtime.time + duration;
   runtime.effects.emit({
@@ -362,7 +362,7 @@ function openDodgeWindow(runtime: ThiefRuntime): void {
     replaceThiefBuff(
       runtime,
       'bounding-dodger',
-      balanceProfileNumber(profile, 'durationMultiplier'),
+      balanceProfileNumber(profile, 'duration'),
       TRAIT.BOUNDING_DODGER,
       'Bounding Dodger',
       'Trait'
@@ -372,7 +372,7 @@ function openDodgeWindow(runtime: ThiefRuntime): void {
     replaceThiefBuff(
       runtime,
       'lotus-training',
-      balanceProfileNumber(profile, 'durationMultiplier'),
+      balanceProfileNumber(profile, 'duration'),
       TRAIT.LOTUS_TRAINING,
       'Lotus Training',
       'Trait'

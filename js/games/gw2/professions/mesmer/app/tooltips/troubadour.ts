@@ -39,7 +39,7 @@ export const troubadourTooltips = {
             profileFact(
               balanceContext,
               TROUBADOUR.instruments,
-              'durationMultiplier',
+              'baseDuration',
               'Base instrument duration',
               tooltipSeconds
             ),
@@ -167,7 +167,7 @@ export const troubadourTooltips = {
       [
         ['rechargeReduction', 'Crescendo recharge removed', tooltipSeconds],
         fromProfile(TRAIT.ALTERED_CHORD, 'damageIncrease', 'Strike damage after Lute', tooltipPercent),
-        ['durationMultiplier', 'Lute bonus duration', tooltipSeconds]
+        ['duration', 'Lute bonus duration', tooltipSeconds]
       ],
       'Crescendo after Flute'
     )

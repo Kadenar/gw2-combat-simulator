@@ -316,13 +316,13 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
 
 /**
  * Familiar tuning remains registered as profiles so patch overrides reach both skills and previews.
- * initialDelay is the flip delay after basic completion; durationMultiplier is the
+ * initialDelay is the flip delay after basic completion; duration is the
  * empowered-to-basic cancellation window measured between cast starts, both in seconds.
  */
 export const familiarBalanceProfiles: readonly BalanceProfile[] = Object.freeze([
   variant(PROFILE.ignite, ID.IGNITE, 'Ignite - Familiar State', {
     initialDelay: 0.96,
-    durationMultiplier: 2.4,
+    duration: 2.4,
     threshold: 15,
     pulseInterval: 1,
     effects: [
@@ -358,11 +358,11 @@ export const familiarBalanceProfiles: readonly BalanceProfile[] = Object.freeze(
   }),
   variant(PROFILE.splash, ID.SPLASH, 'Splash - Familiar State', {
     initialDelay: 0.84,
-    durationMultiplier: 2.4
+    duration: 2.4
   }),
   variant(PROFILE.zap, ID.ZAP, 'Zap - Familiar State', {
     initialDelay: 0.68,
-    durationMultiplier: 2.3,
+    duration: 2.3,
     // The emitter, policy, and damage modifier share this single buff identity.
     effects: [{ type: 'buff', name: 'Zap Window', kind: 'zap buff', stacks: 1, duration: 5 }]
   }),
@@ -373,7 +373,7 @@ export const familiarBalanceProfiles: readonly BalanceProfile[] = Object.freeze(
   }),
   variant(PROFILE.calcify, ID.CALCIFY, 'Calcify - Familiar State', {
     initialDelay: 0.28,
-    durationMultiplier: 2.2,
+    duration: 2.2,
     // The equipped Earth familiar grants personal Protection on disables, independently of party pulses.
     internalCooldown: 0.25,
     effects: [
@@ -432,11 +432,7 @@ export function beginFamiliarCast(
   const empoweredSkill = FAMILIAR_EMPOWERED_BY_BASIC.get(skill.id);
 
   if (empoweredSkill) {
-    const window = balanceNumberFromContext(
-      context,
-      FAMILIAR_PROFILE_BY_BASIC.get(skill.id) ?? skill.id,
-      'durationMultiplier'
-    );
+    const window = balanceNumberFromContext(context, FAMILIAR_PROFILE_BY_BASIC.get(skill.id) ?? skill.id, 'duration');
     const basicKey = String(skill.id);
     const recent = state.lastEmpoweredFamiliarByBasic[basicKey];
 

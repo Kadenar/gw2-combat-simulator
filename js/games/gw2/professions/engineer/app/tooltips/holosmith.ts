@@ -231,7 +231,7 @@ export const holosmithTooltips = {
       [
         ['minimumStacks', 'Base charges'],
         ['maximumStacks', 'High-heat charges'],
-        ['durationMultiplier', 'Charge window', tooltipSeconds],
+        ['duration', 'Charge window', tooltipSeconds],
         fromProfile(TRAIT.SOLAR_FOCUSING_LENS, 'damageIncrease', 'Empowered strike damage', tooltipPercent)
       ]
     ),

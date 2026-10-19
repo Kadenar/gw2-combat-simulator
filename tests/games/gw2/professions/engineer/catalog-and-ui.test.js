@@ -223,7 +223,7 @@ test('Overheat authoring retains the live penalty and rejects obsolete saved con
   const live = { balanceProfiles: { [id]: { fields: { maximumStacks: { from: 15, to: 9 } } } } };
   assert.equal(authoringEngineerProfession.validatePatch(live), true);
   assert.equal(applyEngineerPatch(live).balanceProfilesById.get(id).maximumStacks, 9);
-  for (const field of ['minimumStacks', 'threshold', 'pulseInterval', 'durationMultiplier']) {
+  for (const field of ['minimumStacks', 'threshold', 'pulseInterval', 'duration']) {
     const saved = JSON.parse(JSON.stringify({ balanceProfiles: { [id]: { fields: { [field]: 1 } } } }));
     assert.throws(() => authoringEngineerProfession.validatePatch(saved), new RegExp(`does not expose ${field}`));
     assert.equal(saved.balanceProfiles[id].fields[field], 1);

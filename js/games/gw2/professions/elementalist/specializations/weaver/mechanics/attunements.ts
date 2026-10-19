@@ -200,7 +200,7 @@ const weaverAttunementTasks = {
       const previousSecondary = state.secondaryAttunement;
       state.secondaryAttunement = core.primaryAttunement;
       const unravelProfile = requireBalanceProfileFromContext(context, PROFILE.unravel);
-      state.unravelUntil = at + balanceProfileNumber(unravelProfile, 'durationMultiplier');
+      state.unravelUntil = at + balanceProfileNumber(unravelProfile, 'duration');
       core.attunementEnteredAt = at;
       context.effects.emit({
         kind: 'packet',

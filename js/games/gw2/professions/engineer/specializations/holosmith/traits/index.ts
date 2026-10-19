@@ -179,7 +179,7 @@ export const solarFocusingLens = defineTrait({
     damageIncrease: 0.1,
     minimumStacks: 2,
     maximumStacks: 6,
-    durationMultiplier: 4,
+    duration: 4,
     effects: [{ name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3 }]
   },
   modifierRules: [
@@ -318,7 +318,7 @@ function grantSolarFocusingLens(
       sourceId: TRAIT.SOLAR_FOCUSING_LENS,
       actorType: ACTOR.PLAYER,
       stacks: balanceProfileNumber(solarFocusingLensProfile, overheat ? 'maximumStacks' : 'minimumStacks'),
-      duration: balanceProfileNumber(solarFocusingLensProfile, 'durationMultiplier')
+      duration: balanceProfileNumber(solarFocusingLensProfile, 'duration')
     }
   });
 }

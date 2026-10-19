@@ -99,7 +99,7 @@ const combatHigh = defineTrait({
     conditionDamageIncreasePerStack: 0.02,
     maximumStacks: 10,
     pulseInterval: 2,
-    durationMultiplier: 20
+    duration: 20
   }
 });
 
@@ -131,7 +131,7 @@ const exhilaratingEphemera = defineTrait({
   ],
   balance: {
     damageIncrease: 0.1,
-    durationMultiplier: 10,
+    durationExtension: 10,
     maximumStacks: 20
   }
 });
@@ -176,7 +176,7 @@ const meticulousCustodian = defineTrait({
       name: 'Forged Surfer Dash - Meticulous',
       profileKind: 'skill-variant',
       parentId: ID.FORGED_SURFER_DASH,
-      durationMultiplier: 13,
+      duration: 13,
       effects: [
         { type: 'strike', name: 'Dash', coefficient: 2.8, hits: 1 },
         // Meticulous replaces the dash burn with one eight-second stack before expertise.
@@ -231,7 +231,7 @@ const meticulousCustodian = defineTrait({
     }
   ],
   balance: {
-    durationMultiplier: 12,
+    duration: 12,
     kryptisDuration: 10,
     mortarBurningDurationMultiplier: 2 / 1.5,
     sunCrystalBurningDurationMultiplier: 5 / 4,
@@ -323,7 +323,7 @@ function grantCombatHigh(runtime: ThiefRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.COMBAT_HIGH);
   const maximum = Math.max(0, Math.trunc(balanceProfileNumber(profile, 'maximumStacks')));
   const interval = balanceProfileNumber(profile, 'pulseInterval');
-  const expiresAt = runtime.time + balanceProfileNumber(profile, 'durationMultiplier');
+  const expiresAt = runtime.time + balanceProfileNumber(profile, 'duration');
   antiquaryState.from(runtime).combatHighExpirations =
     interval > 0
       ? purgeExpiredStacks(
@@ -349,7 +349,7 @@ function applyExhilaratingEphemera(runtime: ThiefRuntime): void {
     runtime.time +
     Math.min(
       balanceProfileNumber(profile, 'maximumStacks'),
-      remaining + balanceProfileNumber(profile, 'durationMultiplier')
+      remaining + balanceProfileNumber(profile, 'durationExtension')
     );
 }
 

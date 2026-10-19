@@ -99,7 +99,7 @@ export const TROUBADOUR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     id: TROUBADOUR_BALANCE_PROFILE_IDS.instruments,
     name: 'Troubadour Instrument Duration',
     profileKind: 'mechanic',
-    durationMultiplier: 5,
+    baseDuration: 5,
     durationPerTier: 5,
     effects: [HARMONIOUS_HARP_DISTORTION]
   },

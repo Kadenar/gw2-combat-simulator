@@ -18,7 +18,7 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     id: AMALGAM_BALANCE_PROFILE_IDS.rapaciousStrain,
     name: 'Rapacious Strain',
     profileKind: 'mechanic',
-    durationMultiplier: 8,
+    duration: 8,
     internalCooldown: 0.48,
     effects: [{ name: 'Rapacious Strain', type: 'strike', coefficient: 0.3, hits: 1 }]
   },

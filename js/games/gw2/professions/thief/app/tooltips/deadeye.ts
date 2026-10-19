@@ -21,7 +21,7 @@ import { stealthAttack } from '#gw2/professions/thief/app/tooltips/shared.js';
 const deadeyesMarkTooltip: DescribeSimulationTooltip = skillTooltip(
   'Mark the target, trigger stealing traits, and grant the configured Deadeye stolen skill. Marked initiative attacks build malice on their first hit, with additional gain from critical hits. Remarking preserves existing malice; Malicious Intent adds its grant.',
   [
-    fromProfile(DE.resources, 'durationMultiplier', 'Mark duration', tooltipSeconds),
+    fromProfile(DE.resources, 'duration', 'Mark duration', tooltipSeconds),
     fromProfile(DE.resources, 'maximumStacks', 'Maximum malice'),
     fromProfile(TRAIT.MALEFICENT_SEVEN, 'maximumStacks', 'Maximum malice with Maleficent Seven'),
     fromProfile(DE.resources, 'resourceGain', 'Malice per initiative attack'),
@@ -41,7 +41,7 @@ const deadeyeMercyTooltip: DescribeSimulationTooltip = profileTooltip(
 const deadeyeShadowFlareTooltip: DescribeSimulationTooltip = skillTooltip(
   'Create a damaging field and temporarily unlock Shadow Swap. Its strikes deal increased damage against your active mark.',
   [
-    fromProfile(DE.shadowFlare, 'durationMultiplier', 'Shadow Swap window', tooltipSeconds),
+    fromProfile(DE.shadowFlare, 'flipDuration', 'Shadow Swap window', tooltipSeconds),
     fromModifier('thief.shadow-flare-marked', 'factor', 'Strike damage against your mark', tooltipFactorChange)
   ]
 );
@@ -125,7 +125,7 @@ export const deadeyeTooltips = {
       [
         ['attributeBonus', 'Precision'],
         ['threshold', 'Malice must exceed'],
-        ['durationMultiplier', 'Attack availability', tooltipSeconds]
+        ['duration', 'Attack availability', tooltipSeconds]
       ]
     ),
     [TRAIT.PAYBACK]: outsideScopeTooltip,

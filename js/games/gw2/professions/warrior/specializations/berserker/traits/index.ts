@@ -81,7 +81,7 @@ const lastBlaze = defineTrait({
   id: TRAIT.LAST_BLAZE,
   name: 'Last Blaze',
   balance: {
-    durationMultiplier: 1,
+    durationExtension: 1,
     effects: [{ name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 4 }]
   },
   triggers: [

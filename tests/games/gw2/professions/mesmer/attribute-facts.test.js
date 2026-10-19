@@ -25,7 +25,7 @@ test('Mesmer reuses fixed query inputs while cooldowns and timed attribute stack
         [PROFILE.signetOfMidnight, { expertiseBonus: 200 }],
         [PROFILE.signetOfDomination, { conditionDamageBonus: 220 }],
         [TRAIT.CHAOTIC_PERSISTENCE, { expertiseBonus: 130, concentrationBonus: 270 }],
-        [TRAIT.FENCERS_FINESSE, { durationMultiplier: 7, maximumStacks: 8, attributePerStack: 12 }]
+        [TRAIT.FENCERS_FINESSE, { duration: 7, maximumStacks: 8, attributePerStack: 12 }]
       ])
     },
     timeline: {

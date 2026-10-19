@@ -207,7 +207,7 @@ const elementsOfRage = defineTrait({
   balance: {
     damageIncrease: 0.15,
     conditionDamageIncrease: 0.1,
-    durationMultiplier: 8
+    duration: 8
   },
   modifierRules: [
     {
@@ -271,7 +271,7 @@ function initializeElementsOfRage(context: ElementalistRuntime): void {
         actorType: ACTOR.PLAYER,
         kind: 'elements of rage',
         stacks: 1,
-        duration: balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'durationMultiplier'),
+        duration: balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'duration'),
         skillName: 'Starting Attunement'
       })
     );
@@ -297,7 +297,7 @@ function applyElementsOfRageAttunement(context: ElementalistRuntime, event: Simu
         actorType: ACTOR.PLAYER,
         kind: 'elements of rage',
         stacks: 1,
-        duration: balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'durationMultiplier'),
+        duration: balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'duration'),
         skillName: source
       })
     );
@@ -446,7 +446,7 @@ function applyUnravelElementsOfRage(
           actorType: ACTOR.PLAYER,
           name: skill.name,
           kind: 'elements of rage',
-          duration: balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'durationMultiplier'),
+          duration: balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'duration'),
           stacks: 1
         },
         { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }

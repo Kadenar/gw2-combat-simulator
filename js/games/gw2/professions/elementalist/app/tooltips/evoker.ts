@@ -171,7 +171,7 @@ export const evokerTooltips = {
       [
         ['damageIncrease', 'Air strike damage', tooltipPercent],
         ['conditionDamageIncrease', 'Fire condition damage', tooltipPercent],
-        ['durationMultiplier', 'Initial duration', tooltipSeconds],
+        ['baseDuration', 'Initial duration', tooltipSeconds],
         ['durationPerTier', 'Duration added while active', tooltipSeconds],
         ['maximumStacks', 'Maximum remaining duration', tooltipSeconds]
       ]
@@ -202,7 +202,7 @@ export const evokerTooltips = {
       'Completing a familiar grants Electric Enchantment charges. Your next qualifying player strikes consume charges to trigger an additional strike and burning.',
       [
         ['playerStacks', 'Charges granted'],
-        ['durationMultiplier', 'Charge duration', tooltipSeconds]
+        ['duration', 'Charge duration', tooltipSeconds]
       ],
       'per charge consumed'
     ),
@@ -210,7 +210,7 @@ export const evokerTooltips = {
       'Entering your selected familiar element enough times opens a brief window. The next non-autoattack weapon skill in that window has reduced recharge.',
       [
         ['threshold', 'Entries required'],
-        ['durationMultiplier', 'Skill-use window', tooltipSeconds],
+        ['duration', 'Skill-use window', tooltipSeconds],
         ['rechargeMultiplier', 'Next eligible skill recharge', tooltipFactorChange]
       ]
     ),

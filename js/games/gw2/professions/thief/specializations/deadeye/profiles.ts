@@ -20,7 +20,7 @@ const DEADEYE_RESOURCE_PROFILE: BalanceProfile = {
   maximumStacks: 5,
   resourceGain: 1,
   playerStacks: 1,
-  durationMultiplier: 30,
+  duration: 30,
   effects: []
 };
 
@@ -32,7 +32,7 @@ export const DEADEYE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     name: 'Malicious Sneak Attack - Torment Scaling',
     profileKind: 'skill-variant',
     parentId: ID.MALICIOUS_SNEAK_ATTACK,
-    durationMultiplier: 2,
+    durationPerTier: 2,
     effects: [{ type: 'condition', name: CONDITION.TORMENT, condition: CONDITION.TORMENT, stacks: 1, duration: 1 }]
   },
   {
@@ -41,7 +41,7 @@ export const DEADEYE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     profileKind: 'skill-variant',
     parentId: ID.MALICIOUS_ASHEN_ASSAULT,
     coefficientMultiplier: 0.02,
-    durationMultiplier: 0.5,
+    durationPerTier: 0.5,
     resourceGain: 4,
     effects: [{ type: 'condition', name: CONDITION.TORMENT, condition: CONDITION.TORMENT, stacks: 1, duration: 0.5 }]
   },
@@ -59,7 +59,7 @@ export const DEADEYE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     name: 'Shadow Flare Flip Window',
     profileKind: 'skill-variant',
     parentId: ID.SHADOW_FLARE,
-    durationMultiplier: 4,
+    flipDuration: 4,
     effects: []
   }
 ]);

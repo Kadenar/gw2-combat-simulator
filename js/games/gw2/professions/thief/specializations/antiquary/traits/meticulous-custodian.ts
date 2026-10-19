@@ -53,7 +53,7 @@ export function artifactWindow(runtime: ThiefRuntime): {
     hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)
       ? requireBalanceProfileFromContext(runtime, TRAIT.METICULOUS_CUSTODIAN)
       : windows,
-    'durationMultiplier'
+    'duration'
   );
   return { windows, duration };
 }

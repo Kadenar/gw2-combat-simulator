@@ -129,9 +129,7 @@ export function createMirageActionController({
   const grantMirageCloak = (
     at: number,
     source: string,
-    {
-      duration = balanceNumberFromContext(state, PROFILE.mechanics, 'durationMultiplier')
-    }: MesmerMirageCloakOptions = {},
+    { duration = balanceNumberFromContext(state, PROFILE.mechanics, 'duration') }: MesmerMirageCloakOptions = {},
     delivery: EffectDelivery = {}
   ) => {
     if (config.specialization !== 'Mirage') return;

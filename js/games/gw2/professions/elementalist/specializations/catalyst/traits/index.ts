@@ -51,7 +51,7 @@ const empoweringAuras = defineTrait({
   lifetime: { reactions: { 'buff.applied': applyEmpoweringAurasBuff } },
   balance: {
     maximumStacks: 5,
-    durationMultiplier: 10,
+    duration: 10,
     damageIncreasePerStack: 0.01,
     conditionDamageIncreasePerStack: 0.01
   },
@@ -131,7 +131,7 @@ const elementalEmpowerment = defineTrait({
   balance: {
     maximumStacks: 10,
     playerStacks: 3,
-    durationMultiplier: 15,
+    duration: 15,
     attributePerStack: 0.01,
     coefficientMultiplier: 0.015,
     attributeConversion: 0.2
@@ -584,7 +584,7 @@ function empoweringAurasParameters(context: unknown) {
   const empoweringAurasProfile = requireBalanceProfileFromContext(context, TRAIT.EMPOWERING_AURAS);
   return {
     maximumStacks: balanceProfileNumber(empoweringAurasProfile, 'maximumStacks'),
-    duration: balanceProfileNumber(empoweringAurasProfile, 'durationMultiplier')
+    duration: balanceProfileNumber(empoweringAurasProfile, 'duration')
   };
 }
 

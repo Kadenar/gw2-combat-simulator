@@ -127,7 +127,7 @@ function commitInstrument(
     activationId: cast.id
   });
   const instrumentsProfile = requireBalanceProfileFromContext(context, PROFILE.instruments);
-  const baseDuration = balanceProfileNumber(instrumentsProfile, 'durationMultiplier');
+  const baseDuration = balanceProfileNumber(instrumentsProfile, 'baseDuration');
   const durationPerNote = balanceProfileNumber(instrumentsProfile, 'durationPerTier');
   // Playing windows are exact and replace only the matching instrument, without action-tick rounding.
   const expiresAt = canonicalTime(at + baseDuration + spent * durationPerNote);

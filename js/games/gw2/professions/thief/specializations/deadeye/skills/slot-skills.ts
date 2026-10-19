@@ -22,7 +22,7 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, Partial<Skill>>> = Obj
         do: {
           type: 'flipArm',
           skillId: ID.SHADOW_SWAP,
-          durationSec: { profile: PROFILE.shadowFlare, field: 'durationMultiplier' }
+          durationSec: { profile: PROFILE.shadowFlare, field: 'flipDuration' }
         }
       }
     ],

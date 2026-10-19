@@ -29,7 +29,7 @@ test('familiar replacement honors patched cancellation windows and preserves the
   ]) {
     for (const window of [0.5, 4]) {
       const catalog = applyBalanceProfilePatch(elementalistCatalog, {
-        balanceProfiles: { [profileId]: { fields: { durationMultiplier: window } } }
+        balanceProfiles: { [profileId]: { fields: { duration: window } } }
       });
       const basic = catalog.skillsByName.get(basicName);
       const empowered = catalog.skillsByName.get(empoweredName);
@@ -280,7 +280,7 @@ test('Elemental Balance reports the same patched duration used for its active wi
     helpers: applyBalanceProfilePatch(elementalistCatalog, {
       balanceProfiles: {
         [TRAIT.ELEMENTAL_BALANCE]: {
-          fields: { durationMultiplier: { from: 5, to: 8 } }
+          fields: { duration: { from: 5, to: 8 } }
         }
       }
     }),

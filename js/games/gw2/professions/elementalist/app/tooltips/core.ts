@@ -125,7 +125,7 @@ export const elementalistCoreTooltips = {
         id,
         skillTooltip(
           "Create this attunement's hammer orb and refresh all active orb durations. Grand Finale consumes the active orbs and replaces their pending attacks with elemental projectiles.",
-          [fromProfile(CORE.hammerOrbs, 'durationMultiplier', 'Refreshed orb duration', tooltipSeconds)]
+          [fromProfile(CORE.hammerOrbs, 'duration', 'Refreshed orb duration', tooltipSeconds)]
         )
       ])
     ),
@@ -134,7 +134,7 @@ export const elementalistCoreTooltips = {
         id,
         skillTooltip(
           `Conjure and equip ${weapon}, replacing your weapon bar. Leave a second weapon available for a later pickup. Dropping the bundle restores your normal skills.`,
-          [fromProfile(CORE.conjurePickups, 'durationMultiplier', 'Ground pickup lifetime', tooltipSeconds)]
+          [fromProfile(CORE.conjurePickups, 'duration', 'Ground pickup lifetime', tooltipSeconds)]
         )
       ])
     ),
@@ -182,7 +182,7 @@ export const elementalistCoreTooltips = {
     [ID.DROP_BUNDLE]: skillTooltip('Drop the conjured weapon and restore your normal weapon skills.'),
     [ID.ROCK_BARRIER]: skillTooltip(
       'Arm Hurl for the barrier window. Rock Barrier begins recharging when Hurl consumes it or the window expires.',
-      [fromProfile(CORE.rockBarrier, 'durationMultiplier', 'Hurl window', tooltipSeconds)]
+      [fromProfile(CORE.rockBarrier, 'flipDuration', 'Hurl window', tooltipSeconds)]
     ),
     [ID.HURL]: skillTooltip(
       "Release the stored Rock Barrier as projectiles, consume the follow-up, and begin Rock Barrier's recharge."
@@ -194,7 +194,7 @@ export const elementalistCoreTooltips = {
     [ID.ARCANE_ECHO]: skillTooltip(
       "Arm a window for the next completed weapon skill with a recharge. If its cast begins within the window, it receives the short base recharge below, and its original recharge is added to Arcane Echo's base 15-second recharge, before Alacrity. Autoattacks and follow-up skills do not consume the effect; ammunition charges are not replenished.",
       [
-        fromProfile(CORE.arcaneEcho, 'durationMultiplier', 'Window', tooltipSeconds),
+        fromProfile(CORE.arcaneEcho, 'duration', 'Window', tooltipSeconds),
         fromProfile(CORE.arcaneEcho, 'recharge', 'Weapon recharge after triggering', tooltipSeconds)
       ]
     ),
@@ -263,7 +263,7 @@ export const elementalistCoreTooltips = {
     [ID.DAZING_DISCHARGE]: skillTooltip(
       "Strike and daze your target. Stock an Air bullet if none is loaded; otherwise consume it to shorten the next eligible pistol skill's recharge.",
       [
-        fromProfile(CORE.dazingDischarge, 'durationMultiplier', 'Recharge bonus window', tooltipSeconds),
+        fromProfile(CORE.dazingDischarge, 'duration', 'Recharge bonus window', tooltipSeconds),
         fromProfile(CORE.dazingDischarge, 'rechargeMultiplier', 'Next eligible pistol recharge', tooltipFactorChange)
       ]
     ),
@@ -271,7 +271,7 @@ export const elementalistCoreTooltips = {
       'Strike and apply conditions. Stock an Earth bullet if none is loaded; otherwise consume it to arm bleeding on your next qualifying hits.',
       (balanceContext) => [
         profileFact(balanceContext, CORE.shatteringStone, 'maximumStacks', 'Enhanced bleeding charges'),
-        profileFact(balanceContext, CORE.shatteringStone, 'durationMultiplier', 'Charge window', tooltipSeconds),
+        profileFact(balanceContext, CORE.shatteringStone, 'duration', 'Charge window', tooltipSeconds),
         ...simulationEffectFacts(
           tooltipProfile(balanceContext, CORE.shatteringStone).effects,
           'per enhanced charge consumed'
@@ -293,14 +293,14 @@ export const elementalistCoreTooltips = {
     [ID.GLYPH_OF_ELEMENTALS]: skillTooltip(
       'Summon a Fire Elemental with its own attributes and autonomous Fireball and Flame Burst attacks. Flame Barrage commands it to interrupt its current attack. The glyph recharges after the elemental expires.',
       [
-        fromProfile(CORE.summonedElemental, 'durationMultiplier', 'Elemental lifetime', tooltipSeconds),
+        fromProfile(CORE.summonedElemental, 'duration', 'Elemental lifetime', tooltipSeconds),
         fromProfile(CORE.summonedElemental, 'recharge', 'Recharge after expiry', tooltipSeconds)
       ]
     ),
     [ID.GLYPH_OF_ELEMENTALS_EARTH]: skillTooltip(
       'Summon an Earth Elemental with its own attributes and autonomous Punch and Enervating Punch attacks. Stomp commands it to interrupt its current attack. The glyph recharges after the elemental expires.',
       [
-        fromProfile(CORE.summonedElemental, 'durationMultiplier', 'Elemental lifetime', tooltipSeconds),
+        fromProfile(CORE.summonedElemental, 'duration', 'Elemental lifetime', tooltipSeconds),
         fromProfile(CORE.summonedElemental, 'recharge', 'Recharge after expiry', tooltipSeconds)
       ]
     ),

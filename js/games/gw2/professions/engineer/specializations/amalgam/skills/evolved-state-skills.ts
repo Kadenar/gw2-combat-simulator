@@ -216,7 +216,7 @@ export function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamM
   const profile = requireBalanceProfileFromContext(context, PROFILE.strains);
 
   if (morphKind === 'thorns') {
-    const duration = balanceNumberFromContext(context, PROFILE.rapaciousStrain, 'durationMultiplier');
+    const duration = balanceNumberFromContext(context, PROFILE.rapaciousStrain, 'duration');
     state.rapaciousUntil = Math.max(state.rapaciousUntil || 0, at + duration);
   }
 

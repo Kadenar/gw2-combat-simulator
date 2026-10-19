@@ -1,6 +1,7 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import { armSkillFlip, consumeSkillFlip, skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
@@ -59,7 +60,9 @@ export function prepareTrap(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>
   if (!trap) return;
 
   const skill = cast.skill;
-  const delay = Number(skill.durationMultiplier ?? 3) / runtime.cooldownController.rate(cast.skill);
+  // The placement owns its arming duration; missing selected tuning must never fall back to a default.
+  const delay =
+    requireBalanceNumber(skill.duration, `skill=${skill.id} field=duration`) / runtime.cooldownController.rate(skill);
   armSkillFlip(runtime.profession.core.availableFlips, trap.triggerId, runtime.time + delay, Infinity, runtime.time);
 }
 

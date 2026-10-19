@@ -51,7 +51,7 @@ export function createHammerOrbs(
 ): void {
   const state = professionCoreState(context);
   const at = cast.effectiveEnd;
-  const duration = balanceNumberFromContext(context, PROFILE.hammerOrbs, 'durationMultiplier');
+  const duration = balanceNumberFromContext(context, PROFILE.hammerOrbs, 'duration');
   const previouslyActive = new Set(activeHammerOrbElements(state, at));
   for (const element of previouslyActive) {
     state.hammerOrbs[element] = at + duration;

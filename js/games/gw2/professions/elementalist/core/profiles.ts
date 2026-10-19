@@ -44,7 +44,7 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     id: ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental,
     name: 'Summoned Elemental Lifecycle',
     profileKind: 'mechanic',
-    durationMultiplier: 120,
+    duration: 120,
     recharge: 40,
     initialDelay: 0.16,
     effects: []
@@ -53,14 +53,14 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     id: ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.conjurePickups,
     name: 'Conjured Weapon Duration',
     profileKind: 'mechanic',
-    durationMultiplier: 30,
+    duration: 30,
     effects: []
   },
   {
     id: ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.hammerOrbs,
     name: 'Elementalist Hammer Orbs',
     profileKind: 'mechanic',
-    durationMultiplier: 15,
+    duration: 15,
     initialDelay: 0.48,
     effects: []
   },
@@ -74,7 +74,7 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     effects: []
   },
   variant(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.rockBarrier, ID.ROCK_BARRIER, 'Rock Barrier - Stored Barrier', {
-    durationMultiplier: 30
+    flipDuration: 30
   }),
   variant(
     ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.elementalExplosion,
@@ -96,7 +96,7 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     { rechargeMultiplier: 0.5 }
   ),
   variant(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.arcaneEcho, ID.ARCANE_ECHO, 'Arcane Echo - Cooldown Window', {
-    durationMultiplier: 10,
+    duration: 10,
     recharge: 1
   }),
 

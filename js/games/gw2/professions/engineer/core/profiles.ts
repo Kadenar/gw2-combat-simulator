@@ -34,7 +34,7 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     id: ENGINEER_CORE_BALANCE_PROFILE_IDS.conduitSurge,
     name: 'Conduit Surge',
     profileKind: 'skill-variant',
-    durationMultiplier: 10,
+    duration: 10,
     effects: [
       { name: 'Conduit Surge', type: 'strike', coefficient: 1.2, hits: 1 },
       { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 7 }

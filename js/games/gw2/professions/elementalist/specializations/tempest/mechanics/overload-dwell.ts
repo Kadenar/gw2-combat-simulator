@@ -15,6 +15,6 @@ export function tempestOverloadDwell(context: unknown): number {
 /** Share the existing overload profile patch target while keeping the selected-trait decision here. */
 function transcendentTempestDwell(context: unknown, base: number): number {
   return hasTrait(context, TRAIT.TRANSCENDENT_TEMPEST)
-    ? balanceNumberFromContext(context, PROFILE.overloads, 'durationMultiplier')
+    ? balanceNumberFromContext(context, PROFILE.overloads, 'duration')
     : base;
 }

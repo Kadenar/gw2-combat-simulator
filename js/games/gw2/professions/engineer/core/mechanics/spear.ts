@@ -205,7 +205,7 @@ function handleConduitSurge(context: EngineerResolverContext, event: EngineerRes
         type: 'buff',
         kind: 'engineer-focused',
         at: event.at,
-        duration: balanceProfileNumber(idProfile, 'durationMultiplier'),
+        duration: balanceProfileNumber(idProfile, 'duration'),
         stacks: 1,
         source: 'engineer',
         sourceId: ID.CONDUIT_SURGE,

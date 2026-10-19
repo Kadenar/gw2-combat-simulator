@@ -22,7 +22,7 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 
 const cloakFacts = (balanceContext: Parameters<DescribeSimulationTooltip>[0]) => [
-  profileFact(balanceContext, MIRAGE.mechanics, 'durationMultiplier', 'Mirage Cloak', tooltipSeconds),
+  profileFact(balanceContext, MIRAGE.mechanics, 'duration', 'Mirage Cloak', tooltipSeconds),
   profileFact(balanceContext, MIRAGE.mechanics, 'durationPerTier', 'Ambush window', tooltipSeconds)
 ];
 
@@ -160,7 +160,7 @@ export const mirageTooltips = {
           tooltipPercent
         ),
         ['maximumStacks', 'Maximum stacks'],
-        ['durationMultiplier', 'Stack duration', tooltipSeconds]
+        ['duration', 'Stack duration', tooltipSeconds]
       ]
     ),
     [TRAIT.INFINITE_HORIZON]: traitTooltip(
@@ -172,7 +172,7 @@ export const mirageTooltips = {
       [
         ['rechargeReduction', 'Recharge removed', tooltipSeconds],
         ['threshold', 'Clones required'],
-        ['durationMultiplier', 'Granted Mirage Cloak duration', tooltipSeconds]
+        ['duration', 'Granted Mirage Cloak duration', tooltipSeconds]
       ]
     )
   }

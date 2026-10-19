@@ -223,7 +223,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         do: {
           type: 'flipArm',
           skillId: ID.PALM_STRIKE,
-          durationSec: { profile: PROFILE.palmStrike, field: 'durationMultiplier' }
+          durationSec: { profile: PROFILE.palmStrike, field: 'flipDuration' }
         }
       }
     ],

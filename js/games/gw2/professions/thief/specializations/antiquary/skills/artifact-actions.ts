@@ -139,7 +139,7 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
     'thief.surfer-window'(runtime) {
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
-      const duration = balanceProfileNumber(forgedSurferProfile(runtime), 'durationMultiplier');
+      const duration = balanceProfileNumber(forgedSurferProfile(runtime), 'duration');
       const maximum = balanceNumberFromContext(runtime, PROFILE.forgedSurfer, 'maximumDuration');
       // Surfer banks remaining duration up to its own cap, independently of the other artifact windows.
       state.forgedSurferBombDropUntil =

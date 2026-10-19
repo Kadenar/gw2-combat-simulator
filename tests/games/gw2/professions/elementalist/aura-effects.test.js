@@ -181,7 +181,7 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
     buffs: new Map(),
     // Both scalar and effect overrides are assembled before aura reactions read their owners.
     helpers: withProfile(
-      withProfile(elementalistCatalog, TRAIT.EMPOWERING_AURAS, { maximumStacks: 1, durationMultiplier: 8 }),
+      withProfile(elementalistCatalog, TRAIT.EMPOWERING_AURAS, { maximumStacks: 1, duration: 8 }),
       TRAIT.ELEMENTAL_EPITOME,
       { effects: [{ type: 'buff', name: 'Empowerment', kind: 'elemental empowerment', stacks: 2, duration: 7 }] }
     ),

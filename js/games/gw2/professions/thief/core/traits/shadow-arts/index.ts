@@ -98,7 +98,7 @@ export const leechingVenoms = defineTrait({
   balance: {
     maximumStacks: 6,
     resourceGain: 3,
-    durationMultiplier: 24,
+    duration: 24,
     // Leeching Venoms owns a flat life-steal formula, independent of weapon damage.
     effects: [
       {
@@ -252,7 +252,7 @@ function grantLeechingVenomCharges(runtime: ThiefRuntime, { at }: StealthTransit
     ID.SPIDER_VENOM,
     at,
     balanceProfileNumber(leeching, 'resourceGain'),
-    balanceProfileNumber(leeching, 'durationMultiplier'),
+    balanceProfileNumber(leeching, 'duration'),
     balanceProfileNumber(leeching, 'maximumStacks')
   );
 }

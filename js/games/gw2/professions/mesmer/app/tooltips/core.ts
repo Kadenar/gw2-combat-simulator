@@ -132,7 +132,7 @@ export const mesmerCoreTooltips = {
     ),
     [ID.MIMIC]: skillTooltip(
       "Arm a window for your next completed utility skill. If its cast begins within the window, reduce its recharge to 1 second and add its original recharge to Mimic's base 20-second recharge, before Alacrity. Continuum Split does not restore Mimic's recharge. Follow-up skills do not consume Mimic; ammunition charges are not replenished.",
-      [fromProfile(CORE.mimic, 'durationMultiplier', 'Mimic window', tooltipSeconds)]
+      [fromProfile(CORE.mimic, 'duration', 'Mimic window', tooltipSeconds)]
     ),
     [ID.MIND_THE_GAP]: skillTooltip('Strike, generate a resource, and gain Clarity for a subsequent spear skill.'),
     [ID.IMAGINARY_INVERSION]: skillTooltip(

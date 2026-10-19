@@ -273,7 +273,7 @@ export const persistingFlames = defineTrait({
   name: 'Persisting Flames',
   balance: {
     damageIncreasePerStack: 0.02,
-    durationMultiplier: 15,
+    duration: 15,
     durationPerTier: 2,
     maximumStacks: 5
   },
@@ -443,7 +443,7 @@ function grantPersistingFlames(context: MechanicCombatContext, event: Gw2Resolve
       skillName: requireBalanceProfileFromContext(context, TRAIT.PERSISTING_FLAMES).name,
       kind: 'Persisting Flames'.toLowerCase(),
       stacks: 1,
-      duration: balanceNumberFromContext(context, TRAIT.PERSISTING_FLAMES, 'durationMultiplier'),
+      duration: balanceNumberFromContext(context, TRAIT.PERSISTING_FLAMES, 'duration'),
       triggeredBy: resolverSourceSkill(event),
       priority: Number(event.priority || 0)
     }

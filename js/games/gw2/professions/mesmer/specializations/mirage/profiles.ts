@@ -157,7 +157,7 @@ export const MIRAGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     id: MIRAGE_BALANCE_PROFILE_IDS.mechanics,
     name: 'Mirage Cloak and Mirrors',
     profileKind: 'mechanic',
-    durationMultiplier: 0.75,
+    duration: 0.75,
     durationPerTier: 1.5,
     effects: [
       ...MIRAGE_MIRROR_EFFECTS,

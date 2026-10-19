@@ -64,7 +64,7 @@ export const PRIMORDIAL_STANCE_EFFECTS = Object.freeze({
 export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   // Shared Weave Self bucket: `initialDelay` is the attunement recharge applied
   // after every swap inside Weave Self, `recharge` the Perfect Weave window,
-  // `durationMultiplier` the Weave Self duration, and `firstPacketRatio` the
+  // `duration` the Weave Self duration, and `firstPacketRatio` the
   // fraction of the cast at which Weave Self activates.
   {
     id: WEAVER_BALANCE_PROFILE_IDS.resources,
@@ -72,7 +72,7 @@ export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     profileKind: 'mechanic',
     initialDelay: 2,
     recharge: 10,
-    durationMultiplier: 20,
+    duration: 20,
     firstPacketRatio: 0.65,
     effects: []
   },
@@ -104,7 +104,7 @@ export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     parentId: ID.UNRAVEL,
     name: 'Unravel - Attunement and Boons',
     profileKind: 'skill-variant',
-    durationMultiplier: 5,
+    duration: 5,
     effects: [
       boon('Fire', boonKey(BOON.MIGHT), 5, 5),
       boon('Water', boonKey(BOON.VIGOR), 1, 5),
@@ -117,7 +117,7 @@ export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     parentId: ID.FERVENT_STANCE,
     name: 'Fervent Stance - Dual Attack Might',
     profileKind: 'skill-variant',
-    durationMultiplier: 8,
+    duration: 8,
     effects: [boon(BOON.MIGHT, boonKey(BOON.MIGHT), 3, 8)]
   }
 ]);

@@ -161,7 +161,7 @@ test('Silent Scope and Guitar replace bonus stealth attacks with selected counts
       professions: {
         thief: {
           balanceProfiles: {
-            [profile]: { fields: deadeye ? { durationMultiplier: 7 } : { durationMultiplier: 7, resourceGain: 3 } }
+            [profile]: { fields: deadeye ? { duration: 7 } : { duration: 7, resourceGain: 3 } }
           }
         }
       }

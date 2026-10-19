@@ -28,8 +28,7 @@ test('Tempest charges require a live elemental and retire on replacement and nat
     wait(5000),
     { specialization: 'Tempest' },
     {
-      catalog: (catalog) =>
-        withProfile(catalog, PROFILE.summonedElemental, { initialDelay: 10, durationMultiplier: 2 }),
+      catalog: (catalog) => withProfile(catalog, PROFILE.summonedElemental, { initialDelay: 10, duration: 2 }),
       timeline: [
         {
           at: 0.1,

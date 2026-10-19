@@ -58,7 +58,7 @@ test('marks replace or add malice and ignore stale expiry generations', () => {
     { specialization: 'Deadeye', selectedTraitIds: [TRAIT.MALICIOUS_INTENT] },
     {
       catalog: (catalog) =>
-        withSkill(withProfile(catalog, DEADEYE.resources, { durationMultiplier: 2 }), ID.DEADEYES_MARK, {
+        withSkill(withProfile(catalog, DEADEYE.resources, { duration: 2 }), ID.DEADEYES_MARK, {
           cooldown: 0
         }),
       initialize(runtime) {

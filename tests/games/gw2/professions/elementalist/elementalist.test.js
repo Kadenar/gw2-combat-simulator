@@ -115,10 +115,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
   };
 
   assert.equal(profile('Core', ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources).patchableFields.recharge, 10);
-  assert.equal(
-    profile('Core', ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental).patchableFields.durationMultiplier,
-    120
-  );
+  assert.equal(profile('Core', ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental).patchableFields.duration, 120);
   assert.equal(profile('Tempest', TEMPEST_BALANCE_PROFILE_IDS.lightningJolt).profile.effects[0].coefficient, 1.32);
   assert.equal(profile('Weaver', WEAVER_BALANCE_PROFILE_IDS.primordialStance).profile.effects[0].coefficient, 0.33);
   assert.equal(profile('Catalyst', CATALYST_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 30);
@@ -154,7 +151,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
         fields: { recharge: { from: 10, to: 9 } }
       },
       [ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental]: {
-        fields: { durationMultiplier: { from: 120, to: 100 } }
+        fields: { duration: { from: 120, to: 100 } }
       },
       [TRAIT.ELEMENTAL_ENCHANTMENT]: {
         fields: { rechargeMultiplier: { from: 0.85, to: 0.8 } }
@@ -184,11 +181,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
   assert.equal(preview.balanceProfilesById.get(CATALYST_BALANCE_PROFILE_IDS.resources).maximumStacks, 40);
   assert.equal(preview.balanceProfilesById.get(EVOKER_BALANCE_PROFILE_IDS.resources).maximumStacks, 8);
   assert.equal(
-    balanceNumberFromContext(
-      { catalog: preview },
-      ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental,
-      'durationMultiplier'
-    ),
+    balanceNumberFromContext({ catalog: preview }, ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental, 'duration'),
     100
   );
   // Mirror the simulation boundary by normalizing selected IDs before invoking lifecycle logic.

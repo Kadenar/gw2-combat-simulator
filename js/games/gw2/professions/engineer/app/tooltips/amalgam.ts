@@ -35,13 +35,7 @@ function strainFacts(
 
   if (kind === 'thorns')
     facts.push(
-      profileFact(
-        balanceContext,
-        AMALGAM.rapaciousStrain,
-        'durationMultiplier',
-        'Rapacious Strain duration',
-        tooltipSeconds
-      ),
+      profileFact(balanceContext, AMALGAM.rapaciousStrain, 'duration', 'Rapacious Strain duration', tooltipSeconds),
       ...simulationEffectFacts(
         tooltipProfile(balanceContext, AMALGAM.rapaciousStrain).effects,
         `${qualifier} · per eligible subsequent strike`
@@ -135,7 +129,7 @@ export const amalgamTooltips = {
     [TRAIT.WILLING_HOST]: traitTooltip('Using a protocol temporarily increases player strike and condition damage.', [
       fromProfile(TRAIT.WILLING_HOST, 'damageIncrease', 'Strike damage', tooltipPercent),
       fromProfile(TRAIT.WILLING_HOST, 'conditionDamageIncrease', 'Condition damage', tooltipPercent),
-      ['durationMultiplier', 'Bonus duration', tooltipSeconds]
+      ['duration', 'Bonus duration', tooltipSeconds]
     ]),
     [TRAIT.STAINLESS_STEEL]: outsideScopeTooltip,
     [TRAIT.INNERVATING_ALLOY]: outsideScopeTooltip,

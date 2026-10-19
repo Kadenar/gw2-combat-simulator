@@ -33,7 +33,7 @@ test('Catalyst baseline renewal rejects intervals that cannot advance the clock 
       scheduled = [];
     const runtime = {
       time: 7,
-      helpers: withProfile(elementalistCatalog, TRAIT.ELEMENTAL_EMPOWERMENT, { durationMultiplier: duration }),
+      helpers: withProfile(elementalistCatalog, TRAIT.ELEMENTAL_EMPOWERMENT, { duration: duration }),
       effects: captureEffectEmissions({ submit: (event) => emitted.push(event) }).effects,
       schedule: (...args) => scheduled.push(args)
     };
