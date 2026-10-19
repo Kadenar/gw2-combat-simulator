@@ -1,3 +1,4 @@
+// Verified skill icons use ArenaNet render URLs directly so they share the simulator's CDN fallback handling.
 import { RECIPIENT, COMBO_FIELD, COMBO_FINISHER, CONTROL, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -385,7 +386,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
   },
   [ID.SOLAR_FLARE]: {
     // The API exposes a generic missing-icon asset, so pin the wiki's dedicated icon for result rows.
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Solar_Flare.png',
+    icon: 'https://render.guildwars2.com/file/1D55D34FB4EE20B1962E315245E40CA5E1042D0E/62248.png',
     effects: [
       {
         type: 'condition',
@@ -398,7 +399,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
   },
   [ID.CALL_LIGHTNING]: {
     // Use the dedicated spirit icon because the API supplies a generic missing-icon asset.
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Call_Lightning_(Ranger).png',
+    icon: 'https://render.guildwars2.com/file/1D55D34FB4EE20B1962E315245E40CA5E1042D0E/62248.png',
     // The spirit owns the slam formula; the Ranger supplies critical stats and outgoing modifiers.
     effects: [
       { type: 'control', controlKind: CONTROL.DAZE },

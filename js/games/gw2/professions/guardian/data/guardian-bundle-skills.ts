@@ -1,3 +1,4 @@
+// Verified skill icons use ArenaNet render URLs directly so they share the simulator's CDN fallback handling.
 // Guardian bundle skills missing from the profession API payload.
 // Simulation behavior lives exclusively in owner-local skills.ts fragments.
 
@@ -13,7 +14,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     id: ID.UNHINDERED_DELIVERY,
     name: 'Unhindered Delivery',
     description: 'Final Charge. Grant resolution, stability, and swiftness to allies.',
-    icon: wikiSkillIcon('Unhindered Delivery.png'),
+    icon: 'https://render.guildwars2.com/file/0E95796B56EC95DD4514457CDA50E962991E0D28/1770462.png',
     type: 'Elite',
     weapon: '',
     slot: 'Elite',
@@ -29,7 +30,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     id: ID.FLAME_SURGE,
     name: 'Flame Surge',
     description: 'Final Charge. Unleash a powerful wave of purging fire in front of and around you.',
-    icon: wikiSkillIcon('Flame Surge.png'),
+    icon: 'https://render.guildwars2.com/file/65805967085DEC9915FB2AB77690DEEDCF24B244/1770486.png',
     type: 'Utility',
     weapon: '',
     slot: 'Utility',
@@ -45,7 +46,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     id: ID.REJUVENATING_RESPITE,
     name: 'Rejuvenating Respite',
     description: 'Final Charge. Gain health and grant aegis, protection, and resolution to allies.',
-    icon: wikiSkillIcon('Rejuvenating Respite.png'),
+    icon: 'https://render.guildwars2.com/file/D94367CB0B6F797D956C50B068F96B7F09D0CBBB/1770465.png',
     type: 'Heal',
     weapon: '',
     slot: 'Heal',

@@ -1,46 +1,59 @@
 import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
 export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze([
-  // Ambush metadata is supplemental because the profession API omits these weapon replacements.
+  // Supplemental ambush identities retain verified API icons so their catalog entries load directly from the CDN.
   ...[
     {
+      icon: 'https://render.guildwars2.com/file/76E435CE09EE9F155FA830BB05211BE0D7AE4DD2/2565746.png',
       id: 63129,
       name: 'Sundering Volley',
       weapon: 'Axe',
       description: 'Throw two axes, bleeding the target and applying vulnerability followed by immobilize.'
     },
     {
+      icon: 'https://render.guildwars2.com/file/3B7CC3146E0796B901AA05E4D7AD9AD0DDCC2BC0/3098874.png',
       id: 69223,
       name: 'Neurotoxin Burst',
       weapon: 'Dagger',
       description: 'Shadowstep and strike, applying bleeding, poison, and vulnerability.'
     },
     {
+      icon: 'https://render.guildwars2.com/file/AA6DF43F39613B3BFF36EA5E5DE8E479B54C3D13/3256376.png',
       id: 72079,
       name: 'Rampant Growth',
       weapon: 'Mace',
       description: 'Strike with verdant growth and immobilize the target.'
     },
     {
+      icon: 'https://render.guildwars2.com/file/47D72665624F25469A11D86943F9037591F444AF/3098875.png',
       id: 69175,
       name: 'Solar Brilliance',
       weapon: 'Staff',
       description: 'Blind nearby enemies, then pulse damage around yourself.'
     },
     {
+      icon: 'https://render.guildwars2.com/file/D30E4B593AEE93C795B40F020B3727FCCC5E39D7/2565747.png',
       id: 63350,
       name: 'Savage Slash',
       weapon: 'Greatsword',
       description: 'Strike nearby enemies, applying vulnerability and creating an exploding spore.'
     },
-    { id: 63225, name: 'Multishot', weapon: 'Longbow', description: 'Fire arrows at your target and nearby enemies.' },
     {
+      icon: 'https://render.guildwars2.com/file/AF7A96BB16BD9453059730A6B5EF437E7C72AB3A/2565749.png',
+      id: 63225,
+      name: 'Multishot',
+      weapon: 'Longbow',
+      description: 'Fire arrows at your target and nearby enemies.'
+    },
+    {
+      icon: 'https://render.guildwars2.com/file/ED090826AD5C2E700D6604F9E0CC7C1AAEF0C25D/2565750.png',
       id: 63326,
       name: 'Toxic Shot',
       weapon: 'Shortbow',
       description: 'Fire an explosive arrow that poisons and weakens. Already-poisoned targets also receive torment.'
     },
     {
+      icon: 'https://render.guildwars2.com/file/100EF926B3F04A73719E7CD531C8ABC81938CF19/3379182.png',
       id: 72932,
       name: "Ravager's Abandon",
       weapon: 'Spear',
@@ -48,7 +61,6 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
     }
   ].map((skill) => ({
     ...skill,
-    icon: `https://wiki.guildwars2.com/wiki/Special:FilePath/${encodeURIComponent(skill.name.replaceAll(' ', '_'))}.png`,
     type: 'Weapon',
     slot: 'Weapon_1',
     specialization: 'Untamed',

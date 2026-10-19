@@ -11,38 +11,6 @@ import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js'
 import { TRAITS } from '#gw2/professions/engineer/data/traits-data.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
-const ENGINEER_SKILL_ICON_OVERRIDES = new Map<string, string>([
-  ['Lesser Grenade Barrage', 'https://render.guildwars2.com/file/5B2AB667667749BC1BC7AEFD27362E3E0E0F2FE6/103294.png'],
-  [
-    'Defensive Protocol: Cleanse',
-    'https://render.guildwars2.com/file/71A2EA9B60E691E61521C2B621E665146BF1D1DD/3680127.png'
-  ],
-  [
-    'Defensive Protocol: Protect',
-    'https://render.guildwars2.com/file/C043950F01DF7093BA14ACCCF67D1A16F245EAA8/3680132.png'
-  ],
-  [
-    'Defensive Protocol: Thorns',
-    'https://render.guildwars2.com/file/5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png'
-  ],
-  [
-    'Offensive Protocol: Demolish',
-    'https://render.guildwars2.com/file/337E150FB638D080A5A845A73D06B3E3ED7494C7/3680128.png'
-  ],
-  [
-    'Offensive Protocol: Obliterate',
-    'https://render.guildwars2.com/file/569A167830C12BFC730095C72F1D095A7323DC3D/3680130.png'
-  ],
-  [
-    'Offensive Protocol: Pierce',
-    'https://render.guildwars2.com/file/6C253CBFD36ABEB219013B62C4C73193C947ED60/3680131.png'
-  ],
-  [
-    'Offensive Protocol: Shred',
-    'https://render.guildwars2.com/file/09A6184ADE9313765B0620780A27B23F4DF31D1A/3680134.png'
-  ]
-]);
-
 const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.CLEANSING_BURST,
   ID.DEPLOY_MINE,
@@ -94,9 +62,9 @@ const generated: readonly EngineerSkill[] = generatedSource.map((skill) => ({
     : {})
 }));
 
+// Supplemental records own their verified CDN icons; catalog assembly only adds availability metadata.
 const supplemental: readonly EngineerSkill[] = ENGINEER_SUPPLEMENTAL_SKILLS.map((skill) => ({
   ...skill,
-  icon: ENGINEER_SKILL_ICON_OVERRIDES.get(skill.name) || skill.icon,
   flipParentId: flipParentById.get(skill.id) ?? null,
   slotSelectable: false,
   ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)

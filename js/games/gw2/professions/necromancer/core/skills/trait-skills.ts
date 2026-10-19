@@ -1,3 +1,4 @@
+// Verified skill icons use ArenaNet render URLs directly so they share the simulator's CDN fallback handling.
 import { RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -118,7 +119,7 @@ export const NECROMANCER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
     slotSelectable: false,
     castTimeMs: 0,
     cooldown: 15,
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Lesser_Signet_of_the_Locust.png',
+    icon: 'https://render.guildwars2.com/file/E9779110A24733AEAC403E48D6ADF00F9F3A0507/58463.png',
     effects: [
       {
         name: 'Strike',

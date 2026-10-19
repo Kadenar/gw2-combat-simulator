@@ -1,3 +1,4 @@
+// Verified skill icons use ArenaNet render URLs directly so they share the simulator's CDN fallback handling.
 /**
  * API-omitted skill identity and display metadata.
  *
@@ -9,7 +10,7 @@ const records = [
     name: 'Backstab',
     description:
       'Attack your foe from the shadows, striking for double damage if you hit from behind or they are defiant.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Backstab.png',
+    icon: 'https://render.guildwars2.com/file/96EFE0C268C5A70654BBA8B491E1FACC1C180CF3/103616.png',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Dagger',
@@ -38,7 +39,7 @@ const records = [
     name: 'Tactical Strike',
     description:
       'Daze your foe by bashing them with your sword hilt. Daze them for a longer duration if you attack from behind or they are defiant. Applies vulnerability.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Tactical_Strike.png',
+    icon: 'https://render.guildwars2.com/file/D97FB1177ACAC526CF1DE15E0B07F911EBBADD6E/104101.png',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Sword',
@@ -52,7 +53,7 @@ const records = [
     id: 13128,
     name: "Infiltrator's Return",
     description: 'Return to your original location. Cure one condition.',
-    icon: "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Infiltrator's_Return.png",
+    icon: 'https://render.guildwars2.com/file/4475472B04350267D4DEECECFD53085DA5580D9A/104108.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: 'Sword',
@@ -81,7 +82,7 @@ const records = [
     id: 30239,
     name: 'Lesser Haste',
     description: 'Gain quickness, fury, and swiftness.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Lesser_Haste.png',
+    icon: 'https://render.guildwars2.com/file/1C7719C3046D06161D071C0A6B33D3C8179E3F67/103459.png',
     type: 'Proc',
     slot: 'Action',
     weapon: '',
@@ -96,7 +97,7 @@ const records = [
     name: 'Palm Strike',
     description:
       'Strike your foe once to deal massive damage and stun them, marking your target with a Pulmonary Impact.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Palm_Strike.png',
+    icon: 'https://render.guildwars2.com/file/96580AB413D9791D53D45093063F54CD9F56C513/1058634.png',
     type: 'Utility',
     slot: 'Utility',
     weapon: '',
@@ -110,7 +111,7 @@ const records = [
     id: 30770,
     name: 'Pulmonary Impact (trait skill)',
     description: 'Cause a rupture that deals massive damage when this skill ends. This ability cannot critically hit.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Pulmonary_Impact_(trait_skill).png',
+    icon: 'https://render.guildwars2.com/file/96580AB413D9791D53D45093063F54CD9F56C513/1058634.png',
     type: 'Action',
     slot: 'Action',
     weapon: '',
@@ -124,7 +125,7 @@ const records = [
     id: 31129,
     name: 'Bound',
     description: 'Leap into an area, and deliver a massive blow to enemies.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bound.png',
+    icon: 'https://render.guildwars2.com/file/F3E22D0FDFDB436780BD4ACBA5D135EE40507FFD/1058554.png',
     type: 'Action',
     slot: 'Action',
     weapon: '',
@@ -138,7 +139,7 @@ const records = [
     id: 31187,
     name: 'Dash (trait skill)',
     description: 'Remove conditions and gain swiftness, then rush forward and evade attacks.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Dash_(trait_skill).png',
+    icon: 'https://render.guildwars2.com/file/00A434BE7B4B9AE0D22D6AC50A18C0E117345AC2/991941.png',
     type: 'Action',
     slot: 'Action',
     weapon: '',
@@ -167,7 +168,7 @@ const records = [
     name: 'Steal Warmth',
     description:
       'Grant vigor to allies around you and chill your marked target. Gain stealth if malice is at or above the threshold.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Steal_Warmth.png',
+    icon: 'https://render.guildwars2.com/file/FC5822562E0D060DA74529354F231BF503A4FC7B/1770620.png',
     type: 'Profession',
     slot: 'Profession_2',
     weapon: '',
@@ -182,7 +183,7 @@ const records = [
     name: 'Steal Resistance',
     description:
       'Grant resistance to allies around you and inflict torment on your marked target. Gain stealth if malice is at or above the threshold.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Steal_Resistance.png',
+    icon: 'https://render.guildwars2.com/file/FD5FD424729C41D53AE20E61107009175B29C851/1770616.png',
     type: 'Profession',
     slot: 'Profession_2',
     weapon: '',
@@ -197,7 +198,7 @@ const records = [
     name: 'Deadly Aim',
     description:
       'Fire a shot that inflicts vulnerability on your target. Applies additional vulnerability against your marked target.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Deadly_Aim.png',
+    icon: 'https://render.guildwars2.com/file/4E3F0B6E685229564C5E023C1367B257EA20D141/1770621.png',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Rifle',
@@ -212,7 +213,7 @@ const records = [
     name: 'Steal Precision',
     description:
       'Grant fury to allies around you and blind your marked target. Gain stealth if malice is at or above the threshold.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Steal_Precision.png',
+    icon: 'https://render.guildwars2.com/file/1DFF7D36F880D358AB020FC03CFCCF33C409C7C5/1770615.png',
     type: 'Profession',
     slot: 'Profession_2',
     weapon: '',
@@ -227,7 +228,7 @@ const records = [
     name: 'Steal Health',
     description:
       'Heal allies around you and inflict bleeding on your marked target. Gain stealth if malice is at or above the threshold.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Steal_Health.png',
+    icon: 'https://render.guildwars2.com/file/D6A0B179460001074F5606A3B450D07D03523BC1/1770619.png',
     type: 'Profession',
     slot: 'Profession_2',
     weapon: '',
@@ -242,7 +243,7 @@ const records = [
     name: 'Steal Strength',
     description:
       'Grant might to allies around you and weaken your marked target. Gain stealth if malice is at or above the threshold.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Steal_Strength.png',
+    icon: 'https://render.guildwars2.com/file/CDF49C91397270A36A20BB4B4CDAEE99A2F6E957/1770617.png',
     type: 'Profession',
     slot: 'Profession_2',
     weapon: '',
@@ -256,7 +257,7 @@ const records = [
     id: 41068,
     name: 'Free Action',
     description: 'Stop kneeling and move freely. If you used at least one kneel skill, gain swiftness.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Free_Action.png',
+    icon: 'https://render.guildwars2.com/file/9DB6B099015F000FE8E9B0F52A245D08E73AA266/1770630.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: 'Rifle',
@@ -271,7 +272,7 @@ const records = [
     name: 'Steal Time',
     description:
       'Grant quickness to allies around you and slow your marked target. Gain stealth if malice is at or above the threshold.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Steal_Time.png',
+    icon: 'https://render.guildwars2.com/file/0779426B11E048DA03E834C74828CCD070222A49/1770618.png',
     type: 'Profession',
     slot: 'Profession_2',
     weapon: '',
@@ -286,7 +287,7 @@ const records = [
     name: 'Steal Durability',
     description:
       'Grant protection to allies around you and inflict vulnerability on your marked target. Gain stealth if malice is at or above the threshold.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Steal_Durability.png',
+    icon: 'https://render.guildwars2.com/file/EE36E907052CF7E41C20280FABB4AD57EEBF4F70/1770613.png',
     type: 'Profession',
     slot: 'Profession_2',
     weapon: '',
@@ -301,7 +302,7 @@ const records = [
     name: 'Steal Defenses',
     description:
       'Grant aegis to allies around you and poison your marked target. Gain stealth if malice is at or above the threshold.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Steal_Defenses.png',
+    icon: 'https://render.guildwars2.com/file/6FAE300063E1F79B92A2664CA67307036C4AB9E6/1770612.png',
     type: 'Profession',
     slot: 'Profession_2',
     weapon: '',
@@ -316,7 +317,7 @@ const records = [
     name: 'Steal Mobility',
     description:
       'Grant superspeed to allies around you and immobilize your marked target. Gain stealth if malice is at or above the threshold.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Steal_Mobility.png',
+    icon: 'https://render.guildwars2.com/file/09229668D0C0051A5364F9C8314C42995A087774/1770614.png',
     type: 'Profession',
     slot: 'Profession_2',
     weapon: '',
@@ -373,7 +374,7 @@ const records = [
     id: 50408,
     name: 'Burst of Shadows',
     description: "Invoke an explosion of shadows at your marked target's location that blinds nearby foes.",
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Burst_of_Shadows.png',
+    icon: 'https://render.guildwars2.com/file/007CF2CAA795DC259DD538C0CB7D9C36FE3AE423/1770636.png',
     type: 'Action',
     slot: 'Action',
     weapon: '',
@@ -388,7 +389,7 @@ const records = [
     name: 'Malicious Surprise Shot',
     description:
       'Shoot an arrow that bleeds and immobilizes your foe. If the arrow hits your marked target, it consumes all malice and splinters, firing new arrows at nearby foes for each malice consumed.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Malicious_Surprise_Shot.png',
+    icon: 'https://render.guildwars2.com/file/0B78EA15E65D63D4D85E4C2E3840E679A6F9F378/2010291.png',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Shortbow',
@@ -403,7 +404,7 @@ const records = [
     name: 'Malicious Sneak Attack',
     description:
       'Sneak attack with a rapid fire from your pistol that makes your foe bleed. Consumes all malice when striking your mark to inflict torment with a duration equal to twice the consumed malice.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Malicious_Sneak_Attack.png',
+    icon: 'https://render.guildwars2.com/file/13ED5F3F5ACD4FC19452911309C4E46E46731671/2010290.png',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Pistol',
@@ -418,7 +419,7 @@ const records = [
     name: 'Malicious Backstab',
     description:
       'Attack your foe from the shadows and strike for double the damage if you hit from behind or they are defiant. Consumes all malice when striking your mark to deal bonus damage.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Malicious_Backstab.png',
+    icon: 'https://render.guildwars2.com/file/FF0A2DF63F383E7C9B3D090FFDF070BC472520F9/2010288.png',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Dagger',
@@ -433,7 +434,7 @@ const records = [
     name: 'Malicious Tactical Strike',
     description:
       'Daze your foe by bashing them with your sword hilt. Daze them for a longer duration if you attack from behind or they are defiant. Applies vulnerability. Consumes all malice when striking your mark to restore endurance based on the malice used.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Malicious_Tactical_Strike.png',
+    icon: 'https://render.guildwars2.com/file/DF27A8C60E93120707FC0FE871540AFEEC01DCF7/2010293.png',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Sword',
@@ -447,7 +448,7 @@ const records = [
     id: 63067,
     name: 'Siphon',
     description: '{{skill type|Steal}}',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Siphon.png',
+    icon: 'https://render.guildwars2.com/file/C6D7F7A40A041D52D15E595D3DA59F24B8B1A6E9/2503748.png',
     type: 'Profession',
     slot: 'Profession_1',
     weapon: '',
@@ -461,7 +462,7 @@ const records = [
     id: 63134,
     name: 'Triple Bolt',
     description: 'Fire three missiles that hinder foes and help allies.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Triple_Bolt.png',
+    icon: 'https://render.guildwars2.com/file/C505F1FEF4DAFA05126CF14D1B0CDC2511F8CEEB/2503749.png',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Scepter',
@@ -476,7 +477,7 @@ const records = [
     name: 'Enter Shadow Shroud',
     description:
       '<span style="color:blue">Ally target:</span> Enter shadow shroud and tether a targeted or previously siphoned ally, granting them barrier. If no target is selected, one will be chosen randomly in the indicated radius.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Enter_Shadow_Shroud.png',
+    icon: 'https://render.guildwars2.com/file/0A93EB27CFAE0291F0D009E15B4545DD7D054A28/2503737.png',
     type: 'Profession',
     slot: 'Profession_2',
     weapon: '',
@@ -491,7 +492,7 @@ const records = [
     name: 'Eternal Night',
     description:
       'Strike at foes in front of you with your shadow magic, inflicting conditions. Nearby allies and your tethered ally gain health for each enemy struck.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Eternal_Night.png',
+    icon: 'https://render.guildwars2.com/file/D6CB992E12F0BCB2984C3FEA066FA1B7A077752A/2503738.png',
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: '',
@@ -506,7 +507,7 @@ const records = [
     name: 'Grasping Shadows',
     description:
       'Unleash darkness in a targeted area, inflicting conditions on foes. Cleanse conditions from yourself while healing and cleansing your tethered ally, based on targets struck.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Grasping_Shadows.png',
+    icon: 'https://render.guildwars2.com/file/069BBE2DDF56A0C0565D475E1715157A514FABD3/2503740.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: '',
@@ -520,7 +521,7 @@ const records = [
     id: 63182,
     name: 'Double Bolt',
     description: 'Fire two projectiles that hinder foes and help allies.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Double_Bolt.png',
+    icon: 'https://render.guildwars2.com/file/C7D7DF4CB2E9D52E4EDF735627063F0C41A878AC/2503735.png',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Scepter',
@@ -535,7 +536,7 @@ const records = [
     name: "Dawn's Repose",
     description:
       'Leap to the targeted area, inflicting fear on foes at your ending point. Grant barrier to your tethered ally and nearby allies based on targets struck. Heal your tethered ally based on targets struck.',
-    icon: "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Dawn's_Repose.png",
+    icon: 'https://render.guildwars2.com/file/060A9A76FC69FB2B25A462C84F475A2580501E0C/2503734.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: '',
@@ -550,7 +551,7 @@ const records = [
     name: 'Mind Shock',
     description:
       'After a short channel, unleash a blast of compressed magic that stuns enemies. Nearby allies and your tethered ally gain stability. Heal your tethered ally based on each enemy you hit.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Mind_Shock.png',
+    icon: 'https://render.guildwars2.com/file/A5A90244CD1A151F384EE6F64BF93622E50FBE19/2503743.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: '',
@@ -564,7 +565,7 @@ const records = [
     id: 63251,
     name: 'Exit Shadow Shroud',
     description: 'Exit your shadow shroud, breaking the tether between you and your ally.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Exit_Shadow_Shroud.png',
+    icon: 'https://render.guildwars2.com/file/44F8D2065727B25C7DA9D5E52065D1A86CC6330F/2503739.png',
     type: 'Profession',
     slot: 'Profession_2',
     weapon: '',
@@ -579,7 +580,7 @@ const records = [
     name: 'Haunt Shot',
     description:
       'Unleash darkness in a targeted area, inflicting conditions on foes while healing and granting might to nearby allies and your tethered ally for each target struck.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Haunt_Shot.png',
+    icon: 'https://render.guildwars2.com/file/409264A2535956BCFDD9CA608008A79FB027F06E/2503741.png',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: '',
@@ -594,7 +595,7 @@ const records = [
     name: 'Malicious Shadowsquall',
     description:
       'From the shadows, unleash a barrage towards your target. If this attack hits your mark, it consumes all malice and increases the duration of poison it applies',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Malicious_Shadowsquall.png',
+    icon: 'https://render.guildwars2.com/file/F94EC6D9CF082D32D0D7B80EB0DAD90642565090/3098877.png',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Scepter',
@@ -609,7 +610,7 @@ const records = [
     name: 'Malicious Hook Strike',
     description:
       'Attack your foes from stealth, knocking enemies down. If this attack hits your mark, it consumes all malice and grants you quickness.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Malicious_Hook_Strike.png',
+    icon: 'https://render.guildwars2.com/file/C1C5B9CDD6A6AB04056780B259050FC93A342770/3098878.png',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Staff',
@@ -624,7 +625,7 @@ const records = [
     name: 'Malicious Cunning Salvo',
     description:
       'Throw an axe that explodes when it hits a target, crippling nearby enemies. Gain initiative if you strike an enemy. Consumes all malice when striking your mark to inflict poison with a duration equal to the consumed malice.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Malicious_Cunning_Salvo.png',
+    icon: 'https://render.guildwars2.com/file/C811399D9A589160C42B720830BE0D05326A0352/3256392.png',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Axe',
@@ -639,7 +640,7 @@ const records = [
     name: 'Cunning Salvo',
     description:
       'Throw an axe that explodes when it hits a target, crippling nearby enemies. Gain initiative if you strike an enemy.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Cunning_Salvo.png',
+    icon: 'https://render.guildwars2.com/file/74E8A2686C3BBBC6E572C42A7824EC070C98F25E/3256393.png',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Axe',
@@ -654,7 +655,7 @@ const records = [
     name: 'Shattering Assault',
     description:
       'Finisher. Strike foes in front of you and remove boons from them, then enter stealth. Remove additional boons from weakened foes.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Shattering_Assault.png',
+    icon: 'https://render.guildwars2.com/file/68E71F96676504BED138AA0F3238D33B1408F3F9/3379194.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: 'Spear',
@@ -669,7 +670,7 @@ const records = [
     name: 'Falling Spider',
     description:
       'Finisher. Strike nearby enemies, inflicting multiple conditions. Deal more damage and inflict additional conditions against controlled and immobilized foes.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Falling_Spider.png',
+    icon: 'https://render.guildwars2.com/file/BEA5D1B8D1BC0F97690CE57CD03DADB9DA7F4004/3379191.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: 'Spear',
@@ -684,7 +685,7 @@ const records = [
     name: 'Metal Legion Guitar',
     description:
       'Rock out with your guitar, damaging and applying conditions to opponents around you, then slam the ground, damaging and stunning opponents in the area.<br/><br/>For a short time after using this skill, your first weapon skill is replaced with your stealth attack, even when not stealthed.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Metal_Legion_Guitar.png',
+    icon: 'https://render.guildwars2.com/file/02727B1807CF0FEF31037FD9E307BABB2055AE3C/3680214.png',
     type: 'Profession',
     slot: 'Profession_2',
     weapon: '',
@@ -699,7 +700,7 @@ const records = [
     name: 'Metal Legion Guitar',
     description:
       'Rock out with your guitar, damaging and applying conditions to opponents around you, then slam the ground, damaging and stunning opponents in the area.<br/><br/>For a short time after using this skill, your first weapon skill is replaced with your stealth attack, even when not stealthed.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Metal_Legion_Guitar.png',
+    icon: 'https://render.guildwars2.com/file/02727B1807CF0FEF31037FD9E307BABB2055AE3C/3680214.png',
     type: 'Profession',
     slot: 'Profession_2',
     weapon: '',
@@ -714,7 +715,7 @@ const records = [
     name: 'Zephyrite Sun Crystal',
     description:
       'Dash toward your target, damaging and inflicting conditions on enemies and removing conditions from allies around you when you reach your destination. You evade attacks as long as you are still traveling.<br/><br/>For a short time after using this skill, whenever you use a weapon skill that costs initiative, remove conditions from yourself.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Zephyrite_Sun_Crystal.png',
+    icon: 'https://render.guildwars2.com/file/3C1B2075B7B164EB2ABE4F6650F553D40F689E53/3680218.png',
     type: 'Profession',
     slot: 'Profession_2',
     weapon: '',
