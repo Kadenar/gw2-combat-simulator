@@ -100,59 +100,22 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       ]),
       {
         type: 'strike',
-        ticks: [
-          {
-            atMs: 1720,
-            coefficient: 0.4,
-            damageKind: 'field-tick'
-          },
-          {
-            atMs: 2720,
-            coefficient: 0.4,
-            damageKind: 'field-tick'
-          },
-          {
-            atMs: 3720,
-            coefficient: 0.4,
-            damageKind: 'field-tick'
-          },
-          {
-            atMs: 4720,
-            coefficient: 0.4,
-            damageKind: 'field-tick'
-          }
-        ],
+        coefficient: 0.4,
+        damageKind: 'field-tick',
+        atMs: 1720,
+        applications: 4,
+        intervalMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 1720,
-            condition: CONDITION.BURNING,
-            stacks: 1,
-            duration: 1
-          },
-          {
-            atMs: 2720,
-            condition: CONDITION.BURNING,
-            stacks: 1,
-            duration: 1
-          },
-          {
-            atMs: 3720,
-            condition: CONDITION.BURNING,
-            stacks: 1,
-            duration: 1
-          },
-          {
-            atMs: 4720,
-            condition: CONDITION.BURNING,
-            stacks: 1,
-            duration: 1
-          }
-        ],
+        condition: CONDITION.BURNING,
+        stacks: 1,
+        duration: 1,
+        atMs: 1720,
+        applications: 4,
+        intervalMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}

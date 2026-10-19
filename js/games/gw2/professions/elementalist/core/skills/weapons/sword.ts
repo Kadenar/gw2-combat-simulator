@@ -154,18 +154,11 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
       ]),
       {
         type: 'strike',
-        ticks: [
-          {
-            atMs: 1600,
-            coefficient: 0.5,
-            damageKind: 'field-tick'
-          },
-          {
-            atMs: 2600,
-            coefficient: 0.5,
-            damageKind: 'field-tick'
-          }
-        ],
+        coefficient: 0.5,
+        damageKind: 'field-tick',
+        atMs: 1600,
+        applications: 2,
+        intervalMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

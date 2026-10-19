@@ -275,7 +275,6 @@ export const persistingFlames = defineTrait({
     damageIncreasePerStack: 0.02,
     durationMultiplier: 15,
     durationPerTier: 2,
-    summons: 2,
     maximumStacks: 5
   },
   modifierRules: [

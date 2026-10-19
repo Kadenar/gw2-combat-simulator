@@ -2,7 +2,6 @@ import { RECIPIENT, COMBO_FIELD, BOON, CONDITION, CONTROL } from '#gw2/platform/
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { masterOfConsecrationsEffects } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
@@ -141,8 +140,6 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ])
   },
   [ID.PURGING_FLAMES]: {
-    // Extend the live base packets from the selected trait profile; the combo-field owner retains its duration.
-    effectVariants: [masterOfConsecrationsEffects],
     castTimeMs: 320,
     cooldown: 20,
     comboFields: [
@@ -155,18 +152,17 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      // The field pulses once per second, each pulse striking and applying Burning; extensions add whole pulses.
+      { type: 'strike', coefficient: 0.2, atMs: 320, applications: 6, intervalMs: 1000 },
       {
-        type: 'strike',
-        ticks: [320, 1320, 2320, 3320, 4320, 5320].map((atMs) => ({
-          atMs,
-          coefficient: 0.2
-        }))
-      },
-      // Each field pulse applies the same Burning packet alongside its strike.
-      ...[320, 1320, 2320, 3320, 4320, 5320].map((atMs) => ({
-        type: 'condition' as const,
-        ticks: [{ atMs, condition: CONDITION.BURNING, stacks: 1, duration: 2 }]
-      }))
+        type: 'condition',
+        condition: CONDITION.BURNING,
+        stacks: 1,
+        duration: 2,
+        atMs: 320,
+        applications: 6,
+        intervalMs: 1000
+      }
     ])
   },
   [ID.JUDGES_INTERVENTION]: {

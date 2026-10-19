@@ -847,9 +847,10 @@ export const activePatchPreview: PatchPreview = {
         '29533': {
           effects: [
             {
+              // Wildfire's regular Burning pulses and its large-target overlap timeline share one duration change.
               type: 'condition',
               condition: CONDITION.BURNING,
-              tickIndex: 'all',
+              all: true,
               duration: {
                 from: 3,
                 to: 2.5

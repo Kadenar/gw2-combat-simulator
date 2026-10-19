@@ -362,26 +362,26 @@
         "label": "Condition (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-tempest-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-tempest-scepter.json",
-        "benchmarkDps": 39740,
+        "benchmarkDps": 39764,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-tempest-scepter-warhorn",
         "benchmarkApm": 63.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39558, "phase": 39558 },
-          "80-60": { "cumulative": 41309, "phase": 43160 },
-          "60-40": { "cumulative": 40570, "phase": 39130 },
-          "40-20": { "cumulative": 40229, "phase": 39223 },
-          "20-0": { "cumulative": 39740, "phase": 39740 }
+          "100-80": { "cumulative": 39623, "phase": 39623 },
+          "80-60": { "cumulative": 41416, "phase": 43303 },
+          "60-40": { "cumulative": 40592, "phase": 38986 },
+          "40-20": { "cumulative": 40260, "phase": 39279 },
+          "20-0": { "cumulative": 39764, "phase": 39764 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 39157,
+          "benchmarkDps": 39207,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 38343, "phase": 38343 },
-            "80-60": { "cumulative": 40808, "phase": 43683 },
-            "60-40": { "cumulative": 39694, "phase": 37613 },
-            "40-20": { "cumulative": 39849, "phase": 40310 },
-            "20-0": { "cumulative": 39157, "phase": 39157 }
+            "100-80": { "cumulative": 38377, "phase": 38377 },
+            "80-60": { "cumulative": 40917, "phase": 43881 },
+            "60-40": { "cumulative": 39752, "phase": 37566 },
+            "40-20": { "cumulative": 39877, "phase": 40248 },
+            "20-0": { "cumulative": 39207, "phase": 39207 }
           }
         }
       },
@@ -389,26 +389,26 @@
         "label": "Condition Alacrity (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-alac-tempest-pistol.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-tempest-pistol.json",
-        "benchmarkDps": 32594,
+        "benchmarkDps": 32624,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-tempest-pistol-warhorn",
         "benchmarkApm": 73.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 31737, "phase": 31737 },
-          "80-60": { "cumulative": 33091, "phase": 34562 },
-          "60-40": { "cumulative": 33115, "phase": 33165 },
-          "40-20": { "cumulative": 32785, "phase": 31835 },
-          "20-0": { "cumulative": 32594, "phase": 32594 }
+          "100-80": { "cumulative": 31740, "phase": 31740 },
+          "80-60": { "cumulative": 33114, "phase": 34607 },
+          "60-40": { "cumulative": 33156, "phase": 33241 },
+          "40-20": { "cumulative": 32831, "phase": 31893 },
+          "20-0": { "cumulative": 32624, "phase": 32624 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 31680,
+          "benchmarkDps": 31713,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 30484, "phase": 30484 },
-            "80-60": { "cumulative": 31711, "phase": 33040 },
-            "60-40": { "cumulative": 31957, "phase": 32459 },
-            "40-20": { "cumulative": 32028, "phase": 32245 },
-            "20-0": { "cumulative": 31680, "phase": 31680 }
+            "100-80": { "cumulative": 30488, "phase": 30488 },
+            "80-60": { "cumulative": 31716, "phase": 33046 },
+            "60-40": { "cumulative": 31978, "phase": 32514 },
+            "40-20": { "cumulative": 32065, "phase": 32329 },
+            "20-0": { "cumulative": 31713, "phase": 31713 }
           }
         }
       },
@@ -416,26 +416,26 @@
         "label": "Condition Alacrity (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-alac-tempest-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-tempest-scepter.json",
-        "benchmarkDps": 33796,
+        "benchmarkDps": 33827,
         "upToDate": false,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-tempest-scepter-warhorn",
         "benchmarkApm": 61,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 29649, "phase": 29649 },
-          "80-60": { "cumulative": 32791, "phase": 36792 },
-          "60-40": { "cumulative": 33410, "phase": 34719 },
+          "100-80": { "cumulative": 29678, "phase": 29678 },
+          "80-60": { "cumulative": 32478, "phase": 35965 },
+          "60-40": { "cumulative": 33412, "phase": 35449 },
           "40-20": { "cumulative": null, "phase": null },
-          "20-0": { "cumulative": 33796, "phase": 33796 }
+          "20-0": { "cumulative": 33827, "phase": 33827 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 32731,
+          "benchmarkDps": 32755,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 28245, "phase": 28245 },
-            "80-60": { "cumulative": 31263, "phase": 34936 },
-            "60-40": { "cumulative": 31906, "phase": 33317 },
+            "80-60": { "cumulative": 31273, "phase": 34959 },
+            "60-40": { "cumulative": 31906, "phase": 33294 },
             "40-20": { "cumulative": null, "phase": null },
-            "20-0": { "cumulative": 32731, "phase": 32731 }
+            "20-0": { "cumulative": 32755, "phase": 32755 }
           }
         }
       },
@@ -722,8 +722,8 @@
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 31296, "phase": 31296 },
           "80-60": { "cumulative": 33972, "phase": 37286 },
-          "60-40": { "cumulative": 34103, "phase": 34373 },
-          "40-20": { "cumulative": 34913, "phase": 37575 },
+          "60-40": { "cumulative": 34192, "phase": 34648 },
+          "40-20": { "cumulative": 34959, "phase": 37458 },
           "20-0": { "cumulative": 34703, "phase": 34703 }
         },
         "patchPreview": {
@@ -732,8 +732,8 @@
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 30201, "phase": 30201 },
             "80-60": { "cumulative": 32517, "phase": 35360 },
-            "60-40": { "cumulative": 33153, "phase": 34506 },
-            "40-20": { "cumulative": 33507, "phase": 34614 },
+            "60-40": { "cumulative": 33154, "phase": 34509 },
+            "40-20": { "cumulative": 33532, "phase": 34717 },
             "20-0": { "cumulative": 33200, "phase": 33200 }
           }
         }

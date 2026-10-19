@@ -290,75 +290,22 @@ test('patched resource caps and zero recurrence survive initialization and prese
   assert.equal(guardianCatalog.balanceProfilesById.get(TRAIT.LETHAL_TEMPO).maximumStacks, 5);
 });
 
-test('Master of Consecrations schedules independently patched effect ticks from cast start', () => {
-  const catalog = applyBalanceProfilePatch(guardianCatalog, {
-    balanceProfiles: {
-      [TRAIT.MASTER_OF_CONSECRATIONS]: {
-        removeEffects: [
-          { type: 'strike', name: 'Strike' },
-          { type: 'condition', name: 'Burning' }
-        ],
-        addEffects: [
-          {
-            type: 'strike',
-            name: 'Strike',
-            timingAnchor: 'castStart',
-            timingScale: 'fixed',
-            ticks: [{ atMs: 4400, coefficient: 0.3 }]
-          },
-          {
-            type: 'condition',
-            name: 'Burning',
-            timingAnchor: 'castStart',
-            timingScale: 'fixed',
-            ticks: [{ atMs: 5200, condition: 'Burning', stacks: 2, duration: 3 }]
-          }
-        ]
-      }
-    }
-  });
-  const result = run(
-    {
-      [TRAIT.MASTER_OF_CONSECRATIONS]: {
-        removeEffects: [
-          { type: 'strike', name: 'Strike' },
-          { type: 'condition', name: 'Burning' }
-        ],
-        addEffects: catalog.balanceProfilesById.get(TRAIT.MASTER_OF_CONSECRATIONS).effects
-      }
-    },
-    'Core',
-    [{ type: 'wait', durationMs: 10000 }, 'Purging Flames', { type: 'wait', durationMs: 6000 }],
+// One patched multiplier must lengthen the consecration field and both of its repeated payloads together.
+test('Master of Consecrations duration patches extend the field and its pulses together', () => {
+  const simulate = (balanceProfiles, traits) =>
+    run(balanceProfiles, 'Core', ['Purging Flames', { type: 'wait', durationMs: 9000 }], traits);
+  const baseline = simulate({}, []);
+  const patched = simulate(
+    { [TRAIT.MASTER_OF_CONSECRATIONS]: { fields: { durationMultiplier: { from: 1.4, to: 1.2 } } } },
     [TRAIT.MASTER_OF_CONSECRATIONS]
   );
-  const strike = result.events.find(
-    (event) => event.type === 'damage' && event.skillId === SKILL.PURGING_FLAMES && event.at === 14.4
-  );
-  const burning = result.events.find(
-    (event) => event.type === 'condition' && event.skillId === SKILL.PURGING_FLAMES && event.at === 15.2
-  );
-  assert.equal(strike.at, 14.4);
-  assert.equal(strike.coefficient, 0.3);
-  assert.equal(burning.at, 15.2);
-  assert.equal(burning.condition, 'Burning');
-  assert.equal(burning.stacks, 2);
-  assert.equal(burning.duration, 3);
-});
-
-test('Master of Consecrations keeps Burning when its extension strike is removed', () => {
-  const result = run(
-    { [TRAIT.MASTER_OF_CONSECRATIONS]: remove('strike', 'Strike') },
-    'Core',
-    ['Purging Flames', { type: 'wait', durationMs: 8000 }],
-    [TRAIT.MASTER_OF_CONSECRATIONS]
-  );
-  assert.ok(
-    result.events.some((event) => event.type === 'condition' && event.skillName === 'Purging Flames' && event.at > 6)
-  );
-  assert.equal(
-    result.events.some((event) => event.type === 'damage' && event.skillName === 'Purging Flames' && event.at > 6),
-    false
-  );
+  const action = (simulation) => simulation.events.find((event) => event.type === 'action').comboFields[0].duration;
+  const packets = (simulation, type) =>
+    simulation.events.filter((event) => event.type === type && event.skillId === SKILL.PURGING_FLAMES);
+  assert.equal(action(patched), action(baseline) * 1.2);
+  // A fifth of the five-second field adds one more one-second strike and Burning pulse.
+  for (const type of ['damage', 'condition'])
+    assert.equal(packets(patched, type).length, packets(baseline, type).length + 1);
 });
 
 // One patched Writ value must lengthen the field and every periodic payload together, never either one alone.

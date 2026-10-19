@@ -94,13 +94,23 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+      // Field pulses land once per second; lifetime extensions add whole pulses on the same interval.
       {
         type: 'strike',
-        ticks: [1160, 2160, 3160, 4160].map((atMs) => ({ atMs, coefficient: 0.525, damageKind: 'field-tick' }))
+        coefficient: 0.525,
+        damageKind: 'field-tick',
+        atMs: 1160,
+        applications: 4,
+        intervalMs: 1000
       },
       {
         type: 'condition',
-        ticks: [1160, 2160, 3160, 4160].map((atMs) => ({ atMs, condition: CONDITION.BURNING, stacks: 1, duration: 1 })),
+        condition: CONDITION.BURNING,
+        stacks: 1,
+        duration: 1,
+        atMs: 1160,
+        applications: 4,
+        intervalMs: 1000,
         metadata: {}
       }
     ])
@@ -160,81 +170,22 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
       ]),
       {
         type: 'strike',
-        ticks: [
-          {
-            atMs: 1080,
-            coefficient: 0.2,
-            damageKind: 'field-tick'
-          },
-          {
-            atMs: 2080,
-            coefficient: 0.2,
-            damageKind: 'field-tick'
-          },
-          {
-            atMs: 3080,
-            coefficient: 0.2,
-            damageKind: 'field-tick'
-          },
-          {
-            atMs: 4080,
-            coefficient: 0.2,
-            damageKind: 'field-tick'
-          },
-          {
-            atMs: 5080,
-            coefficient: 0.2,
-            damageKind: 'field-tick'
-          },
-          {
-            atMs: 6080,
-            coefficient: 0.2,
-            damageKind: 'field-tick'
-          }
-        ],
+        coefficient: 0.2,
+        damageKind: 'field-tick',
+        atMs: 1080,
+        applications: 6,
+        intervalMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 1080,
-            condition: CONDITION.BURNING,
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 2080,
-            condition: CONDITION.BURNING,
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 3080,
-            condition: CONDITION.BURNING,
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 4080,
-            condition: CONDITION.BURNING,
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 5080,
-            condition: CONDITION.BURNING,
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 6080,
-            condition: CONDITION.BURNING,
-            stacks: 1,
-            duration: 2
-          }
-        ],
+        condition: CONDITION.BURNING,
+        stacks: 1,
+        duration: 2,
+        atMs: 1080,
+        applications: 6,
+        intervalMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}

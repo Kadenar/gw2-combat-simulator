@@ -590,24 +590,18 @@ test('Persisting Flames patches transform packets before emission and display th
   const family = patched(elementalistProfession, {
     balanceProfiles: {
       [ELEMENTALIST.PERSISTING_FLAMES]: {
-        fields: { summons: 1, durationPerTier: 3, maximumStacks: 2, damageIncreasePerStack: 0.1 }
+        fields: { durationPerTier: 3, maximumStacks: 2, damageIncreasePerStack: 0.1 }
       }
     }
   });
   const effects = [
-    {
-      type: 'strike',
-      damageKind: 'field-tick',
-      ticks: [
-        { atMs: 0, coefficient: 1 },
-        { atMs: 1000, coefficient: 1 }
-      ]
-    }
+    { type: 'strike', damageKind: 'field-tick', coefficient: 1, atMs: 0, applications: 2, intervalMs: 1000 }
   ];
   const skill = { type: 'Weapon', comboFields: [{ fieldType: 'Fire', duration: 2 }] };
-  for (const [patchId, extension, packets, damage] of [
-    ['current', 2, 2, 110],
-    ['s4-preview', 3, 1, 120]
+  // The patched field extension alone decides how many one-second pulses are added.
+  for (const [patchId, extension, damage] of [
+    ['current', 2, 110],
+    ['s4-preview', 3, 120]
   ]) {
     const runtime = family.runtimeFor({ patchId });
     const context = {
@@ -626,7 +620,7 @@ test('Persisting Flames patches transform packets before emission and display th
     assert.equal(runtime.modifyComboFields(context, { skill }, skill.comboFields)[0].duration, 2 + extension);
     // Value transforms receive the fixture's query view, as they do through native mechanic composition.
     const transformed = runtime.modifyEffects({ ...context, queries: context }, { skill }, effects);
-    assert.equal(transformed.at(-1).ticks[0].atMs, 1000 * (1 + packets));
+    assert.equal(transformed.at(-1).applications, 2 + extension);
     assert.ok(Math.abs(runtime.modifyStrikeDamage(context, 100) - damage) < 1e-10);
     const unselected = { ...context, config: { selectedTraitIds: [] } };
     assert.equal(runtime.modifyEffects({ ...unselected, queries: unselected }, { skill }, effects), effects);
@@ -638,7 +632,7 @@ test('Persisting Flames patches transform packets before emission and display th
     elementalistTooltips
   );
   assert.equal(tooltip.facts.find((fact) => fact.name === 'Maximum stacks').detail, '2');
-  assert.equal(effects[0].ticks.at(-1).atMs, 1000);
+  assert.equal(effects[0].applications, 2);
   assert.equal(skill.comboFields[0].duration, 2);
 });
 

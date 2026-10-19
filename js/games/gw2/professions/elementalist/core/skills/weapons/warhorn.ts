@@ -59,11 +59,8 @@ const LIGHTNING_ORB_STRIKE_TICK_LAYERS = [
   [{ atMs: 4800, coefficient: 0.05 }]
 ] as const;
 
-// Wildfire's last two field pulses overlap only large targets; strikes and Burning share the same packet metadata.
-const WILDFIRE_TICKS = [
-  ...[1560, 2560, 3560, 4560, 5560, 6560, 7560].map((atMs) => ({ atMs })),
-  ...[8560, 9560].map((atMs) => ({ atMs, metadata: { largeHitboxOnly: true } }))
-] as const;
+// Wildfire's two overlap pulses after its regular field pulses reach only large targets; strikes and Burning share them.
+const WILDFIRE_OVERLAP_TICKS = [8560, 9560].map((atMs) => ({ atMs, metadata: { largeHitboxOnly: true } }));
 
 // Dust Storm pulses eight times on roughly one-second intervals; strike, Bleeding, and blind
 // applications all reuse these offsets.
@@ -111,17 +108,29 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ],
     skillFamily: 'Weapon skill',
-    // Committed field pulses survive interruption; the final two pulses remain restricted to large targets.
+    // Committed field pulses survive interruption. The regular pulses repeat once per second; the calibrated
+    // large-target overlap pulses are a separate timeline that field extensions do not lengthen.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
+      { type: 'strike', coefficient: 0.44, damageKind: 'field-tick', atMs: 1560, applications: 7, intervalMs: 1000 },
+      {
+        type: 'condition',
+        condition: CONDITION.BURNING,
+        stacks: 1,
+        duration: 3,
+        atMs: 1560,
+        applications: 7,
+        intervalMs: 1000,
+        metadata: {}
+      },
       strikeTimeline(
-        WILDFIRE_TICKS.map((tick) => ({
+        WILDFIRE_OVERLAP_TICKS.map((tick) => ({
           ...tick,
           coefficient: 0.44,
           damageKind: 'field-tick'
         }))
       ),
       conditionTimeline(
-        WILDFIRE_TICKS.map((tick) => ({
+        WILDFIRE_OVERLAP_TICKS.map((tick) => ({
           ...tick,
           condition: CONDITION.BURNING,
           stacks: 1,

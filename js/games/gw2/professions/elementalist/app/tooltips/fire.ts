@@ -1,4 +1,3 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   fromProfile,
   outsideScopeTooltip,
@@ -58,13 +57,12 @@ export const elementalistFireTooltips = {
     ]
   ),
   [TRAIT.PERSISTING_FLAMES]: traitTooltip(
-    'Eligible fire-field hits grant temporary strike-damage stacks. Weapon fire fields last longer and repeat their final damage and condition packets.',
+    'Eligible fire-field hits grant temporary strike-damage stacks. Weapon fire fields last longer and keep pulsing their damage and conditions.',
     [
       fromProfile(TRAIT.PERSISTING_FLAMES, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
       ['maximumStacks', 'Maximum stacks', tooltipDecimal],
       ['durationMultiplier', 'Stack duration', tooltipSeconds],
-      ['durationPerTier', 'Additional weapon field duration', tooltipSeconds],
-      [RECIPIENT.SUMMONS, 'Additional weapon field packets']
+      ['durationPerTier', 'Additional weapon field duration', tooltipSeconds]
     ]
   ),
   [TRAIT.PYROMANCERS_PUISSANCE]: traitTooltip(

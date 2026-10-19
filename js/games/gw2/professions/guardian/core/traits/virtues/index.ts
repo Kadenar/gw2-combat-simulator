@@ -1,9 +1,10 @@
-import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { extendPeriodicEffects } from '#gw2/platform/effects/periodic.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -151,29 +152,15 @@ export const indomitableCourage = defineTrait({
   }
 });
 
-/** Owns Master of Consecrations tuning and behavior at its existing mechanic boundaries. */
+/** Consecrations last longer; their repeated pulses continue through the added lifetime on their own interval. */
 export const masterOfConsecrations = defineTrait({
   id: GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS,
   name: 'Master of Consecrations',
-  balance: {
-    // Extra Purging Flames pulses extend the authored skill rather than creating a standalone proc.
-    damagePreviewAttribution: 'skill',
-    durationMultiplier: 1.4,
-    // Extend Purging Flames after its six base pulses, with independent cast-start timelines for each effect.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        name: 'Strike',
-        ticks: [6320, 7320].map((atMs) => ({ atMs, coefficient: 0.2 })),
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        name: CONDITION.BURNING,
-        ticks: [6320, 7320].map((atMs) => ({ atMs, condition: CONDITION.BURNING, stacks: 1, duration: 2 })),
-        actorType: ACTOR.PLAYER
-      }
-    ])
+  balance: { durationMultiplier: 1.4 },
+  // Field duration is multiplied by Core after its weapon-field selection; see guardian core hooks.
+  hooks: {
+    modifyEffects: (runtime: MechanicQueriesOf<GuardianRuntime>, cast, effects) =>
+      masterOfConsecrationsEffects(runtime, cast.skill, effects)
   }
 });
 
@@ -264,21 +251,34 @@ function virtueBuff(
   });
 }
 
+/** Only selected consecrations last longer; every other skill keeps its authored lifetime. */
+function consecrationMultiplier(runtime: MechanicQueriesOf<GuardianRuntime>, skill: Skill): number {
+  return skill.id === ID.PURGING_FLAMES && hasTrait(runtime, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS)
+    ? balanceNumberFromContext(runtime, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS, 'durationMultiplier')
+    : 1;
+}
+
 /** Extend Purging Flames before Writ's separate symbol-field adjustment; Core composes both after field selection. */
 export function masterOfConsecrationsFields(
   runtime: MechanicQueriesOf<GuardianRuntime>,
   cast: RuntimeCast<GuardianSkill>,
   fields: Skill['comboFields']
 ): Skill['comboFields'] {
-  if (cast.skill.id !== ID.PURGING_FLAMES || !hasTrait(runtime, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS))
-    return fields;
+  const multiplier = consecrationMultiplier(runtime, cast.skill);
+  return multiplier === 1
+    ? fields
+    : fields?.map((field) => ({ ...field, duration: Number(field.duration) * multiplier }));
+}
 
-  const multiplier = balanceNumberFromContext(
-    runtime,
-    GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS,
-    'durationMultiplier'
-  );
-  return fields?.map((field) => ({ ...field, duration: Number(field.duration) * multiplier }));
+/** The added field lifetime holds whole extra pulses of each repeated consecration payload. */
+function masterOfConsecrationsEffects(
+  runtime: MechanicQueriesOf<GuardianRuntime>,
+  skill: Skill,
+  effects: readonly SkillEffect[]
+): readonly SkillEffect[] {
+  const multiplier = consecrationMultiplier(runtime, skill);
+  const duration = Number(skill.comboFields?.[0]?.duration ?? 0);
+  return multiplier > 1 ? extendPeriodicEffects(effects, Math.round(duration * (multiplier - 1) * 1000)) : effects;
 }
 
 /** Resolve hammer replacement before the Core weapon-flip availability checks. */

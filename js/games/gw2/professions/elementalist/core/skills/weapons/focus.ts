@@ -10,9 +10,6 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
-// Flamewall pulses on creation and each second through its eight-second duration, including the final boundary.
-const FLAMEWALL_TICK_OFFSETS_MS = [560, 1560, 2560, 3560, 4560, 5560, 6560, 7560, 8560] as const;
-
 /**
  * Skill-id keyed fragments the Core module contributes to the focus catalog.
  * Each entry declares the packet timeline the scheduler materializes for that skill.
@@ -40,24 +37,24 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
       }
     ],
     skillFamily: 'Weapon skill',
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    // Flamewall pulses on creation and each second through its eight-second duration, including the final boundary.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        ticks: FLAMEWALL_TICK_OFFSETS_MS.map((atMs) => ({
-          atMs,
-          coefficient: 0.1,
-          damageKind: 'field-tick'
-        }))
+        coefficient: 0.1,
+        damageKind: 'field-tick',
+        atMs: 560,
+        applications: 9,
+        intervalMs: 1000
       },
       {
         type: 'condition',
-        ticks: FLAMEWALL_TICK_OFFSETS_MS.map((atMs) => ({
-          atMs,
-          condition: CONDITION.BURNING,
-          stacks: 1,
-          duration: 2.5
-        })),
+        condition: CONDITION.BURNING,
+        stacks: 1,
+        duration: 2.5,
+        atMs: 560,
+        applications: 9,
+        intervalMs: 1000,
         metadata: {}
       }
     ])

@@ -22,9 +22,6 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 // Cast-scaled packet data is authored on the Quickness timeline and expands only for slower casts.
 const DRAKES_BREATH_TICK_OFFSETS_MS = [520, 760, 1000, 1240] as const;
 
-// One tick per second of the fire trail Burning Speed leaves behind, shared by its strike and Burning timelines.
-const BURNING_SPEED_FIELD_TICK_OFFSETS_MS = [160, 1160, 2160, 3160, 4160] as const;
-
 /**
  * Skill-id keyed fragments the Core module contributes to the dagger catalog.
  * Each entry declares the packet timeline the scheduler materializes for that skill.
@@ -117,24 +114,24 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         { type: 'strike', coefficient: 3 },
         { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2, metadata: {} }
       ]),
-      // The trail shares timing defaults while retaining its separate multi-packet field timelines.
+      // The fire trail Burning Speed leaves behind pulses its strike and Burning once per second.
       ...impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
         {
           type: 'strike',
-          ticks: BURNING_SPEED_FIELD_TICK_OFFSETS_MS.map((atMs) => ({
-            atMs,
-            coefficient: 0.2,
-            damageKind: 'field-tick'
-          }))
+          coefficient: 0.2,
+          damageKind: 'field-tick',
+          atMs: 160,
+          applications: 5,
+          intervalMs: 1000
         },
         {
           type: 'condition',
-          ticks: BURNING_SPEED_FIELD_TICK_OFFSETS_MS.map((atMs) => ({
-            atMs,
-            condition: CONDITION.BURNING,
-            stacks: 1,
-            duration: 2
-          })),
+          condition: CONDITION.BURNING,
+          stacks: 1,
+          duration: 2,
+          atMs: 160,
+          applications: 5,
+          intervalMs: 1000,
           metadata: {}
         }
       ])

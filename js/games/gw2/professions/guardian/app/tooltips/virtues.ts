@@ -45,9 +45,8 @@ export const guardianVirtuesTooltips = {
   ),
   [TRAIT.RESOLUTE_SUBCONSCIOUS]: outsideScopeTooltip,
   [TRAIT.MASTER_OF_CONSECRATIONS]: traitTooltip(
-    'Purging Flames gains additional strike and burning pulses and a longer fire field.',
-    [['durationMultiplier', 'Purging Flames fire field duration', tooltipFactorChange]],
-    'additional Purging Flames effects'
+    'Purging Flames lasts longer: its fire field is extended and it keeps pulsing strikes and burning.',
+    [['durationMultiplier', 'Purging Flames duration', tooltipFactorChange]]
   ),
   [TRAIT.INSPIRING_VIRTUE]: traitTooltip('Activating a virtue temporarily increases strike damage.', [
     fromProfile(TRAIT.INSPIRING_VIRTUE, 'damageIncrease', 'Strike damage during the bonus', tooltipPercent)

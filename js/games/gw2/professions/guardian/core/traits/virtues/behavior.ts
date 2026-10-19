@@ -6,7 +6,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianResolverContext, GuardianVirtue, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
@@ -16,26 +16,6 @@ export function guardianResolutionMultiplier(context: SelectedContentContext): n
     ? balanceProfileNumber(context.requireBalanceProfile(GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION), 'durationMultiplier')
     : 1;
 }
-
-/** Selected consecrations extend the live skill packets before effect materialization. */
-export const masterOfConsecrationsEffects: NonNullable<Skill['effectVariants']>[number] = {
-  when: (runtime) => hasTrait(runtime, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS),
-  profileId: GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS,
-  transform: (_runtime, cast, effects) => [
-    ...(cast.skill.effects ?? []),
-    ...effects
-      .filter((effect) => effect.type === 'strike' || effect.type === 'condition')
-      .map((effect) => {
-        if (!effect.ticks?.length) throw new Error('Master of Consecrations requires explicit packet timelines.');
-
-        return {
-          ...effect,
-          name: effect.type === 'strike' ? cast.skill.name : `${cast.skill.name} \u2014 Burning`,
-          weapon: 'Unequipped'
-        };
-      })
-  ]
-};
 
 /** Core and Willbender count accepted hits against their own base threshold unless Justice is traited. */
 export function permeatingWrathThreshold(
