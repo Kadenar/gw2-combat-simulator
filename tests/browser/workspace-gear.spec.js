@@ -22,7 +22,7 @@ test('gear artwork follows the active specialization', async ({ page }) => {
       await image.decode();
       return { background, width: image.naturalWidth };
     });
-    expect(artwork.background).toContain(`/professions/${(specialization || 'engineer').toLowerCase()}.png`);
+    expect(artwork.background).toContain(`/professions/engineer/${(specialization || 'core').toLowerCase()}.png`);
     expect(artwork.width).toBeGreaterThan(0);
   }
 });

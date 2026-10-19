@@ -44,6 +44,7 @@ export interface ProfessionRegistryEntry {
   readonly loadAppAdapter: () => Promise<Gw2AppAdapter>;
 }
 
+// Portraits are grouped by profession, with core.png for the base profession and named elite portraits.
 // Names come from shared identity metadata; artwork and lazy loaders remain application registry concerns.
 // Entries are ordered by armor class so navigation surfaces group
 // professions Light → Medium → Heavy: the shared UI (landing card grid and
@@ -61,31 +62,31 @@ const entries: readonly ProfessionRegistryEntry[] = [
     specializationArtwork: [
       {
         name: PROFESSION_IDENTITIES.elementalist.specializations.core,
-        conceptArt: new URL('@images/professions/elementalist.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/elementalist/core.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/2FEEkQBNxzaWIIx21vmnpc7dccL6om02MDNmNuZ1.webp'
       },
       {
         name: PROFESSION_IDENTITIES.elementalist.specializations.tempest,
-        conceptArt: new URL('@images/professions/tempest.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/elementalist/tempest.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/DY1QuOFHqxbVsqC1jBryNm66eoZglhMgMDhrVShJ.webp'
       },
       {
         name: PROFESSION_IDENTITIES.elementalist.specializations.weaver,
-        conceptArt: new URL('@images/professions/weaver.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/elementalist/weaver.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/79g5CiydrrztYx6qIvmNMmUobwRvdGzskIqwI5cn.webp'
       },
       {
         name: PROFESSION_IDENTITIES.elementalist.specializations.catalyst,
-        conceptArt: new URL('@images/professions/catalyst.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/elementalist/catalyst.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/uFKRbwhHh5GKyGV9Evohhx0UTd4T8YZjrW44uawP.webp'
       },
       {
         name: PROFESSION_IDENTITIES.elementalist.specializations.evoker,
-        conceptArt: new URL('@images/professions/evoker.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/elementalist/evoker.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/7HNOxiXpl9wkAl2ykM3D2jrSFtciZfLgseLcEgpG.jpg'
       }
@@ -111,31 +112,31 @@ const entries: readonly ProfessionRegistryEntry[] = [
     specializationArtwork: [
       {
         name: PROFESSION_IDENTITIES.mesmer.specializations.core,
-        conceptArt: new URL('@images/professions/mesmer.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/mesmer/core.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/AdKbIsuTW9tQQRRRSqOGFiU46rjSyHylChEyUq1D.jpg'
       },
       {
         name: PROFESSION_IDENTITIES.mesmer.specializations.chronomancer,
-        conceptArt: new URL('@images/professions/chronomancer.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/mesmer/chronomancer.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/wYMly4iJbZEwdZPG2oWwqnCb7ly4VTvI58oBnW5K.jpg'
       },
       {
         name: PROFESSION_IDENTITIES.mesmer.specializations.mirage,
-        conceptArt: new URL('@images/professions/mirage.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/mesmer/mirage.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/somZhFPIsB4GHxrhjqtlPy4loceNBcvW3SrZY7uQ.webp'
       },
       {
         name: PROFESSION_IDENTITIES.mesmer.specializations.virtuoso,
-        conceptArt: new URL('@images/professions/virtuoso.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/mesmer/virtuoso.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/6YCwMKZA9ZT278R4F3N5fGLVGXeCU9Yls54CRuq0.webp'
       },
       {
         name: PROFESSION_IDENTITIES.mesmer.specializations.troubadour,
-        conceptArt: new URL('@images/professions/troubadour.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/mesmer/troubadour.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/JL0RMiFPQYZYr3LaxWcd92JoT98SPNniwSeTRkxj.jpg'
       }
@@ -161,31 +162,31 @@ const entries: readonly ProfessionRegistryEntry[] = [
     specializationArtwork: [
       {
         name: PROFESSION_IDENTITIES.necromancer.specializations.core,
-        conceptArt: new URL('@images/professions/necromancer.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/necromancer/core.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/DDW5i9E5dyuhaXywvO2Wiqn0nQYOwjxZg9GQn6ni.webp'
       },
       {
         name: PROFESSION_IDENTITIES.necromancer.specializations.reaper,
-        conceptArt: new URL('@images/professions/reaper.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/necromancer/reaper.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/BkrNHpfZ3rdgQvRcCSZHzh8ErnakQYRi5jpekaMt.webp'
       },
       {
         name: PROFESSION_IDENTITIES.necromancer.specializations.scourge,
-        conceptArt: new URL('@images/professions/scourge.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/necromancer/scourge.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/DsG45NgUXhOYGI6fuQUB6pvkLQJlbjI2iQU4nvYz.webp'
       },
       {
         name: PROFESSION_IDENTITIES.necromancer.specializations.harbinger,
-        conceptArt: new URL('@images/professions/harbinger.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/necromancer/harbinger.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/5c9lVrJthmDO46fBpYEFVxQM3NJdsEpQbcfwiS6B.webp'
       },
       {
         name: PROFESSION_IDENTITIES.necromancer.specializations.ritualist,
-        conceptArt: new URL('@images/professions/ritualist.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/necromancer/ritualist.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/DEw7Kgg3cI1stZM9dboksGtGmo4r4v5uP8y5lCcp.jpg'
       }
@@ -212,31 +213,31 @@ const entries: readonly ProfessionRegistryEntry[] = [
     specializationArtwork: [
       {
         name: PROFESSION_IDENTITIES.ranger.specializations.core,
-        conceptArt: new URL('@images/professions/ranger.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/ranger/core.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/yl95i2EFNwe4qI4F8Vo0a81LhvSnVFZ9w2evSsig.jpg'
       },
       {
         name: PROFESSION_IDENTITIES.ranger.specializations.druid,
-        conceptArt: new URL('@images/professions/druid.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/ranger/druid.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/YIwgxjG1E7FiKqSAaXrCiuQfh7w5eTEOYXK0Id8x.webp'
       },
       {
         name: PROFESSION_IDENTITIES.ranger.specializations.soulbeast,
-        conceptArt: new URL('@images/professions/soulbeast.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/ranger/soulbeast.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/95KRcPOeigpwlQQRzh6aFVIxixWXbTgQUtNSJQZN.webp'
       },
       {
         name: PROFESSION_IDENTITIES.ranger.specializations.untamed,
-        conceptArt: new URL('@images/professions/untamed.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/ranger/untamed.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/e5vuxTdgb41Dnjrb9jKmNF9tRYD1jVS6incDVoAY.webp'
       },
       {
         name: PROFESSION_IDENTITIES.ranger.specializations.galeshot,
-        conceptArt: new URL('@images/professions/galeshot.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/ranger/galeshot.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/dVd7Wrx57mbdUHAIfZyUmuCFv5YxdH8yQ4Vij4Em.jpg'
       }
@@ -262,31 +263,31 @@ const entries: readonly ProfessionRegistryEntry[] = [
     specializationArtwork: [
       {
         name: PROFESSION_IDENTITIES.thief.specializations.core,
-        conceptArt: new URL('@images/professions/thief.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/thief/core.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/mLAhlUPnakYgM3FwEni1Mfr16Oi8VMVZ4TpSMgZE.jpg'
       },
       {
         name: PROFESSION_IDENTITIES.thief.specializations.daredevil,
-        conceptArt: new URL('@images/professions/daredevil.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/thief/daredevil.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/Z324ofTh0ZEVH1ix916jvmBa8gy0LmBsxwBJ5MMY.webp'
       },
       {
         name: PROFESSION_IDENTITIES.thief.specializations.deadeye,
-        conceptArt: new URL('@images/professions/deadeye.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/thief/deadeye.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/n0TGLINi59LKvimT7g1Txsq618vG6weOUWASLGZc.webp'
       },
       {
         name: PROFESSION_IDENTITIES.thief.specializations.specter,
-        conceptArt: new URL('@images/professions/specter.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/thief/specter.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/hh7tsjXK3pWbwcX3NpOLlNuqwxPPnZ7mIMHc8J4U.webp'
       },
       {
         name: PROFESSION_IDENTITIES.thief.specializations.antiquary,
-        conceptArt: new URL('@images/professions/antiquary.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/thief/antiquary.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/vz40JTGUEZc62s7ywMA5jsC1qq9hbgpGrcIgi9Ai.jpg'
       }
@@ -312,31 +313,31 @@ const entries: readonly ProfessionRegistryEntry[] = [
     specializationArtwork: [
       {
         name: PROFESSION_IDENTITIES.engineer.specializations.core,
-        conceptArt: new URL('@images/professions/engineer.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/engineer/core.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/emJ476M3DgTpLt6Bn19FwqRn6lOslq571PD6XUU6.jpg'
       },
       {
         name: PROFESSION_IDENTITIES.engineer.specializations.scrapper,
-        conceptArt: new URL('@images/professions/scrapper.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/engineer/scrapper.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/HBhHXtTeUoT4FYywlQRAK2vh3qSlYIKF6nprLb9N.webp'
       },
       {
         name: PROFESSION_IDENTITIES.engineer.specializations.holosmith,
-        conceptArt: new URL('@images/professions/holosmith.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/engineer/holosmith.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/nX4xZk6pSAioBVDtGNPvxMzFiLnXeh57XYDLYpwy.webp'
       },
       {
         name: PROFESSION_IDENTITIES.engineer.specializations.mechanist,
-        conceptArt: new URL('@images/professions/mechanist.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/engineer/mechanist.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/vxW0dgd4EWscl9ZnTj64PUGWnvxKvtoKzP9No71Y.webp'
       },
       {
         name: PROFESSION_IDENTITIES.engineer.specializations.amalgam,
-        conceptArt: new URL('@images/professions/amalgam.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/engineer/amalgam.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/dx0sO3S57jI2vBT2Zq60BTR8wmwVU4njs8vQKz2a.jpg'
       }
@@ -363,31 +364,31 @@ const entries: readonly ProfessionRegistryEntry[] = [
     specializationArtwork: [
       {
         name: PROFESSION_IDENTITIES.guardian.specializations.core,
-        conceptArt: new URL('@images/professions/guardian.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/guardian/core.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/OaGAg9GNDYCgR4oUSafRsSP2MpciqXbYQysSCRFO.webp'
       },
       {
         name: PROFESSION_IDENTITIES.guardian.specializations.dragonhunter,
-        conceptArt: new URL('@images/professions/dragonhunter.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/guardian/dragonhunter.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/y9EFXtfsvw5Zu4G79YOK5l44t1ApVxouqCl0X3sc.webp'
       },
       {
         name: PROFESSION_IDENTITIES.guardian.specializations.firebrand,
-        conceptArt: new URL('@images/professions/firebrand.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/guardian/firebrand.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/Y7P9W6bnJxXwXdYhJFZjFYorQNoTYxmX6bQNhQwp.webp'
       },
       {
         name: PROFESSION_IDENTITIES.guardian.specializations.willbender,
-        conceptArt: new URL('@images/professions/willbender.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/guardian/willbender.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/8jddMTYX5c9ANlYyMv3mHNtfbO4k0OU9t7dtU0za.webp'
       },
       {
         name: PROFESSION_IDENTITIES.guardian.specializations.luminary,
-        conceptArt: new URL('@images/professions/luminary.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/guardian/luminary.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/urNqWJC2Sjr9WPMLNmjB2mIPOFSbYIZC7oXZ2RIp.jpg'
       }
@@ -413,31 +414,31 @@ const entries: readonly ProfessionRegistryEntry[] = [
     specializationArtwork: [
       {
         name: PROFESSION_IDENTITIES.warrior.specializations.core,
-        conceptArt: new URL('@images/professions/warrior.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/warrior/core.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/BwqIcVAqPfQMWCIfONQAnADqQaZ9SCxqhE1TwbqP.jpg'
       },
       {
         name: PROFESSION_IDENTITIES.warrior.specializations.berserker,
-        conceptArt: new URL('@images/professions/berserker.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/warrior/berserker.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/30Nm9xGdYbTK2sGTctH0NjgDZCXNpF638rNdzf21.webp'
       },
       {
         name: PROFESSION_IDENTITIES.warrior.specializations.spellbreaker,
-        conceptArt: new URL('@images/professions/spellbreaker.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/warrior/spellbreaker.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/BFaJz8HGGRHbqeyiRQBjFAQLSPs5I0h6cFtfYqQ5.webp'
       },
       {
         name: PROFESSION_IDENTITIES.warrior.specializations.bladesworn,
-        conceptArt: new URL('@images/professions/bladesworn.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/warrior/bladesworn.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/VMJqAcWz49leISknOREwMe70o9UGtQ07411QnvUQ.webp'
       },
       {
         name: PROFESSION_IDENTITIES.warrior.specializations.paragon,
-        conceptArt: new URL('@images/professions/paragon.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/warrior/paragon.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/Tlvlqv76IwR5gPErYmQd3hITnSdwl63uSDIoZHXG.jpg'
       }
@@ -463,30 +464,30 @@ const entries: readonly ProfessionRegistryEntry[] = [
     specializationArtwork: [
       {
         name: PROFESSION_IDENTITIES.revenant.specializations.core,
-        conceptArt: new URL('@images/professions/revenant.png', import.meta.url).href,
-        image: new URL('@images/professions/revenant.png', import.meta.url).href
+        conceptArt: new URL('@images/professions/revenant/core.png', import.meta.url).href,
+        image: new URL('@images/professions/revenant/core.png', import.meta.url).href
       },
       {
         name: PROFESSION_IDENTITIES.revenant.specializations.herald,
-        conceptArt: new URL('@images/professions/herald.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/revenant/herald.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/l0wPR2fHc2w93nRdDVXWrnclAyD5umThxEZ2SEKX.webp'
       },
       {
         name: PROFESSION_IDENTITIES.revenant.specializations.renegade,
-        conceptArt: new URL('@images/professions/renegade.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/revenant/renegade.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/5Q6RzaTlf5rbcKnWQWvC3UsWm7k1s2OtIshJf1lL.webp'
       },
       {
         name: PROFESSION_IDENTITIES.revenant.specializations.vindicator,
-        conceptArt: new URL('@images/professions/vindicator.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/revenant/vindicator.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/NICSEOqnu3qzL2b6BTpzcSg7V9CG7UZ6HPDT4Vv7.webp'
       },
       {
         name: PROFESSION_IDENTITIES.revenant.specializations.conduit,
-        conceptArt: new URL('@images/professions/conduit.png', import.meta.url).href,
+        conceptArt: new URL('@images/professions/revenant/conduit.png', import.meta.url).href,
         image:
           'https://assets.snowcrows.com/uploads/28056f91-a151-11ec-8fcf-ca7a943c517e/ANbyHo4hZbVvjvEEuKHomAJ4iXkccxEAXZ77IJdg.jpg'
       }

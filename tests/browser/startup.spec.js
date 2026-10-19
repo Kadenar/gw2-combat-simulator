@@ -19,7 +19,7 @@ for (const failArtwork of [false, true]) {
       await selector.promise;
       await route.continue();
     });
-    await page.route('**/images/professions/amalgam.png', async (route) => {
+    await page.route('**/images/professions/engineer/amalgam.png', async (route) => {
       await artwork.promise;
       await (failArtwork ? route.abort() : route.continue());
     });
@@ -35,13 +35,13 @@ for (const failArtwork of [false, true]) {
       const frame = await page.locator('.loader-art').boundingBox();
       expect(frame.height).toBeCloseTo(frame.width, 0);
       selector.resolve();
-      await expect(portrait).toHaveAttribute('src', /\/professions\/amalgam\.png$/);
+      await expect(portrait).toHaveAttribute('src', /\/professions\/engineer\/amalgam\.png$/);
       await expect(portrait).toHaveCSS('visibility', 'hidden');
       artwork.resolve();
       await expect(portrait).toBeVisible();
       await expect(portrait).toHaveAttribute(
         'src',
-        failArtwork ? /\/professions\/engineer\.png$/ : /\/professions\/amalgam\.png$/
+        failArtwork ? /\/professions\/engineer\/core\.png$/ : /\/professions\/engineer\/amalgam\.png$/
       );
       expect(await portrait.evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
       expect(await page.locator('.loader-art').boundingBox()).toEqual(frame);
@@ -134,7 +134,7 @@ test('loading workspace follows startup and stays accessible on narrow screens',
     await expect(page.locator('#app')).toHaveAttribute('inert', '');
     const slot = overlay.locator('.loader-skill-bar > span').first();
     await expect(slot).toHaveCSS('animation-name', 'loader-skill-assemble');
-    await expect(overlay.locator('.loader-crest')).toHaveAttribute('src', /\/professions\/amalgam\.png$/);
+    await expect(overlay.locator('.loader-crest')).toHaveAttribute('src', /\/professions\/engineer\/amalgam\.png$/);
     await expect(overlay.locator('.loader-crest')).toBeVisible();
     await expect
       .poll(() => overlay.locator('.loader-crest').evaluate((image) => image.naturalWidth))

@@ -1018,7 +1018,8 @@ test('the landing selector records supplied specialization artwork for every pro
     professionRegistry
       .flatMap((entry) => entry.specializationArtwork || [])
       .every(
-        ({ image }) => image.startsWith('https://assets.snowcrows.com/') || image.endsWith('/professions/revenant.png')
+        ({ image }) =>
+          image.startsWith('https://assets.snowcrows.com/') || image.endsWith('/professions/revenant/core.png')
       ),
     true
   );
