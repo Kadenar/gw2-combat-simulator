@@ -41,8 +41,13 @@ function refreshShadeExpiry(runtime: NecromancerRuntime): void {
 /** Every shade command owns one common strike and Torment application, independent of the number of active shades. */
 function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.shade);
+  // Desert Shroud's shared shade hit lands with its first pulse, so hit-triggered traits wait for impact.
+  const impactDelayMs =
+    cast.skill.id === ID.DESERT_SHROUD
+      ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.desertShroud), 'impactDelayMs')
+      : 0;
   const attribution = {
-    at: runtime.time,
+    at: canonicalTime(runtime.time + impactDelayMs / 1000),
     source: 'necromancer',
     sourceId: ID.MANIFEST_SAND_SHADE,
     actorType: ACTOR.PLAYER,

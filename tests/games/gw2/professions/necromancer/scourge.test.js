@@ -291,7 +291,11 @@ test('Nefarious Favor cleanses one condition type and F5 transfers only on an ac
     cleanse.planningState.profession.selfConditions.map((entry) => entry.condition),
     ['Burning']
   );
-  const hit = run([cast(ID.NEFARIOUS_FAVOR), cast(ID.DESERT_SHROUD)], config, { profession });
+  // Activation arms the transfer, but its self-condition survives until the delayed hostile hit is accepted.
+  const pending = run([cast(ID.NEFARIOUS_FAVOR), cast(ID.DESERT_SHROUD)], config, { profession });
+  assert.equal(pending.planningState.profession.selfConditions.length, 1);
+  assert.equal(observedRuntime(pending).profession.core.plagueSendingArmed, true);
+  const hit = run([cast(ID.NEFARIOUS_FAVOR), cast(ID.DESERT_SHROUD), wait(1000)], config, { profession });
   assert.deepEqual(hit.planningState.profession.selfConditions, []);
   assert.equal(observedRuntime(hit).profession.core.plagueSendingArmed, false);
   assert.ok(
@@ -299,7 +303,7 @@ test('Nefarious Favor cleanses one condition type and F5 transfers only on an ac
       (event) => event.type === 'condition' && event.fixedDuration === true && event.condition === 'Burning'
     )
   );
-  const missed = run([cast(ID.NEFARIOUS_FAVOR), { ...cast(ID.DESERT_SHROUD), offTarget: true }], config, {
+  const missed = run([cast(ID.NEFARIOUS_FAVOR), { ...cast(ID.DESERT_SHROUD), offTarget: true }, wait(1000)], config, {
     profession
   });
   assert.equal(missed.planningState.profession.selfConditions.length, 1);

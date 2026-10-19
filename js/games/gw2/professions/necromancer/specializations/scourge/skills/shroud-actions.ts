@@ -6,7 +6,12 @@ import { assertSimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { removeNecromancerSelfCondition } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
 import { necromancerPartyAudience } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { scourgeBarrierApplied } from '#gw2/professions/necromancer/specializations/scourge/mechanics/trigger-points.js';
@@ -26,6 +31,11 @@ function emitShroudEffects(
   cast: RuntimeCast<NecromancerSkill>,
   effects: readonly SkillEffect[]
 ): void {
+  // Delay hostile Desert Shroud packets intrinsically; barrier and activation traits keep their own timing.
+  const impactDelayMs =
+    cast.skill.id === ID.DESERT_SHROUD
+      ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.desertShroud), 'impactDelayMs')
+      : 0;
   runtime.effects.emit({
     kind: 'profile',
     profile: cast.skill,
@@ -51,7 +61,9 @@ function emitShroudEffects(
         ...event,
         ...(event.type === 'damage' ? { name: cast.skill.name } : {}),
         offTarget: cast.command.offTarget,
-        at: canonicalTime(event.at + (isHostileTargetEvent(event) ? (cast.command.impactDelayMs ?? 0) / 1000 : 0))
+        at: canonicalTime(
+          event.at + (isHostileTargetEvent(event) ? (impactDelayMs + (cast.command.impactDelayMs ?? 0)) / 1000 : 0)
+        )
       };
     }
   });

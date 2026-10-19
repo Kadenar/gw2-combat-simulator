@@ -768,7 +768,8 @@ test('Scourge shades use ammo and shade skills spend life force', () => {
 });
 
 test('Scourge shade costs and packets use their fixed PvE values', () => {
-  const shade = simulate('Scourge', ['Manifest Sand Shade', 'Desert Shroud', { type: 'wait', durationMs: 6100 }], {
+  // Observe the complete delayed effect before comparing its total coefficient.
+  const shade = simulate('Scourge', ['Manifest Sand Shade', 'Desert Shroud', { type: 'wait', durationMs: 7000 }], {
     initialResource: 100
   });
   const manifest = necromancerCatalog.skillsById.get(ID.MANIFEST_SAND_SHADE);

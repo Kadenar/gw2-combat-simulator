@@ -65,6 +65,8 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     id: SCOURGE_BALANCE_PROFILE_IDS.desertShroud,
     name: 'Desert Shroud - Pulses',
     profileKind: 'skill-variant',
+    // The shared shade attack and pulsing damage arrive after activation; entry traits remain immediate.
+    impactDelayMs: 520,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
