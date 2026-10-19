@@ -155,7 +155,7 @@ rejected or pre-commit-cancelled commands leave them available. Diagnostics reco
 
 Recharge duration is selected from ordinary cooldown metadata or ammo recharge metadata, then modified by shared game
 rules and profession rules. The default recharge anchor is `effectiveEnd`; `rechargeAnchor: "castStart"` selects
-`start`.
+`start`. A negative `rechargeOffsetMs` starts recharge before the anchor and is bounded by the cast-start clamp.
 
 ```text
 baseRechargeStart = selectedAnchor + rechargeOffsetMs / 1000

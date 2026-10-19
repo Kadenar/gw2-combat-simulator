@@ -148,6 +148,8 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 480,
     interruptCommitMs: 280,
+    // Recharge starts during the final 80 ms of the cast, including casts shortened by interruption.
+    rechargeOffsetMs: -80,
     effects: [
       {
         weaponStrengthProfileId: 'transform.harbinger-shroud',

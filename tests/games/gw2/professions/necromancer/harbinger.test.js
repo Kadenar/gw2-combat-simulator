@@ -133,6 +133,21 @@ test('Harbinger recharge modifies pistol work while preserving Core shroud reduc
   ]);
 });
 
+// Devouring Cut's declared offset makes the next use eligible 80 ms before its full or interrupted end recharges.
+test('Devouring Cut becomes eligible from a recharge started 80 ms before its committed end', () => {
+  const config = { ...base, initialResource: 100 };
+  const recharge = necromancerProfession.catalog.skillsById.get(ID.DEVOURING_CUT).cooldown / 1.25;
+  for (const interruptAfterMs of [undefined, 400]) {
+    const result = run(
+      [cast(ID.HARBINGER_SHROUD), { ...cast(ID.DEVOURING_CUT), interruptAfterMs }, cast(ID.DEVOURING_CUT)],
+      config
+    );
+    const [, first, second] = result.steps;
+    assert.equal(second.start, Math.round(first.end - 80 + recharge * 1000), String(interruptAfterMs));
+    assert.deepEqual(result.warnings, []);
+  }
+});
+
 test('Doom Approaches retains independent condition packets when its volley strikes are removed', () => {
   const config = { ...base, selectedTraitIds: [TRAIT.DOOM_APPROACHES] };
   const native = necromancerProfession.runtimeFor(config);

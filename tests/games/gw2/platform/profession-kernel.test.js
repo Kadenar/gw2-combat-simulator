@@ -598,6 +598,30 @@ test('declared recharge progress scales the accepted anchor and validates its ra
     );
 });
 
+// A negative offset makes the next use eligible before the anchor's recharge would, but never before cast start.
+test('negative recharge offsets advance eligibility and clamp to cast start', () => {
+  const selected = withSkill(catalog, 991009, { castTimeMs: 1000, interruptCommitMs: 100, rechargeOffsetMs: -400 });
+  // Permanent Alacrity turns the 10 s cooldown into 8 s; the unclamped interrupted anchor would be eligible at 7.8 s.
+  for (const [interruptAfterMs, readyAtMs] of [
+    [undefined, 8600],
+    [200, 8000]
+  ]) {
+    const result = run({ catalog: selected }, [cast(991009, { interruptAfterMs }), cast(991009)]);
+    assert.equal(result.steps[1].start, readyAtMs, String(interruptAfterMs));
+  }
+
+  assert.equal(
+    createCanonicalCatalog({ generated: [{ id: 1, name: 'Early', rechargeOffsetMs: -80 }] }).skillsById.get(1)
+      .rechargeOffsetMs,
+    -80
+  );
+  for (const rechargeOffsetMs of [Infinity, -Infinity, NaN, 'early'])
+    assert.throws(
+      () => createCanonicalCatalog({ generated: [{ id: 1, name: 'Invalid', rechargeOffsetMs }] }),
+      /rechargeOffsetMs/
+    );
+});
+
 // Dynamic metadata is evaluated only for an accepted proc, once for all packets, after the ICD claim.
 test('dynamic cast attribution preserves targeting and overrides authored packet identity once per proc', () => {
   const calls = [];

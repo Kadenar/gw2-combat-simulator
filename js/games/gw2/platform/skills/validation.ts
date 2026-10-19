@@ -525,8 +525,9 @@ export function normalizeSkill<TSkill extends Skill>(
 
   const rechargeOffsetMs = Number(merged.rechargeOffsetMs ?? 0);
 
-  if (!(rechargeOffsetMs >= 0) || !Number.isFinite(rechargeOffsetMs)) {
-    throw new TypeError(`Skill ${id} requires a non-negative finite rechargeOffsetMs.`);
+  // Negative offsets start recharge before the selected anchor; cast execution clamps the result to cast start.
+  if (!Number.isFinite(rechargeOffsetMs)) {
+    throw new TypeError(`Skill ${id} requires a finite rechargeOffsetMs.`);
   }
 
   const baseSkill = {

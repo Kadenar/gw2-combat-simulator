@@ -1,5 +1,4 @@
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import {
   harbingerBuffPolicies,
   harbingerEffectStates
@@ -17,10 +16,6 @@ export const harbingerHooks = composeRuntimeHooks<NecromancerRuntimeState, Necro
   harbingerShroudLifecycle,
   {
     buffPolicies: harbingerBuffPolicies,
-    // Devouring Cut recharges during its final 80 ms, including casts shortened by interruption.
-    rechargeStart(_context, cast, at) {
-      return cast.skill.id === ID.DEVOURING_CUT ? Math.max(cast.start, cast.effectiveEnd - 0.08) : at;
-    },
     observeEffects: harbingerEffectStates,
     reactions: { 'damage.resolved': (runtime, event) => runtime.fireTrigger(harbingerStrike, { event }) }
   }
