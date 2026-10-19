@@ -1,4 +1,4 @@
-import { COMBO_FIELD, RECIPIENT, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { AURA, COMBO_FIELD, RECIPIENT, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Tempest overload and slot-skill catalog fragments only.
  * Persistent overload behavior lives in `hooks.ts`; aura reactions live under `mechanics/`.
@@ -164,7 +164,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     categories: ['Shout'],
     castTimeMs: 0,
     cooldown: 25,
-    aura: 'Fire|4',
+    aura: { kind: AURA.FIRE, duration: 4 },
     skillFamily: 'Shout',
     // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
 
@@ -203,7 +203,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     categories: ['Shout'],
     castTimeMs: 0,
     cooldown: 30,
-    aura: 'Magnetic|4',
+    aura: { kind: AURA.MAGNETIC, duration: 4 },
     skillFamily: 'Shout',
     // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
 

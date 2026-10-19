@@ -1,4 +1,5 @@
 import {
+  AURA,
   WEAPON,
   COMBO_FIELD,
   COMBO_FINISHER,
@@ -252,7 +253,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     categories: ['Weapon skill'],
     castTimeMs: 840,
     cooldown: 30,
-    aura: 'Magnetic|4',
+    aura: { kind: AURA.MAGNETIC, duration: 4 },
     skillFamily: 'Weapon skill',
     comboFinishers: [
       {

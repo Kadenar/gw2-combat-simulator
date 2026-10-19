@@ -312,8 +312,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
       { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3, metadata: {} }
     ])
   },
-  // Instant aura grant that flips the slot to Transmute Frost; `aura: 'Frost|10'` is the aura/duration
-  // pair the cast-effects layer reads when applying it.
+  // Instant aura grant that flips the slot to Transmute Frost; the cast hook applies the declared aura.
   [ID.FROST_AURA]: {
     name: AURA.FROST,
     type: 'Weapon',
@@ -324,7 +323,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     castTimeMs: 0,
     cooldown: 10,
     nextChainId: ID.TRANSMUTE_FROST,
-    aura: 'Frost|10',
+    aura: { kind: AURA.FROST, duration: 10 },
     skillFamily: 'Weapon skill',
     effects: []
   },
@@ -447,7 +446,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     castTimeMs: 0,
     cooldown: 10,
     nextChainId: ID.TRANSMUTE_LIGHTNING,
-    aura: 'Shocking|10',
+    aura: { kind: AURA.SHOCKING, duration: 10 },
     skillFamily: 'Weapon skill',
     effects: []
   },

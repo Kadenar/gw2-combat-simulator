@@ -212,6 +212,23 @@ test('skill costs validate authored field selectors and reject competing amount 
   );
 });
 
+// Aura grants must name one canonical aura and a positive duration before any cast can apply them.
+test('skill aura grants accept only a canonical kind with a positive finite duration', () => {
+  const load = (aura) => createCanonicalCatalog({ generated: [{ id: 1, name: 'Aura', aura }] });
+  for (const aura of [undefined, { kind: 'Fire Aura', duration: 4 }, { kind: 'Shocking Aura', duration: 0.5 }])
+    assert.doesNotThrow(() => load(aura));
+  for (const aura of [
+    'Fire|4',
+    ['Fire Aura', 4],
+    { kind: 'Fire', duration: 4 },
+    { kind: 'Fire Aura' },
+    { kind: 'Fire Aura', duration: '4' },
+    ...[0, -1, NaN, Infinity].map((duration) => ({ kind: 'Fire Aura', duration })),
+    { kind: 'Fire Aura', duration: 4, stacks: 1 }
+  ])
+    assert.throws(() => load(aura), /invalid aura grant/);
+});
+
 // Unknown and retired keys must fail in every authoring layer instead of accepting fields with no runtime behavior.
 test('catalogs reject unsupported skill fields in every authoring layer', () => {
   const skill = { id: 1, name: 'Validation' };

@@ -1,4 +1,13 @@
-import { WEAPON, COMBO_FIELD, RECIPIENT, COMBO_FINISHER, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
+import {
+  AURA,
+  WEAPON,
+  COMBO_FIELD,
+  RECIPIENT,
+  COMBO_FINISHER,
+  BOON,
+  CONDITION,
+  CONTROL
+} from '#gw2/platform/constants.js';
 /**
  * Focus weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -59,8 +68,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
       }
     ])
   },
-  // Instant Fire Aura grant that flips the slot to Transmute Fire; `aura: 'Fire|4'` is the aura/duration
-  // pair the cast-effects layer reads when applying it.
+  // Instant Fire Aura grant that flips the slot to Transmute Fire; the cast hook applies the declared aura.
   [ID.FIRE_SHIELD]: {
     name: 'Fire Shield',
     type: 'Weapon',
@@ -71,7 +79,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     castTimeMs: 0,
     cooldown: 25,
     nextChainId: ID.TRANSMUTE_FIRE,
-    aura: 'Fire|4',
+    aura: { kind: AURA.FIRE, duration: 4 },
     skillFamily: 'Weapon skill',
     effects: []
   },

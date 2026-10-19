@@ -1,4 +1,4 @@
-import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, AURA, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
 import { INPUT_CONTROL_IDS } from '#gw2/platform/skills/input-controls.js';
 import { snapshotActionDeclaration } from '#gw2/platform/effects/action-declarations.js';
@@ -12,6 +12,9 @@ import { normalizeSkillDamageModifiers } from '#gw2/platform/skills/modifiers.js
 import type { CanonicalCatalog, Skill, SkillId, SkillLockout } from '#gw2/platform/skills/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 /** Validate skill declarations and cross-catalog references before runtime selection. */
+
+/** Canonical aura names a skill-level aura grant may declare. */
+const AURA_NAMES: ReadonlySet<unknown> = new Set(Object.values(AURA));
 
 /** Reject retired or misspelled skill fields at the catalog boundary, including profession-owned authoring. */
 const SKILL_FIELDS = new Set([
@@ -378,6 +381,23 @@ export function normalizeSkill<TSkill extends Skill>(
       )
     ) {
       throw new TypeError(`Skill ${id} has invalid dualWieldEffectOffsetsMs.`);
+    }
+  }
+
+  // An aura grant names exactly one canonical aura and a positive finite duration in seconds.
+  if (merged.aura != null) {
+    const aura = merged.aura as Readonly<Record<string, unknown>>;
+
+    if (
+      typeof aura !== 'object' ||
+      Array.isArray(aura) ||
+      Object.keys(aura).some((key) => key !== 'kind' && key !== 'duration') ||
+      !AURA_NAMES.has(aura.kind) ||
+      typeof aura.duration !== 'number' ||
+      !Number.isFinite(aura.duration) ||
+      !(aura.duration > 0)
+    ) {
+      throw new TypeError(`Skill ${id} has an invalid aura grant.`);
     }
   }
 

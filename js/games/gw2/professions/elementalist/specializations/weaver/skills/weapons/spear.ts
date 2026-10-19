@@ -1,4 +1,4 @@
-import { WEAPON, STATUS, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { AURA, WEAPON, STATUS, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Spear weapon-skill mechanics owned by the Weaver module.
  *
@@ -33,8 +33,8 @@ export const WEAVER_SPEAR_FOLLOWUPS: Readonly<Record<number, string>> = Object.f
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
 const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  // Fire+Water. The only spear dual that grants an aura: `aura: 'Fire|3'` is
-  // read by the core cast hook as a three-second Fire Aura on cast end.
+  // Fire+Water. The only spear dual that grants an aura: the core cast hook
+  // applies its declared three-second Fire Aura on cast end.
   [ID.FROSTFIRE_WARD]: {
     name: 'Frostfire Ward',
     type: 'Weapon',
@@ -44,7 +44,7 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     categories: ['Weapon skill'],
     castTimeMs: 0,
     cooldown: 15,
-    aura: 'Fire|3',
+    aura: { kind: AURA.FIRE, duration: 3 },
     skillFamily: 'Weapon skill',
     // Different live hand elements make the current primary immediately re-attunable on commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],

@@ -42,22 +42,18 @@ import type {
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 
-// Skill data encodes a granted aura as "Element|seconds"; malformed or
-// zero-length values grant nothing.
-function applySkillAura(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
-  if (!skill.aura) return;
+// Grant the skill's declared aura; catalog validation already guarantees a known kind and positive duration.
+function applySkillAura(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
+  const { aura, name, id } = cast.skill;
 
-  const [element, rawDuration] = String(skill.aura).split('|');
-  const duration = Number(rawDuration || 0);
-
-  if (!element || !(duration > 0)) return;
+  if (!aura) return;
 
   applyElementalistAura(context, {
     at: cast.effectiveEnd,
-    aura: `${element} Aura`,
-    duration,
-    skillName: skill.name,
-    sourceId: skill.id
+    aura: aura.kind,
+    duration: aura.duration,
+    skillName: name,
+    sourceId: id
   });
 }
 
@@ -72,7 +68,7 @@ export function elementalistOnCastStart(
 ): void {
   // Aura-bearing skills grant their aura before same-time strike/condition
   // packets, so aura-triggered modifiers can affect the skill that granted it.
-  applySkillAura(context, cast, skill);
+  applySkillAura(context, cast);
   ensureElementalistElemental(context, skill);
   beginElementalistSpearCast(context, cast, skill);
 }
