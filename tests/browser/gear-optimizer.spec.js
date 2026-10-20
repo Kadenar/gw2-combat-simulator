@@ -297,10 +297,10 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   await expect(secondSet.getByRole('heading', { name: 'Weapon set 2', exact: true })).toBeVisible();
   await expect(preview.getByRole('group', { name: /^Food:/ })).toContainText('None');
   await expect(preview.locator('.attr-row').filter({ hasText: /^Power/ })).toBeVisible();
-  // Accept source and bundled artwork so this worker regression also runs against production builds in WebKit.
+  // Match the profession-scoped source artwork and its bundled URL so the preview check works in both builds.
   await expect(preview.locator('.optimizer-preview-portrait img')).toHaveAttribute(
     'src',
-    /\/(?:images\/professions\/virtuoso|assets\/virtuoso-[\w-]+)\.png$/
+    /\/(?:images\/professions\/mesmer\/virtuoso|assets\/virtuoso-[\w-]+)\.png$/
   );
   await expect
     .poll(() => preview.locator('.optimizer-preview-portrait img').evaluate((image) => image.naturalWidth))
