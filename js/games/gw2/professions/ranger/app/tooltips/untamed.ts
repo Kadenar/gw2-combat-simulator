@@ -68,9 +68,10 @@ export const untamedTooltips = {
     [TRAIT.NATURAL_FORTITUDE]: traitTooltip('Gain vitality. Ambushes trigger a life siphon at their first impact.', [
       ['attributeBonus', 'Vitality']
     ]),
-    [TRAIT.VOW_OF_THE_UNTAMED]: traitTooltip('Your strikes deal increased damage while you are unleashed.', [
-      fromProfile(TRAIT.VOW_OF_THE_UNTAMED, 'damageIncrease', 'Unleashed player strike damage', tooltipPercent)
-    ]),
+    [TRAIT.VOW_OF_THE_UNTAMED]: traitTooltip(
+      "Your strikes deal increased damage while you are unleashed or Biorhythm's Vow of the Untamed effect is active.",
+      [fromProfile(TRAIT.VOW_OF_THE_UNTAMED, 'damageIncrease', 'Unleashed player strike damage', tooltipPercent)]
+    ),
     [TRAIT.DEBILITATING_BLOWS]: (balanceContext, entity) => ({
       description:
         'Player or pet control effects poison the target while you are unleashed, or slow it while the pet is unleashed.',
@@ -103,7 +104,11 @@ export const untamedTooltips = {
       [['internalCooldown', 'Weapon-swap reset cooldown', tooltipSeconds]],
       RECIPIENT.PARTY
     ),
-    [TRAIT.BIORHYTHM]: outsideScopeTooltip,
+    // Describe the offensive reward; player healing and incoming damage remain outside combat simulation scope.
+    [TRAIT.BIORHYTHM]: traitTooltip(
+      'Unleashing removes your Biorhythm stacks, then grants a new series of stacks that expire independently. Reaching the stack threshold arms the next unleash to grant Vow of the Untamed, even after the stacks expire. Its strike-damage bonus applies in either unleash state and does not stack with being unleashed. Healing and incoming damage reduction are not simulated.',
+      [['stackThreshold', 'Stack threshold']]
+    ),
     [TRAIT.FEROCIOUS_SYMBIOSIS]: traitTooltip(
       "Your strikes build the pet's strike-damage stacks; pet strikes build yours. Each side has an independent trigger cooldown and refreshes its stack duration.",
       [

@@ -96,6 +96,9 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Light on your Feet': 'https://render.guildwars2.com/file/4D37A694088038DA9266F6107C9604AD9CBC2752/1012649.png',
   // Natural Balance's temporary buff uses its granting trait's icon in tooltip facts.
   'Natural Balance': 'https://render.guildwars2.com/file/5F953BAC2C7EB3340B4EAA9A7D9633320BAB29A6/1128535.png',
+  // Biorhythm's stacks and its granted Vow effect use their matching Untamed trait icons.
+  Biorhythm: 'https://render.guildwars2.com/file/44B8970EAEBCFC14E11A910C5B5D0FC512FEEBE5/2503639.png',
+  'Vow of the Untamed': 'https://render.guildwars2.com/file/6C71F5D550E3CBACBB067376F52DE40A0148776F/2503643.png',
   // Named Elementalist effects use their own icons in both buff rows and qualified facts.
   'Fresh Air': 'https://render.guildwars2.com/file/FA64C9F2750F986E52E8376F22EDBA3844A8C603/1012277.png',
   'Flame Expulsion': 'https://render.guildwars2.com/file/998095CB1FD2CF0164B8A36BABFDB911DF08DB02/1012313.png',

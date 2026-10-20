@@ -3,6 +3,7 @@ import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import {
   activeRefreshedStacks,
   grantRefreshedStacks,
@@ -25,6 +26,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
@@ -32,12 +34,18 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { TRAITS } from '#gw2/professions/ranger/data/traits-data.js';
 import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
 import {
+  BIORHYTHM,
+  BIORHYTHM_OWNER,
+  VOW_OF_THE_UNTAMED
+} from '#gw2/professions/ranger/specializations/untamed/effect-state.js';
+import {
   grantAmbush,
-  untamedStrike
+  untamedStrike,
+  untamedUnleashed
 } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
-import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
+import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 function untamedModifierState(context: Gw2ModifierContext): Partial<UntamedModifierState> {
   return readProfessionSpecializationState<UntamedModifierState>(context.runtime?.profession, 'Untamed') || {};
@@ -332,6 +340,78 @@ const enhancingImpact = defineTrait({
   ]
 });
 
+/**
+ * Each unleash replaces the Biorhythm cycle: it spends an armed Vow, removes live and pending stacks, then starts a
+ * new series of independently expiring stacks. Reaching the threshold arms the next unleash even after stacks decay.
+ */
+const biorhythm = defineTrait({
+  id: TRAIT.BIORHYTHM,
+  name: 'Biorhythm',
+  balance: {
+    stackThreshold: 5,
+    effects: [
+      // One stack on unleash, then one per second for four seconds; stacks never refresh each other.
+      { name: BIORHYTHM, type: 'buff', kind: BIORHYTHM, duration: 6, stacks: 1, applications: 5, intervalMs: 1000 },
+      { name: VOW_OF_THE_UNTAMED, type: 'buff', kind: VOW_OF_THE_UNTAMED, duration: 10, stacks: 1 }
+    ]
+  },
+  triggers: [
+    onTriggerPoint(untamedUnleashed, {
+      run(runtime, input: TriggerPointInput<typeof untamedUnleashed>) {
+        const state = untamedState.from(runtime);
+        // Owned pending stacks are cancelled and live stacks end now, so an early unleash cannot inherit progress.
+        runtime.cancelOwner(BIORHYTHM_OWNER);
+        runtime.combat.reviseBuffExpiry(
+          BIORHYTHM,
+          () => true,
+          (expiresAt) => Math.min(expiresAt, runtime.time)
+        );
+
+        if (state.biorhythmArmed) emitBiorhythmEffect(runtime, VOW_OF_THE_UNTAMED, 'Vow of the Untamed', input.skill);
+
+        state.biorhythmArmed = false;
+        emitBiorhythmEffect(runtime, BIORHYTHM, 'Biorhythm', input.skill, BIORHYTHM_OWNER);
+      }
+    }),
+    {
+      on: 'buff.applied',
+      when: (_runtime, event) => event.kind === BIORHYTHM && Boolean(event.resolvedAudience?.includesSelf),
+      // The threshold reads live stacks, so a cycle whose stacks expire before reaching it never arms Vow.
+      run(runtime: RangerRuntime) {
+        if (
+          runtime.combat.activeBuffStacks(BIORHYTHM, runtime.time) >=
+          balanceNumberFromContext(runtime, TRAIT.BIORHYTHM, 'stackThreshold')
+        )
+          untamedState.from(runtime).biorhythmArmed = true;
+      }
+    }
+  ]
+});
+
+/** Biorhythm grants its own self effects; an owner lets the next unleash cancel stacks that have not landed. */
+function emitBiorhythmEffect(
+  runtime: RangerRuntime,
+  kind: string,
+  name: string,
+  trigger: RangerSkill,
+  owner?: WorkOwner
+): void {
+  emitTraitProfile(runtime, TRAIT.BIORHYTHM, TRAIT.BIORHYTHM, undefined, {
+    at: runtime.time,
+    owner,
+    effect: { type: 'buff', name: kind },
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.BIORHYTHM,
+      actorType: ACTOR.EFFECT,
+      skillId: TRAIT.BIORHYTHM,
+      skillName: 'Biorhythm',
+      triggeredBy: trigger.name,
+      name
+    }
+  });
+}
+
 /** Owns Vow of the Untamed's live tuning and trait behavior. */
 const vowOfTheUntamed = defineTrait({
   id: TRAIT.VOW_OF_THE_UNTAMED,
@@ -349,7 +429,8 @@ const vowOfTheUntamed = defineTrait({
         isGw2PlayerModifierOwnedEvent(context.event) &&
         // Pet strikes don't benefit from Vow even when Ranger is unleashed.
         !isPetStrike(context.event) &&
-        rangerUnleashed(context)
+        // Biorhythm's Vow effect grants the same bonus in either unleash state; the two never stack.
+        (rangerUnleashed(context) || buffActive(context, VOW_OF_THE_UNTAMED))
     }
   ]
 });
@@ -370,6 +451,7 @@ export const untamedTraits = [
   ferociousSymbiosis,
   debilitatingBlows,
   enhancingImpact,
+  biorhythm,
   vowOfTheUntamed
 ];
 

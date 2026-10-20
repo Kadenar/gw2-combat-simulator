@@ -17,6 +17,8 @@ export interface UntamedState {
 
   ferociousSymbiosisPlayer: RefreshedStacks;
 
+  biorhythmArmed: boolean;
+
   untamedActivationClaims: ActivationClaims;
 }
 
@@ -35,6 +37,8 @@ export function createUntamedState(config: RangerConfig = {}): UntamedState {
     ambushReadyUntil: 0,
     // Player and pet track separate stacks because each cross-triggers the other's buff.
     ferociousSymbiosisPlayer: { stacks: 0, expiresAt: 0 },
+    // Stack expiry never revokes an earned Vow; a new unleash consumes it and replaces the stack cycle.
+    biorhythmArmed: false,
     // Keyed by activationId so multi-hit ambush skills only grant Let Loose buffs once per cast.
     untamedActivationClaims: {}
   };

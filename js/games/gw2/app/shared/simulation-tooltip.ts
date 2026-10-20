@@ -114,6 +114,7 @@ effectNames.set('splinter-weapon', 'Splinter Weapon');
 effectNames.set('burst-of-strength', 'Burst of Strength');
 effectNames.set('explosive-temper', 'Explosive Temper');
 effectNames.set('twice-as-vicious', 'Twice as Vicious');
+effectNames.set('vow-of-the-untamed', 'Vow of the Untamed');
 effectNames.set('relentless-fire', 'Relentless Fire');
 effectNames.set('shattering-ice', 'Shattering Ice');
 // All ordinary descriptions use the same locale, so reuse its formatter across skills.

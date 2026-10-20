@@ -2,6 +2,7 @@ import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime
 import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
 import { emitRangerPetSkill, restartRangerPetAutoattack } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { rangerPetCommandBar } from '#gw2/professions/ranger/data/pet-commands.js';
+import { untamedBuffPolicies } from '#gw2/professions/ranger/specializations/untamed/effect-state.js';
 import { untamedUnleashLifecycle } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -9,6 +10,7 @@ import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/ty
 /** Register the unleash lifecycle while pet command routing and execution stay with the specialization assembly. */
 export const untamedHooks = composeRuntimeHooks<RangerRuntimeState, RangerSkill>([
   untamedUnleashLifecycle,
+  { buffPolicies: untamedBuffPolicies },
   {
     /** Hold the selected preview state while evaluating detached damage queries. */
     prepareDamageState(runtime, _skill, inputs) {

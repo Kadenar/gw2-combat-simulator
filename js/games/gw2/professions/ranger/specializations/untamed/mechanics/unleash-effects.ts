@@ -64,6 +64,11 @@ export const untamedStrike = defineTriggerPoint<{ readonly event: Gw2ResolverEve
   TRAIT.LET_LOOSE
 ]);
 
+/** Accepted transfers notify Biorhythm after the new unleash state is established, naming the transfer skill. */
+export const untamedUnleashed = defineTriggerPoint<{ readonly skill: RangerSkill }>('ranger.untamed-unleashed', [
+  TRAIT.BIORHYTHM
+]);
+
 /** Both toggles share fixed recharge; only an eligible transfer to Ranger claims a new ambush. */
 function unleash(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>, rangerUnleashed: boolean): void {
   untamedState.from(runtime).rangerUnleashed = rangerUnleashed;
@@ -73,6 +78,8 @@ function unleash(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>, rangerU
 
   if (rangerUnleashed && runtime.procs.claim(PROFILE.resources, 'ranger.untamed.unleashedPower', runtime.time))
     grantAmbush(runtime);
+
+  runtime.fireTrigger(untamedUnleashed, { skill: cast.skill });
 }
 
 /** Both unleash transitions and ambush consumption share the availability and grant owner. */
