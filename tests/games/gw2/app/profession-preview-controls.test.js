@@ -336,6 +336,7 @@ for (const [profession, trait, key, value, attribute] of [
   ['ranger', 'Natural Balance', 'naturalBalance', 1, 'Condition Multiplier'],
   ['ranger', 'Twice as Vicious', 'twiceAsVicious', 1, 'Strike Multiplier'],
   ['ranger', 'Ferocious Symbiosis', 'ferociousSymbiosis', 5, 'Strike Multiplier'],
+  ['ranger', 'Vow of the Untamed', 'vowOfTheUntamed', 1, 'Strike Multiplier'],
   ['revenant', 'Forerunner of Death', 'forerunnerOfDeath', 1, 'Strike Multiplier'],
   ['revenant', 'Brutal Momentum', 'fullEndurance', 1, 'Critical Chance'],
   ['thief', 'Fluid Strikes', 'fluidStrikes', 1, 'Strike Multiplier'],

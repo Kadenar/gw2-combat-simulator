@@ -9,6 +9,7 @@ import type {
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { VOW_OF_THE_UNTAMED } from '#gw2/professions/ranger/specializations/untamed/effect-state.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
@@ -73,6 +74,9 @@ export function bindUntamedUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>):
     /** Ordinary weapon rows use the selected start state; ambush rows still perform their required transition. */
     previewControls(context) {
       const preview = createPreviewControls(context);
+
+      // Hold Biorhythm's Vow effect in the isolated preview, including while the pet is unleashed.
+      preview.damageBuff('Vow of the Untamed', 'vowOfTheUntamed', VOW_OF_THE_UNTAMED);
 
       // Expose held combat bonuses to isolated damage calculations.
       if (preview.has('Ferocious Symbiosis'))
