@@ -16,6 +16,8 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
 
 const COMBO_COMBAT_METADATA_FIELDS = Object.freeze([
+  // Combo conditions share the finisher's damage row even when its cast uses a variant name.
+  'damageBreakdownName',
   // A missed finisher can still grant self effects, but its hostile outcomes must also miss.
   'offTarget',
   'ownerActorType',
@@ -467,6 +469,7 @@ export function materializeComboOutcome(combo: ComboEvent): readonly SimulationE
           icon: outcome.icon,
           // Siphon packets own their hits; keep the triggering finisher only as their parent.
           skillName: outcome.name,
+          damageBreakdownName: outcome.name,
           parentSkillName: combo.skillName || combo.parentSkillName,
           coefficient: 0,
           flatStrikeBase: outcome.flatStrikeBase,
