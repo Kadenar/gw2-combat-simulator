@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 
-import { generateProfessionIds, mapConcurrent } from './lib/generator-utils.mjs';
+import { generateProfessionIds, mapConcurrent, serializeWithLocalImages } from './lib/generator-utils.mjs';
 
 const REQUEST_HEADERS = { 'User-Agent': 'gw2-combat-simulator/2.0 Warrior generator' };
 const WIKI_API = 'https://wiki.guildwars2.com/api.php';
@@ -19,13 +19,13 @@ const SUPPLEMENTAL_NAMES = Object.freeze([
   'Triggerguard'
 ]);
 const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
-  [62966, { icon: 'https://wiki.guildwars2.com/images/e/e3/Swift_Cut.png' }],
-  [62772, { icon: 'https://wiki.guildwars2.com/images/9/9a/Steel_Divide.png' }],
-  [62918, { icon: 'https://wiki.guildwars2.com/images/9/99/Explosive_Thrust.png' }],
+  [62966, { icon: '@images/wiki/swift-cut.png' }],
+  [62772, { icon: '@images/wiki/steel-divide.png' }],
+  [62918, { icon: '@images/wiki/explosive-thrust.png' }],
   [
     62930,
     {
-      icon: 'https://wiki.guildwars2.com/images/d/d0/Blooming_Fire.png',
+      icon: '@images/wiki/blooming-fire.png',
       ammoCastLockout: 2,
       ammo: 2,
       ammoRecharge: 10
@@ -34,7 +34,7 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
   [
     62732,
     {
-      icon: 'https://wiki.guildwars2.com/images/6/68/Artillery_Slash.png',
+      icon: '@images/wiki/artillery-slash.png',
       ammoCastLockout: 2,
       ammo: 2,
       ammoRecharge: 15
@@ -43,7 +43,7 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
   [
     62789,
     {
-      icon: 'https://wiki.guildwars2.com/images/6/6c/Cyclone_Trigger.png',
+      icon: '@images/wiki/cyclone-trigger.png',
       ammoCastLockout: 1,
       ammo: 2,
       ammoRecharge: 20
@@ -52,7 +52,7 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
   [
     62885,
     {
-      icon: 'https://wiki.guildwars2.com/images/7/76/Break_Step.png',
+      icon: '@images/wiki/break-step.png',
       ammoCastLockout: 1,
       ammo: 2,
       ammoRecharge: 20
@@ -61,25 +61,25 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
   [
     62797,
     {
-      icon: 'https://wiki.guildwars2.com/images/b/b5/Dragon_Slash%E2%80%94Force.png'
+      icon: '@images/wiki/dragon-slash-force.png'
     }
   ],
   [
     62980,
     {
-      icon: 'https://wiki.guildwars2.com/images/7/75/Dragon_Slash%E2%80%94Boost.png'
+      icon: '@images/wiki/dragon-slash-boost.png'
     }
   ],
   [
     62951,
     {
-      icon: 'https://wiki.guildwars2.com/images/e/eb/Dragon_Slash%E2%80%94Reach.png'
+      icon: '@images/wiki/dragon-slash-reach.png'
     }
   ],
   [
     62926,
     {
-      icon: 'https://wiki.guildwars2.com/images/d/de/Flicker_Step.png',
+      icon: '@images/wiki/flicker-step.png',
       ammoCastLockout: 0.5,
       ammo: 3,
       ammoRecharge: 20
@@ -88,7 +88,7 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
   [
     62893,
     {
-      icon: 'https://wiki.guildwars2.com/images/4/4e/Triggerguard.png',
+      icon: '@images/wiki/triggerguard.png',
       ammoCastLockout: 1,
       ammo: 2,
       ammoRecharge: 30
@@ -211,7 +211,7 @@ export async function generateWarriorData({ skills: apiSkills, specializations: 
 import type { Skill } from "#gw2/platform/skills/types.js";
 
 export const WARRIOR_SUPPLEMENTAL_SKILLS: readonly Skill[] = Object.freeze(
-  ${JSON.stringify(supplemental, null, 2)},
+  ${serializeWithLocalImages(supplemental, 2)},
 );
 `;
 

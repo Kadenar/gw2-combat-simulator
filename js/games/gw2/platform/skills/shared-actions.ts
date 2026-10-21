@@ -1,5 +1,10 @@
 import type { Skill } from '#gw2/platform/skills/types.js';
 
+// Share URL identities in headless catalogs as well as browser bundles.
+export const DODGE_ICON = new URL('@images/wiki/dodge.png', import.meta.url).href;
+
+export const WEAPON_SWAP_ICON = new URL('@images/wiki/weapon-swap-button.png', import.meta.url).href;
+
 /** Synthetic identities stay shared across catalogs and saved rotations. */
 export const SHARED_SKILL_IDS = Object.freeze({ SWAP_WEAPONS: -3, DODGE: -5 });
 
@@ -10,7 +15,7 @@ export function createWeaponSwapSkill(
   return {
     name: 'Swap Weapons',
     description: 'Swap equipped weapon sets.',
-    icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
+    icon: WEAPON_SWAP_ICON,
     type: 'Action',
     slot: 'Action',
     inputCategory: 'weapon-swap',
@@ -46,7 +51,7 @@ export function createDodgeSkill(
   return {
     name: 'Dodge',
     description: 'Perform a dodge roll.',
-    icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
+    icon: DODGE_ICON,
     type: 'Action',
     slot: 'Action',
     // The dodge key drives editor shortcuts and input-activity tracing for every profession's dodge.

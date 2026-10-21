@@ -1,11 +1,9 @@
+import { SPECIALIZATION_BACKGROUNDS } from '#gw2/app/shared/specialization-backgrounds.js';
 import { traitTooltipAttributes, wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { ProfessionSpecialization } from '#gw2/app/build/types.js';
-
-const SPEC_BG = (name: string): string =>
-  `https://wiki.guildwars2.com/wiki/Special:FilePath/${encodeURIComponent(name)}_specialization.png`;
 
 /** Clamps every persisted starting resource after a specialization changes its available resource views. */
 export function clampStartingResourceValues(app: ProfessionAppState, specialization: string): void {
@@ -80,7 +78,7 @@ export function renderTraits(app: ProfessionAppState): void {
       if (!spec) return '';
 
       const picks = selection.traits.split('-').map(Number);
-      return `<div class="spec-row" style="--spec-bg:url('${esc(SPEC_BG(spec.name))}')">
+      return `<div class="spec-row" style="--spec-bg:url('${esc(SPECIALIZATION_BACKGROUNDS[spec.name] || '')}')">
                 <div class="spec-bg"></div><div class="spec-content">
                     <details class="spec-picker">
                         <summary class="spec-picker-trigger" aria-label="Change ${esc(spec.name)} specialization" title="Change specialization"></summary>

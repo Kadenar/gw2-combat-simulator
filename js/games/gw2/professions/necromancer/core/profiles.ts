@@ -351,7 +351,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         castTimeMs: 1200,
         name: 'First Slash',
         skillName: 'Slash',
-        icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png'
+        icon: new URL('@images/wiki/fist.png', import.meta.url).href
       },
       {
         type: 'strike',
@@ -365,7 +365,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         castTimeMs: 1200,
         name: 'Second Slash',
         skillName: 'Slash',
-        icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png'
+        icon: new URL('@images/wiki/fist.png', import.meta.url).href
       },
       {
         type: 'strike',
@@ -377,7 +377,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         actorType: ACTOR.SUMMON,
         sourceId: 3655,
         name: 'Fist',
-        icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png',
+        icon: new URL('@images/wiki/fist.png', import.meta.url).href,
         damagePerCoefficient: 3952
       }
     ]

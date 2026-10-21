@@ -91,6 +91,11 @@ test('Warrior refresh preserves committed bindings and API-omitted mechanics ide
     for (const [key, id] of Object.entries(identities)) assert.equal(actual[name][key], id, `${name}.${key}`);
   }
 
+  const supplementalFile = generated.files.find((file) => file.target.endsWith('warrior-supplemental-skills.ts'));
+  const supplemental = await importGeneratorSource(supplementalFile.target, generated.files);
+  assert.deepEqual(supplemental.WARRIOR_SUPPLEMENTAL_SKILLS, WARRIOR_SUPPLEMENTAL_SKILLS);
+  assert.doesNotMatch(supplementalFile.source, /wiki\.guildwars2\.com/);
+  assert.match(supplementalFile.source, /new URL\("@images\/wiki\//);
   assert.equal(actual.WARRIOR_SKILL_IDS.HARRIERS_TOSS, 73024);
   assert.equal(actual.WARRIOR_SKILL_IDS.HARRIERS_TOSS_ID_73006, 73006);
 });

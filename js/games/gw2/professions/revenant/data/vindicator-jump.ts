@@ -1,3 +1,4 @@
+import { DODGE_ICON } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const VINDICATOR_AIRBORNE_MS = 600;
@@ -9,7 +10,7 @@ export const VINDICATOR_JUMP_SKILL: Skill = Object.freeze<Skill>({
   id: 23275,
   name: 'Dodge Jump',
   displayName: 'Dodge + Landing',
-  icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
+  icon: DODGE_ICON,
   description:
     '600 ms airborne dodge + 200 ms landing. Endurance is spent at takeoff; the selected dodge effect resolves on landing.',
   type: 'Action',

@@ -3,7 +3,7 @@ import { WEAPON } from '#gw2/platform/constants.js';
 /** Exact item icons from the GW2 v2/items API; keys match the selectable equipment catalogs. */
 export const EQUIPMENT_ICONS: Readonly<Record<string, string>> = {
   // The generic slaying potion uses the undead variant's icon to represent the shared effect.
-  'Potion of Slaying': 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Potent_Potion_of_Undead_Slaying.png',
+  'Potion of Slaying': new URL('@images/wiki/potent-potion-of-undead-slaying.png', import.meta.url).href,
   'Bowl of Curry Butternut Squash Soup':
     'https://render.guildwars2.com/file/0AEDB9B0AA4274930F55919A6D21251BFDA1EB09/433673.png',
   'Bowl of Fancy Potato and Leek Soup':
@@ -136,7 +136,7 @@ export const INFUSION_ICONS: Readonly<Record<string, string>> = {
 
 export const GEAR_ICONS: Readonly<Record<string, string>> = {
   // The default skin has no API unlock item; use its matching wiki icon (game file 2595061).
-  JadeBot: 'https://wiki.guildwars2.com/images/b/bf/Jade_Bot_%28skin%29.png',
+  JadeBot: new URL('@images/wiki/jade-bot-skin.png', import.meta.url).href,
   Ring: 'https://render.guildwars2.com/file/EAA61AAF9BEF031104FD063C0A301A520EF5F5E6/1614682.png',
   Accessory: 'https://render.guildwars2.com/file/741D3F520D1DFD7BB9A35AD50FC75152D2B3CA6B/1614709.png',
   Amulet: 'https://render.guildwars2.com/file/4944FD054FD80D805B0BFFB2DA60363A7DD31FDB/1614376.png',

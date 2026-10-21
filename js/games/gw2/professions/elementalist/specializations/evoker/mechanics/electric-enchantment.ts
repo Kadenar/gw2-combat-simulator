@@ -19,7 +19,7 @@ const electricEnchantment = Object.freeze({
   id: 'electric-enchantment',
   sourceId: 'elementalist.electric-enchantment',
   name: 'Electric Enchantment',
-  icon: 'https://wiki.guildwars2.com/images/7/7b/Hare%27s_Agility.png'
+  icon: new URL('@images/wiki/hare-s-agility.png', import.meta.url).href
 });
 
 /** Announcements retain the granting or consuming skill while using the enchantment's presentation. */

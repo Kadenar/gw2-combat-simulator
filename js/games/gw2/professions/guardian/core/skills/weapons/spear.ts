@@ -113,7 +113,7 @@ function illuminatedSpearEffects(
         procType: 'skill',
         name: 'Illuminated',
         sourceSkill: cast.skill.name,
-        icon: 'https://wiki.guildwars2.com/images/7/7d/Illuminated.png',
+        icon: new URL('@images/wiki/illuminated.png', import.meta.url).href,
         detail: `${cast.skill.name} illuminated (x${multiplier})`
       }
     }

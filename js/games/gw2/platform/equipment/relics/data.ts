@@ -39,21 +39,21 @@ export const RELIC_DATA = {
     category: 'Power',
     trigger: 'Use a healing skill (8 Vulnerability for 8s; +10% strike damage to vulnerable foes for 6s)',
     cooldown: 15,
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Relic_of_the_Director.png'
+    icon: new URL('@images/wiki/relic-of-the-director.png', import.meta.url).href
   },
   'Mount Balrior': {
     id: RELIC_IDS.MOUNT_BALRIOR,
     category: 'Power',
     trigger: 'Use an elite skill (+15% strike damage for 6s after a 1s delay; assumes standing in the area)',
     cooldown: 30,
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Relic_of_Mount_Balrior.png'
+    icon: new URL('@images/wiki/relic-of-mount-balrior.png', import.meta.url).href
   },
   Agony: {
     id: RELIC_IDS.AGONY,
     category: 'Condition',
     trigger: 'Interrupt a foe (Agony of the Choir for 5s; 134.5 + 0.155 x Condition Damage per second)',
     cooldown: 3,
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Relic_of_Agony.png'
+    icon: new URL('@images/wiki/relic-of-agony.png', import.meta.url).href
   },
   Akeem: {
     id: RELIC_IDS.AKEEM,
@@ -96,7 +96,7 @@ export const RELIC_DATA = {
     category: 'Condition',
     trigger: 'Successfully evade an attack (2 Torment for 6s)',
     cooldown: 1,
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Relic_of_the_Mirage.png'
+    icon: new URL('@images/wiki/relic-of-the-mirage.png', import.meta.url).href
   },
   'Mist Stranger': {
     id: RELIC_IDS.MIST_STRANGER,
@@ -110,7 +110,7 @@ export const RELIC_DATA = {
     category: 'Hybrid',
     trigger: 'Gain 1 stack every 3s in combat (10 stacks → 5s damage buff)',
     cooldown: 0,
-    icon: 'https://wiki.guildwars2.com/images/3/3f/Relic_of_Nourys.png'
+    icon: new URL('@images/wiki/relic-of-nourys.png', import.meta.url).href
   },
   Peitha: {
     id: RELIC_IDS.PEITHA,
@@ -202,7 +202,7 @@ export const RELIC_DATA = {
     category: 'Condition',
     trigger: 'Hit by a poisoned foe (+30 Condition Damage)',
     cooldown: 5,
-    icon: 'https://wiki.guildwars2.com/images/8/8a/Relic_of_Thorns.png'
+    icon: new URL('@images/wiki/relic-of-thorns.png', import.meta.url).href
   },
   Thief: {
     id: RELIC_IDS.THIEF,

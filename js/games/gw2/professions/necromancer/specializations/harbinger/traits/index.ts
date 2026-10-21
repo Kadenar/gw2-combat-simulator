@@ -465,7 +465,7 @@ function applyCascadingCorruption(
             type: 'trait',
             at: runtime.time,
             name: 'Meltdown',
-            icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Meltdown.png',
+            icon: new URL('@images/wiki/meltdown.png', import.meta.url).href,
             sourceSkill: cast.skill.name
           }
         });
