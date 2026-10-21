@@ -201,7 +201,7 @@ test('declarative point payloads keep trait attribution and the firing cause', (
   assert.equal(bleeding[0].skillName, 'Strike');
 });
 
-test('isolated payload runtimes compile no listeners but still list invoked skills as trait occurrences', () => {
+test('isolated payload runtimes compile no listeners or synthetic trait occurrences', () => {
   const invoking = defineTrait({ id: 101, name: 'Invoker', triggers: [onTriggerPoint(struck, { invoke: 2 })] });
   const calls = [];
   const profession = family([invoking, listener(102, calls)], [listener(103, calls)]);
@@ -209,10 +209,7 @@ test('isolated payload runtimes compile no listeners but still list invoked skil
   assert.equal(profession.runtimeFor(config).triggerListeners.get('fixture.struck').length, 2);
   const isolated = profession.runtimeFor(config, { traitTriggers: false });
   assert.equal(isolated.triggerListeners.size, 0);
-  assert.deepEqual(
-    isolated.damageEffects.map(({ id, ownerId, sourceIds, name }) => ({ id, ownerId, sourceIds, name })),
-    [{ id: 'trait-skill.101.2', ownerId: 101, sourceIds: [2], name: 'Burst' }]
-  );
+  assert.deepEqual(isolated.damageEffects, []);
 });
 
 // Both registration paths must reject an unselected or disabled producer before eligibility or cooldown admission.

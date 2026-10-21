@@ -81,7 +81,6 @@ export const cryOfPain = defineTrait<MesmerSkill>({
   name: 'Cry of Pain',
   balance: {
     // This replaces the shatter's confusion package rather than emitting an independently owned proc.
-    damagePreviewAttribution: 'skill',
     effects: [{ name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 4, stacks: 2 }]
   }
 });
@@ -362,7 +361,8 @@ function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: MesmerS
       context.effects.emit({
         ...resolution.delivery,
         kind: 'packet',
-        event: packet,
+        // Trait ownership survives the shatter's skill attribution so previews report the torment as a trait proc.
+        event: { ...packet, traitId: TRAIT.MAIM_THE_DISILLUSIONED },
         owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });

@@ -18,7 +18,6 @@ export type DamageInputs = Readonly<Record<string, number | string | boolean>>;
 
 export type DamageEffectReference =
   | { readonly kind: 'skill'; readonly id: SkillId }
-  | { readonly kind: 'profile'; readonly id: SkillId; readonly ownerId: SkillId }
   | { readonly kind: 'relic'; readonly id: number }
   | { readonly kind: 'sigil'; readonly id: number }
   | { readonly kind: 'food'; readonly id: string }
@@ -29,7 +28,7 @@ export interface SkillDamageOccurrence {
   readonly id: string;
   readonly effect: DamageEffectReference;
   readonly name: string;
-  readonly source: 'Skill' | 'Profession' | 'Trait' | 'Relic' | 'Sigil' | 'Rune' | 'Food';
+  readonly source: 'Skill' | 'Profession' | 'Relic' | 'Sigil' | 'Rune' | 'Food';
   readonly icon: string;
   readonly unit: DamageUnit;
   readonly inputs?: DamageInputs;
@@ -69,9 +68,10 @@ export interface SkillDamageStrikeBreakdown {
   readonly variesAcrossHits: boolean;
 }
 
-/** Applications of a damaging condition with matching duration and sampled damage facts, aggregated into one row. */
+/** Applications with the same owner, duration, and sampled damage facts, aggregated into one row. */
 export interface SkillDamageConditionRow {
   readonly condition: string;
+  readonly attribution: string;
   readonly stacks: number;
   readonly baseDurationSeconds: number;
   readonly effectiveDurationSeconds: number;
@@ -130,8 +130,7 @@ export interface DamageEffectDefinition {
   readonly id: string;
   readonly name: string;
   readonly icon?: string;
-  readonly source: 'Profession' | 'Trait';
-  readonly ownerId?: SkillId;
+  readonly source: 'Profession';
   readonly unit: DamageUnit;
   readonly inputs?: DamageInputs;
   readonly assumptions?: readonly string[];

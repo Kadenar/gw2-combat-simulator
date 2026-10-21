@@ -119,7 +119,7 @@ const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistRuntimeS
       const enchantment = requireEffect(profile, 'buff', 'Lightning Blitz Enchantment');
 
       if (enchantment) {
-        grantElectricEnchantments(context, { at, stacks, duration: enchantment.duration, skill, procType: 'skill' });
+        grantElectricEnchantments(context, { at, stacks, duration: enchantment.duration, skill });
       }
     }
   },
@@ -181,7 +181,7 @@ const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistRuntimeS
       const enchantment = requireEffect(profile, 'buff', 'Hare Enchantment');
 
       if (enchantment) {
-        grantElectricEnchantments(context, { at, stacks, duration: enchantment.duration, skill, procType: 'skill' });
+        grantElectricEnchantments(context, { at, stacks, duration: enchantment.duration, skill });
       }
     }
   },

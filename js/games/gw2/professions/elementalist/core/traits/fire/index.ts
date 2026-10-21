@@ -158,7 +158,6 @@ export const burningRage = defineTrait({
   name: 'Burning Rage',
   balance: {
     // The replacement burning belongs to Sunspot's shared trigger.
-    damagePreviewAttribution: 'shared',
     attributeBonus: 180,
     effects: [{ type: 'condition', name: 'Sunspot Burning', condition: CONDITION.BURNING, stacks: 2, duration: 4 }]
   },

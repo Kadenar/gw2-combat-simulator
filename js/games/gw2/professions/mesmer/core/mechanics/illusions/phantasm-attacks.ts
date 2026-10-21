@@ -45,6 +45,7 @@ export function schedulePhantasmBonusStrike(
         ...packet,
         name: bonus.traitName,
         procType: 'trait',
+        traitId: bonus.traitId,
         // Each entity conversion is one proc, even when its strike expands into multiple damage packets.
         ...(index === 0 ? { metadata: { ...packet.metadata, procCount: 1 } } : {})
       },

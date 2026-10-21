@@ -52,7 +52,8 @@ export function createGw2ResolverRuntimeState({
   effects,
   professionState = {},
   onFirstDamage,
-  reactions
+  reactions,
+  random = createSimulationRandom(config.randomness)
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
   const criticalDamageMode = normalizeCriticalDamageMode(config.criticalDamageMode);
   const runtime: Gw2ResolverRuntime = {
@@ -101,7 +102,7 @@ export function createGw2ResolverRuntimeState({
     relic: createRelicRuntime(config.relic),
     profession: professionState,
     sigil: createSigilRuntimeState(),
-    random: createSimulationRandom(config.randomness),
+    random,
     weaponStrengthRolls: new Map(),
     weaponStrengthActivationOrder: 0,
 
@@ -288,4 +289,6 @@ interface CreateGw2ResolverRuntimeStateOptions {
   readonly professionState?: object;
   readonly onFirstDamage?: Gw2ConditionResolution['startDamageClock'];
   readonly reactions?: Gw2ResolverReactionRegistry;
+  /** Isolated executions may supply their own roll policy; combat always seeds from its configured randomness. */
+  readonly random?: Readonly<SimulationRandom>;
 }

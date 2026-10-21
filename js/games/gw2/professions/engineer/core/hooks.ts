@@ -1,9 +1,7 @@
 import { WEAPON } from '#gw2/platform/constants.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { controlOnSkillBar } from '#gw2/platform/skills/input-controls.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { engineerBuffPolicies } from '#gw2/professions/engineer/core/effect-state.js';
@@ -18,8 +16,7 @@ import { engineerSpearLifecycle } from '#gw2/professions/engineer/core/mechanics
 import { engineerTurretLifecycle } from '#gw2/professions/engineer/core/mechanics/turrets.js';
 import { handleAirBlast } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
 import { mineFieldLifecycle } from '#gw2/professions/engineer/core/skills/profession-skills.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
+import type { EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Shared toolbelt, dodge, and recharge wiring composed with each Core mechanic and skill owner's registered work. */
 export const engineerCoreHooks = composeRuntimeHooks<EngineerRuntimeState, EngineerSkill>([
@@ -28,46 +25,6 @@ export const engineerCoreHooks = composeRuntimeHooks<EngineerRuntimeState, Engin
   engineerKitLifecycle,
   mineFieldLifecycle,
   {
-    // Imperative trait invocations keep explicit occurrences; declarative invocations register automatically.
-    damageEffects: [
-      {
-        id: 'engineer.explosive-entrance',
-        name: 'Explosive Entrance',
-        source: 'Trait',
-        ownerId: TRAIT.EXPLOSIVE_ENTRANCE,
-        unit: 'occurrence',
-        sourceIds: [ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL],
-        emit(runtime) {
-          invokeTraitSkill(
-            runtime,
-            TRAIT.EXPLOSIVE_ENTRANCE,
-            ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL,
-            damageInputEvent(runtime),
-            {
-              announce: true
-            }
-          );
-        }
-      },
-      ...([false, true] as const).map((orbital) => ({
-        id: `engineer.rocket.${orbital ? 'orbital' : 'rocket'}`,
-        name: orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket',
-        source: 'Trait' as const,
-        ownerId: TRAIT.AIM_ASSISTED_ROCKET,
-        unit: 'occurrence' as const,
-        sourceIds: [orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL],
-        emit(runtime: EngineerRuntime) {
-          invokeTraitSkill(
-            runtime,
-            TRAIT.AIM_ASSISTED_ROCKET,
-            orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL,
-            damageInputEvent(runtime),
-            { announce: true }
-          );
-        }
-      }))
-    ],
-
     buffPolicies: engineerBuffPolicies,
     endurance: engineerEndurance,
     availability: engineerCoreCastAvailability,

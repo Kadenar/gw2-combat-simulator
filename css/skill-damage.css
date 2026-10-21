@@ -559,7 +559,7 @@
 .sd-condition-head,
 .sd-condition-row {
   display: grid;
-  grid-template-columns: minmax(90px, 1.3fr) 52px 76px minmax(120px, 1.5fr) 72px;
+  grid-template-columns: minmax(90px, 1fr) minmax(120px, 1.5fr) 52px 76px minmax(120px, 1.5fr) 72px;
   column-gap: 10px;
   align-items: baseline;
   font-size: 12px;
@@ -575,9 +575,13 @@
   padding: 4px 0;
   border-bottom: 1px solid var(--border);
 }
-.sd-condition-row > span:not(:first-child),
-.sd-condition-head > span:not(:first-child) {
+.sd-condition-row > span:nth-child(n + 3),
+.sd-condition-head > span:nth-child(n + 3) {
   text-align: right;
+}
+.sd-condition-attribution {
+  overflow-wrap: anywhere;
+  color: var(--text-dim);
 }
 .sd-condition-row small {
   color: var(--text-dim);

@@ -242,7 +242,6 @@ const meticulousCustodian = defineTrait({
     kryptisFactor: 3.36 / 2.8,
     holoFactor: 2.4 / 2,
     // Enhanced artifact packets remain part of the artifact's measured cast.
-    damagePreviewAttribution: 'skill',
     kryptisTormentDurationMultiplier: 5 / 4,
     effects: [{ type: 'strike', name: 'Meticulous Custodian', coefficient: 0.3, hits: 1 }]
   }

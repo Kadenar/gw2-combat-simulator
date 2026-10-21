@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -64,6 +63,33 @@ const setup = (entry) => (runtime) => {
 
 const strikes = (events, id) => events.filter((event) => event.type === 'damage' && event.sourceId === id);
 
+/** Evaluate the real triggering skill with the same explicit starting counter as the combat fixture. */
+function previewTrait(profession, config, entry) {
+  const skill = profession.runtimeFor(config).catalog.skillsByName.get(entry.rotation.at(-1));
+  const source = {
+    ...profession,
+    runtimeFor(config, options) {
+      const native = profession.runtimeFor(config, options);
+      return {
+        ...native,
+        prepareDamageState(runtime, skill, inputs) {
+          native.prepareDamageState?.(runtime, skill, inputs);
+          setup(entry)(runtime);
+        }
+      };
+    }
+  };
+  return executeDamageOccurrence(source, config, {
+    id: String(skill.id),
+    name: skill.name,
+    source: 'Skill',
+    icon: '',
+    unit: 'activation',
+    effect: { kind: 'skill', id: skill.id },
+    inputs: { includeTraitProcs: 1 }
+  });
+}
+
 // A single skill patch must govern combat, isolated damage, and trait facts, without a duplicate trait payload.
 for (const entry of cases) {
   test(`${entry.name} uses its selected skill payload in combat, previews, and tooltips`, () => {
@@ -79,11 +105,7 @@ for (const entry of cases) {
       const config = { ...configFor(entry), patchId };
       const combat = runEngineer([...entry.rotation, wait], config, { profession, initialize: setup(entry) });
       assert.deepEqual(combat.warnings, []);
-      const occurrences = damageOccurrences(profession.runtimeFor(config), config).filter(
-        (value) => value.name === entry.name
-      );
-      assert.equal(occurrences.length, 1);
-      const preview = executeDamageOccurrence(profession, config, occurrences[0]);
+      const preview = previewTrait(profession, config, entry);
       return [strikes(combat.resolvedEvents, entry.skill), strikes(preview.events, entry.skill)];
     });
     for (const path of [0, 1]) {
@@ -138,10 +160,7 @@ for (const entry of cases) {
       result.procSteps.some((step) => step.skill === entry.name),
       false
     );
-    const occurrence = damageOccurrences(profession.runtimeFor(config), config).find(
-      (value) => value.name === entry.name
-    );
-    assert.deepEqual(strikes(executeDamageOccurrence(profession, config, occurrence).events, entry.skill), []);
+    assert.deepEqual(strikes(previewTrait(profession, config, entry).events, entry.skill), []);
     const runtime = observedRuntime(result);
 
     if (entry.trait === TRAIT.EXPLOSIVE_ENTRANCE) {

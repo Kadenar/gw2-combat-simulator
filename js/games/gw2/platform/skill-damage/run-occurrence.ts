@@ -7,13 +7,15 @@ import { createSigilDamagePayload } from '#gw2/platform/equipment/sigils/proc-ev
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
+import { isTraitEffect } from '#gw2/platform/profession-definition/trait-emission.js';
 import { createCriticalFoodEffect } from '#gw2/platform/equipment/consumables/food-procs.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import { runRuntime } from '#gw2/platform/simulation/runtime.js';
 import { DamageCalculationError } from '#gw2/platform/skill-damage/errors.js';
-import { createDamageExecution } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { certainTraitRandom, createDamageExecution } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import type { DamageInputs, SkillDamageOccurrence } from '#gw2/platform/skill-damage/types.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 
 /** Content declarations identify damaging effects even when the selected inputs resolve to zero. */
 export function hasDamage(effects: readonly SkillEffect[] | undefined): boolean {
@@ -41,6 +43,7 @@ export function executeDamageOccurrence(
   for (const [key, value] of Object.entries(inputs))
     if (typeof value === 'number' && (!Number.isFinite(value) || value < 0))
       throw new DamageCalculationError('missing-input', `${key} must be finite and non-negative.`);
+
   const config: Gw2Config = structuredClone({
     ...baseConfig,
     ...occurrence.config?.profession,
@@ -48,14 +51,15 @@ export function executeDamageOccurrence(
     ...(occurrence.config?.initialResource == null ? {} : { initialResource: occurrence.config.initialResource }),
     target: { ...baseConfig.target, health: 0 }
   });
-  const native = source.runtimeFor(config, { traitTriggers: false });
   const effect = occurrence.effect;
+  // Only skill rows opt into native trait triggers; standalone proc rows still measure a single payload.
+  const includeTraitProcs = effect.kind === 'skill' && Boolean(inputs.includeTraitProcs);
+  const native = source.runtimeFor(config, { traitTriggers: includeTraitProcs });
   const skill = effect.kind === 'skill' ? native.catalog.skillsById.get(effect.id) : undefined;
 
   if (effect.kind === 'skill' && !skill)
     throw new DamageCalculationError('unsupported', 'The selected content has no implementation of this skill.');
 
-  const profile = effect.kind === 'profile' ? native.catalog.balanceProfilesById.get(effect.id) : undefined;
   const declared =
     effect.kind === 'profession' ? native.damageEffects?.find((entry) => entry.id === effect.id) : undefined;
   const relic = effect.kind === 'relic' ? RELIC_RULES[effect.id] : undefined;
@@ -63,7 +67,6 @@ export function executeDamageOccurrence(
     effect.kind === 'sigil' ? (SIGIL_PROCS as Readonly<Record<number, Gw2SigilProc>>)[effect.id] : undefined;
 
   if (
-    (effect.kind === 'profile' && !profile) ||
     (effect.kind === 'profession' && !declared) ||
     (effect.kind === 'relic' && !relic?.damagePayload) ||
     (effect.kind === 'sigil' && !sigil)
@@ -72,6 +75,10 @@ export function executeDamageOccurrence(
 
   const belongs = (event: SimulationEventBase): boolean => {
     if (event.actorType === ACTOR.SUMMON || event.summonOwner != null) return false;
+
+    // Trait-owned packets, including those emitted inline by the skill's own execution, belong to a skill row only
+    // when it includes trait procs; ownership outranks the skill attribution and procType exclusions below.
+    if (effect.kind === 'skill' && isTraitEffect(event)) return includeTraitProcs;
 
     if (effect.kind === 'skill')
       return (
@@ -84,9 +91,6 @@ export function executeDamageOccurrence(
           event.activationId?.startsWith('cast:') === true)
       );
 
-    if (effect.kind === 'profile')
-      return event.source === 'Trait' && (event.sourceId === effect.ownerId || event.sourceId === effect.id);
-
     if (effect.kind === 'relic')
       return event.source === 'Relic' && (event.sourceId === effect.id || event.sourceId === `relic.${effect.id}`);
 
@@ -97,22 +101,13 @@ export function executeDamageOccurrence(
     return declared?.sourceIds.includes(event.sourceId) === true;
   };
 
-  const accepts = (event: SimulationEventBase) => belongs(event) || String(event.sourceId).startsWith('assumption.');
+  const accepts = (event: SimulationEventBase) =>
+    belongs(event) ||
+    String(event.sourceId).startsWith('assumption.') ||
+    // Included trait procs run in combat from time zero, so the scheduled combat start must enter the runtime.
+    (includeTraitProcs && event.type === 'combat_start');
   const emit = (runtime: Gw2Runtime) => {
-    if (profile && effect.kind === 'profile')
-      runtime.effects.emit({
-        kind: 'profile',
-        profile,
-        attribution: {
-          source: 'Trait',
-          sourceId: effect.ownerId,
-          actorType: ACTOR.EFFECT,
-          ownerActorType: ACTOR.PLAYER,
-          skillName: occurrence.name,
-          activationId: 'damage:occurrence'
-        }
-      });
-    else if (relic?.damagePayload && effect.kind === 'relic') {
+    if (relic?.damagePayload && effect.kind === 'relic') {
       // A precast occurrence mutates its own state, so its payload's bonuses remain owned by that relic.
       const owner = [runtime.relic, ...(runtime.precastRelics ?? [])].find((entry) => entry.id === effect.id);
 
@@ -150,10 +145,14 @@ export function executeDamageOccurrence(
   const result = runRuntime({
     profession: native,
     config,
+    // Trait contributions model an activation in combat, including non-damaging actions such as attunement swaps.
+    combatStartTime: includeTraitProcs ? 0 : undefined,
     output: 'damage',
     ownsEffect: belongs,
     execution: createDamageExecution(native, {
       skillId: skill?.id,
+      includeTraitProcs,
+      random: includeTraitProcs ? certainTraitRandom(createSimulationRandom(config.randomness)) : undefined,
       cast: occurrence.cast,
       accepts,
       emit,
@@ -170,6 +169,7 @@ export function executeDamageOccurrence(
   const { events, castSeconds } = result;
   return {
     events,
+    catalog: native.catalog,
     castSeconds,
     damaging:
       effect.kind !== 'skill' ||

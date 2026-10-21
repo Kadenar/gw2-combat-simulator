@@ -1,7 +1,6 @@
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { playerHealthFraction, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
-import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineTestProfession } from '#tests/helpers/profession.js';
@@ -12,6 +11,9 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { headlessApp, firstPresetBuildPath } from '#tests/helpers/skill-damage.js';
+import { certainTraitRandom } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { COMBO_RANDOM_STREAM_PREFIX } from '#gw2/platform/combos/resolution.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 
 const occurrence = (id, fields = {}) => ({
   id: String(id),
@@ -40,6 +42,16 @@ const fixture = (effects, hooks = {}) =>
   });
 const evaluate = (profession, occurrences, config = {}, cache) =>
   evaluateSkillDamage({ config, occurrences }, profession, cache).occurrences;
+const traitBurning = (at) => ({
+  type: 'condition',
+  at,
+  source: 'Trait',
+  sourceId: 991002,
+  actorType: 'effect',
+  condition: 'Burning',
+  stacks: 1,
+  duration: 2
+});
 
 // Assumed activation enters below eligibility; the ordinary scheduler must still consult it.
 test('direct damage does not query activation availability', () => {
@@ -180,6 +192,165 @@ test('unrelated damage reactions are not invoked when measuring a skill', () => 
   assert.equal(reactions, 0);
 });
 
+// Native hit reactions can earn trait payloads only for the opted-in cast, never from held preview assumptions.
+test('opted-in skill reactions respect cooldowns and exclude equipment damage', () => {
+  let claims = 0;
+  const profession = fixture(
+    [
+      { type: 'strike', coefficient: 1 },
+      { type: 'strike', coefficient: 1, atMs: 100, timingAnchor: 'castStart', timingScale: 'fixed' }
+    ],
+    {
+      reactions: {
+        'damage.resolved'(runtime, event) {
+          if (event.source === 'Trait' || !runtime.procs.claimCooldown('preview-trait', event.at, 1)) return;
+
+          claims++;
+          for (const source of ['Trait', 'Relic', 'Sigil', 'Food'])
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'condition',
+                at: event.at,
+                source,
+                sourceId: 991002,
+                actorType: 'effect',
+                skillName: 'Triggered',
+                condition: 'Burning',
+                stacks: 1,
+                duration: 2
+              }
+            });
+        }
+      }
+    }
+  );
+  const [off] = evaluate(profession, [occurrence(991001)]);
+  assert.equal(claims, 0);
+  assert.equal(off.measurement.conditionDamage, 0);
+  for (let index = 0; index < 2; index++) {
+    const [on] = evaluate(profession, [occurrence(991001, { inputs: { includeTraitProcs: 1 } })]);
+    assert.equal(on.status, 'measured');
+    assert.equal(claims, index + 1);
+    assert.equal(on.measurement.conditions.length, 1);
+    assert.equal(on.measurement.conditions[0].stacks, 1);
+    assert.ok(on.measurement.total > off.measurement.total);
+  }
+});
+
+// Held preview buffs still settle their profession mechanics; only the skill's actual grant can fire a trait listener.
+test('trait listeners ignore held assumptions but react to the measured skill', () => {
+  const granted = { id: 'fixture.granted' };
+  let reactions = 0;
+  let procs = 0;
+  const profession = fixture([{ type: 'buff', kind: 'earned', stacks: 1, duration: 1 }], {
+    reactions: {
+      'buff.applied'(runtime, event) {
+        reactions++;
+        runtime.fireTrigger(granted, { event });
+      }
+    },
+    triggerListeners: new Map([
+      [
+        granted.id,
+        [
+          (mechanics, { event }) => {
+            procs++;
+            mechanics.effects.emit({ kind: 'packet', event: traitBurning(event.at) });
+          }
+        ]
+      ]
+    ])
+  });
+  const [result] = evaluate(profession, [occurrence(991001, { inputs: { includeTraitProcs: 1 } })], {
+    initialBuffs: [{ kind: 'held', stacks: 1, duration: 30 }]
+  });
+  assert.equal(result.status, 'measured');
+  assert.equal(reactions, 2);
+  assert.equal(procs, 1);
+  assert.equal(result.measurement.conditions[0].stacks, 1);
+});
+
+// Included trait procs admit only certain trait rolls without taking ownership of combo finisher rolls.
+test('trait proc randomness succeeds only certain rolls except combo rolls', () => {
+  const base = createSimulationRandom({ seed: 7 });
+  const reference = createSimulationRandom({ seed: 7 });
+  const certain = certainTraitRandom(base);
+  for (const stream of ['critical:player', 'fixture.trait-chance', undefined]) {
+    assert.equal(certain.roll(1, stream), true);
+    assert.equal(certain.roll(1 - 1e-9, stream), false);
+    assert.equal(certain.roll(0, stream), false);
+  }
+
+  const combo = `${COMBO_RANDOM_STREAM_PREFIX}fixture`;
+  const rolls = Array.from({ length: 32 }, () => certain.roll(0.2, combo));
+  assert.deepEqual(
+    rolls,
+    Array.from({ length: 32 }, () => reference.roll(0.2, combo))
+  );
+  assert.ok(rolls.includes(true) && rolls.includes(false));
+});
+
+// Included trait procs are only those that always trigger; neither kind contributes to the skill alone.
+test('included trait procs keep certain trait listeners and exclude chance-gated ones', () => {
+  const struck = { id: 'fixture.struck' };
+  const profession = fixture([{ type: 'strike', coefficient: 1 }], {
+    reactions: {
+      'damage.resolved'(runtime, event) {
+        runtime.fireTrigger(struck, { event });
+      }
+    },
+    triggerListeners: new Map([
+      [
+        struck.id,
+        [
+          (mechanics, { event }) => {
+            if (mechanics.random.roll(1, 'fixture.trait-certain'))
+              mechanics.effects.emit({ kind: 'packet', event: traitBurning(event.at) });
+
+            if (mechanics.random.roll(0.999, 'fixture.trait-chance'))
+              mechanics.effects.emit({
+                kind: 'packet',
+                event: { ...traitBurning(event.at), sourceId: 991003, condition: 'Bleeding' }
+              });
+          }
+        ]
+      ]
+    ])
+  });
+  const [off, on] = [0, 1].map(
+    (includeTraitProcs) => evaluate(profession, [occurrence(991001, { inputs: { includeTraitProcs } })])[0]
+  );
+  assert.equal(off.measurement.conditionDamage, 0);
+  assert.deepEqual(
+    on.measurement.conditions.map((row) => row.condition),
+    ['Burning']
+  );
+  assert.ok(on.measurement.total > off.measurement.total);
+});
+
+// Trait-owned packets emitted inline by the skill's own execution are trait procs, not part of the skill alone.
+test('inline trait-owned packets leave the skill row when trait procs are excluded', () => {
+  const profession = fixture([{ type: 'buff', kind: 'earned', stacks: 1, duration: 1 }], {
+    reactions: {
+      'buff.applied'(runtime, event) {
+        if (event.kind !== 'earned') return;
+
+        runtime.effects.emit({
+          kind: 'packet',
+          event: { ...traitBurning(event.at), source: 'Player', actorType: 'player', skillId: 991001, traitId: 991090 }
+        });
+      }
+    }
+  });
+  const [off, on] = [0, 1].map(
+    (includeTraitProcs) => evaluate(profession, [occurrence(991001, { inputs: { includeTraitProcs } })])[0]
+  );
+  assert.equal(off.status, 'zero');
+  assert.equal(on.status, 'measured');
+  assert.equal(on.measurement.conditions.length, 1);
+});
+
 test('Fractal evaluates its shared payload without a Bleeding prerequisite and without changing target assumptions', async () => {
   const app = await headlessApp('elementalist', await firstPresetBuildPath('elementalist'));
   const config = {
@@ -306,30 +477,6 @@ test('a shared cache cannot reuse a result from different content', () => {
   const [second] = evaluate(fixture([{ type: 'strike', coefficient: 2 }]), [occurrence(991001)], {}, cache);
   assert.equal(second.measurement.coefficient, first.measurement.coefficient * 2);
   assert.ok(second.measurement.total > first.measurement.total);
-});
-
-test('trait occurrence damage does not inherit trigger probability', async () => {
-  const app = await headlessApp('engineer', await firstPresetBuildPath('engineer'));
-  const id = ENGINEER_TRAIT_IDS.SHRAPNEL;
-  const config = {
-    ...app.adapter
-      .createBuildContext({
-        build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
-      })
-      .simulationConfig(),
-    selectedTraitIds: [id]
-  };
-  const definition = occurrence('shrapnel', {
-    source: 'Trait',
-    unit: 'occurrence',
-    effect: { kind: 'profile', id, ownerId: id }
-  });
-  const [zeroChance] = evaluate(app.profession, [definition], { ...config, procRateOverrides: { [id]: 0 } });
-  const [certain] = evaluate(app.profession, [definition], { ...config, procRateOverrides: { [id]: 1 } });
-  assert.equal(zeroChance.status, 'measured');
-  assert.equal(zeroChance.measurement.total, certain.measurement.total);
 });
 
 // The first hit's factors must never masquerade as a formula for changing later hits.

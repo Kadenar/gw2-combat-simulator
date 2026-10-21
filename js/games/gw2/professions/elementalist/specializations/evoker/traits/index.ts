@@ -157,7 +157,7 @@ function applyGalvanicEnchantment(
       stacks: balanceProfileNumber(profile, 'playerStacks'),
       duration: balanceProfileNumber(profile, 'duration'),
       skill,
-      procType: 'trait'
+      traitId: TRAIT.GALVANIC_ENCHANTMENT
     });
   }
 }
@@ -174,7 +174,6 @@ const galvanicEnchantment = defineTrait({
   name: 'Galvanic Enchantment',
   balance: {
     // Trait and familiar grants consume the same Electric Enchantment pool.
-    damagePreviewAttribution: 'shared',
     playerStacks: 2,
     duration: 6,
     effects: [

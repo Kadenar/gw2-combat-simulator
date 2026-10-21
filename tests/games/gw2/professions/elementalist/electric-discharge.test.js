@@ -3,7 +3,6 @@ import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import {
   attunementChanged,
@@ -20,9 +19,29 @@ import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 const config = { specialization: 'Core', selectedTraitIds: [TRAIT.ELECTRIC_DISCHARGE] };
 const native = elementalistProfession.runtimeFor(config);
 const skill = native.catalog.skillsByName.get('Air Attunement');
-const occurrence = damageOccurrences(native, config).find(
-  (entry) => entry.id === 'profession:elementalist.ElectricDischarge'
-);
+const occurrence = {
+  id: String(skill.id),
+  name: skill.name,
+  source: 'Skill',
+  icon: '',
+  unit: 'activation',
+  effect: { kind: 'skill', id: skill.id },
+  inputs: { includeTraitProcs: 1 }
+};
+
+/** The preview executes Air Attunement with native listeners against the selected catalog. */
+function previewWith(catalog) {
+  return executeDamageOccurrence(
+    {
+      ...elementalistProfession,
+      runtimeFor(config, options) {
+        return { ...elementalistProfession.runtimeFor(config, options), catalog };
+      }
+    },
+    config,
+    occurrence
+  );
+}
 
 /** Exercise native trigger admission and shared materialization without unrelated combat reactions. */
 function fixture(catalog = native.catalog) {
@@ -79,14 +98,7 @@ test('Electric Discharge respects authored critical eligibility in all entry pat
       assert.equal(events.find((event) => event.type === 'damage').canCrit, canCrit);
     }
 
-    const source = {
-      ...elementalistProfession,
-      runtimeFor(config, options) {
-        assert.equal(options.traitTriggers, false);
-        return { ...elementalistProfession.runtimeFor(config, options), catalog };
-      }
-    };
-    const preview = executeDamageOccurrence(source, config, occurrence);
+    const preview = previewWith(catalog);
     assert.equal(preview.events.find((event) => event.type === 'damage').canCrit, canCrit);
   }
 });
@@ -106,22 +118,26 @@ test('Electric Discharge shares supported patch edits and removed effects betwee
     });
     const combat = fixture(catalog);
     enter(combat.context);
-    const preview = fixture(catalog);
-    native.damageEffects.find((entry) => entry.id === occurrence.effect.id).emit(preview.context, {});
-    const payload = (events) =>
-      events.map(({ type, coefficient, canCrit, condition, stacks, duration }) => ({
-        type,
-        coefficient,
-        canCrit,
-        condition,
-        stacks,
-        duration
-      }));
-    assert.deepEqual(payload(combat.events), payload(preview.events));
+    const preview = previewWith(catalog);
+    const previewEvents = preview.events.filter(
+      (event) => event.traitId != null && (event.type === 'damage' || event.type === 'condition')
+    );
     const strike = combat.events.find((event) => event.type === 'damage');
     const condition = combat.events.find((event) => event.type === 'condition');
     assert.equal(!!strike, !removed.includes('strike'));
     assert.equal(!!condition, !removed.includes('condition'));
+    const previewStrike = previewEvents.find((event) => event.type === 'damage');
+    const previewConditions = previewEvents.filter((event) => event.type === 'condition');
+    assert.equal(previewStrike?.coefficient, strike?.coefficient);
+    assert.equal(previewStrike?.canCrit, strike?.canCrit);
+    assert.equal(
+      previewConditions.reduce((sum, event) => sum + event.stacks, 0),
+      condition?.stacks ?? 0
+    );
+    for (const event of previewConditions) {
+      assert.equal(event.condition, condition.condition);
+      assert.equal(event.duration, condition.duration);
+    }
 
     if (strike) assert.equal(strike.coefficient, 1.25);
 
@@ -137,8 +153,7 @@ test('Electric Discharge shares supported patch edits and removed effects betwee
       ...(strike || condition ? ['proc'] : [])
     ];
     assert.deepEqual(combat.order, expectedOrder);
-    assert.deepEqual(preview.order, expectedOrder);
-    for (const event of preview.events) assert.equal(event.sourceId, TRAIT.ELECTRIC_DISCHARGE);
+    for (const event of previewEvents) assert.equal(event.traitId, TRAIT.ELECTRIC_DISCHARGE);
   }
 });
 

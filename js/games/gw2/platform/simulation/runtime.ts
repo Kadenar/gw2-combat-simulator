@@ -223,7 +223,8 @@ export function runRuntime<T extends object>(
     professionState: profession.createState(config),
     helpers: { conditionName: canonicalTargetConditionName, ...profession.catalog },
     onFirstDamage: conditions.startDamageClock,
-    reactions
+    reactions,
+    random: execution.random
   });
   const precastRelics = normalizePrecastRelics(config.precastRelics)
     .map(createRelicRuntime)
@@ -338,7 +339,9 @@ export function runRuntime<T extends object>(
       // Listeners settle before the firing mechanic continues; isolated payload runtimes compile none.
       const listeners = profession.triggerListeners?.get(point.id);
 
-      if (listeners) for (const listener of listeners) listener(runtime.mechanics, input);
+      // An isolated execution can hold listeners while its setup and assumptions settle.
+      if (listeners && execution.admitsTriggers?.() !== false)
+        for (const listener of listeners) listener(runtime.mechanics, input);
     }
     // Services bind to this identity immediately below, before any initialization hook can observe it.
   }) as unknown as Gw2Runtime<T>;

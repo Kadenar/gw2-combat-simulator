@@ -14,7 +14,6 @@ import { elementalistBuffPolicies, elementalistEffectStates } from '#gw2/profess
 import { resetElementalistAttunementCooldowns } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
 import {
   acceptElementalistAuraReaction,
-  applyElementalistAura,
   resolveElementalistAura
 } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
@@ -50,16 +49,7 @@ import {
 } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { shareHeatSyncBoon } from '#gw2/professions/elementalist/core/skills/weapons/warhorn.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
-import { emitElectricDischarge } from '#gw2/professions/elementalist/core/traits/air/attunement-entry.js';
-import { emitEarthenBlast } from '#gw2/professions/elementalist/core/traits/earth/attunement-entry.js';
-import {
-  emitFlameExpulsion,
-  emitSunspot
-} from '#gw2/professions/elementalist/core/traits/fire/attunement-transition.js';
-import {
-  ELEMENTALIST_TRAIT_IDS as DAMAGE_TRAIT,
-  ELEMENTALIST_SKILL_IDS as ID
-} from '#gw2/professions/elementalist/data/ids.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type {
   ElementalistRuntimeState,
   ElementalistSimulationEvent,
@@ -74,52 +64,6 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
   elementalistSpearEmpowermentLifecycle,
   elementalistPistolLifecycle,
   {
-    damageEffects: [
-      {
-        id: 'elementalist.ElectricDischarge',
-        name: 'Electric Discharge',
-        source: 'Trait',
-        ownerId: DAMAGE_TRAIT.ELECTRIC_DISCHARGE,
-        unit: 'occurrence',
-        sourceIds: [DAMAGE_TRAIT.ELECTRIC_DISCHARGE],
-        emit(runtime) {
-          emitElectricDischarge(runtime, runtime.time, DAMAGE_TRAIT.ELECTRIC_DISCHARGE);
-        }
-      },
-      {
-        id: 'elementalist.EarthenBlast',
-        name: 'Earthen Blast',
-        source: 'Trait',
-        ownerId: DAMAGE_TRAIT.EARTHEN_BLAST,
-        unit: 'occurrence',
-        sourceIds: [DAMAGE_TRAIT.EARTHEN_BLAST],
-        emit(runtime) {
-          emitEarthenBlast(runtime, runtime.time, DAMAGE_TRAIT.EARTHEN_BLAST);
-        }
-      },
-      {
-        id: 'elementalist.Sunspot',
-        name: 'Sunspot',
-        source: 'Trait',
-        ownerId: DAMAGE_TRAIT.SUNSPOT,
-        unit: 'occurrence',
-        sourceIds: [DAMAGE_TRAIT.SUNSPOT],
-        emit(runtime) {
-          emitSunspot(runtime, runtime.time, DAMAGE_TRAIT.SUNSPOT, applyElementalistAura);
-        }
-      },
-      {
-        id: 'elementalist.FlameExpulsion',
-        name: 'Flame Expulsion',
-        source: 'Trait',
-        ownerId: DAMAGE_TRAIT.PYROMANCERS_PUISSANCE,
-        unit: 'occurrence',
-        sourceIds: [DAMAGE_TRAIT.PYROMANCERS_PUISSANCE],
-        emit(runtime) {
-          emitFlameExpulsion(runtime, runtime.time, DAMAGE_TRAIT.PYROMANCERS_PUISSANCE);
-        }
-      }
-    ],
     /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
     prepareDamageState(runtime, skill, inputs) {
       const state = runtime.profession.core;

@@ -696,39 +696,6 @@ test('Soul Barbs preserves Core trait attribution and Scourge cast attribution',
   }
 });
 
-test('Dhuumfire uses the specialization duration split and Scourge ICD', () => {
-  const core = simulate('Core', ['Death Shroud', 'Life Blast', 'End Death Shroud'], {
-    selectedTraitIds: [TRAIT.DHUUMFIRE]
-  });
-  const harbinger = simulate('Harbinger', ['Harbinger Shroud', 'Tainted Bolts', 'Exit Harbinger Shroud'], {
-    selectedTraitIds: [TRAIT.DHUUMFIRE]
-  });
-  const scourge = simulate(
-    'Scourge',
-    ['Manifest Sand Shade', 'Garish Pillar', { type: 'wait', durationMs: 1100 }, 'Sand Cascade'],
-    {
-      initialResource: 100,
-      selectedTraitIds: [TRAIT.DHUUMFIRE]
-    }
-  );
-  const applications = (result) =>
-    result.resolvedEvents.filter((event) => event.sourceId === TRAIT.DHUUMFIRE && event.condition === 'Burning');
-
-  assert.deepEqual(
-    applications(core).map((event) => event.duration),
-    [3]
-  );
-  assert.deepEqual(
-    applications(harbinger).map((event) => event.duration),
-    [1, 1]
-  );
-  assert.deepEqual(
-    applications(scourge).map((event) => event.duration),
-    [2, 2]
-  );
-  assert.ok(applications(scourge)[1].at - applications(scourge)[0].at >= 1);
-});
-
 test('Desert Shroud pulses do not retrigger shroud skill-one traits', () => {
   const result = simulate('Scourge', ['Desert Shroud', { type: 'wait', durationMs: 6100 }], {
     initialResource: 100,

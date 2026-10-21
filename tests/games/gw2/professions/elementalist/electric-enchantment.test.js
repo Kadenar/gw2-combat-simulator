@@ -117,7 +117,7 @@ test('combat and preview share patched payloads while only combat spends a charg
     });
     const combat = fixture(catalog);
     const skill = { id: ID.FIRE_STRIKE, name: 'Triggering skill' };
-    grantElectricEnchantments(combat.context, { at: 2, stacks: 1, duration: 5, skill, procType: 'skill' });
+    grantElectricEnchantments(combat.context, { at: 2, stacks: 1, duration: 5, skill });
     consumeElectricEnchantment(combat.context, {
       type: 'damage',
       at: 2,
@@ -131,8 +131,7 @@ test('combat and preview share patched payloads while only combat spends a charg
     for (const hasCharges of [false, true]) {
       const preview = fixture(catalog);
 
-      if (hasCharges)
-        grantElectricEnchantments(preview.context, { at: 2, stacks: 2, duration: 5, skill, procType: 'skill' });
+      if (hasCharges) grantElectricEnchantments(preview.context, { at: 2, stacks: 2, duration: 5, skill });
 
       const grants = structuredClone(preview.state.electricEnchantmentGrants);
       declared.emit(preview.context, {});
@@ -180,4 +179,29 @@ test('combat and preview share patched payloads while only combat spends a charg
       assert.equal(consumption[0].announcement.sourceSkill, skill.name);
     }
   }
+});
+
+// The payload profile lives under Galvanic Enchantment, but only charges that trait granted are trait-owned.
+test('consuming a charge is trait-owned only when Galvanic Enchantment granted it', () => {
+  const skill = { id: ID.FIRE_STRIKE, name: 'Triggering skill' };
+  const hit = {
+    type: 'damage',
+    at: 2,
+    actorType: 'player',
+    skillId: skill.id,
+    sourceId: skill.id,
+    skillName: skill.name
+  };
+  for (const traitId of [undefined, TRAIT.GALVANIC_ENCHANTMENT]) {
+    const { context, events } = fixture();
+    grantElectricEnchantments(context, { at: 2, stacks: 1, duration: 5, skill, traitId });
+    consumeElectricEnchantment(context, hit);
+    assert.ok(events.length > 0);
+    assert.ok(events.every((event) => event.traitId === traitId));
+  }
+
+  const preview = fixture();
+  native.damageEffects.find((entry) => entry.id === 'electric-enchantment').emit(preview.context, {});
+  assert.ok(preview.events.length > 0);
+  assert.ok(preview.events.every((event) => event.traitId === undefined));
 });

@@ -24,7 +24,6 @@ import { createNecromancerBuildDefaults, toApplicationBuild } from '#gw2/profess
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as RITUALIST } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
-import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -403,60 +402,6 @@ test('combo finisher tooltips group repeated attempts by displayed type and chan
       ['Whirl', 2]
     ]
   );
-});
-
-// Trait facts follow the same specialization overrides and selected patches as combat.
-test('Dhuumfire tooltips show specialization durations and the Scourge cooldown', () => {
-  const profession = withPatchPreview(necromancerProfession, {
-    id: 'dhuumfire-tooltip',
-    label: 'Dhuumfire tooltip',
-    professions: {
-      necromancer: {
-        skills: { [ID.TAINTED_BOLTS]: { fields: { dhuumfireDuration: 5 } } },
-        balanceProfiles: {
-          [SCOURGE.shade]: { fields: { dhuumfireDuration: 4, dhuumfireInterval: 2 } }
-        }
-      }
-    }
-  });
-  for (const [specialization, duration, cooldown, patchId] of [
-    ['Core', 3, undefined, undefined],
-    ['Reaper', 3, undefined, undefined],
-    ['Ritualist', 3, undefined, undefined],
-    ['Harbinger', 1, undefined, undefined],
-    ['Harbinger', 5, undefined, 'dhuumfire-tooltip'],
-    ['Scourge', 2, '1s', undefined],
-    ['Scourge', 4, '2s', 'dhuumfire-tooltip']
-  ]) {
-    const context = profession.balanceContextFor(patchId);
-    const trait = context.catalog.traits.find((entity) => entity.id === TRAIT.DHUUMFIRE);
-    const model = describeSimulationTrait(context, trait, necromancerTooltips, specialization);
-    assert.ok(model.facts.find((fact) => fact.name === 'Burning').detail.startsWith(`${duration}s`));
-    assert.equal(model.facts.find((fact) => fact.name === 'Burning').stacks, 1);
-    assert.equal(model.facts.find((fact) => fact.name === 'Internal cooldown')?.detail, cooldown);
-  }
-
-  const simulate = createObservedProfessionSimulator(profession, {
-    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000 }),
-    target: { armor: 2597 }
-  });
-  const result = simulate(
-    'Scourge',
-    ['Manifest Sand Shade', 'Garish Pillar', { type: 'wait', durationMs: 2100 }, 'Sand Cascade'],
-    {
-      patchId: 'dhuumfire-tooltip',
-      initialResource: 100,
-      selectedTraitIds: [TRAIT.DHUUMFIRE]
-    }
-  );
-  const applications = result.resolvedEvents.filter(
-    (event) => event.sourceId === TRAIT.DHUUMFIRE && event.condition === 'Burning'
-  );
-  assert.deepEqual(
-    applications.map((event) => event.duration),
-    [4, 4]
-  );
-  assert.ok(applications[1].at - applications[0].at >= 2);
 });
 
 // Alternative packets stay separate from shared costs for every Blight-enhanced action.

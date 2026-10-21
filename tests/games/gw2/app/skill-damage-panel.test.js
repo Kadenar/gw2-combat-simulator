@@ -94,6 +94,22 @@ test('skill damage breakdowns identify individual charges and pulses', async (t)
   }
 });
 
+// Source labels from the evaluator must remain readable text when rendered beside each condition.
+test('condition breakdown renders an escaped attribution column', async (t) => {
+  const app = await headlessApp('necromancer', await firstPresetBuildPath('necromancer'));
+  const fixture = panelFixture(t, app);
+  renderSkillDamage(app);
+  const { plan } = fixture;
+  const result = evaluateSkillDamage(plan.request, app.profession);
+  const row = result.occurrences.find((entry) => entry.measurement?.conditions.length);
+  assert.ok(row);
+  row.measurement.conditions[0].attribution = 'Trait <source> & skill';
+  receiveSkillDamage(app, plan.signature, result, '');
+  fixture.listeners.get('click')({ target: { closest: () => ({ dataset: { sdRow: row.id } }) } });
+  assert.match(fixture.table.innerHTML, /<span>Condition<\/span><span>Attribution<\/span><span>Stacks<\/span>/);
+  assert.match(fixture.table.innerHTML, /class="sd-condition-attribution">Trait &lt;source&gt; &amp; skill<\/span>/);
+});
+
 // Movement follows actual condition payloads from any row, including selected equipment and procedural traits.
 test('skill damage hides fixed equipment and shows target movement only for Torment sources', async (t) => {
   const app = await headlessApp('guardian', await firstPresetBuildPath('guardian'));

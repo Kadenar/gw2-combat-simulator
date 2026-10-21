@@ -51,8 +51,10 @@ export function queueDodgePackets(runtime: ThiefRuntime, cast: RuntimeCast<Thief
       skillName: name,
       activationId: cast.id
     }),
+    // The trait replaces the dodge, so every packet it supplies, including the landing strike, is trait-owned.
     transform: (event, effect) => ({
       ...event,
+      traitId: profile.id,
       icon: runtime.helpers.skillsByName.get(name)?.icon,
       name:
         effect.type === 'condition'

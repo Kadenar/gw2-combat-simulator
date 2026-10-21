@@ -535,10 +535,11 @@ function breakdownHtml(row: SkillDamageRowView, model: SkillDamageViewModel): st
   }
 
   if (m.conditions.length) {
+    // Name each application owner so identical conditions from skills and traits remain distinguishable.
     const rows = m.conditions
       .map((condition) => {
         const perSecond = conditionPerSecond(condition);
-        return `<div class="sd-condition-row" data-condition="${esc(condition.condition)}"><span class="sd-condition-name">${esc(conditionLabel(condition.condition))}</span><span class="sd-mono">${integer(condition.stacks)}</span><span class="sd-mono">${perSecond == null ? '&mdash;' : integer(perSecond)}</span><span class="sd-mono">${condition.baseDurationSeconds}s &rarr; ${condition.effectiveDurationSeconds.toFixed(1)}s <small>${signedPercent(condition.effectiveDurationSeconds / Math.max(condition.baseDurationSeconds, 1e-9) - 1)}</small></span><span class="sd-mono">${integer(condition.damage)}</span></div>`;
+        return `<div class="sd-condition-row" data-condition="${esc(condition.condition)}"><span class="sd-condition-name">${esc(conditionLabel(condition.condition))}</span><span class="sd-condition-attribution">${esc(condition.attribution)}</span><span class="sd-mono">${integer(condition.stacks)}</span><span class="sd-mono">${perSecond == null ? '&mdash;' : integer(perSecond)}</span><span class="sd-mono">${condition.baseDurationSeconds}s &rarr; ${condition.effectiveDurationSeconds.toFixed(1)}s <small>${signedPercent(condition.effectiveDurationSeconds / Math.max(condition.baseDurationSeconds, 1e-9) - 1)}</small></span><span class="sd-mono">${integer(condition.damage)}</span></div>`;
       })
       .join('');
     // Keep damage and duration separate, with the contributing sources next to the factor they explain.
@@ -566,7 +567,7 @@ function breakdownHtml(row: SkillDamageRowView, model: SkillDamageViewModel): st
       })
       .join('');
     sections.push(
-      `<section class="sd-component" aria-label="Condition breakdown"><div class="sd-component-heading"><strong>Conditions</strong><b class="sd-mono">${integer(m.conditionDamage)}</b></div><div class="sd-condition-head"><span>Condition</span><span>Stacks</span><span>Per second</span><span>Duration</span><span>Damage</span></div>${rows}<details class="sd-calculation-details"><summary>Condition modifiers</summary><div class="sd-condition-factor-list">${modifiers}</div></details></section>`
+      `<section class="sd-component" aria-label="Condition breakdown"><div class="sd-component-heading"><strong>Conditions</strong><b class="sd-mono">${integer(m.conditionDamage)}</b></div><div class="sd-condition-head"><span>Condition</span><span>Attribution</span><span>Stacks</span><span>Per second</span><span>Duration</span><span>Damage</span></div>${rows}<details class="sd-calculation-details"><summary>Condition modifiers</summary><div class="sd-condition-factor-list">${modifiers}</div></details></section>`
     );
   }
 

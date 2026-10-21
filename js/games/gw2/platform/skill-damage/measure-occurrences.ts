@@ -3,6 +3,7 @@ import type { Gw2DamageCalculation } from '#gw2/platform/events/events.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 import type { Gw2ResolvedConditionApplication } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { DamageCalculationError } from '#gw2/platform/skill-damage/errors.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import type {
@@ -33,7 +34,7 @@ const contentIds = new WeakMap<Gw2ProfessionSource, number>();
 
 let nextContentId = 0;
 
-/** Measure each declared occurrence independently; no trigger sampling or activation probability enters the result. */
+/** Measure isolated occurrences; included trait procs add to the skill execution that earned them. */
 export function evaluateSkillDamage(
   request: SkillDamageRequest,
   profession: Gw2ProfessionSource,
@@ -75,17 +76,7 @@ function evaluateOccurrence(
   const run = (entry: SkillDamageOccurrence) => {
     try {
       const result = executeDamageOccurrence(profession, request.config, entry, request.inputs);
-      const strikes = result.events.filter(
-        (event): event is StrikeHit =>
-          event.type === 'damage' &&
-          typeof event.damage === 'number' &&
-          (event.damageKind !== 'condition' || event.flatDamage != null)
-      );
-      const conditions = result.events.filter(
-        (event): event is ConditionApplication =>
-          typeof event.condition === 'string' && typeof event.effectiveDuration === 'number'
-      );
-      const measurement = measureEvents(strikes, conditions, result.castSeconds);
+      const measurement = measureResolvedEvents(result.events, result.castSeconds, result.catalog);
       return {
         measurement,
         status: measurement.total > 0 ? ('measured' as const) : ('zero' as const),
@@ -121,14 +112,34 @@ function evaluateOccurrence(
   };
 }
 
+/** Strikes and condition applications from one resolved execution, with conditions attributed to their owners. */
+function measureResolvedEvents(
+  events: readonly Gw2ResolverEvent[],
+  castSeconds: number,
+  catalog: CanonicalCatalog
+): SkillDamageMeasurement {
+  const strikes = events.filter(
+    (event): event is StrikeHit =>
+      event.type === 'damage' &&
+      typeof event.damage === 'number' &&
+      (event.damageKind !== 'condition' || event.flatDamage != null)
+  );
+  const conditions = events.filter(
+    (event): event is ConditionApplication =>
+      typeof event.condition === 'string' && typeof event.effectiveDuration === 'number'
+  );
+  return measureEvents(strikes, conditions, castSeconds, catalog);
+}
+
 function measureEvents(
   strikes: readonly StrikeHit[],
   applications: readonly ConditionApplication[],
-  castSeconds: number
+  castSeconds: number,
+  catalog: CanonicalCatalog
 ): SkillDamageMeasurement {
   const strikeHits = strikes.filter((hit) => hit.damageKind !== 'condition');
   const strike = strikeHits.reduce((total, hit) => total + hit.damage, 0);
-  const conditions = conditionRows(applications);
+  const conditions = conditionRows(applications, catalog);
   const conditionDamage =
     conditions.reduce((total, row) => total + row.damage, 0) +
     strikes.filter((hit) => hit.damageKind === 'condition').reduce((total, hit) => total + hit.damage, 0);
@@ -191,8 +202,23 @@ function strikeBreakdown(strikes: readonly StrikeHit[]): SkillDamageStrikeBreakd
   };
 }
 
-/** Combine only applications with matching duration and sampled damage facts, so each row explains its own stacks. */
-function conditionRows(applications: readonly ConditionApplication[]): SkillDamageConditionRow[] {
+/** Trait ownership takes precedence over the triggering skill's display attribution. */
+function conditionAttribution(application: ConditionApplication, catalog: CanonicalCatalog): string {
+  const traitId = application.traitId ?? (application.source === 'Trait' ? application.sourceId : undefined);
+  const trait = traitId == null ? undefined : catalog.traits.find((entry) => entry.id === traitId);
+  return (
+    trait?.name ??
+    catalog.skillsById.get(application.sourceId)?.name ??
+    application.skillName ??
+    String(application.sourceId)
+  );
+}
+
+/** Keep different owners separate even when their condition damage and duration match. */
+function conditionRows(
+  applications: readonly ConditionApplication[],
+  catalog: CanonicalCatalog
+): SkillDamageConditionRow[] {
   const rows = new Map<string, SkillDamageConditionRow>();
   for (const application of applications) {
     // Only conditions with a damage formula belong in a damage table; control conditions deal nothing.
@@ -201,6 +227,7 @@ function conditionRows(applications: readonly ConditionApplication[]): SkillDama
     const calculation = application.conditionCalculation;
     const facts = {
       condition: application.condition,
+      attribution: conditionAttribution(application, catalog),
       baseDurationSeconds: calculation?.baseDuration ?? application.duration ?? 0,
       effectiveDurationSeconds: application.effectiveDuration,
       durationMultiplier: calculation?.durationMultiplier ?? 1,
@@ -211,7 +238,7 @@ function conditionRows(applications: readonly ConditionApplication[]): SkillDama
       multiplier: calculation?.multiplier ?? null,
       damageContributors: calculation?.damageContributors ?? []
     };
-    const key = JSON.stringify(facts);
+    const key = JSON.stringify([application.source, application.sourceId, application.traitId, facts]);
     const previous = rows.get(key);
     rows.set(key, {
       ...facts,

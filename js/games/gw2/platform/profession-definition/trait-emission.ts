@@ -8,6 +8,11 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
+/** Both explicitly trait-sourced packets and skill-attributed trait emissions retain their damage ownership. */
+export function isTraitEffect(event: SimulationEventBase): boolean {
+  return event.traitId != null || event.source === 'Trait';
+}
+
 /** Attribution may depend on the accepted cast or event, while profiles keep ownership of effect payloads. */
 export type TraitAttribution = Partial<
   EffectEventBase &
@@ -110,7 +115,8 @@ export function emitTraitProfile(
         name: options.preserveName ? event.name : profile.name,
         ...identity
       };
-      return options.transform ? options.transform(attributed, effect) : attributed;
+      const transformed = options.transform ? options.transform(attributed, effect) : attributed;
+      return transformed && { ...transformed, traitId: trait };
     },
     attribution:
       typeof attribution === 'function'
@@ -192,7 +198,8 @@ export function invokeTraitSkill(
         parentSkillName: cause.skillName,
         icon: skill.icon
       };
-      return options.transform ? options.transform(attributed, effect) : attributed;
+      const transformed = options.transform ? options.transform(attributed, effect) : attributed;
+      return transformed && { ...transformed, traitId: trait };
     }
   });
 

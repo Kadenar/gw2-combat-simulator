@@ -1,4 +1,5 @@
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 /**
  * Mutable Evoker specialization state.
  *
@@ -23,8 +24,9 @@ export interface EvokerState {
   familiarCharges: ResourceClock;
   // empowered familiar stacks (0-3); reaching the maximum is what makes the flip form castable
   empoweredCharges: ResourceClock;
-  // Independent grant windows prevent a later familiar or meditation from refreshing older charges.
-  electricEnchantmentGrants: Array<ChargeGrant & { at: number }>;
+  // Independent grant windows prevent a later familiar or meditation from refreshing older charges; a trait grant keeps
+  // its owner so consuming its charge is trait-owned.
+  electricEnchantmentGrants: Array<ChargeGrant & { at: number; traitId?: SkillId }>;
   // Elemental Balance: entries into the selected element counted toward the threshold, and the armed recharge-window expiry
   elementalBalanceProgress: number;
   elementalBalanceUntil: number;

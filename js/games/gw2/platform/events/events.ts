@@ -266,6 +266,8 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly skillName?: string;
   readonly parentSkillName?: string;
   readonly skillId?: SkillId | null;
+  /** Trait ownership survives skill-specific display attribution and payload transforms. */
+  readonly traitId?: SkillId;
   readonly icon?: string;
   readonly kind?: string;
   readonly duration?: number;

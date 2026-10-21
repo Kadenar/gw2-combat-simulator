@@ -8,6 +8,7 @@ import type { Gw2SimulationOptions } from '#gw2/platform/simulation/options.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
+import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 
 /** Bound producers share one initialized capability; callbacks never depend on registration order. */
 export interface RuntimeProducers {
@@ -28,6 +29,10 @@ export interface RuntimeExecution<T extends object> {
   readonly action?: (runtime: Gw2Runtime<T>, event: Gw2ResolverEvent) => void;
   readonly condition?: (runtime: Gw2Runtime<T>, event: Gw2ResolverEvent) => void;
   readonly report?: (runtime: Gw2Runtime<T>, combatEndTime: number) => void;
+  /** Isolated executions may replace the configured roll policy; combat executions never set it. */
+  readonly random?: Readonly<SimulationRandom>;
+  /** Isolated executions may hold compiled trait listeners while setup and held assumptions settle. */
+  readonly admitsTriggers?: () => boolean;
 }
 
 export interface RuntimeOptions<T extends object> {

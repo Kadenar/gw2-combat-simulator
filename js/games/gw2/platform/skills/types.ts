@@ -1,4 +1,4 @@
-import { RECIPIENT, ACTOR } from '#gw2/platform/constants.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
@@ -186,8 +186,6 @@ export interface BalanceProfile extends CatalogEntity {
   readonly flipDuration?: number;
   /** Proc claims use a fixed internalCooldown unless a captured companion owns summon recharge work. */
   readonly cooldownPolicy?: 'internal' | 'summonRecharge';
-  /** Augmentations retain their skill/summon/shared owner instead of promising a separate trait proc row. */
-  readonly damagePreviewAttribution?: 'skill' | typeof ACTOR.SUMMON | 'shared';
   /** Keep the selected source identifiable when a runtime passes only a profile lookup callback. */
   readonly balanceDataContext?: CanonicalCatalog['balanceDataContext'];
   /** Identity-only tombstones scoped to this profile; callbacks retain removal provenance. */

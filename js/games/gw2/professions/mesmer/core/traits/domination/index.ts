@@ -147,7 +147,6 @@ export const bountifulBlades = defineTrait<MesmerSkill>({
   name: 'Bountiful Blades',
   balance: {
     // Extra berserker entities retain summon ownership and the preview's summon exclusion.
-    damagePreviewAttribution: ACTOR.SUMMON,
     summons: 2,
     damageMultiplier: 0.66,
     effects: [

@@ -4,7 +4,6 @@ import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
 import { grenadier } from '#gw2/professions/engineer/core/traits/explosives/index.js';
@@ -126,11 +125,15 @@ test('barrage skill patches and explosion modifiers reach both damage paths', ()
     const selected = { ...config, patchId };
     const combat = runEngineer(['Healing Turret', { type: 'wait', durationMs: 1500 }], selected, { profession });
     assert.deepEqual(combat.warnings, []);
-    const occurrence = damageOccurrences(profession.runtimeFor(selected), selected).find(
-      (entry) => entry.name === 'Lesser Grenade Barrage'
-    );
-    assert.ok(occurrence);
-    const preview = executeDamageOccurrence(profession, selected, occurrence);
+    const preview = executeDamageOccurrence(profession, selected, {
+      id: String(heal.id),
+      name: heal.name,
+      source: 'Skill',
+      icon: '',
+      unit: 'activation',
+      effect: { kind: 'skill', id: heal.id },
+      inputs: { includeTraitProcs: 1 }
+    });
     return [combat.resolvedEvents, preview.events].map((events) =>
       events.filter((event) => event.type === 'damage' && event.sourceId === barrageId)
     );

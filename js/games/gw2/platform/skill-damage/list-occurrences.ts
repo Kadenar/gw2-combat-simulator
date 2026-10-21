@@ -1,5 +1,3 @@
-import { hasDamage } from '#gw2/platform/skill-damage/run-occurrence.js';
-import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { RELIC_RULES } from '#gw2/platform/equipment/relics/rules/index.js';
 import { normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
@@ -9,48 +7,15 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { SkillDamageOccurrence } from '#gw2/platform/skill-damage/types.js';
 
-/** Enumerate selected damage owners from declarations; trigger eligibility never changes this list. */
+/** Enumerate standalone mechanic and equipment payloads; traits are collected from actual skill executions. */
 export function damageOccurrences(profession: RuntimeProfession<object>, config: Gw2Config): SkillDamageOccurrence[] {
-  // Match simulation membership so numeric-string selections retain their damage occurrences.
-  const selected = normalizeSelectedTraitIds(config.selectedTraitIds);
   const result: SkillDamageOccurrence[] = [];
-  for (const profile of profession.catalog.balanceProfiles) {
-    const ownerId =
-      typeof profile.parentId === 'number' || typeof profile.parentId === 'string' ? profile.parentId : profile.id;
-
-    if (
-      !hasTrait(selected, ownerId) ||
-      profile.damagePreviewAttribution ||
-      profession.damageEffects?.some((entry) => entry.ownerId === ownerId) ||
-      !hasDamage(profile.effects)
-    )
-      continue;
-
-    const trait = profession.catalog.traits.find((entry) => entry.id === ownerId);
-    result.push({
-      id: `profile:${profile.id}`,
-      name: profile.name,
-      icon: String(trait?.icon ?? profile.icon ?? ''),
-      source: 'Trait',
-      unit: 'occurrence',
-      effect: { kind: 'profile', id: profile.id, ownerId }
-    });
-  }
-
   for (const declared of profession.damageEffects ?? []) {
-    if (declared.ownerId != null && !hasTrait(selected, declared.ownerId)) continue;
-
     result.push({
       id: `profession:${declared.id}`,
       effect: { kind: 'profession', id: declared.id },
       name: declared.name,
-      icon:
-        declared.icon ??
-        String(
-          profession.catalog.traits.find((trait) => trait.id === declared.ownerId)?.icon ??
-            profession.catalog.skillsById.get(declared.sourceIds[0])?.icon ??
-            ''
-        ),
+      icon: declared.icon ?? profession.catalog.skillsById.get(declared.sourceIds[0])?.icon ?? '',
       source: declared.source,
       unit: declared.unit,
       inputs: declared.inputs,

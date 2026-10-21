@@ -62,6 +62,15 @@ const SLOT_TYPES = Object.freeze(['Heal', 'Utility', 'Elite'] as const);
 /** Shared preview inputs; the panel hides health and movement when no represented source needs them. */
 function sharedDamageControls(): PreviewControl[] {
   return [
+    // Trait activation is an isolated damage-preview choice, never a saved combat assumption.
+    {
+      key: 'includeTraitProcs',
+      label: 'Include trait procs',
+      group: 'Trait conditionals',
+      kind: 'special',
+      scope: ['damage'],
+      description: 'Adds trait procs that always trigger; chance and critical-hit procs are excluded'
+    },
     {
       key: boonKey(BOON.MIGHT),
       label: BOON.MIGHT,
@@ -438,7 +447,13 @@ export function createSkillDamagePlan(
       icon: String(skill.icon ?? ''),
       unit: 'activation',
       inputs: owned?.inputs,
-      assumptions: [...(owned?.assumptions ?? []), ...(base.weaponSet ? [`Weapon set ${base.weaponSet}`] : [])],
+      assumptions: [
+        ...(owned?.assumptions ?? []),
+        ...(base.weaponSet ? [`Weapon set ${base.weaponSet}`] : []),
+        ...(inputs.includeTraitProcs
+          ? ['Includes trait procs that always trigger; chance and critical-hit procs are excluded.']
+          : [])
+      ],
       cast: owned?.cast,
       config: {
         ...(base.weaponSet ? { startingWeaponSet: base.weaponSet } : {}),

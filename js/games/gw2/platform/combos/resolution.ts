@@ -15,6 +15,9 @@ import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.
  * turning one bound attempt into combos. resolver/combo-resolution.ts registers these as resolver event handlers.
  */
 
+/** Combo chance rolls use their own random streams, so isolated previews can recognize them without owning them. */
+export const COMBO_RANDOM_STREAM_PREFIX = 'gw2.combo:';
+
 interface SelectComboFieldOptions {
   readonly preferredFieldTypes?: readonly ComboFieldType[];
   readonly ambiguousFieldSelection?: 'none' | 'oldest';
@@ -195,7 +198,7 @@ export function resolveComboAttempt(
     event.finisherType
   ]);
 
-  if (!roll(event.chance, `gw2.combo:${stream}`)) return [];
+  if (!roll(event.chance, `${COMBO_RANDOM_STREAM_PREFIX}${stream}`)) return [];
 
   const definition = comboDefinition(field.fieldType, event.finisherType);
   return Object.freeze(

@@ -824,7 +824,7 @@ function emitShredding(
       ...delivery,
       kind: 'packet',
       // The extra note is trait-owned; afterimage copies retain their summon actor and stay excluded from preview.
-      event: { ...packet, name: 'Shredding', procType: 'trait' },
+      event: { ...packet, name: 'Shredding', procType: 'trait', traitId: TRAIT.SHREDDING },
       owner: mesmerPacketOwner(packet),
       priority: Number(packet.priority ?? 0)
     });

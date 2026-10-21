@@ -446,13 +446,62 @@ test('zero-damage calculations remain visible while calculation failures have a 
   assert.equal(model.unavailable[0].reason, 'Damage calculation not implemented.');
 });
 
-test('selected proc declarations enumerate damage independently of qualifying actions', async () => {
+test('standalone declarations retain equipment payloads without manufacturing trait occurrences', async () => {
   const app = await headlessApp('necromancer', HARBINGER);
   const { occurrences } = createSkillDamagePlan(app, [], {}).request;
-  assert.ok(occurrences.some((entry) => entry.source === 'Trait' && entry.name === 'Dhuumfire'));
+  assert.ok(occurrences.every((entry) => entry.source !== 'Trait'));
   assert.ok(occurrences.some((entry) => entry.source === 'Relic'));
   assert.ok(occurrences.some((entry) => entry.source === 'Sigil'));
   assert.ok(occurrences.every((entry) => !Object.hasOwn(entry, 'setup')));
+});
+
+// The opt-in follows native trait eligibility per isolated skill and adds each earned proc to that skill.
+test('trait proc preview toggles Dhuumfire and Sadistic Searing on their qualifying Scourge skills', async () => {
+  const app = await headlessApp('necromancer', HARBINGER);
+  app.build.specializations = [
+    { name: 'Soul Reaping', traits: '0-0-3' },
+    { name: 'Scourge', traits: '0-2-0' }
+  ];
+  refreshAttributes(app);
+  const saved = structuredClone(app.build);
+  const controls = skillDamageControls(app);
+  assert.equal(simulationConfigValues(app, controls).includeTraitProcs, 0);
+  assert.equal(clearedValues(controls).includeTraitProcs, 0);
+  assert.ok(!attributeEffectControls(app).some((control) => control.key === 'includeTraitProcs'));
+  const cache = new Map();
+  const measurements = [];
+  for (const includeTraitProcs of [0, 1, 0]) {
+    const plan = createSkillDamagePlan(app, controls, { ...clearedValues(controls), includeTraitProcs });
+    assert.equal(plan.request.config.includeTraitProcs, undefined);
+    const occurrences = plan.request.occurrences.filter((entry) =>
+      ['Nefarious Favor', 'Manifest Sand Shade', 'Weeping Shots'].includes(entry.name)
+    );
+    const results = evaluateSkillDamage({ ...plan.request, occurrences }, app.profession, cache).occurrences;
+    assert.ok(results.every((entry) => entry.status === 'measured'));
+    measurements.push(new Map(results.map((entry, index) => [occurrences[index].name, entry.measurement])));
+  }
+
+  const [off, on, reset] = measurements;
+  const burning = (measurement) => measurement.conditions.filter((entry) => entry.condition === 'Burning');
+  assert.deepEqual(
+    burning(on.get('Nefarious Favor'))
+      .map((entry) => entry.attribution)
+      .sort(),
+    ['Dhuumfire', 'Sadistic Searing']
+  );
+  assert.equal(
+    off.get('Nefarious Favor').conditions.find((entry) => entry.condition === 'Torment').attribution,
+    'Manifest Sand Shade'
+  );
+  assert.equal(burning(off.get('Nefarious Favor')).length, 0);
+  for (const name of ['Nefarious Favor', 'Manifest Sand Shade']) {
+    assert.ok(on.get(name).total > off.get(name).total);
+    assert.ok(off.get(name).conditions.some((entry) => entry.condition === 'Torment'));
+  }
+
+  assert.deepEqual(on.get('Weeping Shots'), off.get('Weeping Shots'));
+  assert.deepEqual(reset, off);
+  assert.deepEqual(app.build, saved);
 });
 
 // Every profession family lists weapon and slot skills through the generic path; declared mechanic groups measure.

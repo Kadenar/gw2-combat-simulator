@@ -62,17 +62,13 @@ import type {
 } from '#gw2/platform/profession-definition/module-types.js';
 import { defineTraitProfile } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, prepareTraitAttributes } from '#gw2/platform/profession-definition/traits.js';
 import {
   assertTraitTrigger,
   compileProfessionRules,
   compileTriggerPoints,
-  validateTriggerPoints,
-  type TraitTrigger
+  validateTriggerPoints
 } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
-import type { DamageEffectDefinition } from '#gw2/platform/skill-damage/types.js';
 import { nativeSkillModifierRules } from '#gw2/platform/skills/modifiers.js';
 
 /** Policies a family exposes for capacity previews; their maximum reads only configuration and catalog. */
@@ -335,37 +331,6 @@ function composeModuleModifiers(
   }
 
   return { ...result, modifierRules: declarations, damageBuckets };
-}
-
-/**
- * A declarative invocation is measurable as a trait-owned occurrence of the invoked skill, exactly like a trait-owned
- * profile, so it needs no hand-written damage adapter.
- */
-function invokedDamageEffects<T extends object, TSkill extends Skill>(
-  triggers: readonly TraitTrigger<T, TSkill>[],
-  catalog: CanonicalCatalog<TSkill>
-): DamageEffectDefinition[] {
-  const declared = new Map<string, DamageEffectDefinition>();
-  for (const rule of triggers) {
-    const skill = rule.invoke == null ? undefined : catalog.skillsById.get(rule.invoke);
-    const id = `trait-skill.${rule.trait}.${rule.invoke}`;
-
-    if (!skill || declared.has(id)) continue;
-
-    declared.set(id, {
-      id,
-      name: skill.name,
-      source: 'Trait',
-      ownerId: rule.trait,
-      unit: 'occurrence',
-      sourceIds: [skill.id],
-      emit(runtime) {
-        invokeTraitSkill(runtime, rule.trait, skill.id, damageInputEvent(runtime), { announce: rule.announce });
-      }
-    });
-  }
-
-  return [...declared.values()];
 }
 
 /** Creates fresh Core/elite state while rejecting invalid fragments and conflicting field ownership. */
@@ -677,11 +642,6 @@ export function defineNativeProfession<
     const composed = composeRuntimeHooks(hooks);
     const runtime: RuntimeProfession<State, TSkill> = {
       ...composed,
-      // Isolated payload runtimes keep invoked-skill previews but fire no trait listeners.
-      damageEffects: [
-        ...(composed.damageEffects ?? []),
-        ...invokedDamageEffects(composed.traitTriggers ?? [], source.catalog)
-      ],
       triggerListeners: traitTriggers ? compileTriggerPoints(composed.traitTriggers ?? []) : new Map(),
       id: definition.id,
       canSwapWeaponSetsInCombat: source.canSwapWeaponSetsInCombat,
