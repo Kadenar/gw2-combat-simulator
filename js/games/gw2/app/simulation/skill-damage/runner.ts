@@ -46,6 +46,11 @@ export class SkillDamageRunner {
     this.queue.schedule(plan);
   }
 
+  /** Abandons waiting edits without terminating an active measurement or its warm worker. */
+  discardQueued(): void {
+    this.queue.discardQueued();
+  }
+
   cancel(): void {
     this.queue.cancel();
   }

@@ -1,4 +1,5 @@
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
+import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { receiveSkillDamage, renderSkillDamage } from '#gw2/app/build/panels/skill-damage.js';
@@ -12,6 +13,23 @@ function panelFixture(t, app) {
   const movement = { hidden: true };
   const health = { hidden: true };
   const listeners = new Map();
+  // Minimal event targets exercise panel lifecycle and input handling without browser layout or native interactions.
+  class PanelDetails {
+    classList = { contains: () => true };
+    constructor(open) {
+      this.open = open;
+    }
+  }
+  class PanelInput {
+    type = 'number';
+    constructor(key, value) {
+      this.dataset = { skillDamageControl: key };
+      this.value = String(value);
+    }
+    matches() {
+      return true;
+    }
+  }
   const host = {
     ...inertContainer(),
     addEventListener: (name, listener) => listeners.set(name, listener),
@@ -25,7 +43,9 @@ function panelFixture(t, app) {
   };
   for (const [name, value] of Object.entries({
     document: { getElementById: (id) => (id === 'skill-damage-preview' ? host : null) },
-    localStorage: { getItem: () => 'true' }
+    localStorage: { getItem: () => 'true', setItem() {} },
+    HTMLDetailsElement: PanelDetails,
+    HTMLInputElement: PanelInput
   })) {
     const previous = Object.getOwnPropertyDescriptor(globalThis, name);
     Object.defineProperty(globalThis, name, { configurable: true, value });
@@ -37,22 +57,198 @@ function panelFixture(t, app) {
 
   let plan;
   app.skillDamageRunner = {
-    cancel() {},
-    schedule: (next) => {
+    cancel: t.mock.fn(),
+    discardQueued: t.mock.fn(),
+    schedule: t.mock.fn((next) => {
       plan = next;
-    }
+    })
   };
   return {
     table,
+    stats,
     host,
     listeners,
     movement,
     health,
+    click(dataset) {
+      listeners.get('click')({ target: { closest: () => ({ dataset }) } });
+    },
+    input(values) {
+      const inputs = Object.entries(values).map(([key, value]) => new PanelInput(key, value));
+      host.querySelectorAll = () => inputs;
+      listeners.get('input')({ target: inputs[0] });
+    },
+    toggle(open) {
+      listeners.get('toggle')({ target: new PanelDetails(open) });
+    },
     get plan() {
       return plan;
     }
   };
 }
+
+/** Count real preparation boundaries so presentation tests detect both plan rebuilding and preview execution. */
+function observePreparation(t, app) {
+  app.adapter = { ...app.adapter, createBuildContext: t.mock.fn(app.adapter.createBuildContext) };
+  app.profession = {
+    ...app.profession,
+    runtimeFor: t.mock.fn(app.profession.runtimeFor),
+    ui: {
+      ...app.profession.ui,
+      previewControls: t.mock.fn(app.profession.ui.previewControls),
+      skillDamageState: t.mock.fn(app.profession.ui.skillDamageState)
+    }
+  };
+  return () => ({
+    builds: app.adapter.createBuildContext.mock.callCount(),
+    controls: app.profession.ui.previewControls.mock.callCount(),
+    rows: app.profession.ui.skillDamageState.mock.callCount(),
+    runtimes: app.profession.runtimeFor.mock.callCount()
+  });
+}
+
+// Table interactions and worker delivery reuse the prepared plan and leave the stats region untouched.
+test('display updates do not prepare inputs, execute previews, or schedule measurements', async (t) => {
+  const app = await headlessApp('guardian', await firstPresetBuildPath('guardian'));
+  const fixture = panelFixture(t, app);
+  const counts = observePreparation(t, app);
+  renderSkillDamage(app);
+  const { plan } = fixture;
+  const result = evaluateSkillDamage(plan.request, app.profession);
+  const prepared = counts();
+  assert.ok(prepared.builds > 0 && prepared.rows > 0 && prepared.runtimes > 0);
+  // A sentinel detects even an unnecessary write of identical stats markup.
+  fixture.stats.innerHTML = 'unchanged stats';
+  for (const delivered of [false, true]) {
+    if (delivered) receiveSkillDamage(app, plan.signature, result, '');
+
+    fixture.click({ sdRow: plan.rows.keys().next().value });
+    fixture.click({ sdGroup: plan.groups[0].id });
+    fixture.click({ sdFilter: 'equipped' });
+    assert.deepEqual(counts(), prepared);
+    assert.equal(fixture.stats.innerHTML, 'unchanged stats');
+    assert.equal(app.skillDamageRunner.schedule.mock.callCount(), 1);
+  }
+
+  // Recreating equivalent attributes or changing the other preview must not invalidate this panel.
+  app.attributeData = structuredClone(app.attributeData);
+  app.attributeWeaponSet = 2;
+  app.rotationInsertionIndex = 5;
+  renderSkillDamage(app);
+  assert.deepEqual(counts(), prepared);
+  assert.equal(app.skillDamageRunner.schedule.mock.callCount(), 1);
+});
+
+// Input snapshots detect mutations in place as well as replaced content, while identical values reuse preparation.
+test('calculation input changes invalidate preparation and unchanged normalized values reuse it', async (t) => {
+  const app = await headlessApp('guardian', await firstPresetBuildPath('guardian'));
+  const fixture = panelFixture(t, app);
+  const counts = observePreparation(t, app);
+  renderSkillDamage(app);
+
+  const assertRefresh = (change) => {
+    const before = counts();
+    change();
+    const after = counts();
+    assert.ok(after.builds > before.builds);
+    assert.ok(after.rows > before.rows);
+    assert.ok(after.runtimes > before.runtimes);
+    renderSkillDamage(app);
+    assert.deepEqual(counts(), after);
+  };
+
+  const updateBuild = (change) =>
+    assertRefresh(() => {
+      change();
+      renderSkillDamage(app);
+    });
+  updateBuild(() => {
+    app.build.relic = app.build.relic === 'Eagle' ? 'Claw' : 'Eagle';
+  });
+  updateBuild(() => {
+    app.simulationSettings = { transitionDelays: { weaponSwapMs: 100 } };
+  });
+  updateBuild(() => {
+    app.simulationSettings.transitionDelays.weaponSwapMs = 200;
+  });
+  updateBuild(() => {
+    app.patchId = activePatchPreview.id;
+  });
+  updateBuild(() => {
+    app.activeCatalog = { ...app.activeCatalog };
+  });
+
+  // Stats follow the prepared values rather than repeating the previous markup.
+  const values = { ...fixture.plan.request.inputs, might: 0 };
+  const stats = fixture.stats.innerHTML;
+  assertRefresh(() => fixture.input(values));
+  assert.notEqual(fixture.stats.innerHTML, stats);
+  const prepared = counts();
+  fixture.input({ ...values, might: -1 });
+  assert.deepEqual(counts(), prepared);
+});
+
+// Closing cancels measurement, but reopening can resume the same prepared request without rerunning previews.
+test('reopening resumes unfinished work and preserves completed evaluations', async (t) => {
+  const app = await headlessApp('guardian', await firstPresetBuildPath('guardian'));
+  const fixture = panelFixture(t, app);
+  const counts = observePreparation(t, app);
+  renderSkillDamage(app);
+  const { plan } = fixture;
+  const prepared = counts();
+  fixture.toggle(false);
+  assert.equal(app.skillDamageRunner.cancel.mock.callCount(), 1);
+  fixture.toggle(true);
+  assert.equal(fixture.plan, plan);
+  assert.deepEqual(counts(), prepared);
+  assert.equal(app.skillDamageRunner.schedule.mock.callCount(), 2);
+  receiveSkillDamage(app, plan.signature, evaluateSkillDamage(plan.request, app.profession), '');
+  const completed = counts();
+  fixture.toggle(false);
+  fixture.toggle(true);
+  assert.deepEqual(counts(), completed);
+  assert.equal(app.skillDamageRunner.schedule.mock.callCount(), 2);
+  assert.doesNotMatch(fixture.table.innerHTML, /is-stale|sd-loading/);
+});
+
+// Returning to measured inputs drops queued edits but leaves active work on its warm worker.
+test('returning to displayed inputs discards queued work without canceling the runner', async (t) => {
+  const app = await headlessApp('guardian', await firstPresetBuildPath('guardian'));
+  const fixture = panelFixture(t, app);
+  renderSkillDamage(app);
+  const { plan } = fixture;
+  receiveSkillDamage(app, plan.signature, evaluateSkillDamage(plan.request, app.profession), '');
+  fixture.input({ ...plan.request.inputs, might: Number(plan.request.inputs.might) === 0 ? 25 : 0 });
+  assert.equal(app.skillDamageRunner.schedule.mock.callCount(), 2);
+  fixture.input(plan.request.inputs);
+  assert.equal(app.skillDamageRunner.discardQueued.mock.callCount(), 1);
+  assert.equal(app.skillDamageRunner.cancel.mock.callCount(), 0);
+  assert.equal(app.skillDamageRunner.schedule.mock.callCount(), 2);
+  assert.doesNotMatch(fixture.table.innerHTML, /is-stale|sd-loading/);
+});
+
+// Failed worker requests stay suppressed until inputs change, and obsolete replies cannot overwrite current state.
+test('failed measurements stay visible without preparation or retries until inputs change', async (t) => {
+  const app = await headlessApp('guardian', await firstPresetBuildPath('guardian'));
+  const fixture = panelFixture(t, app);
+  const counts = observePreparation(t, app);
+  renderSkillDamage(app);
+  const { plan } = fixture;
+  const prepared = counts();
+  receiveSkillDamage(app, plan.signature, null, 'Measurement failed');
+  fixture.click({ sdFilter: 'equipped' });
+  fixture.toggle(false);
+  fixture.toggle(true);
+  assert.deepEqual(counts(), prepared);
+  assert.equal(app.skillDamageRunner.schedule.mock.callCount(), 1);
+  assert.match(fixture.table.innerHTML, /Measurement failed/);
+
+  fixture.input({ ...plan.request.inputs, might: Number(plan.request.inputs.might) === 0 ? 25 : 0 });
+  assert.equal(app.skillDamageRunner.schedule.mock.callCount(), 2);
+  assert.doesNotMatch(fixture.table.innerHTML, /Measurement failed/);
+  receiveSkillDamage(app, plan.signature, null, 'Obsolete failure');
+  assert.doesNotMatch(fixture.table.innerHTML, /Obsolete failure/);
+});
 
 // Health availability is known before worker delivery and updates immediately when equipment changes.
 test('target health appears only for relevant damage sources and stays independent of row filters', async (t) => {

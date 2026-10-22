@@ -83,3 +83,22 @@ test('worker errors publish once and a later request can recover', (t) => {
   assert.equal(published[1][0], 'retry');
   assert.equal(published[1][2], '');
 });
+
+// Revisiting the in-flight request after discarding a queued edit must reuse it rather than wait forever.
+test('discarding a queued edit lets the in-flight request satisfy a repeated schedule', (t) => {
+  const { workers, published, runner, plan } = setup(t);
+  runner.schedule(plan('measuring'));
+  t.mock.timers.tick(150);
+  runner.schedule(plan('abandoned'));
+  runner.discardQueued();
+  runner.schedule(plan('measuring'));
+  t.mock.timers.tick(150);
+  const worker = workers[0];
+  assert.equal(worker.messages.length, 1);
+  worker.reply({ requestId: worker.messages[0].requestId, evaluation: { occurrences: [] } });
+  assert.deepEqual(
+    published.map(([signature]) => signature),
+    ['measuring']
+  );
+  assert.equal(runner.isRunning, false);
+});

@@ -1,8 +1,8 @@
 import { CONDITION, BOON } from '#gw2/platform/constants.js';
 import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { GameContentAddress } from '#browser/game/contracts.js';
 import { attributePreviewContext, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
+import { buildContextInput } from '#gw2/app/build/isolated-preview.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
 import { availableSlotSkills } from '#gw2/app/build/state/skill-selection.js';
 import {
@@ -174,22 +174,11 @@ export function simulationConfigValues(
     else if (control.key === 'targetMoving') values[control.key] = assumptions.targetMoving;
     else if (control.key === 'thornsStacks')
       values[control.key] =
-        app.adapter
-          .createBuildContext({
-            build: app.build,
-            patchId: app.patchId,
-            transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
-          })
-          .simulationConfig().initialThornsStacks ?? 0;
+        app.adapter.createBuildContext(buildContextInput(app)).simulationConfig().initialThornsStacks ?? 0;
     else if (control.key === 'targetHealth')
       values[control.key] =
-        (app.adapter
-          .createBuildContext({
-            build: app.build,
-            patchId: app.patchId,
-            transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
-          })
-          .simulationConfig().target?.startingHealthFraction ?? 1) * 100;
+        (app.adapter.createBuildContext(buildContextInput(app)).simulationConfig().target?.startingHealthFraction ??
+          1) * 100;
   }
 
   return normalizeAttributePreview(

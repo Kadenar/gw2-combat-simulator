@@ -72,6 +72,19 @@ export class LatestWorkerQueue<TJob extends { readonly request: unknown }, TMess
     this.active = null;
   }
 
+  /**
+   * Drops debounced or waiting work while active work keeps its warm worker. The active job becomes the latest request
+   * again, so its result still publishes and an owner deduplicating against it is not left waiting forever.
+   */
+  discardQueued(): void {
+    if (this.timer !== null) clearTimeout(this.timer);
+
+    this.timer = null;
+    this.queued = null;
+
+    if (this.active) this.requestId = this.active.requestId;
+  }
+
   private startPending(): void {
     if (this.active || !this.queued) return;
 

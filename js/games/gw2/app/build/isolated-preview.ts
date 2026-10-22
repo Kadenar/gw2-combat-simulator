@@ -1,6 +1,6 @@
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { AttributePreviewState } from '#gw2/app/build/types.js';
-import type { BuildAttributes } from '#gw2/build-context/types.js';
+import type { BuildAttributes, BuildContextInput } from '#gw2/build-context/types.js';
 import type {
   AttributePreviewValues,
   PreviewControl,
@@ -12,6 +12,18 @@ export interface IsolatedPreview {
   readonly preview: { readonly attributeData: BuildAttributes };
   readonly context: ProfessionAttributePreviewInput;
   readonly config: Gw2Config;
+}
+
+/** Build-context inputs for the saved build or a detached copy; preview caches key on this same object. */
+export function buildContextInput(
+  app: Pick<AttributePreviewState, 'build' | 'patchId' | 'simulationSettings'>,
+  build: AttributePreviewState['build'] = app.build
+): BuildContextInput {
+  return {
+    build,
+    patchId: app.patchId,
+    transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+  };
 }
 
 /** Calculates a detached preview build; conditional query controls never alter saved assumptions. */
@@ -38,11 +50,7 @@ export function createIsolatedPreview(
   }
 
   // Preview health and conditional state remain explicit query values, outside the build context.
-  const calculation = app.adapter.createBuildContext({
-    build,
-    patchId: app.patchId,
-    transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
-  });
+  const calculation = app.adapter.createBuildContext(buildContextInput(app, build));
   const attributeData = calculation.attributes(weaponSet === 2 ? 2 : 1);
   const context = {
     build,

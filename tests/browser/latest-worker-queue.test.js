@@ -73,6 +73,21 @@ test('queued work starts after the active job when its debounce has already elap
   assert.deepEqual(published, ['new']);
 });
 
+test('discarding queued work keeps the active job publishable on its warm worker', (t) => {
+  const published = [];
+  const { queue, workers } = fixture(t, (job) => published.push(job.request));
+  queue.schedule({ request: 'active' });
+  t.mock.timers.tick(40);
+  queue.schedule({ request: 'queued' });
+  queue.discardQueued();
+  t.mock.timers.tick(40);
+  workers[0].reply();
+  assert.equal(workers[0].messages.length, 1);
+  assert.equal(workers[0].terminated, undefined);
+  assert.equal(queue.pending, null);
+  assert.deepEqual(published, ['active']);
+});
+
 test('empty worker errors report a useful message and allow a fresh worker on retry', (t) => {
   const { queue, workers, errors } = fixture(t);
   queue.schedule({ request: 'first' });
