@@ -1,3 +1,4 @@
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { WEAPON, ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
@@ -14,6 +15,46 @@ function atCloneLimit(runtime: MechanicQueryContext<MesmerRuntimeState>): boolea
 }
 
 export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
+  // Flip actions share their parent's catalog so ordinary mechanics assembly owns both faces.
+  [ID.COUNTERSPELL]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.COUNTERSPELL } }],
+    castTimeMs: 600,
+    // The projectile and clone commit on the 360 ms Quickness frame, but weapon-swap cancellation retains the full cast lane.
+    interruptCommitMs: 360,
+    retainsCastLockoutAfterInterrupt: true,
+    cooldown: 0,
+    resource: {
+      mode: 'add',
+      count: 1,
+      timingAnchor: 'castStart',
+      atMs: 360
+    },
+    // Blind and Confusion land with the projectile, including after committed animation cancellation.
+    effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'condition',
+        condition: CONDITION.BLINDNESS,
+        stacks: 1,
+        duration: 5,
+        source: 'Player',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'strike',
+        coefficient: 0.1,
+        hits: 1,
+        name: 'Projectile',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SCEPTER.toLowerCase()
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.CONFUSION,
+        stacks: 5,
+        duration: 7
+      }
+    ])
+  },
   [ID.CONFUSING_IMAGES]: {
     interruptMode: 'per-packet',
     effects: [

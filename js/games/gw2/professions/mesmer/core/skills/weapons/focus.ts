@@ -4,6 +4,24 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
+  // Flip actions share their parent's catalog so ordinary mechanics assembly owns both faces.
+  [ID.INTO_THE_VOID]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.INTO_THE_VOID } }],
+    castTimeMs: 0,
+    rechargeAnchor: 'castStart',
+    cooldown: 0,
+    // Activating the flip applies its pull immediately.
+    effects: [
+      {
+        type: 'control',
+        source: 'Player',
+        actorType: ACTOR.PLAYER,
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ]
+  },
   [ID.TEMPORAL_CURTAIN]: {
     // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
     flipArm: { skillId: ID.INTO_THE_VOID, duration: 5, delay: 1, anchor: 'castStart' },

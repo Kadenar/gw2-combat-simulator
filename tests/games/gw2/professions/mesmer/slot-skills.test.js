@@ -226,6 +226,9 @@ test('Mantra of Recovery and Mantra of Pain prepare only their own flips', () =>
     assert.equal(result.planningState.ammoBySkillId[flip].charges, 2);
     assert.equal(result.planningState.ammoBySkillId[other].charges, 1);
     assert.equal(result.planningState.profession.availableFlips[flip].expiresAt, null);
+    // Only prepared flips own charges; preparation must never leave a second pool on either parent.
+    assert.equal(result.planningState.ammoBySkillId[ID.MANTRA_OF_RECOVERY], undefined);
+    assert.equal(result.planningState.ammoBySkillId[ID.MANTRA_OF_PAIN], undefined);
   }
 });
 

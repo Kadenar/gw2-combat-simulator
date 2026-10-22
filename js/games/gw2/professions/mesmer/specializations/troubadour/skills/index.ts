@@ -326,9 +326,6 @@ export const MESMER_TROUBADOUR_INSTRUMENTS: Readonly<Record<number, MesmerInstru
   )
 );
 
-export const MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<MesmerSkill>>> =
-  Object.freeze({});
-
 export const MESMER_TROUBADOUR_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze([
   createDodgeSkill({
     description: 'Spend 50 endurance to evade. Mayhem reduces Flustering Flute recharge.',

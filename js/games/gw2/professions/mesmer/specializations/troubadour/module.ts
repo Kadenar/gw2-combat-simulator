@@ -7,8 +7,7 @@ import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour
 import { TROUBADOUR_BALANCE_PROFILES } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import {
   MESMER_TROUBADOUR_EXTRA_SKILLS,
-  MESMER_TROUBADOUR_SKILL_MECHANICS,
-  MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS
+  MESMER_TROUBADOUR_SKILL_MECHANICS
 } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 import {
   projectTroubadourPlanningState,
@@ -21,7 +20,6 @@ export const troubadourModule = defineNativeModule({
   traitDefinitions: troubadourTraits,
   data: createMesmerModuleData('Troubadour', {
     skillMechanics: MESMER_TROUBADOUR_SKILL_MECHANICS,
-    supplementalSkillMechanics: MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS,
     extraSkills: MESMER_TROUBADOUR_EXTRA_SKILLS,
     balanceProfiles: TROUBADOUR_BALANCE_PROFILES
   }),

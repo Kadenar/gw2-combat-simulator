@@ -6,7 +6,6 @@ import {
   defineProfessionWeapons,
   normalizeGeneratedSkill
 } from '#gw2/professions/shared/catalog-data.js';
-import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
 import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -95,73 +94,11 @@ export const MESMER_NATIVE_CATALOG_OPTIONS: NativeCatalogOptions = Object.freeze
   })
 });
 
-interface MesmerModuleDataOptions extends ProfessionModuleDataOptions<MesmerSkill> {
-  readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
-  readonly supplementalSkillMechanics?: Readonly<Record<string, Partial<MesmerSkill>>>;
-}
-
-function prepareMechanics(
-  mechanics: Readonly<Record<string, Partial<MesmerSkill>>>
-): Readonly<Record<string, Partial<MesmerSkill>>> {
-  return Object.freeze(
-    Object.fromEntries(
-      Object.entries(mechanics).map(([id, skill]) => [
-        id,
-        {
-          ...skill,
-          id: Number(id)
-        }
-      ])
-    )
-  );
-}
-
 // Preserve Mesmer fields through module assembly and runtime catalog lookups.
-const createModuleData = createProfessionModuleDataFactory<MesmerSkill>({
+export const createMesmerModuleData = createProfessionModuleDataFactory<MesmerSkill>({
   generatedSkills: generated,
   traits: TRAITS,
   specializations: SPECIALIZATIONS,
   specializationOnlySkills: SPECIALIZATION_ONLY_SKILLS,
   core: WEAPON_DATA
 });
-
-// Normalize generated and supplemental Mesmer mechanics for one module, moving
-// ammo ownership from flip parents to ammo-bearing child skills where required.
-export function createMesmerModuleData(
-  id: string,
-  { skillMechanics, supplementalSkillMechanics = {}, extraSkills = [], ...options }: MesmerModuleDataOptions
-) {
-  const flipParentsWithAmmoChild = new Set<number>(
-    Object.entries(supplementalSkillMechanics)
-      .filter(([, skill]) => (skill.ammo || 0) > 0)
-      .flatMap(([id]) => {
-        const parentId = flipParentById.get(Number(id));
-
-        return parentId == null ? [] : [Number(parentId)];
-      })
-  );
-
-  const skillOverrides: Readonly<Record<SkillId, Partial<MesmerSkill>>> = Object.freeze(
-    Object.fromEntries(
-      generated
-        .filter((skill) => flipParentsWithAmmoChild.has(skill.id))
-        .map((skill) => [
-          skill.id,
-          {
-            ammo: 0,
-            ammoRecharge: 0
-          }
-        ])
-    )
-  );
-
-  return createModuleData(id, {
-    ...options,
-    skillMechanics: prepareMechanics({
-      ...skillMechanics,
-      ...supplementalSkillMechanics
-    }),
-    skillOverrides,
-    extraSkills
-  });
-}

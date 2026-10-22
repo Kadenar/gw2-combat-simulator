@@ -16,7 +16,6 @@ import {
 import { MESMER_CORE_EXTRA_SKILLS } from '#gw2/professions/mesmer/core/skills/actions.js';
 import { MESMER_CORE_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
-import { MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/supplemental-skills.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -25,8 +24,7 @@ import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/me
 import {
   MESMER_CHRONOMANCER_EXTRA_SKILLS,
   MESMER_CHRONOMANCER_SHATTERS,
-  MESMER_CHRONOMANCER_SKILL_MECHANICS,
-  MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS
+  MESMER_CHRONOMANCER_SKILL_MECHANICS
 } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
 import {
   MESMER_MIRAGE_AMBUSH_SKILLS as AMBUSH_ATTACKS,
@@ -35,8 +33,7 @@ import {
 } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import {
   MESMER_TROUBADOUR_EXTRA_SKILLS,
-  MESMER_TROUBADOUR_SKILL_MECHANICS,
-  MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS
+  MESMER_TROUBADOUR_SKILL_MECHANICS
 } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 import { MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
 import {
@@ -76,12 +73,6 @@ const MESMER_SKILL_MECHANICS = composeSkillMechanics('Mesmer', [
   MESMER_MIRAGE_SKILL_MECHANICS,
   MESMER_VIRTUOSO_SKILL_MECHANICS,
   MESMER_TROUBADOUR_SKILL_MECHANICS
-]);
-
-const MESMER_SUPPLEMENTAL_SKILL_MECHANICS = composeSkillMechanics('Mesmer supplemental', [
-  MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS,
-  MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS,
-  MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS
 ]);
 
 const PSEUDO_SKILLS = Object.freeze([
@@ -180,9 +171,11 @@ test('Mesmer mechanics are the sole simulation source and use stable skill ids',
       .sort((left, right) => left - right),
     [ID.FLYING_CUTTER, ID.UNSTABLE_BLADESTORM].sort((left, right) => left - right)
   );
+  // Only API-backed identities inherit ordinary recharge; supplemental identities author it in mechanics.
+  const apiSkillIds = new Set(SKILLS.map((skill) => skill.id));
   assert.deepEqual(
     Object.entries(MESMER_SKILL_MECHANICS)
-      .filter(([, mechanics]) => Object.hasOwn(mechanics, 'cooldown'))
+      .filter(([id, mechanics]) => apiSkillIds.has(Number(id)) && Object.hasOwn(mechanics, 'cooldown'))
       .map(([id]) => Number(id))
       .sort((left, right) => left - right),
     [ID.LINGERING_THOUGHTS, ID.JAUNT, ID.LINGERING_THOUGHTS_NON_MIRAGE, ID.TALE_OF_THE_HONORABLE_ROGUE].sort(
@@ -382,7 +375,7 @@ test('Mesmer supplemental identities and dynamic handler profiles are explicit',
   const identityFields = ['name', 'description', 'icon', 'type', 'slot', 'weapon', 'specialization', 'flipParent'];
 
   assert.ok(
-    Object.values(MESMER_SUPPLEMENTAL_SKILL_MECHANICS).every((mechanics) =>
+    MESMER_SUPPLEMENTAL_SKILLS.map((skill) => MESMER_SKILL_MECHANICS[skill.id]).every((mechanics) =>
       identityFields.every((field) => !Object.hasOwn(mechanics, field))
     )
   );

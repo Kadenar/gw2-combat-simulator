@@ -6,6 +6,42 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 
 // Reviewed activation durations keep completion effects and resource changes on their intended action ticks.
 export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
+  // Flip actions share their parent's catalog so ordinary mechanics assembly owns both faces.
+  [ID.POWER_RETURN]: {
+    // Start prepared and return to the parent when exhausted; Heal identity still triggers traits at fixed full health.
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.exhaust-mantra' } }],
+    castTimeMs: 0,
+    rechargeAnchor: 'castStart',
+    cooldown: 20,
+    ammoCastLockout: 1,
+    ammo: 2,
+    armedAtStart: true,
+    effects: []
+  },
+  [ID.POWER_SPIKE]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.exhaust-mantra' } }],
+    castTimeMs: 0,
+    rechargeAnchor: 'castStart',
+    cooldown: 10,
+    ammo: 2,
+    armedAtStart: true,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.33,
+        hits: 1,
+        name: 'Damage',
+        actorType: ACTOR.PLAYER
+      },
+      // Apply the live debuff with the instant strike so reconstructed Mantra casts update target state.
+      {
+        type: 'condition',
+        condition: CONDITION.VULNERABILITY,
+        duration: 8,
+        stacks: 5
+      }
+    ]
+  },
   [ID.ETHER_FEAST]: {
     castTimeMs: 666.666666667,
     effects: []
@@ -24,12 +60,18 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     effects: []
   },
   [ID.MANTRA_OF_PAIN]: {
+    // Charges belong to the prepared flip; preparation must not create its own ammo pool.
+    ammo: 0,
+    ammoRecharge: 0,
     // Preparation replaces spent charges and any previous recharge state.
     sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.prepare-mantra' } }],
     castTimeMs: 1600,
     effects: []
   },
   [ID.MANTRA_OF_RECOVERY]: {
+    // Charges belong to the prepared flip; preparation must not create its own ammo pool.
+    ammo: 0,
+    ammoRecharge: 0,
     // Completing preparation restores the healing mantra's own two-charge flip.
     sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.prepare-mantra' } }],
     castTimeMs: 1600,

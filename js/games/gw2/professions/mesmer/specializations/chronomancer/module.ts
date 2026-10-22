@@ -5,8 +5,7 @@ import { chronomancerUi } from '#gw2/professions/mesmer/specializations/chronoma
 import { CHRONOMANCER_BALANCE_PROFILES } from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
 import {
   MESMER_CHRONOMANCER_EXTRA_SKILLS,
-  MESMER_CHRONOMANCER_SKILL_MECHANICS,
-  MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS
+  MESMER_CHRONOMANCER_SKILL_MECHANICS
 } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
 import {
   chronomancerState,
@@ -18,7 +17,6 @@ export const chronomancerModule = defineNativeModule({
   id: 'Chronomancer',
   data: createMesmerModuleData('Chronomancer', {
     skillMechanics: MESMER_CHRONOMANCER_SKILL_MECHANICS,
-    supplementalSkillMechanics: MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS,
     extraSkills: MESMER_CHRONOMANCER_EXTRA_SKILLS,
     balanceProfiles: CHRONOMANCER_BALANCE_PROFILES
   }),

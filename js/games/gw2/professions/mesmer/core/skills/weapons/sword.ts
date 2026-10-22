@@ -5,6 +5,48 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
+  // Flip actions share their parent's catalog so ordinary mechanics assembly owns both faces.
+  [ID.SWAP]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.SWAP } }],
+    castTimeMs: 0,
+    rechargeAnchor: 'castStart',
+    cooldown: 0,
+    comboFinishers: [
+      {
+        ownerId: 'mesmer',
+        finisherType: COMBO_FINISHER.LEAP,
+        fieldSelectionAnchor: 'castStart',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
+    // Swapping applies immobilize when the instant follow-up completes (wiki: Swap).
+    effects: [{ type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }]
+  },
+  [ID.COUNTER_BLADE]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.COUNTER_BLADE } }],
+    castTimeMs: 680,
+    cooldown: 0,
+    effects: [
+      // Preserve the flip's existing control timing at cast completion.
+      {
+        type: 'control',
+        source: 'Player',
+        actorType: ACTOR.PLAYER,
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'strike',
+        ticks: [{ atMs: 480, coefficient: 0.1 }],
+        name: 'Damage',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SWORD.toLowerCase(),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
+  },
   [ID.MIND_SLASH]: {
     nextChainId: ID.MIND_GASH,
     interruptCommitMs: 240,

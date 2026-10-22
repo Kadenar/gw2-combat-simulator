@@ -288,9 +288,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
   }
 });
 
-export const MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<MesmerSkill>>> =
-  Object.freeze({});
-
 export const MESMER_CHRONOMANCER_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze([
   {
     id: ID.CONTINUUM_SHIFT,
