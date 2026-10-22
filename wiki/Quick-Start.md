@@ -4,10 +4,11 @@
 
 1. [Open the simulator](https://kadenar.github.io/gw2-combat-simulator/).
 2. Choose a profession.
-3. In **Build templates**, filter by role, boon, or specialization if needed.
-4. Select a template to load its build and matching rotation.
-5. Review the automatically calculated DPS beside the rotation.
-6. Switch from **Workspace** to **Analysis** for the full breakdown.
+3. In **Workspace**, choose **+ New → Browse templates…** to open the **Build library**.
+4. On **Standard Templates**, filter by role, boon, or specialization if needed.
+5. Select a template to load its build and matching rotation into a new build tab.
+6. Review the automatically calculated DPS beside the rotation.
+7. Switch from **Workspace** to **Analysis** for the full breakdown.
 
 The **•••** menu on a template can load only its build or only its rotation. Loading both is the safest default because
 a rotation may depend on specific weapons, skills, traits, or profession mechanics.

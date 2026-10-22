@@ -23,15 +23,18 @@ load only one part.
 Templates may display a reference DPS. Treat it as a regression target for that saved build and rotation, not a promised
 in-game benchmark.
 
-If you customize a loaded template, the selected tile is marked as modified. The temporary **Undo** action restores the
-build that existed before the template was loaded.
+If you customize a loaded template, the selected tile is marked as modified. When a template or one of its parts
+replaces the current tab's setup, **Undo** restores the previous build, rotation, and reset baseline. Loading a template
+into a new tab, including through **+ New → Browse templates…**, does not offer this Undo action.
 
 ## Import, export, and reset
 
 - **Export** offers **Build only** or **Build + rotation** JSON downloads.
 - **Import** validates and loads a build JSON file for the active profession.
-- **Reset** restores the active tab's loaded template, including its rotation, or the profession defaults if no template
-  is associated with the tab.
+- **Reset build** restores the active tab's saved reset baseline, or the profession defaults if no baseline is associated
+  with the tab. Loading a complete template saves its build and matching rotation as the baseline. **Load build only**
+  saves the loaded build together with the rotation already in the tab. **Load rotation only** leaves the existing
+  baseline unchanged.
 
 **Save Rotation** exports the rotation separately. Use **Build + rotation**, or share both separate files, for a
 complete setup.

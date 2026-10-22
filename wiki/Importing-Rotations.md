@@ -1,5 +1,9 @@
 # Importing rotations and combat logs
 
+Before importing a combat log, open the recorded player's profession and select the matching specialization in the
+active build. The importer requires both to match when selecting a player, so a mismatch prevents the preview from
+loading. Match the log's weapons and selected skills before reconstruction as well.
+
 Select **Load Rotation** in the rotation builder. The import dialog previews a rotation before it replaces the current
 one.
 
@@ -10,10 +14,10 @@ one.
 - Compressed `.evtc.zip` or `.zevtc` logs
 - dps.report report data or a supported dps.report URL
 - A gw2wingman log URL (imported using the same rules as a dps.report URL)
-- A matching included preset rotation
 
-Use the simulator page for the recorded player's profession. The active build should also match the log's weapons,
-specialization, and selected skills before applying the reconstructed rotation.
+To load an included preset's rotation into the active build, open the **Build library** and choose **Load rotation only**
+from the template's **•••** menu. The **Load reference rotation** dialog also offers a matching preset selector for
+rotation comparisons; the ordinary **Load Rotation** dialog accepts files and links.
 
 ## Reconstruction behavior
 

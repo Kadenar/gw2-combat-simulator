@@ -26,8 +26,10 @@ charts for values at a specific time and use the effect toggles to reduce visual
 
 ## Modifier contributions
 
-Modifier contribution rows rerun the same rotation with one eligible modifier removed. They estimate that modifier's DPS
-increase in the current setup; they are not additive because modifiers can interact.
+Modifier contribution rows compare the baseline with a simulation that removes one eligible modifier. Most comparisons
+keep the same rotation. Skill comparisons also remove every cast of that skill, including its time cost, active effects,
+and resource rewards, so the rotation can change. The rows estimate each modifier's DPS increase in the current setup;
+they are not additive because modifiers can interact.
 
 ## Randomized DPS range
 
