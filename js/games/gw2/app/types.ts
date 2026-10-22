@@ -48,7 +48,8 @@ import type { BuildEditor, SimulationPresentation } from '#browser/shell/types.j
 export type ProfessionAppContract = Gw2ProfessionSource & {
   readonly preview?: PatchPreview | null;
   readonly patchOverviewFor: (config: Gw2Config, observedIds: readonly SkillId[]) => readonly PatchOverviewEntry[];
-  readonly catalogFor?: (patchId?: string) => Readonly<CanonicalCatalog>;
+  /** Bound professions resolve the selected patch and reject unavailable patch IDs. */
+  readonly catalogFor: (patchId?: string) => Readonly<CanonicalCatalog>;
   readonly balanceContextFor: (patchId?: string) => ProfessionBalanceContext;
 };
 

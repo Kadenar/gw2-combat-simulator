@@ -27,7 +27,7 @@ export function renderOptimizerPreview(
   // Preserve the disclosure alongside its inputs when rebuilding a candidate preview.
   const attributePreviewOpen = container.querySelector('.attribute-effects')?.hasAttribute('open') ?? false;
   const build = structuredClone({ ...request.build, ...candidate?.equipment });
-  const activeCatalog = app.profession.catalogFor?.(request.patchId) || app.profession.catalog;
+  const activeCatalog = app.profession.catalogFor(request.patchId);
   const preview = {
     adapter: app.adapter,
     profession: app.profession,

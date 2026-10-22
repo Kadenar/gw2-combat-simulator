@@ -1,4 +1,5 @@
 import type { ProfessionAppContract } from '#gw2/app/types.js';
+import type { BuildContextProfession } from '#gw2/build-context/types.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import type { NativeProfessionRuntimeState } from '#gw2/platform/profession-definition/module-types.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
@@ -86,6 +87,10 @@ type NativeAuthoringAssertions = [
   Assert<Equal<RuntimeState['specialization']['kind'], 'Core' | 'Elite'>>,
   Assert<Equal<Extract<RuntimeState['specialization'], { kind: 'Elite' }>['state']['eliteValue'], 'active'>>,
   Assert<typeof applicationProfession extends ProfessionAppContract ? true : false>,
+  Assert<typeof applicationProfession extends BuildContextProfession ? true : false>,
+  // Bound consumers require patch lookup even when the wrapper has no active preview.
+  Assert<Equal<Omit<ProfessionAppContract, 'catalogFor'> extends ProfessionAppContract ? true : false, false>>,
+  Assert<Equal<Omit<BuildContextProfession, 'catalogFor'> extends BuildContextProfession ? true : false, false>>,
   Assert<typeof profession extends Gw2ProfessionSource ? true : false>,
   Assert<
     Equal<

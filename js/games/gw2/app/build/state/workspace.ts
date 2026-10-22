@@ -98,7 +98,8 @@ export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
 
           // Removed preview patches fall back to current data without discarding the build.
           try {
-            if (typeof entry.patchId === 'string' && adapter.profession.catalogFor?.(entry.patchId)) {
+            if (typeof entry.patchId === 'string') {
+              adapter.profession.catalogFor(entry.patchId);
               tab.patchId = entry.patchId;
             }
           } catch {

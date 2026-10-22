@@ -79,7 +79,7 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
     }
 
     const specialization = inputBuild.specializations.find((spec) => eliteNames.has(spec.name))?.name || 'Core';
-    const catalog = profession.catalogFor?.(patchId) ?? profession.catalog;
+    const catalog = profession.catalogFor(patchId);
     const balanceContext = profession.balanceContextFor(patchId);
     // Remove attribute-backed effects before conversions while borrowing untouched equipment and rotation data.
     let build: Readonly<TBuild> = inputBuild;

@@ -81,7 +81,15 @@ test('patch selection refreshes skill lists and both lookups from the new catalo
   const app = Object.assign(Object.create(ProfessionApp.prototype), {
     patchId: 'current',
     activeCatalog: catalogs.current,
-    profession: { catalog: catalogs.current, catalogFor: (id) => catalogs[id], ui: {} },
+    profession: {
+      catalog: catalogs.current,
+      catalogFor(id) {
+        if (!Object.hasOwn(catalogs, id)) throw new TypeError(`Unknown patch ${id}.`);
+
+        return catalogs[id];
+      },
+      ui: {}
+    },
     adapter: { eliteSpecialization: () => 'Core', isSkillAvailable: () => true },
     build: { selectedSkillIds: { Utility1: 1 } },
     changed() {
@@ -96,6 +104,11 @@ test('patch selection refreshes skill lists and both lookups from the new catalo
     }
   });
   app.selectPatch('preview');
+  // Rejected patch IDs must not mutate the active patch, selection, or displayed catalog.
+  assert.throws(() => app.selectPatch('removed-preview'), /Unknown patch/);
+  assert.equal(app.patchId, 'preview');
+  assert.equal(app.activeCatalog, catalogs.preview);
+  assert.equal(app.build.selectedSkillIds.Utility1, 2);
   app.selectPatch('current');
   assert.deepEqual(refreshed, [
     ['preview', 2],

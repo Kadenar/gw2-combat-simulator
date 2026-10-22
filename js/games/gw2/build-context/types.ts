@@ -56,7 +56,8 @@ export type BuildContextFactory<TBuild extends Gw2CanonicalBuild = Gw2CanonicalB
 
 export type BuildContextProfession = Gw2ProfessionSource & {
   readonly preview?: PatchPreview | null;
-  readonly catalogFor?: (patchId?: string) => Readonly<CanonicalCatalog>;
+  /** Bound professions resolve the selected patch and reject unavailable patch IDs. */
+  readonly catalogFor: (patchId?: string) => Readonly<CanonicalCatalog>;
   readonly balanceContextFor: (patchId?: string) => ProfessionBalanceContext;
 };
 

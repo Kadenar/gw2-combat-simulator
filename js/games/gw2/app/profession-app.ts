@@ -107,7 +107,7 @@ export class ProfessionApp implements ProfessionAppState {
     this.workspace = loadBuildWorkspace(adapter);
     const activeTab = this.workspace.tabs.find((tab) => tab.id === this.workspace.activeTabId)!;
     this.patchId = activeTab.patchId;
-    this.activeCatalog = this.profession.catalogFor?.(this.patchId) || this.profession.catalog;
+    this.activeCatalog = this.profession.catalogFor(this.patchId);
     this.patchComparison = null;
     this.build = activeTab.build;
     this.simulationSettings = loadSimulationSettings();
@@ -412,7 +412,7 @@ export class ProfessionApp implements ProfessionAppState {
     this.workspace.activeTabId = id;
     this.build = tab.build;
     this.patchId = tab.patchId;
-    this.activeCatalog = this.profession.catalogFor?.(this.patchId) || this.profession.catalog;
+    this.activeCatalog = this.profession.catalogFor(this.patchId);
     Object.assign(this, tab.session);
 
     // A cached tab must match the session's capture setting before its result can be reused.
@@ -546,13 +546,8 @@ export class ProfessionApp implements ProfessionAppState {
   }
 
   selectPatch(patchId: string): void {
-    const catalog = this.profession.catalogFor
-      ? this.profession.catalogFor(patchId)
-      : patchId === 'current'
-        ? this.profession.catalog
-        : null;
-
-    if (!catalog) throw new TypeError(`Unknown patch ${patchId}.`);
+    // Resolve before changing selections so an unavailable patch leaves the active build intact.
+    const catalog = this.profession.catalogFor(patchId);
 
     if (patchId === this.patchId) return;
 
