@@ -29,6 +29,14 @@ const inputTracePattern = {
   regex: '^#gw2/platform/results/input-trace\\.js$',
   message: 'Skills and execution own input resolution and accepted facts; results only project input traces.'
 };
+const neutralUiPattern = {
+  regex: '^#(?:browser|gw2)/|(?:^|/)games/|platform/gw2',
+  message: 'Neutral UI modules must not depend on applications or games.'
+};
+const sharedShellPattern = {
+  regex: '^#gw2/|(?:^|/)games/|platform/gw2',
+  message: 'The shared application shell must not depend on GW2 modules.'
+};
 const professionBoundaryPattern = {
   regex: '(^|/)(app|integrations)(/|$)',
   message: 'Headless profession content must not depend on application or integration code.'
@@ -36,16 +44,18 @@ const professionBoundaryPattern = {
 
 // Code outside a profession folder may import only its public entry points (docs/architecture/MODULES.md). The
 // shared professions/shared/ helpers are not a profession and stay importable.
-const professionPublicEntryPatterns = [
-  {
-    regex:
-      '^#gw2/professions/(?!shared/)[^/]+/(?!(?:core|specializations/[^/]+)/profiles\\.js$)(?:core/|specializations/|family-|energy-cost\\.js$|catalog[./]|state|presentation|modules|definition)',
-    message: 'Import professions through profession.js, app/app-definition.js, build/, types.js, data/, or profiles.js.'
-  }
-];
+const professionPublicEntryPattern = {
+  regex:
+    '^#gw2/professions/(?!shared/)[^/]+/(?!(?:core|specializations/[^/]+)/profiles\\.js$)(?:core/|specializations/|family-|energy-cost\\.js$|catalog[./]|state|presentation|modules|definition)',
+  message: 'Import professions through profession.js, app/app-definition.js, build/, types.js, data/, or profiles.js.'
+};
 const moduleCompositionPattern = {
   regex: '^#gw2/professions/[^/]+/(?:profession|modules|definition)\\.js$|^#gw2/professions/.+/module\\.js$',
   message: 'Module manifests must not import the profession composition root or another module manifest.'
+};
+const conceptCompositionPattern = {
+  regex: 'professions/[^/]+/(?:core|specializations/[^/]+)/module\\.js$',
+  message: 'Concept modules must contribute to module.ts without importing the composition root.'
 };
 const coreSpecializationPattern = {
   regex: '(^|/)specializations(/|$)',
@@ -58,29 +68,17 @@ function restrictedImports(...patterns) {
 }
 
 export default [
-  // ESLint owns source syntax coverage; exclude dependencies, generated artifacts, and local analysis/tool state.
+  // ESLint owns source syntax coverage and already skips node_modules and .git; exclude generated artifacts and local
+  // analysis/tool state.
   {
-    ignores: [
-      '**/node_modules/**',
-      '**/dist/**',
-      'reference-repos/**',
-      '.scratch/**',
-      '**/.claude/**',
-      '**/.git/**',
-      '**/.lavish/**'
-    ]
+    ignores: ['**/dist/**', '.scratch/**', '**/.claude/**', '**/.lavish/**']
   },
 
-  // Parse all owned JavaScript (including root config, scripts, and tests); TypeScript remains compiler-checked.
+  // JavaScript and TypeScript share statement spacing.
   {
-    files: ['**/*.{js,jsx,mjs,cjs}'],
-
-    plugins: {
-      '@stylistic': stylistic
-    },
-
+    files: ['**/*.{js,mjs,cjs,ts}'],
+    plugins: { '@stylistic': stylistic },
     rules: {
-      ...js.configs.recommended.rules,
       '@stylistic/padding-line-between-statements': [
         'error',
         // Separate completed blocks, import groups, and documented exports for readability.
@@ -95,15 +93,15 @@ export default [
     }
   },
 
+  // Parse all owned JavaScript (including root config, scripts, and tests); TypeScript remains compiler-checked.
+  {
+    files: ['**/*.{js,mjs,cjs}'],
+    rules: js.configs.recommended.rules
+  },
+
   // Declare only the globals provided by each JavaScript file's runtime so no-undef remains useful.
   {
-    files: [
-      'eslint.config.js',
-      'playwright.config.js',
-      'vite.config.js',
-      'scripts/**/*.{js,mjs,cjs}',
-      'tests/**/*.{js,mjs,cjs}'
-    ],
+    files: ['playwright.config.js', 'vite.config.js', 'scripts/**/*.{js,mjs,cjs}', 'tests/**/*.{js,mjs,cjs}'],
     languageOptions: {
       globals: globals.nodeBuiltin
     }
@@ -117,31 +115,14 @@ export default [
 
   // TypeScript
   {
-    files: ['**/*.{ts,tsx}'],
-
+    files: ['**/*.ts'],
     languageOptions: {
       parser: tseslint.parser
     },
-
-    plugins: {
-      '@stylistic': stylistic
-    },
-
     rules: {
       // Reject redundant control-flow scaffolding left behind by removed branches.
       'no-lone-blocks': 'error',
-      'no-useless-return': 'error',
-      '@stylistic/padding-line-between-statements': [
-        'error',
-        // Separate completed blocks, import groups, and documented exports for readability.
-        { blankLine: 'always', prev: 'block-like', next: '*' },
-        // Separate conditional guards from surrounding statements, including unbraced guards.
-        { blankLine: 'always', prev: '*', next: 'if' },
-        { blankLine: 'always', prev: 'if', next: '*' },
-        { blankLine: 'always', prev: 'import', next: '*' },
-        { blankLine: 'any', prev: 'import', next: 'import' },
-        { blankLine: 'always', prev: '*', next: 'export' }
-      ]
+      'no-useless-return': 'error'
     }
   },
 
@@ -177,13 +158,13 @@ export default [
       'js/games/gw2/platform/builds/{codec,assumptions}.ts',
       'js/games/gw2/platform/attributes/calculation.ts',
       'js/games/gw2/platform/combat/modifiers.ts',
-      'js/games/gw2/platform/combos/{definitions,descriptors}.ts',
+      'js/games/gw2/platform/combos/definitions.ts',
       'js/games/gw2/platform/profession-definition/compile-contract.ts',
       'js/games/gw2/platform/skills/{catalog,validation}.ts',
       'js/games/gw2/platform/effects/{validation,action-validation}.ts',
       'js/games/gw2/platform/profession-definition/profession.ts',
       'js/games/gw2/platform/execution/autoattack-chains.ts',
-      'js/games/gw2/professions/*/build/build.ts'
+      'js/games/gw2/professions/elementalist/build/build.ts'
     ],
     rules: { '@typescript-eslint/no-unnecessary-condition': 'off' }
   },
@@ -200,27 +181,20 @@ export default [
       'js/games/gw2/platform/effects/validation.ts',
       'js/games/gw2/platform/combat/modifiers.ts'
     ],
-    rules: {
-      '@typescript-eslint/no-unnecessary-type-conversion': 'off',
-      '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off'
-    }
+    rules: { '@typescript-eslint/no-unnecessary-type-conversion': 'off' }
   },
 
-  // Source packages use aliases for consistent TypeScript, Vite, and Node resolution.
+  // Application and game packages use aliases for consistent TypeScript, Vite, and Node resolution and reach professions
+  // only through their public entry points. Kernel and UI packages get both through their stricter boundaries below.
   {
-    files: [
-      'js/browser/**/*.{js,jsx,mjs,cjs,ts,tsx}',
-      'js/games/gw2/**/*.{js,jsx,mjs,cjs,ts,tsx}',
-      'js/kernel/**/*.{js,jsx,mjs,cjs,ts,tsx}',
-      'js/ui/**/*.{js,jsx,mjs,cjs,ts,tsx}'
-    ],
+    files: ['js/browser/**/*.{js,mjs,cjs,ts}', 'js/games/gw2/**/*.{js,mjs,cjs,ts}'],
     ignores: ['js/games/gw2/professions/**'],
     rules: {
-      'no-restricted-imports': restrictedImports(...professionPublicEntryPatterns)
+      'no-restricted-imports': restrictedImports(professionPublicEntryPattern)
     }
   },
   {
-    files: ['js/games/gw2/professions/**/*.{js,jsx,mjs,cjs,ts,tsx}'],
+    files: ['js/games/gw2/professions/**/*.{js,mjs,cjs,ts}'],
     rules: {
       'no-restricted-imports': restrictedImports()
     }
@@ -228,7 +202,7 @@ export default [
 
   // Neutral packages cannot acquire application or game dependencies.
   {
-    files: ['js/kernel/**/*.{js,jsx,mjs,cjs,ts,tsx}'],
+    files: ['js/kernel/**/*.{js,mjs,cjs,ts}'],
     rules: {
       'no-restricted-imports': restrictedImports({
         regex: '^#(?:browser|gw2|ui)/|(?:^|/)(?:browser|app)/|(?:^|/)games/|(?:^|/)ui/',
@@ -237,60 +211,37 @@ export default [
     }
   },
   {
-    files: ['js/ui/**/*.{js,jsx,mjs,cjs,ts,tsx}'],
+    files: ['js/ui/**/*.{js,mjs,cjs,ts}'],
     rules: {
-      'no-restricted-imports': restrictedImports({
-        regex: '^#(?:browser|gw2)/|(?:^|/)games/|platform/gw2',
-        message: 'Neutral UI modules must not depend on applications or games.'
+      'no-restricted-imports': restrictedImports(neutralUiPattern)
+    }
+  },
+  {
+    files: ['js/ui/rotation/**/*.{js,mjs,cjs,ts}'],
+    rules: {
+      'no-restricted-imports': restrictedImports(neutralUiPattern, {
+        regex: '^#ui/results/',
+        message: 'Neutral rotation UI must not depend on result views.'
       })
     }
   },
   {
-    files: ['js/ui/rotation/**/*.{js,jsx,mjs,cjs,ts,tsx}'],
+    files: ['js/browser/shell/**/*.{js,mjs,cjs,ts}', 'js/browser/entry.ts', 'js/browser/bootstrap.ts'],
     rules: {
-      'no-restricted-imports': restrictedImports(
-        {
-          regex: '^#(?:browser|gw2)/|(?:^|/)games/|platform/gw2',
-          message: 'Neutral UI modules must not depend on applications or games.'
-        },
-        {
-          regex: '^#ui/results/',
-          message: 'Neutral rotation UI must not depend on result views.'
-        }
-      )
+      'no-restricted-imports': restrictedImports(sharedShellPattern)
     }
   },
   {
-    files: [
-      'js/browser/shell/**/*.{js,jsx,mjs,cjs,ts,tsx}',
-      'js/browser/page/**/*.{js,jsx,mjs,cjs,ts,tsx}',
-      'js/browser/entry.ts',
-      'js/browser/bootstrap.ts'
-    ],
+    files: ['js/browser/page/**/*.{js,mjs,cjs,ts}'],
     rules: {
-      'no-restricted-imports': restrictedImports({
-        regex: '^#gw2/|(?:^|/)games/|platform/gw2',
-        message: 'The shared application shell must not depend on GW2 modules.'
+      'no-restricted-imports': restrictedImports(sharedShellPattern, {
+        regex: '^#ui/|^#browser/(?:game|shell)/',
+        message: 'Page integration modules must remain leaves without UI, game-boundary, or shell dependencies.'
       })
     }
   },
   {
-    files: ['js/browser/page/**/*.{js,jsx,mjs,cjs,ts,tsx}'],
-    rules: {
-      'no-restricted-imports': restrictedImports(
-        {
-          regex: '^#gw2/|(?:^|/)games/|platform/gw2',
-          message: 'The shared application shell must not depend on GW2 modules.'
-        },
-        {
-          regex: '^#ui/|^#browser/(?:game|shell)/',
-          message: 'Page integration modules must remain leaves without UI, game-boundary, or shell dependencies.'
-        }
-      )
-    }
-  },
-  {
-    files: ['js/browser/game/contracts.ts', 'js/browser/shell/types.ts'],
+    files: ['js/browser/game/contracts.ts'],
     rules: {
       'no-restricted-imports': restrictedImports({
         regex: '^#gw2/|platform/gw2',
@@ -299,9 +250,9 @@ export default [
     }
   },
 
-  // Every shared domain retains the former engine restriction on concrete profession implementations.
+  // Simulation composes run implementations but, like every shared domain, cannot import concrete professions.
   {
-    files: ['js/games/gw2/platform/**/*.{ts,tsx}'],
+    files: ['js/games/gw2/platform/simulation/**/*.ts'],
     rules: {
       'no-restricted-imports': restrictedImports(sharedPlatformBoundaryPattern)
     }
@@ -309,7 +260,7 @@ export default [
 
   // Domain implementations receive services; simulation and isolated measurement are the two run composition owners.
   {
-    files: ['js/games/gw2/platform/**/*.{ts,tsx}'],
+    files: ['js/games/gw2/platform/**/*.ts'],
     ignores: ['js/games/gw2/platform/simulation/**', 'js/games/gw2/platform/skill-damage/**'],
     rules: {
       'no-restricted-imports': restrictedImports(sharedPlatformBoundaryPattern, simulationImplementationPattern)
@@ -318,7 +269,7 @@ export default [
 
   // Authoring schemas and profession declarations never acquire the mutable whole-run object, including through types.
   {
-    files: ['js/games/gw2/platform/{skills,effects,events,profession-definition}/**/*.{ts,tsx}'],
+    files: ['js/games/gw2/platform/{skills,effects,events,profession-definition}/**/*.ts'],
     rules: {
       'no-restricted-imports': restrictedImports(
         sharedPlatformBoundaryPattern,
@@ -329,7 +280,7 @@ export default [
     }
   },
   {
-    files: ['js/games/gw2/platform/skill-damage/**/*.{ts,tsx}'],
+    files: ['js/games/gw2/platform/skill-damage/**/*.ts'],
     rules: {
       'no-restricted-imports': restrictedImports(sharedPlatformBoundaryPattern, {
         regex: '^#gw2/platform/profession-presentation/',
@@ -339,7 +290,7 @@ export default [
   },
   // Combat primitives retain explicit capabilities even when their caller supplies a full runtime.
   {
-    files: ['js/games/gw2/platform/combat/**/*.{ts,tsx}'],
+    files: ['js/games/gw2/platform/combat/**/*.ts'],
     rules: {
       'no-restricted-imports': restrictedImports(
         sharedPlatformBoundaryPattern,
@@ -350,7 +301,7 @@ export default [
   },
   // History is authoritative gameplay state and cannot require an optional report or output projection.
   {
-    files: ['js/games/gw2/platform/combat/history/**/*.{ts,tsx}'],
+    files: ['js/games/gw2/platform/combat/history/**/*.ts'],
     rules: {
       'no-restricted-imports': restrictedImports(
         sharedPlatformBoundaryPattern,
@@ -367,7 +318,7 @@ export default [
   // The runtime engine is phase-oriented. Keep implementation details from
   // crossing between execution/scheduling and resolution.
   {
-    files: ['js/games/gw2/platform/execution/**/*.{ts,tsx}'],
+    files: ['js/games/gw2/platform/execution/**/*.ts'],
     rules: {
       'no-restricted-imports': restrictedImports(
         sharedPlatformBoundaryPattern,
@@ -381,7 +332,7 @@ export default [
     }
   },
   {
-    files: ['js/games/gw2/platform/resolver/**/*.{ts,tsx}'],
+    files: ['js/games/gw2/platform/resolver/**/*.ts'],
     rules: {
       'no-restricted-imports': restrictedImports(sharedPlatformBoundaryPattern, simulationImplementationPattern, {
         regex: '(^|/)(execution|scheduler)(/|$)',
@@ -392,8 +343,8 @@ export default [
 
   // Headless profession content must not load its browser application adapter.
   {
-    files: ['js/games/gw2/professions/**/*.{ts,tsx}'],
-    ignores: ['js/games/gw2/professions/**/app/**/*.{ts,tsx}'],
+    files: ['js/games/gw2/professions/**/*.ts'],
+    ignores: ['js/games/gw2/professions/**/app/**/*.ts'],
     rules: {
       'no-restricted-imports': restrictedImports(professionBoundaryPattern)
     }
@@ -401,7 +352,7 @@ export default [
 
   // Core contributes upward and never depends on elite specialization content.
   {
-    files: ['js/games/gw2/professions/**/core/**/*.{ts,tsx}'],
+    files: ['js/games/gw2/professions/**/core/**/*.ts'],
     rules: {
       'no-restricted-imports': restrictedImports(professionBoundaryPattern, coreSpecializationPattern)
     }
@@ -409,7 +360,7 @@ export default [
 
   // Generated/static profession data contributes upward and cannot reach into behavior owners.
   {
-    files: ['js/games/gw2/professions/**/data/**/*.{ts,tsx}'],
+    files: ['js/games/gw2/professions/**/data/**/*.ts'],
     rules: {
       'no-restricted-imports': restrictedImports({
         regex: '(^|/)(app|core|integrations|specializations)(/|$)|(^|/)presentation\\.js$',
@@ -446,28 +397,26 @@ export default [
   // must not depend on browser integration or its composition root.
   {
     files: [
-      'js/games/gw2/professions/**/{mechanics,skills,traits,state}.{ts,tsx}',
-      'js/games/gw2/professions/**/{mechanics,skills,traits,state}/**/*.{ts,tsx}'
+      'js/games/gw2/professions/**/{mechanics,skills,traits,state}.ts',
+      'js/games/gw2/professions/**/{mechanics,skills,traits,state}/**/*.ts'
     ],
     rules: {
-      'no-restricted-imports': restrictedImports(professionBoundaryPattern, {
-        regex: 'professions/[^/]+/(?:core|specializations/[^/]+)/module\\.js$',
-        message: 'Concept modules must contribute to module.ts without importing the composition root.'
-      })
+      'no-restricted-imports': restrictedImports(professionBoundaryPattern, conceptCompositionPattern)
     }
   },
 
   // Core concept modules retain both ownership restrictions when the broader concept rule overlaps.
   {
     files: [
-      'js/games/gw2/professions/**/core/{mechanics,skills,traits,state}.{ts,tsx}',
-      'js/games/gw2/professions/**/core/{mechanics,skills,traits,state}/**/*.{ts,tsx}'
+      'js/games/gw2/professions/**/core/{mechanics,skills,traits,state}.ts',
+      'js/games/gw2/professions/**/core/{mechanics,skills,traits,state}/**/*.ts'
     ],
     rules: {
-      'no-restricted-imports': restrictedImports(professionBoundaryPattern, coreSpecializationPattern, {
-        regex: 'professions/[^/]+/(?:core|specializations/[^/]+)/module\\.js$',
-        message: 'Concept modules must contribute to module.ts without importing the composition root.'
-      })
+      'no-restricted-imports': restrictedImports(
+        professionBoundaryPattern,
+        coreSpecializationPattern,
+        conceptCompositionPattern
+      )
     }
   },
 
