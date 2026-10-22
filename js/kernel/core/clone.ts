@@ -1,11 +1,20 @@
 /**
- * Detached copies of plain simulation data. Engine payloads are plain objects and arrays, so copying them directly
- * avoids the serializer round trip of `structuredClone` on every packet while keeping its observable result.
+ * Performance-sensitive copies of trusted internal simulation packets and reports. Direct traversal avoids native
+ * serialization on each packet. Reproduce the tradeoff with scripts/analysis/benchmark-clone.mjs; see
+ * docs/architecture/CLONE-PERFORMANCE.md for measured speedups, input auditing, and simulation-result parity.
+ * The 2026-10-22 Node 24 benchmark cut simulation time by about 12% across 18 presets; all 151 audited presets
+ * produced equal detailed and score results. These measurements justify retaining the restricted fast path.
  */
 
 /**
- * Copies like `structuredClone`: shared references and cycles keep their shape, and functions or symbols throw the
- * same `DataCloneError`. Values other than plain objects and arrays are delegated to `structuredClone` itself.
+ * Supported inputs are primitive data, plain objects (including null prototypes), and dense ordinary arrays.
+ * Enumerable properties must be data properties; exclude symbol keys, own `__proto__` keys, extra array properties,
+ * functions, symbols, and non-plain objects. Shared references and cycles within this plain-data graph are preserved.
+ *
+ * This is deliberately a restricted internal copier, not a general `structuredClone` replacement. Sparse arrays,
+ * own `__proto__`, and aliases crossing a Map/Set or other native-cloned object boundary have different semantics.
+ * Callers needing those shapes must use `structuredClone` on the whole graph. Keep validation in the benchmark
+ * audit rather than adding a second traversal to every hot-path copy; re-audit when introducing new payload shapes.
  */
 export function cloneData<T>(value: T): T {
   return copy(value, new Map()) as T;
