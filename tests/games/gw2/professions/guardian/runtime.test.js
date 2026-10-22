@@ -1,3 +1,4 @@
+import { activeChargeCount, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -962,10 +963,7 @@ test('Banish resets either hammer leap only when its strike reaches the target',
 // Seed a real window and its expiry to isolate capture, consumption, and delayed impacts from a setup rotation.
 function illuminate(runtime, expiresAt, symbol = false) {
   if (symbol) runtime.profession.core.spearLuminanceUntil = expiresAt;
-  else {
-    runtime.profession.core.spearIlluminatedArmed = true;
-    runtime.profession.core.spearIlluminatedUntil = expiresAt;
-  }
+  else runtime.profession.core.spearIlluminated = grantCharges(1, expiresAt);
 
   runtime.schedule(GUARDIAN_SPEAR_EXPIRY, expiresAt, { symbol, expiresAt }, undefined, -220);
 }
@@ -983,7 +981,7 @@ test('spear captures illumination before expiry and enhances existing impacts wi
     [1.5, 2.25]
   );
   assert.ok(hits.every((event) => event.activationId === result.steps[0].activationId));
-  assert.ok(core(result).spearIlluminatedUntil > observedRuntime(result).time);
+  assert.ok(core(result).spearIlluminated.expiresAt > observedRuntime(result).time);
   const expired = run(
     [wait(100), ID.GLEAMING_DISC, wait(2000)],
     { primaryWeapon: 'Spear' },
@@ -997,6 +995,25 @@ test('spear captures illumination before expiry and enhances existing impacts wi
   );
 });
 
+// A spent grant can retain its deadline; only live charges may enhance a cast.
+test('spear ignores spent grants and replaces them with exactly one charge', () => {
+  const result = run(
+    [ID.HELIO_RUSH],
+    { primaryWeapon: 'Spear' },
+    {
+      initialize: (runtime) => {
+        runtime.profession.core.spearIlluminated = grantCharges(0, 5);
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.procSteps.some((step) => step.skill === 'Illuminated'),
+    false
+  );
+  assert.equal(activeChargeCount(core(result).spearIlluminated, observedRuntime(result).time), 1);
+});
+
 test('spear expiry runs during waits and a refreshed window survives the old wake', () => {
   const result = run(
     [ID.HELIO_RUSH, wait(500)],
@@ -1005,10 +1022,9 @@ test('spear expiry runs during waits and a refreshed window survives the old wak
   );
   assert.deepEqual(result.warnings, []);
   assert.ok(observedRuntime(result).time > 0.5);
-  assert.equal(core(result).spearIlluminatedArmed, true);
+  assert.equal(core(result).spearIlluminated.charges, 1);
   const expired = run([ID.HELIO_RUSH, wait(7000)], { primaryWeapon: 'Spear' });
-  assert.equal(core(expired).spearIlluminatedArmed, false);
-  assert.equal(core(expired).spearIlluminatedUntil, 0);
+  assert.equal(core(expired).spearIlluminated.charges, 0);
   const symbol = run([ID.SYMBOL_OF_LUMINANCE, wait(7000)], { primaryWeapon: 'Spear' });
   assert.equal(core(symbol).spearLuminanceUntil, 0);
 });
@@ -1020,8 +1036,8 @@ test('an uncommitted spear attempt preserves its charge and creates no illuminat
     { initialize: (runtime) => illuminate(runtime, 5) }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(core(result).spearIlluminatedUntil, 5);
-  assert.equal(core(result).spearIlluminatedArmed, true);
+  assert.equal(core(result).spearIlluminated.expiresAt, 5);
+  assert.equal(core(result).spearIlluminated.charges, 1);
   assert.equal(
     result.resolvedEvents.some((event) => event.skillId === ID.SOLAR_STORM && event.type === 'damage'),
     false
@@ -1053,7 +1069,7 @@ test('spear filler preserves an armed charge and removed grant components cannot
     { initialize: (runtime) => illuminate(runtime, 5) }
   );
   assert.deepEqual(filler.warnings, []);
-  assert.equal(core(filler).spearIlluminatedUntil, 5);
+  assert.equal(core(filler).spearIlluminated.expiresAt, 5);
   const patched = withPatchPreview(guardianProfession, {
     id: 'no-illumination-grants',
     label: 'No illumination grants',
@@ -1075,9 +1091,32 @@ test('spear filler preserves an armed charge and removed grant components cannot
       }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(core(result).spearIlluminatedArmed, symbol);
-    assert.equal(core(result).spearIlluminatedUntil, symbol ? 5 : 0);
+    assert.equal(activeChargeCount(core(result).spearIlluminated, observedRuntime(result).time), symbol ? 1 : 0);
+    assert.equal(core(result).spearIlluminated.expiresAt, 5);
   }
+
+  // A replacement with the same deadline belongs to a different grant and must survive the accepted cast.
+  const replacement = grantCharges(1, 5);
+  const refreshed = run(
+    [ID.HELIO_RUSH],
+    { primaryWeapon: 'Spear', patchId: 'no-illumination-grants' },
+    {
+      initialize: (runtime) => illuminate(runtime, 5),
+      profession: patched,
+      timeline: [
+        {
+          at: 0.1,
+          run: (runtime) => {
+            runtime.profession.core.spearIlluminated = replacement;
+          }
+        }
+      ]
+    }
+  );
+  assert.deepEqual(refreshed.warnings, []);
+  assert.ok(refreshed.procSteps.some((step) => step.skill === 'Illuminated'));
+  assert.equal(core(refreshed).spearIlluminated, replacement);
+  assert.equal(replacement.charges, 1);
 });
 
 test('spear selects remaining projectile components', () => {

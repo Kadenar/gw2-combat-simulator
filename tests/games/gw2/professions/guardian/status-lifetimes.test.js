@@ -1,3 +1,4 @@
+import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
@@ -162,8 +163,7 @@ test('spear illumination expires before accepting a cast at its deadline', () =>
             const core = runtime.profession.core;
 
             if (source === 'armed') {
-              core.spearIlluminatedArmed = true;
-              core.spearIlluminatedUntil = 5.04;
+              core.spearIlluminated = grantCharges(1, 5.04);
             } else core.spearLuminanceUntil = 5.04;
 
             runtime.schedule(
@@ -180,7 +180,7 @@ test('spear illumination expires before accepting a cast at its deadline', () =>
         result.procSteps.some((step) => step.skill === 'Illuminated'),
         at < 5.04
       );
-      assert.ok(observedRuntime(result).profession.core.spearIlluminatedUntil > at);
+      assert.ok(observedRuntime(result).profession.core.spearIlluminated.expiresAt > at);
     }
   }
 });

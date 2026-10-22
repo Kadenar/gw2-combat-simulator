@@ -1,4 +1,5 @@
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { expireCharges, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
@@ -23,8 +24,7 @@ export interface GuardianCoreState {
   righteousInstinctsGeneration: number;
   righteousInstinctsCause: Gw2ResolverEvent | null;
 
-  spearIlluminatedArmed: boolean;
-  spearIlluminatedUntil: number;
+  spearIlluminated: ChargeGrant;
   spearLuminanceUntil: number;
 }
 
@@ -50,8 +50,7 @@ export function createGuardianCoreState(): GuardianCoreState {
     righteousInstinctsGeneration: 0,
     righteousInstinctsCause: null,
 
-    spearIlluminatedArmed: false,
-    spearIlluminatedUntil: 0,
+    spearIlluminated: grantCharges(0, 0),
     spearLuminanceUntil: 0
   };
 }
@@ -74,8 +73,7 @@ const GUARDIAN_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'symbolicAvengerExpirations',
 
   'resolutionUntil',
-  'spearIlluminatedArmed',
-  'spearIlluminatedUntil',
+  'spearIlluminated',
   'spearLuminanceUntil'
 ] as const satisfies readonly (keyof GuardianCoreState)[]);
 
@@ -97,5 +95,7 @@ export function projectGuardianPlanningState(input: Gw2PlanningStateInput) {
     Object.entries(state.availableFlips).filter(([, window]) => skillFlipVisible(window, input.time))
   );
   state.symbolicAvengerExpirations = activeSymbolicAvengerExpirations(state, input.time);
+  // Project only live entitlement without consuming the runtime's captured grant.
+  expireCharges(state.spearIlluminated, input.time);
   return state;
 }

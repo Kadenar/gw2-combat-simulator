@@ -1,4 +1,5 @@
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
+import { expireCharges } from '#gw2/platform/combat/resources/charges.js';
 
 export const GUARDIAN_SPEAR_EXPIRY = 'guardian.spear-expiry';
 
@@ -9,8 +10,7 @@ export function expireSpearIllumination(runtime: GuardianRuntime, data: unknown)
 
   if (symbol) {
     if (state.spearLuminanceUntil === expiresAt) state.spearLuminanceUntil = 0;
-  } else if (state.spearIlluminatedUntil === expiresAt) {
-    state.spearIlluminatedArmed = false;
-    state.spearIlluminatedUntil = 0;
+  } else if (state.spearIlluminated.expiresAt === expiresAt) {
+    expireCharges(state.spearIlluminated, runtime.time);
   }
 }
