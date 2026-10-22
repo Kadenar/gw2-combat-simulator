@@ -10,7 +10,7 @@ import { thiefProfession } from '#gw2/professions/thief/profession.js';
 
 // Isolate dodge starts from follow-up packets, precombat actions and the exact ICD boundary.
 test('Mirage follows executed rotation dodges with a one-second ICD', () => {
-  for (const skillName of ['Dodge', 'Dodge / Mirage Cloak', 'Dodge Jump', 'Evading attack']) {
+  for (const skillName of ['Dodge', 'Dodge / Mirage Cloak', 'Evading attack']) {
     const action = (at, overrides = {}) => ({
       type: 'action',
       source: 'fixture',

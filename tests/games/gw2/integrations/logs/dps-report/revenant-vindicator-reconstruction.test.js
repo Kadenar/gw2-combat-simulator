@@ -1,6 +1,8 @@
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
@@ -52,9 +54,35 @@ test('dps.report Vindicator reconstruction includes takeoff and recognizes Energ
   const energy = simulate(reconstruction.rotation, 'Energy');
   const other = simulate(reconstruction.rotation, 'Air');
 
-  assert.deepEqual(actionNames, ['Dodge Jump', 'Swap Legends', 'Dodge Jump']);
+  assert.deepEqual(actionNames, ['Dodge', 'Swap Legends', 'Dodge']);
   // The source landing at 100 ms belongs to the jump beginning 600 ms earlier.
   assert.equal(reconstruction.timelineOriginMs, -500);
   assert.equal(energyProcs(energy), 1);
   assert.equal(energyProcs(other), 0);
+});
+
+// Import projection must subtract the full dodge's occupancy so idle gaps are not charged twice during replay.
+test('Vindicator reconstruction preserves idle time after a shared Dodge', () => {
+  const report = parseDpsReport({
+    durationMS: 2400,
+    players: [
+      {
+        name: 'Fixture Vindicator',
+        account: 'Fixture.1234',
+        profession: 'Vindicator',
+        rotation: [
+          { id: 62730, skills: [{ castTime: 600, duration: 200, timeGained: 0 }] },
+          { id: ID.MIST_SWING, skills: [{ castTime: 1200, duration: 600, timeGained: 0 }] }
+        ]
+      }
+    ],
+    phases: [{ start: 0, end: 2400, name: 'Full Fight', phaseType: 'Encounter' }],
+    skillMap: { s62730: { name: 'Death Drop' }, [`s${ID.MIST_SWING}`]: { name: 'Mist Swing' } }
+  });
+  const reconstruction = reconstructDpsReportRotation(report, revenantCatalog);
+  const result = simulate(reconstruction.rotation, 'Energy');
+  assert.deepEqual(result.warnings, []);
+  const dodge = result.steps.find((step) => step.skillId === SHARED_SKILL_IDS.DODGE);
+  const auto = result.steps.find((step) => step.skillId === ID.MIST_SWING);
+  assert.equal(auto.start - dodge.end, 400);
 });

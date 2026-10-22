@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
@@ -1241,26 +1242,10 @@ test('Vindicator resource display includes live endurance', () => {
       step: 1,
       displayMode: 'bar',
       pipStyle: 'endurance',
-      paletteSkillId: 23275,
+      paletteSkillId: SHARED_SKILL_IDS.DODGE,
       shortLabel: 'End',
       statusLabel: 'Current'
     }
-  );
-});
-
-test('Vindicator dodges reset interrupted autoattack chains', () => {
-  const result = simulate('Vindicator', ['Preparation Thrust', 'Dodge', 'Preparation Thrust'], {
-    selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.ASSASSIN,
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Sword',
-    boons: { vigor: true }
-  });
-
-  assert.deepEqual(result.warnings, []);
-  assert.deepEqual(
-    result.steps.map((step) => step.skill),
-    ['Preparation Thrust', 'Dodge', 'Preparation Thrust']
   );
 });
 
@@ -1289,11 +1274,11 @@ test('Vindicator jumps pay endurance before midair Energy refunds and reset auto
     'Vindicator',
     [
       '__combat_start',
-      'Dodge Jump',
+      'Dodge',
       { name: 'Mist Swing', offset: 40 },
       { name: 'Swap Legends', offset: 400 },
-      'Dodge Jump',
-      'Dodge Jump',
+      'Dodge',
+      'Dodge',
       'Mist Swing'
     ],
     {
@@ -1305,7 +1290,7 @@ test('Vindicator jumps pay endurance before midair Energy refunds and reset auto
     }
   );
   assert.deepEqual(result.warnings, []);
-  const jumps = result.steps.filter((step) => step.skill === 'Dodge Jump');
+  const jumps = result.steps.filter((step) => step.skill === 'Dodge');
   assert.equal(jumps.length, 3);
   assert.ok(jumps.slice(1).every((step, index) => step.start === jumps[index].end));
   assert.equal(result.steps.at(-1).start, jumps.at(-1).end);
@@ -1368,7 +1353,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
     [
       {
         type: 'cast',
-        skillId: 23275
+        skillId: SHARED_SKILL_IDS.DODGE
       },
       {
         type: 'cast',
@@ -1382,7 +1367,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   assert.deepEqual(firstInsertion, [
     {
       type: 'cast',
-      skillId: 23275
+      skillId: SHARED_SKILL_IDS.DODGE
     },
     {
       type: 'cast',
@@ -1394,7 +1379,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   assert.deepEqual(app.build.rotation, [
     {
       type: 'cast',
-      skillId: 23275
+      skillId: SHARED_SKILL_IDS.DODGE
     },
     {
       type: 'cast',
@@ -1412,7 +1397,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   assert.deepEqual(app.build.rotation, [
     {
       type: 'cast',
-      skillId: 23275
+      skillId: SHARED_SKILL_IDS.DODGE
     },
     {
       type: 'cast',

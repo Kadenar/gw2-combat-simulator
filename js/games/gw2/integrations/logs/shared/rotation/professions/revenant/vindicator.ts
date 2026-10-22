@@ -1,11 +1,13 @@
 import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
-import { VINDICATOR_AIRBORNE_MS, VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
+import { VINDICATOR_AIRBORNE_MS, VINDICATOR_DODGE_MS } from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import type {
   LogActionNormalizationContext,
   RecordedLogAction
 } from '#gw2/integrations/logs/shared/rotation/normalization.js';
 
 const DEATH_DROP_IDS = new Set([62693, 62730]);
+// This is a raw animation identity in logs, not a separately executable simulator skill.
+const DODGE_ANIMATION_ID = 23275;
 
 function deathDrop(action: RecordedLogAction): boolean {
   return DEATH_DROP_IDS.has(action.rawSkillId) || normalized(action.rawName) === 'death drop';
@@ -21,7 +23,7 @@ export function reconstructVindicatorDpsReportActions(
     landings.map((landing) => {
       const input = context.recordedActions.find(
         (candidate) =>
-          candidate.rawSkillId === VINDICATOR_JUMP_SKILL.id &&
+          candidate.rawSkillId === DODGE_ANIMATION_ID &&
           Math.abs(landing.start - candidate.start - VINDICATOR_AIRBORNE_MS) <= 80
       );
 
@@ -39,10 +41,10 @@ export function reconstructVindicatorDpsReportActions(
         return {
           ...action,
           start,
-          end: start + Number(VINDICATOR_JUMP_SKILL.castTimeMs),
-          expectedDurationMs: Number(VINDICATOR_JUMP_SKILL.castTimeMs),
-          canonicalSkillId: Number(VINDICATOR_JUMP_SKILL.id),
-          canonicalName: VINDICATOR_JUMP_SKILL.name
+          end: start + VINDICATOR_DODGE_MS,
+          expectedDurationMs: VINDICATOR_DODGE_MS,
+          canonicalSkillId: Number(context.profile.dodge.skillId),
+          canonicalName: context.profile.dodge.name
         };
 
       // EI can retain an auto during the airborne portion; replay that overlap instead of delaying the landing.

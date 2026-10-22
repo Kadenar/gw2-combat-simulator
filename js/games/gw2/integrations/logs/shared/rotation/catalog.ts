@@ -2,6 +2,8 @@ import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/type
 import type { RotationActionKind } from '#gw2/integrations/logs/shared/rotation/model.js';
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/external-skill-ids.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { VINDICATOR_DODGE_MS } from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import {
   resolveWarriorDualWieldSkill,
   warriorDualWieldingActive
@@ -143,6 +145,10 @@ export function createRotationSkillResolver(
         })
       : [];
   return (action, skill = recordedActionSkill(action, context)) => {
+    // Core's shared input has no jump metadata; replay must occupy the same lane as Vindicator's runtime hook.
+    if (context.profile.specializationId === 'vindicator' && skill?.id === SHARED_SKILL_IDS.DODGE)
+      return { ...skill, castTimeMs: VINDICATOR_DODGE_MS };
+
     if (!skill || context.profile.professionId !== 'warrior') return skill;
 
     let activeSet = context.professionConfig?.startingWeaponSet === 2 ? 2 : 1;

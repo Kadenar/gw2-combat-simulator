@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -9,13 +11,60 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const core = (result) => observedRuntime(result).profession.core;
+
+// One Core-owned input acquires a landing only through the active Vindicator module.
+test('shared Dodge retains its identity and cost while Vindicator owns its landing', () => {
+  for (const specialization of ['Core', 'Herald', 'Renegade', 'Vindicator', 'Conduit']) {
+    const config = { specialization };
+    const catalog = revenantProfession.runtimeFor(config).catalog;
+    assert.deepEqual(
+      catalog.skills.filter((skill) => skill.inputControl === 'dodge').map((skill) => skill.id),
+      [SHARED_SKILL_IDS.DODGE]
+    );
+    const result = runRevenant([SHARED_SKILL_IDS.DODGE], config);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.steps[0].skillId, SHARED_SKILL_IDS.DODGE);
+    assert.equal(core(result).endurance.value, 50 + result.rotationEndTime * 5);
+    assert.equal(
+      result.events.some((event) => event.skillName === 'Death Drop'),
+      specialization === 'Vindicator'
+    );
+  }
+});
+
+// Both ways of ending Dodge must retire a chain that advanced during its airborne phase.
+test('shared Dodge completion and cancellation reset airborne autoattack chains', () => {
+  for (const interruptAfterMs of [undefined, 200]) {
+    const result = runRevenant(
+      [
+        ID.PREPARATION_THRUST,
+        { skillId: SHARED_SKILL_IDS.DODGE, interruptAfterMs },
+        { skillId: ID.BRUTAL_BLADE, concurrentOffsetMs: 0 },
+        ID.PREPARATION_THRUST
+      ],
+      { specialization: 'Vindicator', primaryWeapon: 'Sword', secondaryWeapon: 'Sword' },
+      {
+        // Finish the overlapping auto before either endpoint so the reset observes an advanced chain.
+        catalog: (catalog) => withSkill(catalog, ID.BRUTAL_BLADE, { castTimeMs: 100 })
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const dodge = result.steps.find((step) => step.skillId === SHARED_SKILL_IDS.DODGE);
+    const auto = result.steps.find((step) => step.skillId === ID.BRUTAL_BLADE);
+    assert.ok(auto.start >= dodge.start && auto.end < dodge.end);
+    assert.equal(core(result).autoattackChains[ID.PREPARATION_THRUST], ID.BRUTAL_BLADE);
+    assert.equal(
+      result.events.some((event) => event.skillName === 'Death Drop'),
+      interruptAfterMs == null
+    );
+  }
+});
 
 // Weapon-swap traits must observe the spear owner's consumed pool and already-emitted Raze payload.
 test('Crushing Abyss resolves before Brutality observes the committed weapon swap', () => {
@@ -82,12 +131,6 @@ for (const [skillId, specialization, legend, active] of [
     'Renegade',
     LEGEND.RENEGADE,
     (result) => renegadeState.from(observedRuntime(result)).bandTogether.charges > 0
-  ],
-  [
-    VINDICATOR_JUMP_SKILL.id,
-    'Vindicator',
-    LEGEND.ASSASSIN,
-    (result) => result.events.some((event) => event.type === 'damage')
   ],
   [
     ID.BEGUILING_HAZE,

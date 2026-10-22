@@ -5,7 +5,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { VINDICATOR_LANDING_MS } from '#gw2/professions/revenant/data/vindicator-jump.js';
+import { VINDICATOR_LANDING_MS } from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import {
   imperialImpactDodge,
   saintsShieldDodge
@@ -21,7 +21,7 @@ export function selectedDodge(runtime: MechanicQueriesOf<RevenantRuntime>): Reve
   return runtime.helpers.skillsById.get(skillId);
 }
 
-/** Shared Dodge and Vindicator Jump resolve landings at the authored offset from their landing origin. */
+/** Resolves the selected payload at its authored offset after the dodge's airborne phase. */
 export function scheduleLanding(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, origin: number): void {
   const profile = selectedDodge(runtime);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'strike' || candidate.type === 'boon');

@@ -211,7 +211,7 @@ for (const [spec, name, legend, config = {}] of [
   ['Renegade', "Razorclaw's Rage", LEGEND.RENEGADE],
   ['Conduit', 'Beguiling Haze', LEGEND.ENTITY],
   ['Conduit', 'Twin Moon Sweep', LEGEND.ENTITY],
-  ['Vindicator', 'Dodge Jump', LEGEND.ASSASSIN]
+  ['Vindicator', 'Dodge', LEGEND.ASSASSIN]
 ]) {
   test(`Canceled ${name} does not commit its effect package`, () => {
     const result = simulate(spec, ['__combat_start', { name, interruptAfterMs: 100 }, wait(2000)], {
@@ -246,7 +246,7 @@ for (const [spec, name, legend, config = {}] of [
 
     if (name === 'Twin Moon Sweep') assert.equal(state.affinity.value, 0);
 
-    if (name === 'Dodge Jump') assert.equal(state.endurance.value, 50 + result.rotationEndTime * 5);
+    if (name === 'Dodge') assert.equal(state.endurance.value, 50 + result.rotationEndTime * 5);
 
     if (name === 'Beguiling Haze') assert.equal(specialization(result).beguilingHazeRecharge, null);
   });
@@ -538,40 +538,38 @@ test('Diminish Solace stops upkeep drain, retires its follow-up, and starts the 
   assert.match(unavailable.warnings.map(({ message }) => message).join('\n'), /activate the matching upkeep/);
 });
 
-test('Both Vindicator dodge inputs apply the selected landing conditions and boons once', () => {
-  for (const name of ['Dodge', 'Dodge Jump']) {
-    for (const [trait, expected] of [
-      [TRAIT.FORERUNNER_OF_DEATH, [['Vulnerability', 5, 10]]],
+test('Vindicator shared Dodge applies the selected landing conditions and boons once', () => {
+  for (const [trait, expected] of [
+    [TRAIT.FORERUNNER_OF_DEATH, [['Vulnerability', 5, 10]]],
+    [
+      TRAIT.VASSALS_OF_THE_EMPIRE,
       [
-        TRAIT.VASSALS_OF_THE_EMPIRE,
-        [
-          ['might', 5, 15],
-          ['protection', 1, 7.5]
-        ]
-      ],
-      [TRAIT.SAINT_OF_ZU_HELTZER, [['alacrity', 1, 6]]]
-    ]) {
-      const result = simulate('Vindicator', [name], {
-        selectedTraitIds: [trait],
-        attributeInputs: baseAttributeInputs({ concentration: 750 }),
-        allies: { count: 4 }
-      });
-      assert.deepEqual(result.warnings, []);
-      for (const [kind, stacks, duration] of expected) {
-        const applications = result.events.filter((event) => event.kind === kind || event.condition === kind);
-        assert.equal(applications.length, 1, `${name}: ${kind}`);
-        assert.equal(applications[0].stacks, stacks);
-        assert.equal(applications[0].duration, duration);
+        ['might', 5, 15],
+        ['protection', 1, 7.5]
+      ]
+    ],
+    [TRAIT.SAINT_OF_ZU_HELTZER, [['alacrity', 1, 6]]]
+  ]) {
+    const result = simulate('Vindicator', ['Dodge'], {
+      selectedTraitIds: [trait],
+      attributeInputs: baseAttributeInputs({ concentration: 750 }),
+      allies: { count: 4 }
+    });
+    assert.deepEqual(result.warnings, []);
+    for (const [kind, stacks, duration] of expected) {
+      const applications = result.events.filter((event) => event.kind === kind || event.condition === kind);
+      assert.equal(applications.length, 1, kind);
+      assert.equal(applications[0].stacks, stacks);
+      assert.equal(applications[0].duration, duration);
 
-        if (kind === 'alacrity') assert.equal(applications[0].resolvedAudience.alliedPlayerCount, 4);
-      }
+      if (kind === 'alacrity') assert.equal(applications[0].resolvedAudience.alliedPlayerCount, 4);
+    }
 
-      if (trait === TRAIT.FORERUNNER_OF_DEATH) {
-        const strike = result.events.find((event) => event.type === 'damage');
-        const buff = result.events.find((event) => event.kind === 'forerunner-of-death');
-        assert.equal(strike.forerunnerOfDeathActive, false);
-        assert.ok(strike.eventOrder < buff.eventOrder);
-      }
+    if (trait === TRAIT.FORERUNNER_OF_DEATH) {
+      const strike = result.events.find((event) => event.type === 'damage');
+      const buff = result.events.find((event) => event.kind === 'forerunner-of-death');
+      assert.equal(strike.forerunnerOfDeathActive, false);
+      assert.ok(strike.eventOrder < buff.eventOrder);
     }
   }
 });

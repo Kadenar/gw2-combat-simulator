@@ -13,14 +13,11 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import { VINDICATOR_DODGE_AUTO_ACTION } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
-import { vindicatorDodgeTooltip } from '#gw2/professions/revenant/app/tooltips/shared.js';
 
 /** Describe vindicator tooltips from the selected balance data. */
 export const vindicatorTooltips = {
   skills: {
-    [VINDICATOR_JUMP_SKILL.id]: vindicatorDodgeTooltip,
     [VINDICATOR_DODGE_AUTO_ACTION]: () => ({
       description:
         'Start a Vindicator dodge and the current autoattack together. Endurance is spent at takeoff; the grandmaster-selected landing occurs after the airborne phase.',

@@ -166,7 +166,7 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
       title: 'Vindicator Dodge + Auto bug',
       summary: `Detected ${dodgeAutos.length} autoattacks during Dodge: ${[...new Set(dodgeAutos.map((action) => action.name))].join(', ')}.`,
       detail:
-        'Damage confirms these autos executed before Death Drop landed. Dodge Jump spends endurance at takeoff and lands after the airborne autos.'
+        'Damage confirms these autos executed before Death Drop landed. Dodge spends endurance at takeoff and lands after the airborne autos.'
     });
   }
 

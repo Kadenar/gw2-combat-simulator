@@ -7,7 +7,6 @@ import {
 } from '#gw2/professions/revenant/build/build.js';
 import { revenantNativeModules } from '#gw2/professions/revenant/catalog.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 
 export { revenantCatalog, revenantNativeModules } from '#gw2/professions/revenant/catalog.js';
 
@@ -23,14 +22,10 @@ export const revenantProfession = defineNativeProfession({
   autoattackChains: {
     overrides: [
       {
+        // Shared execution resets on completion or cancellation, leaving airborne autos available until Dodge ends.
         id: 'revenant.dodge-resets',
         interruptingSkillIds: [SHARED_SKILL_IDS.DODGE],
         decision: 'reset'
-      },
-      {
-        id: 'revenant.jump-preserves-airborne-chain',
-        interruptingSkillIds: [VINDICATOR_JUMP_SKILL.id],
-        decision: 'preserve'
       },
       {
         id: 'revenant.beguiling-haze-resets',

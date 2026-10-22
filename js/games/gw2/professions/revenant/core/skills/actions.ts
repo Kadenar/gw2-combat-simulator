@@ -27,22 +27,13 @@ const actions: readonly Skill[] = [
     resourceGain: 50,
     effects: []
   },
-  {
-    ...createDodgeSkill({
-      description: 'Perform the selected dodge.',
-      castTimeMs: 0,
-      resourceCost: 50,
-      cost: { resource: 'endurance' }
-    }),
-    // The family registers this shared action; only Vindicator supplies a landing.
-    sideEffects: [
-      {
-        on: 'castStart',
-        when: (runtime) => runtime.config.specialization === 'Vindicator',
-        do: { type: 'revenant.vindicator-dodge' }
-      }
-    ]
-  }
+  // Core owns the input and its cost; active specialization hooks supply any dodge replacement.
+  createDodgeSkill({
+    description: 'Perform the selected dodge.',
+    castTimeMs: 0,
+    resourceCost: 50,
+    cost: { resource: 'endurance' }
+  })
 ];
 
 export const REVENANT_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze(actions.map((skill) => Object.freeze(skill)));

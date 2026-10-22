@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { observeGw2Runtime, observedRuntime, planningFixture } from '#tests/helpers/observed-runtime.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
@@ -239,17 +240,22 @@ test('Dodge + Auto derives availability from its unchanged command expansion', a
   const context = { specialization: 'Vindicator', activeAutoattack: followup };
   const skill = profession.ui.paletteActionSkills(context, []).find((entry) => entry.id === '__vindicator_dodge_auto');
   const availability = app.results.planningState.availability;
-  availability[23275] = { ready: true };
+  availability[SHARED_SKILL_IDS.DODGE] = { ready: true };
   availability[opener.id] = { ready: true };
   availability[followup.id] = { ready: true };
   const commands = profession.ui.resolvePaletteAction(context, { name: skill.name });
   assert.deepEqual(commands, [
-    { type: 'cast', skillId: 23275 },
+    { type: 'cast', skillId: SHARED_SKILL_IDS.DODGE },
     { type: 'cast', skillId: followup.id, concurrentOffsetMs: 0 }
   ]);
   assert.deepEqual(paletteAvailability(app, context, skill), { available: true, message: '' });
 
-  availability[23275] = { ready: false, reason: 'Recover endurance.', code: 'fixture.endurance', retryAt: 5 };
+  availability[SHARED_SKILL_IDS.DODGE] = {
+    ready: false,
+    reason: 'Recover endurance.',
+    code: 'fixture.endurance',
+    retryAt: 5
+  };
   const retry = paletteAvailability(app, context, skill);
   assert.equal(retry.retryAt, 5);
   assert.equal(paletteSkillView(app, skill, retry.available, retry.message, retry.retryAt).contextDisabled, false);
@@ -265,7 +271,7 @@ test('Dodge + Auto derives availability from its unchanged command expansion', a
   delete availability[followup.id];
   assert.equal(paletteAvailability(app, context, skill).available, false);
   availability[followup.id] = { ready: true };
-  delete availability[23275];
+  delete availability[SHARED_SKILL_IDS.DODGE];
   assert.equal(paletteAvailability(app, context, skill).available, false);
   assert.deepEqual(profession.ui.resolvePaletteAction(context, { name: skill.name }), commands);
 });

@@ -1,14 +1,13 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
-import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { eliteLegendInvoked } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { VINDICATOR_AIRBORNE_MS, VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
+import { VINDICATOR_AIRBORNE_MS, VINDICATOR_DODGE_MS } from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import { vindicatorBuffPolicies } from '#gw2/professions/revenant/specializations/vindicator/effect-state.js';
 import {
   energyMeldCompleted,
@@ -92,34 +91,23 @@ function energyMeld(runtime: RevenantRuntime): void {
 /** Vindicator owns its dodge landings, Energy Meld, and Alliance invocation on the shared live state. */
 export const vindicatorHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   buffPolicies: vindicatorBuffPolicies,
-  // Both Energy Meld variants grant the same Vigor without coupling it to resource or armed-window changes.
-
-  // The landing-only Dodge input uses the selected dodge's fixed animation.
-  castDurationMs: (runtime, skill, duration) =>
-    skill.id === SHARED_SKILL_IDS.DODGE ? Math.max(0, selectedDodge(runtime)?.castTimeMs || 0) : duration,
-  // Energy Meld variants share the same selected trait reduction.
-
-  modifyEffects: (_runtime, cast, effects) => (cast.skill.id === VINDICATOR_JUMP_SKILL.id ? [] : effects),
+  // Resolve before admission so the shared input occupies the full jump's non-instant execution lane.
+  resolveCastSkill: (_runtime, skill) =>
+    skill.id === SHARED_SKILL_IDS.DODGE ? { ...skill, castTimeMs: VINDICATOR_DODGE_MS } : skill,
   sideEffectHandlers: {
     'revenant.energy-meld-endurance'(runtime, context) {
       if (context.kind === 'cast') runtime.fireTrigger(energyMeldEnduranceGranted, { cast: context.cast });
-    },
-    'revenant.vindicator-jump'(runtime, context) {
-      if (context.kind === 'cast')
-        scheduleLanding(runtime, context.cast, context.cast.start + VINDICATOR_AIRBORNE_MS / 1000);
-    },
-    'revenant.vindicator-chain-reset'(runtime) {
-      resetAutoattackChains(runtime);
     }
+  },
+  onCastStart(runtime, cast) {
+    // Endurance has already been paid; cancelled jumps keep that cost but produce no landing.
+    if (cast.skill.id === SHARED_SKILL_IDS.DODGE && !cast.cancelled)
+      scheduleLanding(runtime, cast, cast.start + VINDICATOR_AIRBORNE_MS / 1000);
   },
   onCastCommit(runtime, cast) {
     if (ENERGY_MELD_IDS.has(cast.skill.id)) energyMeld(runtime);
 
     if (cast.skill.id === ID.SWAP_LEGENDS) runtime.fireTrigger(eliteLegendInvoked, { at: runtime.time });
-  },
-  onCastCancel(runtime, cast) {
-    // Ending a cancelled jump also retires any autoattack chain advanced while airborne.
-    if (cast.skill.id === VINDICATOR_JUMP_SKILL.id) resetAutoattackChains(runtime);
   },
   tasks: { [VINDICATOR_LANDING_TASK]: land }
 };

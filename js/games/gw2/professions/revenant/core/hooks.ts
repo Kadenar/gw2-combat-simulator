@@ -5,7 +5,6 @@ import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/i
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import { revenantBuffPolicies, revenantEffectStates } from '#gw2/professions/revenant/core/effect-state.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { consumeBattleScar, emitBattleScar } from '#gw2/professions/revenant/core/mechanics/battle-scars.js';
@@ -45,11 +44,8 @@ import { scepterLifecycle } from '#gw2/professions/revenant/core/skills/weapons/
 import { spearLifecycle } from '#gw2/professions/revenant/core/skills/weapons/spear.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { isRevenantUpkeep } from '#gw2/professions/revenant/data/upkeep-skills.js';
-import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import type { RevenantRuntimeState, RevenantSkill, RevenantResolverContext } from '#gw2/professions/revenant/types.js';
-
-const DODGE_IDS = new Set<SkillId>([SHARED_SKILL_IDS.DODGE, VINDICATOR_JUMP_SKILL.id]);
 
 /** Core hooks: Energy, upkeeps, legends, weapon follow-ups, and actual hit/application trait reactions. */
 
@@ -141,7 +137,8 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   onCastStart(runtime, cast) {
     const skill = cast.skill;
 
-    if (DODGE_IDS.has(skill.id)) return;
+    // Shared execution already pays Dodge's endurance cost before specialization reactions.
+    if (skill.id === SHARED_SKILL_IDS.DODGE) return;
 
     if (!isRevenantUpkeep(skill) && skill.id !== ID.SWAP_LEGENDS)
       runtime.resourceController.spend('energy', revenantEnergyCost(runtime, skill));

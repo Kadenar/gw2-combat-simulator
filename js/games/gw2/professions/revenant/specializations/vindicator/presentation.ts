@@ -11,7 +11,11 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
-import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
+import {
+  VINDICATOR_AIRBORNE_MS,
+  VINDICATOR_LANDING_MS,
+  VINDICATOR_DODGE_MS
+} from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import type { RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 
 // Sentinel string used as a skill ID/name for the synthetic palette entry; never maps to a real skill.
@@ -37,12 +41,12 @@ function vindicatorDodgeAutoPaletteSkill(context: RevenantUiContext): Skill | nu
     id: VINDICATOR_DODGE_AUTO_ACTION,
     name: VINDICATOR_DODGE_AUTO_ACTION,
     displayName: 'Dodge + Auto',
-    description: 'Start the 600 ms dodge + 200 ms landing and the current autoattack together.',
+    description: `Start the ${VINDICATOR_AIRBORNE_MS} ms dodge + ${VINDICATOR_LANDING_MS} ms landing and the current autoattack together.`,
     icon: VINDICATOR_DODGE_AUTO_ICON,
     type: 'Action',
     slot: 'Action',
     // The combined palette action occupies the same non-instant jump as a normal dodge.
-    castTimeMs: VINDICATOR_JUMP_SKILL.castTimeMs
+    castTimeMs: VINDICATOR_DODGE_MS
   };
 }
 
@@ -55,7 +59,7 @@ export function vindicatorDodgeAutoRotationEntries(context: RevenantUiContext): 
   return [
     {
       type: 'cast',
-      skillId: VINDICATOR_JUMP_SKILL.id
+      skillId: SHARED_SKILL_IDS.DODGE
     },
     {
       type: 'cast',
@@ -69,14 +73,23 @@ export function vindicatorDodgeAutoRotationEntries(context: RevenantUiContext): 
 function vindicatorPaletteActionSkills(context: RevenantUiContext, skills: readonly Skill[]): Skill[] {
   // Strip any stale synthetic entry first so it cannot appear twice if called repeatedly.
   const ordinarySkills = skills
-    .filter((skill) => skill.id !== VINDICATOR_DODGE_AUTO_ACTION && skill.id !== VINDICATOR_JUMP_SKILL.id)
-    // Manual reconstruction uses the full jump; legacy landing-only commands remain loadable by ID.
-    .map((skill) => (skill.id === SHARED_SKILL_IDS.DODGE ? VINDICATOR_JUMP_SKILL : skill));
+    .filter((skill) => skill.id !== VINDICATOR_DODGE_AUTO_ACTION)
+    // Present the active specialization's full jump while preserving the shared command identity and cost.
+    .map((skill) =>
+      skill.id === SHARED_SKILL_IDS.DODGE
+        ? {
+            ...skill,
+            displayName: 'Dodge + Landing',
+            description: `${VINDICATOR_AIRBORNE_MS} ms airborne dodge + ${VINDICATOR_LANDING_MS} ms landing. Endurance is spent at takeoff; the selected dodge effect resolves on landing.`,
+            castTimeMs: VINDICATOR_DODGE_MS
+          }
+        : skill
+    );
   const dodgeAuto = vindicatorDodgeAutoPaletteSkill(context);
 
   if (!dodgeAuto) return ordinarySkills;
 
-  const dodgeIndex = ordinarySkills.findIndex((skill) => skill.id === VINDICATOR_JUMP_SKILL.id);
+  const dodgeIndex = ordinarySkills.findIndex((skill) => skill.id === SHARED_SKILL_IDS.DODGE);
   // Insert immediately after Dodge in the palette; if Dodge is absent, prepend at index 0.
   ordinarySkills.splice(dodgeIndex < 0 ? 0 : dodgeIndex + 1, 0, dodgeAuto);
   return ordinarySkills;
@@ -146,7 +159,7 @@ export const vindicatorUi: RevenantUiSlice = Object.freeze({
         statusLabel: 'Current',
         // Render the endurance meter beneath the Dodge button (which the
         // Vindicator dodge spends in one leap) instead of as a standalone bar.
-        paletteSkillId: VINDICATOR_JUMP_SKILL.id
+        paletteSkillId: SHARED_SKILL_IDS.DODGE
       }
     ];
   },
