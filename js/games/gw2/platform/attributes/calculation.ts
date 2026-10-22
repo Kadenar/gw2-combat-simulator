@@ -1,4 +1,4 @@
-import { attributeSeedFromCommon, equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
+import { equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
 import {
   conditionDurationPercentFromExpertise,
   criticalChancePercentFromPrecision,
@@ -25,6 +25,7 @@ import type {
   Gw2AttributeEffect,
   Gw2AttributeConversionInputs,
   Gw2AttributeMap,
+  Gw2AttributeSeed,
   Gw2CalculateAttributes,
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult,
@@ -45,11 +46,11 @@ const JBC_BONUS: Readonly<Gw2NumericAttributes> = { Vitality: 235 };
 
 interface CalculateCommonAttributesOptions {
   readonly weaponSet?: number;
-  readonly sigilNames?: readonly string[] | null;
   readonly disabledSigil?: string | null;
 }
 
 interface FinalizeBuildAttributesOptions {
+  readonly attributeSeed: Gw2AttributeSeed;
   readonly activeTraits: unknown;
   readonly reinforcedArmorStats: Readonly<Gw2NumericAttributes>;
   readonly traitStats?: Readonly<Gw2NumericAttributes>;
@@ -317,7 +318,7 @@ function recomputeDerivedAttributes(
 /** Calculates profession-neutral base, gear, upgrade, consumable, and infusion attributes. */
 export function calculateCommonAttributes(
   build: Gw2Build,
-  { weaponSet = 1, sigilNames = null, disabledSigil = null }: CalculateCommonAttributesOptions = {}
+  { weaponSet = 1, disabledSigil = null }: CalculateCommonAttributesOptions = {}
 ): Gw2CommonAttributeResult {
   const gear: Gw2NumericAttributes = {};
   const runes: Gw2NumericAttributes = {};
@@ -387,9 +388,10 @@ export function calculateCommonAttributes(
   addAttributes(utility, utilityFlatStats);
 
   let sigilCriticalChance = 0;
-  const selectedSigils = sigilNames || weaponSigilsForSet(build, weaponSet);
+  const selectedSigils = weaponSigilsForSet(build, weaponSet);
   // Duplicate named sigils never stack.
-  const effectiveSigils = new Set(selectedSigils);
+  // Disabled sigils must be absent from both configuration seeds and finalized previews.
+  const effectiveSigils = new Set(selectedSigils.filter((name) => name !== disabledSigil));
   for (const name of effectiveSigils) {
     const sigil = SIGIL_DATA[name];
 
@@ -484,6 +486,7 @@ export function calculateCommonAttributes(
 export function finalizeBuildAttributes(
   common: Gw2CommonAttributeResult,
   {
+    attributeSeed,
     activeTraits,
     reinforcedArmorStats,
     traitStats = {},
@@ -535,7 +538,7 @@ export function finalizeBuildAttributes(
   // commonContext is an implementation handoff, not part of the public build.
   return {
     ...result,
-    attributeSeed: attributeSeedFromCommon(common),
+    attributeSeed,
     attributes,
     activeTraits
   };
@@ -545,8 +548,8 @@ export function finalizeBuildAttributes(
  * Builds a profession attribute calculator that assembles the shared common
  * attributes and then applies the profession's own trait/skill rules.
  *
- * Native profession applications construct this wrapper through
- * `defineProfessionApp`; only the `applyBuildAttributeRules` step differs.
+ * Standalone callers request a complete preview; build contexts instead reuse
+ * common equipment preparation and invoke finalization only on demand.
  * Rules receive `weaponSet` so calculators that need it can use it; those that
  * do not simply ignore it.
  *
@@ -563,11 +566,7 @@ export function createCalculateAttributes(
     disabledSigil: string | null = null,
     balanceContext?: import('#gw2/platform/profession-definition/balance-context.js').ProfessionBalanceContext
   ) {
-    // Modifier comparisons omit the named sigil here so attribute and runtime effects use the same effective loadout.
-    const sigilNames = disabledSigil
-      ? weaponSigilsForSet(build, weaponSet).filter((name) => name !== disabledSigil)
-      : null;
-    const common = calculateCommonAttributes(build, { weaponSet, sigilNames, disabledSigil });
+    const common = calculateCommonAttributes(build, { weaponSet, disabledSigil });
     return applyBuildAttributeRules(common, {
       build,
       selectedSkills,

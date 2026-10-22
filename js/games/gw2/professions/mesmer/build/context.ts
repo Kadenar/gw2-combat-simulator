@@ -2,9 +2,6 @@ import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.
 import type { BoundProfession } from '#gw2/build-context/types.js';
 import { bindBuildContext } from '#gw2/build-context/create.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
-import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { getActiveTraits } from '#gw2/professions/mesmer/data/traits-data.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import type { MesmerCanonicalBuild } from '#gw2/professions/mesmer/types.js';
@@ -16,10 +13,7 @@ export const profession: BoundProfession = withActivePatchPreview(mesmerProfessi
 
 export const createBuildContext = bindBuildContext<MesmerCanonicalBuild>(
   profession,
-  createCalculateAttributes(
-    createProfessionBuildAttributeRules(mesmerCatalog, getActiveTraits),
-    profession.attributeContributions
-  ),
+  { getActiveTraits, attributeContributions: profession.attributeContributions },
   (build, specialization) => ({
     initialResource: specialization === 'Virtuoso' || specialization === 'Troubadour' ? build.initialResource : 0
   }),

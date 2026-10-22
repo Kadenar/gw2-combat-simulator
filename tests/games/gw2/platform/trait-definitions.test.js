@@ -1,4 +1,4 @@
-import { equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
+import { attributeSeedFromCommon, equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createCalculateAttributes, resolveAttributeEffects } from '#gw2/platform/attributes/calculation.js';
@@ -432,6 +432,7 @@ test('definition attributes use resolved minors, eligible conversions and patch 
     const { activeTraits } = createBuildAttributeContext(context, family.catalog, getActiveTraits);
     return finalizeProfessionBuildAttributes(
       common,
+      attributeSeedFromCommon(common),
       {
         activeTraits,
         profileContext: context.balanceContext ?? family.balanceContextFor()

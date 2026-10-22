@@ -2,7 +2,7 @@ import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { attributeSeedFromCommon } from '#gw2/platform/attributes/inputs.js';
 import {
   createDefaultBuild as createDefaultBuildFor,
   replaceBuild as replaceBuildFor
@@ -66,13 +66,14 @@ test('build contexts calculate each requested weapon set once and detach configu
   const calculatedSets = [];
   const createBuildContext = bindBuildContext(
     mesmerAppAdapter.profession,
-    (_build, _skills, weaponSet) => {
-      calculatedSets.push(weaponSet);
-      return {
-        attributeSeed: baseAttributeInputs({ power: weaponSet * 100 }).weaponSets[0],
-        attributes: { Power: { final: weaponSet * 100 } },
-        activeTraits: [{ id: 1, name: 'Trait' }]
-      };
+    {
+      getActiveTraits: () => [{ id: 1, name: 'Test' }],
+      attributeContributions: ({ weaponSet }) => {
+        calculatedSets.push(weaponSet);
+        return [
+          { attributeEffects: [{ kind: 'flat', to: 'Power', amount: weaponSet * 100, feedsConversions: 'all' }] }
+        ];
+      }
     },
     () => ({}),
     { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }
@@ -84,18 +85,21 @@ test('build contexts calculate each requested weapon set once and detach configu
       ...input,
       disabledModifier: type ? { id: `${type}:Test`, type, name: 'Test', label: 'Test', skillId: 1 } : undefined
     });
+    const beforePreview = context.simulationConfig();
+    assert.deepEqual(beforePreview.selectedTraitIds, type === 'Trait' ? [] : [1]);
     assert.deepEqual(calculatedSets, []);
     const attributes = context.attributes(2);
     assert.equal(context.attributes(2), attributes);
     assert.deepEqual(calculatedSets, [2]);
     const config = context.simulationConfig();
-    assert.deepEqual(calculatedSets, [2, 1]);
-    assert.deepEqual(
-      config.attributeInputs.weaponSets.map((seed) => seed.commonTotals.power),
-      [100, 200]
-    );
+    assert.deepEqual(calculatedSets, [2]);
+    assert.deepEqual(config, beforePreview);
+    assert.equal(attributes.attributes.Power.traits, 200);
+    assert.deepEqual(attributes.attributeSeed, config.attributeInputs.weaponSets[1]);
     config.attributeInputs.weaponSets[1].commonTotals.power = 999;
-    assert.equal(context.simulationConfig().attributeInputs.weaponSets[1].commonTotals.power, 200);
+    assert.deepEqual(context.simulationConfig(), beforePreview);
+    assert.deepEqual(calculatedSets, [2]);
+    context.attributes(1);
     assert.deepEqual(calculatedSets, [2, 1]);
   }
 });
@@ -413,6 +417,7 @@ test('shared build finalization applies deltas and rebuilds derived stats', () =
   const original = structuredClone(common.attributes);
   const activeTraits = [{ id: 1, name: 'Test Trait' }];
   const result = finalizeBuildAttributes(common, {
+    attributeSeed: attributeSeedFromCommon(common),
     activeTraits,
     reinforcedArmorStats: { Vitality: Math.round(common.commonContext.conversionPool.Vitality * 0.05) },
     traitStats: {

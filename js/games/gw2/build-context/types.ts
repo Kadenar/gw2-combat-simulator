@@ -1,5 +1,9 @@
 import type { Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
-import type { Gw2FinalizedAttributeResult } from '#gw2/platform/attributes/types.js';
+import type {
+  Gw2AttributeContributionCalculator,
+  Gw2FinalizedAttributeResult
+} from '#gw2/platform/attributes/types.js';
+import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 import type { ResolvedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import type { TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { CatalogEntity, SkillId } from '#gw2/platform/skills/types.js';
@@ -25,6 +29,12 @@ export type ProfessionModifier = {
 
 export interface BuildAttributes extends Readonly<Gw2FinalizedAttributeResult> {
   readonly activeTraits: readonly CatalogEntity[];
+}
+
+/** Trait selection is independent of the profession effects evaluated only for requested previews. */
+export interface BuildContextAttributeRules {
+  readonly getActiveTraits: (specializations: readonly ProfessionTraitSelection[]) => readonly CatalogEntity[];
+  readonly attributeContributions: Gw2AttributeContributionCalculator;
 }
 
 /** Explicit build dependencies keep headless configuration independent of lazy profession presentation. */

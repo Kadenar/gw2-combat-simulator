@@ -3,9 +3,6 @@ import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.
 import type { BoundProfession } from '#gw2/build-context/types.js';
 import { bindBuildContext } from '#gw2/build-context/create.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
-import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
-import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { getActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import type { RangerCanonicalBuild } from '#gw2/professions/ranger/types.js';
@@ -17,10 +14,7 @@ export const profession: BoundProfession = withActivePatchPreview(rangerProfessi
 
 export const createBuildContext = bindBuildContext<RangerCanonicalBuild>(
   profession,
-  createCalculateAttributes(
-    createProfessionBuildAttributeRules(rangerCatalog, getActiveTraits),
-    profession.attributeContributions
-  ),
+  { getActiveTraits, attributeContributions: profession.attributeContributions },
   (build) => ({
     initialAstralForce: build.initialAstralForce,
     initialArrows: build.initialArrows,

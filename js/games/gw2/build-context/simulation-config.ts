@@ -1,10 +1,10 @@
 import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2AttributeSeed } from '#gw2/platform/attributes/types.js';
-import type { BuildAttributes, BuildContextInput, ProfessionModifier } from '#gw2/build-context/types.js';
+import type { BuildContextInput, ProfessionModifier } from '#gw2/build-context/types.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 
 interface SimulationConfigOptions extends BuildContextInput {
-  readonly attributeDataByWeaponSet: readonly [BuildAttributes, BuildAttributes];
+  readonly attributeSeeds: readonly [Gw2AttributeSeed, Gw2AttributeSeed];
   readonly specialization: string;
   readonly disabled?: ProfessionModifier;
   readonly selectedSkillIds: readonly SkillId[];
@@ -58,7 +58,7 @@ export function createGw2SimulationConfig({
   transitionDelays,
   selectedSkillIds,
   assumptionControls,
-  attributeDataByWeaponSet,
+  attributeSeeds,
   specialization,
   disabled,
   selectedTraitIds
@@ -78,10 +78,7 @@ export function createGw2SimulationConfig({
     .map(aggregateSigilSet);
   // Only common equipment seeds cross the worker boundary; profession bonuses are evaluated by the selected runtime.
   const attributeInputs = {
-    weaponSets: [
-      snapshotSeed(attributeDataByWeaponSet[0].attributeSeed),
-      snapshotSeed(attributeDataByWeaponSet[1].attributeSeed)
-    ] as const
+    weaponSets: [snapshotSeed(attributeSeeds[0]), snapshotSeed(attributeSeeds[1])] as const
   };
   const professionAssumptionControls = assumptionControlsForSpecialization(assumptionControls, specialization);
 

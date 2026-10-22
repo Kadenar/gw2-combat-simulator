@@ -8,11 +8,18 @@ import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { Gw2CalculateAttributes } from '#gw2/platform/attributes/types.js';
+import type { Gw2AttributeSeed, Gw2CommonAttributeResult } from '#gw2/platform/attributes/types.js';
+import { calculateCommonAttributes } from '#gw2/platform/attributes/calculation.js';
+import { attributeSeedFromCommon } from '#gw2/platform/attributes/inputs.js';
+import {
+  createBuildAttributeContext,
+  finalizeProfessionBuildAttributes
+} from '#gw2/professions/shared/build-attributes.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type {
   BuildAttributes,
+  BuildContextAttributeRules,
   BuildContextFactory,
   BuildContextProfession,
   BuildContextDeclarations,
@@ -64,10 +71,10 @@ type ProfessionConfig = Partial<ProfessionConfigFields> & {
   readonly [Key in Exclude<keyof Gw2Config, keyof ProfessionConfigFields>]?: never;
 };
 
-/** Bind native profession declarations once; each call owns only its two lazy attribute results. */
+/** Share equipment preparation between configuration and lazy finalized attribute previews. */
 export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
   profession: BuildContextProfession,
-  calculateAttributes: Gw2CalculateAttributes,
+  attributeRules: BuildContextAttributeRules,
   professionConfig: (build: Readonly<TBuild>, specialization: string) => ProfessionConfig,
   declarations: BuildContextDeclarations<TBuild>
 ): BuildContextFactory<TBuild> {
@@ -100,6 +107,30 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
     const selectedSkills = selectedSkillIds
       .map((id) => catalog.skillsById.get(id))
       .filter((skill): skill is Skill => skill != null);
+    const disabledTrait = disabled?.type === 'Trait' ? disabled.name : null;
+    const traitContext = createBuildAttributeContext(
+      { build, disabledTrait, balanceContext },
+      catalog,
+      attributeRules.getActiveTraits
+    );
+    const selectedTraitIds = traitContext.activeTraits.map((trait) => trait.id);
+    // Keep equipment seeds independent of finalized previews, including when requirements request a preview first.
+    const equipmentCache = new Map<WeaponSet, { common: Gw2CommonAttributeResult; seed: Gw2AttributeSeed }>();
+    const equipment = (weaponSet: WeaponSet) => {
+      let prepared = equipmentCache.get(weaponSet);
+
+      if (!prepared) {
+        const common = calculateCommonAttributes(build, {
+          weaponSet,
+          disabledSigil: disabled?.type === 'Sigil' ? disabled.name : null
+        });
+        prepared = { common, seed: attributeSeedFromCommon(common) };
+        equipmentCache.set(weaponSet, prepared);
+      }
+
+      return prepared;
+    };
+
     const cache = new Map<WeaponSet, BuildAttributes>();
     const attributes = (weaponSet: WeaponSet): BuildAttributes => {
       if (weaponSet !== 1 && weaponSet !== 2) throw new RangeError('Weapon set must be 1 or 2.');
@@ -107,14 +138,15 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
       let result = cache.get(weaponSet);
 
       if (!result) {
-        result = calculateAttributes(
+        const { common, seed } = equipment(weaponSet);
+        result = finalizeProfessionBuildAttributes(common, seed, traitContext, {
           build,
           selectedSkills,
           weaponSet,
-          disabled?.type === 'Trait' ? disabled.name : null,
-          disabled?.type === 'Sigil' ? disabled.name : null,
-          balanceContext
-        ) as BuildAttributes;
+          disabledTrait,
+          balanceContext,
+          attributeContributions: attributeRules.attributeContributions
+        }) as BuildAttributes;
         cache.set(weaponSet, result);
       }
 
@@ -127,7 +159,6 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
       selectedSkillIds,
       attributes,
       simulationConfig() {
-        const sets = [attributes(1), attributes(2)] as const;
         // Config consumers may mutate their snapshot without corrupting cached seeds or the source build.
         return {
           // Preserve selected positions, including every fixed loadout, for live input-control resolution.
@@ -141,11 +172,11 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
             build,
             patchId,
             transitionDelays,
-            attributeDataByWeaponSet: sets,
+            attributeSeeds: [equipment(1).seed, equipment(2).seed],
             specialization,
             disabled,
             selectedSkillIds,
-            selectedTraitIds: sets[0].activeTraits.map((trait) => trait.id).filter((id): id is SkillId => id != null),
+            selectedTraitIds,
             assumptionControls
           }),
           ...structuredClone(professionConfig(build, specialization))

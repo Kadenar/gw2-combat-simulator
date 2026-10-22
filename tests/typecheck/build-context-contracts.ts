@@ -1,6 +1,6 @@
 import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import { bindBuildContext } from '#gw2/build-context/create.js';
-import type { Gw2CalculateAttributes } from '#gw2/platform/attributes/types.js';
+import type { BuildContextAttributeRules } from '#gw2/build-context/types.js';
 import type { BuildContextProfession } from '#gw2/build-context/types.js';
 import { createBuildContext, toApplicationBuild } from '#gw2/professions/engineer/build/context.js';
 import { toApplicationBuild as thiefBuild } from '#gw2/professions/thief/build/context.js';
@@ -32,10 +32,10 @@ createBuildContext({ ...input, playerHealth: 50 });
 
 // Profession contributions cannot replace common configuration even when inferred from a callback result.
 declare const profession: BuildContextProfession;
-declare const calculate: Gw2CalculateAttributes;
+declare const attributeRules: BuildContextAttributeRules;
 bindBuildContext<EngineerCanonicalBuild>(
   profession,
-  calculate,
+  attributeRules,
   // @ts-expect-error A profession contribution cannot replace target configuration.
   () => ({ initialResource: 1, target: { armor: 1 } }),
   { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }

@@ -5,7 +5,11 @@ import type { Gw2ApplyBuildAttributeRules, Gw2BuildAttributeRuleContext } from '
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 
-import type { Gw2CommonAttributeResult, Gw2FinalizedAttributeResult } from '#gw2/platform/attributes/types.js';
+import type {
+  Gw2AttributeSeed,
+  Gw2CommonAttributeResult,
+  Gw2FinalizedAttributeResult
+} from '#gw2/platform/attributes/types.js';
 
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 
@@ -34,7 +38,11 @@ export interface BuildAttributeContext<TTrait extends BuildAttributeTrait> {
  * the same effective trait set.
  */
 export function createBuildAttributeContext<TTrait extends BuildAttributeTrait>(
-  { build, disabledTrait, balanceContext }: Gw2BuildAttributeRuleContext,
+  {
+    build,
+    disabledTrait,
+    balanceContext
+  }: Pick<Gw2BuildAttributeRuleContext, 'build' | 'disabledTrait' | 'balanceContext'>,
   catalog: CanonicalCatalog,
   getActiveTraits: (specializations: readonly ProfessionTraitSelection[]) => readonly TTrait[]
 ): BuildAttributeContext<TTrait> {
@@ -56,7 +64,12 @@ export function createProfessionBuildAttributeRules(
   getActiveTraits: (specializations: readonly ProfessionTraitSelection[]) => readonly BuildAttributeTrait[]
 ): Gw2ApplyBuildAttributeRules {
   return (common, context) =>
-    finalizeProfessionBuildAttributes(common, createBuildAttributeContext(context, catalog, getActiveTraits), context);
+    finalizeProfessionBuildAttributes(
+      common,
+      attributeSeedFromCommon(common),
+      createBuildAttributeContext(context, catalog, getActiveTraits),
+      context
+    );
 }
 
 /**
@@ -65,13 +78,13 @@ export function createProfessionBuildAttributeRules(
  */
 export function finalizeProfessionBuildAttributes<TTrait extends BuildAttributeTrait>(
   common: Gw2CommonAttributeResult,
+  seed: Gw2AttributeSeed,
   { activeTraits, profileContext }: BuildAttributeContext<TTrait>,
   context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
   // The panel supplies explicit preview facts to the same selected-owner evaluator used by live queries.
   const build = context.build;
   // Each panel calculation has one active equipment set; named sources must read that exact unprocessed seed.
-  const seed = attributeSeedFromCommon(common);
   const config = {
     ...build,
     attributeInputs: { weaponSets: [seed, seed] as const },
@@ -96,6 +109,7 @@ export function finalizeProfessionBuildAttributes<TTrait extends BuildAttributeT
   const contributions = context.attributeContributions?.(facts) ?? [];
   const resolved = resolveAttributeContributions(seed, contributions);
   return finalizeBuildAttributes(common, {
+    attributeSeed: seed,
     activeTraits,
     reinforcedArmorStats: resolved.reinforcedArmorAttributes,
     traitStats: resolved.attributes,
