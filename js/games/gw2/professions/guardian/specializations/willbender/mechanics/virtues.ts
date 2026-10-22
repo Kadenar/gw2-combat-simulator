@@ -148,7 +148,6 @@ function reactToWillbenderHit(
 
     if (!progress.reached) continue;
 
-    state.triggeredVirtueEffects++;
     runtime.fireTrigger(willbenderVirtueTriggered, { cause: event, virtue });
 
     if (virtue === 'justice') {
@@ -156,7 +155,6 @@ function reactToWillbenderHit(
       const burn = requireEffect(profile, 'condition', 'Burning (active)');
 
       if (burn) {
-        runtime.profession.core.justiceActiveBurns++;
         runtime.effects.emit({
           kind: 'packet',
           cause: event,

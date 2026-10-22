@@ -155,7 +155,7 @@ projectPublicProfessionState(firebrandState, misspelledProjection.keys, misspell
 // Public projection types preserve selected fields without claiming private runtime counters exist.
 declare const planningInput: Gw2PlanningStateInput;
 const guardianProjection = projectGuardianPlanningState(planningInput);
-guardianProjection.justiceActiveBurns.toFixed();
+guardianProjection.resolutionUntil.toFixed();
 guardianProjection.symbolicAvengerExpirations.map((expiresAt) => expiresAt.toFixed());
 // @ts-expect-error Justice's private hit counter is absent from the public projection.
 guardianProjection.justiceHitCount.toFixed();

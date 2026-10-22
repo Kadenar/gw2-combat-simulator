@@ -75,9 +75,10 @@ export function guardianVirtueForSlot(slot: GuardianSkill['slot']): GuardianVirt
   return VIRTUES_BY_SLOT[Number(String(slot || '').match(/(\d)$/)?.[1] || 0)] || null;
 }
 
-/**
- * Applies and records one active or passive Virtue of Justice burn.
- */
+/** Describe this call's emission so specialization follow-ups need no cumulative observation state. */
+type JusticeBurnOutcome = 'active' | 'passive' | null;
+
+/** Emit one Justice burn and its announcement before reporting which follow-up is eligible. */
 export function applyJusticeBurn(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
@@ -92,15 +93,14 @@ export function applyJusticeBurn(
     readonly skillName?: string;
     readonly passiveBurnDuration?: number;
   }
-): void {
+): JusticeBurnOutcome {
   const justiceProfile = requireBalanceProfileFromContext(context, PROFILE.justice);
   const burn = requireEffect(justiceProfile, 'condition', active ? 'Burning (active)' : 'Burning (passive)');
 
-  if (!burn) return;
+  if (!burn) return null;
 
   const sourceId = active ? 'guardian.justice-active' : 'guardian.justice-passive';
-  // Justice burns resolve immediately so passive/active counters and chained
-  // condition reactions remain synchronized at the triggering hit timestamp.
+  // Settle Burning and its chained reactions before specialization follow-ups resume on the triggering hit.
   context.effects.emit({
     kind: 'packet',
     settlement: 'reaction',
@@ -124,9 +124,6 @@ export function applyJusticeBurn(
     })
   });
 
-  if (active) professionCoreState(context).justiceActiveBurns += 1;
-  else professionCoreState(context).justicePassiveBurns += 1;
-
   // Proc rows use the owning virtue's artwork instead of the attack that triggered the burn.
   context.effects.emit({
     kind: 'announcement',
@@ -139,9 +136,10 @@ export function applyJusticeBurn(
       icon: context.helpers.skillsById.get(skillId)?.icon || ''
     }
   });
+  return active ? 'active' : 'passive';
 }
 
-/** Applies Justice from canonical resolved-hit details with specialization-selected options. */
+/** Apply Justice from resolved-hit details and report only the burn emitted by this hit. */
 export function reactToJusticeHitWithOptions(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
@@ -157,41 +155,40 @@ export function reactToJusticeHitWithOptions(
     readonly skillName?: string;
     readonly passiveBurnDuration?: number;
   } = {}
-): void {
+): JusticeBurnOutcome {
   // Justice counts direct and symbol packets plus Guardian effects owned by
   // the player, such as Sovereign of Light, without admitting gear procs.
   const isGuardianOwnedHit =
     isGw2PlayerActorEvent(event) || (event.source === 'guardian' && isGw2PlayerModifierOwnedEvent(event));
 
-  if (!hitContext || !isGuardianOwnedHit || !(Number(event.coefficient) > 0)) return;
+  if (!hitContext || !isGuardianOwnedHit || !(Number(event.coefficient) > 0)) return null;
 
   const state = professionCoreState(context);
 
   if (state.justiceActiveArmed) {
     state.justiceActiveArmed = false;
-    applyJusticeBurn(context, event, {
+    return applyJusticeBurn(context, event, {
       active: true,
       skillId,
       skillName,
       passiveBurnDuration
     });
-    return;
   }
 
-  if (!retainsPassive && event.at < (state.virtueReadyAt.justice || 0)) return;
+  if (!retainsPassive && event.at < (state.virtueReadyAt.justice || 0)) return null;
 
   const justiceProfile = requireBalanceProfileFromContext(context, PROFILE.justice);
 
-  if (!requireEffect(justiceProfile, 'condition', 'Burning (passive)')) return;
+  if (!requireEffect(justiceProfile, 'condition', 'Burning (passive)')) return null;
 
   const triggerHits = permeatingWrathThreshold(context, 'justice', PROFILE.justice);
   // Reset accepted passive hit progress before burning can cause another reaction.
   const progress = advanceCounter(state.justiceHitCount, 1, triggerHits, 'reset');
   state.justiceHitCount = progress.value;
 
-  if (!progress.reached) return;
+  if (!progress.reached) return null;
 
-  applyJusticeBurn(context, event, {
+  return applyJusticeBurn(context, event, {
     active: false,
     skillId,
     skillName,

@@ -15,3 +15,19 @@ export function bindTriggerPoints(runtime, family, config = {}) {
 
   return profession;
 }
+
+/** Observe domain triggers through a fixture extension while preserving every native listener and its order. */
+export function captureTriggerPoint(point) {
+  const triggers = [];
+  return {
+    triggers,
+    extend(native) {
+      const triggerListeners = new Map(native.triggerListeners);
+      triggerListeners.set(point.id, [
+        ...(triggerListeners.get(point.id) ?? []),
+        (_runtime, input) => triggers.push(input)
+      ]);
+      return { triggerListeners };
+    }
+  };
+}

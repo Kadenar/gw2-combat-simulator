@@ -6,7 +6,6 @@ import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-
 import { armSkillFlip, consumeSkillFlip, expireSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceProfileNumber,
@@ -43,17 +42,14 @@ function reactToDragonhunterJusticeHit(
   event: GuardianResolverEvent,
   dependencies: Pick<NativeResolvedDamageDetails, 'hitContext'> = {}
 ): void {
-  const core = professionCoreState(context);
-  const passiveBefore = core.justicePassiveBurns || 0;
-  reactToJusticeHitWithOptions(context, event, dependencies, {
+  const outcome = reactToJusticeHitWithOptions(context, event, dependencies, {
     retainsPassive: false,
     skillId: ID.SPEAR_OF_JUSTICE,
     skillName: 'Spear of Justice'
   });
 
-  // Passive Crippled only fires when the passive burn counter actually incremented,
-  // i.e. a new passive Justice proc occurred on this hit (not an active proc).
-  if ((core.justicePassiveBurns || 0) > passiveBefore) {
+  // Only this hit's emitted passive Burning grants Crippled, after Burning's immediate reactions have settled.
+  if (outcome === 'passive') {
     const tetherProfile = requireBalanceProfileFromContext(context, PROFILE.tether);
     const crippled = requireEffect(tetherProfile, 'condition', 'Crippled (passive)');
 

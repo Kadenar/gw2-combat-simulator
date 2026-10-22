@@ -1,3 +1,6 @@
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+import { captureTriggerPoint } from '#tests/helpers/trigger-points.js';
+import { willbenderVirtueTriggered } from '#gw2/professions/guardian/specializations/willbender/mechanics/trigger-points.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
@@ -400,91 +403,116 @@ test('Willbender virtue windows appear as independent timed buff uptimes', () =>
   assert.equal(summaries['Crashing Courage'], undefined);
 });
 
-test('Willbender flame replacement and Phoenix Protocol follow virtue triggers', () => {
-  const willbenderConfig = {
-    ...config,
-    specialization: 'Willbender',
-    primaryWeapon: 'Greatsword',
-    boons: { quickness: true }
-  };
-  const overlapping = createObservedProfessionSimulator(guardianProfession, willbenderConfig)(undefined, [
-    'Flowing Resolve',
-    'Flowing Resolve',
-    { type: 'wait', durationMs: 6000 }
-  ]);
-  const replaced = createObservedProfessionSimulator(guardianProfession, willbenderConfig)(undefined, [
-    'Flowing Resolve',
-    { type: 'wait', durationMs: 700 },
-    'Rushing Justice',
-    { type: 'wait', durationMs: 6000 }
-  ]);
-  const phoenix = createObservedProfessionSimulator(guardianProfession, {
-    ...willbenderConfig,
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL]
-  })(undefined, ['Flowing Resolve', 'Whirling Wrath', { type: 'wait', durationMs: 6000 }]);
-  const stackedVirtues = createObservedProfessionSimulator(guardianProfession, willbenderConfig)(undefined, [
-    'Flowing Resolve',
-    { type: 'wait', durationMs: 1000 },
-    'Rushing Justice',
-    'Whirling Wrath'
-  ]);
-  const allVirtues = createObservedProfessionSimulator(guardianProfession, {
-    ...willbenderConfig,
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES]
-  })(undefined, ['Flowing Resolve', 'Crashing Courage', 'Rushing Justice', 'Whirling Wrath']);
-  const flameCount = (result, skillId) =>
-    result.resolvedEvents.filter(
-      (event) => event.type === 'damage' && event.skillName === 'Willbender Flames' && event.skillId === skillId
-    ).length;
+test('independent Willbender cycles deliver virtue payloads and selected trait rewards from the accepted hit', () => {
+  // Seed independent cycles so one accepted strike tests their rewards without activation grants or flame schedules.
+  for (const virtues of [
+    ['justice', 'resolve'],
+    ['justice', 'resolve', 'courage']
+  ]) {
+    const { triggers, extend } = captureTriggerPoint(willbenderVirtueTriggered);
+    let workBeforeHit;
+    const result = runGuardian(
+      [{ type: 'wait', durationMs: 2000 }],
+      {
+        specialization: 'Willbender',
+        selectedTraitIds: [GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL]
+      },
+      {
+        extend,
+        initialize(runtime) {
+          const state = runtime.profession.specialization.state;
+          for (const virtue of virtues) {
+            state[`${virtue}Until`] = 2;
+            state.virtueHitCounts[virtue] = 4;
+          }
 
-  assert.equal(flameCount(overlapping, GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES), 10);
-  assert.equal(overlapping.steps[1].start - overlapping.steps[0].start, 920);
-  assert.equal(flameCount(replaced, GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES), 1);
-  assert.equal(flameCount(replaced, GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES_ID_62618), 5);
-  // Every live virtue contributes independently to the aggregate trigger counter.
-  assert.ok(
-    stackedVirtues.planningState.profession.triggeredVirtueEffects >
-      stackedVirtues.planningState.profession.justiceActiveBurns
-  );
-  const allState = allVirtues.planningState.profession;
-  const courageBoons = (kind) =>
-    allVirtues.events.filter(
-      (event) => event.type === 'buff' && event.kind === kind && event.sourceId === GUARDIAN_SKILL_IDS.CRASHING_COURAGE
+          const skill = runtime.helpers.skillsById.get(GUARDIAN_SKILL_IDS.CHAINS_OF_LIGHT);
+          runtime.cooldownController.startRecharge(skill, 0, 10);
+          workBeforeHit = runtime.cooldownController.remaining(
+            skill,
+            runtime.cooldownController.rechargeFor(skill.id),
+            1
+          );
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'damage',
+              at: 1,
+              actorType: 'player',
+              source: 'guardian',
+              sourceId: GUARDIAN_SKILL_IDS.ORB_OF_WRATH,
+              skillId: GUARDIAN_SKILL_IDS.ORB_OF_WRATH,
+              skillName: 'Orb of Wrath',
+              activationId: 'cycle-hit',
+              coefficient: 1,
+              weaponStrengthProfileId: 'weapon.scepter'
+            }
+          });
+        }
+      }
     );
-  assert.ok(courageBoons('aegis').length > 0);
-  assert.equal(courageBoons('aegis').length, courageBoons('stability').length);
-  assert.equal(allState.triggeredVirtueEffects, allState.justiceActiveBurns * 3);
-  assert.ok(allVirtues.procSteps.some((step) => step.skill === 'Restorative Virtues'));
-  const phoenixTriggerCount = phoenix.planningState.profession.triggeredVirtueEffects;
-  const phoenixActivationAlacrity = phoenix.events.filter(
-    (event) =>
-      event.type === 'buff' &&
-      event.sourceId === GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL &&
-      event.name === 'Phoenix Protocol — alacrity'
-  );
-  const phoenixTriggeredAlacrity = phoenix.events.filter(
-    (event) =>
-      event.type === 'buff' &&
-      event.sourceId === GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL &&
-      event.name === 'Phoenix Protocol — alacrity (triggered)'
-  );
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(
+      triggers.map(({ virtue, cause }) => [virtue, cause.activationId]),
+      virtues.map((virtue) => [virtue, 'cycle-hit'])
+    );
+    const burns = result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.skillId === GUARDIAN_SKILL_IDS.WILLBENDER_JUSTICE
+    );
+    assert.equal(burns.length, 1);
+    const courageBoons = result.resolvedEvents.filter(
+      (event) => event.type === 'buff' && event.sourceId === GUARDIAN_SKILL_IDS.CRASHING_COURAGE
+    );
+    assert.deepEqual(
+      courageBoons.map((event) => event.kind),
+      virtues.includes('courage') ? ['aegis', 'stability'] : []
+    );
+    assert.ok(courageBoons.every((event) => event.activationId === 'cycle-hit'));
+    const alacrity = result.resolvedEvents.filter(
+      (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL
+    );
+    assert.deepEqual(
+      alacrity.map((event) => [
+        event.kind,
+        event.duration,
+        event.resolvedAudience.alliedPlayerCount,
+        event.triggeredBy
+      ]),
+      [['alacrity', 1, 0, 'Orb of Wrath']]
+    );
+    const work = observedRuntime(result).cooldownController.rechargeFor(GUARDIAN_SKILL_IDS.CHAINS_OF_LIGHT).work;
+    assert.ok(Math.abs(workBeforeHit - work - virtues.length * 0.28) < 1e-9);
+    assert.ok(result.procSteps.some((step) => step.skill === 'Restorative Virtues'));
+  }
+});
 
+test('Phoenix Protocol activation grants remain distinct from hit-cycle rewards', () => {
+  // An off-target Resolve opens its window and grants activation Alacrity without completing a hit cycle.
+  const { triggers, extend } = captureTriggerPoint(willbenderVirtueTriggered);
+  const result = runGuardian(
+    [
+      { skillId: GUARDIAN_SKILL_IDS.FLOWING_RESOLVE, offTarget: true },
+      { type: 'wait', durationMs: 1000 }
+    ],
+    {
+      specialization: 'Willbender',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL]
+    },
+    { extend }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(triggers, []);
+  const alacrity = result.resolvedEvents.filter(
+    (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL
+  );
   assert.deepEqual(
-    phoenixActivationAlacrity.map((event) => [
+    alacrity.map((event) => [
+      event.kind,
       event.duration,
       event.audience?.recipients,
       event.resolvedAudience.alliedPlayerCount
     ]),
-    [[5, 'self', 0]]
-  );
-  assert.ok(phoenixTriggerCount > 0);
-  assert.equal(phoenixTriggeredAlacrity.length, phoenixTriggerCount);
-  assert.ok(
-    phoenixTriggeredAlacrity.every((event) => event.duration === 1 && event.resolvedAudience.alliedPlayerCount === 0)
-  );
-  assert.equal(
-    phoenixTriggeredAlacrity.every((event) => event.triggeredBy != null && String(event.triggeredBy).length > 0),
-    true
+    [['alacrity', 5, 'self', 0]]
   );
 });
 

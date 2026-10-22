@@ -17,6 +17,14 @@ import test from 'node:test';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const core = (result) => observedRuntime(result).profession.core;
+// Select Justice applications independently of condition ticks and Willbender's shared passive source label.
+const justiceApplications = (result, kind) =>
+  result.resolvedEvents.filter(
+    (event) =>
+      event.type === 'condition' &&
+      event.condition === 'Burning' &&
+      (event.skillId === ID.WILLBENDER_JUSTICE ? kind === 'active' : event.sourceId === `guardian.justice-${kind}`)
+  );
 const strike = (runtime, at, extra = {}) =>
   runtime.effects.emit({
     kind: 'packet',
@@ -325,12 +333,15 @@ test('Willbender counts accepted player and Air impacts through the inclusive vi
       strike(runtime, 1.000001);
     }
   });
-  assert.equal(wb(result).triggeredVirtueEffects, 3);
+  assert.equal(result.resolvedEvents.filter((event) => event.kind === 'lethal-tempo').length, 3);
   assert.deepEqual(wb(result).virtueHitCounts, { justice: 0, resolve: 0, courage: 0 });
-  assert.equal(core(result).justiceActiveBurns, 1);
+  assert.equal(justiceApplications(result, 'active').length, 1);
   assert.equal(wb(result).lethalTempo.stacks, 3);
   const unarmed = run([wait(1)], willbender, { initialize: (runtime) => strike(runtime, 0) });
-  assert.equal(wb(unarmed).triggeredVirtueEffects, 0);
+  assert.equal(
+    unarmed.resolvedEvents.some((event) => event.kind === 'lethal-tempo'),
+    false
+  );
   assert.deepEqual(wb(unarmed).virtueHitCounts, { justice: 0, resolve: 0, courage: 0 });
 });
 
@@ -342,7 +353,7 @@ test('Willbender reopening preserves partial progress and records one live activ
       state.virtueHitCounts.justice = 4;
     }
   });
-  assert.equal(wb(result).triggeredVirtueEffects, 1);
+  assert.equal(justiceApplications(result, 'active').length, 1);
   assert.equal(wb(result).virtueHitCounts.justice, 0);
   const window = result.resolvedEvents.find((event) => event.kind === 'willbender-justice');
   const [application] = timedBuffApplicationsAt(result.events, 'willbender-justice', window.at);
@@ -478,7 +489,7 @@ test('removed Willbender window components preserve independent fields and activ
     { initialize: () => {}, profession: patched }
   );
   assert.equal(wb(result).justiceUntil, 0);
-  assert.equal(wb(result).triggeredVirtueEffects, 0);
+  assert.equal(justiceApplications(result, 'active').length, 0);
   assert.equal(wb(result).lethalTempo.stacks, 1);
   assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.willbenderFlames));
   assert.ok(result.resolvedEvents.some((event) => event.kind === 'fury'));
@@ -764,9 +775,9 @@ test('Core Justice counts accepted player hits and excludes missed, precombat, s
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(core(result).justicePassiveBurns, 1);
+  assert.equal(justiceApplications(result, 'passive').length, 1);
   assert.equal(core(result).justiceHitCount, 0);
-  assert.equal(core(result).justiceActiveBurns, 0);
+  assert.equal(justiceApplications(result, 'active').length, 0);
 });
 
 test('Justice activation arms one surviving hit and disables the passive without replay events', () => {
@@ -781,8 +792,8 @@ test('Justice activation arms one surviving hit and disables the passive without
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(core(result).justiceActiveBurns, 1);
-  assert.equal(core(result).justicePassiveBurns, 0);
+  assert.equal(justiceApplications(result, 'active').length, 1);
+  assert.equal(justiceApplications(result, 'passive').length, 0);
   assert.equal(core(result).justiceHitCount, 0);
   assert.equal(core(result).justiceActiveArmed, false);
   assert.equal(
@@ -829,7 +840,7 @@ test('Justice armed during post-death planning cannot be consumed by a rejected 
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(core(result).justiceActiveArmed, true);
-  assert.equal(core(result).justiceActiveBurns, 0);
+  assert.equal(justiceApplications(result, 'active').length, 0);
   assert.equal(core(result).justiceHitCount, 1);
 });
 
@@ -873,7 +884,7 @@ test('permanent Alacrity readies the Core passive on the same action tick as its
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(core(result).justiceActiveBurns, 1);
+  assert.equal(justiceApplications(result, 'active').length, 1);
   assert.equal(core(result).justiceHitCount, 1);
   assert.equal(core(result).virtueReadyAt.justice, 9.6);
 });
@@ -899,8 +910,8 @@ test('removed Justice packets cannot arm an active charge or advance the passive
     );
     assert.deepEqual(result.warnings, []);
     assert.equal(core(result).justiceActiveArmed, false);
-    assert.equal(core(result).justiceActiveBurns, 0);
-    assert.equal(core(result).justicePassiveBurns, 0);
+    assert.equal(justiceApplications(result, 'active').length, 0);
+    assert.equal(justiceApplications(result, 'passive').length, 0);
     assert.equal(core(result).justiceHitCount, 0);
   }
 });
@@ -1650,7 +1661,7 @@ test('Dragonhunter passive Justice consumes only accepted hit cycles and Renewed
 
   const config = { ...dragonhunter, selectedTraitIds: [TRAIT.PERMEATING_WRATH] };
   const passive = run([wait(600)], config, { initialize: initialize });
-  assert.equal(core(passive).justicePassiveBurns, 1);
+  assert.equal(justiceApplications(passive, 'passive').length, 1);
   const cripple = passive.resolvedEvents.find((event) => event.name === 'Spear of Justice — Passive Crippled');
   assert.equal(cripple.activationId, 'impact-0.3');
   const rotation = [ID.SPEAR_OF_JUSTICE, ID.RENEWED_FOCUS, wait(1000)];
@@ -1661,7 +1672,7 @@ test('Dragonhunter passive Justice consumes only accepted hit cycles and Renewed
     }
   });
   assert.deepEqual(refreshed.warnings, []);
-  assert.equal(core(refreshed).justicePassiveBurns, 1);
+  assert.equal(justiceApplications(refreshed, 'passive').length, 1);
   assert.equal(core(refreshed).justiceActiveArmed, false);
 });
 

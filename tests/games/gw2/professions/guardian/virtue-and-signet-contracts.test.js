@@ -136,6 +136,12 @@ test('Willbender misses cannot complete a virtue hit cycle', () => {
       ]
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.triggeredVirtueEffects > 0, !offTarget);
+    // Only a completed Justice cycle emits this condition; activation grants cannot satisfy the assertion.
+    assert.equal(
+      result.resolvedEvents.some(
+        (event) => event.type === 'condition' && event.skillId === GUARDIAN_SKILL_IDS.WILLBENDER_JUSTICE
+      ),
+      !offTarget
+    );
   }
 });

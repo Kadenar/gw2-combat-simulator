@@ -726,8 +726,7 @@ const guardianInactiveStateKeys = Object.freeze({
     'resolveUntil',
     'courageUntil',
     'virtueHitCounts',
-    'lethalTempo',
-    'triggeredVirtueEffects'
+    'lethalTempo'
   ],
   Luminary: [
     'radiantForge',

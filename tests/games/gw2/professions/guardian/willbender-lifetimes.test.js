@@ -5,6 +5,8 @@ import test from 'node:test';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
+import { willbenderVirtueTriggered } from '#gw2/professions/guardian/specializations/willbender/mechanics/trigger-points.js';
+import { captureTriggerPoint } from '#tests/helpers/trigger-points.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
@@ -49,7 +51,9 @@ test('Willbender virtue deadlines agree across delivered buffs and canonical sna
 
 test('virtue hit cycles include expiry, exclude later hits, and never arm from the zero deadline sentinel', () => {
   for (const at of [0, 9.999999, 10, 10.000001]) {
+    const { triggers, extend } = captureTriggerPoint(willbenderVirtueTriggered);
     const result = runGuardian([wait(11000)], config, {
+      extend,
       initialize: (runtime) => {
         const state = runtime.profession.specialization.state;
         for (const [virtue] of virtues) {
@@ -61,7 +65,10 @@ test('virtue hit cycles include expiry, exclude later hits, and never arm from t
       }
     });
     const eligible = at > 0 && at <= 10;
-    assert.equal(state(result).triggeredVirtueEffects, eligible ? 3 : 0);
+    assert.deepEqual(
+      triggers.map(({ virtue }) => virtue),
+      eligible ? ['justice', 'resolve', 'courage'] : []
+    );
     for (const [virtue] of virtues) assert.equal(state(result).virtueHitCounts[virtue], eligible ? 0 : 4);
   }
 });
@@ -69,7 +76,9 @@ test('virtue hit cycles include expiry, exclude later hits, and never arm from t
 test('virtue reactivation preserves partial hit progress across expiry gaps', () => {
   for (const [virtue, skillId] of virtues) {
     for (const at of [9.999999, 10, 10.000001, 20]) {
+      const { triggers, extend } = captureTriggerPoint(willbenderVirtueTriggered);
       const result = runGuardian([wait(at * 1000), { skillId, offTarget: true }, wait(1000)], config, {
+        extend,
         initialize: (runtime) => {
           const state = runtime.profession.specialization.state;
           state[`${virtue}Until`] = 10;
@@ -78,7 +87,10 @@ test('virtue reactivation preserves partial hit progress across expiry gaps', ()
         }
       });
       assert.deepEqual(result.warnings, []);
-      assert.equal(state(result).triggeredVirtueEffects, 1);
+      assert.deepEqual(
+        triggers.map((trigger) => trigger.virtue),
+        [virtue]
+      );
       assert.equal(state(result).virtueHitCounts[virtue], 0);
     }
   }

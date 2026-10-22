@@ -1,5 +1,6 @@
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -249,11 +250,11 @@ test('Justice active burning resolves through simulateGw2', () => {
 
   assert.equal(withoutJustice.conditionDamage, 0);
   assert.ok(withJustice.conditionDamage > 0);
-  assert.equal(
-    withJustice.planningState.profession.justiceActiveBurns + withJustice.planningState.profession.justicePassiveBurns,
-    1
+  // The armed hit delivers one active application and consumes its entitlement.
+  assert.deepEqual(
+    withJustice.resolvedEvents.filter((event) => event.type === 'condition').map((event) => event.sourceId),
+    ['guardian.justice-active']
   );
-  assert.equal(withJustice.planningState.profession.justiceActiveBurns, 1);
   assert.equal(withJustice.planningState.profession.justiceActiveArmed, false);
   assert.equal(
     withJustice.procSteps.find((step) => step.skill === 'Justice Active')?.icon,
@@ -261,49 +262,59 @@ test('Justice active burning resolves through simulateGw2', () => {
   );
 });
 
-test('Justice passive counts individual hits and respects its active cooldown', () => {
-  const passive = createObservedProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Greatsword' })(
-    undefined,
-    ['Whirling Wrath']
-  );
-  const activated = createObservedProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Greatsword' })(
-    undefined,
-    ['Virtue of Justice', 'Whirling Wrath']
-  );
-  const permeating = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    primaryWeapon: 'Greatsword',
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH]
-  })(undefined, ['Whirling Wrath']);
-  const radiantPassive = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    specialization: 'Luminary',
-    primaryWeapon: 'Greatsword'
-  })(undefined, ['Whirling Wrath']);
-  const radiantPermeating = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    specialization: 'Luminary',
-    primaryWeapon: 'Greatsword',
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH]
-  })(undefined, ['Whirling Wrath']);
-  const radiantActivated = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    specialization: 'Luminary',
-    primaryWeapon: 'Greatsword'
-  })(undefined, ['Radiant Justice', 'Whirling Wrath']);
+test('Core and Luminary Justice use the selected hit threshold and preserve progress during active cooldown', () => {
+  // Two synthetic hits cross exactly one selected threshold without depending on a weapon's native packet schedule.
+  for (const specialization of ['Core', 'Luminary']) {
+    for (const permeating of [false, true]) {
+      for (const active of [false, true]) {
+        const threshold = permeating ? 3 : 5;
+        const skillId = specialization === 'Core' ? GUARDIAN_SKILL_IDS.JUSTICE : GUARDIAN_SKILL_IDS.RADIANT_JUSTICE;
+        const result = runGuardian(
+          [{ type: 'wait', durationMs: 2000 }],
+          {
+            specialization,
+            selectedTraitIds: permeating ? [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH] : []
+          },
+          {
+            initialize(runtime) {
+              runtime.profession.core.justiceHitCount = threshold - 2;
+              runtime.profession.core.justiceActiveArmed = active;
 
-  assert.equal(passive.planningState.profession.justicePassiveBurns, 2);
-  assert.equal(observedRuntime(passive).profession.core.justiceHitCount, 4);
-  assert.equal(activated.planningState.profession.justiceActiveBurns, 1);
-  assert.equal(activated.planningState.profession.justicePassiveBurns, 0);
-  assert.equal(observedRuntime(activated).profession.core.virtueReadyAt.justice, 16);
-  assert.equal(permeating.planningState.profession.justicePassiveBurns, 4);
-  assert.equal(observedRuntime(permeating).profession.core.justiceHitCount, 2);
-  assert.equal(radiantPassive.planningState.profession.justicePassiveBurns, 2);
-  assert.equal(observedRuntime(radiantPassive).profession.core.justiceHitCount, 4);
-  assert.equal(radiantPermeating.planningState.profession.justicePassiveBurns, 4);
-  assert.equal(observedRuntime(radiantPermeating).profession.core.justiceHitCount, 2);
-  assert.equal(radiantActivated.planningState.profession.justicePassiveBurns, 0);
+              if (active) runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(skillId), 0, 10);
+
+              for (const at of [1, 1.1])
+                runtime.effects.emit({
+                  kind: 'packet',
+                  event: {
+                    type: 'damage',
+                    at,
+                    actorType: 'player',
+                    source: 'guardian',
+                    sourceId: GUARDIAN_SKILL_IDS.ORB_OF_WRATH,
+                    skillId: GUARDIAN_SKILL_IDS.ORB_OF_WRATH,
+                    skillName: 'Orb of Wrath',
+                    activationId: `threshold-${at}`,
+                    coefficient: 1,
+                    weaponStrengthProfileId: 'weapon.scepter'
+                  }
+                });
+            }
+          }
+        );
+        assert.deepEqual(result.warnings, []);
+        const burns = result.resolvedEvents.filter(
+          (event) => event.type === 'condition' && event.condition === 'Burning'
+        );
+        assert.deepEqual(
+          burns.map((event) => [event.sourceId, event.skillId, event.activationId]),
+          [[`guardian.justice-${active ? 'active' : 'passive'}`, skillId, `threshold-${active ? 1 : 1.1}`]]
+        );
+        const core = observedRuntime(result).profession.core;
+        assert.equal(core.justiceHitCount, active ? threshold - 2 : 0);
+        assert.equal(core.justiceActiveArmed, false);
+      }
+    }
+  }
 });
 
 // Tether damage is a non-critical flat strike and must remain attributed to its own breakdown row.

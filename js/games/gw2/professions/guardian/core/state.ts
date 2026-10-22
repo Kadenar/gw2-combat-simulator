@@ -12,8 +12,6 @@ export interface GuardianCoreState {
   endurance: ResourceClock;
   justiceActiveArmed: boolean;
   justiceHitCount: number;
-  justiceActiveBurns: number;
-  justicePassiveBurns: number;
   virtueReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
   autoattackChains: Record<string, SkillId>;
   availableFlips: SkillFlipWindows;
@@ -37,8 +35,6 @@ export function createGuardianCoreState(): GuardianCoreState {
     endurance: createResourceClock(100),
     justiceActiveArmed: false,
     justiceHitCount: 0,
-    justiceActiveBurns: 0,
-    justicePassiveBurns: 0,
     virtueReadyAt: {
       justice: 0,
       resolve: 0,
@@ -70,8 +66,6 @@ const GUARDIAN_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'endurance',
 
   'justiceActiveArmed',
-  'justiceActiveBurns',
-  'justicePassiveBurns',
   'autoattackChains',
   'availableFlips',
   'symbolIgnitionStartsAt',

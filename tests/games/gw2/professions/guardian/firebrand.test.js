@@ -976,7 +976,9 @@ test('Firebrand Justice attribution and Imbued Haste use timeline state', () => 
     primaryWeapon: 'Greatsword'
   })(undefined, ['Whirling Wrath', { type: 'wait', durationMs: 80000 }]);
 
-  assert.ok(passive.planningState.profession.justicePassiveBurns > 0);
+  assert.ok(
+    passive.resolvedEvents.some((event) => event.type === 'condition' && event.sourceId === 'guardian.justice-passive')
+  );
   assert.equal(
     passive.resolvedEvents
       .filter((event) => event.sourceId === 'guardian.justice-passive')

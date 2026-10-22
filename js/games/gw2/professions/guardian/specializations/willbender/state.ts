@@ -16,7 +16,6 @@ export interface GuardianWillbenderState {
   courageUntil: number;
   virtueHitCounts: Record<'justice' | 'resolve' | 'courage', number>;
   lethalTempo: RefreshedStacks;
-  triggeredVirtueEffects: number;
 }
 
 function createWillbenderState(): GuardianWillbenderState {
@@ -33,8 +32,7 @@ function createWillbenderState(): GuardianWillbenderState {
       resolve: 0,
       courage: 0
     },
-    lethalTempo: { stacks: 0, expiresAt: 0 },
-    triggeredVirtueEffects: 0
+    lethalTempo: { stacks: 0, expiresAt: 0 }
   };
 }
 
@@ -45,8 +43,7 @@ export const WILLBENDER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   resolveUntil: 0,
   courageUntil: 0,
   virtueHitCounts: { justice: 0, resolve: 0, courage: 0 },
-  lethalTempo: { stacks: 0, expiresAt: 0 },
-  triggeredVirtueEffects: 0
+  lethalTempo: { stacks: 0, expiresAt: 0 }
 } satisfies Partial<GuardianWillbenderState>);
 
 export const willbenderState = defineProfessionSpecializationState('Willbender', createWillbenderState);

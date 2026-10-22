@@ -5,7 +5,8 @@ import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
-import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { dragonhunterVirtueLifecycle } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/virtue-effects.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { tomeStowed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
@@ -40,24 +41,124 @@ test('passive Justice resets before Burning while active entitlement and cooldow
       }
     }).effects
   };
-  reactToJusticeHitWithOptions(context, hit, details);
+  assert.equal(reactToJusticeHitWithOptions(context, hit, details), 'active');
   assert.equal(core.justiceActiveArmed, false);
   assert.equal(core.justiceHitCount, 2);
-  reactToJusticeHitWithOptions(context, hit, details);
+  assert.equal(reactToJusticeHitWithOptions(context, hit, details), null);
   assert.equal(core.justiceHitCount, 2);
-  reactToJusticeHitWithOptions(
-    context,
-    { ...hit, at: 2, actorType: 'effect', source: 'sigil', ownerActorType: 'player' },
-    details
+  assert.equal(
+    reactToJusticeHitWithOptions(
+      context,
+      { ...hit, at: 2, actorType: 'effect', source: 'sigil', ownerActorType: 'player' },
+      details
+    ),
+    null
   );
   assert.equal(core.justiceHitCount, 2);
-  reactToJusticeHitWithOptions(context, { ...hit, at: 2 }, details);
+  assert.equal(reactToJusticeHitWithOptions(context, { ...hit, at: 2 }, details), 'passive');
   assert.deepEqual(observations, [
     ['guardian.justice-active', 2],
     ['guardian.justice-passive', 0]
   ]);
-  assert.equal(core.justicePassiveBurns, 1);
   assert.equal(core.justiceHitCount, 0);
+  assert.equal(reactToJusticeHitWithOptions(context, { ...hit, at: 2 }, details), null);
+  assert.equal(core.justiceHitCount, 1);
+  assert.equal(observations.length, 2);
+});
+
+test('removed Justice effects cannot grant an outcome or consume passive progress', () => {
+  // Removing an active payload still consumes its entitlement, while a removed passive payload disables its cycle.
+  for (const active of [false, true]) {
+    const core = createGuardianCoreState();
+    core.justiceHitCount = 4;
+    core.justiceActiveArmed = active;
+    const emissions = captureEffectEmissions();
+    const context = {
+      helpers: applyBalanceProfilePatch(guardianCatalog, {
+        balanceProfiles: {
+          [CORE_PROFILE.justice]: {
+            removeEffects: [{ type: 'condition', name: `Burning (${active ? 'active' : 'passive'})` }]
+          }
+        }
+      }),
+      traits: new Set(),
+      profession: { core },
+      effects: emissions.effects
+    };
+    assert.equal(reactToJusticeHitWithOptions(context, hit, details), null);
+    assert.equal(core.justiceActiveArmed, false);
+    assert.equal(core.justiceHitCount, 4);
+    assert.deepEqual(emissions.events, []);
+    assert.deepEqual(emissions.announcements, []);
+    // A later hit can complete the surviving passive cycle; the removed active hit must not fall through to it.
+    assert.equal(reactToJusticeHitWithOptions(context, hit, details), active ? 'passive' : null);
+    assert.deepEqual(
+      emissions.events.map((event) => event.sourceId),
+      active ? ['guardian.justice-passive'] : []
+    );
+    assert.equal(core.justiceHitCount, active ? 0 : 4);
+  }
+});
+
+test('Dragonhunter settles passive Burning and its announcement before the attributed Crippled follow-up', () => {
+  // Capture submission boundaries so sorted result events cannot hide a change in immediate reaction order.
+  for (const mode of ['passive', 'active', 'partial', 'cooldown', 'miss']) {
+    const core = createGuardianCoreState();
+    core.justiceHitCount = mode === 'partial' ? 3 : 4;
+    core.justiceActiveArmed = mode === 'active';
+    const order = [];
+    const emissions = captureEffectEmissions({
+      submit(event, delivery) {
+        order.push([event.condition, core.justiceHitCount, delivery.settlement]);
+        return event;
+      },
+      announce(request) {
+        order.push([request.announcement.name, core.justiceHitCount]);
+      }
+    });
+    const context = {
+      helpers: guardianCatalog,
+      time: 1,
+      traits: new Set(),
+      profession: { core, specialization: { kind: 'Dragonhunter' } },
+      cooldownController: {
+        refresh() {},
+        readyAt: (id) => (mode === 'cooldown' && id === ID.SPEAR_OF_JUSTICE ? 10 : 0)
+      },
+      effects: emissions.effects
+    };
+    dragonhunterVirtueLifecycle.reactions['damage.resolved'](
+      context,
+      { ...hit, activationId: 'accepted-hit', causalOrder: 17 },
+      { hitContext: { damage: mode === 'miss' ? 0 : 1 } }
+    );
+    assert.deepEqual(
+      order,
+      mode === 'passive'
+        ? [
+            ['Burning', 0, 'reaction'],
+            ['Justice Passive', 0],
+            ['Crippled', 0, 'reaction']
+          ]
+        : mode === 'active'
+          ? [
+              ['Burning', 4, 'reaction'],
+              ['Justice Active', 4]
+            ]
+          : []
+    );
+    assert.ok(
+      emissions.events.every(
+        (event) =>
+          event.skillId === ID.SPEAR_OF_JUSTICE &&
+          event.activationId === 'accepted-hit' &&
+          event.causalOrder === 17 &&
+          event.at === hit.at
+      )
+    );
+    assert.equal(core.justiceHitCount, mode === 'passive' ? 0 : 4);
+    assert.equal(core.justiceActiveArmed, false);
+  }
 });
 
 test('Willbender resets independent open virtues before rewards while expired virtues retain progress', () => {
@@ -92,7 +193,6 @@ test('Willbender resets independent open virtues before rewards while expired vi
     { justice: 0, resolve: 2, courage: 2 },
     { justice: 0, resolve: 2, courage: 0 }
   ]);
-  assert.equal(state.triggeredVirtueEffects, 2);
   assert.deepEqual(state.virtueHitCounts, { justice: 0, resolve: 2, courage: 0 });
 });
 

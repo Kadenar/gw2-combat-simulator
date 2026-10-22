@@ -1,3 +1,8 @@
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+import { captureTriggerPoint } from '#tests/helpers/trigger-points.js';
+import { willbenderVirtueTriggered } from '#gw2/professions/guardian/specializations/willbender/mechanics/trigger-points.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
+import { DRAGONHUNTER_BALANCE_PROFILE_IDS as DH_PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 import { willbenderBuffPolicies } from '#gw2/professions/guardian/specializations/willbender/effect-state.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -331,17 +336,120 @@ test('Writ duration patches extend the symbol field and its periodic pulses toge
     assert.equal(packets(patched, type).length, packets(baseline, type).length + 1);
 });
 
-test('deleted Justice Burning does not increment burn counters or recreate packets', () => {
-  const result = run({ 'guardian.core.justice': remove('condition', 'Burning (active)') }, 'Willbender', [
-    'Rushing Justice',
-    { type: 'wait', durationMs: 5000 }
-  ]);
-  assert.ok(result.planningState.profession.triggeredVirtueEffects > 0);
-  assert.equal(result.planningState.profession.justiceActiveBurns, 0);
+test('deleted Justice Burning preserves the Willbender cycle trigger and its surviving rewards', () => {
+  // A single initialized cycle proves that deleting Burning does not suppress the trigger that precedes it.
+  const { triggers, extend } = captureTriggerPoint(willbenderVirtueTriggered);
+  const profession = withPatchPreview(guardianProfession, {
+    id: 'justice-removal',
+    label: 'Justice removal',
+    professions: {
+      guardian: {
+        balanceProfiles: {
+          [CORE_PROFILE.justice]: remove('condition', 'Burning (active)')
+        }
+      }
+    }
+  });
+  const result = runGuardian(
+    [{ type: 'wait', durationMs: 2000 }],
+    {
+      specialization: 'Willbender',
+      patchId: 'justice-removal'
+    },
+    {
+      profession,
+      extend,
+      initialize(runtime) {
+        const state = runtime.profession.specialization.state;
+        state.justiceUntil = 2;
+        state.virtueHitCounts.justice = 4;
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'damage',
+            at: 1,
+            actorType: 'player',
+            source: 'guardian',
+            sourceId: SKILL.ORB_OF_WRATH,
+            skillId: SKILL.ORB_OF_WRATH,
+            skillName: 'Orb of Wrath',
+            activationId: 'justice-hit',
+            coefficient: 1,
+            weaponStrengthProfileId: 'weapon.scepter'
+          }
+        });
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    triggers.map(({ virtue, cause }) => [virtue, cause.activationId]),
+    [['justice', 'justice-hit']]
+  );
+  assert.equal(observedRuntime(result).profession.specialization.state.virtueHitCounts.justice, 0);
   assert.equal(
-    result.events.some((event) => event.type === 'condition' && event.skillName === 'Justice'),
+    result.resolvedEvents.some((event) => event.type === 'condition' && event.skillId === SKILL.WILLBENDER_JUSTICE),
     false
   );
+  assert.deepEqual(
+    result.resolvedEvents.filter((event) => event.kind === 'lethal-tempo').map((event) => event.activationId),
+    ['justice-hit']
+  );
+});
+
+test('Dragonhunter passive Crippled depends on emitted Burning and each surviving payload retains hit attribution', () => {
+  // Cross one passive threshold with a single accepted hit to isolate the dependency between the two payloads.
+  for (const removed of ['none', 'burning', 'crippled']) {
+    const balanceProfiles =
+      removed === 'burning'
+        ? { [CORE_PROFILE.justice]: remove('condition', 'Burning (passive)') }
+        : removed === 'crippled'
+          ? { [DH_PROFILE.tether]: remove('condition', 'Crippled (passive)') }
+          : {};
+    const profession = withPatchPreview(guardianProfession, {
+      id: 'passive-removal',
+      label: 'Passive removal',
+      professions: { guardian: { balanceProfiles } }
+    });
+    const result = runGuardian(
+      [{ type: 'wait', durationMs: 2000 }],
+      {
+        specialization: 'Dragonhunter',
+        patchId: 'passive-removal'
+      },
+      {
+        profession,
+        initialize(runtime) {
+          runtime.profession.core.justiceHitCount = 4;
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'damage',
+              at: 1,
+              actorType: 'player',
+              source: 'guardian',
+              sourceId: SKILL.ORB_OF_WRATH,
+              skillId: SKILL.ORB_OF_WRATH,
+              skillName: 'Orb of Wrath',
+              activationId: 'passive-hit',
+              coefficient: 1,
+              weaponStrengthProfileId: 'weapon.scepter'
+            }
+          });
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const applications = result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.skillId === SKILL.SPEAR_OF_JUSTICE
+    );
+    assert.deepEqual(
+      applications.map((event) => event.condition),
+      removed === 'burning' ? [] : removed === 'crippled' ? ['Burning'] : ['Burning', 'Crippled']
+    );
+    assert.ok(applications.every((event) => event.activationId === 'passive-hit'));
+    assert.equal(observedRuntime(result).profession.core.justiceHitCount, removed === 'burning' ? 4 : 0);
+  }
 });
 
 test('Quickfire window removal leaves its cooldown and charge reactions inactive', () => {
