@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
 import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/reconstruct.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
@@ -18,13 +19,13 @@ function context(modern, events) {
     events
   });
   fixture.header.arcdpsBuild = modern ? '20260815' : '20260429';
-  return {
+  return evtcReconstructionContext({
     log: fixture,
     playerAddress: PLAYER,
     profile: ROTATION_PROFILES.find((profile) => profile.specializationId === 'weaver'),
     catalog: elementalistCatalog,
     recordedActions: []
-  };
+  });
 }
 
 const apply = (modern, skillId, time = 100, extras = {}) =>
@@ -80,6 +81,7 @@ test('Weaver suppresses component duplicates and preserves EI dual, snapshot, an
       apply(modern, 43370, 500, { stateChange: 18 })
     ]);
     const original = structuredClone(c.log);
+    const rawIndex = structuredClone(c.evidence.eventsBySkill);
     const actions = eiInstantActions(c);
     assert.deepEqual(
       actions.map((action) => [action.rawSkillId, action.start]).sort((a, b) => a[1] - b[1]),
@@ -92,6 +94,9 @@ test('Weaver suppresses component duplicates and preserves EI dual, snapshot, an
       ]
     );
     assert.deepEqual(c.log, original);
+    // Shared raw components must survive repeated profession-specific inference unchanged.
+    assert.deepEqual(c.evidence.eventsBySkill, rawIndex);
+    assert.deepEqual(eiInstantActions(c), actions);
   }
 });
 

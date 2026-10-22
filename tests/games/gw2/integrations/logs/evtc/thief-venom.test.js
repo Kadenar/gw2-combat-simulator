@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
 import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
@@ -9,7 +10,7 @@ import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-f
 const grant = (overrides = {}) =>
   event({ stateChange: 69, buff: 1, skillId: 13036, target: PLAYER, value: 24000, ...overrides });
 function context(events) {
-  return {
+  const result = {
     profile: { professionId: 'thief', specializationId: 'core' },
     playerAddress: PLAYER,
     catalog: thiefCatalog,
@@ -22,6 +23,7 @@ function context(events) {
       events
     })
   };
+  return evtcReconstructionContext(result);
 }
 
 const find = (events) => eiInstantActions(context(events)).filter((action) => action.rawSkillId === 13037);

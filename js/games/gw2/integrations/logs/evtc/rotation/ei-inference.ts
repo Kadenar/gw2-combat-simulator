@@ -4,15 +4,12 @@ import type {
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import { EI_INSTANT_RULES } from '#gw2/integrations/logs/evtc/rotation/ei-rules.js';
-import { legacyActivationActions, modernAnimationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
-import { usesModernAnimations } from '#gw2/integrations/logs/evtc/recording.js';
+import type { IndexedEvent } from '#gw2/integrations/logs/evtc/rotation/evidence.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import {
   MUSHROOM_KINGS_BLESSING_NAME,
   MUSHROOM_KINGS_BLESSING_SKILL_ID
 } from '#gw2/integrations/logs/shared/rotation/model.js';
-
-type IndexedEvent = { event: ParsedEvtcEvent; eventIndex: number };
 
 // EI d7f186c WeaverHelper: primary/secondary components resolve to an EI identity before simulator normalization.
 const WEAVER_ELEMENTS = [
@@ -48,8 +45,10 @@ const WEAVER_ATTUNEMENTS = new Map(
 function transformWeaverAttunements(
   log: ParsedEvtc,
   playerAddress: bigint,
-  eventsBySkill: Map<number, IndexedEvent[]>
-): void {
+  rawEventsBySkill: ReadonlyMap<number, readonly IndexedEvent[]>
+): ReadonlyMap<number, readonly IndexedEvent[]> {
+  // Replace only transformed buckets so shared raw evidence remains available to every other finder.
+  const eventsBySkill = new Map(rawEventsBySkill);
   const modern = Number(log.header.arcdpsBuild) >= 20260501;
   const components = WEAVER_ELEMENTS.flatMap(({ basic, major, minor }, index) => [
     basic,
@@ -87,6 +86,7 @@ function transformWeaverAttunements(
     else groups.push([buff]);
   }
 
+  const syntheticBySkill = new Map<number, IndexedEvent[]>();
   for (const group of groups) {
     const applies = group.filter(({ apply }) => apply);
     let primary = -1;
@@ -135,10 +135,17 @@ function transformWeaverAttunements(
         offcycle: 0
       }
     };
-    const events = eventsBySkill.get(id) ?? [];
-    events.push(synthetic);
-    eventsBySkill.set(id, events);
+    const syntheticEvents = syntheticBySkill.get(id) ?? [];
+    syntheticEvents.push(synthetic);
+    syntheticBySkill.set(id, syntheticEvents);
   }
+
+  // Append each synthetic bucket once so repeated attunements do not repeatedly copy a growing array.
+  for (const [id, syntheticEvents] of syntheticBySkill) {
+    eventsBySkill.set(id, [...(eventsBySkill.get(id) ?? []), ...syntheticEvents]);
+  }
+
+  return eventsBySkill;
 }
 
 /** Legacy application records include offcycle extensions; Weaver still uses those as grouping anchors. */
@@ -171,111 +178,20 @@ export function isBuffRemoveAll(log: ParsedEvtc, event: ParsedEvtcEvent): boolea
     : event.stateChange === 0 && event.activation === 0 && event.buffRemove === 1;
 }
 
-/** Resolve stable final masters, rejecting ambiguous reused instances instead of crediting the wrong player. */
-export function agentOwners(log: ParsedEvtc): ReadonlyMap<bigint, bigint> {
-  const addresses = new Set(log.agents.map((a) => a.address));
-  const instances = new Map<number, bigint>();
-  const masterInstances = new Map<bigint, number>();
-  const ambiguousInstances = new Set<number>();
-  const ambiguousMasters = new Set<bigint>();
-  const record = (address: bigint, instance: number, master: number): void => {
-    if (!addresses.has(address)) return;
-
-    if (instance) {
-      if (instances.has(instance) && instances.get(instance) !== address) ambiguousInstances.add(instance);
-
-      instances.set(instance, address);
-    }
-
-    if (master) {
-      if (masterInstances.has(address) && masterInstances.get(address) !== master) ambiguousMasters.add(address);
-
-      masterInstances.set(address, master);
-    }
-  };
-
-  for (const event of log.events) {
-    record(event.source, event.sourceInstance, event.sourceMasterInstance);
-    record(event.target, event.targetInstance, event.targetMasterInstance);
-  }
-
-  const owners = new Map<bigint, bigint>();
-  for (const address of masterInstances.keys()) {
-    const visited = new Set<bigint>();
-    let owner = address;
-    let ambiguous = false;
-    while (!visited.has(owner)) {
-      visited.add(owner);
-
-      if (ambiguousMasters.has(owner) || ambiguousInstances.has(masterInstances.get(owner) ?? 0)) {
-        ambiguous = true;
-        break;
-      }
-
-      const next = instances.get(masterInstances.get(owner) ?? 0);
-
-      if (next == null) break;
-
-      if (visited.has(next)) {
-        ambiguous = true;
-        break;
-      }
-
-      owner = next;
-    }
-
-    if (!ambiguous && owner !== address) owners.set(address, owner);
-  }
-
-  return owners;
-}
-
-function guidPart(value: bigint): string {
-  return Array.from({ length: 8 }, (_, i) =>
-    Number((value >> BigInt(i * 8)) & 255n)
-      .toString(16)
-      .padStart(2, '0')
-  )
-    .join('')
-    .toUpperCase();
-}
-
-/** IDToGUID namespaces are independent; only effect mappings identify effect creations. */
-export function effectEvidence(log: ParsedEvtc): { event: ParsedEvtcEvent; eventIndex: number; guid: string }[] {
-  const guids = new Map(
-    log.events
-      .filter((e) => e.stateChange === 46 && (e.overstackValue & 255) === 0)
-      .map((e) => [e.skillId, guidPart(e.source) + guidPart(e.target)])
-  );
-  return log.events.flatMap((event, eventIndex) => {
-    const guid = guids.get(event.skillId);
-    return guid && event.skillId !== 0 && [45, 51, 60, 62, 79].includes(event.stateChange)
-      ? [{ event, eventIndex, guid }]
-      : [];
-  });
-}
-
 /** EI's ordinary finders use specific evidence, half-open version ranges and a sliding duplicate window. */
 export function eiInstantActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const { log, profile, playerAddress } = context;
   const evtcBuild = Number(log.header.arcdpsBuild);
   const gw2Build = Number(log.events.find((e) => e.stateChange === 15)?.source ?? 0n);
-  const owners = agentOwners(log);
+  const { owners, effects, hasEffects, names } = context.evidence;
   const species = new Map(
     log.agents.filter((a) => a.elite === 0xffffffff).map((a) => [a.address, a.profession & 0xffff])
   );
-  const effects = effectEvidence(log);
-  const hasEffects = log.events.some((e) => [45, 51, 60, 62, 79].includes(e.stateChange) && e.skillId !== 0);
-  const eventsBySkill = new Map<number, IndexedEvent[]>();
-  log.events.forEach((event, eventIndex) => {
-    const group = eventsBySkill.get(event.skillId) ?? [];
-    group.push({ event, eventIndex });
-    eventsBySkill.set(event.skillId, group);
-  });
+  const eventsBySkill =
+    profile.specializationId === 'weaver'
+      ? transformWeaverAttunements(log, playerAddress, context.evidence.eventsBySkill)
+      : context.evidence.eventsBySkill;
 
-  if (profile.specializationId === 'weaver') transformWeaverAttunements(log, playerAddress, eventsBySkill);
-
-  const names = new Map(log.skills.map((s) => [s.id, s.name]));
   // CombatData.HasRelatedHit checks credited damage ownership within the strict 10 ms server tolerance.
   const isDamage = (event: ParsedEvtcEvent): boolean =>
     event.stateChange === 0 &&
@@ -346,7 +262,8 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
       signals = [...owners]
         .filter(([, owner]) => owner === playerAddress)
         .flatMap(([address]) =>
-          (usesModernAnimations(log) ? modernAnimationActions : legacyActivationActions)(log, address, names)
+          context.evidence
+            .animationsFor(address)
             .filter((a) => a.rawSkillId === rule.signal)
             .map((a) => ({ event: log.events[a.eventIndex], eventIndex: a.eventIndex, time: a.start }))
         );

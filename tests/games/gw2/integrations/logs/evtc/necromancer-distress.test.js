@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
 import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
@@ -17,7 +18,7 @@ const removal = (overrides = {}) => event({ stateChange: 72, skillId: 72976, ...
 
 // Minimal evidence isolates EI's corroboration and ownership rules without relying on a saved rotation.
 function context(events, arcdpsBuild = '20260815') {
-  return {
+  const result = {
     profile: { professionId: 'necromancer', specializationId: 'ritualist' },
     playerAddress: PLAYER,
     catalog: necromancerCatalog,
@@ -28,6 +29,7 @@ function context(events, arcdpsBuild = '20260815') {
       events: [mapping, ...events]
     })
   };
+  return evtcReconstructionContext(result);
 }
 
 const find = (events, build) =>
@@ -46,8 +48,9 @@ test('Distress requires both the caster effect and a nearby complete buff remova
 
   assert.deepEqual(find([visual(), removal({ skillId: 12345 })]), []);
   assert.deepEqual(find([visual({ source: 0x2000n }), removal()]), []);
-  const wrongNamespace = context([visual(), removal()]);
-  wrongNamespace.log.events[0] = { ...mapping, overstackValue: 1 };
+  const wrongNamespace = evtcReconstructionContext(context([visual(), removal()]), {
+    events: [{ ...mapping, overstackValue: 1 }, visual(), removal()]
+  });
   assert.deepEqual(eiInstantActions(wrongNamespace), []);
   // EI's removal predicate is global; only the visual supplies caster attribution.
   assert.equal(find([visual(), removal({ source: 0x2000n, target: 0x3000n })]).length, 1);

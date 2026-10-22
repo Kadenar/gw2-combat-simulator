@@ -2,9 +2,7 @@ import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
-import { effectEvidence, isBuffApply, isBuffRemoveAll } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
-import { usesModernAnimations } from '#gw2/integrations/logs/evtc/recording.js';
-import { legacyActivationActions, modernAnimationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
+import { isBuffApply, isBuffRemoveAll } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 
 const BUFF_RULES: readonly {
   profession: string;
@@ -29,7 +27,7 @@ const EFFECT_RULES = [
 export function eiCustomAnimatedActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const { log, profile, playerAddress } = context;
   const result: EvtcRecordedRotationAction[] = [];
-  const names = new Map(log.skills.map((s) => [s.id, s.name]));
+  const names = context.evidence.names;
   const candidateSkills = new Set(
     [...BUFF_RULES, ...EFFECT_RULES]
       .filter((rule) => rule.profession === profile.professionId)
@@ -43,11 +41,10 @@ export function eiCustomAnimatedActions(context: EvtcProfessionReconstructionCon
     log.events.filter((event) => candidateSkills.has(event.skillId)).map((event) => event.source)
   );
   // EI suppresses these custom rules when an animation exists for this skill on any actor.
-  const decode = usesModernAnimations(log) ? modernAnimationActions : legacyActivationActions;
   const recordedSkills = new Set(
     log.agents
       .filter((agent) => candidateActors.has(agent.address))
-      .flatMap((agent) => decode(log, agent.address, names).map((action) => action.rawSkillId))
+      .flatMap((agent) => context.evidence.animationsFor(agent.address).map((action) => action.rawSkillId))
   );
   const recorded = (id: number): boolean => recordedSkills.has(id);
   const append = (
@@ -113,7 +110,7 @@ export function eiCustomAnimatedActions(context: EvtcProfessionReconstructionCon
         );
   }
 
-  const effects = effectEvidence(log);
+  const effects = context.evidence.effects;
   for (const rule of EFFECT_RULES) {
     if (rule.profession !== profile.professionId || recorded(rule.skillId)) continue;
 

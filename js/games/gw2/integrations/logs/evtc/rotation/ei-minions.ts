@@ -3,9 +3,7 @@ import type {
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import type { ParsedEvtcEvent } from '#gw2/integrations/logs/evtc/types.js';
-import { agentOwners, effectEvidence, isBuffApply } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
-import { usesModernAnimations } from '#gw2/integrations/logs/evtc/recording.js';
-import { legacyActivationActions, modernAnimationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
+import { isBuffApply } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
 
 /** Owned pet animations locate Ranger commands before delayed player markers; Soulbeast retains merged-player evidence. */
@@ -13,12 +11,10 @@ export function rangerPetActions(context: EvtcProfessionReconstructionContext): 
   if (context.profile.professionId !== 'ranger' || context.profile.specializationId === 'soulbeast') return [];
 
   const { log, playerAddress, catalog } = context;
-  const owners = agentOwners(log);
-  const names = new Map(log.skills.map((skill) => [skill.id, skill.name]));
-  const decode = usesModernAnimations(log) ? modernAnimationActions : legacyActivationActions;
+  const owners = context.evidence.owners;
   return log.agents
     .filter((agent) => agent.elite === 0xffffffff && owners.get(agent.address) === playerAddress)
-    .flatMap((agent) => decode(log, agent.address, names))
+    .flatMap((agent) => context.evidence.animationsFor(agent.address))
     .filter((action) =>
       rangerPetSkillCommandable(
         catalog?.skills.find((skill) => skill.id === action.rawSkillId),
@@ -73,9 +69,9 @@ export function eiMesmerShatters(context: EvtcProfessionReconstructionContext): 
 
   if (profile.professionId !== 'mesmer' || !['core', 'mirage'].includes(profile.specializationId)) return [];
 
-  const effects = effectEvidence(log).filter((e) => e.event.source === playerAddress);
+  const effects = context.evidence.effects.filter((e) => e.event.source === playerAddress);
   const cloneEffects = effects.filter((e) => e.guid === '5FA6527231BB8041AC783396142C6200');
-  const owners = agentOwners(log);
+  const owners = context.evidence.owners;
   const shatters = new Map([
     ['3D29ABD39CB5BD458C4D50A22FCC0E4B', 10191],
     ['52F65A4D9970954BA849CB57A46A65A8', 10190],
@@ -148,14 +144,14 @@ export function eiMesmerPhaseRetreat(context: EvtcProfessionReconstructionContex
 
   if (profile.professionId !== 'mesmer') return [];
 
-  const owners = agentOwners(log);
+  const owners = context.evidence.owners;
   const spawns = log.agents
     .filter(
       (a) => a.elite === 0xffffffff && (a.profession & 0xffff) === 8111 && owners.get(a.address) === playerAddress
     )
     .map((a) => log.events.find((e) => e.source === a.address || e.target === a.address)?.time ?? Infinity);
   let previous = -Infinity;
-  return effectEvidence(log)
+  return context.evidence.effects
     .filter(
       ({ event, guid }) =>
         guid === 'C34E250B01FF534292EE6AB36D768337' &&
@@ -201,8 +197,8 @@ export function eiChronomancerShatters(context: EvtcProfessionReconstructionCont
   if (context.profile.specializationId !== 'chronomancer') return [];
 
   const { log, playerAddress } = context,
-    owners = agentOwners(log);
-  const effects = effectEvidence(log).filter((e) => e.event.source === playerAddress);
+    owners = context.evidence.owners;
+  const effects = context.evidence.effects.filter((e) => e.event.source === playerAddress);
   const chrono = effects.filter((e) => e.guid === '5FA6527231BB8041AC783396142C6200');
 
   if (!chrono.length) return [];
@@ -293,7 +289,7 @@ export function eiChronomancerShatters(context: EvtcProfessionReconstructionCont
 /** EI MinionSpawnCastFinder uses actual spawns, ordered by each owned minion's first awareness. */
 export function eiMinionSpawns(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const { log, profile, playerAddress } = context;
-  const owners = agentOwners(log);
+  const owners = context.evidence.owners;
   const skillId = profile.professionId === 'ranger' ? -28 : profile.specializationId === 'reaper' ? 30772 : null;
 
   if (skillId == null) return [];

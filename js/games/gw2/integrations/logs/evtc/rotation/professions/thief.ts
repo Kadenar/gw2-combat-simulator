@@ -1,5 +1,5 @@
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { effectEvidence, isBuffApply } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
+import { isBuffApply } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { GW2_ACTION_TICK_MS, quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import type {
   EvtcProfessionReconstructionContext,
@@ -21,7 +21,7 @@ export function thiefThousandNeedlesActions(
 ): EvtcRecordedRotationAction[] {
   if (context.profile.professionId !== 'thief') return [];
 
-  const effects = effectEvidence(context.log).filter(({ event }) => event.source === context.playerAddress);
+  const effects = context.evidence.effects.filter(({ event }) => event.source === context.playerAddress);
   const damage = context.log.events.filter(
     (event) =>
       event.skillId === 56897 &&
@@ -111,7 +111,7 @@ export function antiquaryChakShieldActions(context: EvtcProfessionReconstruction
   if (context.profile.professionId !== 'thief' || context.profile.specializationId !== 'antiquary') return [];
 
   const actions: EvtcRecordedRotationAction[] = [];
-  for (const { event, eventIndex, guid } of effectEvidence(context.log)) {
+  for (const { event, eventIndex, guid } of context.evidence.effects) {
     if (
       guid !== '1B48B91A5B0EC540BEA2765583412CBC' ||
       event.source !== context.playerAddress ||
@@ -159,7 +159,7 @@ export function thiefStealActions(context: EvtcProfessionReconstructionContext):
     (event) => event.source === context.playerAddress && event.value > 0 && isBuffApply(context.log, event)
   );
   const actions: EvtcRecordedRotationAction[] = [];
-  for (const { event, eventIndex, guid } of effectEvidence(context.log)) {
+  for (const { event, eventIndex, guid } of context.evidence.effects) {
     if (
       guid !== 'A0F99AB672E77E459EBF8185867C4961' ||
       event.source !== context.playerAddress ||

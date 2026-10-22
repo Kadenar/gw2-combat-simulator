@@ -2,7 +2,7 @@ import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { galeshotCycloneBowActions } from '#gw2/integrations/logs/evtc/rotation/professions/galeshot.js';
 import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
 import { recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
-import { effectEvidence, isBuffApply, isBuffRemoveAll } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
+import { isBuffApply, isBuffRemoveAll } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import {
   SIGNET_OF_MIGHT_PASSIVE_ID,
   signetOfMightProcAt
@@ -26,7 +26,7 @@ function mesmerCloakActions(context: EvtcProfessionReconstructionContext): EvtcR
       e.value > 0 &&
       [69209, 42501].includes(e.skillId)
   );
-  const teleports = effectEvidence(context.log).filter(
+  const teleports = context.evidence.effects.filter(
     ({ event, guid }) =>
       guid === 'D7A05478BA0E164396EB90C037DCCF42' &&
       event.source === context.playerAddress &&

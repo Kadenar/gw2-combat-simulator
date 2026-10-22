@@ -104,12 +104,13 @@ test('build contexts calculate each requested weapon set once and detach configu
   }
 });
 
-test('modifier requests apply one deterministic health policy to baseline and removed effects', () => {
+test('modifier requests preserve workspace target settings for baseline and removed effects', () => {
   const sourceConfig = Object.freeze({
     randomness: Object.freeze({ mode: 'stochastic', seed: 7 }),
     target: Object.freeze({ health: 1000, armor: 2000, startingHealthFraction: 0.75 })
   });
-  for (const relic of ['', 'Thief', 'Eagle']) {
+  // Every relic must retain finite health and starting health, including when the relic itself is removed.
+  for (const relic of ['', 'Thief', 'Fractal', 'Eagle']) {
     const app = {
       patchId: 'current',
       build: { rotation: [], relic, assumptions: { might: 1 }, weaponSigils: [], food: '' },
@@ -128,7 +129,7 @@ test('modifier requests apply one deterministic health policy to baseline and re
     assert.equal(request.contentId, 'mesmer');
     for (const config of [request.baseConfig, ...request.comparisons.map(({ config }) => config)]) {
       assert.deepEqual(config.randomness, { mode: 'deterministic', seed: 7 });
-      assert.deepEqual(config.target, { ...sourceConfig.target, health: relic === 'Eagle' ? 1000 : 0 });
+      assert.deepEqual(config.target, sourceConfig.target);
     }
   }
 

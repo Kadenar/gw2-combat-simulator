@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import {
   thiefStealActions,
@@ -20,7 +21,7 @@ function mapping(skillId, guid) {
 }
 
 function context(events, specialization = 'core') {
-  return {
+  const result = {
     profile: ROTATION_PROFILES.find((p) => p.professionId === 'thief' && p.specializationId === specialization),
     playerAddress: PLAYER,
     catalog: thiefCatalog,
@@ -33,6 +34,7 @@ function context(events, specialization = 'core') {
       events
     })
   };
+  return evtcReconstructionContext(result);
 }
 
 function stealEvidence() {

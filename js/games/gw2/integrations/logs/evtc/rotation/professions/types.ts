@@ -1,3 +1,4 @@
+import type { EvtcReconstructionEvidence } from '#gw2/integrations/logs/evtc/rotation/evidence.js';
 import type { EvtcRotationEvidence, ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
 import type { RecordedRotationAction } from '#gw2/integrations/logs/shared/rotation/normalization.js';
 import type { RotationCatalog } from '#gw2/integrations/logs/shared/rotation/catalog.js';
@@ -16,6 +17,7 @@ export interface EvtcRecordedRotationAction extends RecordedRotationAction {
 }
 
 export interface EvtcProfessionReconstructionContext {
+  readonly evidence: EvtcReconstructionEvidence;
   readonly log: ParsedEvtc;
   readonly playerAddress: bigint;
   readonly profile: RotationProfessionProfile;

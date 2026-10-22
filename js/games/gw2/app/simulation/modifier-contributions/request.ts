@@ -103,14 +103,14 @@ function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
   return candidates;
 }
 
-/** Applies the same deterministic and target-health policy to the baseline and every removed modifier. */
+/** Preserves workspace target settings so comparisons share its health thresholds and combat endpoint. */
 export function createModifierContributionRequest(
   app: ProfessionAppState,
   profession: ProfessionRuntimeOptions['profession'],
   createBuildContext: BuildContextFactory
 ): ModifierContributionRequest {
-  const comparisonConfig = (disabled: ProfessionModifier | null = null): Gw2Config => {
-    const config = deterministicSimulationConfig(
+  const comparisonConfig = (disabled: ProfessionModifier | null = null): Gw2Config =>
+    deterministicSimulationConfig(
       createBuildContext({
         build: app.build,
         patchId: app.patchId,
@@ -118,9 +118,6 @@ export function createModifierContributionRequest(
         disabledModifier: disabled ?? undefined
       }).simulationConfig()
     );
-    // Eagle needs finite target health for its health-threshold behavior; other comparisons use the full rotation.
-    return app.build.relic === 'Eagle' ? config : { ...config, target: { ...config.target, health: 0 } };
-  };
 
   const baseConfig = comparisonConfig();
   const candidates = modifierCandidates(app);

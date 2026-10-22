@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
 import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
@@ -11,13 +12,15 @@ import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-f
 function find(profession, specialization, modern, events) {
   const fixture = log({ events });
   fixture.header.arcdpsBuild = modern ? '20260501' : '20260430';
-  return eiInstantActions({
-    profile: ROTATION_PROFILES.find((p) => p.professionId === profession && p.specializationId === specialization),
-    playerAddress: PLAYER,
-    log: fixture,
-    catalog: null,
-    recordedActions: []
-  });
+  return eiInstantActions(
+    evtcReconstructionContext({
+      profile: ROTATION_PROFILES.find((p) => p.professionId === profession && p.specializationId === specialization),
+      playerAddress: PLAYER,
+      log: fixture,
+      catalog: null,
+      recordedActions: []
+    })
+  );
 }
 
 function apply(modern, skillId, value, overrides = {}) {

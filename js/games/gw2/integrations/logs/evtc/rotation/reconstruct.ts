@@ -1,3 +1,4 @@
+import { prepareEvtcEvidence, type EvtcReconstructionEvidence } from '#gw2/integrations/logs/evtc/rotation/evidence.js';
 import { rotationActionSummary } from '#gw2/integrations/logs/shared/rotation/summary.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import { replayActionCommand } from '#gw2/integrations/logs/shared/rotation/commands.js';
@@ -299,6 +300,7 @@ function reconstructWithProfile(
   log: ParsedEvtc,
   { agent, player, castActions }: EvtcPlayerEvidence,
   profile: RotationProfessionProfile,
+  evidence: EvtcReconstructionEvidence,
   catalog: RotationCatalog | null = null,
   options: EvtcRotationOptions = {}
 ): RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction> {
@@ -313,6 +315,7 @@ function reconstructWithProfile(
   const genericActions = [...castActions, ...weaponSwapActions(log, agent.address)];
   const professionContext = {
     log,
+    evidence,
     playerAddress: agent.address,
     profile,
     catalog,
@@ -433,7 +436,8 @@ export function reconstructEvtcRotation(
   catalog: RotationCatalog | null = null,
   options: EvtcRotationOptions = {}
 ): RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction> {
-  const selected = selectPlayerAgent(options.playerEvidence ?? detectEvtcRotationPlayers(log), options.playerAddress);
+  const playerEvidence = options.playerEvidence ?? detectEvtcRotationPlayers(log);
+  const selected = selectPlayerAgent(playerEvidence, options.playerAddress);
   const { player } = selected;
   const profile = evtcRotationProfile(player.professionId, player.specializationId);
 
@@ -444,5 +448,5 @@ export function reconstructEvtcRotation(
     );
   }
 
-  return reconstructWithProfile(log, selected, profile, catalog, options);
+  return reconstructWithProfile(log, selected, profile, prepareEvtcEvidence(log, playerEvidence), catalog, options);
 }

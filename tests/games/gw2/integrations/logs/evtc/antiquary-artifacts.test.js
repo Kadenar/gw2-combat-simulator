@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
 import { antiquaryChakShieldActions } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
@@ -16,13 +17,14 @@ function shieldEvidence() {
 }
 
 function context(events) {
-  return {
+  const result = {
     profile: { professionId: 'thief', specializationId: 'antiquary' },
     playerAddress: PLAYER,
     catalog: thiefCatalog,
     recordedActions: [],
     log: log({ agents: [{ ...log().agents[0], profession: 5, elite: 77 }], events })
   };
+  return evtcReconstructionContext(result);
 }
 
 test('Chak Shield reconstruction requires owned corroboration and does not duplicate an existing cast', () => {

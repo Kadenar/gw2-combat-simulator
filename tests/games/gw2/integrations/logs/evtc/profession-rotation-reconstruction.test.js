@@ -1,6 +1,7 @@
-import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { evtcProfessionMetadata, evtcSpecializationMetadata } from '#gw2/integrations/logs/evtc/profession-metadata.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
@@ -10,7 +11,7 @@ import { createStrikePacketMatcher } from '#gw2/integrations/logs/evtc/rotation/
 import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
-import { agentOwners, eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
+import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
 import { deadeyeMarkActions } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
@@ -22,13 +23,14 @@ import {
 import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';
 
 function context(profession, specialization, events, agents = log().agents) {
-  return {
+  const result = {
     profile: ROTATION_PROFILES.find((p) => p.professionId === profession && p.specializationId === specialization),
     playerAddress: PLAYER,
     log: log({ events, agents }),
     catalog: null,
     recordedActions: []
   };
+  return evtcReconstructionContext(result);
 }
 
 // A target-applied Gaze proves a Mark; snapshots, removals, other players, and existing casts must not add inputs.
@@ -151,12 +153,12 @@ test('Mirage cloak normalization preserves endurance by retaining the represente
     status: 'instant',
     evidence: 'buff-transition'
   };
-  const c = context('mesmer', 'mirage', []);
+  let c = context('mesmer', 'mirage', []);
   c.recordedActions = [cloak];
   assert.equal(reconstructProfessionActions(c)[0]?.canonicalSkillId, undefined);
-  c.log.events = [event({ time: 100, skillId: 44677, value: 100 })];
+  c = evtcReconstructionContext(c, { events: [event({ time: 100, skillId: 44677, value: 100 })] });
   assert.equal(reconstructProfessionActions(c)[0]?.canonicalSkillId, -2);
-  c.log.events = [];
+  c = evtcReconstructionContext(c, { events: [] });
   c.recordedActions = [{ ...cloak, rawSkillId: 10190, rawName: 'Cry of Frustration' }, cloak];
   const actions = reconstructProfessionActions(c);
   assert.equal(actions.length, 1);
@@ -166,26 +168,26 @@ test('Mirage cloak normalization preserves endurance by retaining the represente
 test('Mirage mirror attribution accepts delayed owned damage only when its cloak source is unambiguous', () => {
   // Packet delay does not spend dodge endurance, but neighboring gains and foreign damage remain unresolved.
   const cloak = { start: 100, end: 100, rawSkillId: -17, rawName: 'Mirage Cloak', eventIndex: 0, status: 'instant' };
-  const c = context('mesmer', 'mirage', []);
+  let c = context('mesmer', 'mirage', []);
   c.recordedActions = [cloak];
   for (const delay of [-10, -9, 0, 33, 50, 51]) {
-    c.log.events = [event({ time: 100 + delay, skillId: 44677, value: 100 })];
+    c = evtcReconstructionContext(c, { events: [event({ time: 100 + delay, skillId: 44677, value: 100 })] });
     assert.equal(reconstructProfessionActions(c)[0].canonicalSkillId, delay > -10 && delay <= 50 ? -2 : undefined);
   }
 
   for (const overrides of [{ source: 0x9999n }, { value: 0 }, { buff: 1 }, { stateChange: 69 }]) {
-    c.log.events = [event({ time: 133, skillId: 44677, value: 100, ...overrides })];
+    c = evtcReconstructionContext(c, { events: [event({ time: 133, skillId: 44677, value: 100, ...overrides })] });
     assert.equal(reconstructProfessionActions(c)[0].canonicalSkillId, undefined);
   }
 
-  c.log.events = [event({ time: 150, skillId: 44677, value: 100 })];
+  c = evtcReconstructionContext(c, { events: [event({ time: 150, skillId: 44677, value: 100 })] });
   c.recordedActions = [cloak, { ...cloak, start: 130, end: 130, eventIndex: 1 }];
   assert.ok(reconstructProfessionActions(c).every((action) => action.canonicalSkillId == null));
 });
 
 test('Mirage dodge attribution requires an owned source buff and a unique cloak within the server window', () => {
   const cloak = { start: 100, end: 100, rawSkillId: -17, rawName: 'Mirage Cloak', eventIndex: 0, status: 'instant' };
-  const c = context('mesmer', 'mirage', []);
+  let c = context('mesmer', 'mirage', []);
   c.recordedActions = [cloak];
   const marker = event({ time: 101, stateChange: 69, target: PLAYER, skillId: 69209, value: 800, buff: 1 });
   for (const [overrides, expected] of [
@@ -198,11 +200,11 @@ test('Mirage dodge attribution requires an owned source buff and a unique cloak 
     [{ stateChange: 70 }, undefined],
     [{ skillId: 43694 }, undefined]
   ]) {
-    c.log.events = [{ ...marker, ...overrides }];
+    c = evtcReconstructionContext(c, { events: [{ ...marker, ...overrides }] });
     assert.equal(reconstructProfessionActions(c)[0].canonicalSkillId, expected);
   }
 
-  c.log.events = [marker];
+  c = evtcReconstructionContext(c, { events: [marker] });
   c.recordedActions = [cloak, { ...cloak, start: 105, end: 105, eventIndex: 1 }];
   assert.ok(reconstructProfessionActions(c).every((action) => action.canonicalSkillId == null));
 });
@@ -218,7 +220,7 @@ test('Illusionary Ambush requires both owned False Stealth and a self teleport w
   const cloak = { start: 100, end: 100, rawSkillId: -17, rawName: 'Mirage Cloak', eventIndex: 0, status: 'instant' };
   const stealth = event({ time: 100, stateChange: 69, skillId: 42501, target: PLAYER, value: 50, buff: 1 });
   const teleport = event({ time: 117, stateChange: 60, skillId: 77, target: PLAYER });
-  const c = context('mesmer', 'mirage', [mapping, stealth, teleport]);
+  let c = context('mesmer', 'mirage', [mapping, stealth, teleport]);
   c.recordedActions = [cloak];
   assert.equal(reconstructProfessionActions(c)[0].canonicalSkillId, 45046);
   for (const events of [
@@ -228,11 +230,11 @@ test('Illusionary Ambush requires both owned False Stealth and a self teleport w
     [mapping, stealth, { ...teleport, time: 121 }],
     [mapping, stealth, teleport, { ...stealth, skillId: 69209 }]
   ]) {
-    c.log.events = events;
+    c = evtcReconstructionContext(c, { events });
     assert.equal(reconstructProfessionActions(c)[0].canonicalSkillId, undefined);
   }
 
-  c.log.events = [mapping, stealth, teleport];
+  c = evtcReconstructionContext(c, { events: [mapping, stealth, teleport] });
   for (const rawSkillId of [45449, 43761]) {
     c.recordedActions = [cloak, { ...cloak, rawSkillId }];
     assert.equal(reconstructProfessionActions(c)[0].canonicalSkillId, undefined);
@@ -524,8 +526,8 @@ test('Distortion effect inference requires matching buff evidence and respects s
         mapping,
         ...evidence
       ]);
-      source.log.header.arcdpsBuild = arcdpsBuild;
-      return eiInstantActions(source).filter((action) => action.rawSkillId === 10192);
+      const versioned = evtcReconstructionContext(source, { header: { ...source.log.header, arcdpsBuild } });
+      return eiInstantActions(versioned).filter((action) => action.rawSkillId === 10192);
     };
 
     for (const specialization of ['core', 'mirage', 'chronomancer']) {
@@ -616,7 +618,7 @@ test('minion spawn inference needs an actual owned spawn rather than initial pre
     [...log().agents, minion]
   );
   assert.equal(eiMinionSpawns(c).length, 0);
-  const spawned = {
+  const spawned = evtcReconstructionContext({
     ...c,
     log: {
       ...c.log,
@@ -625,7 +627,7 @@ test('minion spawn inference needs an actual owned spawn rather than initial pre
         event({ time: 200, stateChange: 6, source: minion.address, sourceInstance: 2, sourceMasterInstance: 1 })
       ]
     }
-  };
+  });
   assert.equal(eiMinionSpawns(spawned)[0]?.start, 200);
 });
 
@@ -690,9 +692,10 @@ test('minion cast finder requires owned animation evidence and rejects ambiguous
     agents: [...c.log.agents, stranger],
     events: [...events, event({ source: stranger.address, sourceInstance: 1 })]
   };
-  assert.equal(agentOwners(ambiguous).has(minion.address), false);
+  const ambiguousContext = evtcReconstructionContext(c, ambiguous);
+  assert.equal(ambiguousContext.evidence.owners.has(minion.address), false);
   assert.equal(
-    eiInstantActions({ ...c, log: ambiguous }).some((a) => a.rawSkillId === 76643),
+    eiInstantActions(ambiguousContext).some((a) => a.rawSkillId === 76643),
     false
   );
 });
@@ -704,7 +707,7 @@ test('custom animation suppression requires a decoded cast rather than a rejecte
     event({ time: 200, stateChange: 69, target: PLAYER, skillId: 62632, value: 500 })
   ]);
   assert.equal(eiCustomAnimatedActions(c).find((a) => a.rawSkillId === 62603)?.start, -240);
-  const real = {
+  const real = evtcReconstructionContext({
     ...c,
     log: {
       ...c.log,
@@ -714,7 +717,7 @@ test('custom animation suppression requires a decoded cast rather than a rejecte
         ...c.log.events.slice(2)
       ]
     }
-  };
+  });
   assert.equal(
     eiCustomAnimatedActions(real).some((a) => a.rawSkillId === 62603),
     false
