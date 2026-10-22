@@ -148,7 +148,12 @@ for (const section of ['skills', 'balanceProfiles']) {
         });
         acceptSavedDraft(editorState.draft);
         loadEditorPayload({ ...payload, preview: editorState.draft });
-        const result = apply(editorState.draft.professions.warrior);
+
+        // Reverting the final edit removes the profession now that display prose cannot keep it alive.
+        if (!stacked && next === 1) assert.equal(editorState.draft.professions, undefined);
+
+        const result = apply(editorState.draft.professions?.warrior);
+
         assert.equal(result.effects[0].coefficient, next);
         assert.equal(result.cooldown, 10);
         assert.deepEqual(result.effects.slice(1), expected.effects.slice(1));

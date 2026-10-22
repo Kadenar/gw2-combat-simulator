@@ -23,7 +23,6 @@ import {
   applyModifierRulePatch,
   applySkillPatch,
   professionPatchFor,
-  validatePatchOverview,
   validatePatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
@@ -126,7 +125,7 @@ function createPatchAuthoringMetadata(
   });
 }
 
-const PROFESSION_PATCH_FIELDS = new Set(['skills', 'balanceProfiles', 'modifierRules', 'overview']);
+const PROFESSION_PATCH_FIELDS = new Set(['skills', 'balanceProfiles', 'modifierRules']);
 
 function assertProfessionPatchShape(professionId: string, patch: ProfessionPatchPreview): void {
   assertObject(patch, `${professionId} patch`);
@@ -141,12 +140,6 @@ function assertProfessionPatchShape(professionId: string, patch: ProfessionPatch
       assertObject(patch[field], `${professionId} patch ${field}`);
     }
   }
-
-  if (patch.overview != null && !Array.isArray(patch.overview)) {
-    throw new TypeError(`${professionId} patch overview must be an array.`);
-  }
-
-  validatePatchOverview(patch.overview, `${professionId} patch overview`);
 }
 
 function modifierPatchFields(edit: ModifierRulePatchEdit): readonly string[] {
@@ -379,10 +372,7 @@ export function withPatchPreview<
         patchAuthoring,
         family.weaponSkillMatchesSet
       );
-      return (
-        generatePatchOverview({ ...preview, professions: { [family.id]: relevantPatch } }, [patchAuthoring])
-          .professions?.[family.id]?.overview ?? []
-      );
+      return generatePatchOverview(relevantPatch, patchAuthoring);
     },
     validatePatch,
     resolveProfession,

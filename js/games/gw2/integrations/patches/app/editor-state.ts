@@ -1,3 +1,4 @@
+import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type {
   NativePatchAuthoringMetadata,
@@ -6,7 +7,6 @@ import type {
 import {
   normalizeAuthoringSkillEdit,
   type EffectSelector,
-  type PatchOverviewEntry,
   type PatchPreview,
   type SkillPatchEdit
 } from '#gw2/integrations/patches/authoring/patches.js';
@@ -121,13 +121,12 @@ export function acceptSavedDraft(preview: PatchPreview): void {
   editorState.dirty = false;
 }
 
-/** Regenerates derived overview text and keeps selections valid for the loaded metadata. */
+/** Keeps selections valid for the loaded metadata without adding presentation data to the draft. */
 export function prepareEditorStateForRender(): void {
   const payload = editorState.payload;
 
   if (!payload) return;
 
-  editorState.draft = generatePatchOverview(editorState.draft, payload.professions);
   const profession = selectedProfession() || payload.professions[0];
 
   if (profession && profession.professionId !== editorState.selectedProfessionId) {
@@ -274,10 +273,10 @@ export function editCount(professionId: string): number {
   );
 }
 
-/** Returns generated overview entries for the selected profession draft. */
+/** Derives the selected profession's overview on demand so rendering never changes the saved draft. */
 export function overviewForProfession(): readonly PatchOverviewEntry[] {
-  const patch = professionPatch(editorState.selectedProfessionId);
-  return patch && Array.isArray(patch.overview) ? (patch.overview as PatchOverviewEntry[]) : [];
+  const patch = editorState.draft.professions?.[editorState.selectedProfessionId];
+  return patch ? generatePatchOverview(patch, selectedProfession() ?? undefined) : [];
 }
 
 /** Reports whether a skill currently owns any sparse draft edit. */

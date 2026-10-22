@@ -1,3 +1,4 @@
+import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import {
   castResourceGrants,
@@ -16,7 +17,6 @@ import type {
 import {
   type EffectPatch,
   type ModifierRulePatchEdit,
-  type PatchOverviewEntry,
   type PatchPreview,
   type SkillPatchEdit
 } from '#gw2/integrations/patches/authoring/patches.js';

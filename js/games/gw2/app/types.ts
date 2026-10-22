@@ -1,5 +1,5 @@
 import type { BuildContextFactory } from '#gw2/build-context/types.js';
-import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/patches.js';
+import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import type { BuildLibraryState } from '#gw2/app/build/library/state.js';
 import type { RotationEditingState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
 import type { RotationTimelineState } from '#gw2/app/rotation/timeline/state.js';

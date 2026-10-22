@@ -124,9 +124,10 @@ profession mechanics generally require implementation work beyond the sparse ove
 
 ## Overview and comparison
 
-**Overview & source** is generated from structured skill, profile, and modifier diffs. Manual overview prose is
-unsupported so it cannot drift from the overlay. Code-only behavior changes are not automatically summarized; the
-official source link and code review provide their context.
+**Overview & source** is generated from structured skill, profile, and modifier diffs when displayed. Saved previews
+contain only structured edits; `overview` fields are rejected by validation. Build-specific notes filter edits for
+relevance before generating their text. Code-only behavior changes are not automatically summarized; the official source
+link and code review provide their context.
 
 With an active preview, **Game data** selects Live or the preview for the detailed result. This is application state,
 not saved-build identity. Build exports remain usable with either data set.

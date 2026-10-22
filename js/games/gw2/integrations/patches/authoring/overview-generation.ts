@@ -3,14 +3,18 @@ import type { NativePatchAuthoringMetadata } from '#gw2/integrations/patches/aut
 import type {
   EffectPatch,
   ModifierRulePatchEdit,
-  PatchOverviewEntry,
-  PatchPreview,
+  ProfessionPatchPreview,
   SkillPatchEdit
 } from '#gw2/integrations/patches/authoring/patches.js';
 import { PATCHABLE_EFFECT_NUMERIC_FIELDS } from '#gw2/integrations/patches/authoring/fields.js';
 import type { NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
 
-// Pure, DOM-free overview generation shared by the authoring UI, the authoring server, and build-relevant notes.
+// Presentation entries stay separate from the structured edits saved and consumed by the runtime.
+export interface PatchOverviewEntry {
+  readonly subject: string;
+  readonly text: string;
+  readonly source: 'skill-diff' | 'profile-diff' | 'modifier-diff';
+}
 
 const FIELD_LABELS: Readonly<Record<string, string>> = Object.freeze({
   ammoCastLockout: 'ammo cast lockout',
@@ -86,7 +90,7 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
 
   describeGrants(edit.resourceGrants, '');
 
-  // Explain slot reworks in generated notes so saving the preview preserves their meaning.
+  // Explain slot reworks alongside numeric changes when displaying the structured preview.
   if (edit.placement) {
     changes.add(
       edit.placement.type === 'Weapon'
@@ -233,29 +237,14 @@ function generatedModifierOverview(
   }));
 }
 
-/** Rebuilds read-only overview text from the current authored diff and live metadata. */
+/** Derives presentation text for one profession without copying or modifying the saved patch. */
 export function generatePatchOverview(
-  preview: PatchPreview,
-  metadata: readonly NativePatchAuthoringMetadata[]
-): PatchPreview {
-  const generated = structuredClone(preview) as PatchPreview;
-  const professions = generated.professions as Record<string, Record<string, unknown>> | undefined;
-  delete (generated as unknown as Record<string, unknown>).notes;
-  for (const [professionId, patch] of Object.entries(professions || {})) {
-    delete patch.notes;
-    const professionMetadata = metadata.find((entry) => entry.professionId === professionId);
-    const skills = (patch.skills || {}) as Readonly<Record<string, SkillPatchEdit>>;
-    const modifierRules = (patch.modifierRules || {}) as Readonly<Record<string, ModifierRulePatchEdit>>;
-    const balanceProfiles = (patch.balanceProfiles || {}) as Readonly<Record<string, SkillPatchEdit>>;
-    const overview = [
-      ...generatedSkillOverview(skills, professionMetadata),
-      ...generatedBalanceProfileOverview(balanceProfiles, professionMetadata),
-      ...generatedModifierOverview(modifierRules, professionMetadata)
-    ];
-
-    if (overview.length) patch.overview = overview;
-    else delete patch.overview;
-  }
-
-  return generated;
+  patch: ProfessionPatchPreview,
+  metadata: NativePatchAuthoringMetadata | undefined
+): readonly PatchOverviewEntry[] {
+  return [
+    ...generatedSkillOverview(patch.skills ?? {}, metadata),
+    ...generatedBalanceProfileOverview(patch.balanceProfiles ?? {}, metadata),
+    ...generatedModifierOverview(patch.modifierRules ?? {}, metadata)
+  ];
 }

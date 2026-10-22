@@ -1,5 +1,5 @@
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/patches.js';
+import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';

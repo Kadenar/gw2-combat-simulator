@@ -9,8 +9,6 @@ import { writeFile as writeFileToDisk } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { generatePatchOverview } from '#gw2/integrations/patches/authoring/overview-generation.js';
-
 const API_PATH = '/api/patch-preview';
 const MAX_REQUEST_BYTES = 5 * 1024 * 1024;
 const TOP_LEVEL_FIELDS = new Set(['id', 'label', 'publishedAt', 'sourceUrl', 'pendingBenchmarks', 'professions']);
@@ -90,14 +88,8 @@ export const activePatchPreview: PatchPreview = ${JSON.stringify(preview, null, 
 // Validates a patch preview for authoring purposes.
 export function validateAuthoringPreview(preview, runtime) {
   assertAuthoringShape(preview);
-  // Validate the declaration before generating labels; profile validation below rejects unknown fields.
-  const normalized = runtime.validatePatchPreview(preview);
-  const generated = generatePatchOverview(
-    normalized,
-    runtime.professions.map((profession) => profession.patchAuthoring)
-  );
-
-  const validated = runtime.validatePatchPreview(generated);
+  // Persist only validated structured edits; display consumers generate their own overview text.
+  const validated = runtime.validatePatchPreview(preview);
   const professions = new Map(
     runtime.professions.map((profession) => [profession.patchAuthoring.professionId, profession])
   );

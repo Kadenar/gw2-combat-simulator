@@ -75,16 +75,7 @@ export const activePatchPreview: PatchPreview = {
       // Apply the confirmed strike reduction independently of the still-pending condition-duration change.
       balanceProfiles: {
         '1890': { fields: { damageMultiplier: { from: 1.05, to: 1 } } }
-      },
-      overview: [
-        { subject: 'Phantasmal Disenchanter', text: 'Moved to Focus 5.', source: 'skill-diff' },
-        { subject: 'Phantasmal Warden', text: 'Moved to a utility slot.', source: 'skill-diff' },
-        {
-          subject: 'Chronophantasma',
-          text: 'Resummoned phantasm strike damage reduced from 105% to 100%.',
-          source: 'profile-diff'
-        }
-      ]
+      }
     },
     revenant: {
       skills: {
@@ -193,54 +184,7 @@ export const activePatchPreview: PatchPreview = {
             }
           ]
         }
-      },
-      overview: [
-        {
-          subject: 'Coalescence of Ruin',
-          text: 'Removed Coalescence of Ruin - Second Cascade.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Beguiling Haze',
-          text: 'Beguiling Haze tick all coefficient 2.2 → 1.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Beguiling Haze',
-          text: 'Beguiling Haze tick all coefficient 2.2 → 1.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Release Potential: Dervish',
-          text: 'Release Potential: Dervish coefficient 1.8 → 2.4.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Release Potential: Assassin',
-          text: 'Release Potential: Assassin tick all coefficient 0.6 → 0.9.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Beguiling Haze (Follow-Up)',
-          text: 'Strike tick all coefficient 0.6 → 0.3.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Mistfire',
-          text: 'Burning duration 6 → 8.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Reinforced Potency',
-          text: 'damage per boon 0.01 → 0.02; maximum boons 12 → 5.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Lasting Legacy',
-          text: 'Strike damage increase per stack 0.05 → 0.04.',
-          source: 'profile-diff'
-        }
-      ]
+      }
     },
     thief: {
       skills: {
@@ -354,54 +298,7 @@ export const activePatchPreview: PatchPreview = {
             }
           ]
         }
-      },
-      overview: [
-        {
-          subject: 'Three Round Burst',
-          text: 'Strike tick all coefficient 0.75 → 0.85.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Zephyrite Sun Crystal',
-          text: 'Burning stacks 2 → 1.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Zephyrite Sun Crystal',
-          text: 'Burning tick all stacks 2 → 1.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Summon Kryptis Turret',
-          text: 'Torment tick all duration 4 → 2.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Antiquary Artifact Windows',
-          text: 'Resource gain 3 → 2.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Forged Surfer Dash',
-          text: 'Bomb duration 3.5 → 1.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Forged Surfer Dash - Meticulous',
-          text: 'Bomb duration 4.5 → 2.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Premeditation',
-          text: 'damage per boon 0.01 → 0.02; maximum boons 12 → 5.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Exposed Weakness',
-          text: 'damage per condition 0.02 → 0.03; maximum conditions 14 → 5.',
-          source: 'profile-diff'
-        }
-      ]
+      }
     },
     ranger: {
       balanceProfiles: {
@@ -499,64 +396,6 @@ export const activePatchPreview: PatchPreview = {
           }
         }
       },
-
-      overview: [
-        {
-          subject: 'Poison Volley',
-          text: 'Cooldown 8 → 6; Poisoned duration 5 → 7.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Crossfire',
-          text: 'Bleeding duration 2 → 5.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Crippling Shot',
-          text: 'Cooldown 12 → 10; Immobilized duration 1.5 → 2.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Concussion Shot',
-          text: 'Cooldown 20 → 16.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Quick Shot',
-          text: 'Cooldown 8 → 6.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Light on Your Feet',
-          text: 'Recharge multiplier 0.8 → 1; duration per tier 2 → 0; minimum stacks 1 → 0; removed Vulnerability.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Blood Moon',
-          text: 'Bleeding duration 4 → 3.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Eclipse',
-          text: 'Seed of Life duration 8 → 6; Natural Convergence duration 5 → 4; Natural Convergence final pulse duration 5 → 4.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Natural Balance',
-          text: 'Condition damage increase 0.05 → 0.15.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Ferocious Symbiosis',
-          text: 'damage per stack 0.05 → 0.04.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Bountiful Hunter',
-          text: 'Player and pet damage per boon 0.01 → 0.02; maximum boons 12 → 5.',
-          source: 'profile-diff'
-        }
-      ],
       skills: {
         '12468': {
           fields: {
@@ -698,45 +537,7 @@ export const activePatchPreview: PatchPreview = {
             }
           }
         }
-      },
-
-      overview: [
-        {
-          subject: 'Target the Weak',
-          text: 'Critical chance per condition 0.02 → 0.04; maximum conditions 14 → 5.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Augury of Death',
-          text: 'Strike flat strike base 344 → 1500.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Desert Empowerment',
-          text: 'Alacrity duration 1.5 → 2.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Abrasive Grit',
-          text: 'Might duration 6 → 8.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Cascading Corruption',
-          text: 'Torment stacks 6 → 3.',
-          source: 'profile-diff'
-        },
-        {
-          subject: "Spirits' Strength",
-          text: 'Damage multiplier 1.5 → 1.33.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Cascading Corruption',
-          text: 'Strike and condition damage increases 0.1 → 0.07.',
-          source: 'profile-diff'
-        }
-      ]
+      }
     },
     guardian: {
       balanceProfiles: {
@@ -795,25 +596,7 @@ export const activePatchPreview: PatchPreview = {
             }
           ]
         }
-      },
-
-      overview: [
-        {
-          subject: 'Phoenix Protocol',
-          text: 'Added boon alacrity effect; added boon alacrity (triggered) effect; removed alacrity; removed alacrity (triggered).',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Empowered Armaments',
-          text: 'Damage increase 0.1 → 0.13.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Inspired Virtue',
-          text: 'damage per boon 0.005 → 0.015; maximum boons 12 → 5.',
-          source: 'profile-diff'
-        }
-      ]
+      }
     },
     elementalist: {
       skills: {
@@ -871,68 +654,6 @@ export const activePatchPreview: PatchPreview = {
           ]
         }
       },
-      overview: [
-        {
-          subject: 'Wildfire',
-          text: 'Burning tick all duration 3 → 2.5.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Dust Storm',
-          text: 'Hits once per 2-second interval across both storms: small hitboxes 6 → 3 hits; large hitboxes 8 → 4 hits. Bleeding and Blindness follow the same limit.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Shale Storm - Additional Strike',
-          text: 'Strike coefficient 1.5 → 2.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Fiery Impact - Additional Strike',
-          text: 'Strike coefficient 1.75 → 2.25.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Meteor',
-          text: 'Strike tick all coefficient 2.7 → 3.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Galvanize - Additional Strike',
-          text: 'Strike coefficient 2.6 → 3.1.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Specialized Elements',
-          text: 'Recharge multiplier 0.67 → 0.8.',
-          source: 'profile-diff'
-        },
-        {
-          subject: '2131',
-          text: 'Damage increase 0.15 → 0.12.',
-          source: 'profile-diff'
-        },
-        {
-          subject: '2131',
-          text: 'Damage increase 0.1 → 0.07.',
-          source: 'profile-diff'
-        },
-        {
-          subject: '1891',
-          text: 'Damage increase 0.05 → 0.07.',
-          source: 'profile-diff'
-        },
-        {
-          subject: '1839',
-          text: 'Damage increase 0.2 → 0.25.',
-          source: 'profile-diff'
-        },
-        {
-          subject: "Familiar's Focus",
-          text: 'Damage increase 0.1 → 0.12.',
-          source: 'profile-diff'
-        }
-      ],
 
       balanceProfiles: {
         '1839': {
@@ -1080,24 +801,7 @@ export const activePatchPreview: PatchPreview = {
             }
           }
         }
-      },
-      overview: [
-        {
-          subject: 'Signet of Rage',
-          text: 'Cooldown 40 → 30; resource gain 0 → 10; fury duration 25 → 10; might duration 25 → 10; might stacks 5 → 20; swiftness duration 25 → 10.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Break Enchantments',
-          text: 'Ammo 0 → 2; ammo recharge 0 → 15; cast time 167 → 600.',
-          source: 'skill-diff'
-        },
-        {
-          subject: 'Empowered',
-          text: 'damage per boon 0.01 → 0.02; maximum boons 12 → 5.',
-          source: 'profile-diff'
-        }
-      ]
+      }
     },
     engineer: {
       balanceProfiles: {
@@ -1130,24 +834,7 @@ export const activePatchPreview: PatchPreview = {
             }
           }
         }
-      },
-      overview: [
-        {
-          subject: 'Double Helix',
-          text: 'Coefficient multiplier 1.2 → 1.15.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Grenadier',
-          text: 'Factor 1 → 1.1. TBD: final Grenadier explosion-damage percentage pending; 10% assumed for this preview.',
-          source: 'profile-diff'
-        },
-        {
-          subject: 'Modified Ammunition',
-          text: 'Parameter damage per condition 0.01 → 0.02; parameter maximum conditions 14 → 5.',
-          source: 'profile-diff'
-        }
-      ]
+      }
     }
   }
 };

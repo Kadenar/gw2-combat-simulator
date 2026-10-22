@@ -30,50 +30,6 @@ export type ResourceGrantEdits = Readonly<Record<string, Readonly<Record<string,
 
 export const CURRENT_PATCH_ID = 'current';
 
-export interface PatchOverviewEntry {
-  readonly subject: string;
-  readonly text: string;
-  readonly source: 'skill-diff' | 'profile-diff' | 'modifier-diff';
-}
-
-const PATCH_OVERVIEW_FIELDS = new Set(['subject', 'text', 'source']);
-
-/** Validates the shape and required fields of authored patch overview entries. */
-export function validatePatchOverview(
-  entries: readonly PatchOverviewEntry[] | null | undefined,
-  label = 'Patch preview overview'
-): void {
-  if (entries == null) return;
-
-  if (!Array.isArray(entries)) {
-    throw new TypeError(`${label} must be an array.`);
-  }
-
-  for (const [index, entry] of entries.entries()) {
-    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
-      throw new TypeError(`${label}[${index}] must be an object.`);
-    }
-
-    for (const field of Object.keys(entry)) {
-      if (!PATCH_OVERVIEW_FIELDS.has(field)) {
-        throw new TypeError(`${label}[${index}] has unsupported field ${field}.`);
-      }
-    }
-
-    if (!String(entry.subject || '').trim()) {
-      throw new TypeError(`${label}[${index}].subject is required.`);
-    }
-
-    if (!String(entry.text || '').trim()) {
-      throw new TypeError(`${label}[${index}].text is required.`);
-    }
-
-    if (entry.source !== 'skill-diff' && entry.source !== 'profile-diff' && entry.source !== 'modifier-diff') {
-      throw new TypeError(`${label}[${index}].source is invalid.`);
-    }
-  }
-}
-
 export interface EffectSelector {
   /** Zero-based index in the skill's complete effects array. */
   readonly effectIndex?: number;
@@ -148,8 +104,6 @@ export interface ProfessionPatchPreview {
   readonly skills?: Readonly<Record<string, SkillPatchEdit>>;
   readonly balanceProfiles?: Readonly<Record<string, SkillPatchEdit>>;
   readonly modifierRules?: Readonly<Record<string, ModifierRulePatchEdit>>;
-  /** Deterministic summaries generated from skills and modifierRules. */
-  readonly overview?: readonly PatchOverviewEntry[];
 }
 
 /** Patch-scoped reworks keep unsettled builds visible without publishing a misleading DPS comparison. */
@@ -932,7 +886,7 @@ export function validatePatchPreview(preview: PatchPreview): PatchPreview {
   }
 
   // Reject retired fields so authored entries cannot silently have no simulation effect.
-  for (const field of ['notes', 'constants']) {
+  for (const field of ['notes', 'constants', 'overview']) {
     if (Object.hasOwn(preview, field)) {
       throw new TypeError(`Patch preview has unsupported field ${field}.`);
     }
@@ -985,13 +939,12 @@ export function validatePatchPreview(preview: PatchPreview): PatchPreview {
   }
 
   for (const [professionId, patch] of Object.entries(preview.professions || {})) {
-    for (const field of ['notes', 'constants']) {
+    // Display summaries are derived from edits and must never enter the saved runtime declaration.
+    for (const field of ['notes', 'constants', 'overview']) {
       if (Object.hasOwn(patch, field)) {
         throw new TypeError(`${professionId} patch has unsupported field ${field}.`);
       }
     }
-
-    validatePatchOverview(patch.overview, `${professionId} patch overview`);
   }
 
   return deepFreeze(structuredClone(preview));
