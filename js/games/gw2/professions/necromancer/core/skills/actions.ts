@@ -24,7 +24,6 @@ const extraSkills: Skill[] = [
     castTimeMs: 0,
     cooldown: 0,
     flipParentId: ID.LICH_FORM,
-    flipParent: 'Lich Form',
     effects: []
   }
 ];

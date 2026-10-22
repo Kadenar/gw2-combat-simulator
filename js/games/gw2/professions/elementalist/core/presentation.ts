@@ -273,6 +273,10 @@ function elementalistPaletteGroups(
       skillIds: catalog.skills
         .filter((skill) => skill.type === 'Weapon' && (skill.weapon || skill.skillWeapon) === weapon)
         .map((skill) => skill.id),
+      // Like Engineer kit stows, each conjure bar ends with its own Drop Bundle tile; the
+      // entry's bundle tag lets the palette enable only the copy for the wielded conjure.
+      skillEntries: [{ skillId: ID.DROP_BUNDLE, skillWeapon: weapon }],
+      includeActionSkills: true,
       color: '#d4a43f'
     });
   }
@@ -284,27 +288,17 @@ function elementalistPaletteGroups(
   return groups;
 }
 
-// Put available conjure controls beside Dodge in ACT, keeping the equipped weapon bar below utilities.
-function paletteActionSkills(
-  catalog: Readonly<CanonicalCatalog<ElementalistSkill>>,
-  context: ElementalistUiContext,
-  skills: readonly Skill[]
-): Skill[] {
+// Keep pickups only while their ground copy exists. Drop Bundle normally renders in its conjure
+// row, so this gate only keeps it out of the action row when no conjure bar is shown.
+function paletteActionSkills(context: ElementalistUiContext, skills: readonly Skill[]): Skill[] {
   const state = elementalistUiState(context);
   const now = context.time || 0;
-  const actionIds = [
-    ...(state.conjureEquipped ? [ID.DROP_BUNDLE] : []),
-    ...Object.entries(CONJURE_PICKUP_WEAPONS)
-      .filter(([, weapon]) => (state.conjurePickups?.[weapon] ?? 0) > now)
-      .map(([id]) => Number(id))
-  ];
-  return [
-    ...skills,
-    ...actionIds.flatMap((id) => {
-      const skill = catalog.skillsById.get(id);
-      return skill ? [skill] : [];
-    })
-  ];
+  return skills.filter((skill) => {
+    if (Number(skill.id) === ID.DROP_BUNDLE) return Boolean(state.conjureEquipped);
+
+    const pickupWeapon = CONJURE_PICKUP_WEAPONS[Number(skill.id)];
+    return !pickupWeapon || (state.conjurePickups?.[pickupWeapon] ?? 0) > now;
+  });
 }
 
 // Live attunement when a run exists, otherwise the build's configured start.
@@ -577,6 +571,16 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
       const state = elementalistUiState(context);
+
+      // A conjure row's Drop Bundle only inserts while that row's bundle is wielded; the
+      // equipped row falls through to the runtime verdict.
+      if (Number(skill.id) === ID.DROP_BUNDLE && skill.skillWeapon && skill.skillWeapon !== state.conjureEquipped) {
+        return {
+          available: false,
+          message: `Drop Bundle is unavailable — the ${skill.skillWeapon} bundle is not equipped.`
+        };
+      }
+
       const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)] || AURA_TRANSMUTE_SKILLS[Number(skill.nextChainId)];
 
       if (aura) {
@@ -593,8 +597,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
       ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
     ],
     paletteGroups: (context: ElementalistUiContext) => elementalistPaletteGroups(catalog, context),
-    paletteActionSkills: (context: ElementalistUiContext, skills: readonly Skill[]) =>
-      paletteActionSkills(catalog, context, skills),
+    paletteActionSkills,
     paletteWeaponSkills: (context: ElementalistUiContext, skills: readonly Skill[]) =>
       paletteWeaponSkills(catalog, context, skills),
     updatePaletteControl,

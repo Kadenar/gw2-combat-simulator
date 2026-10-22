@@ -358,7 +358,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       projectedInstantReadyAt = Math.max(projectedInstantReadyAt, projectedStart + effectiveRuntimeMs);
       projectedBlockingEnd = Math.max(projectedBlockingEnd, projectedStart + retainedRuntimeMs);
     }
-    
+
     const aftercastWaitMs = observedAftercastWaitMs(action, actionReplayEnd);
 
     if (!concurrent && policy.hasObservedCastTime?.(action) !== false && aftercastWaitMs > 0) {

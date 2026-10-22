@@ -521,6 +521,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     // Summon on commitment; the companion owns its attacks, command flip, lifetime, and held recharge.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.summon-elemental' } }],
     name: 'Glyph of Elementals',
+    // This simulator projection always summons Fire, independent of the current attunement.
+    displayName: 'Glyph of Elementals (Fire)',
+    description: 'Glyph. Summon a Fire Elemental regardless of attunement.',
     type: 'Elite',
     slot: 'Elite',
     categories: ['Glyph'],
@@ -533,6 +536,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     // Summon on commitment; the companion owns its attacks, command flip, lifetime, and held recharge.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.summon-elemental' } }],
     name: 'Glyph of Elementals (Earth)',
+    // This simulator projection always summons Earth, independent of the current attunement.
+    description: 'Glyph. Summon an Earth Elemental regardless of attunement.',
     type: 'Elite',
     slot: 'Elite',
     categories: ['Glyph'],

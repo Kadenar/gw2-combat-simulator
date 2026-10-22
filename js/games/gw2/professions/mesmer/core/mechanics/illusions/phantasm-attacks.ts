@@ -83,13 +83,8 @@ export function schedulePhantasmStrike(
       : { coefficient: (sourcedGroup.coefficient || 0) * execution.damageMultiplier })
   };
   const groupName = group.name || '';
-  const attackDisplayName = execution.skill.phantasmDisplayNames?.[groupName] ?? '';
-  const initialEventExtra = attackDisplayName
-    ? {
-        name: attackDisplayName,
-        parentSkillName: execution.skill.name
-      }
-    : undefined;
+  // Distinct attacks carry their own label and parent attribution in the effect declaration.
+  const repeatAttackName = group.parentSkillName ? groupName : execution.skill.name;
 
   // Measured phantasm timings position the authored damage packets without changing their formulas.
   const measuredTicks =
@@ -107,47 +102,35 @@ export function schedulePhantasmStrike(
       );
     }
 
-    initialEvents = buildMesmerStrikes(
-      state,
-      execution.skill,
-      castStart,
-      {
-        ...damageGroup,
-        coefficient: undefined,
-        hits: undefined,
-        atMs: undefined,
-        intervalMs: undefined,
-        ticks: measuredTicks.map((packet, index) => ({
-          atMs: (execution.endpoint(packet.atMs) - castStart) * 1000,
-          coefficient: coefficients[index]
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      initialEventExtra
-    ).map((packet) => {
+    initialEvents = buildMesmerStrikes(state, execution.skill, castStart, {
+      ...damageGroup,
+      coefficient: undefined,
+      hits: undefined,
+      atMs: undefined,
+      intervalMs: undefined,
+      ticks: measuredTicks.map((packet, index) => ({
+        atMs: (execution.endpoint(packet.atMs) - castStart) * 1000,
+        coefficient: coefficients[index]
+      })),
+      timingAnchor: 'castStart',
+      timingScale: 'fixed'
+    }).map((packet) => {
       emitAttackPacket(state, execution, packet);
       return packet;
     });
   } else if (fixedTicks?.length) {
-    initialEvents = buildMesmerStrikes(
-      state,
-      execution.skill,
-      castStart,
-      {
-        ...damageGroup,
-        atMs: undefined,
-        intervalMs: undefined,
-        // Skill-owned phantasm packets use measured post-cast offsets and still inherit Phantasmal Haste.
-        ticks: fixedTicks.map((tick) => ({
-          ...tick,
-          atMs: (execution.endpoint(tick.atMs) - castStart) * 1000
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      initialEventExtra
-    ).map((packet) => {
+    initialEvents = buildMesmerStrikes(state, execution.skill, castStart, {
+      ...damageGroup,
+      atMs: undefined,
+      intervalMs: undefined,
+      // Skill-owned phantasm packets use measured post-cast offsets and still inherit Phantasmal Haste.
+      ticks: fixedTicks.map((tick) => ({
+        ...tick,
+        atMs: (execution.endpoint(tick.atMs) - castStart) * 1000
+      })),
+      timingAnchor: 'castStart',
+      timingScale: 'fixed'
+    }).map((packet) => {
       emitAttackPacket(state, execution, packet);
       return packet;
     });
@@ -162,8 +145,7 @@ export function schedulePhantasmStrike(
         intervalMs: undefined,
         timingAnchor: undefined,
         timingScale: undefined
-      },
-      initialEventExtra
+      }
     ).map((packet) => {
       emitAttackPacket(state, execution, packet);
       return packet;
@@ -211,8 +193,7 @@ export function schedulePhantasmStrike(
           timingScale: 'fixed'
         },
         {
-          name: `${attackDisplayName || execution.skill.name} - ${repeatPolicy.label}`,
-          ...(attackDisplayName ? { parentSkillName: execution.skill.name } : {}),
+          name: `${repeatAttackName} - ${repeatPolicy.label}`,
           multiplier: repeatPolicy.damageMultiplier
         }
       ).forEach((packet) => {
@@ -243,8 +224,7 @@ export function schedulePhantasmStrike(
             timingScale: 'fixed'
           },
           {
-            name: `${attackDisplayName || execution.skill.name} - ${repeatPolicy.label}`,
-            ...(attackDisplayName ? { parentSkillName: execution.skill.name } : {}),
+            name: `${repeatAttackName} - ${repeatPolicy.label}`,
             multiplier: repeatPolicy.damageMultiplier
           }
         ).forEach((packet) => {

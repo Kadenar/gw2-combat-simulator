@@ -14,8 +14,6 @@ import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 const allSkills: readonly GuardianSkill[] = Object.freeze([...SKILLS, ...GUARDIAN_BUNDLE_SKILLS]);
 
-const generatedById = new Map(allSkills.map((skill) => [skill.id, skill]));
-
 const willbenderFlameIds = new Set<SkillId>([
   ID.WILLBENDER_FLAMES,
   ID.WILLBENDER_FLAMES_ID_62618,
@@ -48,12 +46,9 @@ for (const [normalId, finalId] of firebrandFinalFlipByNormalId) {
 const generated: readonly GuardianSkill[] = allSkills.map((skill) => {
   const flipParentId = flipParentById.get(skill.id);
 
-  const flipParent = flipParentId == null ? undefined : generatedById.get(flipParentId);
-
   return {
     ...normalizeGeneratedSkill(skill, flipParentId ?? null),
     flipSkillId: firebrandFinalFlipByNormalId.get(skill.id) ?? skill.flipSkillId,
-    flipParent: flipParent?.name || '',
     ...(skill.id === ID.MIGHTY_BLOW || skill.id === ID.GLACIAL_BLOW
       ? {
           paletteFlip: false

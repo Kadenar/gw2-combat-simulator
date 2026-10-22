@@ -60,6 +60,8 @@ export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, Partial<Skill>
     // Spend energy once and record this field's live window before deployment traits and pulses.
     sideEffects: [{ on: 'castStart', do: { type: 'elementalist.catalyst.deploy-sphere' } }],
     name: 'Deploy Jade Sphere (Fire)',
+    // Each attunement supplies its own sphere art instead of sharing the API base-name result.
+    icon: 'https://render.guildwars2.com/file/22CA7C0F420C7F61CEBFA323DF3AADC5EF237475/2491598.png',
     type: 'Profession',
     slot: 'Profession_5',
     specialization: 'Catalyst',
@@ -83,6 +85,7 @@ export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, Partial<Skill>
     // Spend energy once and record this field's live window before deployment traits and pulses.
     sideEffects: [{ on: 'castStart', do: { type: 'elementalist.catalyst.deploy-sphere' } }],
     name: 'Deploy Jade Sphere (Water)',
+    icon: 'https://render.guildwars2.com/file/6016319AAF18417F0401800EF36C0F18E207FFD5/2491600.png',
     type: 'Profession',
     slot: 'Profession_5',
     specialization: 'Catalyst',
@@ -106,6 +109,7 @@ export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, Partial<Skill>
     // Spend energy once and record this field's live window before deployment traits and pulses.
     sideEffects: [{ on: 'castStart', do: { type: 'elementalist.catalyst.deploy-sphere' } }],
     name: 'Deploy Jade Sphere (Air)',
+    icon: 'https://render.guildwars2.com/file/07D9C76FEB07BB04B9D07A05D87C09A0A0AE0319/2491594.png',
     type: 'Profession',
     slot: 'Profession_5',
     specialization: 'Catalyst',
@@ -129,6 +133,7 @@ export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, Partial<Skill>
     // Spend energy once and record this field's live window before deployment traits and pulses.
     sideEffects: [{ on: 'castStart', do: { type: 'elementalist.catalyst.deploy-sphere' } }],
     name: 'Deploy Jade Sphere (Earth)',
+    icon: 'https://render.guildwars2.com/file/97BEF22148DDA3159B4CF6DB18ECFEDE7107710B/2491596.png',
     type: 'Profession',
     slot: 'Profession_5',
     specialization: 'Catalyst',

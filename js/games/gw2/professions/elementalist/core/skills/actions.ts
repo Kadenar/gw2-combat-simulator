@@ -51,7 +51,6 @@ export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = Object.fr
     flipSkillId: null,
     castTimeMs: 0,
     simulatorExcluded: false,
-    paletteAction: false,
     effects: []
   },
   ...[
@@ -87,7 +86,6 @@ export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = Object.fr
     castTimeMs: 300,
 
     simulatorExcluded: false,
-    paletteAction: false,
     effects: []
   }))
 ]);

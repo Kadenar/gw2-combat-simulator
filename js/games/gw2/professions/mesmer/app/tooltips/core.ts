@@ -110,7 +110,7 @@ export const mesmerCoreTooltips = {
     }),
     [ID.CHAOS_STORM]: skillTooltip(
       'Create a storm that strikes repeatedly, dazes on its opening pulse, and poisons the target on the subsequent condition pulses.',
-      (_c, entity) => simulationEffectFacts([(entity as MesmerSkill).mesmerMechanic!.chaosStormPoison!]).facts
+      (context) => simulationEffectFacts(tooltipProfile(context, CORE.chaosStormPoison).effects).facts
     ),
     [ID.SIGNET_OF_ILLUSIONS]: skillTooltip(
       "Passively generate your specialization's resource while equipped and recharged. Activate to reset eligible shatter and instrument cooldowns, restoring one ammunition charge where applicable. Continuum Split is excluded. The passive restarts after the signet recharges.",

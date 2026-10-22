@@ -660,10 +660,9 @@ export function paletteActionSkills(
     app.activeCatalog.skills.filter(
       (skill) =>
         skill.type === 'Action' &&
-        // Shared actions are simulator-owned records. Positive API/Wiki IDs
-        // classified as Action are usually trait procs, bundles, or encounter
-        // skills and require an explicit opt-in before entering the palette.
-        ((Number(skill.id) < 0 && skill.paletteAction !== false) || skill.paletteAction === true) &&
+        // The shared action row starts with synthetic actions; profession presentation
+        // filters contextual controls while API skills remain on their owning bars.
+        Number(skill.id) < 0 &&
         (skill.inputCategory !== 'weapon-swap' || Boolean(app.build.alternateWeapons?.[0])) &&
         (!skill.specialization || skill.specialization === specialization) &&
         app.adapter.isSkillAvailable(skill, {

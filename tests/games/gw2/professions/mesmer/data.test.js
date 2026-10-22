@@ -372,7 +372,7 @@ test('Mirage dodge spends endurance without ammo or cooldown', () => {
 test('Mesmer supplemental identities and dynamic handler profiles are explicit', () => {
   assert.ok(MESMER_SUPPLEMENTAL_SKILLS.every((skill) => skill.id > 0));
   assert.ok(PSEUDO_SKILLS.every((skill) => skill.id < 0));
-  const identityFields = ['name', 'description', 'icon', 'type', 'slot', 'weapon', 'specialization', 'flipParent'];
+  const identityFields = ['name', 'description', 'icon', 'type', 'slot', 'weapon', 'specialization', 'flipParentId'];
 
   assert.ok(
     MESMER_SUPPLEMENTAL_SKILLS.map((skill) => MESMER_SKILL_MECHANICS[skill.id]).every((mechanics) =>

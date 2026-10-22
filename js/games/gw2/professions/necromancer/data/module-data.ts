@@ -33,22 +33,16 @@ const allSkills: readonly NecromancerSkill[] = Object.freeze(
     .sort((left, right) => Number(left.id) - Number(right.id))
 );
 
-const generatedById = new Map<SkillId, NecromancerSkill>(allSkills.map((skill) => [skill.id, skill]));
-
 const flipParentById = createFlipParentMap(allSkills, {
   include(parent) {
     return !STATIC_REPLACEMENT_PAIRS.has(`${parent.id}:${parent.flipSkillId}`);
   }
 });
 
-const generated: readonly NecromancerSkill[] = allSkills.map((skill) => {
-  const flipParentId = flipParentById.get(skill.id);
-
-  return {
-    ...normalizeGeneratedSkill(skill, flipParentId ?? null),
-    flipParent: flipParentId == null ? '' : generatedById.get(flipParentId)?.name || ''
-  };
-});
+// Canonical parent IDs drive follow-up selection without a second name-based relationship.
+const generated: readonly NecromancerSkill[] = allSkills.map((skill) =>
+  normalizeGeneratedSkill(skill, flipParentById.get(skill.id) ?? null)
+);
 
 // Keeps the one canonical shade owned by Scourge after duplicate API forms are removed.
 const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> = Object.freeze({

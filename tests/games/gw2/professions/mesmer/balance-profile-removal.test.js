@@ -3,7 +3,10 @@ import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/pa
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
-import { mesmerProfiledShatter } from '#gw2/professions/mesmer/core/profiles.js';
+import {
+  mesmerProfiledShatter,
+  MESMER_CORE_BALANCE_PROFILE_IDS as CORE
+} from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -27,6 +30,51 @@ function run(balanceProfiles, specialization, rotation, config = {}, skills = {}
   assert.deepEqual(result.warnings, []);
   return result;
 }
+
+// The selected profile owns Poison in both combat and tooltips, including removal without restoring authored data.
+test('Chaos Storm profile edits and removal reach combat and tooltip consumers', () => {
+  const profile = mesmerCatalog.balanceProfilesById.get(CORE.chaosStormPoison);
+  const poison = profile.effects.find((effect) => effect.type === 'condition' && effect.name === 'Poison');
+  const edited = {
+    [profile.id]: {
+      effects: poison.ticks.map((tick, tickIndex) => ({
+        type: 'condition',
+        name: 'Poison',
+        tickIndex,
+        duration: { from: tick.duration, to: 9 }
+      }))
+    }
+  };
+  const rotation = ['Chaos Storm', { type: 'wait', durationMs: 6000 }];
+  const config = { primaryWeapon: 'Staff', secondaryWeapon: '', selectedTraitIds: [] };
+  const result = run(edited, 'Core', rotation, config);
+  const applications = result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.skillId === ID.CHAOS_STORM && event.condition === 'Poisoned'
+  );
+  assert.ok(applications.length > 0);
+  assert.ok(applications.every((event) => event.duration === 9));
+
+  const removed = { [profile.id]: { removeEffects: [{ type: 'condition', name: 'Poison' }] } };
+  const withoutPoison = run(removed, 'Core', rotation, config);
+  assert.equal(
+    withoutPoison.resolvedEvents.some(
+      (event) => event.type === 'condition' && event.skillId === ID.CHAOS_STORM && event.condition === 'Poisoned'
+    ),
+    false
+  );
+  assert.ok(withoutPoison.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.CHAOS_STORM));
+
+  const tooltipFacts = (catalog) =>
+    mesmerTooltips.skills[ID.CHAOS_STORM]({ catalog }, catalog.skillsById.get(ID.CHAOS_STORM)).facts.filter(
+      ({ name }) => name === 'Poisoned'
+    );
+  assert.notDeepEqual(
+    tooltipFacts(applyBalanceProfilePatch(mesmerCatalog, { balanceProfiles: edited })),
+    tooltipFacts(mesmerCatalog)
+  );
+  assert.deepEqual(tooltipFacts(applyBalanceProfilePatch(mesmerCatalog, { balanceProfiles: removed })), []);
+  assert.ok(poison.ticks.every((tick) => tick.duration === 4));
+});
 
 test('shatter removal keeps surviving tier edits and the current catalog isolated', () => {
   const id = MESMER_CORE_SHATTERS[ID.MIND_WRACK].balanceProfileId;

@@ -114,6 +114,8 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
   },
   [ID.TAILORED_VICTORY]: {
     name: 'Tailored Victory',
+    // Weave Self exposes this follow-up; it cannot be equipped as an independent elite skill.
+    slotSelectable: false,
     type: 'Elite',
     slot: 'Elite',
     specialization: 'Weaver',

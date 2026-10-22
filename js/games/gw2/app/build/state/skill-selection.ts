@@ -6,7 +6,8 @@ export function isSlotSkillSelectable(
   skill: Skill | null | undefined,
   specialization: string
 ): boolean {
-  if (!skill || skill.flipParent || skill.flipParentId != null || skill.slotSelectable === false) {
+  // Follow-up identity comes from the canonical parent ID, independent of display names.
+  if (!skill || skill.flipParentId != null || skill.slotSelectable === false) {
     return false;
   }
 

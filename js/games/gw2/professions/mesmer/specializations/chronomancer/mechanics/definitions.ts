@@ -12,8 +12,8 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
     // Chronophantasma packet and final conversion offsets stay anchored to the original cast end.
     repeatSpawnAtMs: 7120,
     repeatDamageTicks: {
-      'Phantasm leap': [{ atMs: 4560 }],
-      'Phantasm Blurred Frenzy': [
+      'Sword Attack': [{ atMs: 4560 }],
+      'Blurred Frenzy': [
         { atMs: 5040 },
         { atMs: 5080 },
         { atMs: 5360 },

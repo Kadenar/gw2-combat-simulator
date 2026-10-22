@@ -1,8 +1,11 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/index.js';
 import { SPECIALIZATIONS as API_SPECIALIZATIONS } from '#gw2/professions/elementalist/data/elementalist-api-metadata.js';
 import { ELEMENTALIST_SKILL_IDS, ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import { TRAITS } from '#gw2/professions/elementalist/data/traits-data.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
 import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/catalyst/skills/index.js';
@@ -69,7 +72,11 @@ test('Elementalist skill mechanics have disjoint module ownership', () => {
   const owners = new Map();
 
   for (const [directory, module, mechanics] of slices) {
-    assert.deepEqual(Object.keys(module.data.skillMechanics).sort(), Object.keys(mechanics).sort(), directory);
+    assert.deepEqual(
+      module.data.generatedSkills.map(({ id }) => String(id)).sort(),
+      Object.keys(mechanics).sort(),
+      directory
+    );
     for (const skillId of Object.keys(mechanics)) {
       assert.equal(owners.has(skillId), false, skillId);
       owners.set(skillId, module.id);
@@ -85,6 +92,53 @@ test('Elementalist skill mechanics have disjoint module ownership', () => {
   for (const skillId of owners.keys()) {
     assert.equal(declaredIds.has(Number(skillId)), true, skillId);
   }
+});
+
+// Minimal module contributions isolate ordering and validation from the full combat catalog.
+function catalogModule(id, data = {}) {
+  return defineNativeModule({ id, data, state: { create: () => ({}) } });
+}
+
+test('Elementalist family order determines name collisions independently of module order', () => {
+  const declaration = { name: 'Shared fixture', type: 'Utility', effects: [] };
+  const firstId = ELEMENTALIST_SKILL_IDS.FIRE_ATTUNEMENT;
+  const secondId = ELEMENTALIST_SKILL_IDS.FIREBALL;
+  const tempest = catalogModule(
+    'Tempest',
+    createElementalistModuleData('Tempest', { skillMechanics: { [firstId]: declaration } })
+  );
+  const weaver = catalogModule(
+    'Weaver',
+    createElementalistModuleData('Weaver', { skillMechanics: { [secondId]: declaration } })
+  );
+  const core = catalogModule('Core');
+  for (const modules of [
+    [core, tempest, weaver],
+    [core, weaver, tempest]
+  ]) {
+    const catalog = assembleNativeApplicationCatalog(modules);
+    assert.deepEqual(
+      catalog.skills.map((skill) => skill.id),
+      [firstId, secondId]
+    );
+    assert.equal(catalog.skillsByName.get('Shared fixture').id, firstId);
+  }
+});
+
+test('Elementalist rejects unknown declarations and shared assembly rejects duplicate owners', () => {
+  assert.throws(
+    () => createElementalistModuleData('Tempest', { skillMechanics: { 999999: { name: 'Unknown' } } }),
+    /Unknown Elementalist skill declaration 999999/
+  );
+  const skillMechanics = { [ELEMENTALIST_SKILL_IDS.FIREBALL]: { name: 'Duplicate fixture', effects: [] } };
+  assert.throws(
+    () =>
+      assembleNativeApplicationCatalog([
+        catalogModule('Core'),
+        ...['Tempest', 'Weaver'].map((id) => catalogModule(id, createElementalistModuleData(id, { skillMechanics })))
+      ]),
+    /Duplicate generated skill id 5491 in Tempest and Weaver/
+  );
 });
 
 test('Elementalist weapon skill fragments compose without duplicates or omissions', async () => {

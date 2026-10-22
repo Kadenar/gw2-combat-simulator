@@ -179,13 +179,14 @@ test('Engineer flip declarations expose and consume windows independently of API
             { skill, id: 'flip-test', start: 0, fullEnd: 0, effectiveEnd: 0 },
             'castCommit'
           );
-        for (const skill of engineerCatalog.skills.filter(
-          (candidate) =>
-            candidate.paletteFlipSkillId != null &&
-            candidate.id !== ID.HEALING_TURRET &&
-            candidate.id !== ID.PHOTON_WALL
-        )) {
-          const flip = engineerCatalog.skillsById.get(skill.paletteFlipSkillId);
+        // Each minimal parent/child pair exercises authored flip windows independently of API links.
+        for (const [parentId, childId] of [
+          [ID.MAGNETIC_SHIELD, ID.MAGNETIC_INVERSION],
+          [ID.STATIC_SHIELD, ID.THROW_SHIELD],
+          [ID.THROW_MINE, ID.DETONATE]
+        ]) {
+          const skill = engineerCatalog.skillsById.get(parentId);
+          const flip = engineerCatalog.skillsById.get(childId);
           assert.equal(engineerCoreCastAvailability(runtime, flip).ready, false);
           complete({ ...skill, flipSkillId: ID.RIFLE_BURST });
           assert.equal(engineerCoreCastAvailability(runtime, flip).ready, true);
@@ -195,8 +196,7 @@ test('Engineer flip declarations expose and consume windows independently of API
         }
 
         const before = structuredClone(runtime.profession.core.availableFlips);
-        // Palette metadata alone cannot create a runtime window; only an authored action can.
-        complete({ id: -999, name: 'Palette-only parent', paletteFlipSkillId: ID.MAGNETIC_INVERSION });
+        // An API link alone cannot create a runtime window; only an authored action can.
         complete({ id: -999, name: 'Unowned API flip', flipSkillId: ID.MAGNETIC_INVERSION });
         assert.deepEqual(runtime.profession.core.availableFlips, before);
       }

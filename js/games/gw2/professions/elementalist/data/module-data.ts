@@ -1,12 +1,11 @@
 import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-import { SHARED_SKILL_IDS, DODGE_ICON } from '#gw2/platform/skills/shared-actions.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 /**
  * Elementalist catalog generation.
  *
- * Turns each module's authored skill mechanics into finished catalog skills: it merges
- * the declarations from core and every elite, layers Guild Wars 2 API metadata (icons,
- * descriptions) onto them, derives the autoattack chains, and hands each module back
- * only the entries it owns. Combat behavior remains in each owner-local skill fragment.
+ * Enriches each owner's authored declarations with API presentation metadata and
+ * local chain definitions. Shared assembly validates and normalizes the resulting
+ * module contributions; combat behavior remains in each owner-local skill fragment.
  */
 import { createProfessionModuleDataFactory, defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
@@ -20,28 +19,11 @@ import {
   ELEMENTALIST_LOADOUT_SKILL_IDS
 } from '#gw2/professions/elementalist/data/skill-identities.js';
 import { TRAITS } from '#gw2/professions/elementalist/data/traits-data.js';
-import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/index.js';
-import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/catalyst/skills/index.js';
-import { EVOKER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/index.js';
-import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
-import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
 
-// Catalog generation needs the complete module-owned declaration set, and the
-// duplicate check prevents one module from silently overwriting another.
-const elementalistMechanicsEntries = [
-  ELEMENTALIST_CORE_SKILL_MECHANICS,
-  TEMPEST_SKILL_MECHANICS,
-  WEAVER_SKILL_MECHANICS,
-  CATALYST_SKILL_MECHANICS,
-  EVOKER_SKILL_MECHANICS
-].flatMap((fragment) => Object.entries(fragment));
-
-if (new Set(elementalistMechanicsEntries.map(([skillId]) => skillId)).size !== elementalistMechanicsEntries.length) {
-  throw new TypeError('Duplicate Elementalist skill-mechanics ownership.');
-}
-
-const ELEMENTALIST_SKILL_MECHANICS: Readonly<Record<string, Partial<ElementalistSkill>>> = Object.freeze(
-  Object.fromEntries(elementalistMechanicsEntries)
+// Stable family positions preserve name-collision winners and circular-chain roots
+// even though owners now contribute their skills independently.
+const ELEMENTALIST_SKILL_ORDER = new Map<number, number>(
+  [...Object.values(ID), SHARED_SKILL_IDS.DODGE].map((id, index) => [id, index])
 );
 
 // Inline placeholder icon so a skill with no API art still renders a stable tile.
@@ -50,31 +32,6 @@ const ELEMENTALIST_FALLBACK_ICON =
   encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="8" fill="#40252b"/><text x="32" y="38" text-anchor="middle" fill="#d65c69" font-size="26">E</text></svg>'
   );
-
-// Art for skills the API metadata does not resolve by name, plus the palette's Dodge tile.
-const SKILL_ICON_OVERRIDES = new Map<string, string>([
-  [
-    'Deploy Jade Sphere (Fire)',
-    'https://render.guildwars2.com/file/22CA7C0F420C7F61CEBFA323DF3AADC5EF237475/2491598.png'
-  ],
-  [
-    'Deploy Jade Sphere (Water)',
-    'https://render.guildwars2.com/file/6016319AAF18417F0401800EF36C0F18E207FFD5/2491600.png'
-  ],
-  [
-    'Deploy Jade Sphere (Air)',
-    'https://render.guildwars2.com/file/07D9C76FEB07BB04B9D07A05D87C09A0A0AE0319/2491594.png'
-  ],
-  [
-    'Deploy Jade Sphere (Earth)',
-    'https://render.guildwars2.com/file/97BEF22148DDA3159B4CF6DB18ECFEDE7107710B/2491596.png'
-  ],
-  ['Volcano', 'https://render.guildwars2.com/file/334EA928E56F38C176A22415DE3ECE144C5FD5BB/3379101.png'],
-  ['Jökulhlaup', 'https://render.guildwars2.com/file/48EB1A03297EE4DFA0FE2CA41F0B02B77302060B/3379104.png'],
-  ['Derecho', 'https://render.guildwars2.com/file/94F1A894667CA4F3407C57B055F8236804264B1F/3379095.png'],
-  ['Haboob', 'https://render.guildwars2.com/file/562F2D0ED67AD8453F9CA60F27DB154F2E7543FC/3379098.png'],
-  ['Dodge', DODGE_ICON]
-]);
 
 // Names that differ between the authored declarations and the API metadata.
 const SKILL_NAME_ALIASES = new Map<string, string>([['Frozen Grounds', 'Frozen Ground']]);
@@ -98,124 +55,53 @@ function apiSkill(name: string): ElementalistSkill | undefined {
     .find((candidate) => candidate != null);
 }
 
-// Every declared skill in canonical id order; ids without an owning module are skipped.
-const ELEMENTALIST_DECLARED_SKILLS: readonly ElementalistSkill[] = Object.freeze(
-  [...Object.values(ID), SHARED_SKILL_IDS.DODGE].flatMap<ElementalistSkill>((id) => {
-    const declaration = ELEMENTALIST_SKILL_MECHANICS[id];
+// API presentation and loadout grouping supply defaults; each owner's declarations
+// retain authority over simulator identity, mechanics, and explicit presentation.
+function enrichSkill(skill: ElementalistSkill): ElementalistSkill {
+  const skillId = Number(skill.id);
 
-    if (!declaration) return [];
+  const apiSkillId = ELEMENTALIST_API_SKILL_ID_OVERRIDES.get(skillId) ?? skillId;
 
-    // The owning skill declaration supplies identity fields before catalog validation checks the merged skill.
-    const skill = { ...declaration, id } as ElementalistSkill;
-    return [skill];
-  })
-);
+  const loadoutSkillId = ELEMENTALIST_LOADOUT_SKILL_IDS.get(skillId);
 
-// The finished skill set: corrected mechanics joined to API identity metadata, plus the
-// display and selection flags the editor needs (Weaver-only dual attunements, attunement
-// variants collapsed under one display name, non-selectable and palette-only entries).
-const generated: readonly ElementalistSkill[] = Object.freeze(
-  ELEMENTALIST_DECLARED_SKILLS.map((skill) => {
-    const skillId = Number(skill.id);
+  const metadata =
+    API_SKILLS_BY_ID.get(apiSkillId) ||
+    (loadoutSkillId == null ? undefined : API_SKILLS_BY_ID.get(loadoutSkillId)) ||
+    apiSkill(skill.name);
 
-    const apiSkillId = ELEMENTALIST_API_SKILL_ID_OVERRIDES.get(skillId) ?? skillId;
+  const selectionName = skill.name.replace(ATTUNEMENT_VARIANT_PATTERN, '');
 
-    const loadoutSkillId = ELEMENTALIST_LOADOUT_SKILL_IDS.get(skillId);
+  const isAttunementSlotVariant =
+    SLOT_SKILL_TYPES.has(String(skill.type)) && Boolean(skill.attunement) && loadoutSkillId != null;
 
-    const metadata =
-      API_SKILLS_BY_ID.get(apiSkillId) ||
-      (loadoutSkillId == null ? undefined : API_SKILLS_BY_ID.get(loadoutSkillId)) ||
-      apiSkill(skill.name);
-
-    const selectionName = skill.name.replace(ATTUNEMENT_VARIANT_PATTERN, '');
-
-    const isAttunementSlotVariant =
-      SLOT_SKILL_TYPES.has(String(skill.type)) && Boolean(skill.attunement) && loadoutSkillId != null;
-
-    return {
-      ...skill,
-      ...(loadoutSkillId == null ? {} : { loadoutSkillId }),
-      ...(skill.type === 'Weapon' && (skill.attunement || '').includes('+')
-        ? {
-            specialization: 'Weaver'
-          }
-        : {}),
-      ...(isAttunementSlotVariant
-        ? {
-            displayName: selectionName,
-            // Attunement projections share one picker entry; fixed elemental summons remain separate.
-            paletteTileId: loadoutSkillId
-          }
-        : {}),
-      ...(skill.id === ID.TAILORED_VICTORY
-        ? {
-            slotSelectable: false
-          }
-        : {}),
-      ...(skill.id === SHARED_SKILL_IDS.DODGE
-        ? {
-            paletteAction: true
-          }
-        : {}),
-      ...(metadata?.description
-        ? {
-            description: metadata.description
-          }
-        : {}),
-      // Internal attunement projections retain the source skill's presentation facts.
-      ...(skill.id === ID.GLYPH_OF_ELEMENTALS
-        ? {
-            displayName: 'Glyph of Elementals (Fire)',
-            description: 'Glyph. Summon a Fire Elemental regardless of attunement.'
-          }
-        : {}),
-      ...(skill.id === ID.GLYPH_OF_ELEMENTALS_EARTH
-        ? {
-            description: 'Glyph. Summon an Earth Elemental regardless of attunement.'
-          }
-        : {}),
-      icon: SKILL_ICON_OVERRIDES.get(skill.name) || metadata?.icon || ELEMENTALIST_FALLBACK_ICON
-    };
-  })
-);
-
-const FINALIZED_SKILL_MECHANICS_BY_ID = new Map(
-  generated.map((skill) => {
-    const { id, ...mechanics } = skill;
-
-    return [Number(id), mechanics] as const;
-  })
-);
-
-// Returns the finished entries for exactly the ids a module declared, failing loudly if a
-// module claims an id that catalog generation never produced.
-function finalizedSkillMechanics(
-  declarations: Readonly<Record<string, Partial<ElementalistSkill>>>
-): Readonly<Record<string, Partial<ElementalistSkill>>> {
-  return Object.freeze(
-    Object.fromEntries(
-      Object.keys(declarations).map((id) => {
-        const mechanics = FINALIZED_SKILL_MECHANICS_BY_ID.get(Number(id));
-
-        if (!mechanics) {
-          throw new TypeError(`Unknown Elementalist skill declaration ${id}.`);
+  return {
+    ...(loadoutSkillId == null ? {} : { loadoutSkillId }),
+    ...(isAttunementSlotVariant
+      ? {
+          displayName: selectionName,
+          // Attunement projections share one picker entry; fixed elemental summons remain separate.
+          paletteTileId: loadoutSkillId
         }
-
-        return [id, mechanics];
-      })
-    )
-  );
+      : {}),
+    ...(metadata?.description
+      ? {
+          description: metadata.description
+        }
+      : {}),
+    icon: metadata?.icon || ELEMENTALIST_FALLBACK_ICON,
+    ...skill
+  };
 }
 
 // Include conjured weapon bars when discovering closed slot-one chains; open chains
 // and non-autoattack sequences are registered through explicit declarations.
-function circularElementalistAutoattackChains(): readonly (readonly number[])[] {
-  const skillsById = new Map(generated.map((skill) => [Number(skill.id), skill]));
+function circularElementalistAutoattackChains(skills: readonly ElementalistSkill[]): readonly (readonly number[])[] {
+  const skillsById = new Map(skills.map((skill) => [Number(skill.id), skill]));
 
   const visited = new Set<number>();
   const chains: number[][] = [];
 
-  for (const root of generated) {
+  for (const root of skills) {
     const rootId = Number(root.id);
 
     if (
@@ -264,8 +150,6 @@ const AERIAL_AGILITY_CHAIN = Object.freeze(
   [ID.AERIAL_AGILITY, ID.AERIAL_AGILITY_CHAIN, ID.AERIAL_AGILITY_DASH].map(Number)
 );
 
-const AUTOATTACK_CHAINS = Object.freeze([...circularElementalistAutoattackChains(), AERIAL_AGILITY_CHAIN]);
-
 // Elementalist's equippable weapons and the hand each occupies.
 const WEAPON_DATA = defineProfessionWeapons({
   Dagger: 'mh+oh',
@@ -281,29 +165,51 @@ const WEAPON_DATA = defineProfessionWeapons({
 
 // Preserve Elementalist fields through module registration and selected catalog lookups.
 const createModuleData = createProfessionModuleDataFactory<ElementalistSkill>({
-  generatedSkills: generated,
   traits: TRAITS,
   specializations: ELEMENTALIST_API_SPECIALIZATIONS,
-  // Dual attacks require Weaver's hands and handlers; weapon mastery does not share them with other elites.
-  specializationOnlySkills: {
-    Weaver: Object.entries(WEAVER_SKILL_MECHANICS)
-      .filter(([, skill]) => skill.type === 'Weapon')
-      .map(([id]) => Number(id))
-  },
-  core: { ...WEAPON_DATA, autoattackChains: { additional: AUTOATTACK_CHAINS } }
+  core: WEAPON_DATA
 });
 
 /**
- * Builds one module's catalog contribution: the generated skills it owns, its own
- * declared mechanics and extra skills, and the shared trait/specialization data. Core
- * additionally carries the family's weapon data and autoattack chains.
+ * Enriches the supplied declarations once and contributes finished skills directly,
+ * so shared assembly never has to merge a second copy of their mechanics. Family
+ * positions retain global ordering; chains and Weaver exclusivity stay owner-local.
  */
 export function createElementalistModuleData(
   id: string,
   { skillMechanics, ...options }: ProfessionModuleDataOptions<ElementalistSkill>
 ) {
-  return createModuleData(id, {
-    ...options,
-    skillMechanics: finalizedSkillMechanics(skillMechanics)
+  const skills = Object.entries(skillMechanics).map(([key, declaration]) => {
+    const skillId = Number(key);
+
+    if (!ELEMENTALIST_SKILL_ORDER.has(skillId)) {
+      throw new TypeError(`Unknown Elementalist skill declaration ${key}.`);
+    }
+
+    // The owning declaration supplies identity fields; shared catalog validation checks completeness.
+    return enrichSkill({ ...declaration, id: skillId } as ElementalistSkill);
+  });
+  skills.sort(
+    (left, right) => ELEMENTALIST_SKILL_ORDER.get(Number(left.id))! - ELEMENTALIST_SKILL_ORDER.get(Number(right.id))!
+  );
+
+  return Object.freeze({
+    ...createModuleData(id, { ...options, skillMechanics: {} }),
+    generatedSkills: Object.freeze(skills),
+    generatedSkillOrder: new Map(skills.map((skill) => [skill.id, ELEMENTALIST_SKILL_ORDER.get(Number(skill.id))!])),
+    autoattackChains: {
+      additional: Object.freeze([
+        ...circularElementalistAutoattackChains(skills),
+        ...(id === 'Core' ? [AERIAL_AGILITY_CHAIN] : [])
+      ])
+    },
+    // Dual attacks require Weaver's hands and handlers; weapon mastery does not share them with other elites.
+    ...(id === 'Weaver'
+      ? {
+          specializationOnlySkillIds: Object.freeze(
+            skills.filter((skill) => skill.type === 'Weapon').map((skill) => skill.id)
+          )
+        }
+      : {})
   });
 }

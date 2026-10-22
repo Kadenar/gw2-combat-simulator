@@ -8,7 +8,6 @@ export const ENGINEER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.MAGNETIC_SHIELD]: {
     // Expose the follow-up on commitment; its declaration owns the window.
     sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.MAGNETIC_INVERSION, durationSec: null } }],
-    paletteFlipSkillId: ID.MAGNETIC_INVERSION,
     castTimeMs: 2000,
     cooldown: 20,
     effects: []
@@ -16,7 +15,6 @@ export const ENGINEER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.STATIC_SHIELD]: {
     // Expose the follow-up on commitment; its declaration owns the window.
     sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.THROW_SHIELD, durationSec: null } }],
-    paletteFlipSkillId: ID.THROW_SHIELD,
     castTimeMs: 1680,
     cooldown: 24,
     effects: [

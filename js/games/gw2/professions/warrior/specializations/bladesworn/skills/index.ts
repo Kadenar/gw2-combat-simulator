@@ -428,7 +428,6 @@ function sharpAsTheWindVariant(id: number, parentId: number, name: string, overr
     effects: [],
     ...BLADESWORN_SKILL_MECHANICS[parentId],
     ...overrides,
-    paletteAction: false,
     slotSelectable: false,
     simulatorExcluded: false
   });

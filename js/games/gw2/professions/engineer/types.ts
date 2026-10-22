@@ -50,7 +50,6 @@ export interface EngineerSkill extends Skill {
   /** Equip-skill identity for bundle skills; equip actions use their own id. */
   readonly kitId?: SkillId;
   readonly mechanicSlot?: number;
-  readonly paletteFlipSkillId?: SkillId | null;
   /** Armed command faces require their parent's successful activation before casting. */
   readonly requiresArmedFlip?: boolean;
   readonly simulatorExcluded?: boolean;

@@ -116,7 +116,6 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.LAUNCH_WALL, durationSec: null } }],
     castTimeMs: 400,
     cooldown: 25,
-    paletteFlipSkillId: ID.LAUNCH_WALL,
     effects: []
   },
   [ID.BLADE_BURST]: {

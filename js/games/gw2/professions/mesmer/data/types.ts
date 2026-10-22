@@ -15,10 +15,6 @@ interface MesmerSkillResource {
   readonly [field: string]: unknown;
 }
 
-interface MesmerMechanic {
-  readonly chaosStormPoison?: ConditionEffect;
-}
-
 export interface MesmerStrikeEffect extends StrikeEffect {
   readonly castProgress?: number;
   readonly summonKind?: MesmerSummonKind;
@@ -101,7 +97,6 @@ export interface MesmerSkill extends Skill {
   readonly phantasmTiming?: Partial<
     import('#gw2/professions/mesmer/core/mechanics/illusions/types.js').MesmerPhantasmAttackTiming
   >;
-  readonly phantasmDisplayNames?: Readonly<Record<string, string>>;
   readonly blade?: boolean;
   readonly shatter?: import('#gw2/professions/mesmer/core/mechanics/shatter-types.js').MesmerShatterDefinition;
   /** Authored instrument identity supports capacity queries without reaching into live illusion controllers. */
@@ -123,5 +118,4 @@ export interface MesmerSkill extends Skill {
     readonly packetLabel?: string;
   })[];
   readonly resource?: MesmerSkillResource | null;
-  readonly mesmerMechanic?: MesmerMechanic;
 }

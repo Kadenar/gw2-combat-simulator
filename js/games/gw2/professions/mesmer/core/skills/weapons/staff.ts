@@ -2,19 +2,21 @@ import { WEAPON, COMBO_FIELD, ACTOR, CONTROL, COMBO_FINISHER, CONDITION } from '
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { defineSkillVariantProfile } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 // The opening strike is followed by five field pulses.
 const CHAOS_STORM_PULSES_MS = [280, 1280, 2280, 3280, 4280, 5280];
 
-export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
-  [ID.CHAOS_STORM]: {
-    // Once the field's opening impact lands, cancelling the aftercast preserves its remaining pulses.
-    interruptCommitMs: CHAOS_STORM_PULSES_MS[0],
-    tasks: [{ type: 'mesmer.core.chaos-storm-poison', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }],
-    mesmerMechanic: {
-      // Each selected pulse applies one complete stack; the mechanic alternates two and three selections per cast.
-      chaosStormPoison: {
+// Runtime selection and tooltip facts share the patchable payload; the owner alternates whole applications per cast.
+export const CHAOS_STORM_POISON_PROFILE = defineSkillVariantProfile(
+  'mesmer.core.chaos-storm-poison',
+  ID.CHAOS_STORM,
+  'Chaos Storm - Poison',
+  {
+    effects: [
+      {
+        name: 'Poison',
         type: 'condition',
         ticks: CHAOS_STORM_PULSES_MS.slice(1).map((atMs) => ({
           atMs,
@@ -25,7 +27,15 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    },
+    ]
+  }
+);
+
+export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
+  [ID.CHAOS_STORM]: {
+    // Once the field's opening impact lands, cancelling the aftercast preserves its remaining pulses.
+    interruptCommitMs: CHAOS_STORM_PULSES_MS[0],
+    tasks: [{ type: 'mesmer.core.chaos-storm-poison', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }],
     comboFields: [
       {
         ownerId: 'mesmer',

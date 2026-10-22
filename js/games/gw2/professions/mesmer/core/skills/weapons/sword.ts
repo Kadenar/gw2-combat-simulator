@@ -128,7 +128,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
   [ID.PHANTASMAL_SWORDSMAN]: {
     sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
     // The summon owns its attack and conversion timeline independently of the player cast.
-    phantasmDisplayNames: { 'Phantasm leap': 'Sword Attack', 'Phantasm Blurred Frenzy': 'Blurred Frenzy' },
     phantasmTiming: {
       damageAtMs: 2280,
       // The supplied power-Chrono lifecycle converts Swordsman at a 3.41s median after its cast completes.
@@ -158,7 +157,9 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 0.5,
         hits: 1,
         atMs: 840,
-        name: 'Phantasm leap',
+        // The attack owns its report label and parent attribution, including repeated attacks.
+        name: 'Sword Attack',
+        parentSkillName: 'Phantasmal Swordsman',
         actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         weapon: 'phantasm medium',
@@ -182,7 +183,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
           { atMs: 2240, coefficient: 0.2 },
           { atMs: 2280, coefficient: 0.2 }
         ],
-        name: 'Phantasm Blurred Frenzy',
+        name: 'Blurred Frenzy',
+        parentSkillName: 'Phantasmal Swordsman',
         actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         weapon: 'phantasm medium'

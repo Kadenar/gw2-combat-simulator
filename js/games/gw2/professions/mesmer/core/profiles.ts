@@ -9,10 +9,12 @@ import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-d
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerShatter, MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
+import { CHAOS_STORM_POISON_PROFILE } from '#gw2/professions/mesmer/core/skills/weapons/staff.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'mesmer.core.resources',
+  chaosStormPoison: CHAOS_STORM_POISON_PROFILE.id,
   etherClone: 'mesmer.core.ether-clone',
   mindWrack: 'mesmer.core.mind-wrack',
   cryOfFrustration: 'mesmer.core.cry-of-frustration',
@@ -54,6 +56,7 @@ export function mesmerShatterProfile(
 }
 
 export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  CHAOS_STORM_POISON_PROFILE,
   // The landed-hit reaction selects this ordinary condition profile instead of creating an excess clone.
   variant(MESMER_CORE_BALANCE_PROFILE_IDS.etherClone, ID.ETHER_CLONE, 'Ether Clone - Clone Limit', {
     effects: [{ type: 'condition', condition: CONDITION.TORMENT, duration: 9, stacks: 1 }]

@@ -258,6 +258,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     // A committed release consumes only its own etching and never advances another etching.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Volcano',
+    // Pin release art because API name lookup does not resolve the etching follow-up reliably.
+    icon: 'https://render.guildwars2.com/file/334EA928E56F38C176A22415DE3ECE144C5FD5BB/3379101.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.SPEAR,
@@ -428,6 +430,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     // Roots open their field-length window; releases consume only their own etching.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Jökulhlaup',
+    icon: 'https://render.guildwars2.com/file/48EB1A03297EE4DFA0FE2CA41F0B02B77302060B/3379104.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.SPEAR,
@@ -622,6 +625,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     // Roots open their field-length window; releases consume only their own etching.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Derecho',
+    icon: 'https://render.guildwars2.com/file/94F1A894667CA4F3407C57B055F8236804264B1F/3379095.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.SPEAR,
@@ -770,6 +774,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     // Roots open their field-length window; releases consume only their own etching.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Haboob',
+    icon: 'https://render.guildwars2.com/file/562F2D0ED67AD8453F9CA60F27DB154F2E7543FC/3379098.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.SPEAR,
