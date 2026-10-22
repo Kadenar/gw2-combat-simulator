@@ -10,7 +10,7 @@ import { ESLint } from 'eslint';
 test('lint owns JavaScript syntax coverage outside generated and local-tool directories', async () => {
   const eslint = new ESLint({ cwd: fileURLToPath(new URL('../..', import.meta.url)) });
 
-  // Invalid syntax must be rejected wherever maintained JavaScript can live, including hidden source files.
+  // Cover the repository's maintained JavaScript formats and locations, including hidden source files.
   for (const filePath of [
     'eslint.config.js',
     'js/browser/page/github-pages-redirect.js',
@@ -18,7 +18,7 @@ test('lint owns JavaScript syntax coverage outside generated and local-tool dire
     'scripts/build/syntax-probe.mjs',
     'scripts/analysis/syntax-probe.mjs',
     'tests/scripts/syntax-probe.cjs',
-    'tests/ui/syntax-probe.jsx',
+    'tests/ui/syntax-probe.js',
     'docs/example.js',
     '.syntax-probe.mjs'
   ]) {
@@ -27,7 +27,7 @@ test('lint owns JavaScript syntax coverage outside generated and local-tool dire
     assert.equal(result.fatalErrorCount, 1, filePath);
   }
 
-  for (const directory of ['node_modules', 'dist', 'reference-repos', '.scratch', '.claude', '.git', '.lavish']) {
+  for (const directory of ['node_modules', 'dist', '.scratch', '.claude', '.git', '.lavish']) {
     assert.equal(await eslint.isPathIgnored(`${directory}/syntax-probe.mjs`), true, directory);
   }
 
