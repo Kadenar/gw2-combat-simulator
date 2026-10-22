@@ -1,4 +1,4 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { SHARED_SKILL_IDS, WEAPON_SWAP_ICON } from '#gw2/platform/skills/shared-actions.js';
 import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 /**
  * Owns declarative simulator-only Elementalist actions.
@@ -38,7 +38,7 @@ export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = Object.fr
     name: '__drop_bundle',
     displayName: 'Drop Bundle',
     description: 'Drop the currently equipped conjured weapon.',
-    icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
+    icon: WEAPON_SWAP_ICON,
     type: 'Action',
     weapon: '',
     slot: 'Action',

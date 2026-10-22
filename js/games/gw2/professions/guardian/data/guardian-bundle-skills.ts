@@ -1,13 +1,9 @@
-// Verified skill icons use ArenaNet render URLs directly so they share the simulator's CDN fallback handling.
+// Wiki-only tome artwork is bundled locally; other verified icons use ArenaNet render URLs.
 // Guardian bundle skills missing from the profession API payload.
 // Simulation behavior lives exclusively in owner-local skills.ts fragments.
 
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
-
-function wikiSkillIcon(fileName: string): string {
-  return `https://wiki.guildwars2.com/wiki/Special:Redirect/file/${encodeURIComponent(fileName)}`;
-}
 
 export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
   {
@@ -62,7 +58,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     id: ID.SEARING_SPELL,
     name: 'Chapter 1: Searing Spell',
     description: 'Tome. Incite a swelling of heat, damaging and burning foes in front of you.',
-    icon: wikiSkillIcon('Chapter 1- Searing Spell.png'),
+    icon: new URL('@images/wiki/chapter-1-searing-spell.png', import.meta.url).href,
     type: 'Bundle',
     weapon: '',
     slot: 'Weapon_1',
@@ -79,7 +75,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     id: ID.IGNITING_BURST,
     name: 'Chapter 2: Igniting Burst',
     description: 'Tome. Ignite nearby foes and weaken them.',
-    icon: wikiSkillIcon('Chapter 2- Igniting Burst.png'),
+    icon: new URL('@images/wiki/chapter-2-igniting-burst.png', import.meta.url).href,
     type: 'Bundle',
     weapon: '',
     slot: 'Weapon_2',
@@ -96,7 +92,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     id: ID.HEATED_REBUKE,
     name: 'Chapter 3: Heated Rebuke',
     description: 'Tome. Pull nearby enemies toward you with a heated rebuke.',
-    icon: wikiSkillIcon('Chapter 3- Heated Rebuke.png'),
+    icon: new URL('@images/wiki/chapter-3-heated-rebuke.png', import.meta.url).href,
     type: 'Bundle',
     weapon: '',
     slot: 'Weapon_3',
@@ -113,7 +109,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     id: ID.SCORCHED_AFTERMATH,
     name: 'Chapter 4: Scorched Aftermath',
     description: 'Tome. Create a pulsing fire field that burns and bleeds enemies.',
-    icon: wikiSkillIcon('Chapter 4- Scorched Aftermath.png'),
+    icon: new URL('@images/wiki/chapter-4-scorched-aftermath.png', import.meta.url).href,
     type: 'Bundle',
     weapon: '',
     slot: 'Weapon_4',
@@ -130,7 +126,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     id: ID.ASHES_OF_THE_JUST,
     name: 'Epilogue: Ashes of the Just',
     description: 'Tome. Your next attacks inflict burning on their targets.',
-    icon: wikiSkillIcon('Epilogue- Ashes of the Just.png'),
+    icon: new URL('@images/wiki/epilogue-ashes-of-the-just.png', import.meta.url).href,
     type: 'Bundle',
     weapon: '',
     slot: 'Weapon_5',
@@ -147,7 +143,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     id: ID.DESERT_BLOOM,
     name: 'Chapter 1: Desert Bloom',
     description: 'Tome. Tales of desert blooms create a wave of healing for your allies.',
-    icon: wikiSkillIcon('Chapter 1- Desert Bloom.png'),
+    icon: new URL('@images/wiki/chapter-1-desert-bloom.png', import.meta.url).href,
     type: 'Bundle',
     weapon: '',
     slot: 'Weapon_1',
@@ -165,7 +161,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     name: 'Chapter 2: Radiant Recovery',
     description:
       'Tome. Release magic from pages detailing the rebuilding of Vabbi, cleansing conditions on nearby allies. Allies are healed for each condition removed.',
-    icon: wikiSkillIcon('Chapter 2- Radiant Recovery.png'),
+    icon: new URL('@images/wiki/chapter-2-radiant-recovery.png', import.meta.url).href,
     type: 'Bundle',
     weapon: '',
     slot: 'Weapon_2',
@@ -183,7 +179,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     name: 'Chapter 3: Azure Sun',
     description:
       'Tome. Inspired by countless poems describing the comforting powers of the water-reflected sun, grant boons to allies.',
-    icon: wikiSkillIcon('Chapter 3- Azure Sun.png'),
+    icon: new URL('@images/wiki/chapter-3-azure-sun.png', import.meta.url).href,
     type: 'Bundle',
     weapon: '',
     slot: 'Weapon_3',
@@ -201,7 +197,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     name: 'Chapter 4: Shining River',
     description:
       'Tome. Release a torrent of pages describing the water cycle of the Elon River. Heal allies and grant them swiftness.',
-    icon: wikiSkillIcon('Chapter 4- Shining River.png'),
+    icon: new URL('@images/wiki/chapter-4-shining-river.png', import.meta.url).href,
     type: 'Bundle',
     weapon: '',
     slot: 'Weapon_4',
@@ -218,7 +214,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     id: ID.ETERNAL_OASIS,
     name: 'Epilogue: Eternal Oasis',
     description: 'Tome. Convert conditions to boons and increase incoming healing.',
-    icon: wikiSkillIcon('Epilogue- Eternal Oasis.png'),
+    icon: new URL('@images/wiki/epilogue-eternal-oasis.png', import.meta.url).href,
     type: 'Bundle',
     weapon: '',
     slot: 'Weapon_5',
@@ -235,7 +231,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     id: ID.UNFLINCHING_CHARGE,
     name: 'Chapter 1: Unflinching Charge',
     description: 'Tome. Grant swiftness and protection to nearby allies.',
-    icon: wikiSkillIcon('Chapter 1- Unflinching Charge.png'),
+    icon: new URL('@images/wiki/chapter-1-unflinching-charge.png', import.meta.url).href,
     type: 'Bundle',
     weapon: '',
     slot: 'Weapon_1',
@@ -252,7 +248,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     id: ID.DARING_CHALLENGE,
     name: 'Chapter 2: Daring Challenge',
     description: 'Tome. Taunt nearby enemies and grant resolution to allies.',
-    icon: wikiSkillIcon('Chapter 2- Daring Challenge.png'),
+    icon: new URL('@images/wiki/chapter-2-daring-challenge.png', import.meta.url).href,
     type: 'Bundle',
     weapon: '',
     slot: 'Weapon_2',
@@ -269,7 +265,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     id: ID.VALIANT_BULWARK,
     name: 'Chapter 3: Valiant Bulwark',
     description: 'Tome. Create a reflective barrier at the target area.',
-    icon: wikiSkillIcon('Chapter 3- Valiant Bulwark.png'),
+    icon: new URL('@images/wiki/chapter-3-valiant-bulwark.png', import.meta.url).href,
     type: 'Bundle',
     weapon: '',
     slot: 'Weapon_3',
@@ -286,7 +282,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     id: ID.STALWART_STAND,
     name: 'Chapter 4: Stalwart Stand',
     description: 'Tome. Create a light field that grants resistance and breaks stun.',
-    icon: wikiSkillIcon('Chapter 4- Stalwart Stand.png'),
+    icon: new URL('@images/wiki/chapter-4-stalwart-stand.png', import.meta.url).href,
     type: 'Bundle',
     weapon: '',
     slot: 'Weapon_4',
@@ -303,7 +299,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     id: ID.UNBROKEN_LINES,
     name: 'Epilogue: Unbroken Lines',
     description: 'Tome. Grant protection, stability, aegis, and toughness to allies.',
-    icon: wikiSkillIcon('Epilogue- Unbroken Lines.png'),
+    icon: new URL('@images/wiki/epilogue-unbroken-lines.png', import.meta.url).href,
     type: 'Bundle',
     weapon: '',
     slot: 'Weapon_5',

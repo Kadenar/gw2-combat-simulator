@@ -1,5 +1,5 @@
 import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { SHARED_SKILL_IDS, DODGE_ICON } from '#gw2/platform/skills/shared-actions.js';
 /**
  * Elementalist catalog generation.
  *
@@ -73,7 +73,7 @@ const SKILL_ICON_OVERRIDES = new Map<string, string>([
   ['Jökulhlaup', 'https://render.guildwars2.com/file/48EB1A03297EE4DFA0FE2CA41F0B02B77302060B/3379104.png'],
   ['Derecho', 'https://render.guildwars2.com/file/94F1A894667CA4F3407C57B055F8236804264B1F/3379095.png'],
   ['Haboob', 'https://render.guildwars2.com/file/562F2D0ED67AD8453F9CA60F27DB154F2E7543FC/3379098.png'],
-  ['Dodge', 'https://wiki.guildwars2.com/images/b/b2/Dodge.png']
+  ['Dodge', DODGE_ICON]
 ]);
 
 // Names that differ between the authored declarations and the API metadata.

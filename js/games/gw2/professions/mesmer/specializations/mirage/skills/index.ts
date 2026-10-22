@@ -1,3 +1,4 @@
+import { DODGE_ICON } from '#gw2/platform/skills/shared-actions.js';
 import { WEAPON, ACTOR, COMBO_FINISHER, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Mirage axe, slot-skill, ambush, and simulator-action catalog data.
@@ -672,7 +673,7 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze(
     inputControl: 'dodge',
     description:
       'Spend 50 endurance. Mirage gains Mirage Cloak and an ambush window; Infinite Horizon commands active clones to ambush.',
-    icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
+    icon: DODGE_ICON,
     type: 'Action',
     slot: 'Action',
     specialization: 'Mirage',

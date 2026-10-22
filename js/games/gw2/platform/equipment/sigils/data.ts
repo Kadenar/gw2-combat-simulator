@@ -128,7 +128,7 @@ export const SIGIL_DATA: Readonly<Record<string, Gw2SigilDataEntry>> = {
     id: SIGIL_IDS.SLAYING,
     strikeDamageA: 3,
     strikeDamageM: 7,
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Superior_Sigil_of_Undead_Slaying.png'
+    icon: new URL('@images/wiki/superior-sigil-of-undead-slaying.png', import.meta.url).href
   },
   Air: {
     id: SIGIL_IDS.AIR,
@@ -164,7 +164,7 @@ export const SIGIL_DATA: Readonly<Record<string, Gw2SigilDataEntry>> = {
   },
   Mischief: {
     id: SIGIL_IDS.MISCHIEF,
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Superior_Sigil_of_Mischief.png'
+    icon: new URL('@images/wiki/superior-sigil-of-mischief.png', import.meta.url).href
   },
   Ice: {
     id: SIGIL_IDS.ICE,

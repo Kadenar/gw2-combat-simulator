@@ -5,7 +5,7 @@ import { CONDITION, BOON } from '#gw2/platform/constants.js';
 // isConverted: true  → stats feed into the conversion pool (subject to utility/trait conversions)
 // isConverted: false → stats applied after conversions as flat buffs
 // durations: percentage bonuses stored as numbers
-export const NOURISHMENT_ICON = 'https://wiki.guildwars2.com/images/c/ca/Nourishment_food.png';
+export const NOURISHMENT_ICON = new URL('@images/wiki/nourishment-food.png', import.meta.url).href;
 
 const FOOD_CATALOG = {
   Power: {

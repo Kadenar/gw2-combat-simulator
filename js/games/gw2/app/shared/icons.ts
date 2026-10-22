@@ -1,3 +1,4 @@
+import { DODGE_ICON, WEAPON_SWAP_ICON } from '#gw2/platform/skills/shared-actions.js';
 import { AURA } from '#gw2/platform/constants.js';
 import type { Gw2ProcStep } from '#gw2/platform/results/types.js';
 import { RELIC_DATA, RELIC_BY_ID } from '#gw2/platform/equipment/relics/data.js';
@@ -6,19 +7,19 @@ import type { ProfessionAppState } from '#gw2/app/types.js';
 const REFRESH_ARROW_ICON =
   'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="6" fill="%23232632"/%3E%3Cpath d="M49 21A20 20 0 1 0 52 39" fill="none" stroke="%23d8c7ff" stroke-width="7" stroke-linecap="round"/%3E%3Cpath d="M49 9v13H36" fill="none" stroke="%23d8c7ff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/%3E%3C/svg%3E';
 
-export const COMBAT_START_ICON = 'https://wiki.guildwars2.com/images/e/e9/Call_Target.png';
+export const COMBAT_START_ICON = new URL('@images/wiki/call-target.png', import.meta.url).href;
 
 // Mushroom King's Blessing reuses Cap Hop's icon in the training area.
-export const COOLDOWN_RESET_ICON = 'https://wiki.guildwars2.com/images/8/86/Cap_Hop.png';
+export const COOLDOWN_RESET_ICON = new URL('@images/wiki/cap-hop.png', import.meta.url).href;
 
-export const WAIT_ICON = 'https://wiki.guildwars2.com/images/8/83/%22sipcoffee%22_Emote_Tome.png';
+export const WAIT_ICON = new URL('@images/wiki/sipcoffee-emote-tome.png', import.meta.url).href;
 
 export const ACTION_ICONS: Readonly<Record<string, string>> = {
-  Dodge: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
-  'Dodge / Mirage Cloak': 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
+  Dodge: DODGE_ICON,
+  'Dodge / Mirage Cloak': DODGE_ICON,
   'Pick Up Mirage Mirror': 'https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png',
   'Mirage Mirror': 'https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png',
-  'Swap Weapons': 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
+  'Swap Weapons': WEAPON_SWAP_ICON,
   // The synthetic action shares official skill 30747's CDN artwork.
   'Continuum Shift': 'https://render.guildwars2.com/file/4BD3BEF1DE31476B3E40002708049EA1026F1F0B/1012895.png'
 };
@@ -72,7 +73,7 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Signet Mastery': 'https://render.guildwars2.com/file/3D117C0158CD7A55BE740D6B072807A3121C90A1/1012775.png',
   // Insight's buff fact uses the owning trait icon instead of the generic attribute icon.
   "Attacker's Insight": 'https://render.guildwars2.com/file/211512491566A15FDCE3E1B64A010445F1EB39E5/1770023.png',
-  'Ashes of the Just': 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Epilogue-%20Ashes%20of%20the%20Just.png',
+  'Ashes of the Just': new URL('@images/wiki/epilogue-ashes-of-the-just.png', import.meta.url).href,
   'Lethal Tempo': 'https://render.guildwars2.com/file/08351965141B6F3013600B3B9CC7F880DEFF05D4/2479325.png',
   'Enchanted Daggers': 'https://render.guildwars2.com/file/A01907F923B160E6261174BEF5975D070D4D6511/1012989.png',
   'Burst of Strength': 'https://render.guildwars2.com/file/91F9252B1F3C71C934B75502B8DD070A064115D8/1013008.png',

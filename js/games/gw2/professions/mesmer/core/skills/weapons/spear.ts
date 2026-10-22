@@ -173,7 +173,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
         kind: 'clarity',
         name: 'Clarity',
         duration: 15,
-        icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Clarity.png',
+        icon: new URL('@images/wiki/clarity.png', import.meta.url).href,
         audience: { recipients: RECIPIENT.SELF },
         persistsAfterInterrupt: true
       }

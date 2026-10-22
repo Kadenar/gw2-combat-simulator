@@ -59,7 +59,7 @@ export function emitSoulShard(runtime: NecromancerRuntime, event: Gw2ResolverEve
       // The consumed shard owns its siphon even when a weapon hit supplies the causal parent.
       procType: 'profession',
       parentSkillName: event.skillName,
-      icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Soul_Shards.png',
+      icon: new URL('@images/wiki/soul-shards.png', import.meta.url).href,
       coefficient: 0,
       skillWeapon: 'Unequipped',
       flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),

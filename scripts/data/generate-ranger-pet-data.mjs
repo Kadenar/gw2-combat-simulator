@@ -11,7 +11,7 @@ import {
 } from './ranger-pet-skills.mjs';
 import { fileURLToPath } from 'node:url';
 
-import { mapConcurrent } from './lib/generator-utils.mjs';
+import { mapConcurrent, serializeWithLocalImages } from './lib/generator-utils.mjs';
 import { fetchManyGw2, isTerrestrialSkill } from './lib/gw2-profession-snapshot.mjs';
 
 const WIKI_API = 'https://wiki.guildwars2.com/api.php';
@@ -122,7 +122,7 @@ export async function generateRangerPetData({ pets, skills, keyById, wikiMetadat
     id: ID.${keyFor(skill.id)},
     name: ${JSON.stringify(skill.name)},
     description: ${JSON.stringify(skill.description || '')},
-    icon: ${JSON.stringify(skill.icon || '')},
+    icon: ${serializeWithLocalImages(skill.icon || '')},
     type: "Profession",
     slot: "Profession_2",
     categories: ["Pet"],

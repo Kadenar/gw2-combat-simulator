@@ -4,6 +4,14 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { format, resolveConfig } from 'prettier';
 
+/** Emit local asset specifiers as static URLs so Vite can bundle generated skill artwork. */
+export function serializeWithLocalImages(value, space) {
+  return JSON.stringify(value, null, space).replace(
+    /"@images\/[a-zA-Z0-9/_.-]+"/g,
+    (asset) => `new URL(${asset}, import.meta.url).href`
+  );
+}
+
 /** Converts display names into valid identifiers, including names that start with a digit. */
 export function constantName(value) {
   const normalized = String(value || '')

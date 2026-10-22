@@ -6,7 +6,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'CANINE_BITE',
     name: 'Bite',
     description: 'Bite your foe.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bite_(canine).png',
+    icon: '@images/wiki/bite-canine.png',
     recharge: 0
   },
   {
@@ -30,7 +30,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'URSINE_SLASH',
     name: 'Slash',
     description: 'Slash your foe with your claws.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Slash_(bear).png',
+    icon: '@images/wiki/slash-bear.png',
     recharge: 0
   },
   {
@@ -38,7 +38,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'DRAKE_BITE',
     name: 'Bite',
     description: 'Bite a foe with your jaws.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bite_(drake).png',
+    icon: '@images/wiki/bite-drake.png',
     recharge: 0
   },
   {
@@ -54,7 +54,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'MOA_PECK',
     name: 'Peck',
     description: 'Peck at your foe.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Peck.png',
+    icon: '@images/wiki/peck.png',
     recharge: 0
   },
   {
@@ -70,7 +70,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'SPIDER_POISON_GAS',
     name: 'Poison Gas',
     description: 'Spit a ball of venom that covers an area with a poisonous cloud. ',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Poison_Gas.png',
+    icon: '@images/wiki/poison-gas.png',
     recharge: 15
   },
   {
@@ -78,7 +78,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'SPIDER_ENTANGLING_WEB',
     name: 'Entangling Web',
     description: 'Shoot a web, immobilizing your foe.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Entangling_Web.png',
+    icon: '@images/wiki/entangling-web.png',
     recharge: 20
   },
   {
@@ -86,7 +86,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'SMOKESCALE_BITE',
     name: 'Bite',
     description: 'Bite your target.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bite_(smokescale).png',
+    icon: '@images/wiki/bite-smokescale.png',
     recharge: 0.25
   },
   {
@@ -110,7 +110,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'WYVERN_WING_SWIPE',
     name: 'Wing Swipe',
     description: 'Swipe at your foes.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Wing_Swipe.png',
+    icon: '@images/wiki/wing-swipe.png',
     recharge: 0
   },
   {
@@ -134,7 +134,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'BRISTLEBACK_SPIKE_SHOOT',
     name: 'Spike Shoot',
     description: 'Shoot a spike at your target.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Spike_Shoot.png',
+    icon: '@images/wiki/spike-shoot.png',
     recharge: 0
   },
   {
@@ -158,7 +158,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'ROCK_GAZELLE_HEADBUTT',
     name: 'Headbutt',
     description: ' Bash your target.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Headbutt_(gazelle).png',
+    icon: '@images/wiki/headbutt-gazelle.png',
     recharge: 0
   },
   {
@@ -191,7 +191,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'PHOENIX_WICKED_BITE',
     name: 'Wicked Bite',
     description: 'Bite your foe, leaving them vulnerable.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Wicked_Bite.png',
+    icon: '@images/wiki/wicked-bite.png',
     recharge: 0
   },
   {
@@ -207,7 +207,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'PHOENIX_WING_BUFFET',
     name: 'Wing Buffet',
     description: 'Launch your foe backward with mighty wing beats.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Wing_Buffet_(phoenix).png',
+    icon: '@images/wiki/wing-buffet-phoenix.png',
     recharge: 20
   },
   {
@@ -215,7 +215,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'TURTLE_JADE_CANNON',
     name: 'Jade Cannon',
     description: 'Fire a long-range, slow-moving jade missile that explodes on impact, damaging nearby foes.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Jade_Cannon_(turtle).png',
+    icon: '@images/wiki/jade-cannon-turtle.png',
     recharge: 0
   },
   {
@@ -223,7 +223,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'TURTLE_HEAVY_SHOT',
     name: 'Heavy Shot',
     description: 'Shoot a jade missile at your target that dazes nearby enemies on impact.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Heavy_Shot.png',
+    icon: '@images/wiki/heavy-shot.png',
     recharge: 20
   },
   {
@@ -239,7 +239,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'CHAK_UNLEASH_ENERGY',
     name: 'Unleash Energy',
     description: 'Unleash a beam of ley energy, damaging your target.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Unleash_Energy.png',
+    icon: '@images/wiki/unleash-energy.png',
     recharge: 0
   },
   {
@@ -263,7 +263,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'SPINEGAZER_EVIL_EYE',
     name: 'Evil Eye',
     description: 'Send distressing thoughts to your enemy to torment them.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Evil_Eye.png',
+    icon: '@images/wiki/evil-eye.png',
     recharge: 0
   },
   {
@@ -287,7 +287,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'WARCLAW_SLASH',
     name: 'Slash',
     description: 'Slash at your foe.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Slash_(warclaw).png',
+    icon: '@images/wiki/slash-warclaw.png',
     recharge: 0
   },
   {
@@ -295,7 +295,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'WARCLAW_BATTLE_MAUL',
     name: 'Battle Maul',
     description: 'Pounce on foes.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Battle_Maul_(Juvenile_Warclaw).png',
+    icon: '@images/wiki/battle-maul-juvenile-warclaw.png',
     recharge: 15
   },
   {
@@ -311,7 +311,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'JANTHIRI_BEE_NIBBLE',
     name: 'Nibble',
     description: 'Nibble your foe.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Nibble.png',
+    icon: '@images/wiki/nibble.png',
     recharge: 0
   },
   {
@@ -335,7 +335,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'PORCINE_JAB',
     name: 'Jab',
     description: 'Jab your foe with your tusks.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Jab_(porcine).png',
+    icon: '@images/wiki/jab-porcine.png',
     recharge: 0,
     petNames: ['Boar']
   },
@@ -362,7 +362,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'AETHER_HUNTER_BITE',
     name: 'Bite',
     description: 'Bite at your foe and inflict bleeding.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bite_(aether_hunter).png',
+    icon: '@images/wiki/bite-aether-hunter.png',
     recharge: 0,
     petNames: ['Aether Hunter']
   },
@@ -389,7 +389,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'RAPTOR_SWIFTWING_CLAW',
     name: 'Claw',
     description: 'Rake your enemy with sharp claws.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Claw_(raptor_swiftwing).png',
+    icon: '@images/wiki/claw-raptor-swiftwing.png',
     recharge: 0,
     petNames: ['Raptor Swiftwing']
   },
@@ -416,7 +416,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'BIRD_SLASH',
     name: 'Slash',
     description: 'Slash your foe.',
-    icon: 'https://wiki.guildwars2.com/images/b/b6/Slash_%28bird%29.png',
+    icon: '@images/wiki/slash-bird.png',
     recharge: 0,
     petNames: ['Hawk']
   },
@@ -507,7 +507,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'CONSUMING_BITE',
     name: 'Consuming Bite',
     description: 'Bite foes, dealing additional damage for each condition afflicting anyone struck.',
-    icon: 'https://wiki.guildwars2.com/images/6/68/Consuming_Bite.png',
+    icon: '@images/wiki/consuming-bite.png',
     recharge: 0,
     petNames: ['Fanged Iboga']
   },
@@ -534,7 +534,7 @@ export const RANGER_PET_AUTHORED_SKILLS = Object.freeze([
     key: 'JACARANDA_ROOT_SLAP',
     name: 'Root Slap',
     description: 'Strike your target with roots.',
-    icon: 'https://wiki.guildwars2.com/images/7/7d/Root_Slap.png',
+    icon: '@images/wiki/root-slap.png',
     recharge: 0,
     petNames: ['Jacaranda']
   },

@@ -132,7 +132,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         type: 'strike',
         name: 'Black Hole',
         // This child effect has no catalog entry, so carry its dedicated icon into damage breakdown rows.
-        icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Black_Hole.png',
+        icon: new URL('@images/wiki/black-hole.png', import.meta.url).href,
         sourceId: ID.BLACK_HOLE,
         interruptCommitMs: 2040,
         persistsAfterInterrupt: true,

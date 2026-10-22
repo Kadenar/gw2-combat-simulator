@@ -1,0 +1,3109 @@
+{
+  "capturedOn": "2026-10-21",
+  "images": [
+    {
+      "fileName": "\"sipcoffee\"_Emote_Tome.png",
+      "localPath": "images/wiki/sipcoffee-emote-tome.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/8/83/%22sipcoffee%22_Emote_Tome.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/8/83/%22sipcoffee%22_Emote_Tome.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260920191843id_/https://wiki.guildwars2.com/images/8/83/%22sipcoffee%22_Emote_Tome.png",
+      "archiveTimestamp": "20260920191843",
+      "width": 64,
+      "height": 64,
+      "bytes": 4416,
+      "sha256": "9191bf7d11c94186ad85ccfb296203619f87eb6a7672068e6855d68b6fcb2527",
+      "references": ["js/games/gw2/app/shared/icons.ts"]
+    },
+    {
+      "fileName": "Acrobatics_specialization.png",
+      "localPath": "images/wiki/acrobatics-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Acrobatics_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/0CACB74F6E36F80921C6D6F2F0786B6C1CCCDCA4/1012099.png",
+      "provenance": "ArenaNet API /v2/specializations/54 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 67973,
+      "sha256": "ab1892c248a567b155726e0ad5dce9d252ee73cd0f269c0da440adac69d0bf2b",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Air_specialization.png",
+      "localPath": "images/wiki/air-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Air_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/97BE972EC832ABC4F8645FF4A063EFF89B2942B8/1012034.png",
+      "provenance": "ArenaNet API /v2/specializations/41 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 109794,
+      "sha256": "778b3d2d766640d9b57116c90fa3c8e23be802266646e5ad033ae80ce04eb64f",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Alchemy_specialization.png",
+      "localPath": "images/wiki/alchemy-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Alchemy_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/A89F18BA0F9A53E662BAE3F39C705559A97B407F/1012040.png",
+      "provenance": "ArenaNet API /v2/specializations/29 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 119082,
+      "sha256": "a3847995c2287ed12e0f2d0c5cd2b0add9f8329138053b1c72f6bd70f5d93f04",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Amalgam_specialization.png",
+      "localPath": "images/wiki/amalgam-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Amalgam_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/094F0711ADF50A3F013F2963C5B03215626C96A8/3679906.png",
+      "provenance": "ArenaNet API /v2/specializations/75 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 141901,
+      "sha256": "7dbecbafa4c383bffc26b7172571cae8105f81b53eed192ea13f88a1a3be90d3",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Antiquary_specialization.png",
+      "localPath": "images/wiki/antiquary-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Antiquary_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/32E896AC6766E272C8910B6170394A3575C0D335/3679912.png",
+      "provenance": "ArenaNet API /v2/specializations/77 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 114168,
+      "sha256": "8897980056c58802c3191f605c5965845bdecce16d4e0752894268b1db4df260",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Arcane_specialization.png",
+      "localPath": "images/wiki/arcane-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Arcane_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/01F1264B9F05CC52E46434C53DF6BA2A57CE21C5/1012035.png",
+      "provenance": "ArenaNet API /v2/specializations/37 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 115555,
+      "sha256": "a8a0719507250d50262a11b8e37e46fe5d45b4c2b1df30b867147b5443085e00",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Arms_specialization.png",
+      "localPath": "images/wiki/arms-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Arms_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/0A08B2DC35C8D22CC07B9F4C9023F7E9734C1B27/1012105.png",
+      "provenance": "ArenaNet API /v2/specializations/36 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 76187,
+      "sha256": "69780c1a1ece82d465430a803d36dafd6d22450f10e274ed9973af4c67883beb",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Artillery_Slash.png",
+      "localPath": "images/wiki/artillery-slash.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/6/68/Artillery_Slash.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/6/68/Artillery_Slash.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260811181657id_/https://wiki.guildwars2.com/images/6/68/Artillery_Slash.png",
+      "archiveTimestamp": "20260811181657",
+      "width": 128,
+      "height": 128,
+      "bytes": 14993,
+      "sha256": "8c25914f94104b7dbbe7d785c049192881f3e2ce9504bd1913178ded5cbc3e84",
+      "references": [
+        "js/games/gw2/professions/warrior/data/warrior-supplemental-skills.ts",
+        "scripts/data/generate-warrior-data.mjs"
+      ]
+    },
+    {
+      "fileName": "Battle_Maul_(Juvenile_Warclaw).png",
+      "localPath": "images/wiki/battle-maul-juvenile-warclaw.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Battle_Maul_(Juvenile_Warclaw).png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/a/ab/Battle_Maul_%28Juvenile_Warclaw%29.png",
+      "source": "Archived Wiki thumbnail",
+      "downloadedFrom": "https://web.archive.org/web/20250705232729id_/https://wiki.guildwars2.com/images/thumb/a/ab/Battle_Maul_%28Juvenile_Warclaw%29.png/96px-Battle_Maul_%28Juvenile_Warclaw%29.png",
+      "archiveTimestamp": "20250705232729",
+      "width": 96,
+      "height": 96,
+      "bytes": 13219,
+      "sha256": "3a26987d69a974c942c2fa13de6f3d045d6f196b18f7839ea0b1698baeaf3afd",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Beastmastery_specialization.png",
+      "localPath": "images/wiki/beastmastery-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Beastmastery_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/4727784BBF467241CA9F29E4FEDE487FD33E2809/1012075.png",
+      "provenance": "ArenaNet API /v2/specializations/32 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 122747,
+      "sha256": "67fe46d46433f53c5ce518cb0859e157fec5887f234e46f13eb4223c86112f79",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Berserker_specialization.png",
+      "localPath": "images/wiki/berserker-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Berserker_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/665548439B5F7AB8CA63F46906A0630DAAF6069F/1012106.png",
+      "provenance": "ArenaNet API /v2/specializations/18 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 138768,
+      "sha256": "47e262f0313391cc4daefc02a4541c3c5ee478ab9986674487221f22963b7be0",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Bite_(aether_hunter).png",
+      "localPath": "images/wiki/bite-aether-hunter.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bite_(aether_hunter).png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/b/b1/Bite_%28aether_hunter%29.png",
+      "source": "Archived Wiki thumbnail",
+      "downloadedFrom": "https://web.archive.org/web/20261009015057id_/https://wiki.guildwars2.com/images/thumb/b/b1/Bite_%28aether_hunter%29.png/66px-Bite_%28aether_hunter%29.png",
+      "archiveTimestamp": "20261009015057",
+      "width": 66,
+      "height": 66,
+      "bytes": 7686,
+      "sha256": "daf7b0a4eab2c4e4fe582fc640caaedd8e9e574e3159077a91f1c9be0d2ea00c",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Bite_(canine).png",
+      "localPath": "images/wiki/bite-canine.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bite_(canine).png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/9/98/Bite_%28canine%29.png",
+      "source": "Archived Wiki thumbnail",
+      "downloadedFrom": "https://web.archive.org/web/20150202183031id_/http://wiki.guildwars2.com/images/thumb/9/98/Bite_%28canine%29.png/66px-Bite_%28canine%29.png",
+      "archiveTimestamp": "20150202183031",
+      "width": 66,
+      "height": 66,
+      "bytes": 10201,
+      "sha256": "84656d9f9e4f25f2732dc8226e8b1c7d9cf17e3d8d0f01b3a2d223f7a9b35873",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Bite_(drake).png",
+      "localPath": "images/wiki/bite-drake.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bite_(drake).png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/e/e7/Bite_%28drake%29.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260625165237id_/https://wiki.guildwars2.com/images/e/e7/Bite_%28drake%29.png",
+      "archiveTimestamp": "20260625165237",
+      "width": 128,
+      "height": 128,
+      "bytes": 11851,
+      "sha256": "daca9842c45aacc06a158e334bf5c4861606b65148282d5a75ba68954bea901e",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Bite_(smokescale).png",
+      "localPath": "images/wiki/bite-smokescale.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bite_(smokescale).png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/c/c1/Bite_%28smokescale%29.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20250823152032id_/https://wiki.guildwars2.com/images/c/c1/Bite_(smokescale).png",
+      "archiveTimestamp": "20250823152032",
+      "width": 128,
+      "height": 128,
+      "bytes": 18879,
+      "sha256": "3371c9e0cd74f94becb76410fd8a56b408f7b42eaaff456e0036927cac5c7cad",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Black_Hole.png",
+      "localPath": "images/wiki/black-hole.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Black_Hole.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/9/9d/Black_Hole.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251213064811id_/https://wiki.guildwars2.com/images/9/9d/Black_Hole.png",
+      "archiveTimestamp": "20251213064811",
+      "width": 128,
+      "height": 128,
+      "bytes": 14980,
+      "sha256": "c3d62b7256bdfa7bb6406237149ac0c80269bd5ee12840348a0205afeb373c63",
+      "references": ["js/games/gw2/professions/ranger/specializations/druid/skills/index.ts"]
+    },
+    {
+      "fileName": "Bladesworn_specialization.png",
+      "localPath": "images/wiki/bladesworn-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Bladesworn_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/0E061BA341496AF47752A5A22578BCD67BF42D77/2491512.png",
+      "provenance": "ArenaNet API /v2/specializations/68 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 98127,
+      "sha256": "3b54a2dd3dc25baed05ac1d5f6459a407ee0d9ec2da18592986149712b0b7423",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Blood_Magic_specialization.png",
+      "localPath": "images/wiki/blood-magic-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Blood%20Magic_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/47F5CA90475E566650EF540BA82CA69C1C0332B1/1012063.png",
+      "provenance": "ArenaNet API /v2/specializations/19 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 135492,
+      "sha256": "e417819838f5dbf3ab427fa78b9641a82364d119bd4eb8d9b35ffcb0f4488a3a",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Blooming_Fire.png",
+      "localPath": "images/wiki/blooming-fire.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/d/d0/Blooming_Fire.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/d/d0/Blooming_Fire.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251222012120id_/https://wiki.guildwars2.com/images/d/d0/Blooming_Fire.png",
+      "archiveTimestamp": "20251222012120",
+      "width": 128,
+      "height": 128,
+      "bytes": 15170,
+      "sha256": "86d0c9570ccb598c23e72d8058eaea21b2f00e1669cd21b60eae8105b6aafe74",
+      "references": [
+        "js/games/gw2/professions/warrior/data/warrior-supplemental-skills.ts",
+        "scripts/data/generate-warrior-data.mjs"
+      ]
+    },
+    {
+      "fileName": "Break_Step.png",
+      "localPath": "images/wiki/break-step.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/7/76/Break_Step.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/7/76/Break_Step.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261014221956id_/https://wiki.guildwars2.com/images/7/76/Break_Step.png",
+      "archiveTimestamp": "20261014221956",
+      "width": 128,
+      "height": 128,
+      "bytes": 14273,
+      "sha256": "d0be6b0a89e1d28838fe3ff9db842ceb2d50ad5458b01a6465f046f95a00e802",
+      "references": [
+        "js/games/gw2/professions/warrior/data/warrior-supplemental-skills.ts",
+        "scripts/data/generate-warrior-data.mjs"
+      ]
+    },
+    {
+      "fileName": "Call_Target.png",
+      "localPath": "images/wiki/call-target.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/e/e9/Call_Target.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/e/e9/Call_Target.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260214112544id_/https://wiki.guildwars2.com/images/e/e9/Call_Target.png",
+      "archiveTimestamp": "20260214112544",
+      "width": 83,
+      "height": 83,
+      "bytes": 5791,
+      "sha256": "e54ab259889096ba1036c6289c9a32eb09cc93f78f29160fa0e3b4d5687c418a",
+      "references": ["js/games/gw2/app/shared/icons.ts"]
+    },
+    {
+      "fileName": "Cap_Hop.png",
+      "localPath": "images/wiki/cap-hop.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/8/86/Cap_Hop.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/8/86/Cap_Hop.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251213064828id_/https://wiki.guildwars2.com/images/8/86/Cap_Hop.png",
+      "archiveTimestamp": "20251213064828",
+      "width": 128,
+      "height": 128,
+      "bytes": 21188,
+      "sha256": "575c274a7a9d4543c70f68809e6112fa5438dcc547c9e2741bddaf7b64fb4823",
+      "references": ["js/games/gw2/app/shared/icons.ts"]
+    },
+    {
+      "fileName": "Catalyst_specialization.png",
+      "localPath": "images/wiki/catalyst-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Catalyst_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/379EA2AA09ED39F1312B20A6FBA835C6F893FA2E/2491510.png",
+      "provenance": "ArenaNet API /v2/specializations/67 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 128048,
+      "sha256": "e209435f913e5faa026ccae31163797afc84aefd647a90e6dd60c3e21c661b65",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Chaos_specialization.png",
+      "localPath": "images/wiki/chaos-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Chaos_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/B20B7C6DDC30F72207D9BE4FB87C2FDCDC292E90/1012051.png",
+      "provenance": "ArenaNet API /v2/specializations/45 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 119691,
+      "sha256": "bb9e942110814aaeb6a82fbd2b0592bf55e7ad1c96170817a02cfccadd58a3df",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Chapter_1-_Desert_Bloom.png",
+      "localPath": "images/wiki/chapter-1-desert-bloom.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Chapter%201-%20Desert%20Bloom.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/f/fd/Chapter_1-_Desert_Bloom.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251206023101id_/https://wiki.guildwars2.com/images/f/fd/Chapter_1-_Desert_Bloom.png",
+      "archiveTimestamp": "20251206023101",
+      "width": 128,
+      "height": 128,
+      "bytes": 17092,
+      "sha256": "bf40935d5b01bad0f5dfed7b6417e5a44a2475bfde1118c57a0cbe6b24916ed0",
+      "references": ["js/games/gw2/professions/guardian/data/guardian-bundle-skills.ts"]
+    },
+    {
+      "fileName": "Chapter_1-_Searing_Spell.png",
+      "localPath": "images/wiki/chapter-1-searing-spell.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Chapter%201-%20Searing%20Spell.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/d/d3/Chapter_1-_Searing_Spell.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251206023101id_/https://wiki.guildwars2.com/images/d/d3/Chapter_1-_Searing_Spell.png",
+      "archiveTimestamp": "20251206023101",
+      "width": 128,
+      "height": 128,
+      "bytes": 13682,
+      "sha256": "95dcfcb0f980f75b0329c220e4650a65d05e483fc350cc552bae538e82e460e9",
+      "references": ["js/games/gw2/professions/guardian/data/guardian-bundle-skills.ts"]
+    },
+    {
+      "fileName": "Chapter_1-_Unflinching_Charge.png",
+      "localPath": "images/wiki/chapter-1-unflinching-charge.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Chapter%201-%20Unflinching%20Charge.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/3/30/Chapter_1-_Unflinching_Charge.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251206023101id_/https://wiki.guildwars2.com/images/3/30/Chapter_1-_Unflinching_Charge.png",
+      "archiveTimestamp": "20251206023101",
+      "width": 128,
+      "height": 128,
+      "bytes": 15046,
+      "sha256": "9828af436a4e5a10315a3a3075a3c30d2b5e3d613c44a8539926709b932134ee",
+      "references": ["js/games/gw2/professions/guardian/data/guardian-bundle-skills.ts"]
+    },
+    {
+      "fileName": "Chapter_2-_Daring_Challenge.png",
+      "localPath": "images/wiki/chapter-2-daring-challenge.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Chapter%202-%20Daring%20Challenge.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/7/79/Chapter_2-_Daring_Challenge.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251206023107id_/https://wiki.guildwars2.com/images/7/79/Chapter_2-_Daring_Challenge.png",
+      "archiveTimestamp": "20251206023107",
+      "width": 128,
+      "height": 128,
+      "bytes": 16282,
+      "sha256": "34a78a0b9f2c198789f0ceecbcc5572cc1f2c0dc45a100f3fa201ab6ce6d205b",
+      "references": ["js/games/gw2/professions/guardian/data/guardian-bundle-skills.ts"]
+    },
+    {
+      "fileName": "Chapter_2-_Igniting_Burst.png",
+      "localPath": "images/wiki/chapter-2-igniting-burst.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Chapter%202-%20Igniting%20Burst.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/5/53/Chapter_2-_Igniting_Burst.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251206023107id_/https://wiki.guildwars2.com/images/5/53/Chapter_2-_Igniting_Burst.png",
+      "archiveTimestamp": "20251206023107",
+      "width": 128,
+      "height": 128,
+      "bytes": 15877,
+      "sha256": "418b8b436d804a308caa9194bafd79423ea3a47d25644b961275a1e3ecfc9e27",
+      "references": ["js/games/gw2/professions/guardian/data/guardian-bundle-skills.ts"]
+    },
+    {
+      "fileName": "Chapter_2-_Radiant_Recovery.png",
+      "localPath": "images/wiki/chapter-2-radiant-recovery.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Chapter%202-%20Radiant%20Recovery.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/9/95/Chapter_2-_Radiant_Recovery.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251206023107id_/https://wiki.guildwars2.com/images/9/95/Chapter_2-_Radiant_Recovery.png",
+      "archiveTimestamp": "20251206023107",
+      "width": 128,
+      "height": 128,
+      "bytes": 14358,
+      "sha256": "e6cf19ba3113c537b5e1799cd5ff0731b56b36da9e1ee88da5bbe28870aa63d4",
+      "references": ["js/games/gw2/professions/guardian/data/guardian-bundle-skills.ts"]
+    },
+    {
+      "fileName": "Chapter_3-_Azure_Sun.png",
+      "localPath": "images/wiki/chapter-3-azure-sun.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Chapter%203-%20Azure%20Sun.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/b/bf/Chapter_3-_Azure_Sun.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251206023107id_/https://wiki.guildwars2.com/images/b/bf/Chapter_3-_Azure_Sun.png",
+      "archiveTimestamp": "20251206023107",
+      "width": 128,
+      "height": 128,
+      "bytes": 13653,
+      "sha256": "6343bb217a183150d925d3e4318809e08e7f3956d934d3e249ed303fae07c9ae",
+      "references": ["js/games/gw2/professions/guardian/data/guardian-bundle-skills.ts"]
+    },
+    {
+      "fileName": "Chapter_3-_Heated_Rebuke.png",
+      "localPath": "images/wiki/chapter-3-heated-rebuke.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Chapter%203-%20Heated%20Rebuke.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/e/e7/Chapter_3-_Heated_Rebuke.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251206023112id_/https://wiki.guildwars2.com/images/e/e7/Chapter_3-_Heated_Rebuke.png",
+      "archiveTimestamp": "20251206023112",
+      "width": 128,
+      "height": 128,
+      "bytes": 17073,
+      "sha256": "1a8418ed1396489b52835911190c586d9790f241422a3c71c1802d55f8a736b5",
+      "references": ["js/games/gw2/professions/guardian/data/guardian-bundle-skills.ts"]
+    },
+    {
+      "fileName": "Chapter_3-_Valiant_Bulwark.png",
+      "localPath": "images/wiki/chapter-3-valiant-bulwark.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Chapter%203-%20Valiant%20Bulwark.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/7/73/Chapter_3-_Valiant_Bulwark.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251206023112id_/https://wiki.guildwars2.com/images/7/73/Chapter_3-_Valiant_Bulwark.png",
+      "archiveTimestamp": "20251206023112",
+      "width": 128,
+      "height": 128,
+      "bytes": 14110,
+      "sha256": "1041bfe3a993397597c326633c8bdc701238ee8b0d939629b82576715836d960",
+      "references": ["js/games/gw2/professions/guardian/data/guardian-bundle-skills.ts"]
+    },
+    {
+      "fileName": "Chapter_4-_Scorched_Aftermath.png",
+      "localPath": "images/wiki/chapter-4-scorched-aftermath.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Chapter%204-%20Scorched%20Aftermath.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/c/c9/Chapter_4-_Scorched_Aftermath.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261019035624id_/https://wiki.guildwars2.com/images/c/c9/Chapter_4-_Scorched_Aftermath.png",
+      "archiveTimestamp": "20261019035624",
+      "width": 128,
+      "height": 128,
+      "bytes": 14531,
+      "sha256": "877ed186ef7a9325b2e6d85e68581c0219dc8a97b06bdb1f8dd2e27d68b32be9",
+      "references": ["js/games/gw2/professions/guardian/data/guardian-bundle-skills.ts"]
+    },
+    {
+      "fileName": "Chapter_4-_Shining_River.png",
+      "localPath": "images/wiki/chapter-4-shining-river.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Chapter%204-%20Shining%20River.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/1/16/Chapter_4-_Shining_River.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251206023113id_/https://wiki.guildwars2.com/images/1/16/Chapter_4-_Shining_River.png",
+      "archiveTimestamp": "20251206023113",
+      "width": 128,
+      "height": 128,
+      "bytes": 14130,
+      "sha256": "6ed4afca838b97f3ba0ff3305bd79d4be7fb6664d074092c1b63e3376532ae5f",
+      "references": ["js/games/gw2/professions/guardian/data/guardian-bundle-skills.ts"]
+    },
+    {
+      "fileName": "Chapter_4-_Stalwart_Stand.png",
+      "localPath": "images/wiki/chapter-4-stalwart-stand.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Chapter%204-%20Stalwart%20Stand.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/8/89/Chapter_4-_Stalwart_Stand.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251206023118id_/https://wiki.guildwars2.com/images/8/89/Chapter_4-_Stalwart_Stand.png",
+      "archiveTimestamp": "20251206023118",
+      "width": 128,
+      "height": 128,
+      "bytes": 13181,
+      "sha256": "75551463f0fb22a0311e06c330c49fa5570dfe43af5d97661c5cf1d945475bf3",
+      "references": ["js/games/gw2/professions/guardian/data/guardian-bundle-skills.ts"]
+    },
+    {
+      "fileName": "Chronomancer_specialization.png",
+      "localPath": "images/wiki/chronomancer-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Chronomancer_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/9D9F0DA395FDB21423981FAC2CABC850CF7E0A62/1012053.png",
+      "provenance": "ArenaNet API /v2/specializations/40 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 128579,
+      "sha256": "7c1d615f0bb052fc388ea495f32027be33caec5de31a5c00df29a6e5c5947316",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Clarity.png",
+      "localPath": "images/wiki/clarity.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Clarity.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/d/d7/Clarity.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260502093149id_/https://wiki.guildwars2.com/images/d/d7/Clarity.png",
+      "archiveTimestamp": "20260502093149",
+      "width": 32,
+      "height": 32,
+      "bytes": 1863,
+      "sha256": "6c059e6df8c32fc9354b43cfe49a6db915a2f6946372140145f6a24adaecc564",
+      "references": ["js/games/gw2/professions/mesmer/core/skills/weapons/spear.ts"]
+    },
+    {
+      "fileName": "Claw_(raptor_swiftwing).png",
+      "localPath": "images/wiki/claw-raptor-swiftwing.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Claw_(raptor_swiftwing).png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/2/2a/Claw_%28raptor_swiftwing%29.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260205002025id_/https://wiki.guildwars2.com/images/2/2a/Claw_%28raptor_swiftwing%29.png",
+      "archiveTimestamp": "20260205002025",
+      "width": 256,
+      "height": 256,
+      "bytes": 52406,
+      "sha256": "2d191deec716eadc930468acf25ee6d93709cdf166f16483d8105b6db3766b58",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Conduit_specialization.png",
+      "localPath": "images/wiki/conduit-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Conduit_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/24DCBA06ED23E55A54953996025B07E46FFBC4B9/3679911.png",
+      "provenance": "ArenaNet API /v2/specializations/79 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 133960,
+      "sha256": "cfe1be031c7528776ac156c2bc141d31ce193d276a1ac718c2528b620ef14069",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Consuming_Bite.png",
+      "localPath": "images/wiki/consuming-bite.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/6/68/Consuming_Bite.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/6/68/Consuming_Bite.png",
+      "source": "Archived Wiki thumbnail",
+      "downloadedFrom": "https://web.archive.org/web/20230103113708id_/https://wiki.guildwars2.com/images/thumb/6/68/Consuming_Bite.png/120px-Consuming_Bite.png",
+      "archiveTimestamp": "20230103113708",
+      "width": 120,
+      "height": 120,
+      "bytes": 22840,
+      "sha256": "06f45f12ad40b4973e98971631c2cf4a51d0bd772ed23023905a220e35d60faf",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Corruption_specialization.png",
+      "localPath": "images/wiki/corruption-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Corruption_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/5AB700B8AE15619DDD3CAFD60D0203E5EB23C3BE/1012087.png",
+      "provenance": "ArenaNet API /v2/specializations/14 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 111201,
+      "sha256": "d857e51976f1a3565c5a0728f9a39821bb061d1d2c0c65f9abab490b34e1b2ea",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Critical_Strikes_specialization.png",
+      "localPath": "images/wiki/critical-strikes-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Critical%20Strikes_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/29C9C0E8F16ADC18F745CA93CB58BA0C164B5CE1/1012100.png",
+      "provenance": "ArenaNet API /v2/specializations/35 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 74662,
+      "sha256": "001b188e409f5678b5891d601f6950382d5f84af85c356d8d35d97554697eb04",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Curses_specialization.png",
+      "localPath": "images/wiki/curses-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Curses_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/71E7075E1AC9460AA507A630B54D1395DA465B2D/1012065.png",
+      "provenance": "ArenaNet API /v2/specializations/39 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 141620,
+      "sha256": "16edbd32e23b1cf2d0d473f562ba7f91625ab9e7a5f81ec8c49447ca88c5030a",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Cyclone_Trigger.png",
+      "localPath": "images/wiki/cyclone-trigger.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/6/6c/Cyclone_Trigger.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/6/6c/Cyclone_Trigger.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261014221956id_/https://wiki.guildwars2.com/images/6/6c/Cyclone_Trigger.png",
+      "archiveTimestamp": "20261014221956",
+      "width": 128,
+      "height": 128,
+      "bytes": 15382,
+      "sha256": "efe82d78035b94772b50a622c87809e1b554411830cbbc6b77057e522946140d",
+      "references": [
+        "js/games/gw2/professions/warrior/data/warrior-supplemental-skills.ts",
+        "scripts/data/generate-warrior-data.mjs"
+      ]
+    },
+    {
+      "fileName": "Daredevil_specialization.png",
+      "localPath": "images/wiki/daredevil-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Daredevil_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/B969F9B27EE82CBF0E4651FD0F760F702CB5FCED/1012101.png",
+      "provenance": "ArenaNet API /v2/specializations/7 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 124089,
+      "sha256": "3c4a0753c11d82aec1f008856f5389d6f0efd63fc0db41e3d285c2edcb751703",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Deadeye_specialization.png",
+      "localPath": "images/wiki/deadeye-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Deadeye_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/09B7D10707C7095C050B34ED68E3E3BB06626C7A/1769904.png",
+      "provenance": "ArenaNet API /v2/specializations/58 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 96060,
+      "sha256": "71477dce51a4889d0e9bce7bfe1d1f13ebf2b9be6d60a5806f08f1df2f33bd88",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Deadly_Arts_specialization.png",
+      "localPath": "images/wiki/deadly-arts-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Deadly%20Arts_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/2AA7FB65630AD540E204982978DA9601023B540E/1012102.png",
+      "provenance": "ArenaNet API /v2/specializations/28 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 62236,
+      "sha256": "234dbec07b98e589222c36bfed51dd017760b186ed90e53726c01314dee8dd4a",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Death_Magic_specialization.png",
+      "localPath": "images/wiki/death-magic-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Death%20Magic_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/B3F92D581B0A036CABB51590E6E560B21708391F/1012067.png",
+      "provenance": "ArenaNet API /v2/specializations/2 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 146474,
+      "sha256": "d4f95e4b90f4079fd05a955cfed8af437ec8d55edc619d9164ad11e8ed1e8052",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Defense_specialization.png",
+      "localPath": "images/wiki/defense-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Defense_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/E0190E3B3745AA61D32CFF92C1FEFFFB56A90D4C/1012107.png",
+      "provenance": "ArenaNet API /v2/specializations/22 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 114505,
+      "sha256": "f995bb6ae42d1f6096c1ecba2c625d077333a6fa0da478965978b83e9dffd157",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Detonate_Plasma.png",
+      "localPath": "images/wiki/detonate-plasma.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Plasma.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/3/3d/Detonate_Plasma.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260305140533id_/https://wiki.guildwars2.com/images/3/3d/Detonate_Plasma.png",
+      "archiveTimestamp": "20260305140533",
+      "width": 128,
+      "height": 128,
+      "bytes": 14919,
+      "sha256": "6dac2f8313f54c992b4b67a2fec4b2b02a6fb9f3f4b5323563f42a250cb74407",
+      "references": ["js/games/gw2/professions/thief/data/thief-supplemental-skills.ts"]
+    },
+    {
+      "fileName": "Devastation_specialization.png",
+      "localPath": "images/wiki/devastation-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Devastation_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/0744C43591FB9C11A7554C9601215CA8022F4216/1012089.png",
+      "provenance": "ArenaNet API /v2/specializations/15 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 130175,
+      "sha256": "cd722b5d88c647fdedda9da7d394f10287b4e198dae47ca507b86176e901d6f4",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Discipline_specialization.png",
+      "localPath": "images/wiki/discipline-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Discipline_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/2B80CF6504DA1B0DC8470D45ED5BE9992BEEC2B7/1012108.png",
+      "provenance": "ArenaNet API /v2/specializations/51 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 106235,
+      "sha256": "9240e687b95bce66a9a9b53358125e44ce5711a062d334eec94280252f2cbc51",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Dodge.png",
+      "localPath": "images/wiki/dodge.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/b/b2/Dodge.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/b/b2/Dodge.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260609174132id_/https://wiki.guildwars2.com/images/b/b2/Dodge.png",
+      "archiveTimestamp": "20260609174132",
+      "width": 41,
+      "height": 41,
+      "bytes": 2029,
+      "sha256": "094cf88b9476d93762780d086354ffab6a157cde213836792d000345bfd96f32",
+      "references": [
+        "js/games/gw2/app/shared/icons.ts",
+        "js/games/gw2/app/shared/icons.ts",
+        "js/games/gw2/platform/skills/shared-actions.ts",
+        "js/games/gw2/professions/elementalist/data/module-data.ts",
+        "js/games/gw2/professions/mesmer/specializations/mirage/skills/index.ts",
+        "js/games/gw2/professions/revenant/data/vindicator-jump.ts"
+      ]
+    },
+    {
+      "fileName": "Domination_specialization.png",
+      "localPath": "images/wiki/domination-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Domination_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/2C436DDDC3244409EEBF470A0AE3ED7CED1F99C0/1012055.png",
+      "provenance": "ArenaNet API /v2/specializations/10 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 149248,
+      "sha256": "c5063f28ebe065e23b4b175c4e2585dbf1df07b15e99c407d1304282b62f8776",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Dragon_Slash—Boost.png",
+      "localPath": "images/wiki/dragon-slash-boost.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/7/75/Dragon_Slash%E2%80%94Boost.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/7/75/Dragon_Slash%E2%80%94Boost.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251222012123id_/https://wiki.guildwars2.com/images/7/75/Dragon_Slash%E2%80%94Boost.png",
+      "archiveTimestamp": "20251222012123",
+      "width": 128,
+      "height": 128,
+      "bytes": 12911,
+      "sha256": "05ccdb11058d8ad44531d807f7898875fa3092db9154d85822316f8bbc64381a",
+      "references": [
+        "js/games/gw2/professions/warrior/data/warrior-supplemental-skills.ts",
+        "scripts/data/generate-warrior-data.mjs"
+      ]
+    },
+    {
+      "fileName": "Dragon_Slash—Force.png",
+      "localPath": "images/wiki/dragon-slash-force.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/b/b5/Dragon_Slash%E2%80%94Force.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/b/b5/Dragon_Slash%E2%80%94Force.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261014221956id_/https://wiki.guildwars2.com/images/b/b5/Dragon_Slash%E2%80%94Force.png",
+      "archiveTimestamp": "20261014221956",
+      "width": 128,
+      "height": 128,
+      "bytes": 15166,
+      "sha256": "c777f9114f1f83060eb0ad6a6aae65b59b7cf7cf8772f7c3fd2de6ea07cf881d",
+      "references": [
+        "js/games/gw2/professions/warrior/data/warrior-supplemental-skills.ts",
+        "scripts/data/generate-warrior-data.mjs"
+      ]
+    },
+    {
+      "fileName": "Dragon_Slash—Reach.png",
+      "localPath": "images/wiki/dragon-slash-reach.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/e/eb/Dragon_Slash%E2%80%94Reach.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/e/eb/Dragon_Slash%E2%80%94Reach.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261014221956id_/https://wiki.guildwars2.com/images/e/eb/Dragon_Slash%E2%80%94Reach.png",
+      "archiveTimestamp": "20261014221956",
+      "width": 128,
+      "height": 128,
+      "bytes": 14373,
+      "sha256": "8d47b93064293ad2c302f5acb84896c37efb5aacb2fdef6a1d758697b25f451c",
+      "references": [
+        "js/games/gw2/professions/warrior/data/warrior-supplemental-skills.ts",
+        "scripts/data/generate-warrior-data.mjs"
+      ]
+    },
+    {
+      "fileName": "Dragonhunter_specialization.png",
+      "localPath": "images/wiki/dragonhunter-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Dragonhunter_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/6BD5F59A7A0EF4F20C1B1D216AFE2B084CC19FF4/1012045.png",
+      "provenance": "ArenaNet API /v2/specializations/27 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 144787,
+      "sha256": "f02c9ca1c6ab9ae25efc0913eca92014b718912875d677ef5bbacc4e878237c8",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Druid_specialization.png",
+      "localPath": "images/wiki/druid-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Druid_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/306D6ED9D3F09FF5552609EC7DA2046ECD114F90/1012077.png",
+      "provenance": "ArenaNet API /v2/specializations/5 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 137684,
+      "sha256": "4de0a5d3bc3f7f5609e389e9dcb169f8fbb0fb2c3d21e174a6c6ca31977ea430",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Dueling_specialization.png",
+      "localPath": "images/wiki/dueling-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Dueling_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/992D53319C5FCD4AE841C592DC2AE91D5906AECF/1012057.png",
+      "provenance": "ArenaNet API /v2/specializations/1 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 131192,
+      "sha256": "91c34bb56b565d5f5a33e4d7f11e9b3ce9d8e6e5fe685a8a018e21c362a4fca7",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Earth_specialization.png",
+      "localPath": "images/wiki/earth-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Earth_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/B9C5BE9716010E3F7F170A52B5B272327CDA49A1/1012037.png",
+      "provenance": "ArenaNet API /v2/specializations/26 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 104102,
+      "sha256": "692ff68a23bdb5f5c9bbb76fc78196fce2d509355cbc14779120b1332a51def9",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Elemental_Balance.png",
+      "localPath": "images/wiki/elemental-balance.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/4/4c/Elemental_Balance.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/4/4c/Elemental_Balance.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260305120008id_/https://wiki.guildwars2.com/images/4/4c/Elemental_Balance.png",
+      "archiveTimestamp": "20260305120008",
+      "width": 64,
+      "height": 64,
+      "bytes": 4827,
+      "sha256": "f6237bd28fdff6d939d5e4bc6bb91934d5aa8a46286eaa6fee07037d182caef2",
+      "references": ["js/games/gw2/professions/elementalist/specializations/evoker/traits/index.ts"]
+    },
+    {
+      "fileName": "Entangling_Web.png",
+      "localPath": "images/wiki/entangling-web.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Entangling_Web.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/b/ba/Entangling_Web.png",
+      "source": "Archived Wiki thumbnail",
+      "downloadedFrom": "https://web.archive.org/web/20221231140326id_/https://wiki.guildwars2.com/images/thumb/b/ba/Entangling_Web.png/120px-Entangling_Web.png",
+      "archiveTimestamp": "20221231140326",
+      "width": 120,
+      "height": 120,
+      "bytes": 20785,
+      "sha256": "434290509a5b5a7f544123ec4845a30a53bb72228127f4a5533df9dcb995aa5b",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Epilogue-_Ashes_of_the_Just.png",
+      "localPath": "images/wiki/epilogue-ashes-of-the-just.png",
+      "wikiUrls": [
+        "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Epilogue-%20Ashes%20of%20the%20Just.png",
+        "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Epilogue-%20Ashes%20of%20the%20Just.png"
+      ],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/6/6d/Epilogue-_Ashes_of_the_Just.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251206023140id_/https://wiki.guildwars2.com/images/6/6d/Epilogue-_Ashes_of_the_Just.png",
+      "archiveTimestamp": "20251206023140",
+      "width": 128,
+      "height": 128,
+      "bytes": 13267,
+      "sha256": "b99e8eb951f8468058237c6b3faccab6fb611f75f119129baaf1f4d05f57aee8",
+      "references": [
+        "js/games/gw2/app/shared/icons.ts",
+        "js/games/gw2/professions/guardian/data/guardian-bundle-skills.ts"
+      ]
+    },
+    {
+      "fileName": "Epilogue-_Eternal_Oasis.png",
+      "localPath": "images/wiki/epilogue-eternal-oasis.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Epilogue-%20Eternal%20Oasis.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/5/5f/Epilogue-_Eternal_Oasis.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251206023140id_/https://wiki.guildwars2.com/images/5/5f/Epilogue-_Eternal_Oasis.png",
+      "archiveTimestamp": "20251206023140",
+      "width": 128,
+      "height": 128,
+      "bytes": 13717,
+      "sha256": "bcea379fabf51410f17a1995daab2ed650543cf089c33a4f12396a257a7cbe18",
+      "references": ["js/games/gw2/professions/guardian/data/guardian-bundle-skills.ts"]
+    },
+    {
+      "fileName": "Epilogue-_Unbroken_Lines.png",
+      "localPath": "images/wiki/epilogue-unbroken-lines.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Epilogue-%20Unbroken%20Lines.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/d/d8/Epilogue-_Unbroken_Lines.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251206023140id_/https://wiki.guildwars2.com/images/d/d8/Epilogue-_Unbroken_Lines.png",
+      "archiveTimestamp": "20251206023140",
+      "width": 128,
+      "height": 128,
+      "bytes": 13029,
+      "sha256": "e7653fea4109353f97134de15dd40773ade7085c88f755a8ff52d70e35eab483",
+      "references": ["js/games/gw2/professions/guardian/data/guardian-bundle-skills.ts"]
+    },
+    {
+      "fileName": "Evil_Eye.png",
+      "localPath": "images/wiki/evil-eye.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Evil_Eye.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/2/27/Evil_Eye.png",
+      "source": "Archived Wiki thumbnail",
+      "downloadedFrom": "https://web.archive.org/web/20250716020648id_/https://wiki.guildwars2.com/images/thumb/2/27/Evil_Eye.png/96px-Evil_Eye.png",
+      "archiveTimestamp": "20250716020648",
+      "width": 96,
+      "height": 96,
+      "bytes": 11482,
+      "sha256": "e4130769da67d79baae844d3c1f444e47fd8e3b73af1b64c9ab57013b6f8adf7",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Evoker_specialization.png",
+      "localPath": "images/wiki/evoker-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Evoker_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/393A550E0EA1C4A9CB3FB9CD4AE4DDDC01E6C1D3/3679905.png",
+      "provenance": "ArenaNet API /v2/specializations/80 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 141098,
+      "sha256": "27d5109e57563a77f2a3fc59770a38e39fac2e11776682e9feb03705b95f39d9",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Exploding_Spores.png",
+      "localPath": "images/wiki/exploding-spores.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/d/d4/Exploding_Spores.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/d/d4/Exploding_Spores.png",
+      "resolvedImageUrl": "https://wiki.guildwars2.com/images/2/21/Exploding_Spores.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260505021722id_/https://wiki.guildwars2.com/images/2/21/Exploding_Spores.png",
+      "archiveTimestamp": "20260505021722",
+      "provenance": "Corrected the obsolete /images/d/d4 path to the canonical MediaWiki file path.",
+      "width": 128,
+      "height": 128,
+      "bytes": 12945,
+      "sha256": "49b21c06379f6a9515b190d9ee861a79e71c9dba71a197c489b8487f6dc5e377",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-supplemental-skills.ts"]
+    },
+    {
+      "fileName": "Explosive_Thrust.png",
+      "localPath": "images/wiki/explosive-thrust.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/9/99/Explosive_Thrust.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/9/99/Explosive_Thrust.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261014221956id_/https://wiki.guildwars2.com/images/9/99/Explosive_Thrust.png",
+      "archiveTimestamp": "20261014221956",
+      "width": 128,
+      "height": 128,
+      "bytes": 16142,
+      "sha256": "919c236e4eb3bfc73f47e4debe8fd0dab5d3dd4b0b92f39a060ca8055107f416",
+      "references": [
+        "js/games/gw2/professions/warrior/data/warrior-supplemental-skills.ts",
+        "scripts/data/generate-warrior-data.mjs"
+      ]
+    },
+    {
+      "fileName": "Explosives_specialization.png",
+      "localPath": "images/wiki/explosives-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Explosives_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/159455B54672DF9C9BEEC2EB13E05DB07E757E02/1012041.png",
+      "provenance": "ArenaNet API /v2/specializations/6 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 119703,
+      "sha256": "4675dbbb42627f6eab1b51663cacfe3533c8a76a867031a739d539a293f35d16",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Fire_Aura.png",
+      "localPath": "images/wiki/fire-aura.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Aura.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/c/ce/Fire_Aura.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260927172404id_/https://wiki.guildwars2.com/images/c/ce/Fire_Aura.png",
+      "archiveTimestamp": "20260927172404",
+      "width": 32,
+      "height": 32,
+      "bytes": 1632,
+      "sha256": "5d05c22d0b01af758d9c74bba6965a64efa721ec13526dfab32830a41413851f",
+      "references": ["js/games/gw2/professions/warrior/specializations/berserker/traits/index.ts"]
+    },
+    {
+      "fileName": "Fire_specialization.png",
+      "localPath": "images/wiki/fire-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Fire_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/6BB3E8FDEA6E679050D59E411A4AA956D347B045/1012038.png",
+      "provenance": "ArenaNet API /v2/specializations/31 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 118595,
+      "sha256": "7211b056ebc2a33eda7603e64875365ae70ee7832219fb873cb98451aa61f2bc",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Firearms_specialization.png",
+      "localPath": "images/wiki/firearms-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Firearms_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/2A37FAA50318E4BAE2B193D7A1DF30AAFCE7B139/1012042.png",
+      "provenance": "ArenaNet API /v2/specializations/38 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 107791,
+      "sha256": "ef88600efcc8f48933b136857a511466ebb8a0268ee38b7a8e559d916ce075c6",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Firebrand_specialization.png",
+      "localPath": "images/wiki/firebrand-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Firebrand_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/7E6454FF9A13DBE93873AF72E192A74622990171/1769899.png",
+      "provenance": "ArenaNet API /v2/specializations/62 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 131695,
+      "sha256": "1cbcb916a323804b1cfddaa590ad5e65e0cebc38d71272c6cb8840e32671d54e",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Fist.png",
+      "localPath": "images/wiki/fist.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/1/17/Fist.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260209224829id_/https://wiki.guildwars2.com/images/1/17/Fist.png",
+      "archiveTimestamp": "20260209224829",
+      "width": 128,
+      "height": 128,
+      "bytes": 14736,
+      "sha256": "21ac52e89fe97d1c0d13cde08166a400e66e77d8081125988d925f301f9d742a",
+      "references": [
+        "js/games/gw2/professions/necromancer/core/profiles.ts",
+        "js/games/gw2/professions/necromancer/core/profiles.ts",
+        "js/games/gw2/professions/necromancer/core/profiles.ts"
+      ]
+    },
+    {
+      "fileName": "Flicker_Step.png",
+      "localPath": "images/wiki/flicker-step.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/d/de/Flicker_Step.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/d/de/Flicker_Step.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251222012125id_/https://wiki.guildwars2.com/images/d/de/Flicker_Step.png",
+      "archiveTimestamp": "20251222012125",
+      "width": 128,
+      "height": 128,
+      "bytes": 13897,
+      "sha256": "647010af43f80c9155391c70b7f6c7ebe5caed7ebef4175e21f0b8cec246203a",
+      "references": [
+        "js/games/gw2/professions/warrior/data/warrior-supplemental-skills.ts",
+        "scripts/data/generate-warrior-data.mjs"
+      ]
+    },
+    {
+      "fileName": "Galeshot_specialization.png",
+      "localPath": "images/wiki/galeshot-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Galeshot_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/4BC6740C765896B9EE6E38671BD204B7A82535F9/3679910.png",
+      "provenance": "ArenaNet API /v2/specializations/78 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 138601,
+      "sha256": "1457b92f155a7bea69442cf3440adbc27ea5e1b5ad7a04ec175bf4158f7434c4",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Harbinger_specialization.png",
+      "localPath": "images/wiki/harbinger-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Harbinger_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/0B3EEFCC210D5A2C9D91F5F4D4D5AE965B4A6420/2479307.png",
+      "provenance": "ArenaNet API /v2/specializations/64 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 130407,
+      "sha256": "06d0d186bdd3f235e8b913603732514a52e6a646bc37af408e68897657164f06",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Hard_Strike.png",
+      "localPath": "images/wiki/hard-strike.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Hard_Strike.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/6/62/Hard_Strike.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261012053814id_/https://wiki.guildwars2.com/images/6/62/Hard_Strike.png",
+      "archiveTimestamp": "20261012053814",
+      "width": 64,
+      "height": 64,
+      "bytes": 5205,
+      "sha256": "345b51becba6829ee91c86df740d90d825dce56f26086a926abd154051fb96ef",
+      "references": ["js/games/gw2/professions/engineer/data/engineer-supplemental-skills.ts"]
+    },
+    {
+      "fileName": "Hare's_Agility.png",
+      "localPath": "images/wiki/hare-s-agility.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/7/7b/Hare%27s_Agility.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/7/7b/Hare%27s_Agility.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251115071703id_/https://wiki.guildwars2.com/images/7/7b/Hare%27s_Agility.png",
+      "archiveTimestamp": "20251115071703",
+      "width": 128,
+      "height": 128,
+      "bytes": 16350,
+      "sha256": "d76308854a32eb3879f12cbb7bfe8786917fa60a5398ba5644180b6a8e401d90",
+      "references": ["js/games/gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.ts"]
+    },
+    {
+      "fileName": "Headbutt_(gazelle).png",
+      "localPath": "images/wiki/headbutt-gazelle.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Headbutt_(gazelle).png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/8/82/Headbutt_%28gazelle%29.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260222113037id_/https://wiki.guildwars2.com/images/8/82/Headbutt_%28gazelle%29.png",
+      "archiveTimestamp": "20260222113037",
+      "width": 128,
+      "height": 128,
+      "bytes": 17838,
+      "sha256": "8493bf467d18f37e2086130c9f00381b1ca99cb6656aa54c8bccf8cf9c4267de",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Heavy_Shot.png",
+      "localPath": "images/wiki/heavy-shot.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Heavy_Shot.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/3/34/Heavy_Shot.png",
+      "source": "ArenaNet skill icon",
+      "downloadedFrom": "https://render.guildwars2.com/file/7D451452DD3DC3B6D1AF52B397F5AF91B7AEC24B/2565744.png",
+      "provenance": "https://api.guildwars2.com/v2/skills/66258",
+      "width": 128,
+      "height": 128,
+      "bytes": 11956,
+      "sha256": "ee6c72e4af687d0708fe8d71c90ca17a2c4e8961d3ed1449790fdc7dfef1ef8b",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Heavy_Smash_(Mech).png",
+      "localPath": "images/wiki/heavy-smash-mech.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Heavy_Smash_(Mech).png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/9/98/Heavy_Smash_%28Mech%29.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261012053815id_/https://wiki.guildwars2.com/images/9/98/Heavy_Smash_%28Mech%29.png",
+      "archiveTimestamp": "20261012053815",
+      "width": 64,
+      "height": 64,
+      "bytes": 4806,
+      "sha256": "5f485998c740de3124ed2e6dc1a7a0759bcf4a5db0e6252e01e30c5ba6696b15",
+      "references": ["js/games/gw2/professions/engineer/data/engineer-supplemental-skills.ts"]
+    },
+    {
+      "fileName": "Herald_specialization.png",
+      "localPath": "images/wiki/herald-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Herald_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/F2EEC706430942BEC2D51565AECC13135DF304F8/1012091.png",
+      "provenance": "ArenaNet API /v2/specializations/52 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 126345,
+      "sha256": "e05134a722f8ee0151e5031891782fc2f025ac3d570c7652041b4ae5ee3bd762",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Holosmith_specialization.png",
+      "localPath": "images/wiki/holosmith-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Holosmith_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/FF0814C6EFA56F9ADA0B3EA7986BADF120F7D11D/1769898.png",
+      "provenance": "ArenaNet API /v2/specializations/57 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 144977,
+      "sha256": "446b2e562d4a1f26eec49e4be782a4d47dab6c69c2b821215c27b5995235537b",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Honor_specialization.png",
+      "localPath": "images/wiki/honor-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Honor_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/98C3AB64254E61E59D03D3AF29D75314730E9E72/1012046.png",
+      "provenance": "ArenaNet API /v2/specializations/49 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 131007,
+      "sha256": "c0f81f2ea313ea911095ada4dd1f768f20e10bb71fee126f81aac9ffa309b402",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Illuminated.png",
+      "localPath": "images/wiki/illuminated.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/7/7d/Illuminated.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/7/7d/Illuminated.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260616001519id_/https://wiki.guildwars2.com/images/7/7d/Illuminated.png",
+      "archiveTimestamp": "20260616001519",
+      "width": 32,
+      "height": 32,
+      "bytes": 1611,
+      "sha256": "1bda62769ef89d7a28732c95ff651de0f323900fc92a8023792be0c39b5ba7a7",
+      "references": ["js/games/gw2/professions/guardian/core/skills/weapons/spear.ts"]
+    },
+    {
+      "fileName": "Illusions_specialization.png",
+      "localPath": "images/wiki/illusions-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Illusions_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/B00D98B31B13416811B8484FC146C49B1E055BAC/1012061.png",
+      "provenance": "ArenaNet API /v2/specializations/24 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 119427,
+      "sha256": "f87e0f9cb67b1c9d6daeff5ce64e4dbd0b1fb7782a3a19201ac0f965ea2c0b64",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Inspiration_specialization.png",
+      "localPath": "images/wiki/inspiration-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Inspiration_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/DC30B4FF5377E80F21F4E912E8D548B004C95042/1012059.png",
+      "provenance": "ArenaNet API /v2/specializations/23 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 157573,
+      "sha256": "f212de1287c491923733481c30cf80a00aae314234193a96e6d2c3a5eff77823",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Inventions_specialization.png",
+      "localPath": "images/wiki/inventions-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Inventions_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/807C3D97D8B6A25E47B49C905B081419A779201D/1012043.png",
+      "provenance": "ArenaNet API /v2/specializations/47 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 121192,
+      "sha256": "ebae57f039d0de8c32e8d37b04a19ac2f2395811acfa81ae9883c4e528d23531",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Invocation_specialization.png",
+      "localPath": "images/wiki/invocation-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Invocation_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/B73FB47165CB20DE21B1FAE91FE22BDE29B6FB76/1012093.png",
+      "provenance": "ArenaNet API /v2/specializations/3 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 119649,
+      "sha256": "422555c3b93492d3b2cfa1621aa5a6521b6adacc7679a81afe005fb135d2cf83",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Jab_(porcine).png",
+      "localPath": "images/wiki/jab-porcine.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Jab_(porcine).png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/d/d5/Jab_%28porcine%29.png",
+      "source": "Archived Wiki thumbnail",
+      "downloadedFrom": "https://web.archive.org/web/20200723220554id_/https://wiki.guildwars2.com/images/thumb/d/d5/Jab_%28porcine%29.png/120px-Jab_%28porcine%29.png",
+      "archiveTimestamp": "20200723220554",
+      "width": 120,
+      "height": 120,
+      "bytes": 20692,
+      "sha256": "7b804978ae9fcf163a969e108064128f4f57d74d0ec4ec9c2b6250a36599248d",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Jade_Bot_(skin).png",
+      "localPath": "images/wiki/jade-bot-skin.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/b/bf/Jade_Bot_%28skin%29.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/b/bf/Jade_Bot_%28skin%29.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260930180726id_/https://wiki.guildwars2.com/images/b/bf/Jade_Bot_%28skin%29.png",
+      "archiveTimestamp": "20260930180726",
+      "width": 64,
+      "height": 64,
+      "bytes": 8326,
+      "sha256": "ffc02e834fdcad0ab6ec6c11cce31f9fcbc54326aaa7db3808092a9eb6910fff",
+      "references": ["js/games/gw2/app/shared/equipment/icons.ts"]
+    },
+    {
+      "fileName": "Jade_Cannon_(turtle).png",
+      "localPath": "images/wiki/jade-cannon-turtle.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Jade_Cannon_(turtle).png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/2/27/Jade_Cannon_%28turtle%29.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251121213540id_/https://wiki.guildwars2.com/images/2/27/Jade_Cannon_%28turtle%29.png",
+      "archiveTimestamp": "20251121213540",
+      "width": 128,
+      "height": 128,
+      "bytes": 17230,
+      "sha256": "34e35bd873449775e9c26a393a8ec300a39437bed9db0c99b25c5dc525435590",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Luminary_specialization.png",
+      "localPath": "images/wiki/luminary-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Luminary_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/AF9E19ADE842E1661324EDC6AAAEF7B2933CF132/3679907.png",
+      "provenance": "ArenaNet API /v2/specializations/81 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 140962,
+      "sha256": "bfa3340729e6d1b0da1b98746f4fd2a3473fa7075de730a21baeea27ae8f8f91",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Marksmanship_specialization.png",
+      "localPath": "images/wiki/marksmanship-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Marksmanship_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/100CE796CC2318DA62D2189A02BAAD2AE91BCE1F/1012079.png",
+      "provenance": "ArenaNet API /v2/specializations/8 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 143331,
+      "sha256": "05892914ccaf122603ba4ed1d979dcf21698f0dfc82e650e19977fe57845c874",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Mechanist_specialization.png",
+      "localPath": "images/wiki/mechanist-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Mechanist_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/19C21A9C04620227042E483758962301EFC030D4/2503611.png",
+      "provenance": "ArenaNet API /v2/specializations/70 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 131900,
+      "sha256": "8a398ff465f9034d5db238a6ba3cb8ee48ac272b19c0c3ab4418f29acc8fd578",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Meltdown.png",
+      "localPath": "images/wiki/meltdown.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Meltdown.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/6/68/Meltdown.png",
+      "source": "Archived Wiki thumbnail",
+      "downloadedFrom": "https://web.archive.org/web/20150201133403id_/http://wiki.guildwars2.com/images/thumb/6/68/Meltdown.png/36px-Meltdown.png",
+      "archiveTimestamp": "20150201133403",
+      "width": 36,
+      "height": 36,
+      "bytes": 3308,
+      "sha256": "7d43694b2c187fd8e5dd46a3165280fe80edaf6add60e90b9be1ca79e12a9a6f",
+      "references": ["js/games/gw2/professions/necromancer/specializations/harbinger/traits/index.ts"]
+    },
+    {
+      "fileName": "Mirage_specialization.png",
+      "localPath": "images/wiki/mirage-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Mirage_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/BB67F76B46052E6E291AFE75807AFC7DD33563E4/1769900.png",
+      "provenance": "ArenaNet API /v2/specializations/59 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 122302,
+      "sha256": "d3ca71e49d84f73e271476600ef1fbbbed6d93fef75936ef83eb166c2d38c3ba",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Nature_Magic_specialization.png",
+      "localPath": "images/wiki/nature-magic-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Nature%20Magic_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/01B5C3050EAFB0C47065C333C8AA2B4255374DA7/1012081.png",
+      "provenance": "ArenaNet API /v2/specializations/25 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 137437,
+      "sha256": "f63969e77774d84bc85434cc0b0727d7f06d65efda0d4a64af676096190a11ef",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Nibble.png",
+      "localPath": "images/wiki/nibble.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Nibble.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/9/93/Nibble.png",
+      "source": "Archived Wiki thumbnail",
+      "downloadedFrom": "https://web.archive.org/web/20260616004636id_/https://wiki.guildwars2.com/images/thumb/9/93/Nibble.png/66px-Nibble.png",
+      "archiveTimestamp": "20260616004636",
+      "width": 66,
+      "height": 66,
+      "bytes": 7176,
+      "sha256": "761d001176e5b7feb6b9a181ad52b839c0c3e1fc33ab9494db1dc77ab74f290d",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Nourishment_food.png",
+      "localPath": "images/wiki/nourishment-food.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/c/ca/Nourishment_food.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/c/ca/Nourishment_food.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261011014045id_/https://wiki.guildwars2.com/images/c/ca/Nourishment_food.png",
+      "archiveTimestamp": "20261011014045",
+      "width": 32,
+      "height": 32,
+      "bytes": 1130,
+      "sha256": "1df6156860145242e549b51d158e035938aab8e62744819ef48d13abf228e33a",
+      "references": [
+        "js/games/gw2/platform/equipment/consumables/food.ts",
+        "tests/games/gw2/platform/equipment-procs.test.js"
+      ]
+    },
+    {
+      "fileName": "Paragon_specialization.png",
+      "localPath": "images/wiki/paragon-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Paragon_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/F879AC0997C964DE562D98A5BC4EA60BC7C22849/3679913.png",
+      "provenance": "ArenaNet API /v2/specializations/74 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 144345,
+      "sha256": "21e55f1df14fc4b69d42ca3671ae9b2245f71d8d319c8554efbd1bbd69fe0e21",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Peck.png",
+      "localPath": "images/wiki/peck.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Peck.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/8/83/Peck.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260621215634id_/https://wiki.guildwars2.com/images/8/83/Peck.png",
+      "archiveTimestamp": "20260621215634",
+      "width": 128,
+      "height": 128,
+      "bytes": 13394,
+      "sha256": "f0b8d6041cbd7eb15e9356c8f91689778452b3c26fa86328045229d7481b9c6a",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Poison_Gas.png",
+      "localPath": "images/wiki/poison-gas.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Poison_Gas.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/7/7e/Poison_Gas.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20250822192342id_/https://wiki.guildwars2.com/images/7/7e/Poison_Gas.png",
+      "archiveTimestamp": "20250822192342",
+      "width": 128,
+      "height": 128,
+      "bytes": 28291,
+      "sha256": "38a51fefe7658f61ca18c8502a2fa79282d3d865a125e29757ec2b2c70ce0f2d",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Potent_Potion_of_Undead_Slaying.png",
+      "localPath": "images/wiki/potent-potion-of-undead-slaying.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Potent_Potion_of_Undead_Slaying.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/9/9f/Potent_Potion_of_Undead_Slaying.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261012110617id_/https://wiki.guildwars2.com/images/9/9f/Potent_Potion_of_Undead_Slaying.png",
+      "archiveTimestamp": "20261012110617",
+      "width": 64,
+      "height": 64,
+      "bytes": 6667,
+      "sha256": "7e6c56d7e5b1c25ad8773b71cd6ade5581036a720626f4cf52ec9f60e6aad1c0",
+      "references": ["js/games/gw2/app/shared/equipment/icons.ts"]
+    },
+    {
+      "fileName": "Radiance_specialization.png",
+      "localPath": "images/wiki/radiance-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Radiance_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/9BE9604B0378D103EB2F551730BF802F2B1F3AA0/1012047.png",
+      "provenance": "ArenaNet API /v2/specializations/16 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 107725,
+      "sha256": "4526722b369b23091698cd2cadcd1e8d2873ee7cf355f60d3c51875cbb630f3c",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Reaper_specialization.png",
+      "localPath": "images/wiki/reaper-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Reaper_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/3717FBED4FDCD060925205DD09B15C0598E062F4/1012069.png",
+      "provenance": "ArenaNet API /v2/specializations/34 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 122389,
+      "sha256": "e8db0bb28ee700f3deb83a0bba42ca911b22e2b2e714dadaf152f401c267ed89",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Relic_of_Agony.png",
+      "localPath": "images/wiki/relic-of-agony.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Relic_of_Agony.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/4/46/Relic_of_Agony.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260916003018id_/https://wiki.guildwars2.com/images/4/46/Relic_of_Agony.png",
+      "archiveTimestamp": "20260916003018",
+      "width": 64,
+      "height": 64,
+      "bytes": 7996,
+      "sha256": "ffa37e6aa23f782225c3a21793c36a74c271d2dbad9396ddf653c65a8c257158",
+      "references": ["js/games/gw2/platform/equipment/relics/data.ts"]
+    },
+    {
+      "fileName": "Relic_of_Mount_Balrior.png",
+      "localPath": "images/wiki/relic-of-mount-balrior.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Relic_of_Mount_Balrior.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/a/a9/Relic_of_Mount_Balrior.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260916003017id_/https://wiki.guildwars2.com/images/a/a9/Relic_of_Mount_Balrior.png",
+      "archiveTimestamp": "20260916003017",
+      "width": 64,
+      "height": 64,
+      "bytes": 7657,
+      "sha256": "0622f6b2819ff3f1351b319e3a18dd4a9e5b8c443a7dd41f97060293d268f8d6",
+      "references": ["js/games/gw2/platform/equipment/relics/data.ts"]
+    },
+    {
+      "fileName": "Relic_of_Nourys.png",
+      "localPath": "images/wiki/relic-of-nourys.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/3/3f/Relic_of_Nourys.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/3/3f/Relic_of_Nourys.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261013151429id_/https://wiki.guildwars2.com/images/3/3f/Relic_of_Nourys.png",
+      "archiveTimestamp": "20261013151429",
+      "width": 64,
+      "height": 64,
+      "bytes": 7952,
+      "sha256": "0bfb65299c5c438f4dcfcb224066e936cf14186491395eed8ae0ceeb98f26541",
+      "references": ["js/games/gw2/platform/equipment/relics/data.ts"]
+    },
+    {
+      "fileName": "Relic_of_Thorns.png",
+      "localPath": "images/wiki/relic-of-thorns.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/8/8a/Relic_of_Thorns.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/8/8a/Relic_of_Thorns.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261010060006id_/https://wiki.guildwars2.com/images/8/8a/Relic_of_Thorns.png",
+      "archiveTimestamp": "20261010060006",
+      "width": 64,
+      "height": 64,
+      "bytes": 7689,
+      "sha256": "0ce982a5069594e1150d4ea97e6e3770ad8c2e8bcefd0ff097d7efb719343023",
+      "references": ["js/games/gw2/platform/equipment/relics/data.ts"]
+    },
+    {
+      "fileName": "Relic_of_the_Director.png",
+      "localPath": "images/wiki/relic-of-the-director.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Relic_of_the_Director.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/3/35/Relic_of_the_Director.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260731183352id_/https://wiki.guildwars2.com/images/3/35/Relic_of_the_Director.png",
+      "archiveTimestamp": "20260731183352",
+      "width": 64,
+      "height": 64,
+      "bytes": 7782,
+      "sha256": "384c527b2f4cdeb54148449c8a4d1c2baf96de0bacf074913b14b15421661ee7",
+      "references": ["js/games/gw2/platform/equipment/relics/data.ts"]
+    },
+    {
+      "fileName": "Relic_of_the_Mirage.png",
+      "localPath": "images/wiki/relic-of-the-mirage.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Relic_of_the_Mirage.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/d/d3/Relic_of_the_Mirage.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261009013156id_/https://wiki.guildwars2.com/images/d/d3/Relic_of_the_Mirage.png",
+      "archiveTimestamp": "20261009013156",
+      "width": 64,
+      "height": 64,
+      "bytes": 7256,
+      "sha256": "d6334a42e148dea7e002b58f8a7166b4765a32b208f33c1d51f03d31e99da74d",
+      "references": ["js/games/gw2/platform/equipment/relics/data.ts"]
+    },
+    {
+      "fileName": "Renegade_specialization.png",
+      "localPath": "images/wiki/renegade-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Renegade_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/30377A5829605D7F1209B4064203A83F580548AD/1769903.png",
+      "provenance": "ArenaNet API /v2/specializations/63 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 112866,
+      "sha256": "9505dd8e8bb5fb6c8f7c847fa8ddf0f769dab9870727f3a8d785d99d1c47b8e0",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Retribution_specialization.png",
+      "localPath": "images/wiki/retribution-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Retribution_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/E6100E7B7704EEC632AD5B399C3BE8A84D7F7CED/1012095.png",
+      "provenance": "ArenaNet API /v2/specializations/9 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 142976,
+      "sha256": "9445022db24aab86aa11721e100acb8dfd1bfb992ceaba91f35ba3655cfc7848",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Ritualist_specialization.png",
+      "localPath": "images/wiki/ritualist-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Ritualist_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/B2050637E3F0091CB62E7EB5230F68CF35E8E2CD/3679909.png",
+      "provenance": "ArenaNet API /v2/specializations/76 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 133296,
+      "sha256": "c071af022cdb5743508aa3d67c25ecb0928599df7849e67e0081ae5774c56cde",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Root_Slap.png",
+      "localPath": "images/wiki/root-slap.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/7/7d/Root_Slap.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/7/7d/Root_Slap.png",
+      "source": "Archived Wiki thumbnail",
+      "downloadedFrom": "https://web.archive.org/web/20230103113710id_/https://wiki.guildwars2.com/images/thumb/7/7d/Root_Slap.png/120px-Root_Slap.png",
+      "archiveTimestamp": "20230103113710",
+      "width": 120,
+      "height": 120,
+      "bytes": 21868,
+      "sha256": "63a840564e7e001507c832ef9371f51414fafa23908cf16a7704d51db5f07d39",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Salvation_specialization.png",
+      "localPath": "images/wiki/salvation-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Salvation_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/1043F6D2CFECB77BC21C70B43F580611E5DAD7CD/1012097.png",
+      "provenance": "ArenaNet API /v2/specializations/12 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 135280,
+      "sha256": "ece42e332f3145aa3eb2018ebc4c95aff422ff07ee0508baa581431927fc88d3",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Scourge_specialization.png",
+      "localPath": "images/wiki/scourge-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Scourge_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/DEE244AB7045EE31941E222AE4A06A94DCB4360E/1769901.png",
+      "provenance": "ArenaNet API /v2/specializations/60 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 116499,
+      "sha256": "803630dbd9fbe3b53f5bebf11849844a8b6e49366d8bfee0afef1965134ea8ac",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Scrapper_specialization.png",
+      "localPath": "images/wiki/scrapper-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Scrapper_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/011D6BF69FF9A9F6E3DCBA1197BAA9281067FF01/1128516.png",
+      "provenance": "ArenaNet API /v2/specializations/43 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 130555,
+      "sha256": "8c3d3c48b9a4150d614c5efd89d2991f8a17493e0367474ac06a60a7aacd0574",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Shadow_Arts_specialization.png",
+      "localPath": "images/wiki/shadow-arts-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Shadow%20Arts_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/6943976957615E2337BE6B38292BAEB23C2BAAB9/1012103.png",
+      "provenance": "ArenaNet API /v2/specializations/20 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 68997,
+      "sha256": "fceeb0e359063f4d463951db74956237ea1a8ed51d473aed115ec51c4a23429e",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Skirmishing_specialization.png",
+      "localPath": "images/wiki/skirmishing-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Skirmishing_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/08D1BEEC43F45C02DE59AE9010B9391F1FCA2966/1012083.png",
+      "provenance": "ArenaNet API /v2/specializations/30 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 125214,
+      "sha256": "773faca4e9c7e8b045de16cea5c2798e4ffebe2a94cebc0fe17463d2cb1e7c05",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Slash_(bear).png",
+      "localPath": "images/wiki/slash-bear.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Slash_(bear).png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/5/52/Slash_%28bear%29.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260616004700id_/https://wiki.guildwars2.com/images/5/52/Slash_%28bear%29.png",
+      "archiveTimestamp": "20260616004700",
+      "width": 128,
+      "height": 128,
+      "bytes": 13322,
+      "sha256": "b7965db3d7274e099983b450987740f48afaf3548e60b51bd5f4238eb39acff7",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Slash_(bird).png",
+      "localPath": "images/wiki/slash-bird.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/b/b6/Slash_%28bird%29.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/b/b6/Slash_%28bird%29.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251006221713id_/https://wiki.guildwars2.com/images/b/b6/Slash_%28bird%29.png",
+      "archiveTimestamp": "20251006221713",
+      "width": 128,
+      "height": 128,
+      "bytes": 9934,
+      "sha256": "e0a2f4d6ccaaf25a601173d9a41c1b0488222850bf49a7e9f29680bd3d90dfcb",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Slash_(warclaw).png",
+      "localPath": "images/wiki/slash-warclaw.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Slash_(warclaw).png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/b/bf/Slash_%28warclaw%29.png",
+      "source": "Archived Wiki thumbnail",
+      "downloadedFrom": "https://web.archive.org/web/20250705232729id_/https://wiki.guildwars2.com/images/thumb/b/bf/Slash_%28warclaw%29.png/96px-Slash_%28warclaw%29.png",
+      "archiveTimestamp": "20250705232729",
+      "width": 96,
+      "height": 96,
+      "bytes": 12628,
+      "sha256": "fe1496ac7b2aa199db096e6fbd38ad3194737dd1b13cc6e0f29c3aaf59ea0858",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Soul_Reaping_specialization.png",
+      "localPath": "images/wiki/soul-reaping-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Soul%20Reaping_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/0956926B4A5109E07EFAB556E5DBEDCBC2B67C3B/1012071.png",
+      "provenance": "ArenaNet API /v2/specializations/50 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 129644,
+      "sha256": "9a48acf06e9765f77c2fc9af90cbfbfd3497892b933ccb40c144fe580083361b",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Soul_Shards.png",
+      "localPath": "images/wiki/soul-shards.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Soul_Shards.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/e/e3/Soul_Shards.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261011055232id_/https://wiki.guildwars2.com/images/e/e3/Soul_Shards.png",
+      "archiveTimestamp": "20261011055232",
+      "width": 32,
+      "height": 32,
+      "bytes": 1429,
+      "sha256": "978b9980e8e32d9b2bfbe8f5d7b5b81ec9e5ef292cab35223f1494121d6af35c",
+      "references": ["js/games/gw2/professions/necromancer/core/mechanics/soul-shards.ts"]
+    },
+    {
+      "fileName": "Soul_Stone_Venom.png",
+      "localPath": "images/wiki/soul-stone-venom.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Soul_Stone_Venom.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/d/d6/Soul_Stone_Venom.png",
+      "source": "Archived Wiki thumbnail",
+      "downloadedFrom": "https://web.archive.org/web/20220821140732id_/https://wiki.guildwars2.com/images/thumb/d/d6/Soul_Stone_Venom.png/96px-Soul_Stone_Venom.png",
+      "archiveTimestamp": "20220821140732",
+      "width": 96,
+      "height": 96,
+      "bytes": 12773,
+      "sha256": "2d529afa54ba3664dd30c0a281836bd3d5f8a02d6128750774ed2aeafcc78847",
+      "references": ["js/games/gw2/professions/thief/data/thief-supplemental-skills.ts"]
+    },
+    {
+      "fileName": "Soulbeast_specialization.png",
+      "localPath": "images/wiki/soulbeast-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Soulbeast_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/D624537D6B50C90B2A329EB16CF8911BDD4C0107/1769902.png",
+      "provenance": "ArenaNet API /v2/specializations/55 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 105944,
+      "sha256": "646ceb89b03353aa8866c54443cae0ad44d431021317809b8b0337b32a348c8b",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Specter_specialization.png",
+      "localPath": "images/wiki/specter-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Specter_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/BF7507EF23027CA6CAD12C586D7D7EAA05962249/2503613.png",
+      "provenance": "ArenaNet API /v2/specializations/71 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 129828,
+      "sha256": "6d1aebbc9e890efd60324fade386f8cdb9e917a2541799ae04cd4dc3d0526ad1",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Spellbreaker_specialization.png",
+      "localPath": "images/wiki/spellbreaker-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Spellbreaker_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/C0D57D3B17CC0408A2EE17FE2BA0C80A4E1838FA/1769905.png",
+      "provenance": "ArenaNet API /v2/specializations/61 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 157095,
+      "sha256": "3f315bbd9a0dff3e7ec0dd26e6911fb06519899009c711f0858025b579d99ea4",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Spike_Shoot.png",
+      "localPath": "images/wiki/spike-shoot.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Spike_Shoot.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/9/93/Spike_Shoot.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20210419061618id_/https://wiki.guildwars2.com/images/9/93/Spike_Shoot.png",
+      "archiveTimestamp": "20210419061618",
+      "width": 128,
+      "height": 128,
+      "bytes": 17773,
+      "sha256": "3f0477ede6ec880d39838c4a419bde870e8dfbaf5f862ec5e6979354202eb849",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Spite_specialization.png",
+      "localPath": "images/wiki/spite-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Spite_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/DDF39DBD61CCC1BCDD03B271080869251D097041/1012073.png",
+      "provenance": "ArenaNet API /v2/specializations/53 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 145304,
+      "sha256": "628692bc077c384f5a618790ceb66c07a81895e5f222f88154a91ffa99e90861",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Steel_Divide.png",
+      "localPath": "images/wiki/steel-divide.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/9/9a/Steel_Divide.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/9/9a/Steel_Divide.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261014221955id_/https://wiki.guildwars2.com/images/9/9a/Steel_Divide.png",
+      "archiveTimestamp": "20261014221955",
+      "width": 128,
+      "height": 128,
+      "bytes": 14317,
+      "sha256": "1be981e2484bbfb53e54b3f56ce925a81173a628330324e95e53320065ef0cb8",
+      "references": [
+        "js/games/gw2/professions/warrior/data/warrior-supplemental-skills.ts",
+        "scripts/data/generate-warrior-data.mjs"
+      ]
+    },
+    {
+      "fileName": "Strength_specialization.png",
+      "localPath": "images/wiki/strength-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Strength_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/09160450B40ED777650F632F2CE82504B90F5644/1012109.png",
+      "provenance": "ArenaNet API /v2/specializations/4 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 107649,
+      "sha256": "2fa5d52b61c0bb8162295b6b7f0ce8dbef2a1c15455b62355fdeb2304639857b",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Superior_Sigil_of_Mischief.png",
+      "localPath": "images/wiki/superior-sigil-of-mischief.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Superior_Sigil_of_Mischief.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/b/b7/Superior_Sigil_of_Mischief.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261014154126id_/https://wiki.guildwars2.com/images/b/b7/Superior_Sigil_of_Mischief.png",
+      "archiveTimestamp": "20261014154126",
+      "width": 64,
+      "height": 64,
+      "bytes": 5597,
+      "sha256": "7da52fcd2ceeac9a54c1661da7bdb2615f9f5c10db6fd8d911368940034ab661",
+      "references": ["js/games/gw2/platform/equipment/sigils/data.ts"]
+    },
+    {
+      "fileName": "Superior_Sigil_of_Undead_Slaying.png",
+      "localPath": "images/wiki/superior-sigil-of-undead-slaying.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Superior_Sigil_of_Undead_Slaying.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/7/7b/Superior_Sigil_of_Undead_Slaying.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260913014734id_/https://wiki.guildwars2.com/images/7/7b/Superior_Sigil_of_Undead_Slaying.png",
+      "archiveTimestamp": "20260913014734",
+      "width": 64,
+      "height": 64,
+      "bytes": 6559,
+      "sha256": "b0e53932e49b1c7ea2ff9da9d9c9d0e92ccf556148841f40df322d13cbd4ce40",
+      "references": ["js/games/gw2/platform/equipment/sigils/data.ts"]
+    },
+    {
+      "fileName": "Swift_Cut.png",
+      "localPath": "images/wiki/swift-cut.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/e/e3/Swift_Cut.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/e/e3/Swift_Cut.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261014221956id_/https://wiki.guildwars2.com/images/e/e3/Swift_Cut.png",
+      "archiveTimestamp": "20261014221956",
+      "width": 128,
+      "height": 128,
+      "bytes": 14986,
+      "sha256": "0911b884ed4a49acf9008cbc224bc16ab89edfed682eeae877f58b815b3c0b1d",
+      "references": [
+        "js/games/gw2/professions/warrior/data/warrior-supplemental-skills.ts",
+        "scripts/data/generate-warrior-data.mjs"
+      ]
+    },
+    {
+      "fileName": "Tactics_specialization.png",
+      "localPath": "images/wiki/tactics-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Tactics_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/6FCF0E0E0C0E539290A8245F0DA49D0556D71E62/1012110.png",
+      "provenance": "ArenaNet API /v2/specializations/11 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 107057,
+      "sha256": "c0945b1fd84b0b1f128b206d688d7c0739382c97079bebca49e7c119ce573571",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Tempest_specialization.png",
+      "localPath": "images/wiki/tempest-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Tempest_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/D22197110A38F5651AA3F4C23914A197DD2C5BA1/1029936.png",
+      "provenance": "ArenaNet API /v2/specializations/48 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 121831,
+      "sha256": "4ff075144324cd41c6019dcb2890ea867e319fe3c4ea5fda76af72119970d7b2",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Throw_Magnetic_Bomb.png",
+      "localPath": "images/wiki/throw-magnetic-bomb.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Throw_Magnetic_Bomb.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/e/e7/Throw_Magnetic_Bomb.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20250823152004id_/https://wiki.guildwars2.com/images/e/e7/Throw_Magnetic_Bomb.png",
+      "archiveTimestamp": "20250823152004",
+      "width": 128,
+      "height": 128,
+      "bytes": 15120,
+      "sha256": "cf21795de833a8420a70abd9bdfd4f09e1e800f074d35b01f123177263ddb68d",
+      "references": ["js/games/gw2/professions/thief/data/thief-supplemental-skills.ts"]
+    },
+    {
+      "fileName": "Tools_specialization.png",
+      "localPath": "images/wiki/tools-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Tools_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/4E906A6B625209A213085FD65DB9A4457726759D/1012044.png",
+      "provenance": "ArenaNet API /v2/specializations/21 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 135482,
+      "sha256": "74c18880e7ae779d3ded5a30e8eec709cee9dd711bf8758e637f67ce655b0f58",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Trickery_specialization.png",
+      "localPath": "images/wiki/trickery-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Trickery_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/00CDEB242E93EA19125E48B556D2069639D03DBF/1012104.png",
+      "provenance": "ArenaNet API /v2/specializations/44 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 55473,
+      "sha256": "20cc1169221332047abc39dffb2c5d5ddf036ea00e7c37d83145b943f8a3a2bd",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Triggerguard.png",
+      "localPath": "images/wiki/triggerguard.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/4/4e/Triggerguard.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/4/4e/Triggerguard.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20251222012135id_/https://wiki.guildwars2.com/images/4/4e/Triggerguard.png",
+      "archiveTimestamp": "20251222012135",
+      "width": 128,
+      "height": 128,
+      "bytes": 14569,
+      "sha256": "5fbf2b6f3282f20355387837a9ece03e7686b95ca4076ade73ed4b21f9198f24",
+      "references": [
+        "js/games/gw2/professions/warrior/data/warrior-supplemental-skills.ts",
+        "scripts/data/generate-warrior-data.mjs"
+      ]
+    },
+    {
+      "fileName": "Troubadour_specialization.png",
+      "localPath": "images/wiki/troubadour-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Troubadour_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/A9AF4BB7BC18AB4871B7D69EBEDEB344CD59D3DE/3679908.png",
+      "provenance": "ArenaNet API /v2/specializations/73 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 135360,
+      "sha256": "b48af494053351e8dafc8acf4967926fe632ff95902937d3425aab8a6f9930f8",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Twin_Strike_(Mech).png",
+      "localPath": "images/wiki/twin-strike-mech.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Twin_Strike_(Mech).png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/3/31/Twin_Strike_%28Mech%29.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20261012053816id_/https://wiki.guildwars2.com/images/3/31/Twin_Strike_%28Mech%29.png",
+      "archiveTimestamp": "20261012053816",
+      "width": 64,
+      "height": 64,
+      "bytes": 5868,
+      "sha256": "63cc8d5734bb7451337fd91b29651f3a801ffdac8098106837acfcff6b7af384",
+      "references": ["js/games/gw2/professions/engineer/data/engineer-supplemental-skills.ts"]
+    },
+    {
+      "fileName": "Unleash_Energy.png",
+      "localPath": "images/wiki/unleash-energy.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Unleash_Energy.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/2/26/Unleash_Energy.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260624233230id_/https://wiki.guildwars2.com/images/2/26/Unleash_Energy.png",
+      "archiveTimestamp": "20260624233230",
+      "width": 128,
+      "height": 128,
+      "bytes": 11450,
+      "sha256": "45f7ba1e10747fb12aefb3f63e47bdf2f00e0fba9524b36e83ebe7d4b9c93eed",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Untamed_specialization.png",
+      "localPath": "images/wiki/untamed-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Untamed_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/ED44DB9901D82D760DC5B8A918BB603DA06B3257/2503612.png",
+      "provenance": "ArenaNet API /v2/specializations/72 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 110372,
+      "sha256": "d39a3ca759f00b49ca4dd0cb9df2cbe61e6207136baf6dee77e84ac1e398b31b",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Valor_specialization.png",
+      "localPath": "images/wiki/valor-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Valor_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/12B4C72ADCE4EF2890606111B400630F3832F83D/1012048.png",
+      "provenance": "ArenaNet API /v2/specializations/13 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 112181,
+      "sha256": "9321a5a8d3603e21a6d5af51e965dc7a17441dfd1f01b33178cd39e992f1404c",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Vindicator_specialization.png",
+      "localPath": "images/wiki/vindicator-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Vindicator_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/4A16C39ED845A4062D8014E5A20135910B201BA4/2491511.png",
+      "provenance": "ArenaNet API /v2/specializations/69 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 132824,
+      "sha256": "997523bad5c51098239b457a3b68edf0474bb4947588776ace10c7cdd413422d",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Virtues_specialization.png",
+      "localPath": "images/wiki/virtues-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Virtues_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/08FE79184543F8314648D3104268789B484AB0BF/1012049.png",
+      "provenance": "ArenaNet API /v2/specializations/46 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 67621,
+      "sha256": "5b0dc3ded5c7cbdb524db6e0884a9aac0e3cac2074c1d8d01061764916ea67c1",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Virtuoso_specialization.png",
+      "localPath": "images/wiki/virtuoso-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Virtuoso_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/97632575F6E89EB62A0AC8AF1DE7DFB060312317/2479306.png",
+      "provenance": "ArenaNet API /v2/specializations/66 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 128541,
+      "sha256": "8a142e1b52bee3e908ab8f4e6853eff2e4d15db81b075b0e9872ee89d7d8efed",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Water_specialization.png",
+      "localPath": "images/wiki/water-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Water_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/F99A435D26057D6865ECBD0794B73D35A69FBB58/1012039.png",
+      "provenance": "ArenaNet API /v2/specializations/17 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 109061,
+      "sha256": "e3a36b65fc16db68b342d8c89ccb2aeb73cbe53a01319e6195b6f863a5956ccb",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Weapon_Swap_Button.png",
+      "localPath": "images/wiki/weapon-swap-button.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260925100529id_/https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
+      "archiveTimestamp": "20260925100529",
+      "width": 42,
+      "height": 42,
+      "bytes": 2676,
+      "sha256": "7ce4e8c7c27e6543bb1cd8ebb1df8cb2f49edc2fc8feea84575dbf1cd6cbb5e9",
+      "references": [
+        "js/games/gw2/app/shared/icons.ts",
+        "js/games/gw2/platform/skills/shared-actions.ts",
+        "js/games/gw2/professions/elementalist/core/skills/actions.ts",
+        "js/games/gw2/professions/ranger/core/skills/actions.ts"
+      ]
+    },
+    {
+      "fileName": "Weaver_specialization.png",
+      "localPath": "images/wiki/weaver-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Weaver_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/C3D501E451AD49310F05B40924B20A3B7CB14E07/1769897.png",
+      "provenance": "ArenaNet API /v2/specializations/56 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 104105,
+      "sha256": "9f7d50a51c7b8bdd20e43ba02335fdde94089f80156af82d1a885cabd6ac7010",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Wicked_Bite.png",
+      "localPath": "images/wiki/wicked-bite.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Wicked_Bite.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/c/c4/Wicked_Bite.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260217145757id_/https://wiki.guildwars2.com/images/c/c4/Wicked_Bite.png",
+      "archiveTimestamp": "20260217145757",
+      "width": 128,
+      "height": 128,
+      "bytes": 14732,
+      "sha256": "64c1464c26efcedef17ac12310d7da7a3264cb5ef364ec705db5f5de19e32294",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Wilderness_Survival_specialization.png",
+      "localPath": "images/wiki/wilderness-survival-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Wilderness%20Survival_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/417DC1B29EF0EADBD9CBE15B462B2D5B6AF328DA/1012085.png",
+      "provenance": "ArenaNet API /v2/specializations/33 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 152338,
+      "sha256": "ef9ed7645b52e24a135e1155cb1e837b57ab5f1c4bd5cf5cdd9f06b452365d8d",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Willbender_specialization.png",
+      "localPath": "images/wiki/willbender-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Willbender_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/D90821BEE9EC0D7BBE3B462A6D44D4625BAFF198/2479305.png",
+      "provenance": "ArenaNet API /v2/specializations/65 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 135220,
+      "sha256": "acd423c5597474162298d0771e728496a7008472555555c853ddf8ac1f1eb78e",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    },
+    {
+      "fileName": "Wing_Buffet_(phoenix).png",
+      "localPath": "images/wiki/wing-buffet-phoenix.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Wing_Buffet_(phoenix).png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/2/29/Wing_Buffet_%28phoenix%29.png",
+      "resolvedWikiFileName": "Wing_Buffet.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20260217145757id_/https://wiki.guildwars2.com/images/5/5f/Wing_Buffet.png",
+      "archiveTimestamp": "20260217145757",
+      "provenance": "https://web.archive.org/web/20251125184431id_/https://wiki.guildwars2.com/wiki/Wing_Buffet_(phoenix)",
+      "width": 128,
+      "height": 128,
+      "bytes": 13437,
+      "sha256": "63e3a9e4100c7ef8e1c6c45b1a1dba78f70e608e2ea40c7c2da80e9261177f49",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Wing_Swipe.png",
+      "localPath": "images/wiki/wing-swipe.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:Redirect/file/Wing_Swipe.png"],
+      "originalImageUrl": "https://wiki.guildwars2.com/images/3/38/Wing_Swipe.png",
+      "source": "Archived original Wiki image",
+      "downloadedFrom": "https://web.archive.org/web/20250823154438id_/https://wiki.guildwars2.com/images/3/38/Wing_Swipe.png",
+      "archiveTimestamp": "20250823154438",
+      "width": 128,
+      "height": 128,
+      "bytes": 19992,
+      "sha256": "2668361a7864feb1f8435d421e682559d8f6df80fe72bcb008170c271033c71e",
+      "references": ["js/games/gw2/professions/ranger/data/ranger-pet-data.ts", "scripts/data/ranger-pet-skills.mjs"]
+    },
+    {
+      "fileName": "Zeal_specialization.png",
+      "localPath": "images/wiki/zeal-specialization.png",
+      "wikiUrls": ["https://wiki.guildwars2.com/wiki/Special:FilePath/Zeal_specialization.png"],
+      "source": "ArenaNet specialization background",
+      "downloadedFrom": "https://render.guildwars2.com/file/9244C9726D2AD30F9D7E22CF5C7A49601BFAFCC0/1012050.png",
+      "provenance": "ArenaNet API /v2/specializations/42 background",
+      "width": 647,
+      "height": 136,
+      "bytes": 83444,
+      "sha256": "11d6910f90f4b60254f64fbdb7fbae2d9b89788cf499d910fdcb33d1242be9f5",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
+    }
+  ]
+}

@@ -192,7 +192,7 @@ const kingOfFires = defineTrait({
             at: runtime.time,
             sourceSkill: event.skillName,
             detail: 'Granted by King of Fires',
-            icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Aura.png'
+            icon: new URL('@images/wiki/fire-aura.png', import.meta.url).href
           }
         });
 

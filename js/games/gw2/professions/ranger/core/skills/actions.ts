@@ -1,4 +1,4 @@
-import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
+import { createDodgeSkill, createWeaponSwapSkill, WEAPON_SWAP_ICON } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -27,7 +27,7 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
     // Pet swapping occupies the fourth profession control on the active pet bar.
     inputControl: 'profession-4',
     description: 'Swap your active pet and trigger pet-swap traits.',
-    icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
+    icon: WEAPON_SWAP_ICON,
     type: 'Action',
     weapon: '',
     slot: 'Action',

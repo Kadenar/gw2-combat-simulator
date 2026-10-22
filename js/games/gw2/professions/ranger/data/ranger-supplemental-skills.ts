@@ -92,7 +92,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
     id: 63352,
     name: 'Exploding Spore',
     description: 'A delayed spore created by an unleashed ambush.',
-    icon: 'https://wiki.guildwars2.com/images/d/d4/Exploding_Spores.png',
+    icon: new URL('@images/wiki/exploding-spores.png', import.meta.url).href,
     type: 'Profession',
     specialization: 'Untamed',
     simulatorExcluded: true

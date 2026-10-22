@@ -426,7 +426,7 @@ function applyElementalBalanceEntry(context: ElementalistRuntime, event: Simulat
           sourceId: event.skillId ?? event.sourceId,
           sourceSkill: event.skillName || event.source || '',
           detail: `CDR armed (${duration}s)`,
-          icon: 'https://wiki.guildwars2.com/images/4/4c/Elemental_Balance.png'
+          icon: new URL('@images/wiki/elemental-balance.png', import.meta.url).href
         })
       );
     }

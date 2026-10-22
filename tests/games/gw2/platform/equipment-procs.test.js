@@ -1,3 +1,4 @@
+import { NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
@@ -344,7 +345,7 @@ test('critical-strike food procs remain unmodified without profession effects', 
   assert.equal(withoutVulnerability[0].damage, 325);
   const nourishmentProc = result.procSteps.find((proc) => proc.type === 'food_proc' && proc.skill === 'Nourishment');
 
-  assert.equal(nourishmentProc.icon, 'https://wiki.guildwars2.com/images/c/ca/Nourishment_food.png');
+  assert.equal(nourishmentProc.icon, NOURISHMENT_ICON);
 });
 
 test('weapon-swap sigils resolve locally on the destination weapon set', () => {
