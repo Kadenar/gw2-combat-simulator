@@ -29,6 +29,7 @@ import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import type { ProfessionRuntimeOptions } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
 import { defineNativeProfession as defineStableNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
@@ -347,11 +348,12 @@ export function withPatchPreview<
       : overlayRuntime(familyForPreview().resolveProfession(config));
   };
 
-  const runtimeFor = (config: Readonly<Gw2Config> = {}) => {
+  // Preserve runtime isolation options for both live and preview simulations.
+  const runtimeFor = (config: Readonly<Gw2Config> = {}, options?: ProfessionRuntimeOptions) => {
     const patchId = assertPatchId(String(config.patchId || CURRENT_PATCH_ID));
     return patchId === CURRENT_PATCH_ID
-      ? family.runtimeFor(config)
-      : overlayRuntime(familyForPreview().runtimeFor(config));
+      ? family.runtimeFor(config, options)
+      : overlayRuntime(familyForPreview().runtimeFor(config, options));
   };
 
   const services = {
