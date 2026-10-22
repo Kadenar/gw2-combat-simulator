@@ -22,11 +22,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/0CACB74F6E36F80921C6D6F2F0786B6C1CCCDCA4/1012099.png",
       "provenance": "ArenaNet API /v2/specializations/54 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 52355,
-      "sha256": "ca1cd95d411273ff585cf0a1786b9f6e06d672d55a3b25abdac2f381e81ba64a",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 67973,
+      "sha256": "ab1892c248a567b155726e0ad5dce9d252ee73cd0f269c0da440adac69d0bf2b",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Air_specialization.png",
@@ -35,11 +45,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/97BE972EC832ABC4F8645FF4A063EFF89B2942B8/1012034.png",
       "provenance": "ArenaNet API /v2/specializations/41 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 139350,
-      "sha256": "bc25e532fbb5a3d02e13ad6af937d16bdcbe0b0c5d8dc94e98bc5f9edb00404f",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 109794,
+      "sha256": "778b3d2d766640d9b57116c90fa3c8e23be802266646e5ad033ae80ce04eb64f",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Alchemy_specialization.png",
@@ -48,11 +68,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/A89F18BA0F9A53E662BAE3F39C705559A97B407F/1012040.png",
       "provenance": "ArenaNet API /v2/specializations/29 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 139464,
-      "sha256": "6dfa7ae1a5476f6813c01cc54d79761deb746860229881f43307490d696a4df7",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 119082,
+      "sha256": "a3847995c2287ed12e0f2d0c5cd2b0add9f8329138053b1c72f6bd70f5d93f04",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Amalgam_specialization.png",
@@ -61,11 +91,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/094F0711ADF50A3F013F2963C5B03215626C96A8/3679906.png",
       "provenance": "ArenaNet API /v2/specializations/75 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 161291,
-      "sha256": "059607b0051164cd0770f360dfbfe6c6bebc5ffa0e87450e0a6a7467cd903b3d",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 141901,
+      "sha256": "7dbecbafa4c383bffc26b7172571cae8105f81b53eed192ea13f88a1a3be90d3",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Antiquary_specialization.png",
@@ -74,11 +114,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/32E896AC6766E272C8910B6170394A3575C0D335/3679912.png",
       "provenance": "ArenaNet API /v2/specializations/77 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 130159,
-      "sha256": "dbbbf4047c781f56ff54fa11a9203bd32407a78d57a79916a4f6f33b1f4dfbf0",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 114168,
+      "sha256": "8897980056c58802c3191f605c5965845bdecce16d4e0752894268b1db4df260",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Arcane_specialization.png",
@@ -87,11 +137,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/01F1264B9F05CC52E46434C53DF6BA2A57CE21C5/1012035.png",
       "provenance": "ArenaNet API /v2/specializations/37 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 146012,
-      "sha256": "36e35c905b75dd67ed6a82ad55cbc96d05c632d530c461ea3487e2d81c82d2a9",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 115555,
+      "sha256": "a8a0719507250d50262a11b8e37e46fe5d45b4c2b1df30b867147b5443085e00",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Arms_specialization.png",
@@ -100,11 +160,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/0A08B2DC35C8D22CC07B9F4C9023F7E9734C1B27/1012105.png",
       "provenance": "ArenaNet API /v2/specializations/36 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 67151,
-      "sha256": "8a68c729ee1d1248381d8e818cdde8085dbd72f86e4f5c5b3e5a98ebd66949e2",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 76187,
+      "sha256": "69780c1a1ece82d465430a803d36dafd6d22450f10e274ed9973af4c67883beb",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Artillery_Slash.png",
@@ -144,11 +214,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/4727784BBF467241CA9F29E4FEDE487FD33E2809/1012075.png",
       "provenance": "ArenaNet API /v2/specializations/32 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 146121,
-      "sha256": "49396c3336043d582a4ad8e09e972930eec0deaafded0a46b4906cd9dff5b4c3",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 122747,
+      "sha256": "67fe46d46433f53c5ce518cb0859e157fec5887f234e46f13eb4223c86112f79",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Berserker_specialization.png",
@@ -157,11 +237,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/665548439B5F7AB8CA63F46906A0630DAAF6069F/1012106.png",
       "provenance": "ArenaNet API /v2/specializations/18 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 172499,
-      "sha256": "cf1aa7f603e2f3e856adc218253a18d1be9c77279a7c0eee861ed521830b8054",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 138768,
+      "sha256": "47e262f0313391cc4daefc02a4541c3c5ee478ab9986674487221f22963b7be0",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Bite_(aether_hunter).png",
@@ -240,11 +330,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/0E061BA341496AF47752A5A22578BCD67BF42D77/2491512.png",
       "provenance": "ArenaNet API /v2/specializations/68 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 81900,
-      "sha256": "ea8f3cae1e192a8b536b5364335df0a18a3eb5e885ad94f0e88448f56b8517b7",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 98127,
+      "sha256": "3b54a2dd3dc25baed05ac1d5f6459a407ee0d9ec2da18592986149712b0b7423",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Blood_Magic_specialization.png",
@@ -253,11 +353,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/47F5CA90475E566650EF540BA82CA69C1C0332B1/1012063.png",
       "provenance": "ArenaNet API /v2/specializations/19 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 157761,
-      "sha256": "73aff2e964663320637e73c89bec78bc430dab23d3309bc507c8f6c065305d32",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 135492,
+      "sha256": "e417819838f5dbf3ab427fa78b9641a82364d119bd4eb8d9b35ffcb0f4488a3a",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Blooming_Fire.png",
@@ -328,11 +438,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/379EA2AA09ED39F1312B20A6FBA835C6F893FA2E/2491510.png",
       "provenance": "ArenaNet API /v2/specializations/67 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 109857,
-      "sha256": "d3ba4058ac58006ec9a3efc2356ab3afbc48adb2f48edb70b8c65416970494d2",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 128048,
+      "sha256": "e209435f913e5faa026ccae31163797afc84aefd647a90e6dd60c3e21c661b65",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Chaos_specialization.png",
@@ -341,11 +461,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/B20B7C6DDC30F72207D9BE4FB87C2FDCDC292E90/1012051.png",
       "provenance": "ArenaNet API /v2/specializations/45 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 200247,
-      "sha256": "f7f5b992e5bb623fa9ddc11e459f46b144aaa1b1929673a2efdafaecbd511eba",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 119691,
+      "sha256": "bb9e942110814aaeb6a82fbd2b0592bf55e7ad1c96170817a02cfccadd58a3df",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Chapter_1-_Desert_Bloom.png",
@@ -522,11 +652,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/9D9F0DA395FDB21423981FAC2CABC850CF7E0A62/1012053.png",
       "provenance": "ArenaNet API /v2/specializations/40 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 178059,
-      "sha256": "4cae7d617611262fc10d50dc28e037b193bef3cb95c242440c052b3468c9a1a4",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 128579,
+      "sha256": "7c1d615f0bb052fc388ea495f32027be33caec5de31a5c00df29a6e5c5947316",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Clarity.png",
@@ -563,11 +703,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/24DCBA06ED23E55A54953996025B07E46FFBC4B9/3679911.png",
       "provenance": "ArenaNet API /v2/specializations/79 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 139312,
-      "sha256": "8028789738830a6936180490273bbc2bdd388ccd69c7aeeaf9dd7a060f0086e6",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 133960,
+      "sha256": "cfe1be031c7528776ac156c2bc141d31ce193d276a1ac718c2528b620ef14069",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Consuming_Bite.png",
@@ -590,11 +740,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/5AB700B8AE15619DDD3CAFD60D0203E5EB23C3BE/1012087.png",
       "provenance": "ArenaNet API /v2/specializations/14 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 135518,
-      "sha256": "7b57c6707b88a1095c9be9028bc44fd475fccbc18232670a5c3cd55fdf815310",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 111201,
+      "sha256": "d857e51976f1a3565c5a0728f9a39821bb061d1d2c0c65f9abab490b34e1b2ea",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Critical_Strikes_specialization.png",
@@ -603,11 +763,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/29C9C0E8F16ADC18F745CA93CB58BA0C164B5CE1/1012100.png",
       "provenance": "ArenaNet API /v2/specializations/35 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 59103,
-      "sha256": "cc51e1893a9a37d5d7b9defb828a6344090c816016145454ed3450f8fc36f545",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 74662,
+      "sha256": "001b188e409f5678b5891d601f6950382d5f84af85c356d8d35d97554697eb04",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Curses_specialization.png",
@@ -616,11 +786,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/71E7075E1AC9460AA507A630B54D1395DA465B2D/1012065.png",
       "provenance": "ArenaNet API /v2/specializations/39 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 171832,
-      "sha256": "519a7ffbbed2384d5c581baeae77180f5799631ba2605a1b1708ae125f35dd86",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 141620,
+      "sha256": "16edbd32e23b1cf2d0d473f562ba7f91625ab9e7a5f81ec8c49447ca88c5030a",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Cyclone_Trigger.png",
@@ -646,11 +826,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/B969F9B27EE82CBF0E4651FD0F760F702CB5FCED/1012101.png",
       "provenance": "ArenaNet API /v2/specializations/7 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 97098,
-      "sha256": "f7c09451238cb52d6286511ae5eed8201c3acea4863a25c7db215e4e07620d2d",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 124089,
+      "sha256": "3c4a0753c11d82aec1f008856f5389d6f0efd63fc0db41e3d285c2edcb751703",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Deadeye_specialization.png",
@@ -659,11 +849,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/09B7D10707C7095C050B34ED68E3E3BB06626C7A/1769904.png",
       "provenance": "ArenaNet API /v2/specializations/58 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 91842,
-      "sha256": "2bb70b11618bace5c8f85f1e43a12f2364522c4b9d20d4d882e06d9d0940b1a2",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 96060,
+      "sha256": "71477dce51a4889d0e9bce7bfe1d1f13ebf2b9be6d60a5806f08f1df2f33bd88",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Deadly_Arts_specialization.png",
@@ -672,11 +872,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/2AA7FB65630AD540E204982978DA9601023B540E/1012102.png",
       "provenance": "ArenaNet API /v2/specializations/28 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 48879,
-      "sha256": "8b4b300ec85825100648b515365646079b0a03178808659c6b707debcee9f9da",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 62236,
+      "sha256": "234dbec07b98e589222c36bfed51dd017760b186ed90e53726c01314dee8dd4a",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Death_Magic_specialization.png",
@@ -685,11 +895,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/B3F92D581B0A036CABB51590E6E560B21708391F/1012067.png",
       "provenance": "ArenaNet API /v2/specializations/2 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 179572,
-      "sha256": "05b09b6b4997d8c40eeff1f98d08f60c911d46680529f9eb824f145e112a54bd",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 146474,
+      "sha256": "d4f95e4b90f4079fd05a955cfed8af437ec8d55edc619d9164ad11e8ed1e8052",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Defense_specialization.png",
@@ -698,11 +918,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/E0190E3B3745AA61D32CFF92C1FEFFFB56A90D4C/1012107.png",
       "provenance": "ArenaNet API /v2/specializations/22 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 93552,
-      "sha256": "ddc4ac32f9cdc06f0ef27075a69497b466174d6c15fa09ec43fdf81a9bbd36ec",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 114505,
+      "sha256": "f995bb6ae42d1f6096c1ecba2c625d077333a6fa0da478965978b83e9dffd157",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Detonate_Plasma.png",
@@ -725,11 +955,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/0744C43591FB9C11A7554C9601215CA8022F4216/1012089.png",
       "provenance": "ArenaNet API /v2/specializations/15 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 150652,
-      "sha256": "721b33bfb9b252fb63a2c2506ae1def28b6017602326bc98723253a195668b3b",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 130175,
+      "sha256": "cd722b5d88c647fdedda9da7d394f10287b4e198dae47ca507b86176e901d6f4",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Discipline_specialization.png",
@@ -738,11 +978,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/2B80CF6504DA1B0DC8470D45ED5BE9992BEEC2B7/1012108.png",
       "provenance": "ArenaNet API /v2/specializations/51 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 87525,
-      "sha256": "255f62d3ae3a51b934778cfdf6148fac46344bc0aabb5dcb32f27b13c9313df3",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 106235,
+      "sha256": "9240e687b95bce66a9a9b53358125e44ce5711a062d334eec94280252f2cbc51",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Dodge.png",
@@ -772,11 +1022,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/2C436DDDC3244409EEBF470A0AE3ED7CED1F99C0/1012055.png",
       "provenance": "ArenaNet API /v2/specializations/10 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 193028,
-      "sha256": "51a891886582d73f0a90aece5540c401943888000e30dbee0ae8fd64fe366a71",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 149248,
+      "sha256": "c5063f28ebe065e23b4b175c4e2585dbf1df07b15e99c407d1304282b62f8776",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Dragon_Slash—Boost.png",
@@ -836,11 +1096,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/6BD5F59A7A0EF4F20C1B1D216AFE2B084CC19FF4/1012045.png",
       "provenance": "ArenaNet API /v2/specializations/27 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 161916,
-      "sha256": "81b1319ee22eea1f941e132ec66db05394ceddbb0fcf82feb9f162205e3cc238",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 144787,
+      "sha256": "f02c9ca1c6ab9ae25efc0913eca92014b718912875d677ef5bbacc4e878237c8",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Druid_specialization.png",
@@ -849,11 +1119,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/306D6ED9D3F09FF5552609EC7DA2046ECD114F90/1012077.png",
       "provenance": "ArenaNet API /v2/specializations/5 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 164740,
-      "sha256": "bb7cf5644c63f37dc52faffc5c39799c85af165c24eb00fa1abbe4e03145cf5d",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 137684,
+      "sha256": "4de0a5d3bc3f7f5609e389e9dcb169f8fbb0fb2c3d21e174a6c6ca31977ea430",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Dueling_specialization.png",
@@ -862,11 +1142,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/992D53319C5FCD4AE841C592DC2AE91D5906AECF/1012057.png",
       "provenance": "ArenaNet API /v2/specializations/1 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 224338,
-      "sha256": "ce8c83a9edba77d115782e273875d5895a835be9b8243fb96e5715e9a0c71ed7",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 131192,
+      "sha256": "91c34bb56b565d5f5a33e4d7f11e9b3ce9d8e6e5fe685a8a018e21c362a4fca7",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Earth_specialization.png",
@@ -875,11 +1165,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/B9C5BE9716010E3F7F170A52B5B272327CDA49A1/1012037.png",
       "provenance": "ArenaNet API /v2/specializations/26 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 122364,
-      "sha256": "64ffd6d420ed2ac34a13e53d4210dc5edec804cdb4f1fba44615d50a56c77775",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 104102,
+      "sha256": "692ff68a23bdb5f5c9bbb76fc78196fce2d509355cbc14779120b1332a51def9",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Elemental_Balance.png",
@@ -978,11 +1278,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/393A550E0EA1C4A9CB3FB9CD4AE4DDDC01E6C1D3/3679905.png",
       "provenance": "ArenaNet API /v2/specializations/80 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 156316,
-      "sha256": "783d85eb8d12725c7bdb994a5e60b7c45fbaa744ffea5099ec3abfa8133f32e9",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 141098,
+      "sha256": "27d5109e57563a77f2a3fc59770a38e39fac2e11776682e9feb03705b95f39d9",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Exploding_Spores.png",
@@ -1024,11 +1334,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/159455B54672DF9C9BEEC2EB13E05DB07E757E02/1012041.png",
       "provenance": "ArenaNet API /v2/specializations/6 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 147631,
-      "sha256": "742cc1a20c7f311ab6fba9506c52412517effe1c05ab3b62aa7840e14bb3c4d5",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 119703,
+      "sha256": "4675dbbb42627f6eab1b51663cacfe3533c8a76a867031a739d539a293f35d16",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Fire_Aura.png",
@@ -1051,11 +1371,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/6BB3E8FDEA6E679050D59E411A4AA956D347B045/1012038.png",
       "provenance": "ArenaNet API /v2/specializations/31 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 145486,
-      "sha256": "4868e7c564a73d72d4677a275a8277aa784b28f50b47f67f696ab226ed87ef18",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 118595,
+      "sha256": "7211b056ebc2a33eda7603e64875365ae70ee7832219fb873cb98451aa61f2bc",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Firearms_specialization.png",
@@ -1064,11 +1394,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/2A37FAA50318E4BAE2B193D7A1DF30AAFCE7B139/1012042.png",
       "provenance": "ArenaNet API /v2/specializations/38 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 132000,
-      "sha256": "f849e1ca2913027594c42425d679b54422ed1be3bdfc94c43129b5a8072bc675",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 107791,
+      "sha256": "ef88600efcc8f48933b136857a511466ebb8a0268ee38b7a8e559d916ce075c6",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Firebrand_specialization.png",
@@ -1077,11 +1417,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/7E6454FF9A13DBE93873AF72E192A74622990171/1769899.png",
       "provenance": "ArenaNet API /v2/specializations/62 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 148645,
-      "sha256": "9c822b6e4525012803dbbd67c238da64ca1502995a986af4d1b365fbeed9516d",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 131695,
+      "sha256": "1cbcb916a323804b1cfddaa590ad5e65e0cebc38d71272c6cb8840e32671d54e",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Fist.png",
@@ -1125,11 +1475,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/4BC6740C765896B9EE6E38671BD204B7A82535F9/3679910.png",
       "provenance": "ArenaNet API /v2/specializations/78 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 149080,
-      "sha256": "c9b812b5abc834c58dc458d15990721cd89faac5434c5ed1771ef223ac051a05",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 138601,
+      "sha256": "1457b92f155a7bea69442cf3440adbc27ea5e1b5ad7a04ec175bf4158f7434c4",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Harbinger_specialization.png",
@@ -1138,11 +1498,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/0B3EEFCC210D5A2C9D91F5F4D4D5AE965B4A6420/2479307.png",
       "provenance": "ArenaNet API /v2/specializations/64 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 106570,
-      "sha256": "e832d731c83fe6030b09bbd08d641f2a62cd77f708e4b0ed41d1f41fe5bbc946",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 130407,
+      "sha256": "06d0d186bdd3f235e8b913603732514a52e6a646bc37af408e68897657164f06",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Hard_Strike.png",
@@ -1221,11 +1591,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/F2EEC706430942BEC2D51565AECC13135DF304F8/1012091.png",
       "provenance": "ArenaNet API /v2/specializations/52 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 159716,
-      "sha256": "59689dc7c754c474d395f7b946e70f61bc75220a8958c3db3fd5bb64066948df",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 126345,
+      "sha256": "e05134a722f8ee0151e5031891782fc2f025ac3d570c7652041b4ae5ee3bd762",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Holosmith_specialization.png",
@@ -1234,11 +1614,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/FF0814C6EFA56F9ADA0B3EA7986BADF120F7D11D/1769898.png",
       "provenance": "ArenaNet API /v2/specializations/57 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 165964,
-      "sha256": "1de07184c2066d9d2bb76a811f4dea01f3670e556b5478087a1c37aa3cf0cdd3",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 144977,
+      "sha256": "446b2e562d4a1f26eec49e4be782a4d47dab6c69c2b821215c27b5995235537b",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Honor_specialization.png",
@@ -1247,11 +1637,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/98C3AB64254E61E59D03D3AF29D75314730E9E72/1012046.png",
       "provenance": "ArenaNet API /v2/specializations/49 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 140531,
-      "sha256": "19a02785fce0853f760592b6b6d12e47c72dd8fce3adb0fc5ad031a62bdc2eec",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 131007,
+      "sha256": "c0f81f2ea313ea911095ada4dd1f768f20e10bb71fee126f81aac9ffa309b402",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Illuminated.png",
@@ -1274,11 +1674,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/B00D98B31B13416811B8484FC146C49B1E055BAC/1012061.png",
       "provenance": "ArenaNet API /v2/specializations/24 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 248243,
-      "sha256": "1c092089d929e39d31725a141b4807b751828b6bb3331f8eda4c7d5675084ffb",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 119427,
+      "sha256": "f87e0f9cb67b1c9d6daeff5ce64e4dbd0b1fb7782a3a19201ac0f965ea2c0b64",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Inspiration_specialization.png",
@@ -1287,11 +1697,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/DC30B4FF5377E80F21F4E912E8D548B004C95042/1012059.png",
       "provenance": "ArenaNet API /v2/specializations/23 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 290613,
-      "sha256": "9a3fd13fc2aedf9b3a9d1cc88b43d9e370a98c27dc9985744436ff76c0dda0e1",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 157573,
+      "sha256": "f212de1287c491923733481c30cf80a00aae314234193a96e6d2c3a5eff77823",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Inventions_specialization.png",
@@ -1300,11 +1720,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/807C3D97D8B6A25E47B49C905B081419A779201D/1012043.png",
       "provenance": "ArenaNet API /v2/specializations/47 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 140869,
-      "sha256": "2fd58c0191e5b4521ae9eecd39c4244127b6f0ad204569c8a94d95213724b65b",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 121192,
+      "sha256": "ebae57f039d0de8c32e8d37b04a19ac2f2395811acfa81ae9883c4e528d23531",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Invocation_specialization.png",
@@ -1313,11 +1743,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/B73FB47165CB20DE21B1FAE91FE22BDE29B6FB76/1012093.png",
       "provenance": "ArenaNet API /v2/specializations/3 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 143620,
-      "sha256": "25f8f7e5e0b2a3bf26e3057da09ef9936991026058bc40025a6bcbbe9b87bb26",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 119649,
+      "sha256": "422555c3b93492d3b2cfa1621aa5a6521b6adacc7679a81afe005fb135d2cf83",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Jab_(porcine).png",
@@ -1368,11 +1808,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/AF9E19ADE842E1661324EDC6AAAEF7B2933CF132/3679907.png",
       "provenance": "ArenaNet API /v2/specializations/81 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 167069,
-      "sha256": "bf90e005f83fc6a7d0e87478da284e5e8dc1c4c4d1361c83c5cfb8c8577c830e",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 140962,
+      "sha256": "bfa3340729e6d1b0da1b98746f4fd2a3473fa7075de730a21baeea27ae8f8f91",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Marksmanship_specialization.png",
@@ -1381,11 +1831,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/100CE796CC2318DA62D2189A02BAAD2AE91BCE1F/1012079.png",
       "provenance": "ArenaNet API /v2/specializations/8 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 175914,
-      "sha256": "802768381228c58f7b9f22bade1d50e312379685648d8d0802d6ed1bca2ee8f0",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 143331,
+      "sha256": "05892914ccaf122603ba4ed1d979dcf21698f0dfc82e650e19977fe57845c874",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Mechanist_specialization.png",
@@ -1394,11 +1854,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/19C21A9C04620227042E483758962301EFC030D4/2503611.png",
       "provenance": "ArenaNet API /v2/specializations/70 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 106624,
-      "sha256": "fa6240b13feceaf9735e2188953eb3ad2d3bda5ef3a0c21e50accbe7c5e4955f",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 131900,
+      "sha256": "8a398ff465f9034d5db238a6ba3cb8ee48ac272b19c0c3ab4418f29acc8fd578",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Meltdown.png",
@@ -1421,11 +1891,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/BB67F76B46052E6E291AFE75807AFC7DD33563E4/1769900.png",
       "provenance": "ArenaNet API /v2/specializations/59 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 152963,
-      "sha256": "d4ff01e00664532cebb5f31ffd49f5888616ef111881edbcb3aab11c0ce85589",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 122302,
+      "sha256": "d3ca71e49d84f73e271476600ef1fbbbed6d93fef75936ef83eb166c2d38c3ba",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Nature_Magic_specialization.png",
@@ -1434,11 +1914,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/01B5C3050EAFB0C47065C333C8AA2B4255374DA7/1012081.png",
       "provenance": "ArenaNet API /v2/specializations/25 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 168638,
-      "sha256": "24ff4c0f314e948d699f0f6aa63959271d9a34360c01494d54a351922f9be897",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 137437,
+      "sha256": "f63969e77774d84bc85434cc0b0727d7f06d65efda0d4a64af676096190a11ef",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Nibble.png",
@@ -1478,11 +1968,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/F879AC0997C964DE562D98A5BC4EA60BC7C22849/3679913.png",
       "provenance": "ArenaNet API /v2/specializations/74 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 169092,
-      "sha256": "0e679f636793496d8bc246962960079883d18441f7e820ec8cf723d13ed8f7b0",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 144345,
+      "sha256": "21e55f1df14fc4b69d42ca3671ae9b2245f71d8d319c8554efbd1bbd69fe0e21",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Peck.png",
@@ -1533,11 +2033,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/9BE9604B0378D103EB2F551730BF802F2B1F3AA0/1012047.png",
       "provenance": "ArenaNet API /v2/specializations/16 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 131898,
-      "sha256": "1fb97248db38a4df746b589f5ccf700b0c875eeac28f14c80212040d95a9f7c2",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 107725,
+      "sha256": "4526722b369b23091698cd2cadcd1e8d2873ee7cf355f60d3c51875cbb630f3c",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Reaper_specialization.png",
@@ -1546,11 +2056,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/3717FBED4FDCD060925205DD09B15C0598E062F4/1012069.png",
       "provenance": "ArenaNet API /v2/specializations/34 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 163056,
-      "sha256": "ec1abb54e7121fb70d8af78a6824457449b2406524ff42495dff6d1ef9937ddc",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 122389,
+      "sha256": "e8db0bb28ee700f3deb83a0bba42ca911b22e2b2e714dadaf152f401c267ed89",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Relic_of_Agony.png",
@@ -1643,11 +2163,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/30377A5829605D7F1209B4064203A83F580548AD/1769903.png",
       "provenance": "ArenaNet API /v2/specializations/63 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 128530,
-      "sha256": "68d96ffa95179eb656f13e8bf0012c7f9013ef9f6e2926032ded87c18da37330",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 112866,
+      "sha256": "9505dd8e8bb5fb6c8f7c847fa8ddf0f769dab9870727f3a8d785d99d1c47b8e0",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Retribution_specialization.png",
@@ -1656,11 +2186,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/E6100E7B7704EEC632AD5B399C3BE8A84D7F7CED/1012095.png",
       "provenance": "ArenaNet API /v2/specializations/9 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 191013,
-      "sha256": "192c474196b8777bd8567a3478afa6107e52ea28c8d4edecda0481d52c127041",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 142976,
+      "sha256": "9445022db24aab86aa11721e100acb8dfd1bfb992ceaba91f35ba3655cfc7848",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Ritualist_specialization.png",
@@ -1669,11 +2209,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/B2050637E3F0091CB62E7EB5230F68CF35E8E2CD/3679909.png",
       "provenance": "ArenaNet API /v2/specializations/76 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 139694,
-      "sha256": "a86666757aefba52ed19989ab40e6e1f4511d6b2c4c8e5df7f7ba7d94b65bbf7",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 133296,
+      "sha256": "c071af022cdb5743508aa3d67c25ecb0928599df7849e67e0081ae5774c56cde",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Root_Slap.png",
@@ -1696,11 +2246,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/1043F6D2CFECB77BC21C70B43F580611E5DAD7CD/1012097.png",
       "provenance": "ArenaNet API /v2/specializations/12 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 166540,
-      "sha256": "600561adb6b0842a939f1dcb8ebece9d5e65d37e74e2e008753b8838eb08748c",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 135280,
+      "sha256": "ece42e332f3145aa3eb2018ebc4c95aff422ff07ee0508baa581431927fc88d3",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Scourge_specialization.png",
@@ -1709,11 +2269,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/DEE244AB7045EE31941E222AE4A06A94DCB4360E/1769901.png",
       "provenance": "ArenaNet API /v2/specializations/60 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 121427,
-      "sha256": "45d9256795d10a8074634e47ba5577668e0d31cbd183278bfd38b8659a22b927",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 116499,
+      "sha256": "803630dbd9fbe3b53f5bebf11849844a8b6e49366d8bfee0afef1965134ea8ac",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Scrapper_specialization.png",
@@ -1722,11 +2292,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/011D6BF69FF9A9F6E3DCBA1197BAA9281067FF01/1128516.png",
       "provenance": "ArenaNet API /v2/specializations/43 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 157213,
-      "sha256": "c3c7476ad26502981bb90287550483bc1ed5107bd98b54294d4b6a2ddf122279",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 130555,
+      "sha256": "8c3d3c48b9a4150d614c5efd89d2991f8a17493e0367474ac06a60a7aacd0574",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Shadow_Arts_specialization.png",
@@ -1735,11 +2315,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/6943976957615E2337BE6B38292BAEB23C2BAAB9/1012103.png",
       "provenance": "ArenaNet API /v2/specializations/20 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 54562,
-      "sha256": "2e1483bedace695fa063689b4cac5d6639beaa499c57a3208c315d92c2999d67",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 68997,
+      "sha256": "fceeb0e359063f4d463951db74956237ea1a8ed51d473aed115ec51c4a23429e",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Skirmishing_specialization.png",
@@ -1748,11 +2338,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/08D1BEEC43F45C02DE59AE9010B9391F1FCA2966/1012083.png",
       "provenance": "ArenaNet API /v2/specializations/30 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 159313,
-      "sha256": "4beade4b518a272b12ed15c73bfb00c981ad40958a9e23c3e548247647d42bf7",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 125214,
+      "sha256": "773faca4e9c7e8b045de16cea5c2798e4ffebe2a94cebc0fe17463d2cb1e7c05",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Slash_(bear).png",
@@ -1803,11 +2403,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/0956926B4A5109E07EFAB556E5DBEDCBC2B67C3B/1012071.png",
       "provenance": "ArenaNet API /v2/specializations/50 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 151470,
-      "sha256": "63400d107cd01ed206a118a219b44ddffb741e6c34fb631f5f1604230e48a55d",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 129644,
+      "sha256": "9a48acf06e9765f77c2fc9af90cbfbfd3497892b933ccb40c144fe580083361b",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Soul_Shards.png",
@@ -1844,11 +2454,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/D624537D6B50C90B2A329EB16CF8911BDD4C0107/1769902.png",
       "provenance": "ArenaNet API /v2/specializations/55 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 122809,
-      "sha256": "503d503580bc3ce3c90638fd63614b5c81a1637e352fe81b8f458ffa985ffdc9",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 105944,
+      "sha256": "646ceb89b03353aa8866c54443cae0ad44d431021317809b8b0337b32a348c8b",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Specter_specialization.png",
@@ -1857,11 +2477,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/BF7507EF23027CA6CAD12C586D7D7EAA05962249/2503613.png",
       "provenance": "ArenaNet API /v2/specializations/71 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 135751,
-      "sha256": "94ff710430e3db72e2a8c70dffde305f3b4e3be69624c118f8b1915d2984767e",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 129828,
+      "sha256": "6d1aebbc9e890efd60324fade386f8cdb9e917a2541799ae04cd4dc3d0526ad1",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Spellbreaker_specialization.png",
@@ -1870,11 +2500,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/C0D57D3B17CC0408A2EE17FE2BA0C80A4E1838FA/1769905.png",
       "provenance": "ArenaNet API /v2/specializations/61 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 175593,
-      "sha256": "c7c74ea54610569dd34f7a9f3d3a5a0241a6d95942c40fc34f82dd5a32260bfa",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 157095,
+      "sha256": "3f315bbd9a0dff3e7ec0dd26e6911fb06519899009c711f0858025b579d99ea4",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Spike_Shoot.png",
@@ -1897,11 +2537,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/DDF39DBD61CCC1BCDD03B271080869251D097041/1012073.png",
       "provenance": "ArenaNet API /v2/specializations/53 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 171006,
-      "sha256": "2e7eb5172006d869ac92e65e32093c56b798d6f285c52ce94cc85942bd4a9db9",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 145304,
+      "sha256": "628692bc077c384f5a618790ceb66c07a81895e5f222f88154a91ffa99e90861",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Steel_Divide.png",
@@ -1927,11 +2577,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/09160450B40ED777650F632F2CE82504B90F5644/1012109.png",
       "provenance": "ArenaNet API /v2/specializations/4 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 90494,
-      "sha256": "e5154802e62ce3ccb468559a71f2e8bcec7c4f4134995fa115f8750fa0e0321e",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 107649,
+      "sha256": "2fa5d52b61c0bb8162295b6b7f0ce8dbef2a1c15455b62355fdeb2304639857b",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Superior_Sigil_of_Mischief.png",
@@ -1985,11 +2645,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/6FCF0E0E0C0E539290A8245F0DA49D0556D71E62/1012110.png",
       "provenance": "ArenaNet API /v2/specializations/11 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 89781,
-      "sha256": "d643f528194e71d4fdc99197018f7d5535ba03ec3faffb3f6349b348536872be",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 107057,
+      "sha256": "c0945b1fd84b0b1f128b206d688d7c0739382c97079bebca49e7c119ce573571",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Tempest_specialization.png",
@@ -1998,11 +2668,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/D22197110A38F5651AA3F4C23914A197DD2C5BA1/1029936.png",
       "provenance": "ArenaNet API /v2/specializations/48 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 150310,
-      "sha256": "f7faceb5c955007729f09dc4891371e7e18d65de57d63da06b9478a1d20ba1db",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 121831,
+      "sha256": "4ff075144324cd41c6019dcb2890ea867e319fe3c4ea5fda76af72119970d7b2",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Throw_Magnetic_Bomb.png",
@@ -2025,11 +2705,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/4E906A6B625209A213085FD65DB9A4457726759D/1012044.png",
       "provenance": "ArenaNet API /v2/specializations/21 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 171149,
-      "sha256": "96c5eabf432f8ee0eecd19e49d4bec962533acf4dbcf1a811458aedff8b224bf",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 135482,
+      "sha256": "74c18880e7ae779d3ded5a30e8eec709cee9dd711bf8758e637f67ce655b0f58",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Trickery_specialization.png",
@@ -2038,11 +2728,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/00CDEB242E93EA19125E48B556D2069639D03DBF/1012104.png",
       "provenance": "ArenaNet API /v2/specializations/44 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 48192,
-      "sha256": "128310519f67e006746a2ddcc0ba1d47f12f71a624cb426d50cd0cb2ea8142c0",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 55473,
+      "sha256": "20cc1169221332047abc39dffb2c5d5ddf036ea00e7c37d83145b943f8a3a2bd",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Triggerguard.png",
@@ -2068,11 +2768,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/A9AF4BB7BC18AB4871B7D69EBEDEB344CD59D3DE/3679908.png",
       "provenance": "ArenaNet API /v2/specializations/73 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 247929,
-      "sha256": "11c352c31fdb42cf9adaa38d7d81e92c9b0ac1b3dbe0ec70233c408138bd3584",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 135360,
+      "sha256": "b48af494053351e8dafc8acf4967926fe632ff95902937d3425aab8a6f9930f8",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Twin_Strike_(Mech).png",
@@ -2109,11 +2819,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/ED44DB9901D82D760DC5B8A918BB603DA06B3257/2503612.png",
       "provenance": "ArenaNet API /v2/specializations/72 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 91339,
-      "sha256": "43f193fa198c2d6e5237e280115514615e07bdac2dad804c58d5803a0e8f7f16",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 110372,
+      "sha256": "d39a3ca759f00b49ca4dd0cb9df2cbe61e6207136baf6dee77e84ac1e398b31b",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Valor_specialization.png",
@@ -2122,11 +2842,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/12B4C72ADCE4EF2890606111B400630F3832F83D/1012048.png",
       "provenance": "ArenaNet API /v2/specializations/13 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 132854,
-      "sha256": "ab6ae2cc56a07a92383a30937687a295b2ef6d0b1d41023bf1e8ef069c207aba",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 112181,
+      "sha256": "9321a5a8d3603e21a6d5af51e965dc7a17441dfd1f01b33178cd39e992f1404c",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Vindicator_specialization.png",
@@ -2135,11 +2865,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/4A16C39ED845A4062D8014E5A20135910B201BA4/2491511.png",
       "provenance": "ArenaNet API /v2/specializations/69 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 110007,
-      "sha256": "e7dae64ce5b34f11004713a53d498f4a7f7ed1576c02fb16d71f610131d98264",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 132824,
+      "sha256": "997523bad5c51098239b457a3b68edf0474bb4947588776ace10c7cdd413422d",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Virtues_specialization.png",
@@ -2148,11 +2888,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/08FE79184543F8314648D3104268789B484AB0BF/1012049.png",
       "provenance": "ArenaNet API /v2/specializations/46 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 113446,
-      "sha256": "1719367f67444f2b91c5613ab7a66dcf221b54578cf035372fb20d0715caf2d4",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 67621,
+      "sha256": "5b0dc3ded5c7cbdb524db6e0884a9aac0e3cac2074c1d8d01061764916ea67c1",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Virtuoso_specialization.png",
@@ -2161,11 +2911,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/97632575F6E89EB62A0AC8AF1DE7DFB060312317/2479306.png",
       "provenance": "ArenaNet API /v2/specializations/66 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 107550,
-      "sha256": "e514b65fc995a06267b26fb1f52196e7d7a61a6e185e85aa98bb84e29858ae55",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 128541,
+      "sha256": "8a142e1b52bee3e908ab8f4e6853eff2e4d15db81b075b0e9872ee89d7d8efed",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Water_specialization.png",
@@ -2174,11 +2934,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/F99A435D26057D6865ECBD0794B73D35A69FBB58/1012039.png",
       "provenance": "ArenaNet API /v2/specializations/17 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 127214,
-      "sha256": "ef5f9a32c97d9181a181c76cd2a8c101aad7ad640156bf9a05438275bcdb882f",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 109061,
+      "sha256": "e3a36b65fc16db68b342d8c89ccb2aeb73cbe53a01319e6195b6f863a5956ccb",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Weapon_Swap_Button.png",
@@ -2206,11 +2976,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/C3D501E451AD49310F05B40924B20A3B7CB14E07/1769897.png",
       "provenance": "ArenaNet API /v2/specializations/56 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 112405,
-      "sha256": "8b9c7254eabdfee6559efdfd907b459b2135abaf120888dd196949bbace0c577",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 104105,
+      "sha256": "9f7d50a51c7b8bdd20e43ba02335fdde94089f80156af82d1a885cabd6ac7010",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Wicked_Bite.png",
@@ -2233,11 +3013,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/417DC1B29EF0EADBD9CBE15B462B2D5B6AF328DA/1012085.png",
       "provenance": "ArenaNet API /v2/specializations/33 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 178480,
-      "sha256": "a513c91636311ad04b503e0835b19abb0ab8f00a62bf4632c9e19e10f8fbdd81",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 152338,
+      "sha256": "ef9ed7645b52e24a135e1155cb1e837b57ab5f1c4bd5cf5cdd9f06b452365d8d",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Willbender_specialization.png",
@@ -2246,11 +3036,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/D90821BEE9EC0D7BBE3B462A6D44D4625BAFF198/2479305.png",
       "provenance": "ArenaNet API /v2/specializations/65 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 111302,
-      "sha256": "db7f888d7ae28a90fe03c86620731a97939be707b2749bd0f337adc01f76ac0b",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 135220,
+      "sha256": "acd423c5597474162298d0771e728496a7008472555555c853ddf8ac1f1eb78e",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     },
     {
       "fileName": "Wing_Buffet_(phoenix).png",
@@ -2289,11 +3089,21 @@
       "source": "ArenaNet specialization background",
       "downloadedFrom": "https://render.guildwars2.com/file/9244C9726D2AD30F9D7E22CF5C7A49601BFAFCC0/1012050.png",
       "provenance": "ArenaNet API /v2/specializations/42 background",
-      "width": 1024,
-      "height": 256,
-      "bytes": 111273,
-      "sha256": "aeb2a463312aa3bcc033d28d47b8e4bf513ab5fdf931f1ba73fa2c9db90c2dd4",
-      "references": ["js/games/gw2/app/build/panels/traits.ts"]
+      "width": 647,
+      "height": 136,
+      "bytes": 83444,
+      "sha256": "11d6910f90f4b60254f64fbdb7fbae2d9b89788cf499d910fdcb33d1242be9f5",
+      "references": ["js/games/gw2/app/build/panels/traits.ts"],
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 256
+      },
+      "crop": {
+        "x": 0,
+        "y": 120,
+        "width": 647,
+        "height": 136
+      }
     }
   ]
 }
