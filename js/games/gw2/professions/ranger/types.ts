@@ -53,7 +53,7 @@ export interface RangerPetDefinition {
 export type RangerState = RangerCorePublicState &
   Partial<
     Pick<DruidState, 'astralClock' | 'celestialAvatarActive' | 'celestialAvatarEndsAt'> &
-      Pick<SoulbeastState, 'beastmodeActive' | 'archetype' | 'oneWolfPackUntil'> &
+      Pick<SoulbeastState, 'beastmodeActive' | 'oneWolfPackUntil'> &
       Pick<UntamedState, 'rangerUnleashed' | 'ambushReadyUntil' | 'ferociousSymbiosisPlayer'> &
       Pick<
         GaleshotState,

@@ -1,3 +1,4 @@
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import { boonKey, gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { createRangerPetState, rangerPetInstanceId } from '#gw2/professions/ranger/core/mechanics/pet-state.js';
@@ -41,12 +42,7 @@ import {
   rangerPetSkillsRequireCommands
 } from '#gw2/professions/ranger/data/pet-commands.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type {
-  RangerPetDefinition,
-  RangerRuntime,
-  RangerSkill,
-  RangerRuntimeState
-} from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerSkill, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
@@ -81,7 +77,7 @@ export function prepareRangerPetEvent(context: RangerRuntime, event: SimulationE
     : {
         ...event,
         summonOwner: rangerPetCompanionId(context),
-        entityName: context.profession.core.activePet,
+        entityName: rangerPetForState(context.profession.core).name,
         independentConditionOwner: true
       };
 }
@@ -105,7 +101,7 @@ function petBoonActive(context: MechanicQueriesOf<RangerRuntime>, kind: string):
 function rangerPetCastDurationMs(context: MechanicQueriesOf<RangerRuntime>, skill: Skill, durationMs: number): number {
   if (!skill.petSkill) return durationMs;
 
-  const petName = context.profession.core.activePet;
+  const petName = rangerPetForState(context.profession.core).name;
   const definition = RANGER_PET_SKILL_TIMINGS[skill.id];
   // Measured animations and per-pet overrides replace cast metadata; other skills retain their authored tuning.
   const timing =
@@ -135,17 +131,13 @@ function petRecovery(petName: string, skillId: string | number, recovery: number
 
 /** Automatic and commanded attacks reserve the same pet lane using live companion boons. */
 function petCommandRecovery(context: RangerRuntime, cast: RuntimeCast<RangerSkill>): number {
-  const profile = rangerPetAutoProfile(context.profession.core.activePet);
+  const petName = rangerPetForState(context.profession.core).name;
+  const profile = rangerPetAutoProfile(petName);
   const skillId = cast.skill.id;
   const special = profile?.specials.find((entry) => entry.id === skillId);
 
-  if (rangerPetSkillTiming(context.profession.core.activePet, skillId) || special)
-    return petRecovery(
-      context.profession.core.activePet,
-      skillId,
-      special?.recovery ?? 0,
-      petBoonActive(context, boonKey(BOON.QUICKNESS))
-    );
+  if (rangerPetSkillTiming(petName, skillId) || special)
+    return petRecovery(petName, skillId, special?.recovery ?? 0, petBoonActive(context, boonKey(BOON.QUICKNESS)));
 
   return (
     quantizeGw2ActionDurationUp((profile?.commandRecovery[String(skillId)] ?? cast.effectiveEnd - cast.start) * 1000) /
@@ -177,7 +169,7 @@ function interruptPetAutoattack(context: RangerRuntime): void {
         type: 'action_update',
         at: context.time,
         source: 'ranger-pet',
-        sourceId: state.activePet,
+        sourceId: rangerPetForState(state).name,
         actorType: ACTOR.SUMMON,
         activationId: state.pet!.autoAction.activationId,
         endsAt: context.time,
@@ -203,7 +195,7 @@ export function restartRangerPetAutoattack(context: RangerRuntime): void {
 /** Combat starts the autonomous cadence once; commands and swaps only replace their own pending wake. */
 export function startRangerPet(context: RangerRuntime): void {
   const state = context.profession.core;
-  const profile = rangerPetAutoProfile(state.activePet);
+  const profile = rangerPetAutoProfile(rangerPetForState(state).name);
 
   if (!autonomousActionsAllowed(context) || !state.pet || !profile || state.pet.autoStarted) return;
 
@@ -256,12 +248,10 @@ export function setRangerPetActive(context: RangerRuntime, active: boolean, sour
 }
 
 /** Swap whole lifetimes before observers grant rewards to the incoming pet. */
-export function applyRangerPetSwap(context: RangerRuntime, pet: RangerPetDefinition, slot: 1 | 2): void {
+export function applyRangerPetSwap(context: RangerRuntime, slot: 1 | 2): void {
   retireRangerPet(context, ID.PET_SWAP);
   const state = context.profession.core;
-  state.activePet = pet.name;
   state.activePetSlot = slot;
-  state.activePetSkillIds = [...pet.skillIds];
   setRangerPetActive(context, true, ID.PET_SWAP);
 }
 
@@ -299,7 +289,7 @@ export function emitRangerPetSkill(
   cast?: RuntimeCast<RangerSkill>
 ): void {
   const companionId = rangerPetCompanionId(context);
-  const entityName = context.profession.core.activePet;
+  const entityName = rangerPetForState(context.profession.core).name;
   const timing = rangerPetSkillTiming(entityName, skill.id);
   const quickness = petBoonActive(context, boonKey(BOON.QUICKNESS));
   for (const effect of skill.effects ?? []) {
@@ -408,7 +398,8 @@ const rangerPetTasks = {
     }
 
     state.pet.autoNextAt = 0;
-    const profile = rangerPetAutoProfile(state.activePet);
+    const petName = rangerPetForState(state).name;
+    const profile = rangerPetAutoProfile(petName);
 
     if (!profile) return;
 
@@ -416,14 +407,12 @@ const rangerPetTasks = {
     const quickness = petBoonActive(context, boonKey(BOON.QUICKNESS));
     const selected = autonomousSkill(context, profile);
     const skill = context.helpers.skillsById.get(selected.id);
-    const recovery = petRecovery(state.activePet, selected.id, selected.recovery, quickness);
+    const recovery = petRecovery(petName, selected.id, selected.recovery, quickness);
 
     if (skill) {
       const fullEnd = gw2CooldownReadyAt(
         context.time +
-          (rangerPetSkillTiming(state.activePet, selected.id)
-            ? rangerPetCastDurationMs(context, skill, 0) / 1000
-            : recovery)
+          (rangerPetSkillTiming(petName, selected.id) ? rangerPetCastDurationMs(context, skill, 0) / 1000 : recovery)
       );
       // Combat activation identity is independent of event and announcement allocation.
       const activationId = `${state.pet.id}:action:${++state.pet.sequence}`;

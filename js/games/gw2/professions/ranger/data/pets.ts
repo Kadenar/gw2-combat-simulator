@@ -25,3 +25,11 @@ export function selectedRangerPet(
 ): RangerPetDefinition {
   return rangerPetByName((slot === 2 ? config.selectedPet2 : config.selectedPet) || RANGER_DEFAULT_PET_NAMES[slot - 1]);
 }
+
+/** Resolve catalog facts from the selected slot, even while Beastmode has retired the independent pet. */
+export function rangerPetForState(state: {
+  readonly petNames: readonly [string, string];
+  readonly activePetSlot: 1 | 2;
+}): RangerPetDefinition {
+  return rangerPetByName(state.petNames[state.activePetSlot - 1]);
+}

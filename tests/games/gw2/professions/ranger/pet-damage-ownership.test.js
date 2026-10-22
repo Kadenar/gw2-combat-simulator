@@ -1,3 +1,4 @@
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
@@ -47,7 +48,7 @@ test('pet swaps discard unspent Poisonous Strikes charges', () => {
             run(runtime) {
               assert.equal(runtime.profession.core.pet.poisonousStrikes.charges, charges);
               swapRangerPets(runtime.mechanics, runtime.helpers.skillsById.get(ID.PET_SWAP));
-              assert.equal(runtime.profession.core.activePet, 'Carrion Devourer');
+              assert.equal(rangerPetForState(runtime.profession.core).name, 'Carrion Devourer');
               assert.equal(runtime.profession.core.pet.poisonousStrikes.charges, 0);
             }
           },
@@ -55,7 +56,7 @@ test('pet swaps discard unspent Poisonous Strikes charges', () => {
             at: 0.3,
             run(runtime) {
               swapRangerPets(runtime.mechanics, runtime.helpers.skillsById.get(ID.PET_SWAP));
-              assert.equal(runtime.profession.core.activePet, 'Jacaranda');
+              assert.equal(rangerPetForState(runtime.profession.core).name, 'Jacaranda');
               assert.equal(runtime.profession.core.pet.poisonousStrikes.charges, 0);
             }
           }

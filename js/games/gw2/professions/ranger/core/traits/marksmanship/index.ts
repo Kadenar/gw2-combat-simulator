@@ -37,7 +37,7 @@ import {
   targetHealthFraction
 } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
-import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { rangerPetEvent, rangerTargetImpaired } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -314,7 +314,7 @@ function applyClarionBond(context: RangerRuntime, skill: RangerSkill): void {
 
 /** Applies the trait at the accepted Beast-skill boundary. */
 function applyWolfsong(context: RangerRuntime, skill: RangerSkill): void {
-  if (rangerPetByName(professionCoreState(context).activePet).family === 'canine') {
+  if (rangerPetForState(professionCoreState(context)).family === 'canine') {
     const profile = requireBalanceProfileFromContext(context, TRAIT.WOLFSONG);
     const effect = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 

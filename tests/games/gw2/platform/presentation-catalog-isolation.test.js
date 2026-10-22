@@ -1,3 +1,4 @@
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
@@ -90,12 +91,14 @@ test('Engineer Forge and protocol controls retain their local skill lists and lo
 
 test('all Ranger pet palettes use the catalog supplied to their own factory', () => {
   // Commandability requires a pet skill; varying only its autonomous flag isolates each factory's catalog lookup.
+  const petState = { petNames: ['Lynx', 'Pig'], activePetSlot: 1 };
+  const skillId = rangerPetForState(petState).skillIds.at(-1);
   const catalogs = [false, true].map((petAutonomousSkill) =>
-    catalog(skill(1, 'Pet attack', { petSkill: true, petAutonomousSkill }))
+    catalog(skill(skillId, 'Pet attack', { petSkill: true, petAutonomousSkill }))
   );
-  const context = { professionState: { activePetSkillIds: [1], beastmodeActive: false } };
+  const context = { professionState: { ...petState, beastmodeActive: false } };
   for (const bind of [bindRangerCoreUi, bindDruidUi, bindGaleshotUi, bindSoulbeastUi, bindUntamedUi]) {
-    assertIsolated(bind, catalogs, (ui) => groupIds(ui, context, 'ranger-pet').includes(1), [true, false]);
+    assertIsolated(bind, catalogs, (ui) => groupIds(ui, context, 'ranger-pet').includes(skillId), [true, false]);
   }
 });
 

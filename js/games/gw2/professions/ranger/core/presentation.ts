@@ -31,7 +31,12 @@ import {
 } from '#gw2/professions/ranger/data/hammer-variants.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCommandBar } from '#gw2/professions/ranger/data/pet-commands.js';
-import { isRangerPetName, RANGER_DEFAULT_PET_NAMES, rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
+import {
+  isRangerPetName,
+  RANGER_DEFAULT_PET_NAMES,
+  rangerPetByName,
+  rangerPetForState
+} from '#gw2/professions/ranger/data/pets.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import type {
   RangerSkill,
@@ -60,18 +65,8 @@ export function rangerUiState(context: RangerUiContext): Partial<RangerState> {
   return context.professionState ?? {};
 }
 
-function activePetSkillIds(context: RangerUiContext): SkillId[] {
-  const state = rangerUiState(context);
-
-  if (Array.isArray(state.activePetSkillIds)) {
-    return [...state.activePetSkillIds];
-  }
-
-  return [...selectedRangerUiPet(context).skillIds];
-}
-
 function commandablePetSkillIds(catalog: Readonly<CanonicalCatalog<RangerSkill>>, context: RangerUiContext): SkillId[] {
-  return rangerPetCommandBar(activePetSkillIds(context), catalog.skillsById, uiSpecialization(context));
+  return rangerPetCommandBar(activeRangerUiPet(context).skillIds, catalog.skillsById, uiSpecialization(context));
 }
 
 interface RangerPetPaletteGroupOptions {
@@ -105,20 +100,22 @@ export function rangerPetPaletteGroup(
 // the profession defaults when a saved name is stale.
 function selectedRangerUiPet(context: RangerUiContext, slot: 1 | 2 = 1) {
   const state = rangerUiState(context);
-  const selected = String(
+  const selected =
     slot === 2
       ? context.build?.selectedPet2 ||
-          context.config?.selectedPet2 ||
-          state.petNames?.[1] ||
-          RANGER_DEFAULT_PET_NAMES[1]
-      : context.build?.selectedPet || context.config?.selectedPet || state.petNames?.[0] || state.activePet
-  );
+        context.config?.selectedPet2 ||
+        state.petNames?.[1] ||
+        RANGER_DEFAULT_PET_NAMES[1]
+      : context.build?.selectedPet || context.config?.selectedPet || state.petNames?.[0] || RANGER_DEFAULT_PET_NAMES[0];
   return rangerPetByName(selected);
 }
 
 /** Live pet identity owns combat palettes; detached previews use the configured selection. */
 export function activeRangerUiPet(context: RangerUiContext) {
-  return rangerPetByName(rangerUiState(context).activePet || selectedRangerUiPet(context).name);
+  const state = rangerUiState(context);
+  return state.petNames && state.activePetSlot
+    ? rangerPetForState({ petNames: state.petNames, activePetSlot: state.activePetSlot })
+    : selectedRangerUiPet(context);
 }
 
 function updatePetSelection(context: RangerUiContext, selection: RangerUiSelection): boolean {

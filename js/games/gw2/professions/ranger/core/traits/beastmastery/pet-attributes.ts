@@ -2,7 +2,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2AttributeEffect } from '#gw2/platform/attributes/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
@@ -10,7 +10,7 @@ import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/rang
 
 /** Snapshot the family-specific strike bonus so launched pet attacks retain it across swaps. */
 export function beastlyWardenPetDamageMultiplier(context: RangerRuntime | RangerResolverContext): number {
-  const family = rangerPetByName(professionCoreState(context).activePet).family;
+  const family = rangerPetForState(professionCoreState(context)).family;
   return hasTrait(context, TRAIT.BEASTLY_WARDEN) && (family === 'ursine' || family === 'porcine')
     ? balanceNumberFromContext(context, TRAIT.BEASTLY_WARDEN, 'damageMultiplier')
     : 1;

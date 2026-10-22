@@ -174,7 +174,7 @@ test('Soulbeast evaluates archetypes across merge state and pet changes', () => 
         catalog: { balanceProfilesById: profiles },
         runtime: {
           profession: {
-            core: { activePet: 'Lynx' },
+            core: { petNames: ['Pig', 'Lynx'], activePetSlot: 2, pet: null },
             specialization: { kind: 'Soulbeast', state: { beastmodeActive: merged } }
           }
         }

@@ -1,3 +1,4 @@
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { WEAPON, RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -370,7 +371,7 @@ function applyRangerCommandTraits(
 function triggerGoForTheThroat(context: RangerRuntime, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   const skill = skillForEvent(context.helpers, event);
-  const beastSkillId = state.activePetSkillIds.at(-1);
+  const beastSkillId = rangerPetForState(state).skillIds.at(-1);
 
   if (event.skillId !== beastSkillId || !skill?.petSkill || skill.petFamilySkill) {
     return;

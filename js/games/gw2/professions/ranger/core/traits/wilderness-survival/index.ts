@@ -29,7 +29,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 
 import { castCompleted, strike, strikeEffectsApplied } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
-import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -66,7 +66,7 @@ export const poisonMaster = defineTrait({
       when: (runtime: MechanicQueriesOf<RangerRuntime>, cast) =>
         rangerMerged(runtime.profession) &&
         Boolean(cast.skill.beastmodeSkill) &&
-        cast.skill.id === rangerPetByName(runtime.profession.core.activePet).beastmodeSkillIds.at(-1),
+        cast.skill.id === rangerPetForState(runtime.profession.core).beastmodeSkillIds.at(-1),
       run: (runtime, cast) => applyPoisonMasterBeastSkill(runtime, cast.skill)
     }
   ],

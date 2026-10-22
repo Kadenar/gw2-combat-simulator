@@ -1,3 +1,4 @@
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { resolveAttributeContributions } from '#gw2/platform/attributes/evaluation.js';
 import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
@@ -7,7 +8,6 @@ import { professionCoreState } from '#gw2/platform/profession-definition/state.j
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { rangerPetAutoProfile, rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
-import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
 import {
   beastlyWardenPetDamageMultiplier,
   beastmasteryPetAttributes
@@ -36,9 +36,9 @@ function signetOfTheWildBonus(context: unknown, selected: boolean, ready = true)
 
 /** Snapshot independent-pet attributes after trait inheritance and the live signet passive. */
 function rangerPetAttributes(context: RangerRuntime | RangerResolverContext) {
-  const petName = professionCoreState(context).activePet;
-  const attributes = { ...rangerPetBaseAttributes(petName) };
-  const family = rangerPetByName(petName).family;
+  const pet = rangerPetForState(professionCoreState(context));
+  const attributes = { ...rangerPetBaseAttributes(pet.name) };
+  const family = pet.family;
   const bonuses = resolveAttributeContributions({ conversionPool: {}, conversions: [] }, [
     {
       attributeEffects: [
@@ -66,7 +66,8 @@ function rangerPetAttributes(context: RangerRuntime | RangerResolverContext) {
 export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverContext) {
   const attributes = rangerPetAttributes(context);
   // New families may declare a different pet weapon without changing established damage baselines.
-  const weaponStrength = rangerPetAutoProfile(professionCoreState(context).activePet)?.weaponStrength ?? 2880;
+  const weaponStrength =
+    rangerPetAutoProfile(rangerPetForState(professionCoreState(context)).name)?.weaponStrength ?? 2880;
   return {
     weaponStrength: undefined,
     weaponStrengthProfileId: undefined,
@@ -82,7 +83,7 @@ export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverC
     summonBaseExpertise: attributes.expertise,
     summonBaseHealingPower: attributes.healingPower,
     summonOwner: rangerPetCompanionId(context),
-    entityName: professionCoreState(context).activePet,
+    entityName: rangerPetForState(professionCoreState(context)).name,
     // Pets crit like players: the level-80 base chance plus Precision above the baseline, matching the pet panel.
     summonCriticalChance: criticalChanceFractionFromPrecision(attributes.precision),
     summonCriticalDamage: 1.5 + attributes.ferocity / 1500,

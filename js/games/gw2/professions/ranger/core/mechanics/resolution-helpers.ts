@@ -1,3 +1,4 @@
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
@@ -46,7 +47,7 @@ export function petDerivedConditionMetadata(
     ...rangerPetCombatMetadata(context),
     summonOwner: event.summonOwner ?? rangerPetCompanionId(context),
     // Child conditions retain the triggering pet's name across a same-time swap.
-    entityName: event.entityName ?? context.profession.core.activePet
+    entityName: event.entityName ?? rangerPetForState(context.profession.core).name
   };
 }
 

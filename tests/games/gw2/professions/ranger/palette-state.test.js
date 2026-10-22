@@ -1,6 +1,7 @@
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
+import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { bindSoulbeastUi } from '#gw2/professions/ranger/specializations/soulbeast/presentation.js';
@@ -20,8 +21,9 @@ test('Soulbeast remerges with the live pet and keeps detached previews on the co
   const config = { specialization: 'Soulbeast', selectedPet: 'Pig', selectedPet2: 'Smokescale' };
   const result = runRanger([ID.LEAVE_BEASTMODE, ID.PET_SWAP, ID.BEASTMODE, ID.SMOKE_ASSAULT], config);
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.activePet, 'Smokescale');
+  assert.equal(rangerPetForState(result.planningState.profession).name, 'Smokescale');
   assert.equal(result.planningState.profession.beastmodeActive, true);
+  assert.equal(result.planningState.profession.pet, null);
   assert.ok(result.totalDamage > 0);
 
   const runtime = observedRuntime(result);
@@ -114,3 +116,28 @@ test('Galeshot palette and Wind Force display use the patched threshold', () => 
     }
   }
 });
+
+// Live slot selection drives both command admission and the projected bar despite the original build selection.
+for (const specialization of ['Core', 'Untamed']) {
+  test(`${specialization} pet swap projects the incoming commands from the selected slot`, () => {
+    const config = {
+      specialization,
+      selectedPet: 'Lynx',
+      selectedPet2: 'Carrion Devourer',
+      // Natural commands are available while the ranger, rather than the pet, holds unleash.
+      initialUntamedState: 'Ranger'
+    };
+    const result = runRanger([ID.PET_SWAP], config);
+    assert.deepEqual(result.warnings, []);
+    const state = result.planningState.profession;
+    assert.equal(state.activePetSlot, 2);
+    const palette = rangerProfession.ui
+      .paletteGroups({ config, professionState: state })
+      .find((group) => group.id === 'ranger-pet');
+    assert.equal(palette.statusIcon.label, 'Carrion Devourer');
+    assert.ok(palette.skillIds.includes(ID.POISONOUS_CLOUD));
+    assert.ok(!palette.skillIds.includes(ID.RENDING_POUNCE));
+    assert.equal(result.planningState.availability[ID.POISONOUS_CLOUD].ready, true);
+    assert.equal(result.planningState.availability[ID.RENDING_POUNCE].ready, false);
+  });
+}

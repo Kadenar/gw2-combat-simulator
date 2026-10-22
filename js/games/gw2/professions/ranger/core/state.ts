@@ -23,10 +23,9 @@ import { selectedRangerPet } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerConfig } from '#gw2/professions/ranger/types.js';
 
 export interface RangerCoreState {
-  activePet: string;
+  /** The selected pair and active slot own identity; catalog facts are queried rather than synchronized. */
   activePetSlot: 1 | 2;
-  petNames: [string, string];
-  activePetSkillIds: SkillId[];
+  readonly petNames: readonly [string, string];
   /** The player's own readiness, mirrored by each pet lifetime's fields of the same shape. */
   player: RangerActorProcState;
   pet: RangerPetState | null;
@@ -56,10 +55,8 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
   const pet = selectedRangerPet(config);
   const pet2 = selectedRangerPet(config, 2);
   return {
-    activePet: pet.name,
     activePetSlot: 1,
     petNames: [pet.name, pet2.name],
-    activePetSkillIds: [...pet.skillIds],
     player: createRangerActorProcState(),
     pet: createRangerPetState(rangerPetInstanceId(1, 0)),
     nextPetInstance: 1,
@@ -79,10 +76,8 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
 
 // Publish pet identity and visible state; pet scheduling remains private to the live execution owner.
 const RANGER_PLAYER_PUBLIC_STATE_KEYS = Object.freeze([
-  'activePet',
   'activePetSlot',
   'petNames',
-  'activePetSkillIds',
   'endurance',
 
   'availableFlips',

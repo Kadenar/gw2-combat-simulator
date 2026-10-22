@@ -30,7 +30,7 @@ import {
 } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { triggerMergedPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { essenceOfSpeedExtension } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
@@ -52,7 +52,7 @@ export function activeSoulbeastBuff(context: RangerResolverContext, kind: string
 // Beast Ability is always the last skill in beastmodeSkillIds; traits like Live Fast and Go for the Eyes
 // should fire only on the first hit of a multi-hit Beast Ability, not once per packet.
 function firstBeastAbilityHit(context: RangerResolverContext, event: Gw2ResolverEvent): boolean {
-  const activePet = rangerPetByName(professionCoreState(context).activePet);
+  const activePet = rangerPetForState(professionCoreState(context));
   const beastSkillId = activePet.beastmodeSkillIds.at(-1);
 
   if (event.skillId !== beastSkillId || !event.activationId) return false;
@@ -275,7 +275,7 @@ export function soulbeastCastAvailability(
   const state = soulbeastState.from(context);
   const toggle = skill.id === ID.BEASTMODE || skill.id === ID.LEAVE_BEASTMODE;
   // Swapping while unmerged changes which pet grants merged skills on reentry.
-  const pet = rangerPetByName(professionCoreState(context).activePet);
+  const pet = rangerPetForState(professionCoreState(context));
 
   if (skill.beastmodeSkill && !toggle && !pet.beastmodeSkillIds.includes(skill.id)) {
     return deny(skill, 'ranger.inactive-merged-pet-skill', 'select the pet that grants this merged Beast skill.');
@@ -322,8 +322,6 @@ export const beastmodeLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> =
   onCastCommit(runtime, cast) {
     const state = soulbeastState.from(runtime);
     const skill = cast.skill;
-
-    if (skill.id === ID.PET_SWAP) state.archetype = rangerPetByName(runtime.profession.core.activePet).archetype;
 
     if (!state.beastmodeActive) return;
 

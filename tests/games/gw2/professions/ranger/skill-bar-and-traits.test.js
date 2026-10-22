@@ -1,3 +1,4 @@
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
@@ -591,7 +592,7 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
       traits: new Set([TRAIT.PACK_ALPHA, TRAIT.PETS_PROWESS]),
       runtime: {
         profession: {
-          core: { activePet: 'Pig' },
+          core: { petNames: ['Pig', 'Lynx'], activePetSlot: 1 },
           specialization: { kind: 'Soulbeast', state: { beastmodeActive: true } }
         }
       }
@@ -831,9 +832,9 @@ test('Ranger pet-swap and Marksmanship traits resolve at their combat timings', 
 
   assert.deepEqual(swapped.warnings, []);
   assert.equal(swapped.planningState.profession.activePetSlot, 2);
-  assert.equal(swapped.planningState.profession.activePet, 'Fanged Iboga');
+  assert.equal(rangerPetForState(swapped.planningState.profession).name, 'Fanged Iboga');
   assert.deepEqual(swapped.planningState.profession.petNames, ['Carrion Devourer', 'Fanged Iboga']);
-  assert.equal(swapped.planningState.profession.activePetSkillIds.includes(ID.CONSUMING_BITE), true);
+  assert.equal(rangerPetForState(swapped.planningState.profession).skillIds.includes(ID.CONSUMING_BITE), true);
   assert.equal(
     swapped.events.some(
       (event) =>

@@ -1,3 +1,4 @@
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { weaponFlipBlock } from '#gw2/platform/execution/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -84,7 +85,7 @@ export function rangerCoreCastAvailability(
     return denySkillCast(skill, 'ranger.pet-inactive', 'the active specialization has replaced the pet.');
   }
 
-  if (!state.activePetSkillIds.includes(skill.id)) {
+  if (!rangerPetForState(state).skillIds.includes(skill.id)) {
     return denySkillCast(skill, 'ranger.inactive-pet', 'select the pet that owns this Beast skill.');
   }
 

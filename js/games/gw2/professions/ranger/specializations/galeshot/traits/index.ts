@@ -7,10 +7,7 @@ import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js
 import { boonActive, buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import {
-  readProfessionCoreState,
-  readProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -26,7 +23,7 @@ import { buildRangerPacket, buildRangerStrikes } from '#gw2/professions/ranger/c
 import { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { isBeastSkill, isPetActorEvent } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
+import { activePetFamily } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import {
   cycloneBowCompleted,
   galeshotCastCompleted,
@@ -59,11 +56,8 @@ function galeForceAmount(context: RangerModifierContext): number {
 }
 
 function activePetIsFeathered(context: RangerModifierContext): boolean {
-  const name =
-    readProfessionCoreState<{ activePet?: string }>(context.runtime?.profession).activePet ||
-    context.config?.selectedPet ||
-    '';
-  return ['avian', 'moa', 'phoenix', 'raptor swiftwing'].includes(rangerPetByName(name).family);
+  // Combat and detached previews resolve the same selected pet family.
+  return ['avian', 'moa', 'phoenix', 'raptor swiftwing'].includes(activePetFamily(context));
 }
 
 /** Owns Shrike's live tuning and trait behavior. */

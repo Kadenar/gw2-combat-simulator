@@ -1,3 +1,4 @@
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
@@ -104,7 +105,7 @@ export function armPetSharpenSpines(runtime: RangerRuntime, event: Gw2ResolverEv
   if (
     event.kind !== 'pet-sharpen-spines' ||
     event.sourceId !== ID.BRISTLEBACK_SHARPEN_SPINES ||
-    state.activePet !== 'Bristleback'
+    rangerPetForState(state).name !== 'Bristleback'
   )
     return;
 
@@ -115,9 +116,10 @@ export function armPetSharpenSpines(runtime: RangerRuntime, event: Gw2ResolverEv
 
 /** Only the currently armed Bristleback's landed strikes can spend its expiring bleed charges. */
 export function consumePetSharpenSpines(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const { pet, activePet } = context.profession.core;
+  const { pet } = context.profession.core;
 
-  if (!pet || activePet !== 'Bristleback' || !isActivePetStrike(context, event)) return;
+  if (!pet || rangerPetForState(context.profession.core).name !== 'Bristleback' || !isActivePetStrike(context, event))
+    return;
 
   deliverChargedHit(context, event, PROFILE.petSharpenSpines, () => consumeCharge(pet.sharpenSpines, event.at), {
     attribution: {

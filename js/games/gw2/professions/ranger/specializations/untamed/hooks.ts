@@ -1,3 +1,4 @@
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
 import { emitRangerPetSkill, restartRangerPetAutoattack } from '#gw2/professions/ranger/core/mechanics/pets.js';
@@ -34,7 +35,11 @@ export const untamedHooks = composeRuntimeHooks<RangerRuntimeState, RangerSkill>
     resolveInputControl(context, skill) {
       if (!skill.petSkill) return undefined;
 
-      const ids = rangerPetCommandBar(context.profession.core.activePetSkillIds, context.helpers.skillsById, 'Untamed');
+      const ids = rangerPetCommandBar(
+        rangerPetForState(context.profession.core).skillIds,
+        context.helpers.skillsById,
+        'Untamed'
+      );
       const index = ids.indexOf(skill.id);
       return index >= 0 && index < 3
         ? { control: `profession-${index + 1}` as InputControlId }

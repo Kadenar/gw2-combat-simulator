@@ -1,3 +1,4 @@
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { elementalistDodgeCompleted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { ELEMENTALIST_TRAIT_IDS as E, ELEMENTALIST_SKILL_IDS as ES } from '#gw2/professions/elementalist/data/ids.js';
@@ -132,7 +133,7 @@ const cases = [
     RS.LESSER_SIC_EM,
     10,
     (r) => {
-      const skillId = r.profession.core.activePetSkillIds.at(-1);
+      const skillId = rangerPetForState(r.profession.core).skillIds.at(-1);
       r.fireTrigger(strike, { event: { ...hit(r), actorType: 'summon', skillId } });
     }
   ],

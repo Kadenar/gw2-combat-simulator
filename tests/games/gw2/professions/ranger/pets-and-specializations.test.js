@@ -1,3 +1,4 @@
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import {
@@ -60,17 +61,15 @@ test('Ranger scheduler snapshots expose flat profession state', () => {
 
   assert.equal(result.planningState.profession.core, undefined);
   assert.equal(result.planningState.profession.specialization, undefined);
-  assert.equal(result.planningState.profession.activePet, 'Lynx');
+  assert.equal(rangerPetForState(result.planningState.profession).name, 'Lynx');
   assert.equal(result.planningState.profession.beastmodeActive, true);
 });
 
 test('Ranger public state is composed from Core and specialization-owned manifests', () => {
   // Expected public fields stay independent of the production projection manifest.
   const coreKeys = [
-    'activePet',
     'activePetSlot',
     'petNames',
-    'activePetSkillIds',
     'endurance',
     'availableFlips',
     'stealthUntil',
@@ -314,8 +313,8 @@ test('Core Ranger exposes only the selected pet Beast skill', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.activePet, 'Lynx');
-  assert.equal(result.planningState.profession.activePetSkillIds.includes(ID.RENDING_POUNCE), true);
+  assert.equal(rangerPetForState(result.planningState.profession).name, 'Lynx');
+  assert.equal(rangerPetForState(result.planningState.profession).skillIds.includes(ID.RENDING_POUNCE), true);
   assert.equal(result.totalDamage > 0, true);
 
   const swapped = simulate('Core', ['Swap Weapons'], { primaryWeapon: 'Longbow', weaponSet2Primary: 'Axe' });
@@ -344,8 +343,8 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
   const carrionContext = {
     specialization: 'Core',
     professionState: {
-      activePet: 'Carrion Devourer',
-      activePetSkillIds: RANGER_PETS.find((pet) => pet.name === 'Carrion Devourer').skillIds
+      petNames: ['Carrion Devourer', 'Lynx'],
+      activePetSlot: 1
     }
   };
   const carrionPalette = rangerProfession.ui.paletteGroups(carrionContext).find((group) => group.id === 'ranger-pet');
@@ -868,7 +867,7 @@ test("Soulbeast starts merged and grants only the selected pet's Beast skills", 
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.beastmodeActive, true);
-  assert.equal(result.planningState.profession.archetype, 'Ferocious');
+  assert.equal(rangerPetForState(result.planningState.profession).archetype, 'Ferocious');
   assert.equal(result.totalDamage > 0, true);
 
   const leftBeastmode = simulate('Soulbeast', ['Leave Beastmode', ID.SMOKE_ASSAULT], { selectedPet: 'Smokescale' });
@@ -900,8 +899,8 @@ test('Soulbeast owns merged pet suspension and restores the pet after leaving Be
   });
 
   assert.deepEqual(swapped.warnings, []);
-  assert.equal(swapped.planningState.profession.activePet, 'Smokescale');
-  assert.equal(swapped.planningState.profession.archetype, 'Ferocious');
+  assert.equal(rangerPetForState(swapped.planningState.profession).name, 'Smokescale');
+  assert.equal(rangerPetForState(swapped.planningState.profession).archetype, 'Ferocious');
 });
 
 test("Soulbeast applies Sic 'Em to the merged ranger and to the pet while unmerged", () => {

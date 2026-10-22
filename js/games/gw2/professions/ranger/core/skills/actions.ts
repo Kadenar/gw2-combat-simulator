@@ -5,7 +5,7 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { applyRangerPetSwap } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /**
@@ -46,8 +46,8 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
 export function swapRangerPets(runtime: RangerRuntime, skill: Skill): void {
   const state = runtime.profession.core;
   const slot = state.activePetSlot === 1 ? 2 : 1;
-  const pet = rangerPetByName(state.petNames[slot - 1]);
-  applyRangerPetSwap(runtime, pet, slot);
+  applyRangerPetSwap(runtime, slot);
+  const pet = rangerPetForState(state);
   runtime.effects.emit({
     kind: 'packet',
     event: buildRangerPacket(

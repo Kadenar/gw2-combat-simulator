@@ -4,8 +4,8 @@ import { buffActive, countActiveBoons, targetConditionActive } from '#gw2/platfo
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { isPetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
-import { rangerPetByName, selectedRangerPet } from '#gw2/professions/ranger/data/pets.js';
+import { rangerMerged, type RangerCoreState } from '#gw2/professions/ranger/core/state.js';
+import { rangerPetForState, selectedRangerPet } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerModifierContext, RangerPetDefinition } from '#gw2/professions/ranger/types.js';
 
 /** Shares Ranger modifier queries across player and pet rule collections. */
@@ -51,8 +51,10 @@ export function rangerTargetImpaired(context: Gw2ModifierContext): boolean {
 
 /** Live combat reads the active pet; detached previews fall back to the configured first pet. */
 export function activeRangerPet(context: RangerModifierContext): RangerPetDefinition {
-  const activePet = readProfessionCoreState<{ activePet?: string }>(context.runtime?.profession).activePet;
-  return activePet ? rangerPetByName(activePet) : selectedRangerPet(context.config);
+  const state = readProfessionCoreState<RangerCoreState>(context.runtime?.profession);
+  return state.petNames && state.activePetSlot
+    ? rangerPetForState({ petNames: state.petNames, activePetSlot: state.activePetSlot })
+    : selectedRangerPet(context.config);
 }
 
 export function activePetFamily(context: RangerModifierContext): string {
