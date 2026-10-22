@@ -352,9 +352,11 @@ test('EVTC and dps.report produce the same replay timing for equivalent cast evi
 });
 
 test('the shared timeline preserves unsupported durations, idle gaps, and concurrent offsets', () => {
+  // Waits subtract simulator occupancy even when the source records an earlier cast end.
+  const longerRuntimeSkill = { ...fixtureSkill, castTimeMs: 600 };
   const instant = { ...fixtureSkill, id: 2_000, name: 'Instant', castTimeMs: 0 };
   const actions = [
-    { start: 0, end: 400, eventIndex: 0, skill: fixtureSkill, name: 'Mind Stab', skillId: 1_000 },
+    { start: 0, end: 400, eventIndex: 0, skill: longerRuntimeSkill, name: 'Mind Stab', skillId: 1_000 },
     { start: 200, end: 200, eventIndex: 1, skill: instant, name: 'Instant', skillId: 2_000 },
     { start: 800, end: 900, eventIndex: 2, skill: null, name: 'Unknown', skillId: 9_000 }
   ];
@@ -363,7 +365,7 @@ test('the shared timeline preserves unsupported durations, idle gaps, and concur
     { type: 'cast', skillId: 1_000 },
     { type: 'combat-start', concurrentOffsetMs: 120 },
     { type: 'cast', skillId: 2_000, concurrentOffsetMs: 200 },
-    { type: 'wait', durationMs: 400 },
+    { type: 'wait', durationMs: 200 },
     { type: 'wait', durationMs: 100 }
   ]);
 });
@@ -380,7 +382,6 @@ test('weapon swaps retain their observed overlap with dodge through an interveni
       { start: 200, end: 200, skill: swap }
     ].map((action, eventIndex) => ({ ...action, eventIndex, name: action.skill.name, skillId: action.skill.id }));
     const rotation = buildReplayTimeline(actions, 0, null, {
-      alignWaitsToSimulatorTiming: true,
       commandFor: ({ skillId }) => ({ type: 'cast', skillId })
     });
     assert.equal(
@@ -431,7 +432,6 @@ test('runtime alignment preserves mechanic-owned occupied intervals without addi
     0,
     null,
     {
-      alignWaitsToSimulatorTiming: true,
       hasObservedCastTime: ({ eventIndex }) => eventIndex !== 0,
       commandFor: ({ skillId }) => ({ type: 'cast', skillId })
     }

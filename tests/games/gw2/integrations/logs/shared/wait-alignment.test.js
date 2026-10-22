@@ -43,7 +43,6 @@ test('Warrior replay preserves idle gaps with the selected trait and active offh
       0,
       null,
       {
-        alignWaitsToSimulatorTiming: true,
         commandFor: (action) => ({ type: 'cast', skillId: action.skillId })
       }
     );
@@ -74,7 +73,6 @@ test('an independent opener preserves the first player input and combat boundary
     { start: 2600, end: 3000, eventIndex: 2, skill: player, name: player.name, skillId: player.id }
   ];
   const rotation = buildReplayTimeline(actions, 1000, 1600, {
-    alignWaitsToSimulatorTiming: true,
     commandFor: (action) => ({ type: 'cast', skillId: action.skillId })
   });
   const cursor = new RotationCursor(rotation);
@@ -99,7 +97,6 @@ test('player gaps do not join an inferred companion cast with a different boon s
     { start: 3600, end: 4000, skill: player }
   ].map((action, eventIndex) => ({ ...action, eventIndex, name: action.skill.name, skillId: action.skill.id }));
   const rotation = buildReplayTimeline(actions, 0, null, {
-    alignWaitsToSimulatorTiming: true,
     hasObservedCastTime: (action) => action.skill !== companion,
     commandFor: (action) => ({ type: 'cast', skillId: action.skillId })
   });
@@ -153,7 +150,6 @@ test('player gaps beside an overlappable companion command stay editable waits',
     { start: 3600, end: 4000, skill: player }
   ].map((action, eventIndex) => ({ ...action, eventIndex, name: action.skill.name, skillId: action.skill.id }));
   const rotation = buildReplayTimeline(actions, 0, null, {
-    alignWaitsToSimulatorTiming: true,
     hasObservedCastTime: (action) => action.skill !== companion,
     commandFor: (action) => ({ type: 'cast', skillId: action.skillId })
   });

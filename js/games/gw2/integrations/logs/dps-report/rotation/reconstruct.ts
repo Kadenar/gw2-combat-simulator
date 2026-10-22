@@ -300,8 +300,6 @@ function buildRotation(
   return buildReplayTimeline(actions, origin, combatStart, {
     // Idle gaps and concurrent offsets, including legend swaps, share observed casts' 40 ms precision.
     quantizeMs: quantizeGw2ActionTimingMs,
-    // EI source durations can be shorter than simulator casts, so later waits absorb that accumulated difference.
-    alignWaitsToSimulatorTiming: true,
     commandFor: (action) => replayActionCommand(action, action.replayInterruptMs ?? observedInterruptMs(action)),
     // Troubadour EI animations omit ordinary aftercast; its measured catalog cadence already models that occupied lane.
     replayEnd: (action) => replayActionEnd(action, completeReportedAftercast),

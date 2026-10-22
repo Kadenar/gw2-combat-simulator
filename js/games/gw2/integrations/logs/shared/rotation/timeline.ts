@@ -25,8 +25,6 @@ export interface ReplayTimelinePolicy<Action extends ReplayTimelineAction> {
   readonly timingToleranceMs?: number;
   readonly quantizeMs?: (value: number) => number;
   readonly replayEnd?: (action: Action) => number;
-  /** Makes waits compensate when emitted commands use a different cast duration than the source log. */
-  readonly alignWaitsToSimulatorTiming?: boolean;
   /** Limits runtime correction to observed casts, preserving command occupancy owned by profession mechanics. */
   readonly hasObservedCastTime?: (action: Action) => boolean;
   readonly compareSimultaneousActions?: (left: Action, right: Action) => number;
@@ -62,7 +60,6 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   // Idle waits and action offsets use the same source-specific precision.
   const quantizeMs = policy.quantizeMs ?? identityMilliseconds;
   const replayEnd = policy.replayEnd ?? ((action: Action) => action.end);
-  const alignWaitsToSimulatorTiming = policy.alignWaitsToSimulatorTiming === true;
   const canEmit = policy.canEmit ?? ((action: Action) => action.skill != null);
   const entries: Array<
     | { readonly type: 'action'; readonly action: Action }
@@ -180,8 +177,8 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   let activeCast: Action | null = null;
   let retainedCastEnd = origin;
   let previousCastStart: number | null = null;
-  let pendingAftercast: { until: number; progressedTo: number } | null = null;
-  // Log adapters use this scheduler projection when source cast boundaries differ from serial replay timing.
+  let pendingAftercastUntil: number | null = null;
+  // Always align waits to projected scheduler occupancy so differences from source durations do not accumulate.
   let projectedTime = origin;
   let projectedReservedEnd = origin;
   // Mirrors the scheduler's Wait rule: overlappable companion commands never hold a Wait, every other cast does.
@@ -197,39 +194,23 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
     rotation.push({ type: 'wait', durationMs: waitMs });
 
-    if (alignWaitsToSimulatorTiming) {
-      projectedTime = Math.max(projectedTime, projectedWaitJoinEnd) + waitMs;
-    }
+    projectedTime = Math.max(projectedTime, projectedWaitJoinEnd) + waitMs;
   };
 
   const appendPendingAftercastWait = (): void => {
-    if (!pendingAftercast) return;
+    if (pendingAftercastUntil == null) return;
 
-    const waitMs = alignWaitsToSimulatorTiming
-      ? quantizeMs(pendingAftercast.until - Math.max(projectedTime, projectedWaitJoinEnd))
-      : quantizeMs(pendingAftercast.until - pendingAftercast.progressedTo);
+    const waitMs = quantizeMs(pendingAftercastUntil - Math.max(projectedTime, projectedWaitJoinEnd));
     appendWait(waitMs);
-    pendingAftercast = null;
+    pendingAftercastUntil = null;
   };
 
   const appendObservedIdle = (nextActionAt: number): void => {
-    const blockingEnd = Math.max(activeCastEnd, retainedCastEnd);
-    const observedGapMs = nextActionAt - blockingEnd;
-    const retainedTimingJitter =
-      retainedCastEnd > origin && retainedCastEnd >= activeCastEnd && observedGapMs <= timingToleranceMs;
-    const waitMs = alignWaitsToSimulatorTiming
-      ? quantizeMs(nextActionAt - Math.max(projectedTime, projectedWaitJoinEnd))
-      : quantizeMs(observedGapMs);
-    const aftercastWaitMs = pendingAftercast ? quantizeMs(pendingAftercast.until - pendingAftercast.progressedTo) : 0;
-    pendingAftercast = null;
+    const waitMs = quantizeMs(nextActionAt - Math.max(projectedTime, projectedWaitJoinEnd));
+    pendingAftercastUntil = null;
 
-    if (alignWaitsToSimulatorTiming) {
-      // The projection already accounts for occupied time; preserve any remaining rounded source gap.
-      if (waitMs > 0) appendWait(waitMs);
-    } else {
-      // Without a runtime projection, tolerate source jitter around the occupied aftercast boundary.
-      appendWait(aftercastWaitMs + (!retainedTimingJitter && waitMs > 0 ? waitMs : 0));
-    }
+    // The projection already accounts for occupied time; preserve any remaining rounded source gap.
+    appendWait(waitMs);
 
     activeCastEnd = nextActionAt;
   };
@@ -246,14 +227,14 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
         const offset = quantizeGw2ActionTimingMs(at - previousCastStart);
         rotation.push({ type: 'combat-start', concurrentOffsetMs: offset });
 
-        if (alignWaitsToSimulatorTiming && projectedPreviousCastStart != null) {
+        if (projectedPreviousCastStart != null) {
           projectedTime = Math.max(projectedTime, projectedPreviousCastStart + offset);
         }
       } else {
         appendObservedIdle(at);
         rotation.push({ type: 'combat-start' });
 
-        if (alignWaitsToSimulatorTiming) projectedTime = Math.max(projectedTime, projectedReservedEnd);
+        projectedTime = Math.max(projectedTime, projectedReservedEnd);
       }
 
       continue;
@@ -266,15 +247,11 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       if (overlapping) appendPendingAftercastWait();
       else appendObservedIdle(at);
 
-      appendWait(
-        alignWaitsToSimulatorTiming
-          ? quantizeMs(actionReplayEnd - Math.max(projectedTime, projectedWaitJoinEnd))
-          : quantizeMs(actionReplayEnd - at)
-      );
+      appendWait(quantizeMs(actionReplayEnd - Math.max(projectedTime, projectedWaitJoinEnd)));
       activeCastEnd = Math.max(activeCastEnd, actionReplayEnd);
       previousCastStart = null;
 
-      if (alignWaitsToSimulatorTiming) projectedPreviousCastStart = null;
+      projectedPreviousCastStart = null;
 
       continue;
     }
@@ -289,10 +266,8 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       rotation.push(command);
       previousCastStart = null;
 
-      if (alignWaitsToSimulatorTiming) {
-        projectedTime = Math.max(projectedTime, projectedReservedEnd);
-        projectedPreviousCastStart = null;
-      }
+      projectedTime = Math.max(projectedTime, projectedReservedEnd);
+      projectedPreviousCastStart = null;
 
       continue;
     }
@@ -311,14 +286,13 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
     // A companion that holds Waits can open before the player's first cast. Anchor that overlap to rotation start;
     // a serial wait would incorrectly wait for the companion's entire animation.
-    if (alignWaitsToSimulatorTiming && previousCastStart == null && projectedCompanionEnd > origin && at > origin) {
+    if (previousCastStart == null && projectedCompanionEnd > origin && at > origin) {
       command.concurrentOffsetMs = quantizeMs(at - origin);
     } else if (independent && previousCastStart != null && at >= previousCastStart) {
       command.concurrentOffsetMs = quantizeMs(at - previousCastStart);
     } else if (previousCastStart != null && ((concurrent && overlapping) || boundaryTransition)) {
       command.concurrentOffsetMs = quantizeMs(at - previousCastStart);
     } else if (
-      alignWaitsToSimulatorTiming &&
       projectedPreviousCastStart != null &&
       !overlapping &&
       at > projectedBlockingEnd &&
@@ -328,81 +302,66 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       // Anchor the next input to the player instead, preserving the gap without waiting for the companion.
       // Gaps beside overlappable companion commands never reach here: they stay ordinary, editable Waits.
       command.concurrentOffsetMs = quantizeMs(at - projectedPreviousCastStart);
-      pendingAftercast = null;
+      pendingAftercastUntil = null;
       activeCastEnd = at;
     } else {
       appendObservedIdle(at);
     }
 
-    // Concurrent actions advance the replay clock through an observed excess-cast interval, so only its remainder waits.
-    if (pendingAftercast && concurrent) {
-      const runtimeEnd = at + (action.replayDurationMs ?? referenceCastTimeMs(action.skill));
-      pendingAftercast.progressedTo = Math.min(
-        pendingAftercast.until,
-        Math.max(pendingAftercast.progressedTo, runtimeEnd)
-      );
-    }
-
     rotation.push(command);
 
-    if (alignWaitsToSimulatorTiming) {
-      // Mechanic-owned charge intervals already define their replay occupancy.
-      const runtimeMs =
-        action.replayDurationMs ??
-        (action.skill && (independent || policy.hasObservedCastTime?.(action) !== false)
-          ? referenceCastTimeMs(action.skill)
-          : actionReplayEnd - at);
-      const interruptMs = command.interruptAfterMs ?? action.skill?.defaultInterruptMs;
-      const effectiveRuntimeMs = interruptMs == null ? runtimeMs : Math.min(runtimeMs, Math.max(0, interruptMs));
-      const retainedRuntimeMs =
-        effectiveRuntimeMs < runtimeMs && retainsReplayCastLockout(action.skill, effectiveRuntimeMs)
-          ? runtimeMs
-          : effectiveRuntimeMs;
-      // A mechanic can occupy a recorded interval while its entry command still uses the instant lane.
-      const runtimeInstant = action.skill?.castTimeMs === 0;
-      const projectedStart: number =
-        command.concurrentOffsetMs != null
-          ? Math.max(projectedTime, (projectedPreviousCastStart ?? origin) + command.concurrentOffsetMs)
-          : independent
-            ? Math.max(projectedTime, projectedIndependentReadyAt)
-            : runtimeInstant
-              ? Math.max(projectedTime, projectedInstantReadyAt)
-              : Math.max(projectedTime, projectedBlockingEnd);
-      projectedTime = projectedStart;
-      projectedReservedEnd = Math.max(projectedReservedEnd, projectedStart + retainedRuntimeMs);
+    // Mechanic-owned charge intervals already define their replay occupancy.
+    const runtimeMs =
+      action.replayDurationMs ??
+      (action.skill && (independent || policy.hasObservedCastTime?.(action) !== false)
+        ? referenceCastTimeMs(action.skill)
+        : actionReplayEnd - at);
+    const interruptMs = command.interruptAfterMs ?? action.skill?.defaultInterruptMs;
+    const effectiveRuntimeMs = interruptMs == null ? runtimeMs : Math.min(runtimeMs, Math.max(0, interruptMs));
+    const retainedRuntimeMs =
+      effectiveRuntimeMs < runtimeMs && retainsReplayCastLockout(action.skill, effectiveRuntimeMs)
+        ? runtimeMs
+        : effectiveRuntimeMs;
+    // A mechanic can occupy a recorded interval while its entry command still uses the instant lane.
+    const runtimeInstant = action.skill?.castTimeMs === 0;
+    const projectedStart: number =
+      command.concurrentOffsetMs != null
+        ? Math.max(projectedTime, (projectedPreviousCastStart ?? origin) + command.concurrentOffsetMs)
+        : independent
+          ? Math.max(projectedTime, projectedIndependentReadyAt)
+          : runtimeInstant
+            ? Math.max(projectedTime, projectedInstantReadyAt)
+            : Math.max(projectedTime, projectedBlockingEnd);
+    projectedTime = projectedStart;
+    projectedReservedEnd = Math.max(projectedReservedEnd, projectedStart + retainedRuntimeMs);
 
-      if (!overlappingCompanion) {
-        projectedWaitJoinEnd = Math.max(projectedWaitJoinEnd, projectedStart + retainedRuntimeMs);
-      }
-
-      if (independent) {
-        // Companion boons can differ from the player's. Avoid joining this lane until even its unaccelerated
-        // reservation is behind the player; relative player offsets work for either companion duration.
-        // Only companions that hold Waits need this guard.
-        if (!overlappingCompanion) {
-          projectedCompanionEnd = Math.max(
-            projectedCompanionEnd,
-            projectedStart + quantizeGw2ActionDurationUp(Math.max(retainedRuntimeMs, action.skill?.castTimeMs ?? 0))
-          );
-        }
-
-        if (action.skill?.independentCastCanOverlap !== true) {
-          projectedIndependentReadyAt = Math.max(projectedIndependentReadyAt, projectedStart + retainedRuntimeMs);
-        }
-      } else {
-        projectedPreviousCastStart = projectedStart;
-        projectedInstantReadyAt = Math.max(projectedInstantReadyAt, projectedStart + effectiveRuntimeMs);
-        projectedBlockingEnd = Math.max(projectedBlockingEnd, projectedStart + retainedRuntimeMs);
-      }
+    if (!overlappingCompanion) {
+      projectedWaitJoinEnd = Math.max(projectedWaitJoinEnd, projectedStart + retainedRuntimeMs);
     }
 
+    if (independent) {
+      // Companion boons can differ from the player's. Avoid joining this lane until even its unaccelerated
+      // reservation is behind the player; relative player offsets work for either companion duration.
+      // Only companions that hold Waits need this guard.
+      if (!overlappingCompanion) {
+        projectedCompanionEnd = Math.max(
+          projectedCompanionEnd,
+          projectedStart + quantizeGw2ActionDurationUp(Math.max(retainedRuntimeMs, action.skill?.castTimeMs ?? 0))
+        );
+      }
+
+      if (action.skill?.independentCastCanOverlap !== true) {
+        projectedIndependentReadyAt = Math.max(projectedIndependentReadyAt, projectedStart + retainedRuntimeMs);
+      }
+    } else {
+      projectedPreviousCastStart = projectedStart;
+      projectedInstantReadyAt = Math.max(projectedInstantReadyAt, projectedStart + effectiveRuntimeMs);
+      projectedBlockingEnd = Math.max(projectedBlockingEnd, projectedStart + retainedRuntimeMs);
+    }
     const aftercastWaitMs = observedAftercastWaitMs(action, actionReplayEnd);
 
     if (!concurrent && policy.hasObservedCastTime?.(action) !== false && aftercastWaitMs > 0) {
-      pendingAftercast = {
-        until: actionReplayEnd,
-        progressedTo: actionReplayEnd - aftercastWaitMs
-      };
+      pendingAftercastUntil = actionReplayEnd;
     }
 
     if (independent) {
