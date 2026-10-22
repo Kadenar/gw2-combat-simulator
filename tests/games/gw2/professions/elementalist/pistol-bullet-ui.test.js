@@ -31,9 +31,6 @@ function createPistolApp() {
     profession: elementalistProfession,
     // Match application initialization so palette availability can resolve catalog-owned skills.
     activeCatalog: elementalistCatalog,
-    skills: elementalistCatalog.skills,
-    skillByName: elementalistCatalog.skillsByName,
-    skillById: elementalistCatalog.skillsById,
     weaponData: elementalistAppAdapter.weaponData,
     results: {
       planningState: {

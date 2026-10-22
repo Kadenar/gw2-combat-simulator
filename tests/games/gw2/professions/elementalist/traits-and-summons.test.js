@@ -758,9 +758,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
-    skills: elementalistCatalog.skills,
-    skillByName: elementalistCatalog.skillsByName,
-    skillById: elementalistCatalog.skillsById,
+    activeCatalog: elementalistCatalog,
     weaponData: elementalistAppAdapter.weaponData,
     results: armedResult
   };

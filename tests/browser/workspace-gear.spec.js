@@ -77,6 +77,8 @@ test('skill strip above traits replaces equipped skills without queuing casts', 
   await expect(page.locator('#skill-bar [data-key="Heal"] .sbar-dropdown.open')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('#skill-bar .sbar-dropdown.open')).toHaveCount(0);
+  // Slot edits refresh the simulation asynchronously; palette clicks are accepted only after it catches up.
+  await expect(page.locator('#rotation-palette')).toHaveAttribute('data-palette-pending', 'false');
   const paletteHeal = page.locator('.utility-palette-group .pal-skill').first();
   await paletteHeal.click({ button: 'right' });
   await expect(page.locator('.rotation-skill-picker')).toHaveCount(0);
@@ -100,7 +102,10 @@ test('utility selections swap slots and restore focus', async ({ page }) => {
     ['Utility2', 'Utility2']
   ]) {
     const slot = page.locator(`#skill-bar [data-key="${destination}"]`);
-    const label = await page.evaluate((id) => window.professionApp.skillById.get(id).name, selected[source]);
+    const label = await page.evaluate(
+      (id) => window.professionApp.activeCatalog.skillsById.get(id).name,
+      selected[source]
+    );
     await slot.locator('.sbar-icon').click();
     await slot.getByRole('button', { name: label, exact: true }).click();
     [selected[destination], selected[source]] = [selected[source], selected[destination]];

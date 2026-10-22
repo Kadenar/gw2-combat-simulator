@@ -35,8 +35,7 @@ export function createNativeApp({ lines, rotation = [], ...extras }) {
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
-    skillByName: elementalistCatalog.skillsByName,
-    skillById: elementalistCatalog.skillsById,
+    activeCatalog: elementalistCatalog,
     attributeWeaponSet: 1
   };
 

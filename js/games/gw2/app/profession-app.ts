@@ -63,9 +63,6 @@ export class ProfessionApp implements ProfessionAppState {
   patchComparison: ProfessionAppState['patchComparison'];
   build: Gw2CanonicalBuild;
   simulationSettings: SimulationSettings;
-  skills: ProfessionAppState['skills'];
-  skillByName: ProfessionAppState['skillByName'];
-  skillById: ProfessionAppState['skillById'];
   readonly weaponData: ProfessionAppState['weaponData'];
   readonly relicNames: ProfessionAppState['relicNames'];
   readonly specializations: ProfessionAppState['specializations'];
@@ -114,9 +111,6 @@ export class ProfessionApp implements ProfessionAppState {
     this.patchComparison = null;
     this.build = activeTab.build;
     this.simulationSettings = loadSimulationSettings();
-    this.skills = [...this.activeCatalog.skills];
-    this.skillByName = this.activeCatalog.skillsByName;
-    this.skillById = this.activeCatalog.skillsById;
     this.weaponData = adapter.weaponData;
     this.relicNames = adapter.relicNames || SHARED_RELIC_NAMES;
     this.specializations = adapter.specializations;
@@ -419,9 +413,6 @@ export class ProfessionApp implements ProfessionAppState {
     this.build = tab.build;
     this.patchId = tab.patchId;
     this.activeCatalog = this.profession.catalogFor?.(this.patchId) || this.profession.catalog;
-    this.skills = [...this.activeCatalog.skills];
-    this.skillByName = this.activeCatalog.skillsByName;
-    this.skillById = this.activeCatalog.skillsById;
     Object.assign(this, tab.session);
 
     // A cached tab must match the session's capture setting before its result can be reused.
@@ -568,9 +559,6 @@ export class ProfessionApp implements ProfessionAppState {
     swapSelectedSkillsForPatch(this, catalog);
     this.patchId = patchId;
     this.activeCatalog = catalog;
-    this.skills = [...catalog.skills];
-    this.skillByName = catalog.skillsByName;
-    this.skillById = catalog.skillsById;
     this.changed();
   }
 

@@ -32,7 +32,7 @@ export function skillBarDisplaySkill(
   let display = selected;
   while (current.flipSkillId != null && !visited.has(Number(current.id))) {
     visited.add(Number(current.id));
-    const flip = app.skillById.get(Number(current.flipSkillId));
+    const flip = app.activeCatalog.skillsById.get(Number(current.flipSkillId));
 
     if (!flip || flip.flipParentId !== current.id) break;
 
@@ -65,7 +65,7 @@ function selectionOptionsHtml(app: ProfessionAppState, options: readonly Profess
     const entries = sections.get(name) || [];
     entries.push(`<button type="button" class="dd-item" data-selection-value="${esc(option.value)}"${
       option.skillId == null ? '' : ` data-skill-id="${esc(option.skillId)}"`
-    } ${option.skillId != null && app.skillById.has(Number(option.skillId)) ? skillTooltipAttributes(app.skillById.get(Number(option.skillId))!, app.adapter.skillTooltip(app.skillById.get(Number(option.skillId))!, app.patchId, app.build)) : wikiTooltipAttributes(option.label, option.description, option.wikiPage)}>
+    } ${option.skillId != null && app.activeCatalog.skillsById.has(Number(option.skillId)) ? skillTooltipAttributes(app.activeCatalog.skillsById.get(Number(option.skillId))!, app.adapter.skillTooltip(app.activeCatalog.skillsById.get(Number(option.skillId))!, app.patchId, app.build)) : wikiTooltipAttributes(option.label, option.description, option.wikiPage)}>
         <img src="${esc(option.icon || '')}" alt="">
         <span>${esc(option.label)}</span>
         ${selectionWarningHtml(option.warning)}
@@ -87,7 +87,7 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
   const selectionSlots = (group.selections || [])
     .map((selection) => {
       const optionSkills = (selection.optionSkillIds || [])
-        .map((id) => app.skillById.get(id))
+        .map((id) => app.activeCatalog.skillsById.get(id))
         .filter((skill) => skill != null);
       const options: readonly ProfessionSkillBarSelectionOption[] = selection.optionEntries?.length
         ? selection.optionEntries
@@ -100,7 +100,7 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
       const selectedEntry = selection.optionEntries?.find(
         (entry) => String(entry.value) === String(selection.selectionValue)
       );
-      const selectedSkill = app.skillById.get(Number(selection.skillId));
+      const selectedSkill = app.activeCatalog.skillsById.get(Number(selection.skillId));
       const display = selectedEntry
         ? {
             name: selectedEntry.label,
@@ -181,7 +181,7 @@ export function renderSkills(app: ProfessionAppState): void {
   // Compact icon buttons edit equipped slots above traits without adding rotation casts.
   const selectedSkillBarHtml = slots
     .map(([key, type]) => {
-      const current = app.skillById.get(app.build.selectedSkillIds[key]!);
+      const current = app.activeCatalog.skillsById.get(app.build.selectedSkillIds[key]!);
       const display = skillBarDisplaySkill(app, current);
       return `<div class="skill-bar-slot ${type === 'Elite' ? 'elite-border' : ''}" data-key="${key}">
                 <button type="button" class="sbar-icon" aria-label="Change ${key.replace(/(\d)$/, ' $1').toLowerCase()} skill" ${display ? skillTooltipAttributes(display, app.adapter.skillTooltip(display, app.patchId, app.build)) : ''}><img src="${esc(display?.icon || '')}" alt=""><span class="sbar-icon-arrow" aria-hidden="true">▼</span></button>
@@ -224,7 +224,7 @@ export function renderSkills(app: ProfessionAppState): void {
         // JSON preserves string and numeric catalog IDs across DOM serialization.
         const id = JSON.parse(value);
 
-        if (!app.skillById.has(id)) return;
+        if (!app.activeCatalog.skillsById.has(id)) return;
 
         // Swap an already-equipped skill into this slot without duplicating it or losing the previous pick.
         const conflict = Object.keys(app.build.selectedSkillIds).find(

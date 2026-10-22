@@ -254,7 +254,7 @@ export function resolveProcIcon(app: ProfessionAppState, proc: Gw2ProcStep): str
   const traits = app.attributeData?.activeTraits || [];
   const traitIcon = proc.type === 'trait_proc' ? traits.find((trait) => trait.name === proc.skill)?.icon : '';
   const relicIcon = proc.type === 'relic_proc' ? resolveRelicIcon(proc.skill) : '';
-  const procSkillIcon = app.skillByName.get(proc.skill)?.icon;
-  const sourceIcon = app.skillByName.get(proc.sourceSkill)?.icon;
+  const procSkillIcon = app.activeCatalog.skillsByName.get(proc.skill)?.icon;
+  const sourceIcon = app.activeCatalog.skillsByName.get(proc.sourceSkill)?.icon;
   return String(proc.icon || traitIcon || relicIcon || procSkillIcon || sourceIcon || '');
 }

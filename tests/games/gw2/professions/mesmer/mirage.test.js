@@ -128,8 +128,7 @@ test('Mirage Cloak enables an explicit ambush instead of auto-casting it', () =>
   );
   const paletteApp = {
     build: { rotation: [], weapons: ['Axe', 'Pistol'], alternateWeapons: ['', ''], startingWeaponSet: 1 },
-    skills: mesmerCatalog.skills,
-    skillById: mesmerCatalog.skillsById,
+    activeCatalog: mesmerCatalog,
     profession: mesmerProfession,
     results: cloakOnly
   };

@@ -1330,9 +1330,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   let changeCount = 0;
   const app = {
     profession: revenantProfession,
-    skills: revenantCatalog.skills,
-    skillById: revenantCatalog.skillsById,
-    skillByName: revenantCatalog.skillsByName,
+    activeCatalog: revenantCatalog,
     results: {
       planningState: {
         activeWeaponSet: 1,
@@ -1464,7 +1462,7 @@ test('Vindicator legend skills preserve the Greatsword autoattack chain', () => 
 test('Imperial Guard exposes True Strike after cancellation or completion', () => {
   const paletteApp = {
     profession: revenantProfession,
-    skills: revenantCatalog.skills,
+    activeCatalog: revenantCatalog,
     build: {
       weapons: ['Greatsword', ''],
       alternateWeapons: ['Sword', 'Sword']
@@ -1523,7 +1521,6 @@ test('Deathstrike weapon palette keeps the primary skill identity on cooldown', 
   const app = {
     profession: revenantProfession,
     activeCatalog: revenantCatalog,
-    skills: revenantCatalog.skills,
     results: {
       planningState: {
         atSeconds: 0.72,

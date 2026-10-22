@@ -41,7 +41,7 @@ test('Binding Blade flips back when its ten-second tether expires', () => {
     const result = createObservedProfessionSimulator(guardianProfession, settings)(undefined, rotation);
     assert.deepEqual(result.warnings, []);
     const tiles = displayedSkillTiles(
-      { skills: guardianCatalog.skills, profession: guardianProfession, results: result },
+      { activeCatalog: guardianCatalog, profession: guardianProfession, results: result },
       [parent]
     );
     assert.deepEqual(

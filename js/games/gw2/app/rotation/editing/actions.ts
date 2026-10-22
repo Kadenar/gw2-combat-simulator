@@ -19,10 +19,10 @@ export function resolveEntrySkill(
   const identity = 'type' in item ? item.skillId : (item.skillId ?? item.name);
   const skillId = identity == null ? null : Number(identity);
 
-  if (skillId !== null && Number.isFinite(skillId)) return app.skillById.get(skillId);
+  if (skillId !== null && Number.isFinite(skillId)) return app.activeCatalog.skillsById.get(skillId);
 
   const name = String(identity);
-  const skill = app.skillByName.get(name);
+  const skill = app.activeCatalog.skillsByName.get(name);
 
   if (skill?.type !== 'Weapon') return skill;
 

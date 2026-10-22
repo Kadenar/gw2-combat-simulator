@@ -396,8 +396,7 @@ test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
 
 test('Guardian weapon and Radiant Forge flips occupy one live palette tile', () => {
   const app = {
-    skills: guardianCatalog.skills,
-    skillById: guardianCatalog.skillsById,
+    activeCatalog: guardianCatalog,
     profession: guardianProfession,
     results: null
   };

@@ -45,8 +45,7 @@ test('audited weapon flip families project one live palette identity', () => {
     const parent = catalogSkill(catalog, parentIdentity);
     const child = catalogSkill(catalog, childIdentity);
     const app = {
-      skills: catalog.skills,
-      skillById: catalog.skillsById,
+      activeCatalog: catalog,
       profession: { catalog },
       results: {
         planningState: {

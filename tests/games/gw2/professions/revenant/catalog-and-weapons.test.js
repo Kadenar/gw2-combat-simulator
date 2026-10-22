@@ -78,7 +78,7 @@ test('modifier contribution candidates include every active Revenant trait', () 
     build,
     attributeData: calculateRevenantAttributes(build, []),
     attributeWeaponSet: 1,
-    skillByName: revenantCatalog.skillsByName
+    activeCatalog: revenantCatalog
   };
   const activeTraitNames = app.attributeData.activeTraits.map((trait) => trait.name).sort();
   const candidateNames = revenantAppAdapter
@@ -565,7 +565,7 @@ test('legend palette shows only the destination legend with the shared swap cool
     profession: revenantProfession,
     adapter: { slotLoadout: revenantLegendLoadout },
     build: context.build,
-    skillByName: revenantCatalog.skillsByName
+    activeCatalog: revenantCatalog
   };
 
   assert.deepEqual(rotationSelectedSlotSkills(rotationApp), []);
@@ -584,9 +584,6 @@ test('legend palette shows only the destination legend with the shared swap cool
     adapter,
     profession: revenantProfession,
     activeCatalog: revenantCatalog,
-    skills: revenantCatalog.skills,
-    skillById: revenantCatalog.skillsById,
-    skillByName: revenantCatalog.skillsByName,
     weaponData: adapter.weaponData,
     results: simulate('Core', build.rotation)
   };
@@ -631,9 +628,6 @@ test('Revenant utilities and Conduit resources render by their related skills', 
     adapter,
     profession: revenantProfession,
     activeCatalog: revenantCatalog,
-    skills: revenantCatalog.skills,
-    skillById: revenantCatalog.skillsById,
-    skillByName: revenantCatalog.skillsByName,
     weaponData: adapter.weaponData,
     results: null
   };
@@ -723,8 +717,6 @@ test('Revenant scepter follow-ups replace and restore weapon slots 2 and 3', () 
   const app = {
     patchId: 'current',
     activeCatalog: revenantCatalog,
-    skills: revenantCatalog.skills,
-    skillById: revenantCatalog.skillsById,
     profession: revenantProfession,
     results: null
   };
@@ -871,7 +863,6 @@ test('Abyssal Strike repeats without exposing a separate second-swing palette ti
   const paletteApp = {
     profession: revenantProfession,
     activeCatalog: revenantCatalog,
-    skills: revenantCatalog.skills,
     build: {
       weapons: ['Spear', ''],
       alternateWeapons: ['Sword', 'Sword']

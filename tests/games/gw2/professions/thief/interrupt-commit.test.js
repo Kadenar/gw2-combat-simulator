@@ -31,7 +31,7 @@ test('preparations flip while arming, use Alacrity, and restore placement after 
         displayedSkillTiles(
           {
             profession: thiefProfession,
-            skills: thiefCatalog.skills,
+            activeCatalog: thiefCatalog,
             build: { rotation: [] },
             results: result
           },

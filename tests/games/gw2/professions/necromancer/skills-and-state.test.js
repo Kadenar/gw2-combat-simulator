@@ -408,7 +408,7 @@ test('Reaper greatsword chain is ordered and Chilling Scythe recharges Gravedigg
   const adapter = await loadProfessionAppAdapter('necromancer');
   const skills = weaponSkills({
     adapter,
-    skills: necromancerCatalog.skills,
+    activeCatalog: necromancerCatalog,
     build: {
       specialization: 'Reaper',
       weapons: ['Greatsword', ''],

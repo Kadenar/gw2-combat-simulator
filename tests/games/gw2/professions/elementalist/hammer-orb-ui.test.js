@@ -22,9 +22,6 @@ function createHammerApp(hammerOrbs, time = 0) {
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     activeCatalog: elementalistProfession.catalog,
-    skills: elementalistCatalog.skills,
-    skillByName: elementalistCatalog.skillsByName,
-    skillById: elementalistCatalog.skillsById,
     weaponData: elementalistAppAdapter.weaponData,
     results: {
       planningState: {

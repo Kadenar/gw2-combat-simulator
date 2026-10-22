@@ -255,7 +255,7 @@ function slotSkills(app: ProfessionAppState): { skill: Skill; status: SkillDamag
         bar.skillIds.flatMap((id) => [id, ...(app.adapter.slotLoadout!.skillChildren?.(context, id) ?? [])])
       );
     return [...new Set(ids)].flatMap((id) => {
-      const skill = app.skillById.get(id);
+      const skill = app.activeCatalog.skillsById.get(id);
       return skill ? [{ skill, status: 'equipped' as const }] : [];
     });
   }
@@ -272,7 +272,7 @@ function slotSkills(app: ProfessionAppState): { skill: Skill; status: SkillDamag
   for (const row of rows.values()) {
     if (row.skill.flipSkillId == null) continue;
 
-    const child = app.skillById.get(Number(row.skill.flipSkillId));
+    const child = app.activeCatalog.skillsById.get(Number(row.skill.flipSkillId));
 
     if (child && !rows.has(child.id)) rows.set(child.id, { skill: child, status: row.status });
   }
@@ -308,7 +308,7 @@ function mechanicGroups(
       id: group.id,
       title: group.title,
       skills: group.skillIds.flatMap((id) => {
-        const skill = app.skillById.get(id);
+        const skill = app.activeCatalog.skillsById.get(id);
 
         if (!skill || seen.has(skill.id) || (skill.type === 'Action' && !group.includeActionSkills)) return [];
 
@@ -354,7 +354,7 @@ function chainPredecessors(app: ProfessionAppState, skill: Skill): Skill[] {
     return [...positions.entries()]
       .filter(([, candidate]) => candidate.root === position.root && candidate.index < position.index)
       .sort(([, left], [, right]) => left.index - right.index)
-      .map(([id]) => app.skillById.get(id)!)
+      .map(([id]) => app.activeCatalog.skillsById.get(id)!)
       .filter(Boolean);
 
   const chain: Skill[] = [];
@@ -363,8 +363,10 @@ function chainPredecessors(app: ProfessionAppState, skill: Skill): Skill[] {
     const currentId: SkillId = current.id;
     const parent: Skill | undefined =
       current.flipParentId != null
-        ? app.skillById.get(Number(current.flipParentId))
-        : app.skills.find((candidate) => candidate.flipSkillId === currentId || candidate.nextChainId === currentId);
+        ? app.activeCatalog.skillsById.get(Number(current.flipParentId))
+        : app.activeCatalog.skills.find(
+            (candidate) => candidate.flipSkillId === currentId || candidate.nextChainId === currentId
+          );
 
     if (!parent || chain.includes(parent)) break;
 
@@ -392,7 +394,7 @@ function chainContext(app: ProfessionAppState, skill: Skill): string {
   let length = before.length + 1;
   let next = skill.nextChainId ?? skill.flipSkillId;
   for (let depth = 0; next != null && depth < 8; depth += 1) {
-    const following = app.skillById.get(Number(next));
+    const following = app.activeCatalog.skillsById.get(Number(next));
 
     if (!following || seen.has(following.id) || chainStep(following) === 1) break;
 
@@ -533,7 +535,9 @@ export function createSkillDamagePlan(
   }
 
   // Reuse the profession's action palette, including damage owned by dodge and swap actions.
-  const actions = paletteActionSkills(buildStart(app)).filter((skill) => app.skillById.has(Number(skill.id)));
+  const actions = paletteActionSkills(buildStart(app)).filter((skill) =>
+    app.activeCatalog.skillsById.has(Number(skill.id))
+  );
   const actionGroup = { id: 'action', title: 'Actions', kind: 'action' as const };
   const actionIds = actions
     .filter((skill) => ![...rows.values()].some((row) => row.skillId === skill.id))

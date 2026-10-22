@@ -42,9 +42,7 @@ async function signetApp(name) {
     adapter,
     patchId: 'current',
     attributeWeaponSet: 1,
-    skills: catalog.skills,
-    skillById: catalog.skillsById,
-    skillByName: catalog.skillsByName,
+    activeCatalog: catalog,
     build: {
       ...createDefaultBuild(adapter),
       specializations: [],
@@ -115,7 +113,7 @@ for (const [name, entries] of Object.entries(signets)) {
     assert.equal(comparisons.length, entries.length);
     const baseline = stats(app.adapter.profession, request.baseConfig);
     for (const [label, attribute] of entries) {
-      const skill = app.skillByName.get(label);
+      const skill = app.activeCatalog.skillsByName.get(label);
       const comparison = comparisons.find(({ modifier }) => modifier.skillId === skill.id);
       assert.ok(comparison, label);
       assert.equal(comparison.modifier.label, label);
@@ -155,7 +153,7 @@ test('signet removal excludes trait-enhanced and recharge-retained attributes', 
     ['guardian', 'Signet of Wrath', 'Perfect Inscriptions', 'conditionDamage', 216]
   ]) {
     const app = await signetApp(name);
-    const skillId = app.skillByName.get(label).id;
+    const skillId = app.activeCatalog.skillsByName.get(label).id;
     const traitId = app.adapter.profession.catalog.traits.find((trait) => trait.name === traitName).id;
     const config = {
       specialization: 'Core',
@@ -177,7 +175,7 @@ for (const [name, label, traitName, buff, attribute, activeBonus] of [
   test(`${name}: whole-signet comparison removes active attributes and activation rewards`, async () => {
     const app = await signetApp(name);
     const family = app.adapter.profession;
-    const skillId = app.skillByName.get(label).id;
+    const skillId = app.activeCatalog.skillsByName.get(label).id;
     const trait = family.catalog.traits.find((trait) => trait.name === traitName);
     const choices = [0, 0, 0];
     choices[trait.tier - 1] = trait.position;
@@ -185,7 +183,7 @@ for (const [name, label, traitName, buff, attribute, activeBonus] of [
     app.build.selectedSkillIds = { Utility1: skillId };
     app.build.initialInitiative = 0;
     app.build.weapons = name === 'thief' ? ['Dagger', 'Dagger'] : ['Axe', 'Axe'];
-    const attack = app.skillByName.get(name === 'thief' ? 'Double Strike' : 'Chop');
+    const attack = app.activeCatalog.skillsByName.get(name === 'thief' ? 'Double Strike' : 'Chop');
     app.build.rotation = [
       { type: 'cast', skillId },
       { type: 'cast', skillId: attack.id },
@@ -242,10 +240,10 @@ for (const [name, label, traitName, buff, attribute, activeBonus] of [
 // Unequipping the signet removes both player and independent pet grants in the real DPS comparison.
 test('Signet of the Wild contribution includes player and pet passive removal', async () => {
   const app = await signetApp('ranger');
-  const skillId = app.skillByName.get('Signet of the Wild').id;
+  const skillId = app.activeCatalog.skillsByName.get('Signet of the Wild').id;
   app.build.weapons = ['Longbow', ''];
   app.build.rotation = [
-    { type: 'cast', skillId: app.skillByName.get('Long Range Shot').id },
+    { type: 'cast', skillId: app.activeCatalog.skillsByName.get('Long Range Shot').id },
     { type: 'wait', durationMs: 1000 }
   ];
   app.attributeData = app.adapter

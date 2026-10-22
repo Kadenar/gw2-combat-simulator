@@ -151,8 +151,7 @@ test('precast autoattack axes survive build loading and initialize a recallable 
     build,
     adapter: thiefAppAdapter,
     profession,
-    skillByName: profession.catalog.skillsByName,
-    skillById: profession.catalog.skillsById,
+    activeCatalog: profession.catalog,
     attributeWeaponSet: 1
   };
   app.attributeData = thiefAppAdapter

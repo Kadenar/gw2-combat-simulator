@@ -108,9 +108,7 @@ test('Weaver current bar exposes a carried autoattack from the previous primary 
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
-    skills: elementalistCatalog.skills,
-    skillByName: elementalistCatalog.skillsByName,
-    skillById: elementalistCatalog.skillsById,
+    activeCatalog: elementalistCatalog,
     weaponData: elementalistAppAdapter.weaponData,
     results: {
       planningState: {

@@ -540,9 +540,6 @@ test('weapon palette rows group Elementalist skills by attunement and slot', () 
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     activeCatalog: elementalistProfession.catalog,
-    skills: elementalistCatalog.skills,
-    skillByName: elementalistCatalog.skillsByName,
-    skillById: elementalistCatalog.skillsById,
     weaponData: elementalistAppAdapter.weaponData
   };
   const rows = weaponPaletteRows(app, 1);
@@ -602,9 +599,6 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     activeCatalog: elementalistProfession.catalog,
-    skills: elementalistCatalog.skills,
-    skillByName: elementalistCatalog.skillsByName,
-    skillById: elementalistCatalog.skillsById,
     weaponData: elementalistAppAdapter.weaponData,
     results: {
       planningState: {
@@ -756,9 +750,6 @@ test('rotation palette exposes each attunement as an action', () => {
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     activeCatalog: elementalistProfession.catalog,
-    skills: elementalistCatalog.skills,
-    skillByName: elementalistCatalog.skillsByName,
-    skillById: elementalistCatalog.skillsById,
     weaponData: elementalistAppAdapter.weaponData,
     results: null
   };
@@ -1082,8 +1073,6 @@ test('core attunements enforce and report their individual recharge', () => {
       adapter: elementalistAppAdapter,
       profession: elementalistProfession,
       activeCatalog: elementalistProfession.catalog,
-      skillById: elementalistCatalog.skillsById,
-      skillByName: elementalistCatalog.skillsByName,
       results: result
     },
     elementalistCatalog.skillsByName.get('Water Attunement')

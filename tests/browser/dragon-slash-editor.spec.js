@@ -18,7 +18,7 @@ test('palette opens Dragon Slash choices while its default command is denied', a
   expect(
     await page.evaluate(() => {
       const app = window.professionApp;
-      const skill = app.skillByName.get('Dragon Slash—Force');
+      const skill = app.activeCatalog.skillsByName.get('Dragon Slash—Force');
       return app.results.planningState.availability[skill.id].ready;
     })
   ).toBe(false);

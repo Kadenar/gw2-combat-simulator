@@ -45,8 +45,7 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
         adapter,
         profession: adapter.profession,
         attributeWeaponSet: 1,
-        skillByName: adapter.profession.catalog.skillsByName,
-        skillById: adapter.profession.catalog.skillsById
+        activeCatalog: adapter.profession.catalog
       };
       app.attributeData = adapter
         .createBuildContext({
@@ -101,9 +100,7 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
       adapter,
       build,
       profession: adapter.profession,
-      skills: adapter.profession.catalog.skills,
-      skillByName: adapter.profession.catalog.skillsByName,
-      skillById: adapter.profession.catalog.skillsById,
+      activeCatalog: adapter.profession.catalog,
       attributeWeaponSet: 1
     };
     for (const set of [1, 2]) {

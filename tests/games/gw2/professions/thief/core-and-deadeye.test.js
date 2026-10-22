@@ -751,9 +751,7 @@ test('stealth replaces weapon skill 1 without a separate palette group', () => {
     build,
     adapter: thiefAppAdapter,
     profession: thiefProfession,
-    skills: thiefCatalog.skills,
-    skillById: thiefCatalog.skillsById,
-    skillByName: thiefCatalog.skillsByName,
+    activeCatalog: thiefCatalog,
     weaponData: thiefAppAdapter.weaponData,
     results: null
   };
@@ -902,9 +900,7 @@ test('Thief weapon chains and follow-ups occupy one live palette tile', () => {
       },
       adapter: thiefAppAdapter,
       profession: thiefProfession,
-      skills: thiefCatalog.skills,
-      skillById: thiefCatalog.skillsById,
-      skillByName: thiefCatalog.skillsByName,
+      activeCatalog: thiefCatalog,
       weaponData: thiefAppAdapter.weaponData,
       results: simulate(specialization, rotation, {
         primaryWeapon: weapons[0],

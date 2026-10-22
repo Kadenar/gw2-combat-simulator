@@ -106,7 +106,7 @@ test('precombat insertion previews preserve Flow and the boundary inside an unfi
       patchId: 'current',
       adapter,
       build,
-      skillByName: adapter.profession.catalog.skillsByName,
+      activeCatalog: adapter.profession.catalog,
       attributeWeaponSet: 1,
       results: null
     };
@@ -147,7 +147,7 @@ test('Ranger prefix simulations keep precast traps armed until the inherited bou
     patchId: 'current',
     adapter,
     build,
-    skillByName: adapter.profession.catalog.skillsByName,
+    activeCatalog: adapter.profession.catalog,
     attributeWeaponSet: 1,
     results: null
   };
@@ -201,7 +201,7 @@ test('native insertion previews project weapon set and cooldown state', async ()
     patchId: 'current',
     adapter,
     build,
-    skillByName: adapter.profession.catalog.skillsByName,
+    activeCatalog: adapter.profession.catalog,
     attributeWeaponSet: 1,
     results: null
   };

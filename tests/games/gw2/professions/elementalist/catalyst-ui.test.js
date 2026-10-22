@@ -127,9 +127,6 @@ test('Elementalist utilities render beside profession controls before weapons', 
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     activeCatalog: elementalistProfession.catalog,
-    skills: elementalistProfession.catalog.skills,
-    skillByName: elementalistProfession.catalog.skillsByName,
-    skillById: elementalistProfession.catalog.skillsById,
     weaponData: elementalistAppAdapter.weaponData,
     results: null
   };

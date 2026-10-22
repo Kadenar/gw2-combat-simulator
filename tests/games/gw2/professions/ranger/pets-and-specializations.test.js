@@ -778,9 +778,7 @@ test('Ranger palette groups the active pet, command, swap, and Dodge endurance',
     build,
     adapter: rangerAppAdapter,
     profession: rangerProfession,
-    skills: rangerCatalog.skills,
-    skillById: rangerCatalog.skillsById,
-    skillByName: rangerCatalog.skillsByName,
+    activeCatalog: rangerCatalog,
     results: simulate('Core', [], {
       selectedPet: 'Carrion Devourer',
       selectedPet2: 'Fanged Iboga',
@@ -1044,7 +1042,7 @@ test('Soulbeast palette swaps between merged skills and the active pet', () => {
   assert.equal(availability(unmerged.planningState, ID.LEAVE_BEASTMODE), false);
 
   const actionApp = {
-    skills: [...rangerCatalog.skills],
+    activeCatalog: rangerCatalog,
     adapter: rangerAppAdapter,
     profession: rangerProfession,
     build: { ...createRangerBuildDefaults(), rotation: [] },
@@ -1257,7 +1255,7 @@ test('Ranger Hammer autoattacks advance their palette chain', () => {
   };
   const app = {
     build,
-    skills: [...rangerCatalog.skills],
+    activeCatalog: rangerCatalog,
     adapter: rangerAppAdapter,
     profession: rangerProfession,
     results: afterStrike
@@ -1307,9 +1305,7 @@ test('Selected unleashed Hammer skills remain castable after Overbearing Smash',
   };
   const app = {
     build,
-    skills: [...rangerCatalog.skills],
-    skillById: rangerCatalog.skillsById,
-    skillByName: rangerCatalog.skillsByName,
+    activeCatalog: rangerCatalog,
     adapter: rangerAppAdapter,
     profession: rangerProfession,
     results: result
@@ -1499,9 +1495,7 @@ test('Untamed ambush skills require the specialization and an active unleash pro
     build,
     adapter: rangerAppAdapter,
     profession: rangerProfession,
-    skills: rangerCatalog.skills,
-    skillById: rangerCatalog.skillsById,
-    skillByName: rangerCatalog.skillsByName,
+    activeCatalog: rangerCatalog,
     weaponData: rangerAppAdapter.weaponData,
     results: null
   };
@@ -1542,9 +1536,7 @@ test('Greatsword Counterattack flips to Counterattack Kick and restores its tile
     build,
     adapter: rangerAppAdapter,
     profession: rangerProfession,
-    skills: rangerCatalog.skills,
-    skillById: rangerCatalog.skillsById,
-    skillByName: rangerCatalog.skillsByName,
+    activeCatalog: rangerCatalog,
     weaponData: rangerAppAdapter.weaponData,
     results: null
   };
@@ -1588,9 +1580,7 @@ test("Panther's Prowl replaces all four Ranger spear stealth-attack slots", () =
     build,
     adapter: rangerAppAdapter,
     profession: rangerProfession,
-    skills: rangerCatalog.skills,
-    skillById: rangerCatalog.skillsById,
-    skillByName: rangerCatalog.skillsByName,
+    activeCatalog: rangerCatalog,
     weaponData: rangerAppAdapter.weaponData,
     results: null
   };

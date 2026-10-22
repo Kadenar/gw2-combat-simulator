@@ -323,9 +323,7 @@ test('rotation palette resolves equipped glyphs to the active attunement', () =>
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
-    skills: elementalistCatalog.skills,
-    skillByName: elementalistCatalog.skillsByName,
-    skillById: elementalistCatalog.skillsById,
+    activeCatalog: elementalistCatalog,
     results: {
       planningState: { availability: {}, profession: { primaryAttunement: 'Air' } }
     }

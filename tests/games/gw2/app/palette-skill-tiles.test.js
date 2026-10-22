@@ -35,9 +35,6 @@ function projectionApp(
     adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => specialization },
     profession: useProfessionUi ? profession : { catalog: profession.catalog, ui: {} },
     activeCatalog: profession.catalog,
-    skills: profession.catalog.skills,
-    skillById: profession.catalog.skillsById,
-    skillByName: profession.catalog.skillsByName,
     results: {
       planningState: {
         availability: {},
@@ -188,7 +185,7 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
       },
       results: simulateGw2({ profession, config: { specialization, ...config }, rotation })
     };
-    const skill = app.skillByName.get(name);
+    const skill = app.activeCatalog.skillsByName.get(name);
     const verdict = app.results.planningState.availability[skill.id];
     assert.equal(verdict.ready, false, name);
     assert.ok(verdict.retryAt > app.results.planningState.atSeconds, name);
@@ -557,9 +554,21 @@ test('stateful transforms select one live tile across professions', async () => 
     const profession = professions.get(professionId);
     // Renamed labels must not change which skill ID occupies a stateful tile.
     const app = projectionApp(profession, { specialization, professionState: state });
-    app.skills = app.skills.map((skill) => ({ ...skill, name: `Renamed ${skill.name}` }));
+    const renamedSkills = app.activeCatalog.skills.map((skill) => ({ ...skill, name: `Renamed ${skill.name}` }));
+    // Keep every lookup consistent while isolating renamed labels from the shared profession catalog.
+    app.activeCatalog = {
+      ...app.activeCatalog,
+      skills: renamedSkills,
+      skillsById: new Map(renamedSkills.map((skill) => [skill.id, skill])),
+      skillsByName: new Map(
+        [...app.activeCatalog.skillsByName.values()].map((skill) => {
+          const renamed = renamedSkills.find((candidate) => candidate.id === skill.id);
+          return [renamed.name, renamed];
+        })
+      )
+    };
     const skills = names.map((name) =>
-      app.skills.find((skill) => skill.id === profession.catalog.skillsByName.get(name).id)
+      app.activeCatalog.skills.find((skill) => skill.id === profession.catalog.skillsByName.get(name).id)
     );
     assert.deepEqual(
       displayedSkillTiles(app, skills).map((skill) => skill.id),

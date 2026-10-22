@@ -13,7 +13,7 @@ test('gear panel adds, removes and restores precast relics', async ({ page }) =>
     app.build.selectedSkillIds.Heal = 10176;
     app.build.selectedSkillIds.Elite = 10245;
     app.build.targetHealth = 0;
-    const cast = (name) => ({ type: 'cast', skillId: app.skillByName.get(name).id });
+    const cast = (name) => ({ type: 'cast', skillId: app.activeCatalog.skillsByName.get(name).id });
     app.build.rotation = [
       cast('Mass Invisibility'),
       cast('Ether Feast'),

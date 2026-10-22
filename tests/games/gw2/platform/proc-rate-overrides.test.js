@@ -178,8 +178,7 @@ test('proc rates round-trip with builds and become detached worker configuration
     build,
     adapter,
     profession: adapter.profession,
-    skillById: adapter.profession.catalog.skillsById,
-    skillByName: adapter.profession.catalog.skillsByName,
+    activeCatalog: adapter.profession.catalog,
     attributeWeaponSet: 1
   };
   app.attributeData = adapter

@@ -35,9 +35,6 @@ function activationApp(skills) {
       }
     },
     activeCatalog: catalog,
-    skills,
-    skillById: catalog.skillsById,
-    skillByName: catalog.skillsByName,
     results: null,
     attributeData: null,
     rotationInsertionIndex: null,

@@ -150,7 +150,8 @@ export function timelineRowsView(
       if (step?.invalid) return undefined;
 
       const skill =
-        (step?.skillId == null ? undefined : app.skillById.get(step.skillId)) ?? resolveEntrySkill(app, item.command);
+        (step?.skillId == null ? undefined : app.activeCatalog.skillsById.get(step.skillId)) ??
+        resolveEntrySkill(app, item.command);
       return app.profession.ui.timelineWeaponLineTransition({
         entry: item.command,
         skill,
@@ -165,7 +166,7 @@ export function timelineRowsView(
     timelineEndMs: Number(results?.rotationEndTime || 0) * 1000,
     hasSecondWeaponSet,
     weaponSwapSkillIds: new Set(
-      app.skills.filter((skill) => skill.inputCategory === 'weapon-swap').map((skill) => skill.id)
+      app.activeCatalog.skills.filter((skill) => skill.inputCategory === 'weapon-swap').map((skill) => skill.id)
     )
   };
   const weaponDurationSegments = results ? weaponSetActiveSegments(resultSteps, weaponDurationOptions) : [];

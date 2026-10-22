@@ -126,7 +126,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
     );
   }).join('');
   const assumptionOptionIcon = (option: ProfessionAssumptionOption): string =>
-    option.icon || app.skillById.get(Number(option.skillId))?.icon || '';
+    option.icon || app.activeCatalog.skillsById.get(Number(option.skillId))?.icon || '';
   const professionAssumptionItem = (control: ProfessionAssumptionControl): string => {
     const value = a[control.key] ?? control.defaultValue;
 

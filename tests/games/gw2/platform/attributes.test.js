@@ -548,7 +548,7 @@ test('modifier contributions compare the active build against each modifier remo
     build,
     attributeData: calcAttributes(build, []),
     attributeWeaponSet: 1,
-    skillByName: new Map()
+    activeCatalog: { skillsByName: new Map() }
   };
   const contributions = mesmerAppAdapter.calculateModifierContributions(
     mesmerAppAdapter.modifierContributionRequest(app)
@@ -574,7 +574,13 @@ test('Accuracy comparisons remove its attribute and one-strike critical chance b
   ];
   const attributeData = calcAttributes(build, []);
   const withoutAccuracy = calcAttributes(build, [], 1, null, 'Accuracy');
-  const app = { patchId: 'current', build, attributeData, attributeWeaponSet: 1, skillByName: new Map() };
+  const app = {
+    patchId: 'current',
+    build,
+    attributeData,
+    attributeWeaponSet: 1,
+    activeCatalog: { skillsByName: new Map() }
+  };
   const request = mesmerAppAdapter.modifierContributionRequest(app);
   const comparison = request.comparisons.find(({ modifier }) => modifier.id === 'Sigil:Accuracy');
   const contribution = mesmerAppAdapter
@@ -601,7 +607,7 @@ test('food comparisons remove both nourishment procs and attribute bonuses', () 
     build,
     attributeData: calcAttributes(build, []),
     attributeWeaponSet: 1,
-    skillByName: new Map()
+    activeCatalog: { skillsByName: new Map() }
   };
   const request = mesmerAppAdapter.modifierContributionRequest(app);
   const comparison = request.comparisons.find(({ modifier }) => modifier.id === `Food:${build.food}`);
@@ -632,7 +638,7 @@ test('interactive simulation leaves contribution passes to the background worker
     build,
     attributeData: calcAttributes(build, []),
     attributeWeaponSet: 1,
-    skillByName: new Map()
+    activeCatalog: { skillsByName: new Map() }
   };
 
   const { result } = mesmerAppAdapter.calculateBaselineSimulation(mesmerAppAdapter.baselineSimulationRequest(app));

@@ -437,8 +437,7 @@ test('RNG analysis is available while detailed Engineer results stay determinist
     build,
     results: null,
     attributeWeaponSet: 1,
-    skillById: engineerProfession.catalog.skillsById,
-    skillByName: engineerProfession.catalog.skillsByName
+    activeCatalog: engineerProfession.catalog
   };
 
   app.attributeData = engineerAppAdapter

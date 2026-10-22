@@ -435,14 +435,12 @@ test('Mesmer module overrides select weapon replacements for loading, editing, a
     const app = {
       adapter: mesmerAppAdapter,
       profession: mesmerProfession,
-      skills: mesmerCatalog.skills,
+      activeCatalog: mesmerCatalog,
       build: {
         ...createMesmerBuildDefaults(),
         specializations: [{ name: specialization, traits: '1-1-1' }],
         weapons: [runtime.catalog.skillsById.get(expectedId).weapon || 'Axe', 'Sword']
-      },
-      skillById: mesmerCatalog.skillsById,
-      skillByName: mesmerCatalog.skillsByName
+      }
     };
     assert.equal(createRotationItem(app, name).skillId, expectedId, `${specialization} editor ${name}`);
 
@@ -461,8 +459,7 @@ test('Mesmer module overrides select weapon replacements for loading, editing, a
     const app = {
       adapter: mesmerAppAdapter,
       profession: mesmerProfession,
-      skills: mesmerCatalog.skills,
-      skillById: mesmerCatalog.skillsById,
+      activeCatalog: mesmerCatalog,
       build: {
         ...createMesmerBuildDefaults(),
         specializations: [{ name: specialization, traits: '1-1-1' }],

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ProfessionApp } from '#gw2/app/profession-app.js';
+import { availableSlotSkills } from '#gw2/app/build/state/skill-selection.js';
+import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import {
   addBuildTab,
@@ -389,6 +391,36 @@ test('My Builds merges with saves made in another browser tab', (t) => {
     JSON.parse(values.get(myBuildsStorageKey(adapter))).builds.map(({ name }) => name),
     ['Other tab', 'This tab again']
   );
+});
+
+// Tab activation changes the catalog used by skill consumers even when both patches share an identity.
+test('switching tabs uses each patch catalog for skill lists and lookups', (t) => {
+  storage(t);
+  const { app, tab } = appFixture();
+  const catalogs = Object.fromEntries(
+    ['current', 'preview'].map((id) => {
+      const skill = { id: 1, name: 'Utility', type: 'Utility', description: id };
+      return [
+        id,
+        { skills: [skill], skillsById: new Map([[skill.id, skill]]), skillsByName: new Map([[skill.name, skill]]) }
+      ];
+    })
+  );
+  app.profession = { ...app.profession, ui: {}, catalog: catalogs.current, catalogFor: (id) => catalogs[id] };
+  app.adapter = { ...app.adapter, profession: app.profession, isSkillAvailable: () => true };
+  app.activeCatalog = catalogs.current;
+  const other = addBuildTab(app, build('preview'), 'Preview', 'preview');
+  for (const [id, patch] of [
+    [other.id, 'preview'],
+    [tab.id, 'current'],
+    [other.id, 'preview']
+  ]) {
+    app.activateBuildTab(id);
+    const skill = catalogs[patch].skills[0];
+    assert.deepEqual(availableSlotSkills(app, 'Utility'), [skill]);
+    assert.equal(resolveEntrySkill(app, { type: 'cast', skillId: 1 }), skill);
+    assert.equal(resolveEntrySkill(app, { name: 'Utility' }), skill);
+  }
 });
 
 test('switching preserves independent rotations, history, templates, comparisons, and cached results', (t) => {

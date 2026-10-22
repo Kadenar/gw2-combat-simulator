@@ -43,13 +43,10 @@ function previewApp(name, traitNames = [], specialization = null) {
     adapter,
     gameId: 'gw2',
     contentId: name,
-    skills: [...adapter.profession.catalog.skills],
     weaponData: adapter.weaponData,
     results: null,
     profession: adapter.profession,
     activeCatalog: adapter.profession.catalog,
-    skillByName: adapter.profession.catalog.skillsByName,
-    skillById: adapter.profession.catalog.skillsById,
     patchId: 'current',
     attributeWeaponSet: 1,
     build: {
@@ -115,7 +112,7 @@ test('Signet of Fury replaces passive Precision with active Precision and Feroci
   for (const specialization of ['Core', 'Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon']) {
     const app = previewApp('warrior', [], specialization === 'Core' ? null : specialization);
     const base = stats(app);
-    const id = app.skills.find((skill) => skill.name === 'Signet of Fury').id;
+    const id = app.activeCatalog.skills.find((skill) => skill.name === 'Signet of Fury').id;
     app.build.selectedSkillIds.Utility1 = id;
     app.attributeData = app.adapter
       .createBuildContext({
@@ -244,7 +241,7 @@ test('Engineer sword damage rows use Holosmith variants only for Holosmith', () 
 // Signet states replace each other in both panels and the actual skill breakdown, without changing the loadout.
 test("Assassin's Signet previews Off, Passive and Active as mutually exclusive Power bonuses", () => {
   const app = previewApp('thief');
-  const signet = app.skills.find((skill) => skill.name === "Assassin's Signet");
+  const signet = app.activeCatalog.skills.find((skill) => skill.name === "Assassin's Signet");
   app.build.weapons = ['Dagger', 'Dagger'];
   app.attributeData = app.adapter
     .createBuildContext({
@@ -418,7 +415,7 @@ for (const [profession, specialization, skillName, key, weapons] of [
     const app = previewApp(profession, [], specialization);
 
     if (skillName) {
-      const skill = app.skills.find((skill) => skill.name === skillName);
+      const skill = app.activeCatalog.skills.find((skill) => skill.name === skillName);
       assert.ok(skill, skillName);
       app.build.selectedSkillIds.Utility1 = skill.id;
     }
@@ -485,7 +482,7 @@ test('Paragon previews motivation tiers and the selected refrain independently',
     close(current['Condition Multiplier'].final - base['Condition Multiplier'].final, condition);
   }
 
-  const refrain = String(app.skills.find((skill) => skill.name === 'Chant of Action').id);
+  const refrain = String(app.activeCatalog.skills.find((skill) => skill.name === 'Chant of Action').id);
   close(stats(app, { refrain })['Strike Multiplier'].final - base['Strike Multiplier'].final, 0.15);
 });
 
@@ -512,7 +509,7 @@ test('Revenant upkeep gives the same outgoing factor to the stat strip and a wea
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const controls = skillDamageControls(app);
-  const upkeep = String(app.skills.find((skill) => skill.name === 'Facet of Strength').id);
+  const upkeep = String(app.activeCatalog.skills.find((skill) => skill.name === 'Facet of Strength').id);
   for (const value of ['null', upkeep]) {
     const values = { ...clearedValues(controls), upkeep: value };
     const { request } = createSkillDamagePlan(app, controls, values);
@@ -531,7 +528,9 @@ test('Revenant upkeep gives the same outgoing factor to the stat strip and a wea
 
 test('Cartridges apply the selected explosion bonus and leave ordinary strikes alone', () => {
   const app = previewApp('warrior', [], 'Bladesworn');
-  app.build.selectedSkillIds.Utility1 = app.skills.find((skill) => skill.name === 'Overcharged Cartridges').id;
+  app.build.selectedSkillIds.Utility1 = app.activeCatalog.skills.find(
+    (skill) => skill.name === 'Overcharged Cartridges'
+  ).id;
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,

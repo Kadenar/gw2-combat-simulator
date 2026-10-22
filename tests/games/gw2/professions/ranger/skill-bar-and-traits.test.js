@@ -407,9 +407,7 @@ describe('Galeshot Cyclone Bow', () => {
       build: galeshotBuild,
       adapter: rangerAppAdapter,
       profession: rangerProfession,
-      skills: rangerCatalog.skills,
-      skillById: rangerCatalog.skillsById,
-      skillByName: rangerCatalog.skillsByName,
+      activeCatalog: rangerCatalog,
       results: charged
     };
     const paletteElement = inertContainer();

@@ -1006,7 +1006,7 @@ test('Corrupted Talent owns the Harbinger shroud-entry life-force gain', () => {
 
 test('modifier candidates include every active Necromancer trait', () => {
   const build = createNecromancerBuildDefaults();
-  const app = { patchId: 'current', build, skillByName: necromancerCatalog.skillsByName, attributeWeaponSet: 1 };
+  const app = { patchId: 'current', build, activeCatalog: necromancerCatalog, attributeWeaponSet: 1 };
 
   app.attributeData = necromancerAppAdapter
     .createBuildContext({

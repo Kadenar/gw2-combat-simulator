@@ -612,7 +612,7 @@ test('Amalgam app config excludes temporary attributes from Evolve', () => {
   const app = {
     patchId: 'current',
     build: toApplicationBuild(canonical),
-    skillByName: engineerCatalog.skillsByName,
+    activeCatalog: engineerCatalog,
     attributeWeaponSet: 1
   };
 
@@ -647,7 +647,7 @@ test('Amalgam food comparisons use the recalculated Evolve attribute pool', () =
   const app = {
     patchId: 'current',
     build: toApplicationBuild(canonical),
-    skillByName: engineerCatalog.skillsByName,
+    activeCatalog: engineerCatalog,
     attributeWeaponSet: 1
   };
 
@@ -704,7 +704,7 @@ test('Amalgam build assumptions map to the canonical runtime configuration', () 
       patchId: 'current',
       adapter: engineerAppAdapter,
       build: toApplicationBuild(canonical),
-      skillByName: engineerCatalog.skillsByName,
+      activeCatalog: engineerCatalog,
       attributeWeaponSet: 1
     };
     app.attributeData = engineerAppAdapter

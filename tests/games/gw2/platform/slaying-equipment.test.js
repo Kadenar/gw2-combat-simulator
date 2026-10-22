@@ -72,8 +72,7 @@ test('slaying selections survive build loading and potion removal comparisons re
     adapter: mesmerAppAdapter,
     profession: mesmerAppAdapter.profession,
     attributeWeaponSet: 1,
-    skillByName: mesmerAppAdapter.profession.catalog.skillsByName,
-    skillById: mesmerAppAdapter.profession.catalog.skillsById
+    activeCatalog: mesmerAppAdapter.profession.catalog
   };
   app.attributeData = mesmerAppAdapter
     .createBuildContext({

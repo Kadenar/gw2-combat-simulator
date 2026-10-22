@@ -142,7 +142,7 @@ export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
   // Equipment enumeration also serves isolated previews, independently of live combat restrictions.
   const [mainHand, offHand] = weaponSet === 2 ? app.build.alternateWeapons : app.build.weapons;
   return uniqueBySpecializedIdentity(
-    app.skills.filter((skill) => {
+    app.activeCatalog.skills.filter((skill) => {
       // Temporary bars and supplemental effects are exposed by profession
       // palette groups, never as skills on an equipped weapon set.
       if (skill.type !== 'Weapon' || !skill.weapon) return false;
@@ -455,7 +455,7 @@ export function displayedSkillTiles(
       ? professionState.availableFlips
       : {};
   const at = Number(planningState?.atSeconds || 0);
-  const catalogSkills = app.skills || app.activeCatalog?.skills || app.profession.catalog.skills || skills;
+  const catalogSkills = app.activeCatalog.skills;
   const skillById = new Map<number, Skill>(catalogSkills.map((skill) => [Number(skill.id), skill]));
   const { familyIdBySkillId, membersByFamilyId } = paletteFlipFamilies(catalogSkills, skillById);
   const autoattackChains =
@@ -657,7 +657,7 @@ export function paletteActionSkills(
 ): Skill[] {
   const professionState = paletteProfessionState(app);
   const actions = uniqueById(
-    app.skills.filter(
+    app.activeCatalog.skills.filter(
       (skill) =>
         skill.type === 'Action' &&
         // Shared actions are simulator-owned records. Positive API/Wiki IDs
@@ -693,7 +693,7 @@ export function rotationSelectedSlotSkills(app: ProfessionAppState): Skill[] {
   if (app.adapter.slotLoadout) return [];
 
   const skills = Object.values(app.build.selectedSkillIds).flatMap((id) => {
-    const skill = id === null ? undefined : app.skillById.get(id);
+    const skill = id === null ? undefined : app.activeCatalog.skillsById.get(id);
     return skill ? [skill] : [];
   });
   return app.profession.ui.paletteSelectedSlotSkills(paletteProjectionContext(app), skills);
@@ -895,11 +895,11 @@ export function projectPalette(app: ProfessionAppState, paletteContext: PaletteC
       const skillIds = group.skillIds || [];
       const skills = [
         ...skillIds.flatMap((id) => {
-          const skill = app.skillById.get(id);
+          const skill = app.activeCatalog.skillsById.get(id);
           return skill && (group.includeActionSkills || skill.type !== 'Action') ? [skill] : [];
         }),
         ...(group.skillEntries || []).flatMap((entry) => {
-          const skill = app.skillById.get(Number(entry.skillId));
+          const skill = app.activeCatalog.skillsById.get(Number(entry.skillId));
           return skill && (group.includeActionSkills || skill.type !== 'Action')
             ? [{ ...skill, ...entry, name: skill.name } as Skill]
             : [];

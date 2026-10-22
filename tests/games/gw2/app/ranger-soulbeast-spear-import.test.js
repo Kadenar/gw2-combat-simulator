@@ -28,8 +28,7 @@ test('Soulbeast spear diagnostic import loads and simulates with the requested e
     build,
     adapter,
     profession: adapter.profession,
-    skillByName: adapter.profession.catalog.skillsByName,
-    skillById: adapter.profession.catalog.skillsById,
+    activeCatalog: adapter.profession.catalog,
     attributeWeaponSet: 1
   };
   app.attributeData = adapter

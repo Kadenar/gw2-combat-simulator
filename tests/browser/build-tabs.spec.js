@@ -18,7 +18,10 @@ test('legacy workspace builds migrate once on startup without losing selected sk
       ...fields,
       schemaVersion: fields.schemaVersion - 1,
       selectedSkills: Object.fromEntries(
-        Object.entries(selectedSkillIds).map(([slot, id]) => [slot, id === null ? '' : app.skillById.get(id).name])
+        Object.entries(selectedSkillIds).map(([slot, id]) => [
+          slot,
+          id === null ? '' : app.activeCatalog.skillsById.get(id).name
+        ])
       )
     };
     localStorage.setItem(

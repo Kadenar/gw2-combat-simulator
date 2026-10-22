@@ -62,14 +62,12 @@ export interface ProfessionAppState
   readonly contentId: string;
   adapter: Gw2AppAdapter;
   profession: ProfessionAppContract;
+  /** All skill lists and lookups follow this catalog when the active patch or workspace tab changes. */
   activeCatalog: Readonly<CanonicalCatalog>;
   patchId: string;
   patchComparison: PatchComparison | null;
   build: Gw2CanonicalBuild;
   simulationSettings?: import('#gw2/app/simulation/settings.js').SimulationSettings;
-  skills: Skill[];
-  skillByName: ReadonlyMap<string, Skill>;
-  skillById: ReadonlyMap<SkillId, Skill>;
   weaponData: Readonly<Record<string, Gw2WeaponDataEntry>>;
   relicNames: readonly string[];
   specializations: CanonicalCatalog['specializations'];

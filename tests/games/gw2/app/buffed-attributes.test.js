@@ -40,8 +40,6 @@ function previewApp(name, traitNames = [], specialization = null) {
     adapter,
     profession: adapter.profession,
     activeCatalog: adapter.profession.catalog,
-    skillByName: adapter.profession.catalog.skillsByName,
-    skillById: adapter.profession.catalog.skillsById,
     patchId: 'current',
     attributeWeaponSet: 1,
     build: {

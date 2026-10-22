@@ -220,8 +220,6 @@ test('template loading resolves duplicate Mesmer skill names before the first si
     profession: mesmerAppAdapter.profession,
     activeCatalog: mesmerAppAdapter.profession.catalog,
     build: mesmerAppAdapter.toApplicationBuild(buildData),
-    skillByName: mesmerAppAdapter.profession.catalog.skillsByName,
-    skillById: mesmerAppAdapter.profession.catalog.skillsById,
     attributeWeaponSet: 1,
     results: null,
     patchId: 'current'
@@ -289,8 +287,6 @@ test('Engineer rotation-only template loading resolves morph slots before simula
     profession: adapter.profession,
     activeCatalog: adapter.profession.catalog,
     build,
-    skillByName: adapter.profession.catalog.skillsByName,
-    skillById: adapter.profession.catalog.skillsById,
     attributeWeaponSet: 1,
     results: null,
     patchId: 'current'

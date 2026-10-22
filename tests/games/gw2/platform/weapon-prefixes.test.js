@@ -132,8 +132,7 @@ test('runtime stats follow chronological weapon-set swaps', () => {
     build,
     profession: mesmerProfession,
     results: null,
-    skillById: mesmerProfession.catalog.skillsById,
-    skillByName: mesmerProfession.catalog.skillsByName
+    activeCatalog: mesmerProfession.catalog
   };
   const config = mesmerAppAdapter
     .createBuildContext({

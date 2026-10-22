@@ -21,9 +21,8 @@ const catalog = {
 // UI choices group only explicitly authored variants, never unrelated skills sharing a label.
 test('slot choices retain duplicate labels and group authored loadout variants', () => {
   const app = {
-    skills: [first, second, { ...first, id: 3, paletteTileId: first.id }],
     build: {},
-    activeCatalog: catalog,
+    activeCatalog: { ...catalog, skills: [first, second, { ...first, id: 3, paletteTileId: first.id }] },
     profession: { ui: {} },
     adapter: { eliteSpecialization: () => 'Core', isSkillAvailable: () => true }
   };

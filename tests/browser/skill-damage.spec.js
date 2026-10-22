@@ -97,8 +97,10 @@ test('Mechanist sword previews have no missing variants and signet toggles keep 
     app.build.specializations = [{ name: 'Mechanist', traits: '0-0-0' }];
     app.build.weapons = ['Sword', 'Pistol'];
     app.build.alternateWeapons = ['', ''];
-    app.build.selectedSkillIds.Utility1 = app.skills.find((skill) => skill.name === 'Force Signet').id;
-    app.build.selectedSkillIds.Utility2 = app.skills.find((skill) => skill.name === 'Superconducting Signet').id;
+    app.build.selectedSkillIds.Utility1 = app.activeCatalog.skills.find((skill) => skill.name === 'Force Signet').id;
+    app.build.selectedSkillIds.Utility2 = app.activeCatalog.skills.find(
+      (skill) => skill.name === 'Superconducting Signet'
+    ).id;
     app.changed();
   });
   const saved = await page.evaluate(() => JSON.stringify(window.professionApp.build));

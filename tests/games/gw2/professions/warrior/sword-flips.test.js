@@ -19,8 +19,6 @@ function assertDisplayed(result, parentId, childId, expectedId) {
     build: { rotation: [] },
     profession: warriorProfession,
     activeCatalog: catalog,
-    skills: catalog.skills,
-    skillById: catalog.skillsById,
     results: result
   };
   const parent = catalog.skillsById.get(parentId);

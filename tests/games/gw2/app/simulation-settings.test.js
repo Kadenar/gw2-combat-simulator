@@ -55,7 +55,7 @@ test('simulation config snapshots preferences without adding them to imported or
   const app = {
     adapter: mesmerAppAdapter,
     build,
-    skillById: mesmerAppAdapter.profession.catalog.skillsById,
+    activeCatalog: mesmerAppAdapter.profession.catalog,
     simulationSettings: { transitionDelays: normalizeTransitionDelays({ weaponSwapMs: 100 }) }
   };
   const config = mesmerAppAdapter
@@ -123,7 +123,6 @@ function settingsWorkspace(t, initialDelay = 0) {
     adapter,
     profession: adapter.profession,
     activeCatalog: adapter.profession.catalog,
-    skillById: adapter.profession.catalog.skillsById,
     workspace: { tabs: [tab], activeTabId: tab.id },
     build,
     patchId: 'current',

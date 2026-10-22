@@ -605,7 +605,7 @@ test('rotation comparison keeps editable and read-only timelines stacked without
     .toBe(true);
   await page.evaluate(() => {
     const app = window.professionApp;
-    const bladecall = app.skillByName.get('Bladecall');
+    const bladecall = app.activeCatalog.skillsByName.get('Bladecall');
     app.build.rotation = [
       { type: 'cast', skillId: bladecall.id },
       { type: 'wait', durationMs: 1000 }
@@ -662,7 +662,7 @@ test('rotation comparison keeps editable and read-only timelines stacked without
 
   const updatingStatus = await page.evaluate(() => {
     const app = window.professionApp;
-    app.build.rotation.push({ type: 'cast', skillId: app.skillByName.get('Mirror Blade').id });
+    app.build.rotation.push({ type: 'cast', skillId: app.activeCatalog.skillsByName.get('Mirror Blade').id });
     app.changed(false);
     return {
       status: document.querySelector('[data-comparison-status]')?.textContent,

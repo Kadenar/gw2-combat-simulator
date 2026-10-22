@@ -26,7 +26,7 @@ export function isSlotSkillSelectable(
 export function availableSlotSkills(app: ProfessionAppState, type: string): Skill[] {
   const spec = app.adapter.eliteSpecialization(app.build);
   const byLoadoutId = new Map<Skill['id'], Skill>();
-  for (const skill of app.skills) {
+  for (const skill of app.activeCatalog.skills) {
     if (
       skill.type !== type ||
       !isSlotSkillSelectable(app, skill, spec) ||
@@ -104,7 +104,7 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
   for (const [slot, type] of Object.entries(slotTypes)) {
     if (app.build.selectedSkillIds[slot] === null) continue;
 
-    const current = app.skillById.get(app.build.selectedSkillIds[slot]!);
+    const current = app.activeCatalog.skillsById.get(app.build.selectedSkillIds[slot]!);
     const allowed =
       current &&
       !selected.has(current.id) &&
@@ -118,7 +118,7 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
 
     if (!allowed) {
       app.build.selectedSkillIds[slot] =
-        app.skills.find(
+        app.activeCatalog.skills.find(
           (skill) =>
             skill.type === type &&
             !Object.values(app.build.selectedSkillIds).includes(skill.id) &&

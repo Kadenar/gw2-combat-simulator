@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { swapSelectedSkillsForPatch } from '#gw2/app/build/state/skill-selection.js';
+import { availableSlotSkills, swapSelectedSkillsForPatch } from '#gw2/app/build/state/skill-selection.js';
+import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
+import { ProfessionApp } from '#gw2/app/profession-app.js';
 
 const utility = { type: 'Utility', slot: 'Utility', weapon: '' };
 const focus = { type: 'Weapon', slot: 'Weapon_5', weapon: 'Focus' };
@@ -55,4 +57,48 @@ test('patch switching only remaps a unique reciprocal placement swap', () => {
     swapSelectedSkillsForPatch(app, next);
     assert.equal(app.build.selectedSkillIds.Utility2, 1);
   }
+});
+
+// Remap selections against the outgoing catalog before refresh consumers read the incoming patch.
+test('patch selection refreshes skill lists and both lookups from the new catalog', () => {
+  const catalogs = Object.fromEntries(
+    [
+      ['current', live],
+      ['preview', preview]
+    ].map(([id, source]) => {
+      const skills = source.skills.map((skill) => ({ ...skill, name: `Skill ${skill.id}` }));
+      return [
+        id,
+        {
+          skills,
+          skillsById: new Map(skills.map((skill) => [skill.id, skill])),
+          skillsByName: new Map(skills.map((skill) => [skill.name, skill]))
+        }
+      ];
+    })
+  );
+  const refreshed = [];
+  const app = Object.assign(Object.create(ProfessionApp.prototype), {
+    patchId: 'current',
+    activeCatalog: catalogs.current,
+    profession: { catalog: catalogs.current, catalogFor: (id) => catalogs[id], ui: {} },
+    adapter: { eliteSpecialization: () => 'Core', isSkillAvailable: () => true },
+    build: { selectedSkillIds: { Utility1: 1 } },
+    changed() {
+      const selected = this.activeCatalog.skillsById.get(this.build.selectedSkillIds.Utility1);
+      assert.equal(resolveEntrySkill(this, { type: 'cast', skillId: selected.id }), selected);
+      assert.equal(resolveEntrySkill(this, { name: selected.name }), selected);
+      assert.deepEqual(
+        availableSlotSkills(this, 'Utility'),
+        this.activeCatalog.skills.filter((skill) => skill.type === 'Utility')
+      );
+      refreshed.push([this.patchId, selected.id]);
+    }
+  });
+  app.selectPatch('preview');
+  app.selectPatch('current');
+  assert.deepEqual(refreshed, [
+    ['preview', 2],
+    ['current', 1]
+  ]);
 });

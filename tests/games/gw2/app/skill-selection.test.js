@@ -7,8 +7,7 @@ test('utility normalization repairs duplicate and unavailable IDs while preservi
   const skills = [1, 2, 3].map((id) => ({ id, type: 'Utility' }));
   for (const invalid of [1, 999]) {
     const app = {
-      skills,
-      skillById: new Map(skills.map((skill) => [skill.id, skill])),
+      activeCatalog: { skills, skillsById: new Map(skills.map((skill) => [skill.id, skill])) },
       profession: { ui: {} },
       adapter: { eliteSpecialization: () => 'Core', isSkillAvailable: () => true },
       build: { selectedSkillIds: { Heal: null, Utility1: invalid, Utility2: invalid, Utility3: 3, Elite: null } }

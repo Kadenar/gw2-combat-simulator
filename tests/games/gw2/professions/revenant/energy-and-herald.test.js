@@ -201,7 +201,7 @@ test('profession palette deduplicates actions and shows only active Conduit rele
   assert.equal(vindicatorIds.filter((id) => revenantCatalog.skillsById.get(id)?.name === 'Energy Meld').length, 1);
   // Verify the rendered tile, since catalog flip-family expansion can replace an explicitly listed skill.
   const vindicatorTiles = displayedSkillTiles(
-    { profession: revenantProfession, skills: revenantCatalog.skills },
+    { profession: revenantProfession, activeCatalog: revenantCatalog },
     vindicatorIds.map((id) => revenantCatalog.skillsById.get(id)),
     { specialization: 'Vindicator', build: { ...baseConfig, startingLegend: LEGEND.ALLIANCE } }
   );
@@ -254,7 +254,6 @@ test('Soulcleave stays on its parent tile at zero Energy until its release is ar
       const app = {
         profession: revenantProfession,
         activeCatalog: revenantCatalog,
-        skills: revenantCatalog.skills,
         results: { planningState: { availability: {}, profession: professionState, atSeconds: 0 } }
       };
       const context = { specialization: 'Renegade', professionState };

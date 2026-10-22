@@ -16,9 +16,7 @@ function weaverApp(selectedSkillIds = {}) {
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
-    skills: elementalistCatalog.skills,
-    skillByName: elementalistCatalog.skillsByName,
-    skillById: elementalistCatalog.skillsById
+    activeCatalog: elementalistCatalog
   };
 }
 

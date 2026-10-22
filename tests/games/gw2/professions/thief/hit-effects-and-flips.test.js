@@ -48,7 +48,7 @@ test('Fist Flurry flips its equipped tile only after connecting and restores it 
       professionState: result.planningState.profession,
       time: result.rotationEndTime
     };
-    const app = { profession: thiefProfession, skills: thiefCatalog.skills, build: { rotation: [] }, results: result };
+    const app = { profession: thiefProfession, activeCatalog: thiefCatalog, build: { rotation: [] }, results: result };
     assert.equal(displayedSkillTiles(app, [parent], context)[0].id, expected);
     assert.equal(
       Number(

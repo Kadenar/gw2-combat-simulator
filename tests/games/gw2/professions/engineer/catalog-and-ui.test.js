@@ -336,9 +336,6 @@ test('Engineer Tools endurance renders beneath Dodge instead of as a standalone 
     adapter,
     profession: engineerProfession,
     activeCatalog: engineerCatalog,
-    skills: engineerCatalog.skills,
-    skillById: engineerCatalog.skillsById,
-    skillByName: engineerCatalog.skillsByName,
     weaponData: adapter.weaponData,
     results: null
   };
@@ -373,9 +370,6 @@ test('Engineer kits render beneath weapons while Holosmith mechanics stay groupe
     adapter,
     profession: engineerProfession,
     activeCatalog: engineerCatalog,
-    skills: engineerCatalog.skills,
-    skillById: engineerCatalog.skillsById,
-    skillByName: engineerCatalog.skillsByName,
     weaponData: adapter.weaponData,
     results: null
   };

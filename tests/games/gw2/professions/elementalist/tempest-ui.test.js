@@ -86,10 +86,7 @@ function createTempestApp(rotation = [], { tempestTraits = '1-1-2', alacrity = t
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
-    skills: catalog.skills,
     activeCatalog: catalog,
-    skillByName: catalog.skillsByName,
-    skillById: catalog.skillsById,
     weaponData: elementalistAppAdapter.weaponData,
     attributeWeaponSet: 1,
     results: null

@@ -246,11 +246,9 @@ test('Necromancer renders life force above its F-skills', async () => {
     build,
     adapter,
     profession: necromancerProfession,
-    skills: necromancerCatalog.skills,
+
     // Match application initialization so resource-only planning still has a catalog for palette availability.
     activeCatalog: necromancerCatalog,
-    skillById: necromancerCatalog.skillsById,
-    skillByName: necromancerCatalog.skillsByName,
     weaponData: adapter.weaponData,
     results: null
   };
@@ -433,7 +431,7 @@ test('Harbinger can equip torch skills through Weaponmaster Training', async () 
   const adapter = await loadProfessionAppAdapter('necromancer');
   const skills = weaponSkills({
     adapter,
-    skills: necromancerCatalog.skills,
+    activeCatalog: necromancerCatalog,
     build: {
       specialization: 'Harbinger',
       weapons: ['Pistol', 'Torch'],
@@ -462,7 +460,7 @@ test('Harbinger can equip torch skills through Weaponmaster Training', async () 
   const scepterSkills = weaponSkills(
     {
       adapter,
-      skills: necromancerCatalog.skills,
+      activeCatalog: necromancerCatalog,
       build: {
         specialization: 'Harbinger',
         weapons: ['Pistol', 'Torch'],

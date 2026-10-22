@@ -144,7 +144,7 @@ test('Guardian spear illumination is damage-only, works in either set, and reset
       assert.equal(base.status, 'measured');
       const boosted = measurements[1][index];
       assert.equal(boosted.status, 'measured');
-      const name = app.skillById.get(Number(base.id.split(':').at(-1))).name;
+      const name = app.activeCatalog.skillsById.get(Number(base.id.split(':').at(-1))).name;
 
       if (['Helio Rush', 'Gleaming Disc', 'Solar Storm'].includes(name))
         assert.ok(boosted.measurement.total > base.measurement.total, name);
@@ -219,8 +219,8 @@ test('Soulbeast damage attributes and occurrences share merge preparation withou
     const strike = request.occurrences.find((entry) => entry.name === 'Hammer Strike');
     beast = request.occurrences.find(
       (entry) =>
-        app.skillById.get(entry.effect.id)?.beastmodeSkill &&
-        app.skillById.get(entry.effect.id)?.effects?.some((effect) => effect.type === 'strike')
+        app.activeCatalog.skillsById.get(entry.effect.id)?.beastmodeSkill &&
+        app.activeCatalog.skillsById.get(entry.effect.id)?.effects?.some((effect) => effect.type === 'strike')
     );
     assert.ok(strike);
     assert.ok(beast);

@@ -514,7 +514,7 @@ test('Guardian build attributes expose static Zeal and Radiance bonuses', () => 
 
   const app = {
     build,
-    skillByName: guardianCatalog.skillsByName,
+    activeCatalog: guardianCatalog,
     attributeWeaponSet: 1
   };
 

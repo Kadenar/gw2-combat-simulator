@@ -206,7 +206,7 @@ export function dispatchPaletteActivation(
     return;
   }
 
-  const skill = skillId == null ? app.skillByName.get(name) : app.skillById.get(skillId);
+  const skill = skillId == null ? app.activeCatalog.skillsByName.get(name) : app.activeCatalog.skillsById.get(skillId);
 
   if (skill?.dragonSlash) {
     const insertionIndex =

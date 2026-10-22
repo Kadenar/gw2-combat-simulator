@@ -171,7 +171,7 @@ test('restricted palettes expose both sets precombat and only the active set in 
     adapter,
     profession: adapter.profession,
     build,
-    skills: adapter.profession.catalog.skills,
+    activeCatalog: adapter.profession.catalog,
     weaponData: adapter.weaponData,
     results: {
       rotationEndTime: 0,

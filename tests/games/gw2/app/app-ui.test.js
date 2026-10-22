@@ -586,8 +586,7 @@ test('palette additions insert at an armed cursor and advance it', () => {
       ]
     },
     rotationInsertionIndex: 1,
-    skillById: new Map(),
-    skillByName: new Map(),
+    activeCatalog: { skillsById: new Map(), skillsByName: new Map() },
     changed: (...args) => {
       changes.push(args);
     }
@@ -626,7 +625,14 @@ test('Dragon Slash editor choices execute prefix candidates through the applicat
     { type: 'wait', durationMs: 1000 },
     { type: 'combat-start' }
   ];
-  const app = { patchId: 'current', adapter, build, skillByName: skills, attributeWeaponSet: 1, results: null };
+  const app = {
+    patchId: 'current',
+    adapter,
+    build,
+    activeCatalog: { skillsByName: skills },
+    attributeWeaponSet: 1,
+    results: null
+  };
   app.attributeData = adapter
     .createBuildContext({
       build: app.build,
@@ -706,7 +712,10 @@ test('proc visibility remains hidden after its first render', () => {
 
 test('rotation items preserve default interrupts when options contain nullish values', () => {
   const skill = { name: 'Counter', defaultInterruptMs: 120 };
-  const app = { patchId: 'current', skillById: new Map(), skillByName: new Map([[skill.name, skill]]) };
+  const app = {
+    patchId: 'current',
+    activeCatalog: { skillsById: new Map(), skillsByName: new Map([[skill.name, skill]]) }
+  };
 
   assert.deepEqual(createRotationItem(app, skill.name, { interruptAfterMs: undefined }), {
     type: 'cast',
@@ -726,7 +735,7 @@ test('cooldown-reduction procs use a refresh icon and reduction badge', () => {
   const app = {
     patchId: 'current',
     attributeData: { activeTraits: [] },
-    skillByName: new Map([['Abyssal Strike', { icon: sourceIcon }]])
+    activeCatalog: { skillsByName: new Map([['Abyssal Strike', { icon: sourceIcon }]]) }
   };
   const proc = {
     type: 'skill_proc',
@@ -1201,7 +1210,7 @@ test('Mesmer and Guardian palettes show only equipped weapon-set rows', () => {
   const appFor = (profession, build) => ({
     profession,
     build,
-    skills: profession.catalog.skills,
+    activeCatalog: profession.catalog,
     adapter: {
       eliteSpecialization: () => '',
       isSkillAvailable: () => true
@@ -1283,8 +1292,7 @@ test('weapon palette families display one live autoattack or flip skill', () => 
   const app = {
     patchId: 'current',
     build: { rotation: [] },
-    skills,
-    skillById,
+    activeCatalog: { skills, skillsById: skillById },
     profession: { catalog: { skillsById: skillById } },
     results: {
       planningState: {
@@ -1316,8 +1324,7 @@ test('palette flip projection infers catalog children and honors timed expiry', 
   const skillsById = new Map(skills.map((skill) => [skill.id, skill]));
   const app = {
     patchId: 'current',
-    skills,
-    skillById: skillsById,
+    activeCatalog: { skills, skillsById },
     profession: { catalog: { skills, skillsById } },
     results: {
       planningState: {
@@ -1353,8 +1360,7 @@ test('Mesmer weapon flips replace and restore their parent palette tile', () => 
   const app = {
     patchId: 'current',
     build: { rotation: [] },
-    skills: mesmerProfession.catalog.skills,
-    skillById: mesmerProfession.catalog.skillsById,
+    activeCatalog: mesmerProfession.catalog,
     profession: mesmerProfession,
     results: null
   };
@@ -1422,9 +1428,7 @@ test('damage result rows reuse the icons shown for generated procs', () => {
         }
       ]
     },
-    skillById: new Map([[123, { icon: 'gust.png' }]]),
-    skillByName: new Map(),
-    skills: []
+    activeCatalog: { skillsById: new Map([[123, { icon: 'gust.png' }]]), skillsByName: new Map(), skills: [] }
   };
 
   assert.equal(resultSkillIcon(app, { name: 'Sigil of Earth' }), earthIcon);
@@ -1442,11 +1446,13 @@ test('clone attack damage rows use their weapon skill icons', () => {
     patchId: 'current',
     attributeData: { activeTraits: [] },
     results: { procSteps: [] },
-    skillByName: new Map([
-      ['Winds of Chaos', { icon: windsIcon }],
-      ['Ether Bolt', { icon: etherBoltIcon }]
-    ]),
-    skills: []
+    activeCatalog: {
+      skillsByName: new Map([
+        ['Winds of Chaos', { icon: windsIcon }],
+        ['Ether Bolt', { icon: etherBoltIcon }]
+      ]),
+      skills: []
+    }
   };
 
   assert.equal(resultSkillIcon(app, { name: 'Clone: Winds of Chaos' }), windsIcon);
@@ -1462,7 +1468,7 @@ test('Mesmer weapon palette displays only the current autoattack chain step', ()
     patchId: 'current',
     profession: mesmerProfession,
     build,
-    skills: mesmerProfession.catalog.skills,
+    activeCatalog: mesmerProfession.catalog,
     adapter: {
       eliteSpecialization: () => 'Mirage',
       isSkillAvailable: () => true
@@ -1515,7 +1521,7 @@ test('weapon actions stay ordered beside the stacked weapon sets', () => {
   const mesmer = {
     profession: mesmerProfession,
     build: createMesmerBuildDefaults(),
-    skills: mesmerProfession.catalog.skills,
+    activeCatalog: mesmerProfession.catalog,
     adapter: {
       eliteSpecialization: () => 'Mirage',
       isSkillAvailable: () => true
@@ -1524,7 +1530,7 @@ test('weapon actions stay ordered beside the stacked weapon sets', () => {
   const guardian = {
     profession: guardianProfession,
     build: createGuardianBuildDefaults(),
-    skills: guardianProfession.catalog.skills,
+    activeCatalog: guardianProfession.catalog,
     adapter: {
       eliteSpecialization: () => 'Firebrand',
       isSkillAvailable: () => true
@@ -1570,9 +1576,7 @@ test('Engineer swap action changes from precombat equipment swapping to a live k
   const engineer = {
     profession: adapter.profession,
     build: createEngineerBuildDefaults(),
-    skills: adapter.profession.catalog.skills,
-    skillById: adapter.profession.catalog.skillsById,
-    skillByName: adapter.profession.catalog.skillsByName,
+    activeCatalog: adapter.profession.catalog,
     adapter
   };
 
@@ -1580,10 +1584,12 @@ test('Engineer swap action changes from precombat equipment swapping to a live k
     paletteActionSkills(engineer).some((skill) => skill.name === 'Swap Weapons'),
     true
   );
-  const swapWeapons = engineer.skillById.get(-3);
+  const swapWeapons = engineer.activeCatalog.skillsById.get(-3);
 
   assert.equal(
-    engineer.adapter.isSkillAvailable(engineer.skillByName.get('Rifle Burst Grenade'), { specialization: 'Core' }),
+    engineer.adapter.isSkillAvailable(engineer.activeCatalog.skillsByName.get('Rifle Burst Grenade'), {
+      specialization: 'Core'
+    }),
     false
   );
   assert.equal(
@@ -1650,11 +1656,11 @@ test('Engineer swap action changes from precombat equipment swapping to a live k
   };
   assert.equal(
     resultSkillIcon(engineer, { name: 'Orbital Command Strike' }),
-    engineer.skillByName.get('Orbital Command Strike').icon
+    engineer.activeCatalog.skillsByName.get('Orbital Command Strike').icon
   );
   assert.notEqual(
     resultSkillIcon(engineer, { name: 'Orbital Command Strike' }),
-    engineer.skillByName.get('Shrapnel Grenade').icon
+    engineer.activeCatalog.skillsByName.get('Shrapnel Grenade').icon
   );
   assert.equal(
     resolveProcIcon(engineer, {
@@ -1669,13 +1675,13 @@ test('Engineer swap action changes from precombat equipment swapping to a live k
     ['Throw Mine', 'Detonate'],
     ['Healing Turret', 'Detonate Healing Turret']
   ]) {
-    const parent = engineer.skillByName.get(parentName);
-    const flip = engineer.skillByName.get(flipName);
+    const parent = engineer.activeCatalog.skillsByName.get(parentName);
+    const flip = engineer.activeCatalog.skillsByName.get(flipName);
     engineer.results.planningState.profession.availableFlips = { [flip.id]: armSkillFlip({}, 0, 0) };
     assert.equal(displayedSkillTiles(engineer, [parent])[0]?.name, flipName, parentName);
   }
 
-  const grenadeKit = engineer.skillByName.get('Grenade Kit');
+  const grenadeKit = engineer.activeCatalog.skillsByName.get('Grenade Kit');
   engineer.results.planningState.profession.availableFlips = {};
   assert.equal(displayedSkillTiles(engineer, [grenadeKit])[0]?.name, 'Grenade Kit');
 });
@@ -1729,7 +1735,7 @@ test('Firebrand mantra flips replace their selected skill-bar parent', async () 
   const final = skillByName.get('Flame Surge');
   const app = {
     patchId: 'current',
-    skillById,
+    activeCatalog: { skillsById: skillById },
     results: { planningState: { availability: {}, profession: { availableFlips: {} } } }
   };
 
@@ -1755,35 +1761,37 @@ test('shared palettes reject supplemental effects from weapon and action rows', 
       weapons: ['Rifle', ''],
       alternateWeapons: ['', '']
     },
-    skills: [
-      {
-        id: 1,
-        name: 'Rifle Shot',
-        type: 'Weapon',
-        slot: 'Weapon_1',
-        weapon: 'Rifle'
-      },
-      {
-        id: 2,
-        name: 'Temporary Bundle Shot',
-        type: 'Weapon',
-        slot: 'Weapon_1',
-        weapon: ''
-      },
-      {
-        id: 3,
-        name: 'Trait Proc',
-        type: 'Action',
-        slot: 'Action'
-      },
-      {
-        id: -3,
-        inputCategory: 'weapon-swap',
-        name: 'Swap Weapons',
-        type: 'Action',
-        slot: 'Action'
-      }
-    ],
+    activeCatalog: {
+      skills: [
+        {
+          id: 1,
+          name: 'Rifle Shot',
+          type: 'Weapon',
+          slot: 'Weapon_1',
+          weapon: 'Rifle'
+        },
+        {
+          id: 2,
+          name: 'Temporary Bundle Shot',
+          type: 'Weapon',
+          slot: 'Weapon_1',
+          weapon: ''
+        },
+        {
+          id: 3,
+          name: 'Trait Proc',
+          type: 'Action',
+          slot: 'Action'
+        },
+        {
+          id: -3,
+          inputCategory: 'weapon-swap',
+          name: 'Swap Weapons',
+          type: 'Action',
+          slot: 'Action'
+        }
+      ]
+    },
     adapter: {
       eliteSpecialization: () => 'Core',
       isSkillAvailable: () => true
@@ -1827,7 +1835,7 @@ test("weaponmaster palettes keep the active spec's weapon-skill variant", () => 
   const makeApp = (specialization) => ({
     profession: { catalog: { weaponHands: new Map([['Dagger', 'mh']]) } },
     build: { weapons: ['Dagger', ''], alternateWeapons: ['', ''] },
-    skills,
+    activeCatalog: { skills },
     adapter: {
       eliteSpecialization: () => specialization,
       isSkillAvailable: () => true

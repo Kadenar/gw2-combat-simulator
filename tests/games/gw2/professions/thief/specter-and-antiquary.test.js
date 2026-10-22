@@ -861,9 +861,7 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
         },
         adapter: thiefAppAdapter,
         profession: thiefProfession,
-        skills: thiefCatalog.skills,
-        skillById: thiefCatalog.skillsById,
-        skillByName: thiefCatalog.skillsByName,
+        activeCatalog: thiefCatalog,
         weaponData: thiefAppAdapter.weaponData,
         results: {
           planningState: { availability: {}, activeWeaponSet: 1, profession: { spearChainStage: stage } }

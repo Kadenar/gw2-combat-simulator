@@ -97,7 +97,9 @@ export function resultSkillIcon(app: ProfessionAppState, row: ResultIconRow): st
   for (const id of [row.skillId, row.sourceId]) {
     if (id == null) continue;
 
-    const skill = app.skillById?.get(id) || app.skills.find((candidate) => String(candidate.id) === String(id));
+    const skill =
+      app.activeCatalog.skillsById?.get(id) ||
+      app.activeCatalog.skills.find((candidate) => String(candidate.id) === String(id));
 
     if (skill?.icon) return String(skill.icon);
   }
@@ -126,14 +128,14 @@ export function resultSkillIcon(app: ProfessionAppState, row: ResultIconRow): st
   if (relicIcon) return relicIcon;
 
   for (const name of [row.name, row.sourceSkill, row.parentSkill, breakdownName, cloneAttackName]) {
-    const icon = name ? app.skillByName.get(name)?.icon : '';
+    const icon = name ? app.activeCatalog.skillsByName.get(name)?.icon : '';
 
     if (icon) return icon;
   }
 
   if (row.name.endsWith(' Clone')) {
     const weapon = row.name.slice(0, -' Clone'.length);
-    const autoattack = app.skills.find(
+    const autoattack = app.activeCatalog.skills.find(
       (skill) => skill.type === 'Weapon' && skill.weapon === weapon && String(skill.slot).endsWith('1')
     );
 

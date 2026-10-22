@@ -26,12 +26,14 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
   const packetSkill = { id: 2, name: 'Packet Skill', interruptMode: 'per-packet' };
   const buffSkill = { id: 3, name: 'Committed Buff', interruptCommitMs: 1 };
   const app = {
-    skills: [skill, packetSkill, buffSkill],
-    skillById: new Map([
-      [1, skill],
-      [2, packetSkill],
-      [3, buffSkill]
-    ]),
+    activeCatalog: {
+      skills: [skill, packetSkill, buffSkill],
+      skillsById: new Map([
+        [1, skill],
+        [2, packetSkill],
+        [3, buffSkill]
+      ])
+    },
     adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => '' },
     profession: {
       ui: normalizeProfessionUi('fixture', { timelineWeaponLineTransition: () => null })
@@ -112,9 +114,7 @@ test('both Harp variants keep normal timeline styling after starting to play, in
         adapter: { ...adapter, eliteSpecialization: () => 'Troubadour' },
         profession,
         build,
-        skills: profession.catalog.skills,
-        skillById: profession.catalog.skillsById,
-        skillByName: profession.catalog.skillsByName
+        activeCatalog: profession.catalog
       };
       for (const readOnly of [false, true]) {
         const html = timelineRowsView(app, build, results, readOnly, new Set(), false)
@@ -133,11 +133,13 @@ test('timeline labels the executed skill variant while preserving the saved comm
   const base = { id: 76642, name: 'Evolve (Base)' };
   const traited = { id: 76651, name: 'Evolve (Double Helix)' };
   const app = {
-    skills: [base, traited],
-    skillById: new Map([
-      [base.id, base],
-      [traited.id, traited]
-    ]),
+    activeCatalog: {
+      skills: [base, traited],
+      skillsById: new Map([
+        [base.id, base],
+        [traited.id, traited]
+      ])
+    },
     adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => 'Amalgam' },
     profession: {
       ui: normalizeProfessionUi('fixture', { timelineWeaponLineTransition: () => null })
@@ -440,9 +442,7 @@ test('timeline preserves weapon-swap rows after target death in editable and ref
     adapter: { ...adapter, eliteSpecialization: () => 'Core' },
     profession,
     build,
-    skills: profession.catalog.skills,
-    skillById: profession.catalog.skillsById,
-    skillByName: profession.catalog.skillsByName
+    activeCatalog: profession.catalog
   };
   for (const readOnly of [false, true]) {
     const rows = timelineRowsView(app, build, results, readOnly, new Set(), false).rows;
@@ -480,9 +480,7 @@ test('timeline keeps tome and kit transitions on their equipped set and follows 
       adapter: { ...adapter, eliteSpecialization: () => specialization },
       profession,
       build,
-      skills: profession.catalog.skills,
-      skillById: profession.catalog.skillsById,
-      skillByName: profession.catalog.skillsByName
+      activeCatalog: profession.catalog
     };
     const rows = timelineRowsView(app, build, results, false, new Set(), false).rows;
     assert.deepEqual(
