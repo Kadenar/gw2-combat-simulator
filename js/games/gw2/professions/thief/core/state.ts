@@ -5,13 +5,15 @@ import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import {
+  thiefInitiativeRegenerationRate,
+  thiefStartingInitiative
+} from '#gw2/professions/thief/core/mechanics/resources.js';
 import { preparednessInitiativeCapacity } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
-import { boundedInteger, boundedNumber } from '#kernel/core/numeric.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** One engine-owned axe capacity is shared by starting state, live acquisition and preview inputs. */
 export const MAXIMUM_SPINNING_AXES = 6;
@@ -72,18 +74,16 @@ export function createThiefCoreState(
   config: ThiefConfig,
   preparation: { balanceContext: ProfessionBalanceContext }
 ): ThiefCoreState {
-  // Construction reads selected tuning directly, without importing trait definitions or baking a second capacity.
+  // Standalone construction (attribute previews) shares the runtime policy's calculations, so the pool it builds
+  // matches the one simulation initializes from the same selected tuning; nobody kneels before combat.
   const context = { ...preparation.balanceContext, config };
-  const resources = requireBalanceProfileFromContext(context, PROFILE.resources);
   const maximumInitiative = preparednessInitiativeCapacity(context);
   return {
     lastStealthBreakingStrike: null,
     initiative: {
-      ...createResourceClock(
-        boundedNumber(config.initialInitiative, balanceProfileNumber(resources, 'maximumStacks'), 0, maximumInitiative)
-      ),
+      ...createResourceClock(thiefStartingInitiative(config, context, maximumInitiative)),
       maximum: maximumInitiative,
-      rate: balanceProfileNumber(resources, 'resourceGain')
+      rate: thiefInitiativeRegenerationRate({ kneeling: false }, context)
     },
     stealthStartedAt: 0,
     stealthUntil: 0,

@@ -8,6 +8,12 @@ import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/pla
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { refreshRevenantStarvation, revenantUpkeepDrain } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
+import {
+  REVENANT_MAXIMUM_ENERGY,
+  REVENANT_PRECOMBAT_ENERGY_CEILING,
+  revenantBaseEnergyRegeneration,
+  revenantStartingEnergy
+} from '#gw2/professions/revenant/core/resource-values.js';
 import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { enduringRecoveryBonus } from '#gw2/professions/revenant/core/traits/retribution/index.js';
 import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
@@ -20,11 +26,11 @@ function resourceProfile(runtime: RevenantRuntime) {
 export const revenantEnergy: ResourcePolicy<RevenantRuntime> = {
   kind: 'continuous',
   state: (runtime) => runtime.profession.core.energy,
-  maximum: () => 100,
-  initial: (runtime) => (runtime.config as RevenantConfig).initialEnergy ?? 50,
-  recovery: (runtime) =>
-    balanceProfileNumber(resourceProfile(runtime), 'energyRegenerationPerSecond') - revenantUpkeepDrain(runtime),
-  recoveryMaximum: (runtime) => (runtime.profession.core.combatBeganAt == null ? 50 : 100),
+  maximum: () => REVENANT_MAXIMUM_ENERGY,
+  initial: (runtime) => revenantStartingEnergy(runtime.config as RevenantConfig),
+  recovery: (runtime) => revenantBaseEnergyRegeneration(runtime) - revenantUpkeepDrain(runtime),
+  recoveryMaximum: (runtime) =>
+    runtime.profession.core.combatBeganAt == null ? REVENANT_PRECOMBAT_ENERGY_CEILING : REVENANT_MAXIMUM_ENERGY,
   depletion: { refresh: refreshRevenantStarvation, stop: refreshRevenantStarvation }
 };
 

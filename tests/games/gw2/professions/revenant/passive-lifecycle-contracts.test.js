@@ -25,6 +25,8 @@ const heraldPassiveModifierRules = heraldModule.modifiers.modifierRules.filter((
   rule.id.startsWith('revenant.draconic-echo-')
 );
 
+const corePreparation = { balanceContext: { catalog: revenantCatalog, modifierRulesById: new Map() } };
+
 const base = {
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DRAGON],
   startingLegend: LEGEND.ASSASSIN,
@@ -204,7 +206,7 @@ test('Draconic Echo retains bounded facet pulses without upkeep drain, including
 });
 
 test('Draconic Echo bonuses apply to active and retained facets only while selected', () => {
-  const core = createRevenantCoreState(base);
+  const core = createRevenantCoreState(base, corePreparation);
   const state = createHeraldState();
   const context = {
     config: { ...base, selectedTraitIds: [TRAIT.DRACONIC_ECHO] },
@@ -292,7 +294,7 @@ test('Assassin Nature procs only on eligible resolved strikes while its passive 
 
 // The same live attributes feed skills, traits, equipment, and resolver-created combo boons.
 test('Nature changes passive with the active legend without adding Concentration or exceeding 120 percent', () => {
-  const core = createRevenantCoreState(base);
+  const core = createRevenantCoreState(base, corePreparation);
   core.activeUpkeeps = [{ skillId: SKILL.FACET_OF_NATURE, startsAt: 0 }];
   const state = createHeraldState();
   const context = {
