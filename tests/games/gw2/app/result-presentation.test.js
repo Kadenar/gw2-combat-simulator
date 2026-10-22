@@ -261,8 +261,8 @@ test('strike and condition contributions sum to total DPS for full fights and ph
   );
 });
 
-// Only chart preparation reads a relic's expiry; hidden-view creation must not visit that history.
-test('Analysis charts are prepared only when the Analysis view is active', (t) => {
+// Hidden views keep shared output available without reading Analysis data; re-entry prepares fresh projections.
+test('Analysis projections are prepared only when the Analysis view is active', (t) => {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
   t.after(() => {
     if (descriptor) Object.defineProperty(globalThis, 'document', descriptor);
@@ -273,9 +273,29 @@ test('Analysis charts are prepared only when the Analysis view is active', (t) =
     defaultView: { location: { hash: '#analysis' } }
   };
   Object.defineProperty(globalThis, 'document', { configurable: true, value: document });
-  let chartReads = 0;
+  const analysisReads = new Set();
+  const { effectReport, boonGeneration } = effectFields([], 1);
+  const analysisFields = {
+    effectReport,
+    boonGeneration,
+    breakdown: [],
+    conditionBreakdown: [],
+    contributions: [],
+    procSteps: []
+  };
+  const recordAnalysisRead = (name, value) => {
+    analysisReads.add(name);
+
+    return value;
+  };
+
   const app = {
-    profession: { ui: normalizeProfessionUi('fixture') },
+    profession: {
+      ui: normalizeProfessionUi('fixture', {
+        effectPresentations: () => recordAnalysisRead('effectPresentations', []),
+        chartApplications: () => recordAnalysisRead('chartApplications', [])
+      })
+    },
     adapter: { eliteSpecialization: () => 'Core' },
     build: { rotation: [{ type: 'wait', durationMs: 1000 }] },
     results: {
@@ -284,32 +304,46 @@ test('Analysis charts are prepared only when the Analysis view is active', (t) =
       combatEndTime: 1,
       totalDamage: 100,
       dps: 100,
-      inputTrace: { version: 1, start: 0, end: 1, actions: [] },
-      ...effectFields([], 1),
-      get effectReport() {
-        chartReads++;
-        return effectFields([], 1).effectReport;
-      }
+      randomDistributionRequested: true,
+      inputTrace: { version: 1, start: 0, end: 1, actions: [] }
     }
   };
+  for (const [name, value] of Object.entries(analysisFields)) {
+    Object.defineProperty(app.results, name, { get: () => recordAnalysisRead(name, value) });
+  }
+
+  // Profession projection hooks prove Analysis was prepared without pinning which result fields it reads.
+  const assertAnalysisPrepared = () => {
+    assert.ok(analysisReads.has('effectPresentations'));
+    assert.ok(analysisReads.has('chartApplications'));
+  };
+
   for (const view of ['workspace', 'gear-optimizer', 'analysis', 'workspace', 'analysis']) {
     document.body.dataset.simulatorView = view;
-    chartReads = 0;
+    analysisReads.clear();
     const model = createGw2SimulationViewModel(app);
-    assert.equal(chartReads > 0, view === 'analysis');
+
+    if (view === 'analysis') assertAnalysisPrepared();
+    else assert.deepEqual(analysisReads, new Set());
+
+    assert.equal(model.analysis !== null, view === 'analysis');
+    assert.equal(model.headerDps, '100');
     const summary = inertContainer();
     mountSimulationSection(summary, model.summary);
-    assert.match(summary.innerHTML, /Player DPS/);
+    assert.match(summary.innerHTML, /Baseline Player DPS/);
     assert.match(summary.innerHTML, />100</);
     assert.match(summary.innerHTML, /Input activity &middot; 0.00 actions\/s/);
     assert.doesNotMatch(summary.innerHTML, /input-activity-body|input-kb-svg|data-rating|input-meter/);
+    const workspace = inertContainer();
+    mountSimulationSection(workspace, model.workspace);
+    assert.match(workspace.innerHTML, /Randomized DPS range/);
   }
 
-  // A direct #analysis load also prepares charts before navigation sets the body dataset.
+  // A direct #analysis load also prepares projections before navigation sets the body dataset.
   delete document.body.dataset.simulatorView;
-  chartReads = 0;
-  createGw2SimulationViewModel(app);
-  assert.ok(chartReads > 0);
+  analysisReads.clear();
+  assert.ok(createGw2SimulationViewModel(app).analysis);
+  assertAnalysisPrepared();
 });
 
 test('target health breakpoints use cumulative damage and individual condition ticks', () => {

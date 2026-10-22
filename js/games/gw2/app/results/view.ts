@@ -124,32 +124,11 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
     };
   }
 
-  // Resolve only Core plus the active specialization so unrelated profession effects never enter the shared view.
-  const effectPresentations =
-    app.profession?.ui?.effectPresentations?.({
-      result,
-      build: app.build,
-      catalog: app.activeCatalog,
-      profession: app.profession,
-      specialization: app.adapter.eliteSpecialization(app.build)
-    }) || [];
-
-  const chartApplications = analysisViewIsActive()
-    ? app.profession.ui.chartApplications({
-        result,
-        build: app.build,
-        catalog: app.activeCatalog,
-        specialization: app.adapter.eliteSpecialization(app.build)
-      })
-    : [];
-
   const metrics = resultSummaryMetrics(result).map((metric) =>
     result.randomDistributionRequested && metric.label === 'Player DPS'
       ? { ...metric, label: 'Baseline Player DPS' }
       : metric
   );
-  const skillRows = skillBreakdownRows(result);
-  const conditions = result.conditionBreakdown || [];
   const breakpoints = targetHealthBreakpointSnapshots(
     result,
     app.build.targetHealth,
@@ -160,13 +139,42 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
   const summary = { metrics, breakpoints };
   const rng = randomDistributionModel(result);
   const rngOptions = { onRunRandomDistribution: () => app.runRandomDistribution() };
+  const sharedView: SimulationViewModel = {
+    summary: resultSection(
+      (container) => mountResultSummary(container, summary),
+      (container) => mountInputActivity(container, result.inputTrace)
+    ),
+    headerDps: metrics.find((metric) => metric.className === 'dps')?.value,
+    workspace: resultSection((container) => mountRandomDistribution(container, rng, rngOptions)),
+    analysis: null
+  };
+
+  // Navigation rebuilds stale Analysis on entry, so defer its projections while keeping workspace results current.
+  if (!analysisViewIsActive()) return sharedView;
+
+  // Resolve only Core plus the active specialization so unrelated profession effects never enter the Analysis view.
+  const effectPresentations =
+    app.profession?.ui?.effectPresentations?.({
+      result,
+      build: app.build,
+      catalog: app.activeCatalog,
+      profession: app.profession,
+      specialization: app.adapter.eliteSpecialization(app.build)
+    }) || [];
+  const chartApplications = app.profession.ui.chartApplications({
+    result,
+    build: app.build,
+    catalog: app.activeCatalog,
+    specialization: app.adapter.eliteSpecialization(app.build)
+  });
+  const skillRows = skillBreakdownRows(result);
+  const conditions = result.conditionBreakdown || [];
   const modifiers = modifierContributionModel(app);
   const charts: ResultChartsModel = {
-    // Navigation rebuilds stale Analysis views on entry, so hidden charts need no preparation or cache.
-    chartsPending: analysisViewIsActive() && (!result.effectReport || app.resultRevision !== app.buildRevision),
-    chartsError: analysisViewIsActive() && !result.effectReport ? app.simulationError : undefined,
+    chartsPending: !result.effectReport || app.resultRevision !== app.buildRevision,
+    chartsError: !result.effectReport ? app.simulationError : undefined,
     chartSeries:
-      analysisViewIsActive() && result.effectReport && app.resultRevision === app.buildRevision
+      result.effectReport && app.resultRevision === app.buildRevision
         ? buildChartSeries(result, 250, effectPresentations, chartApplications)
         : null
   };
@@ -217,12 +225,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
   };
 
   return {
-    summary: resultSection(
-      (container) => mountResultSummary(container, summary),
-      (container) => mountInputActivity(container, result.inputTrace)
-    ),
-    headerDps: metrics.find((metric) => metric.className === 'dps')?.value,
-    workspace: resultSection((container) => mountRandomDistribution(container, rng, rngOptions)),
+    ...sharedView,
     analysis: resultSection(
       (container) => mountRandomDistribution(container, rng, rngOptions),
       (container) => mountDamageBreakdown(container, breakdown, breakdownOptions),
