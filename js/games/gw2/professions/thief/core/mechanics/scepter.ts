@@ -10,7 +10,11 @@ import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 export const THIEF_SCEPTER_CHAIN_EXPIRY = 'thief.scepter-chain-expire';
 
-/** Only a successful scepter chain step refreshes its three-second window from cast completion. */
+// Manual test 20261023-164357 retains the chain 2.842s after completion and resets by 2.960s.
+// Approximate that boundary from completion; the exact in-animation timer anchor remains unconfirmed.
+const SCEPTER_CHAIN_RETENTION_SECONDS = 2.9;
+
+/** Only a successful scepter chain step refreshes its retention window from cast completion. */
 export function transitionThiefScepterChain(
   runtime: ThiefRuntime,
   cast: RuntimeCast<ThiefSkill>,
@@ -21,7 +25,8 @@ export function transitionThiefScepterChain(
   if (!result.committed || !change || change.decision === 'preserve') return;
 
   const core = runtime.profession.core;
-  core.scepterChainExpiresAt = change.decision === 'advance' ? canonicalTime(cast.effectiveEnd + 3) : null;
+  core.scepterChainExpiresAt =
+    change.decision === 'advance' ? canonicalTime(cast.effectiveEnd + SCEPTER_CHAIN_RETENTION_SECONDS) : null;
 
   if (core.scepterChainExpiresAt != null)
     runtime.schedule(THIEF_SCEPTER_CHAIN_EXPIRY, core.scepterChainExpiresAt, { at: core.scepterChainExpiresAt });

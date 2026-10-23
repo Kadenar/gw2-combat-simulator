@@ -18,11 +18,11 @@ export const chronomancerTooltips = {
   skills: {
     ...Object.fromEntries(Object.keys(MESMER_CHRONOMANCER_SHATTERS).map((id) => [Number(id), shatterTooltip])),
     [ID.CONTINUUM_SPLIT]: skillTooltip(
-      'Spend your clones to open a window whose duration counts yourself and each clone spent. At expiry, restore the captured cooldown, ammunition, and autoattack-chain state. Clones, damage, and boons are not rewound. Fragmentation extends the window.',
+      'Spend your clones to open a window whose duration counts yourself and each clone spent. At expiry, restore the captured cooldown and ammunition state. Autoattack chains continue normally. Clones, damage, and boons are not rewound. Fragmentation extends the window.',
       [fromProfile(CHRONO.continuumSplit, 'durationPerTier', 'Window per shatter source', tooltipSeconds)]
     ),
     [ID.CONTINUUM_SHIFT]: skillTooltip(
-      'End the active Continuum Split and restore its captured cooldown, ammunition, and autoattack-chain state immediately.'
+      'End the active Continuum Split and restore its captured cooldown and ammunition state immediately. Autoattack chains continue normally.'
     )
   },
   traits: {

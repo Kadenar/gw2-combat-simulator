@@ -5,11 +5,7 @@ import test from 'node:test';
 
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
-import {
-  autoattackChainSkillAvailable,
-  replaceAutoattackChains,
-  resetAutoattackChains
-} from '#gw2/platform/execution/autoattack-chains.js';
+import { autoattackChainSkillAvailable, resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 
 const skill = (id, name, extra = {}) => ({
   id,
@@ -282,7 +278,7 @@ test('overrides are evaluated per pending root', () => {
   assert.deepEqual(chainState(reset), {});
 });
 
-test('form helpers reset and restore chain snapshots through the shared mutation boundary', () => {
+test('form helpers reset selected or all chains through the shared mutation boundary', () => {
   const context = {
     state: {
       profession: {
@@ -294,6 +290,6 @@ test('form helpers reset and restore chain snapshots through the shared mutation
 
   resetAutoattackChains(context, [1]);
   assert.deepEqual(context.state.profession.core.autoattackChains, { 4: 5 });
-  replaceAutoattackChains(context, { 1: 3 });
-  assert.deepEqual(context.state.profession.core.autoattackChains, { 1: 3 });
+  resetAutoattackChains(context);
+  assert.deepEqual(context.state.profession.core.autoattackChains, {});
 });

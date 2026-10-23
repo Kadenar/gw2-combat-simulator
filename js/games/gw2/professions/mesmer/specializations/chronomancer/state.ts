@@ -12,7 +12,6 @@ interface MesmerContinuumSnapshot {
   splitReady: number | undefined;
   openAt: number;
   recharge: RechargeCheckpoint;
-  autoattackChains: Record<string, SkillId>;
   expiresAt: number;
 }
 

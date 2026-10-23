@@ -21,6 +21,7 @@ export interface MesmerCoreState {
   mimic: ChargeGrant;
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
+  scepterChainExpiresAt: number | null;
   chaosStormCasts: number;
   clarity: ChargeGrant;
   signetIllusionsAt: number;
@@ -37,6 +38,7 @@ export function createMesmerCoreState(): MesmerCoreState {
     mimic: { charges: 0, expiresAt: 0 },
     availableFlips: {},
     autoattackChains: {},
+    scepterChainExpiresAt: null,
     chaosStormCasts: 0,
     clarity: { charges: 0, expiresAt: 0 },
     signetIllusionsAt: Infinity

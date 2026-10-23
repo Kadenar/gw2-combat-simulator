@@ -1,6 +1,4 @@
-import { replaceAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import { mesmerProfiledShatter } from '#gw2/professions/mesmer/core/profiles.js';
@@ -46,8 +44,7 @@ export function createContinuumController({
   bonusDuration = 0,
   scheduleExpiry = null
 }: ContinuumControllerOptions): MesmerContinuumController {
-  // Restore the captured Continuum Split resources and cooldowns exactly once,
-  // then invalidate the active snapshot and emit its exit reason.
+  // Restore captured recharge exactly once; autoattack chains continue independently of the rewind.
   const restoreContinuum = (at: number, reason: string) => {
     const chronomancer = chronomancerState.from(state);
     const continuum = chronomancer.continuum;
@@ -62,7 +59,6 @@ export function createContinuumController({
       unaffectedCooldownIds,
       splitReady ? [{ skillId: continuum.splitId, readyAt: at + splitReady - openAt }] : []
     );
-    replaceAutoattackChains(state, continuum.autoattackChains);
     cooldownController.refresh(at);
     for (const id of cooldownController.ammoSkillIds()) {
       const ammoSkill = state.helpers.skillsById.get(id);
@@ -105,7 +101,6 @@ export function createContinuumController({
       splitReady: cooldownController.readyAt(skill.id),
       openAt: at,
       recharge,
-      autoattackChains: { ...professionCoreState(state).autoattackChains },
       expiresAt: at + duration
     };
     scheduleExpiry?.(chronomancer.continuum.expiresAt);

@@ -29,6 +29,7 @@ import { mesmerIllusionHooks } from '#gw2/professions/mesmer/core/mechanics/illu
 import { armMimic, completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
 import { mesmerMaximumAmmo, mesmerRechargeWork } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
 import { detonateInspiringImagery, expireInspiringImagery } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
+import { mesmerScepterChainLifecycle } from '#gw2/professions/mesmer/core/mechanics/scepter-chain.js';
 import {
   applyMesmerSignetReset,
   restartSignetIllusionsPassive,
@@ -50,6 +51,7 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
   MesmerSkill
 >([
   mesmerIllusionHooks,
+  mesmerScepterChainLifecycle,
   {
     buffPolicies: mesmerBuffPolicies,
     observeEffects: mesmerEffectStates,

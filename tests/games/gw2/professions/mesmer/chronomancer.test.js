@@ -13,6 +13,33 @@ import { createContinuumController } from '#gw2/professions/mesmer/specializatio
 import { gw2RechargeRate } from '#gw2/platform/combat/recharge.js';
 import { chronomancerHooks } from '#gw2/professions/mesmer/specializations/chronomancer/hooks.js';
 
+// Neither exit rewinds chain progress, restores a completed chain, or erases a chain started during Split.
+test('manual and automatic Continuum exits leave autoattack chains at their live step', () => {
+  for (const [primaryWeapon, root, first, second, third] of [
+    ['Sword', ID.MIND_SLASH, 'Mind Slash', 'Mind Gash', 'Mind Spike'],
+    ['Spear', ID.PSYCUT, 'Psycut', 'Psystrike', 'Mind Pierce']
+  ]) {
+    const config = defaultSimulationConfig({ specialization: 'Chronomancer', primaryWeapon, initialResource: 3 });
+    for (const rotation of [
+      [first, 'Continuum Split', second],
+      [first, 'Continuum Split', second, third],
+      ['Continuum Split', first]
+    ]) {
+      const before = simulateMesmer(rotation, config);
+      assert.deepEqual(before.warnings, []);
+      for (const exit of [['Continuum Shift'], [{ type: 'wait', durationMs: 7000 }]]) {
+        const after = simulateMesmer([...rotation, ...exit], config);
+        assert.deepEqual(after.warnings, []);
+        assert.equal(after.planningState.profession.continuumActive, false);
+        assert.equal(
+          after.planningState.profession.autoattackChains[root],
+          before.planningState.profession.autoattackChains[root]
+        );
+      }
+    }
+  }
+});
+
 // Neither exit may erase Mimic used inside Split or rewind progress and utility surcharges from before it.
 test('manual and automatic Continuum exits preserve Mimic recharge and its utility surcharge', () => {
   const config = { specialization: 'Chronomancer', initialResource: 3, selectedTraitIds: [] };
@@ -43,7 +70,7 @@ test('Continuum snapshots restore recharge work at the permanent Chronomancer ra
     traits: new Set(),
     time: 0,
     helpers: { skillsById },
-    profession: { core: { autoattackChains: {} }, specialization: { kind: 'Chronomancer', state: { continuum: null } } }
+    profession: { core: {}, specialization: { kind: 'Chronomancer', state: { continuum: null } } }
   };
   const cooldown = createCooldownController({
     clock: state,

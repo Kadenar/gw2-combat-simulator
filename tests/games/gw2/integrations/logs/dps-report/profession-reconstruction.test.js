@@ -39,8 +39,12 @@ function reportFixture(profession, rotation, skillMap, end = 40_000) {
 }
 
 // Imported performances must retain the scepter follow-up accepted by ordinary simulation.
-test('Troubadour imports preserve scepter chain availability across performances', () => {
-  for (const performanceId of [MESMER_SKILL.LIVELY_LUTE, MESMER_SKILL.CRESCENDO]) {
+test('Troubadour imports preserve scepter chain availability across performances and utilities', () => {
+  for (const performanceId of [
+    MESMER_SKILL.LIVELY_LUTE,
+    MESMER_SKILL.CRESCENDO,
+    MESMER_SKILL.TALE_OF_THE_SECOND_SCION
+  ]) {
     const actions = [
       [MESMER_SKILL.ETHER_BOLT, 0, 440],
       [performanceId, 1000, performanceId === MESMER_SKILL.CRESCENDO ? 1000 : 560],

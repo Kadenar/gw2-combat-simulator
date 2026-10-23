@@ -75,23 +75,6 @@ export function resetAutoattackChains(context: object, chainRootIds?: readonly S
   }
 }
 
-/** Restores a captured chain snapshot through the same mutation boundary used by live transitions. */
-export function replaceAutoattackChains(context: object, replacement: Readonly<Record<string, SkillId>>): void {
-  const chains = chainState(context);
-
-  if (!chains) return;
-
-  resetAutoattackChains(context);
-  for (const [root, expected] of Object.entries(replacement)) {
-    const rootId = Number(root);
-    const expectedSkillId = Number(expected);
-
-    if (Number.isFinite(rootId) && Number.isFinite(expectedSkillId)) {
-      chains[rootId] = expectedSkillId;
-    }
-  }
-}
-
 function matchingOverride(
   overrides: readonly AutoattackChainOverride[],
   context: AutoattackChainContext

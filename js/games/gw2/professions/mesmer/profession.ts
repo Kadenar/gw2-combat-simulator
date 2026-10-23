@@ -28,12 +28,9 @@ export const mesmerProfession = defineNativeProfession({
     // override is evaluated against the pending root instead of the profession globally.
     overrides: [
       {
-        id: 'mesmer.ether-bolt-preserves-weapons-and-shatters',
+        id: 'mesmer.ether-bolt-preserves-intervening-skills',
         chainRootIds: [ID.ETHER_BOLT],
-        // Scepter resumes after weapon skills and shatter actions, including instruments and Crescendo.
-        when: ({ interruptingSkill }) =>
-          interruptingSkill.type === 'Weapon' ||
-          Boolean(interruptingSkill.shatter || interruptingSkill.instrument || interruptingSkill.crescendoProfileId),
+        // Intervening skills never reset scepter progress, regardless of their type, damage, or cast length.
         decision: 'preserve'
       },
       {

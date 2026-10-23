@@ -169,9 +169,14 @@ test('Scepter weapon skills preserve Ether Bolt chain progress', () => {
   assert.equal(result.planningState.profession.autoattackChains[ID.ETHER_BOLT], ID.ETHER_CLONE);
 });
 
-// Shatters and Troubadour performances leave either pending scepter step available.
-test('scepter chains continue through shatters, instruments, and Crescendo', () => {
+// Every skill category leaves either pending scepter step available, including long utility and healing casts.
+test('scepter chains continue through intervening skills of every category', () => {
   for (const [specialization, skillId] of [
+    ['Core', ID.SIGNET_OF_THE_ETHER],
+    ['Core', ID.MANTRA_OF_PAIN],
+    ['Core', ID.TIME_WARP],
+    ['Chronomancer', ID.WELL_OF_CALAMITY],
+    ['Troubadour', ID.TALE_OF_THE_SECOND_SCION],
     ['Core', ID.MIND_WRACK],
     ['Chronomancer', ID.SPLIT_SECOND],
     ['Virtuoso', ID.BLADESONG_HARMONY],
@@ -184,16 +189,97 @@ test('scepter chains continue through shatters, instruments, and Crescendo', () 
     ['Troubadour', ID.CRESCENDO]
   ]) {
     const config = defaultSimulationConfig({ specialization, initialResource: 3, primaryWeapon: 'Scepter' });
-    const performance = { type: 'cast', skillId };
+    const intervening = { type: 'cast', skillId };
     for (const [rotation, expected] of [
-      [['Ether Bolt', performance, 'Ether Blast'], ID.ETHER_CLONE],
-      [['Ether Bolt', 'Ether Blast', performance, 'Ether Clone'], ID.ETHER_BOLT]
+      [['Ether Bolt', intervening, 'Ether Blast'], ID.ETHER_CLONE],
+      [['Ether Bolt', 'Ether Blast', intervening, 'Ether Clone'], ID.ETHER_BOLT]
     ]) {
       const result = simulateMesmer(rotation, config);
       assert.deepEqual(result.warnings, [], `${specialization}: ${skillId}`);
       assert.ok(result.steps.every((step) => !step.invalid));
       assert.equal(result.planningState.profession.autoattackChains[ID.ETHER_BOLT], expected);
     }
+  }
+});
+
+// The measured 2.8-second approximation gates both planning state and the next accepted autoattack.
+test('scepter chain expiry resets the pending step at the deadline', () => {
+  const config = defaultSimulationConfig({ specialization: 'Core', primaryWeapon: 'Scepter', initialResource: 0 });
+  const wait = (durationMs) => ({ type: 'wait', durationMs });
+  for (const [rotation, expected] of [
+    [['Ether Bolt', wait(2799)], ID.ETHER_BLAST],
+    [['Ether Bolt', wait(2800)], ID.ETHER_BOLT],
+    [['Ether Bolt', 'Ether Blast', wait(2800)], ID.ETHER_BOLT],
+    [['Ether Bolt', wait(2760), 'Ether Blast'], ID.ETHER_CLONE],
+    [['Ether Bolt', wait(2800), 'Ether Bolt'], ID.ETHER_BLAST]
+  ]) {
+    const result = simulateMesmer(rotation, config);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.autoattackChains[ID.ETHER_BOLT], expected);
+  }
+
+  const expired = simulateMesmer(['Ether Bolt', wait(2800), 'Ether Blast'], config);
+  assert.match(expired.warnings[0].message, /cast Ether Bolt first/);
+});
+
+test('only scepter chain advancement refreshes its expiry', () => {
+  const config = defaultSimulationConfig({ specialization: 'Core', primaryWeapon: 'Scepter', initialResource: 0 });
+  const wait = (durationMs) => ({ type: 'wait', durationMs });
+  // A utility crossing the deadline cannot retain or renew the old chain; a new auto invalidates its old timer.
+  for (const [rotation, expected] of [
+    [['Ether Bolt', wait(2500), 'Signet of the Ether'], ID.ETHER_BOLT],
+    [['Ether Bolt', wait(2000), 'Ether Blast', wait(800)], ID.ETHER_CLONE],
+    [['Ether Bolt', 'Ether Blast', 'Ether Clone', 'Ether Bolt', wait(2000)], ID.ETHER_BLAST]
+  ]) {
+    const result = simulateMesmer(rotation, config);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.autoattackChains[ID.ETHER_BOLT], expected);
+  }
+});
+
+// Manual and automatic Continuum exits must leave the original scepter deadline running.
+test('Continuum Split and Shift do not extend scepter chain expiry', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Chronomancer',
+    primaryWeapon: 'Scepter',
+    initialResource: 0
+  });
+  const wait = (durationMs) => ({ type: 'wait', durationMs });
+  for (const [exit, elapsed] of [
+    [[wait(1000), 'Continuum Shift'], 1000],
+    [[wait(1500)], 1500]
+  ]) {
+    const prefix = ['Ether Bolt', wait(1000), 'Continuum Split', ...exit];
+    for (const [delay, expected] of [
+      [1799 - elapsed, ID.ETHER_BLAST],
+      [1800 - elapsed, ID.ETHER_BOLT]
+    ]) {
+      const result = simulateMesmer([...prefix, wait(delay)], config);
+      assert.deepEqual(result.warnings, []);
+      assert.equal(result.planningState.profession.continuumActive, false);
+      assert.equal(result.planningState.profession.autoattackChains[ID.ETHER_BOLT], expected);
+    }
+  }
+});
+
+// Rewinding a checkpoint cannot resurrect expired progress or undo autos completed inside the window.
+test('Continuum Shift preserves live scepter progression and its latest expiry', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Chronomancer',
+    primaryWeapon: 'Scepter',
+    initialResource: 3
+  });
+  const wait = (durationMs) => ({ type: 'wait', durationMs });
+  for (const [rotation, expected] of [
+    [['Ether Bolt', 'Continuum Split', wait(3000), 'Continuum Shift'], ID.ETHER_BOLT],
+    [['Ether Bolt', 'Continuum Split', 'Ether Blast', 'Ether Clone', 'Continuum Shift'], ID.ETHER_BOLT],
+    [['Ether Bolt', 'Continuum Split', wait(2000), 'Ether Blast', 'Continuum Shift', wait(2799)], ID.ETHER_CLONE],
+    [['Ether Bolt', 'Continuum Split', wait(2000), 'Ether Blast', 'Continuum Shift', wait(2800)], ID.ETHER_BOLT],
+    [['Continuum Split', 'Ether Bolt', 'Continuum Shift'], ID.ETHER_BLAST]
+  ]) {
+    const result = simulateMesmer(rotation, config);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.autoattackChains[ID.ETHER_BOLT], expected);
   }
 });
 
