@@ -28,9 +28,12 @@ export const mesmerProfession = defineNativeProfession({
     // override is evaluated against the pending root instead of the profession globally.
     overrides: [
       {
-        id: 'mesmer.ether-bolt-preserves-weapon-skills',
+        id: 'mesmer.ether-bolt-preserves-weapons-and-shatters',
         chainRootIds: [ID.ETHER_BOLT],
-        when: ({ interruptingSkill }) => interruptingSkill.type === 'Weapon',
+        // Scepter resumes after weapon skills and shatter actions, including instruments and Crescendo.
+        when: ({ interruptingSkill }) =>
+          interruptingSkill.type === 'Weapon' ||
+          Boolean(interruptingSkill.shatter || interruptingSkill.instrument || interruptingSkill.crescendoProfileId),
         decision: 'preserve'
       },
       {

@@ -391,11 +391,11 @@ export function phantasmalHasteSpeed(context: MesmerRuntime): number {
     : 1;
 }
 
-/** Shatter and instrument recharge is multiplied before shared flat resource reductions. */
+/** Shatters, instruments, and Crescendo receive recharge reduction before shared flat resource reductions. */
 export const masterOfMisdirectionRecharge = compileRechargeRules<MesmerRuntimeState, MesmerSkill>([
   {
     trait: TRAIT.MASTER_OF_MISDIRECTION,
-    when: (_runtime, skill) => Boolean(skill.shatter || skill.instrument),
+    when: (_runtime, skill) => Boolean(skill.shatter || skill.instrument || skill.crescendoProfileId),
     multiplier: { profile: TRAIT.MASTER_OF_MISDIRECTION, field: 'rechargeMultiplier' }
   }
 ]);

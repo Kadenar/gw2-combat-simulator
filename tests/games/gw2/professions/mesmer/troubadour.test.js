@@ -115,6 +115,31 @@ test('Troubadour performance packets register before later overlapping actions',
   }
 });
 
+// Compare recharge between uses so the trait contract does not depend on performance animations.
+test('Master of Misdirection reduces instrument and Crescendo recharge by fifteen percent', () => {
+  for (const skillId of [
+    ID.LIVELY_LUTE,
+    ID.LIVELY_LUTE_ALTERNATE,
+    ID.FLUSTERING_FLUTE,
+    ID.DEAFENING_DRUM,
+    ID.HARMONIOUS_HARP,
+    ID.HARMONIOUS_HARP_ALTERNATE,
+    ID.CRESCENDO
+  ]) {
+    const recharge = (selectedTraitIds) => {
+      const cast = { type: 'cast', skillId };
+      const result = simulateMesmer(
+        [cast, cast],
+        defaultSimulationConfig({ specialization: 'Troubadour', initialResource: 3, selectedTraitIds })
+      );
+      assert.deepEqual(result.warnings, []);
+      return result.steps[1].start - result.steps[0].end;
+    };
+
+    assert.equal(recharge([TRAIT.MASTER_OF_MISDIRECTION]), recharge([]) * 0.85, `skill ${skillId}`);
+  }
+});
+
 test('Shatter Storm gives Lively Lute a second charge without a full cooldown', () => {
   const config = (selectedTraitIds) =>
     defaultSimulationConfig({

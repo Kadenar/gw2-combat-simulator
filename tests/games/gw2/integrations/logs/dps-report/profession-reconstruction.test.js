@@ -6,7 +6,10 @@ import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
-import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import {
+  MESMER_TRAIT_IDS as MESMER_TRAIT,
+  MESMER_SKILL_IDS as MESMER_SKILL
+} from '#gw2/professions/mesmer/data/ids.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
@@ -34,6 +37,31 @@ function reportFixture(profession, rotation, skillMap, end = 40_000) {
     skillMap
   });
 }
+
+// Imported performances must retain the scepter follow-up accepted by ordinary simulation.
+test('Troubadour imports preserve scepter chain availability across performances', () => {
+  for (const performanceId of [MESMER_SKILL.LIVELY_LUTE, MESMER_SKILL.CRESCENDO]) {
+    const actions = [
+      [MESMER_SKILL.ETHER_BOLT, 0, 440],
+      [performanceId, 1000, performanceId === MESMER_SKILL.CRESCENDO ? 1000 : 560],
+      [MESMER_SKILL.ETHER_BLAST, 2500, 520]
+    ];
+    const report = reportFixture(
+      'Troubadour',
+      actions.map(([id, castTime, duration]) => ({ id, skills: [{ castTime, duration }] })),
+      Object.fromEntries(actions.map(([id]) => [`s${id}`, { name: mesmerCatalog.skillsById.get(id).name }]))
+    );
+    const imported = reconstructDpsReportRotation(report, mesmerCatalog);
+    const result = simulateMesmer(imported.rotation, {
+      specialization: 'Troubadour',
+      primaryWeapon: 'Scepter',
+      initialResource: 3
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.ok(result.steps.some((step) => step.skillId === MESMER_SKILL.ETHER_BLAST && !step.invalid));
+    assert.equal(result.planningState.profession.autoattackChains[MESMER_SKILL.ETHER_BOLT], MESMER_SKILL.ETHER_CLONE);
+  }
+});
 
 test('Mirage cloak sources import once without spending endurance or applying Dune Cloak twice', () => {
   // A minimal shatter proves both the resource contract and the cooldown effect of a single cloak application.

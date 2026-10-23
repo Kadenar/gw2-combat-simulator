@@ -169,6 +169,34 @@ test('Scepter weapon skills preserve Ether Bolt chain progress', () => {
   assert.equal(result.planningState.profession.autoattackChains[ID.ETHER_BOLT], ID.ETHER_CLONE);
 });
 
+// Shatters and Troubadour performances leave either pending scepter step available.
+test('scepter chains continue through shatters, instruments, and Crescendo', () => {
+  for (const [specialization, skillId] of [
+    ['Core', ID.MIND_WRACK],
+    ['Chronomancer', ID.SPLIT_SECOND],
+    ['Virtuoso', ID.BLADESONG_HARMONY],
+    ['Troubadour', ID.LIVELY_LUTE],
+    ['Troubadour', ID.LIVELY_LUTE_ALTERNATE],
+    ['Troubadour', ID.FLUSTERING_FLUTE],
+    ['Troubadour', ID.DEAFENING_DRUM],
+    ['Troubadour', ID.HARMONIOUS_HARP],
+    ['Troubadour', ID.HARMONIOUS_HARP_ALTERNATE],
+    ['Troubadour', ID.CRESCENDO]
+  ]) {
+    const config = defaultSimulationConfig({ specialization, initialResource: 3, primaryWeapon: 'Scepter' });
+    const performance = { type: 'cast', skillId };
+    for (const [rotation, expected] of [
+      [['Ether Bolt', performance, 'Ether Blast'], ID.ETHER_CLONE],
+      [['Ether Bolt', 'Ether Blast', performance, 'Ether Clone'], ID.ETHER_BOLT]
+    ]) {
+      const result = simulateMesmer(rotation, config);
+      assert.deepEqual(result.warnings, [], `${specialization}: ${skillId}`);
+      assert.ok(result.steps.every((step) => !step.invalid));
+      assert.equal(result.planningState.profession.autoattackChains[ID.ETHER_BOLT], expected);
+    }
+  }
+});
+
 test('Imaginary Axes preserves the axe auto chain but other skills reset it', () => {
   const config = defaultSimulationConfig({
     specialization: 'Mirage',
