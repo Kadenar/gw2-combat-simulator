@@ -130,3 +130,38 @@ body[data-analysis-workspace='bosses']
   ) {
   display: none;
 }
+
+/* Observed encounter boundaries stay inline with skills and scale with the existing timeline controls. */
+.rot-encounter-marker {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 68px;
+  padding: 5px 8px;
+  border-left: 3px solid var(--accent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-panel));
+  color: var(--text-bright);
+  font-size: 10px;
+  line-height: 1.2;
+}
+.rot-encounter-marker > :is(span, small) {
+  color: var(--text-dim);
+  font-size: 9px;
+}
+.rot-encounter-marker > time {
+  font-variant-numeric: tabular-nums;
+}
+.rot-encounter-marker[data-encounter-kind='split'] {
+  border-left-color: #d9ad58;
+  background: color-mix(in srgb, #d9ad58 12%, var(--bg-panel));
+}
+.rot-encounter-marker[data-encounter-kind='defeated'] {
+  border-left-color: #85bf88;
+}
+/* An amber outline identifies actions started while the boss is invulnerable, including wrapped lines. */
+.rot-skill[data-encounter-kind='split'] {
+  outline: 1px dashed #d9ad58;
+  outline-offset: 2px;
+}

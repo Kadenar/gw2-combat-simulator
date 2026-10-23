@@ -50,6 +50,12 @@ the authored rotation. Each visited phase also shows its player DPS beneath its 
 results display Unavailable; Golem preview results are not presented as boss simulation results. Source attribution
 stays in a compact EI link; explanatory provenance belongs in documentation.
 
+The existing rotation timeline also displays phase and split labels at observed transition times. Split labels say
+Invulnerable, and actions started during splits have amber outlines. Skill and wait tooltips identify their starting
+phase and transitions during the action. These markers are read-only; editing group DPS, split duration, or rotation
+recalculates their positions. Only phases reached by the simulated rotation appear, followed by Boss defeated if
+reached.
+
 ## Execution
 
 The engine applies the authored group DPS once per second during damage phases, alongside the player's actual simulated

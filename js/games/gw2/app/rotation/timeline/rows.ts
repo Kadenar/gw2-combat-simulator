@@ -2,6 +2,7 @@
  * Projects authored commands and simulation events into timeline rows and the proc panel.
  * The view reconciles this HTML into the DOM, so imported text must be escaped at each HTML boundary.
  */
+import { encounterTimelineMarkers, encounterStepContext } from '#gw2/app/rotation/timeline/encounter.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
@@ -260,6 +261,32 @@ export function timelineRowsView(
     healthMarkersByIndex.set(marker.insertionIndex, markers);
   }
 
+  const encounterMarkers = encounterTimelineMarkers(results, rotation.length);
+  const encounterMarkersByIndex = new Map<number, typeof encounterMarkers>();
+  for (const marker of encounterMarkers) {
+    const markers = encounterMarkersByIndex.get(marker.insertionIndex) ?? [];
+    markers.push(marker);
+    encounterMarkersByIndex.set(marker.insertionIndex, markers);
+  }
+
+  // Read-only phase labels share the timeline clock; they never become editable rotation commands.
+  const renderEncounterMarker = (marker: (typeof encounterMarkers)[number]): string => {
+    const state = marker.kind === 'split' ? 'Invulnerable' : marker.kind === 'boss' ? 'Damageable' : 'Encounter ended';
+    const time = formatTime(marker.start);
+    const detail = [
+      `${marker.label}: ${state}`,
+      `Starts at ${time}`,
+      marker.kind !== 'defeated' && marker.end !== null ? `Ends at ${formatTime(marker.end)}` : '',
+      marker.duringAction
+        ? 'Transition occurs during an action already in progress; the action is not split or restarted.'
+        : ''
+    ]
+      .filter(Boolean)
+      .join('\n');
+    return `<div class="rot-encounter-marker" data-encounter-kind="${marker.kind}" role="note" aria-label="${esc(detail)}" title="${esc(detail)}">
+      <strong>${esc(marker.label)}</strong><span>${state}</span><time>${time}</time>${marker.duringAction ? '<small>During action</small>' : ''}</div>`;
+  };
+
   const renderProfessionMarker = (marker: (typeof professionMarkers)[number]): string => {
     const time = formatTime(marker.start);
     const detail = marker.title(time);
@@ -385,6 +412,8 @@ export function timelineRowsView(
   const timelineLines = rows.map((row, rowNumber) => {
     const rowItems: string[] = [];
     row.skills.forEach(({ entry, index }) => {
+      for (const marker of encounterMarkersByIndex.get(index) ?? []) rowItems.push(renderEncounterMarker(marker));
+
       for (const marker of overlayProcMarkersByIndex.get(index) || []) {
         rowItems.push(renderOverlayProcMarker(marker));
       }
@@ -478,6 +507,18 @@ export function timelineRowsView(
           ? `\n${formatTimelineCastDetails(step, formatTime)}`
           : '';
       const resourceTitle = resourceLabel ? `\n${resourceLabel}` : '';
+      const encounterContext = encounterStepContext(step, encounterMarkers);
+      const encounterTitle =
+        encounterMarkers.length && step && !invalid
+          ? `\n${[
+              encounterContext.phase?.label ?? 'Before encounter',
+              ...(encounterContext.phase?.kind === 'split' ? ['Boss invulnerable'] : []),
+              ...encounterContext.crossings.map(
+                (marker) => `${marker.label} starts during this action at ${formatTime(marker.start)}`
+              )
+            ].join('\n')}`
+          : '';
+      const encounterAttribute = encounterContext.phase ? ` data-encounter-kind="${encounterContext.phase.kind}"` : '';
       const concurrentLabel =
         item.concurrentOffsetMs != null ? formatConcurrentTimelineBadge(item.concurrentOffsetMs, time) : '';
       const interruptLabel =
@@ -502,7 +543,7 @@ export function timelineRowsView(
       const combatTimeAttribute = step && !invalid ? ` data-combat-time-ms="${step.start - combatReferenceMs}"` : '';
       // Escape the complete title once so imported diagnostic and resource text cannot become HTML attributes.
       const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${outcomeMismatch ? ' rot-charge-mismatch' : ''}${cancelledWithoutDamage ? ' rot-cancelled' : ''}"${readOnly ? '' : ' draggable="true"'}
-                    data-idx="${index}"${combatTimeAttribute} data-skill-highlight-key="${esc(highlightKey)}" ${skill ? `${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patch, app.build), { details: (skillTooltip === display ? '' : skillTooltip) + titleSuffix + resourceTitle, detailsTitle: 'Rotation details' })} data-wiki-delay="700" tabindex="0"` : `title="${esc(skillTooltip + titleSuffix + resourceTitle)}"`} style="--att-border:${cancelledWithoutDamage ? '#ff3b45' : '#9d7bd0'}">
+                    data-idx="${index}"${combatTimeAttribute}${encounterAttribute} data-skill-highlight-key="${esc(highlightKey)}" ${skill ? `${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patch, app.build), { details: (skillTooltip === display ? '' : skillTooltip) + titleSuffix + resourceTitle + encounterTitle, detailsTitle: 'Rotation details' })} data-wiki-delay="700" tabindex="0"` : `title="${esc(skillTooltip + titleSuffix + resourceTitle + encounterTitle)}"`} style="--att-border:${cancelledWithoutDamage ? '#ff3b45' : '#9d7bd0'}">
                     <img src="${esc(icon)}" alt="" />
                     ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ''}
                     ${
@@ -559,6 +600,9 @@ export function timelineRowsView(
 
     // Trailing markers (insertionIndex === rotation.length) belong after the last skill in the last row.
     if (rowNumber === rows.length - 1) {
+      for (const marker of encounterMarkersByIndex.get(rotation.length) ?? [])
+        rowItems.push(renderEncounterMarker(marker));
+
       rowItems.push(
         ...transitionDelays.filter((marker) => marker.insertionIndex === rotation.length).map(renderTransitionDelay)
       );
