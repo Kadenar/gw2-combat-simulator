@@ -229,6 +229,95 @@ export const activePatchPreview: PatchPreview = {
       }
     },
     thief: {
+      reworks: ['thief-core-rework'],
+      // Material damage/resource assumptions stay editable; ordinary boon payloads use labeled provisional defaults.
+      provisional: [
+        {
+          id: 'sharpInitiationCoefficient',
+          traitId: 'thief.acrobatics.sharp-initiation',
+          label: 'Sharp Initiation: strike coefficient',
+          specialization: 'Acrobatics',
+          profileId: 'thief.acrobatics.sharp-initiation',
+          field: 'coefficient',
+          effect: { type: 'strike', name: 'Sharp Initiation' },
+          minimum: 0,
+          maximum: 10,
+          step: 0.01,
+          unit: 'coefficient'
+        },
+        {
+          id: 'opportuneOpeningDamage',
+          traitId: '1112',
+          label: 'Opportune Opening: strike damage',
+          specialization: 'Acrobatics',
+          profileId: '1112',
+          field: 'damageIncrease',
+          minimum: 0,
+          maximum: 1,
+          step: 0.01,
+          unit: '%'
+        },
+        {
+          id: 'dontStopEndurance',
+          traitId: '1703',
+          label: "Don't Stop: endurance per swiftness application",
+          specialization: 'Acrobatics',
+          profileId: '1703',
+          field: 'resourceGain',
+          minimum: 0,
+          maximum: 100,
+          step: 1,
+          unit: 'endurance'
+        },
+        {
+          id: 'twinFangsDuration',
+          traitId: '1268',
+          label: 'Twin Fangs: critical-chance window',
+          specialization: 'Critical Strikes',
+          profileId: '1268',
+          field: 'duration',
+          minimum: 0,
+          maximum: 60,
+          step: 0.5,
+          unit: 's'
+        },
+        {
+          id: 'deftInitiationCooldown',
+          traitId: '1240',
+          label: 'Deft Initiation: internal cooldown',
+          specialization: 'Acrobatics',
+          profileId: '1240',
+          field: 'internalCooldown',
+          minimum: 0,
+          maximum: 60,
+          step: 0.5,
+          unit: 's'
+        },
+        {
+          id: 'felineGraceCooldown',
+          traitId: '1234',
+          label: 'Feline Grace: internal cooldown',
+          specialization: 'Acrobatics',
+          profileId: '1234',
+          field: 'internalCooldown',
+          minimum: 0,
+          maximum: 60,
+          step: 0.5,
+          unit: 's'
+        },
+        {
+          id: 'dontStopCooldown',
+          traitId: '1703',
+          label: "Don't Stop: internal cooldown",
+          specialization: 'Acrobatics',
+          profileId: '1703',
+          field: 'internalCooldown',
+          minimum: 0,
+          maximum: 60,
+          step: 0.5,
+          unit: 's'
+        }
+      ],
       skills: {
         '44695': {
           effects: [
@@ -282,6 +371,41 @@ export const activePatchPreview: PatchPreview = {
         }
       },
       balanceProfiles: {
+        '1240': {
+          assumption:
+            'TBD: Deft Initiation assumes 3 might and 3 vulnerability for 8 seconds, no ICD, one armed direct-player-strike reward, and refresh after movement completion. Zero ICD permits distinct same-instant activations; a positive ICD gates consumption. Payloads follow the triggering hit.',
+          fields: { internalCooldown: { from: 0, to: 0 } }
+        },
+        '1234': {
+          assumption:
+            'TBD: Feline Grace assumes 5 seconds of swiftness per completed mobility action and no ICD. Separate same-instant applications remain separate. Improved movement speed is outside scope. Existing Specter well mobility flags are retained provisionally; Deadeye Mark is excluded.',
+          fields: { internalCooldown: { from: 0, to: 0 } }
+        },
+        '1112': {
+          assumption:
+            'TBD: Opportune Opening assumes 10% multiplicative strike damage and 3 seconds of cripple. Default Chilled/Crippled target assumptions keep the bonus active. Condition-damage scaling is unconfirmed.',
+          fields: { damageIncrease: { from: 0, to: 0.1 } }
+        },
+        '1703': {
+          assumption:
+            "TBD: Don't Stop assumes 10 endurance per actual self-swiftness application, no ICD, and no application frequency from permanent-boon assumptions. Zero ICD permits two grants at the same instant; endurance remains capped. Player condition removal is outside scope.",
+          fields: { resourceGain: { from: 0, to: 10 }, internalCooldown: { from: 0, to: 0 } }
+        },
+        '1268': {
+          assumption:
+            'TBD: Twin Fangs assumes a 4-second refreshable critical-chance window after a direct player hit against a defiant target. The activating hit does not gain an unearned bonus; critical damage is unchanged.',
+          fields: { duration: { from: 0, to: 4 } }
+        },
+        '1290': {
+          assumption:
+            'TBD: Hard to Catch assumes 3 seconds of resistance on completed Steal or replacement; the old movement endurance reward is removed. Defensive resistance behavior is outside scope.',
+          effects: [{ type: 'boon', name: BOON.RESISTANCE, duration: { from: 3, to: 3 } }]
+        },
+        'thief.acrobatics.sharp-initiation': {
+          assumption:
+            'TBD: Sharp Initiation assumes a 3.0 strike coefficient, the unequipped weapon-strength profile (656–725; midpoint 690.5), critical-hit eligibility, player-owned effect damage, and no independent ICD beyond Deft Initiation. The proc has its own identity and does not inherit weapon-specific bonuses.',
+          effects: [{ type: 'strike', name: 'Sharp Initiation', coefficient: { from: 0, to: 3.0 } }]
+        },
         '1257': {
           fields: {
             damagePerCondition: {

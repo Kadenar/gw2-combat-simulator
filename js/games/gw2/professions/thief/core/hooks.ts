@@ -26,6 +26,8 @@ import {
   thiefCastCompleted,
   thiefConditionApplied,
   thiefDodgeStarted,
+  thiefMobilityUsed,
+  thiefReworkStruck,
   thiefStruck,
   thiefWeaponSwapped,
   venomsConsumed
@@ -90,7 +92,12 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>,
     runtime.fireTrigger(thiefWeaponSwapped, { at: runtime.time });
   }
 
-  if (committed) runtime.fireTrigger(thiefCastCompleted, { cast, initiativeCost });
+  if (committed) {
+    runtime.fireTrigger(thiefCastCompleted, { cast, initiativeCost });
+
+    // Rework extension point (thief-core-rework): dual classification still admits only one mobility refresh.
+    if (skill.movementSkill || skill.shadowstepSkill) runtime.fireTrigger(thiefMobilityUsed, { cast, initiativeCost });
+  }
 }
 
 /** Core hooks: initiative, endurance, stealth, steals, weapon follow-ups, utilities, and resolved trait reactions. */
@@ -239,4 +246,6 @@ export function reactThiefCoreDamage(
   runtime.fireTrigger(thiefStruck, { cause: event, details: details });
   // Multiple venom types consume their charges but share one siphon per player strike.
   runtime.fireTrigger(venomsConsumed, { cause: event, consumed: applyActiveVenoms(runtime, event) });
+  // Rework extension point (thief-core-rework): preserve all existing strike/venom order before preview rewards.
+  runtime.fireTrigger(thiefReworkStruck, { cause: event, details });
 }

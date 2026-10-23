@@ -62,3 +62,15 @@ export const thiefCriticalStrikesTooltips = {
   ]),
   [TRAIT.INVIGORATING_PRECISION]: outsideScopeTooltip
 } satisfies NonNullable<ProfessionTooltips['traits']>;
+
+/** Only the preview turns positional eligibility into an earned, expiring critical-chance window. */
+export const thiefCriticalStrikesReworkTooltips = {
+  [TRAIT.TWIN_FANGS]: traitTooltip(
+    'A direct hit against a defiant target grants critical chance to later hits. Refresh replaces the window; its duration is provisional. Full-health critical damage is unchanged.',
+    [
+      ['criticalDamage', 'Critical damage at full health', tooltipFactorChange],
+      ['criticalChance', 'Critical chance while active', tooltipPercent],
+      ['duration', 'Provisional bonus duration', tooltipSeconds]
+    ]
+  )
+} satisfies NonNullable<ProfessionTooltips['traits']>;

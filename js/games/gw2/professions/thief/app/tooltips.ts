@@ -4,9 +4,14 @@ import { daredevilTooltips } from '#gw2/professions/thief/app/tooltips/daredevil
 import { deadeyeTooltips } from '#gw2/professions/thief/app/tooltips/deadeye.js';
 import { specterTooltips } from '#gw2/professions/thief/app/tooltips/specter.js';
 import { antiquaryTooltips } from '#gw2/professions/thief/app/tooltips/antiquary.js';
+import { thiefAcrobaticsReworkTooltips } from '#gw2/professions/thief/app/tooltips/acrobatics.js';
+import { thiefCriticalStrikesReworkTooltips } from '#gw2/professions/thief/app/tooltips/critical-strikes.js';
 
 /** Combine owner-local descriptions while keeping presentation separate from runtime behavior. */
 export const thiefTooltips: ProfessionTooltips = {
+  reworks: {
+    'thief-core-rework': { traits: { ...thiefAcrobaticsReworkTooltips, ...thiefCriticalStrikesReworkTooltips } }
+  },
   skillFacts: thiefCoreTooltips.skillFacts,
   skills: {
     ...thiefCoreTooltips.skills,

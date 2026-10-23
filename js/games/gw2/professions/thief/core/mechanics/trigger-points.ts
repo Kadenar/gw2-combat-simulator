@@ -4,6 +4,7 @@ import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
+import { THIEF_CORE_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/thief/core/rework/ids.js';
 
 /**
  * Thief Core trigger points. They live in this leaf module because the owning mechanics also read trait value queries,
@@ -59,6 +60,12 @@ export const thiefCastCompleted = defineTriggerPoint<ThiefCastCompletion>('thief
   TRAIT.HARD_TO_CATCH
 ]);
 
+/** Rework extension point (thief-core-rework): mobility refresh precedes swiftness, with no Live listeners. */
+export const thiefMobilityUsed = defineTriggerPoint<ThiefCastCompletion>('thief.mobility-used', [
+  REWORK.DEFT_INITIATION,
+  TRAIT.FELINE_GRACE
+]);
+
 /** A committed stealth attack at the deferred completion owner. */
 export interface StealthAttackCompletion {
   readonly cast: RuntimeCast<ThiefSkill>;
@@ -108,6 +115,12 @@ export const thiefStruck = defineTriggerPoint<ThiefStrike>('thief.strike', [
   TRAIT.UNRELENTING_STRIKES,
   TRAIT.NO_QUARTER,
   TRAIT.DEADLY_AMBITION
+]);
+
+/** Rework extension point (thief-core-rework): post-venom rewards, with no Live listeners. */
+export const thiefReworkStruck = defineTriggerPoint<ThiefStrike>('thief.rework-strike', [
+  TRAIT.TWIN_FANGS,
+  REWORK.DEFT_INITIATION
 ]);
 
 /** The aggregate venom consumption of one strike. */
