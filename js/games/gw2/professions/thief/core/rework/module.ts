@@ -7,7 +7,7 @@ import { distractingThrowModifiers } from '#gw2/professions/thief/core/skills/we
 import { coreTraits } from '#gw2/professions/thief/core/traits/index.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
 import { SPECIALIZATIONS } from '#gw2/professions/thief/data/thief-api-metadata.js';
-import { THIEF_SKILL_IDS as SKILL, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/thief/core/rework/ids.js';
 import { thiefCoreReworkHooks } from '#gw2/professions/thief/core/rework/hooks.js';
 import { thiefCoreReworkUi } from '#gw2/professions/thief/core/rework/presentation.js';
@@ -18,14 +18,8 @@ import {
 import { acrobaticsReworkTraits } from '#gw2/professions/thief/core/rework/traits/acrobatics.js';
 import { twinFangsRework } from '#gw2/professions/thief/core/rework/traits/critical-strikes.js';
 
-// Core owns these weapon skills: fill their mobility classification only in the preview catalog.
-const mechanics = { ...THIEF_CORE_SKILL_MECHANICS };
-for (const id of [SKILL.INFILTRATORS_ARROW, SKILL.INFILTRATORS_RETURN, SKILL.DEATHS_RETREAT])
-  mechanics[id] = { ...mechanics[id], movementSkill: true, shadowstepSkill: true };
-for (const id of [SKILL.DISABLING_SHOT, SKILL.VAULT]) mechanics[id] = { ...mechanics[id], movementSkill: true };
-
 const data = createThiefModuleData('Core', {
-  skillMechanics: mechanics,
+  skillMechanics: THIEF_CORE_SKILL_MECHANICS,
   balanceProfiles: THIEF_CORE_BALANCE_PROFILES,
   extraSkills: THIEF_CORE_EXTRA_SKILLS
 });

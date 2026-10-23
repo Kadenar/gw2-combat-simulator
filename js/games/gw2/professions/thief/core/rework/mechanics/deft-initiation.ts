@@ -43,6 +43,15 @@ export function emitSharpInitiation(runtime: ThiefRuntime, cause: Gw2ResolverEve
   });
 }
 
+/** Boons and conditions are attributed to their own trait, recording the strike that consumed Deft Initiation. */
+function emitInitiationReward(runtime: ThiefRuntime, trait: number, skillName: string, cause: Gw2ResolverEvent) {
+  emitTraitProfile(runtime, trait, trait, cause, {
+    skillId: trait,
+    skillName,
+    attribution: { triggeredBy: cause.skillName }
+  });
+}
+
 /** Consume before children are queued; a positive ICD preserves the armed reward while it is blocked. */
 export function consumeDeftInitiation(runtime: ThiefRuntime, { cause }: ThiefStrike): void {
   const state = reworkCoreState(runtime);
@@ -54,10 +63,10 @@ export function consumeDeftInitiation(runtime: ThiefRuntime, { cause }: ThiefStr
   if (cooldown > 0 && !runtime.procs.claimCooldown(REWORK.DEFT_INITIATION, runtime.time, cooldown)) return;
 
   state.deftInitiationArmed = false;
-  emitTraitProfile(runtime, REWORK.DEFT_INITIATION, REWORK.DEFT_INITIATION, cause);
+  emitInitiationReward(runtime, REWORK.DEFT_INITIATION, 'Deft Initiation', cause);
 
   if (hasTrait(runtime, REWORK.OPPORTUNE_OPENING))
-    emitTraitProfile(runtime, REWORK.OPPORTUNE_OPENING, REWORK.OPPORTUNE_OPENING, cause);
+    emitInitiationReward(runtime, REWORK.OPPORTUNE_OPENING, 'Opportune Opening', cause);
 
   if (hasTrait(runtime, REWORK.SHARP_INITIATION)) emitSharpInitiation(runtime, cause);
 }

@@ -133,6 +133,8 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.VAULT]: {
+    // The leap is a movement skill for movement-triggered rewards.
+    movementSkill: true,
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 5,

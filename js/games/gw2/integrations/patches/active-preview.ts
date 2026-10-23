@@ -378,7 +378,7 @@ export const activePatchPreview: PatchPreview = {
         },
         '1234': {
           assumption:
-            'TBD: Feline Grace assumes 5 seconds of swiftness per completed mobility action and no ICD. Separate same-instant applications remain separate. Improved movement speed is outside scope. Existing Specter well mobility flags are retained provisionally; Deadeye Mark is excluded.',
+            'TBD: Feline Grace assumes 5 seconds of swiftness per completed mobility action and no ICD. Separate same-instant applications remain separate. Improved movement speed is outside scope. Existing Specter well mobility flags are retained provisionally; Deadeye Mark is excluded. Daredevil dodge replacements (Bound, Impaling Lotus, Dash) count as movement; the plain Dodge does not.',
           fields: { internalCooldown: { from: 0, to: 0 } }
         },
         '1112': {

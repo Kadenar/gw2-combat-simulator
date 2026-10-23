@@ -22,11 +22,12 @@ const reworkHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     // Ordinary flagged skills dispatch from Core; only contextual/unflagged elite mobility needs this task.
     if (cast.cancelled || cast.skill.movementSkill || cast.skill.shadowstepSkill) return;
 
+    // Every Daredevil dodge replacement (Bound, Impaling Lotus, Dash) is a movement skill; the plain Dodge is not.
     const specialization = runtime.profession.specialization;
     const movingDodge =
       cast.skill.id === SHARED_SKILL_IDS.DODGE &&
       specialization.kind === 'Daredevil' &&
-      ['Bounding Dodger', 'Lotus Training'].includes(specialization.state.selectedDodge);
+      ['Bounding Dodger', 'Lotus Training', 'Unhindered Combatant'].includes(specialization.state.selectedDodge);
 
     if (cast.skill.id === SKILL.SHADOW_SWAP || movingDodge) deferThiefCompletion(runtime, MOBILITY_COMPLETE, cast);
   },

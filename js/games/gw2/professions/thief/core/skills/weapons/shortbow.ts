@@ -66,6 +66,9 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.INFILTRATORS_ARROW]: {
+    // The arrow shadowsteps the thief, so shadowstep and movement rewards (Peitha, Fluid Strikes) apply.
+    movementSkill: true,
+    shadowstepSkill: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 6,
@@ -136,6 +139,8 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.DISABLING_SHOT]: {
+    // The backward leap is a movement skill for movement-triggered rewards.
+    movementSkill: true,
     castTimeMs: 200,
     cooldown: 0,
     initiativeCost: 4,

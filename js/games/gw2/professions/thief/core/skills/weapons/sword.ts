@@ -179,6 +179,9 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.INFILTRATORS_RETURN]: {
+    // The return shadowsteps back, so shadowstep and movement rewards (Peitha, Fluid Strikes) apply.
+    movementSkill: true,
+    shadowstepSkill: true,
     // A committed follow-up consumes its window and restores the parent.
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.INFILTRATORS_RETURN } }],
     castTimeMs: 200,

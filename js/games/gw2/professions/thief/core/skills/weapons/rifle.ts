@@ -170,6 +170,9 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.DEATHS_RETREAT]: {
+    // The retreat shadowsteps away, so shadowstep and movement rewards (Peitha, Fluid Strikes) apply.
+    movementSkill: true,
+    shadowstepSkill: true,
     castTimeMs: 240,
     cooldown: 0,
     initiativeCost: 4,
