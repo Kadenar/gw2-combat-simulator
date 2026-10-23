@@ -283,7 +283,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
         return `<div class="build-tab${selected ? ' is-active' : ''}">
         <button type="button" class="boss-scenario-option" data-boss-action="select" data-scenario-id="${h(entry.id)}" aria-pressed="${selected}" title="${h(entry.name)}">
         <svg class="build-tab-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17 19 7"/></svg><span>${h(entry.name)}</span></button>
-        <button type="button" class="build-tab-close" data-boss-action="close" data-scenario-id="${h(entry.id)}" aria-label="Close ${h(entry.name)}" title="Close">
+        <button type="button" class="build-tab-close" data-boss-action="close" data-scenario-id="${h(entry.id)}" aria-label="Close ${h(entry.name)}" title="Close"${scenarios.length === 1 ? ' disabled' : ''}>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
       })
       .join('');
@@ -320,7 +320,8 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     const trigger = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-boss-action]') : null;
     const action = trigger?.dataset.bossAction;
 
-    if (!action) return;
+    // Keep the final encounter and its build intact, matching the Golem workspace's last-tab rule.
+    if (!action || (action === 'close' && scenarios.length <= 1)) return;
 
     const rowIndex = scenarios.findIndex((entry) => entry.id === trigger?.dataset.scenarioId);
 
@@ -342,16 +343,15 @@ export function mountBossScenarios(app: ProfessionAppState): void {
         return;
       }
 
-      // Closing an inactive row leaves the current scenario intact; the last closure creates a fresh default.
+      // Closing an inactive row preserves the current scenario; closing the active row selects a surviving neighbor.
       if (action === 'close' && rowIndex >= 0) {
         const removed = scenarios[rowIndex]!;
         editor.discard(removed.id);
         scenarios.splice(rowIndex, 1);
 
-        if (activeId === removed.id) activeId = scenarios[Math.min(rowIndex, scenarios.length - 1)]?.id ?? '';
+        if (activeId === removed.id) activeId = scenarios[Math.min(rowIndex, scenarios.length - 1)]!.id;
 
-        if (!activeId) newDraft();
-        else save();
+        save();
 
         return;
       }
@@ -370,7 +370,11 @@ export function mountBossScenarios(app: ProfessionAppState): void {
 
     if (action === 'close' && menu.matches(':popover-open')) {
       const rows = menu.querySelectorAll<HTMLButtonElement>('[data-boss-action="close"]');
-      rows[Math.min(rowIndex, rows.length - 1)]?.focus({ preventScroll: true });
+      const next = rows[Math.min(rowIndex, rows.length - 1)];
+      const focusTarget = next?.disabled
+        ? menu.querySelector<HTMLButtonElement>('[data-boss-action="select"][aria-pressed="true"]')
+        : next;
+      focusTarget?.focus({ preventScroll: true });
     }
   });
   workspace.addEventListener('change', (event) => {
