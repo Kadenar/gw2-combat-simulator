@@ -255,25 +255,25 @@
         "build": "data/gw2/builds/thief/b-condi-alac-antiquary-scepter-dagger.json",
         "rotation": "data/gw2/rotations/thief/r-condi-alac-antiquary-scepter-dagger-evtc.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-alacrity-antiquary-scepter-dagger-only",
-        "benchmarkDps": 37272,
+        "benchmarkDps": 37245,
         "upToDate": true,
-        "benchmarkApm": 70.7,
+        "benchmarkApm": 70.5,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 40741, "phase": 40741 },
           "80-60": { "cumulative": 37381, "phase": 34458 },
-          "60-40": { "cumulative": 37359, "phase": 37315 },
-          "40-20": { "cumulative": 36156, "phase": 32946 },
-          "20-0": { "cumulative": 37272, "phase": 42578 }
+          "60-40": { "cumulative": 37138, "phase": 36644 },
+          "40-20": { "cumulative": 36111, "phase": 33347 },
+          "20-0": { "cumulative": 37245, "phase": 42500 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 24063,
+          "benchmarkDps": 24106,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 33250, "phase": 33250 },
             "80-60": { "cumulative": 19997, "phase": 14317 },
-            "60-40": { "cumulative": 23271, "phase": 35176 },
-            "40-20": { "cumulative": 23935, "phase": 26120 },
-            "20-0": { "cumulative": 24063, "phase": 24063 }
+            "60-40": { "cumulative": 23324, "phase": 34895 },
+            "40-20": { "cumulative": 23809, "phase": 25489 },
+            "20-0": { "cumulative": 24106, "phase": 24106 }
           }
         }
       }
