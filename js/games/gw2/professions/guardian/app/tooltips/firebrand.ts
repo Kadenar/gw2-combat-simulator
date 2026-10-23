@@ -7,6 +7,7 @@ import {
   tooltipNumber,
   tooltipProfile,
   tooltipSeconds,
+  tooltipPercent,
   traitTooltip,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
@@ -15,6 +16,7 @@ import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as FIREBRAND } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { virtueBoons } from '#gw2/professions/guardian/app/tooltips/shared.js';
+import { FIREBRAND_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
 
 const stowTomeTooltip: DescribeSimulationTooltip = skillTooltip(
   'Close the active tome and restore your weapon skills. This ends the current consecutive-page sequence for Swift Scholar.'
@@ -161,5 +163,58 @@ export const firebrandTooltips = {
     [TRAIT.LOREMASTER]: traitTooltip('Tome pages regenerate faster.', [
       ['pulseInterval', 'Page regeneration interval', tooltipSeconds]
     ])
+  }
+} satisfies ProfessionTooltips;
+
+/** Provisional facts always read selected values, so editing an assumption cannot leave stale tooltip numbers. */
+export const firebrandReworkTooltips = {
+  traits: {
+    [TRAIT.PURITY_OF_WORD]: traitTooltip('Unlock tomes and their shared page resource.', (context) => [
+      profileFact(context, FIREBRAND.resources, 'maximumStacks', 'Shared page capacity'),
+      profileFact(context, FIREBRAND.resources, 'pulseInterval', 'Page regeneration interval', tooltipSeconds)
+    ]),
+    [TRAIT.IMBUED_HASTE]: traitTooltip(
+      'Provisional: assume Quickness still enables increased outgoing condition damage. The percentage is speculative. Healing and incoming damage are outside simulation scope.',
+      [['conditionDamageIncrease', 'Provisional condition damage', tooltipPercent]]
+    ),
+    [TRAIT.UNRELENTING_CRITICISM]: traitTooltip(
+      'Increase bleeding damage and duration. Both bonuses are provisional.',
+      [
+        ['conditionDamageIncrease', 'Provisional bleeding damage', tooltipPercent],
+        ['conditionDurationBonus', 'Provisional bleeding duration', tooltipPercent]
+      ]
+    ),
+    [REWORK.REVELATION]: traitTooltip('Final mantra charges grant pages.', [['resourceGain', 'Pages gained']]),
+    [REWORK.BASTION]: traitTooltip(
+      'Protection has increased effectiveness on you. Incoming damage is outside simulation scope.'
+    ),
+    [REWORK.FERVID_CONVICTION]: traitTooltip(
+      'Swift Scholar page refunds grant Ashes to nearby allies. Provisional: includes self; charge count, lifetime, recipient limit and internal cooldown are assumptions.',
+      [
+        ['maximumTargets', 'Provisional maximum recipients'],
+        ['internalCooldown', 'Provisional internal cooldown', tooltipSeconds]
+      ],
+      'provisional grant per Swift Scholar refund'
+    ),
+    [TRAIT.STALWART_SPEED]: traitTooltip(
+      'Swift Scholar page refunds grant party Quickness. Duration, recipient limit and internal cooldown are provisional.',
+      [['internalCooldown', 'Provisional internal cooldown', tooltipSeconds]],
+      'provisional grant per Swift Scholar refund'
+    ),
+    [TRAIT.STOIC_DEMEANOR]: traitTooltip(
+      'Retain Courage passive while dormant. Disabling or immobilizing enemies reduces Unbroken Lines recharge. Recharge reduction and internal cooldown are provisional.',
+      [
+        ['rechargeReduction', 'Provisional recharge reduction', tooltipSeconds],
+        ['internalCooldown', 'Provisional internal cooldown', tooltipSeconds]
+      ]
+    ),
+    [REWORK.RIGHTEOUS_FLAMES]: traitTooltip(
+      'Retain Justice passive while dormant. Provisional: configure Ashes base burning duration and Burning stacks per charge. The final improvement is unknown.',
+      [],
+      'provisional per Ashes charge, before duration bonuses'
+    ),
+    [REWORK.DELIVERANCE]: traitTooltip(
+      'Retain Resolve passive while dormant. Passive healing is outside simulation scope.'
+    )
   }
 } satisfies ProfessionTooltips;

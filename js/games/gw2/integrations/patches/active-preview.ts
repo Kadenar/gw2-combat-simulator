@@ -21,7 +21,11 @@ export const activePatchPreview: PatchPreview = {
   // These reworks need updated implementations and rotations before their preview DPS can be compared.
   pendingBenchmarks: [
     { profession: 'revenant', specialization: 'Vindicator', reason: 'Vindicator rework pending.' },
-    { profession: 'guardian', specialization: 'Firebrand', reason: 'Firebrand rework pending.' },
+    {
+      profession: 'guardian',
+      specialization: 'Firebrand',
+      reason: 'Firebrand preview uses provisional trait values; updated benchmark build and rotation pending.'
+    },
     {
       profession: 'warrior',
       specialization: 'Berserker',
@@ -540,7 +544,145 @@ export const activePatchPreview: PatchPreview = {
       }
     },
     guardian: {
+      reworks: ['firebrand-rework'],
+      // Session controls expose only unsettled values, in canonical units; percent inputs display these fractions x100.
+      provisional: [
+        {
+          id: 'imbuedHaste',
+          traitId: '2148',
+          label: 'Imbued Haste: condition damage',
+          specialization: 'Firebrand',
+          profileId: '2148',
+          field: 'conditionDamageIncrease',
+          minimum: 0,
+          maximum: 1,
+          step: 0.01,
+          unit: '%'
+        },
+        {
+          id: 'bleedingDamage',
+          traitId: '2075',
+          label: 'Unrelenting Criticism: bleeding damage',
+          specialization: 'Firebrand',
+          profileId: '2075',
+          field: 'conditionDamageIncrease',
+          minimum: 0,
+          maximum: 1,
+          step: 0.01,
+          unit: '%'
+        },
+        {
+          id: 'bleedingDuration',
+          traitId: '2075',
+          label: 'Unrelenting Criticism: bleeding duration',
+          specialization: 'Firebrand',
+          profileId: '2075',
+          field: 'conditionDurationBonus',
+          minimum: 0,
+          maximum: 1,
+          step: 0.01,
+          unit: '%'
+        },
+        {
+          id: 'ashesDuration',
+          traitId: '2179',
+          label: 'Righteous Flames: Ashes base burning duration',
+          specialization: 'Firebrand',
+          profileId: '2179',
+          field: 'duration',
+          effect: { type: 'condition', name: CONDITION.BURNING },
+          minimum: 2,
+          maximum: 10,
+          step: 0.5,
+          unit: 's'
+        },
+        {
+          id: 'ashesStacks',
+          traitId: '2179',
+          label: 'Righteous Flames: Burning stacks per Ashes charge',
+          specialization: 'Firebrand',
+          profileId: '2179',
+          field: 'stacks',
+          effect: { type: 'condition', name: CONDITION.BURNING },
+          minimum: 1,
+          maximum: 10,
+          step: 1,
+          unit: 'stacks'
+        },
+        {
+          id: 'fervidCharges',
+          traitId: 'guardian.firebrand.fervid-conviction',
+          label: 'Fervid Conviction: Ashes charges',
+          specialization: 'Firebrand',
+          profileId: 'guardian.firebrand.fervid-conviction',
+          field: 'stacks',
+          effect: { type: 'buff', name: 'ashes-of-the-just' },
+          minimum: 1,
+          maximum: 10,
+          step: 1,
+          unit: 'charges'
+        },
+        {
+          id: 'stalwartQuickness',
+          traitId: '2076',
+          label: 'Stalwart Speed: Quickness duration',
+          specialization: 'Firebrand',
+          profileId: '2076',
+          field: 'duration',
+          effect: { type: 'boon', name: boonKey(BOON.QUICKNESS) },
+          minimum: 0,
+          maximum: 30,
+          step: 0.5,
+          unit: 's'
+        },
+        {
+          id: 'stoicReduction',
+          traitId: '2105',
+          label: 'Stoic Demeanor: recharge reduction',
+          specialization: 'Firebrand',
+          profileId: '2105',
+          field: 'rechargeReduction',
+          minimum: 0,
+          maximum: 30,
+          step: 0.5,
+          unit: 's'
+        }
+      ],
       balanceProfiles: {
+        // Purity of Word increases capacity in PvE; the six-second interval is PvP-only.
+        'guardian.firebrand.tome-pages': { fields: { maximumStacks: { from: 5, to: 8 } } },
+        '2075': {
+          // Use illustrative condition-specific bonuses until the published values are available.
+          assumption:
+            'Provisional: +10% bleeding damage and +33% bleeding duration are illustrative assumptions; final values unknown.',
+          fields: { conditionDamageIncrease: { from: 0, to: 0.1 }, conditionDurationBonus: { from: 0, to: 0.33 } }
+        },
+        '2148': {
+          assumption:
+            'Provisional: +10% outgoing condition damage while Quickness is active. Amount and continued Quickness requirement are assumptions. Removes all old attribute bonuses; healing and incoming damage are outside simulation scope.',
+          fields: { conditionDamageIncrease: { from: 0, to: 0.1 } }
+        },
+        '2179': {
+          // Model the unknown improvement through the charge's payload, independently of charge grants.
+          assumption:
+            'Provisional: each Ashes charge applies 1 Burning stack for 3 seconds base. Base duration and Burning stacks per charge are configurable assumptions; the final improvement is unknown.',
+          effects: [{ type: 'condition', name: CONDITION.BURNING, duration: { from: 2, to: 3 }, stacks: 1 }]
+        },
+        'guardian.firebrand.fervid-conviction': {
+          assumption:
+            'Provisional: 1 Ashes charge per Swift Scholar refund, lasting 10 seconds, up to 5 recipients including self, with no additional internal cooldown. Final grant values unknown.',
+          effects: [{ type: 'buff', name: 'ashes-of-the-just', stacks: 1 }]
+        },
+        '2076': {
+          assumption:
+            'Provisional: 2 seconds of Quickness per Swift Scholar refund, up to 5 recipients including self, with no additional internal cooldown. Final duration unknown.',
+          effects: [{ type: 'boon', name: boonKey(BOON.QUICKNESS), duration: 2 }]
+        },
+        '2105': {
+          assumption:
+            'Unknown: Unbroken Lines recharge reduction defaults to 0 seconds; edit rechargeReduction to experiment. No additional internal cooldown assumed. Only disables and Immobilized qualify.',
+          fields: { rechargeReduction: 0 }
+        },
         '621': {
           fields: {
             damagePerBoon: {

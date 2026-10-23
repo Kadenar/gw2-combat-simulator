@@ -30,6 +30,7 @@ import {
   firebrandStruck,
   tomeOpened,
   tomeStowed,
+  swiftScholarPagesGranted,
   type FinalMantraCharge,
   type FirebrandBuffApplication,
   type FirebrandControl,
@@ -106,6 +107,8 @@ export const swiftScholar = defineTrait({
 
       if (refund > 0) {
         runtime.resourceController.grant('tomePages', refund);
+        // Dependent rewards share the earned refund's completion boundary, including after a stow.
+        runtime.fireTrigger(swiftScholarPagesGranted, { cast });
 
         runtime.effects.emit({
           kind: 'announcement',

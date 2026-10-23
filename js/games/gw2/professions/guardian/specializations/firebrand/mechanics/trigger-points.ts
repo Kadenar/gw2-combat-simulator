@@ -4,6 +4,13 @@ import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
+import { FIREBRAND_REWORK_TRAIT_IDS } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
+
+/** Rework extension point (firebrand-rework): refund rewards have no live listener and fire only on page grants. */
+export const swiftScholarPagesGranted = defineTriggerPoint<{ readonly cast: RuntimeCast<GuardianSkill> }>(
+  'guardian.swift-scholar-pages-granted',
+  [FIREBRAND_REWORK_TRAIT_IDS.FERVID_CONVICTION, TRAIT.STALWART_SPEED]
+);
 
 /** An opened tome; `ready` reports whether its dormancy allowed a fresh virtue activation. */
 export interface TomeOpening {

@@ -1,7 +1,7 @@
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 export const FIREBRAND_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'guardian.firebrand.tome-pages',
@@ -19,6 +19,9 @@ export const FIREBRAND_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     profileKind: 'mechanic',
     maximumStacks: 5,
     pulseInterval: 8,
+    // Rework extension point (firebrand-rework): shared mechanics read these optional trait overrides.
+    capacityTrait: TRAIT.ARCHIVIST_OF_WHISPERS,
+    intervalTrait: TRAIT.LOREMASTER,
     effects: []
   },
   {
