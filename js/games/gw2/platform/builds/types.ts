@@ -124,9 +124,12 @@ export interface Gw2Build extends Gw2BuildResources {
 
 export interface Gw2BuildSpecialization {
   name: string;
+  /** Live trait positions; every saved build is Live-based. */
   traits: string;
   /** Zero-based minor tiers omitted from trait effects; absent means all are active. */
   disabledMinorTraits?: number[];
+  /** Positions in a preview that relays this line's major traits, keyed by patch ID. */
+  patchTraits?: Record<string, string>;
 }
 
 export interface Gw2BuildInfusion {

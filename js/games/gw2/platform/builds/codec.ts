@@ -44,6 +44,9 @@ const DEFAULT_GEAR_ALIASES = Object.freeze({
 
 const GEAR_STATS_BY_NAME = GEAR_STATS as Readonly<Record<string, unknown>>;
 
+/** One major-trait choice per tier; zero keeps a tier deliberately empty. */
+const TRAIT_POSITIONS = /^[0-3]-[0-3]-[0-3]$/;
+
 /**
  * Creates the common native-profession build persistence contract. Profession
  * configuration owns defaults and additional resources;
@@ -459,14 +462,19 @@ function normalizeSpecializations(
 
       const candidate = plainObject(entry);
       const disabledMinorTraits = candidate.disabledMinorTraits;
+      const patchTraits = Object.entries(plainObject(candidate.patchTraits)).filter(
+        ([patchId, traits]) => patchId && TRAIT_POSITIONS.test(String(traits))
+      );
       return {
         name: String(candidate.name || ''),
         // Zero keeps a deliberately empty tier through saving and loading; malformed choices still reset.
-        traits: /^[0-3]-[0-3]-[0-3]$/.test(String(candidate.traits || '')) ? String(candidate.traits) : '1-1-1',
+        traits: TRAIT_POSITIONS.test(String(candidate.traits || '')) ? String(candidate.traits) : '1-1-1',
         // Persist only valid minor-tier opt-outs, leaving older builds fully enabled by default.
         ...(Array.isArray(disabledMinorTraits)
           ? { disabledMinorTraits: [0, 1, 2].filter((tier) => disabledMinorTraits.includes(tier)) }
-          : {})
+          : {}),
+        // Preview positions travel with the build; the codec has no selected patch, so only the resolver applies them.
+        ...(patchTraits.length ? { patchTraits: Object.fromEntries(patchTraits) as Record<string, string> } : {})
       };
     })
     .filter((entry) => known.has(entry.name))
@@ -730,10 +738,19 @@ function validateSpecializations(
     errors.push('specializations cannot contain duplicates.');
   }
 
-  if (
-    build.specializations.some((specialization) => !/^[0-3]-[0-3]-[0-3]$/.test(String(specialization?.traits || '')))
-  ) {
+  if (build.specializations.some((specialization) => !TRAIT_POSITIONS.test(String(specialization?.traits || '')))) {
     errors.push('specialization traits must use three hyphen-separated choices from 0 to 3 (0 disables a tier).');
+  }
+
+  if (
+    build.specializations.some(
+      (specialization) =>
+        specialization?.patchTraits !== undefined &&
+        (!isPlainObject(specialization.patchTraits) ||
+          Object.values(specialization.patchTraits).some((traits) => !TRAIT_POSITIONS.test(String(traits))))
+    )
+  ) {
+    errors.push('patchTraits must map patch IDs to three hyphen-separated choices from 0 to 3.');
   }
 
   if (

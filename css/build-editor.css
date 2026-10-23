@@ -2162,6 +2162,14 @@ body[data-profession='revenant'] .workspace-build-choices .selectable-skills-pan
   align-self: flex-start;
 }
 
+/* A relaid preview line asks for its own choices above the rows it affects. */
+.trait-layout-notice {
+  margin: 0;
+  padding: 6px 10px;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+
 /* Stack specialization rows edge-to-edge as one continuous trait panel. */
 .spec-row {
   position: relative;

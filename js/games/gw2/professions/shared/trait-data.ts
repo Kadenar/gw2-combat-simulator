@@ -2,8 +2,11 @@ import type { CanonicalCatalog, CatalogEntity } from '#gw2/platform/skills/types
 
 export interface ProfessionTraitSelection {
   readonly name?: string;
+  /** Live trait positions. */
   readonly traits?: string;
   readonly disabledMinorTraits?: readonly number[];
+  /** Positions in a preview that relays this line, keyed by patch ID. */
+  readonly patchTraits?: Readonly<Record<string, string>>;
 }
 
 export interface ProfessionTraitSpecialization<TTrait> {
@@ -84,11 +87,44 @@ export function createProfessionTraitData<TTrait>(
   });
 }
 
+type TraitLayoutCatalog = Pick<CanonicalCatalog, 'balanceDataContext'>;
+
+/** The preview ID when that patch relays this line; null while Live positions still select the same traits. */
+export function relaidPatchId(catalog: TraitLayoutCatalog, name: string | undefined): string | null {
+  const context = catalog.balanceDataContext;
+  return name && context?.relaidSpecializations?.includes(name) ? context.patchId : null;
+}
+
+/**
+ * Positions for the catalog's patch. Saved builds are Live-based, so a relaid line reads only its own preview
+ * positions and stays empty without them instead of misreading Live slots in a different layout.
+ */
+export function traitPositions(catalog: TraitLayoutCatalog, selection: ProfessionTraitSelection): string {
+  const patchId = relaidPatchId(catalog, selection.name);
+
+  if (!patchId) return selection.traits ?? '';
+
+  return selection.patchTraits?.[patchId] ?? '0-0-0';
+}
+
+/** Relaid lines that still need preview positions; the trait panel and patch comparison ask for them. */
+export function missingPatchTraits(
+  catalog: TraitLayoutCatalog,
+  selections: readonly ProfessionTraitSelection[] | null | undefined
+): string[] {
+  return (selections ?? [])
+    .filter((selection) => {
+      const patchId = relaidPatchId(catalog, selection.name);
+      return patchId !== null && selection.patchTraits?.[patchId] === undefined;
+    })
+    .map(({ name }) => name!);
+}
+
 const selectedTraitIndexes = new WeakMap<object, ProfessionTraitData<CatalogEntity>>();
 
 /** Resolve saved positions against the selected patch, sharing an index across catalogs with the same layout. */
 export function selectedTraits(
-  catalog: Pick<CanonicalCatalog, 'specializations'>,
+  catalog: Pick<CanonicalCatalog, 'specializations' | 'balanceDataContext'>,
   selections?: readonly ProfessionTraitSelection[] | null
 ): CatalogEntity[] {
   let index = selectedTraitIndexes.get(catalog.specializations);
@@ -100,5 +136,8 @@ export function selectedTraits(
     selectedTraitIndexes.set(catalog.specializations, index);
   }
 
-  return index.getActiveTraits(selections);
+  // Every consumer resolves through here, so each patch reads its own positions without converting the build.
+  return index.getActiveTraits(
+    selections?.map((selection) => ({ ...selection, traits: traitPositions(catalog, selection) }))
+  );
 }

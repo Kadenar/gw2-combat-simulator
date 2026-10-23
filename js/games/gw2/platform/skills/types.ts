@@ -255,6 +255,8 @@ export interface CanonicalCatalog<TSkill extends Skill = Skill> {
     readonly professionId: string;
     readonly patchId: string;
     readonly reworks?: readonly string[];
+    /** Lines whose major-trait slots differ from Live, so Live positions would select different traits. */
+    readonly relaidSpecializations?: readonly string[];
   };
   readonly skills: readonly TSkill[];
   readonly skillsById: ReadonlyMap<SkillId, TSkill>;

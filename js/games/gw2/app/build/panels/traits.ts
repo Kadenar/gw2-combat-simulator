@@ -1,9 +1,11 @@
 import { SPECIALIZATION_BACKGROUNDS } from '#gw2/app/shared/specialization-backgrounds.js';
 import { traitTooltipAttributes, wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
+import { missingPatchTraits, relaidPatchId, traitPositions } from '#gw2/professions/shared/trait-data.js';
 
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { ProfessionSpecialization } from '#gw2/app/build/types.js';
+import type { Gw2BuildSpecialization } from '#gw2/platform/builds/types.js';
 
 /** Clamps every persisted starting resource after a specialization changes its available resource views. */
 export function clampStartingResourceValues(app: ProfessionAppState, specialization: string): void {
@@ -15,6 +17,24 @@ export function clampStartingResourceValues(app: ProfessionAppState, specializat
       app.build[buildKey] = Math.min(value, definition.startMaximum ?? definition.maximum);
     }
   }
+}
+
+/**
+ * Toggles one major choice in the positions the selected patch reads. Relaid preview lines keep their own choices,
+ * so switching back to Live reads the untouched Live positions; clicking a selected major clears only its tier.
+ */
+export function toggleMajorTrait(
+  catalog: ProfessionAppState['activeCatalog'],
+  spec: Gw2BuildSpecialization,
+  tier: number,
+  pick: string
+): void {
+  const patchId = relaidPatchId(catalog, spec.name);
+  const picks = traitPositions(catalog, spec).split('-');
+  picks[tier] = picks[tier] === pick ? '0' : pick;
+
+  if (patchId) spec.patchTraits = { ...spec.patchTraits, [patchId]: picks.join('-') };
+  else spec.traits = picks.join('-');
 }
 
 /** Applies one picker choice while keeping lines unique and placing the sole elite line at the bottom. */
@@ -34,7 +54,9 @@ export function selectSpecialization(app: ProfessionAppState, line: number, name
   }
 
   const next = [...app.build.specializations];
-  next[line] = { name, traits: '1-1-1' };
+  const patchId = relaidPatchId(app.activeCatalog, name);
+  // A line chosen while its relaid preview is shown starts with the same default choices in that layout.
+  next[line] = { name, traits: '1-1-1', ...(patchId ? { patchTraits: { [patchId]: '1-1-1' } } : {}) };
 
   if (selected.elite) {
     for (const [index, specialization] of next.entries()) {
@@ -71,14 +93,21 @@ export function renderTraits(app: ProfessionAppState): void {
   const selectedNames = app.build.specializations.map((spec) => spec.name);
   // Trait payloads follow the build's elite specialization, including unselected traits being inspected.
   const eliteSpecialization = app.adapter.eliteSpecialization(app.build);
-  container.innerHTML = app.build.specializations
-    .map((selection, lineIndex) => {
-      const spec = specializations.find((candidate) => candidate.name === selection.name) || specializations[0];
+  // Live choices never carry into a relaid preview line, so ask for its own choices instead of showing misread slots.
+  const missing = missingPatchTraits(app.activeCatalog, app.build.specializations);
+  const notice = missing.length
+    ? `<p class="trait-layout-notice" role="status">Choose ${esc(missing.join(', '))} traits for ${esc(app.profession.preview?.label ?? 'this patch')}. Live choices do not carry over because the trait layout changed.</p>`
+    : '';
+  container.innerHTML =
+    notice +
+    app.build.specializations
+      .map((selection, lineIndex) => {
+        const spec = specializations.find((candidate) => candidate.name === selection.name) || specializations[0];
 
-      if (!spec) return '';
+        if (!spec) return '';
 
-      const picks = selection.traits.split('-').map(Number);
-      return `<div class="spec-row" style="--spec-bg:url('${esc(SPECIALIZATION_BACKGROUNDS[spec.name] || '')}')">
+        const picks = traitPositions(app.activeCatalog, selection).split('-').map(Number);
+        return `<div class="spec-row" style="--spec-bg:url('${esc(SPECIALIZATION_BACKGROUNDS[spec.name] || '')}')">
                 <div class="spec-bg"></div><div class="spec-content">
                     <details class="spec-picker">
                         <summary class="spec-picker-trigger" aria-label="Change ${esc(spec.name)} specialization" title="Change specialization"></summary>
@@ -145,8 +174,8 @@ export function renderTraits(app: ProfessionAppState): void {
                           .join('')}</div>
                     </div>
                 </div></div>`;
-    })
-    .join('');
+      })
+      .join('');
   container.querySelectorAll('.spec-picker-option').forEach((button) => {
     if (!(button instanceof HTMLButtonElement)) return;
 
@@ -177,9 +206,7 @@ export function renderTraits(app: ProfessionAppState): void {
           ? disabled.filter((value) => value !== tier)
           : [...disabled, tier];
       } else {
-        const picks = spec.traits.split('-');
-        picks[tier] = picks[tier] === pick ? '0' : pick;
-        spec.traits = picks.join('-');
+        toggleMajorTrait(app.activeCatalog, spec, tier, pick);
       }
 
       const restoreFocus = document.activeElement === trait;

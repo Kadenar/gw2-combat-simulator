@@ -62,7 +62,7 @@ function element(tag) {
 
 function appFor(patchId = 'current') {
   const build = adapter.toApplicationBuild(profession.createBuildDefaults());
-  build.specializations = [{ name: 'Firebrand', traits: '2-1-1' }];
+  build.specializations = [{ name: 'Firebrand', traits: '2-1-1', patchTraits: { [preview.id]: '2-1-1' } }];
   return {
     adapter,
     profession,
@@ -94,6 +94,25 @@ test('Preview comparison notes use preview trait positions and experimental tuni
   assert.equal((html.match(/[Ss]tacks set to 3/g) ?? []).length, 1);
 });
 
+// Live choices never fill a relaid preview line, so the comparison asks for them instead of reporting an empty line.
+test('Preview comparison asks for relaid trait choices before reporting DPS', () => {
+  const app = appFor(preview.id);
+  delete app.build.specializations[0].patchTraits;
+  app.patchComparison = { current: { dps: 1000, events: [] }, preview: { dps: 500, events: [] } };
+  const container = element('div');
+  const previous = globalThis.document;
+  globalThis.document = { createElement: element };
+  try {
+    renderPatchComparison(container, app);
+  } finally {
+    globalThis.document = previous;
+  }
+
+  const html = container.children[0].innerHTML;
+  assert.match(html, /Choose Firebrand traits for /);
+  assert.doesNotMatch(html, /500/);
+});
+
 // Relevance follows the preview's reworked trait positions, including opt-outs for passive minor traits.
 test('assumption counts include only equipped preview traits and their overrides', () => {
   const app = appFor(preview.id);
@@ -113,7 +132,12 @@ test('assumption counts include only equipped preview traits and their overrides
   );
   assert.match(previewAssumptionNotice(app), /1 user override/);
 
-  app.build.specializations[0] = { name: 'Firebrand', traits: '1-2-3', disabledMinorTraits: [2] };
+  app.build.specializations[0] = {
+    name: 'Firebrand',
+    traits: '1-2-3',
+    disabledMinorTraits: [2],
+    patchTraits: { [preview.id]: '1-2-3' }
+  };
   const other = previewAssumptionGroups(app);
   assert.deepEqual(
     other.filter(({ selected }) => selected).map(({ name }) => name),

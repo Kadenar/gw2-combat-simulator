@@ -34,7 +34,7 @@ const longbowBerserker = () => ({
   build: 'data/gw2/builds/warrior/b-condi-berserker-longbow-sword-torch.json'
 });
 
-test('active reworks cover Vindicator and Firebrand but only the longbow Berserker build', () => {
+test('active reworks cover Vindicator and only the longbow Berserker build', () => {
   const rows = [
     build('revenant', 'Vindicator', 'Power'),
     build('revenant', 'Vindicator'),
@@ -48,7 +48,7 @@ test('active reworks cover Vindicator and Firebrand but only the longbow Berserk
   const results = patchBenchmarks(rows, activePatchPreview);
   assert.deepEqual(
     results.map(({ outcome }) => outcome),
-    ['tbd', 'tbd', 'tbd', 'tbd', 'tbd', 'up', 'up', 'up']
+    ['tbd', 'tbd', 'up', 'up', 'tbd', 'up', 'up', 'up']
   );
   for (const row of results.filter(({ outcome }) => outcome === 'tbd')) {
     assert.equal('previewDps' in row, false);

@@ -4,7 +4,8 @@ import { profession, createBuildContext, toApplicationBuild } from '#gw2/profess
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
-import { selectSpecialization } from '#gw2/app/build/panels/traits.js';
+import { selectSpecialization, toggleMajorTrait } from '#gw2/app/build/panels/traits.js';
+import { missingPatchTraits, selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { GUARDIAN_SKILL_IDS as SKILL, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { FIREBRAND_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
 import { firebrandControlAccepted } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
@@ -96,7 +97,7 @@ test('starting page limits follow current build traits and patch without requiri
 
 test('patch-specific trait positions, attributes, tooltips and authoring metadata agree', () => {
   const build = toApplicationBuild(profession.createBuildDefaults());
-  build.specializations = [{ name: 'Firebrand', traits: '2-1-1' }];
+  build.specializations = [{ name: 'Firebrand', traits: '2-1-1', patchTraits: { [patchId]: '2-1-1' } }];
   build.assumptions.quickness = true;
   const context = (patch) =>
     createBuildContext({
@@ -129,6 +130,69 @@ test('patch-specific trait positions, attributes, tooltips and authoring metadat
   assert.ok(
     profession.patchOverviewFor(preview.simulationConfig(), []).some((entry) => /Provisional/.test(entry.text))
   );
+});
+
+// Saved builds are Live-based: a relaid preview line reads only its own positions and never misreads Live slots.
+test('relaid preview lines read and edit their own positions while unchanged lines share Live positions', () => {
+  const live = profession.resolvePatch({ id: 'current' }).catalog;
+  const preview = profession.resolvePatch({ id: patchId }).catalog;
+  assert.equal(live.balanceDataContext?.relaidSpecializations, undefined);
+  assert.deepEqual(preview.balanceDataContext.relaidSpecializations, ['Firebrand']);
+
+  const majors = (catalog, selection) => {
+    const line = catalog.specializations.find(({ name }) => name === selection.name);
+    const ids = new Set(line.majorTraits.flat().map(({ id }) => id));
+    return selectedTraits(catalog, [selection])
+      .map(({ id }) => id)
+      .filter((id) => ids.has(id));
+  };
+
+  const firebrand = { name: 'Firebrand', traits: '1-1-2', patchTraits: { [patchId]: '2-1-1' } };
+  assert.deepEqual(majors(live, firebrand), [TRAIT.UNRELENTING_CRITICISM, TRAIT.WEIGHTY_TERMS, TRAIT.QUICKFIRE]);
+  assert.deepEqual(majors(preview, firebrand), [REWORK.REVELATION, REWORK.FERVID_CONVICTION, REWORK.RIGHTEOUS_FLAMES]);
+  assert.deepEqual(missingPatchTraits(preview, [firebrand]), []);
+
+  // Without its own choices the relaid line keeps its minors, selects no majors, and asks for a choice.
+  const liveOnly = { name: 'Firebrand', traits: '1-1-2' };
+  assert.deepEqual(majors(preview, liveOnly), []);
+  assert.ok(selectedTraits(preview, [liveOnly]).some(({ id }) => id === TRAIT.SWIFT_SCHOLAR));
+  assert.deepEqual(missingPatchTraits(preview, [liveOnly]), ['Firebrand']);
+  assert.deepEqual(missingPatchTraits(live, [liveOnly]), []);
+
+  const radiance = { name: 'Radiance', traits: '2-2-1' };
+  assert.deepEqual(majors(preview, radiance), majors(live, radiance));
+
+  // Preview edits on the relaid line leave Live positions intact; unchanged lines edit the shared positions.
+  toggleMajorTrait(preview, liveOnly, 0, '2');
+  assert.deepEqual(liveOnly, { name: 'Firebrand', traits: '1-1-2', patchTraits: { [patchId]: '2-0-0' } });
+  toggleMajorTrait(live, liveOnly, 0, '2');
+  assert.deepEqual(liveOnly, { name: 'Firebrand', traits: '2-1-2', patchTraits: { [patchId]: '2-0-0' } });
+  toggleMajorTrait(preview, radiance, 2, '1');
+  assert.deepEqual(radiance, { name: 'Radiance', traits: '2-2-0' });
+
+  // A relaid line chosen while Preview is shown starts with default choices in both layouts.
+  const build = toApplicationBuild(profession.createBuildDefaults());
+  build.specializations = [
+    { name: 'Radiance', traits: '0-0-0' },
+    { name: 'Virtues', traits: '0-0-0' },
+    { name: 'Dragonhunter', traits: '0-0-0' }
+  ];
+  selectSpecialization(
+    {
+      adapter: guardianAppAdapter,
+      activeCatalog: preview,
+      build,
+      resourceDefinitions: (specialization) => profession.ui.resourceViews({ specialization, catalog: preview, build }),
+      changed() {}
+    },
+    2,
+    'Firebrand'
+  );
+  assert.deepEqual(build.specializations[2], {
+    name: 'Firebrand',
+    traits: '1-1-1',
+    patchTraits: { [patchId]: '1-1-1' }
+  });
 });
 
 test('provisional damage modifiers respect conditions, Ashes ownership, selection and Quickness expiry', () => {
@@ -224,7 +288,7 @@ test('Unrelenting Criticism replaces axe procs and contributes capped bleeding d
   assert.deepEqual(result.warnings, []);
   assert.ok(!result.events.some((event) => event.triggeredBy === 'Unrelenting Criticism'));
   const build = toApplicationBuild(profession.createBuildDefaults());
-  build.specializations = [{ name: 'Firebrand', traits: '1-0-0' }];
+  build.specializations = [{ name: 'Firebrand', traits: '0-0-0', patchTraits: { [patchId]: '1-0-0' } }];
   const attributes = createBuildContext({
     build,
     transitionDelays: normalizeTransitionDelays(),
@@ -355,7 +419,7 @@ test('module reworks reject unknown or duplicate choices and validate edits agai
 // Session experiments must survive serialization to workers without mutating defaults, other tabs or saved builds.
 test('experimental values select independent catalogs, attributes and worker-safe simulation configs', () => {
   const build = toApplicationBuild(profession.createBuildDefaults());
-  build.specializations = [{ name: 'Firebrand', traits: '1-1-1' }];
+  build.specializations = [{ name: 'Firebrand', traits: '1-1-1', patchTraits: { [patchId]: '1-1-1' } }];
   const original = structuredClone(build);
   const defaultAshes = profession.resolvePatch({ id: patchId }).catalog.balanceProfilesById.get(REWORK.RIGHTEOUS_FLAMES)
     .effects[0].duration;

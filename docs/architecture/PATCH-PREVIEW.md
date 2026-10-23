@@ -120,10 +120,12 @@ modifierRules: {
 Runtime resolver functions are not patched. Expose changing numeric inputs as named parameters first, then patch those
 parameters with the same stale-value guards. Behavioral changes belong in a complete replacement module registered in
 `moduleVariants` and selected by name in the manifest's `reworks` array. The manifest selects behavior; it never carries
-code. Replacement modules own changed traits, specialization layouts, profiles and mechanics. Saved trait positions
-resolve against the selected catalog for every profession. Build codecs never read trait picks, because they run without
-a selected patch: saved rotations store trait-independent skill identities, and `modifySkillId` selects the traited
-variant when a rotation is simulated or displayed.
+code. Replacement modules own changed traits, specialization layouts, profiles and mechanics. Saved trait positions are
+Live positions. A line whose major-trait slots a preview changes is relaid: in that preview it reads only its own
+`patchTraits[patchId]` positions and selects no majors without them, while unchanged lines use their Live positions on
+both patches. Build codecs store these positions without interpreting them, because they run without a selected patch:
+saved rotations store trait-independent skill identities, and `modifySkillId` selects the traited variant when a
+rotation is simulated or displayed.
 
 Register replacement tooltip maps under the same variant ID in `ProfessionTooltips.reworks`. The shared resolver merges
 them in manifest order, including descriptions for reused IDs. Live code may gain only inert extension points: a trigger
@@ -178,7 +180,8 @@ When the patch becomes live:
    Promotion validation fails while any provisional controls remain. The report lists selected replacement modules,
    tooltip maps, controls and tagged extension points.
 3. Apply preview values to their live owning sources and update generated data where appropriate. Make each rework
-   module live: replace the old traits, specialization layout, profiles and mechanics.
+   module live: replace the old traits, specialization layout, profiles and mechanics. Copy each preset's
+   `patchTraits[previewId]` into its `traits` and delete `patchTraits`.
 4. Merge each rework tooltip map into the base map and delete its `reworks` registration. Turn each tagged extension
    point into live behavior or delete it. Remove the `moduleVariants` entry and the manifest's `reworks` entry.
 5. Restore `activePatchPreview` to `null`.

@@ -59,3 +59,26 @@ test('trait validation rejects invalid choices and migration sanitizes minor opt
   build.specializations[0].disabledMinorTraits = [2, 2, 0, -1, '1'];
   assert.deepEqual(adapter.profession.migrateBuild(build).specializations[0].disabledMinorTraits, [0, 2]);
 });
+
+// Preview positions travel beside Live positions; the codec stores them without knowing which patch is selected.
+test('patch trait positions survive saving and loading while malformed positions are rejected', async () => {
+  const adapter = await loadProfessionAppAdapter('guardian');
+  const build = createDefaultBuild(adapter);
+  build.specializations[0].patchTraits = { 'fixture-preview': '2-0-3' };
+  const saved = adapter.profession.migrateBuild(build);
+  assert.equal(adapter.profession.validateBuild(saved).valid, true);
+  assert.deepEqual(
+    adapter.toApplicationBuild(JSON.parse(JSON.stringify(saved))).specializations,
+    build.specializations
+  );
+
+  for (const patchTraits of ['2-0-3', { preview: '4-0-0' }, { preview: '0-0' }]) {
+    build.specializations[0].patchTraits = patchTraits;
+    assert.equal(adapter.profession.validateBuild(build).valid, false);
+  }
+
+  build.specializations[0].patchTraits = { kept: '1-2-3', dropped: '4-0-0' };
+  assert.deepEqual(adapter.profession.migrateBuild(build).specializations[0].patchTraits, { kept: '1-2-3' });
+  build.specializations[0].patchTraits = { dropped: 'x' };
+  assert.equal(Object.hasOwn(adapter.profession.migrateBuild(build).specializations[0], 'patchTraits'), false);
+});

@@ -109,7 +109,8 @@ function selectionFixture() {
   const build = {
     ...createCommonBuildDefaults(),
     profession: 'fixture',
-    specializations: [{ name: 'Line', traits: '1' }],
+    // The rework swaps the tier, so Preview reads its own positions; first slot is 301 on Live and 302 on Preview.
+    specializations: [{ name: 'Line', traits: '1', patchTraits: { preview: '1' } }],
     gear: {},
     weapons: [],
     alternateWeapons: [],

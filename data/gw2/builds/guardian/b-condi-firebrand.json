@@ -53,7 +53,8 @@
     },
     {
       "name": "Firebrand",
-      "traits": "1-1-2"
+      "traits": "1-1-2",
+      "patchTraits": { "nov-10-balance-preview": "2-1-1" }
     }
   ],
   "selectedSkillIds": {

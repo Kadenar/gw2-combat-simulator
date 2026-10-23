@@ -40,7 +40,7 @@ import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/pr
 import { defineNativeProfession as defineStableNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
+import type { CanonicalCatalog, CatalogEntity } from '#gw2/platform/skills/types.js';
 
 function assertObject(value: object | null | undefined, label: string): void {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -247,6 +247,26 @@ function modulesWithModifierRules(
   });
 }
 
+/** Lines whose major-trait slots differ from Live; their Live positions would select different traits in the preview. */
+function relaidSpecializations(
+  live: Readonly<CanonicalCatalog>,
+  preview: Readonly<CanonicalCatalog>
+): readonly string[] {
+  const layout = (specialization: CatalogEntity) =>
+    JSON.stringify(
+      (specialization.majorTraits as readonly (readonly CatalogEntity[])[]).map((tier) => tier.map(({ id }) => id))
+    );
+  const liveLayouts = new Map(
+    live.specializations.map((specialization) => [specialization.name, layout(specialization)])
+  );
+
+  return Object.freeze(
+    preview.specializations
+      .filter((specialization) => liveLayouts.get(specialization.name) !== layout(specialization))
+      .map(({ name }) => name)
+  );
+}
+
 /** Adds patch validation, metadata, and lazy runtime overlays to an already-compiled neutral profession family. */
 export function withPatchPreview<
   const TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
@@ -330,7 +350,8 @@ export function withPatchPreview<
       balanceDataContext: Object.freeze({
         professionId: definition.id,
         patchId: preview?.id ?? '<validation>',
-        reworks: Object.freeze([...(professionPatch?.reworks ?? [])])
+        reworks: Object.freeze([...(professionPatch?.reworks ?? [])]),
+        relaidSpecializations: relaidSpecializations(family.catalog, catalog)
       })
     });
   const validatedPreviewCatalog = (): Readonly<CanonicalCatalog> => {

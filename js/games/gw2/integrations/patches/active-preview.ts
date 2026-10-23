@@ -22,11 +22,6 @@ export const activePatchPreview: PatchPreview = {
   pendingBenchmarks: [
     { profession: 'revenant', specialization: 'Vindicator', reason: 'Vindicator rework pending.' },
     {
-      profession: 'guardian',
-      specialization: 'Firebrand',
-      reason: 'Firebrand preview uses provisional trait values; updated benchmark build and rotation pending.'
-    },
-    {
       profession: 'warrior',
       specialization: 'Berserker',
       build: 'data/gw2/builds/warrior/b-condi-berserker-longbow-sword-torch.json',

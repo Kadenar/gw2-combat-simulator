@@ -2,6 +2,7 @@ import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lo
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import { bindPreviewAssumptionNotice, previewAssumptionNotice } from '#gw2/app/patch-preview/assumptions.js';
+import { missingPatchTraits } from '#gw2/professions/shared/trait-data.js';
 import type { PatchComparison } from '#gw2/app/simulation/baseline/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
@@ -117,6 +118,28 @@ export function renderPatchComparison(container: HTMLElement, app: ProfessionApp
   const comparison = app.patchComparison;
 
   if (!preview || !comparison) return;
+
+  const missing = missingPatchTraits(
+    app.profession.resolvePatch({ id: preview.id }).catalog,
+    app.build.specializations
+  );
+
+  // An empty relaid line would report a loss caused by the missing choice, not by the patch.
+  if (missing.length) {
+    const prompt = document.createElement('div');
+    prompt.className = 'patch-comparison';
+    prompt.setAttribute('aria-label', 'Patch preview comparison');
+    prompt.innerHTML = `
+      <div class="patch-comparison-header">
+        <div class="patch-comparison-title">
+          <span class="patch-comparison-eyebrow">Patch comparison</span>
+          <strong>Live vs ${escapeHtml(preview.label)}</strong>
+        </div>
+      </div>
+      <p class="patch-preview-empty">Choose ${escapeHtml(missing.join(', '))} traits for ${escapeHtml(preview.label)} to compare. Live choices do not carry over because the trait layout changed.</p>`;
+    container.prepend(prompt);
+    return;
+  }
 
   const currentDps = Number(comparison.current.dps || 0);
   const previewDps = Number(comparison.preview.dps || 0);
