@@ -14,13 +14,14 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { VINDICATOR_DODGE_AUTO_ACTION } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
+import { VINDICATOR_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/revenant/specializations/vindicator/rework/ids.js';
 
 /** Describe vindicator tooltips from the selected balance data. */
 export const vindicatorTooltips = {
   skills: {
     [VINDICATOR_DODGE_AUTO_ACTION]: () => ({
       description:
-        'Start a Vindicator dodge and the current autoattack together. Endurance is spent at takeoff; the grandmaster-selected landing occurs after the airborne phase.',
+        'Start a Vindicator dodge and the current autoattack together. Endurance is spent at takeoff; the trait-selected landing occurs after the airborne phase.',
       facts: []
     }),
     ...Object.fromEntries(
@@ -77,7 +78,7 @@ export const vindicatorTooltips = {
     [TRAIT.SONG_OF_ARBOREUM]: traitTooltip('Energy Meld grants increased endurance and vigor.', [
       ['resourceGain', 'Endurance gained']
     ]),
-    // Grandmaster tooltips expose their landing payload directly from the same skill definitions as dodge.
+    // Dodge traits expose their landing payload directly from the same skill definitions as dodge.
     [TRAIT.FORERUNNER_OF_DEATH]: traitTooltip(
       'Dodge with Death Drop, then gain a temporary player strike-damage bonus after the landing damage resolves.',
       (context) => [
@@ -100,6 +101,29 @@ export const vindicatorTooltips = {
       "Dodge with Saint's Shield, granting alacrity to nearby allies. Incoming damage and healing are outside combat simulation scope.",
       (context) =>
         simulationEffectFacts(context.catalog.skillsById.get(ID.SAINTS_SHIELD)!.effects, "Saint's Shield").facts
+    )
+  }
+} satisfies ProfessionTooltips;
+
+/** Preview descriptions distinguish implemented provisional mechanics from deferred grandmaster skills. */
+export const vindicatorReworkTooltips = {
+  traits: {
+    [TRAIT.BALANCE_IN_DISCORD]: traitTooltip(
+      'Gain endurance on successful legend swaps, including outside combat. The amount is provisional. Alliance Tactics is not implemented, so its endurance trigger is deferred.',
+      [['resourceGain', 'Provisional endurance per legend swap']]
+    ),
+    [REWORK.RISE_TO_THE_OCCASION]: traitTooltip(
+      'Player-owned strikes deal increased damage while endurance is below full. The percentage and multiplicative stacking are provisional. Outgoing healing is outside simulation scope.',
+      [['damageIncrease', 'Provisional strike damage below full endurance', tooltipPercent]]
+    ),
+    [REWORK.FRIEND_OF_THE_LUXONS]: traitTooltip(
+      "Pending: Archemorus's Strike is not implemented in this first pass. This trait currently adds no simulated effects."
+    ),
+    [REWORK.HEATED_RIVALRY]: traitTooltip(
+      'Deferred: Kurzick skills and Alliance Tactics are not implemented. Faction counters, Tactics recharge, and opposite-faction energy refunds have no simulated effects.'
+    ),
+    [REWORK.FRIEND_OF_THE_KURZICKS]: traitTooltip(
+      'Deferred: Shield of Saint Viktor is not implemented. Ally barrier and projectile blocking are outside simulation scope.'
     )
   }
 } satisfies ProfessionTooltips;

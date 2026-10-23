@@ -14,6 +14,7 @@ import { replaceProvisionalEffect } from '#gw2/integrations/patches/authoring/pr
 import { guardianAppAdapter as adapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
+import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { grenadier } from '#gw2/professions/engineer/core/traits/explosives/index.js';
 import { engineerExplosivesTooltips } from '#gw2/professions/engineer/app/tooltips/explosives.js';
 import { FIREBRAND_REWORK_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
@@ -148,9 +149,39 @@ test('assumption counts include only equipped preview traits and their overrides
   assert.equal(other.find(({ name }) => name === 'Fervid Conviction').values[0].value, 3);
 
   app.build.specializations = [];
+  assert.deepEqual(previewAssumptionGroups(app), []);
   assert.equal(previewAssumptionNotice(app), '');
   assert.deepEqual(previewAssumptionCounts(previewAssumptionGroups(app)), { total: 0, custom: 0 });
 });
+
+// Removing a trait line hides all its controls, while selecting it retains alternate traits for tuning.
+for (const [testAdapter, contentId, equipped, unrelated] of [
+  [revenantAppAdapter, 'revenant', 'Vindicator', ['Corruption', 'Invocation', 'Renegade']],
+  [adapter, 'guardian', 'Firebrand', ['Radiance', 'Virtues', 'Dragonhunter']],
+  [engineerAppAdapter, 'engineer', 'Explosives', ['Firearms', 'Tools', 'Mechanist']]
+]) {
+  test(`${contentId} preview assumptions follow equipped trait lines`, () => {
+    const profession = testAdapter.profession;
+    const app = {
+      profession,
+      contentId,
+      patch: profession.resolvePatch({ id: profession.preview.id }),
+      build: { specializations: unrelated.map((name) => ({ name, traits: '1-1-1' })) }
+    };
+    assert.deepEqual(previewAssumptionGroups(app), []);
+    assert.equal(previewAssumptionNotice(app), '');
+
+    app.build.specializations[0] = { name: equipped, traits: '0-0-0', disabledMinorTraits: [0, 1, 2] };
+    const groups = previewAssumptionGroups(app);
+    assert.ok(groups.length > 0);
+    assert.ok(groups.every(({ specialization }) => specialization === equipped));
+    assert.ok(groups.every(({ selected }) => !selected));
+
+    app.build.specializations[0] = { name: unrelated[0], traits: '1-1-1' };
+    assert.deepEqual(previewAssumptionGroups(app), []);
+    assert.equal(previewAssumptionNotice(app), '');
+  });
+}
 
 test('Live clears overrides and does not show an assumptions result notice', () => {
   const app = appFor(preview.id);

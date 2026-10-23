@@ -7,7 +7,11 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { eliteLegendInvoked } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { VINDICATOR_AIRBORNE_MS, VINDICATOR_DODGE_MS } from '#gw2/professions/revenant/data/vindicator-dodge.js';
+import {
+  VINDICATOR_AIRBORNE_MS,
+  VINDICATOR_DODGE_MS,
+  VINDICATOR_DODGE_INPUT
+} from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import { vindicatorBuffPolicies } from '#gw2/professions/revenant/specializations/vindicator/effect-state.js';
 import {
   energyMeldCompleted,
@@ -91,6 +95,8 @@ function energyMeld(runtime: RevenantRuntime): void {
 /** Vindicator owns its dodge landings, Energy Meld, and Alliance invocation on the shared live state. */
 export const vindicatorHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   buffPolicies: vindicatorBuffPolicies,
+  // Saved Jump commands keep their identity while display and execution use the shared endurance-paying input.
+  modifySkillId: (_context, skillId) => (skillId === VINDICATOR_DODGE_INPUT.id ? SHARED_SKILL_IDS.DODGE : skillId),
   // Resolve before admission so the shared input occupies the full jump's non-instant execution lane.
   resolveCastSkill: (_runtime, skill) =>
     skill.id === SHARED_SKILL_IDS.DODGE ? { ...skill, castTimeMs: VINDICATOR_DODGE_MS } : skill,

@@ -27,7 +27,7 @@ export function canonicalAssumptionValue(parameter: ProvisionalParameter, value:
   return Number((value / (parameter.unit === '%' ? 100 : 1)).toFixed(6));
 }
 
-/** Use the preview's trait layout on both versions, including disabled minors and unselected major traits. */
+/** Limit controls to equipped trait lines, retaining unselected traits within those lines for preview tuning. */
 export function previewAssumptionGroups(app: ProfessionAppState): PreviewAssumptionGroup[] {
   const preview = app.profession?.preview;
   const declaration = preview?.professions?.[app.contentId];
@@ -36,9 +36,12 @@ export function previewAssumptionGroups(app: ProfessionAppState): PreviewAssumpt
 
   const defaults = app.profession.resolvePatch({ id: preview.id }).catalog;
   const catalog = app.patch.id === preview.id ? app.patch.catalog : defaults;
+  const specializations = new Set(app.build.specializations.map(({ name }) => name));
   const selected = new Set(selectedTraits(catalog, app.build.specializations).map((trait) => String(trait.id)));
   const groups = new Map<string, PreviewAssumptionGroup>();
   for (const parameter of declaration.provisional) {
+    if (!specializations.has(parameter.specialization)) continue;
+
     let group = groups.get(parameter.traitId);
 
     if (!group) {

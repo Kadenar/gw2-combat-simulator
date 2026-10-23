@@ -123,7 +123,8 @@ export interface ProvisionalParameter {
   readonly maximum: number;
   readonly step: number;
   /** Keep condition stacks distinct from consumable charges in provisional controls. */
-  readonly unit: '%' | 's' | 'charges' | 'stacks';
+  /** Resource grants use their actual unit in preview controls rather than borrowing stack terminology. */
+  readonly unit: '%' | 's' | 'charges' | 'stacks' | 'endurance';
 }
 
 /** Patch-scoped reworks keep unsettled builds visible without publishing a misleading DPS comparison. */

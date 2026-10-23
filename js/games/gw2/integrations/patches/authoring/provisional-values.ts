@@ -95,7 +95,7 @@ export function validateProvisionalParameters(parameters: readonly ProvisionalPa
       !parameter.traitId.trim() ||
       !parameter.specialization ||
       !parameter.field ||
-      !['%', 's', 'charges', 'stacks'].includes(parameter.unit) ||
+      !['%', 's', 'charges', 'stacks', 'endurance'].includes(parameter.unit) ||
       ![parameter.minimum, parameter.maximum, parameter.step].every(Number.isFinite) ||
       parameter.minimum < 0 ||
       parameter.maximum < parameter.minimum ||

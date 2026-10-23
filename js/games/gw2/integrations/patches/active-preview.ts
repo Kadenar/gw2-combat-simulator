@@ -20,7 +20,12 @@ export const activePatchPreview: PatchPreview = {
   label: 'Balance Preview',
   // These reworks need updated implementations and rotations before their preview DPS can be compared.
   pendingBenchmarks: [
-    { profession: 'revenant', specialization: 'Vindicator', reason: 'Vindicator rework pending.' },
+    {
+      profession: 'revenant',
+      specialization: 'Vindicator',
+      reason:
+        'Vindicator first pass uses provisional trait values; grandmaster skills and Alliance Tactics remain deferred, and updated benchmark builds and rotations are pending.'
+    },
     {
       profession: 'warrior',
       specialization: 'Berserker',
@@ -77,6 +82,34 @@ export const activePatchPreview: PatchPreview = {
       }
     },
     revenant: {
+      reworks: ['vindicator-rework'],
+      // Unknown minor-trait values remain editable without presenting assumptions as published tuning.
+      provisional: [
+        {
+          id: 'balanceInDiscordEndurance',
+          traitId: '2254',
+          label: 'Balance in Discord: endurance per legend swap',
+          specialization: 'Vindicator',
+          profileId: '2254',
+          field: 'resourceGain',
+          minimum: 0,
+          maximum: 100,
+          step: 1,
+          unit: 'endurance'
+        },
+        {
+          id: 'riseToTheOccasionDamage',
+          traitId: '2229',
+          label: 'Rise to the Occasion: strike damage',
+          specialization: 'Vindicator',
+          profileId: '2229',
+          field: 'damageIncrease',
+          minimum: 0,
+          maximum: 1,
+          step: 0.01,
+          unit: '%'
+        }
+      ],
       skills: {
         '28253': {
           removeEffects: [
@@ -150,6 +183,16 @@ export const activePatchPreview: PatchPreview = {
               to: 5
             }
           }
+        },
+        '2254': {
+          assumption:
+            'TBD: 10 endurance per successful legend swap is assumed. Alliance Tactics is deferred. The preview allows the grant outside combat; final restrictions are unconfirmed.',
+          fields: { resourceGain: { from: 0, to: 10 } }
+        },
+        '2229': {
+          assumption:
+            'TBD: 10% strike damage below full endurance is assumed, multiplying the shared outgoing-damage bucket like the removed Leviathan Strength. Final percentage and stacking are unconfirmed. Outgoing healing is outside simulation scope.',
+          fields: { damageIncrease: { from: 0, to: 0.1 } }
         },
         'revenant.renegade.kallas-fervor-lasting-legacy': {
           fields: {
