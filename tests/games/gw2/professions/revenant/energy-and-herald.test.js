@@ -28,7 +28,6 @@ import {
   migrateRevenantBuild,
   validateRevenantBuild
 } from '#gw2/professions/revenant/build/build.js';
-import { getActiveTraits as getRevenantActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
@@ -49,7 +48,7 @@ import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpe
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(
-  createProfessionBuildAttributeRules(revenantCatalog, getRevenantActiveTraits),
+  createProfessionBuildAttributeRules(revenantCatalog),
   revenantProfession.attributeContributions
 );
 

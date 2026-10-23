@@ -3,7 +3,6 @@ import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/bui
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
-import { getActiveTraits as getGuardianActiveTraits } from '#gw2/professions/guardian/data/traits-data.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { guardianCoreModule } from '#gw2/professions/guardian/core/module.js';
 import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
@@ -23,7 +22,7 @@ const guardianCoreUi = bindGuardianCoreUi(guardianCatalog);
 
 // Attribute assertions use the same calculator composed into the Guardian adapter.
 const calculateGuardianAttributes = createCalculateAttributes(
-  createProfessionBuildAttributeRules(guardianCatalog, getGuardianActiveTraits),
+  createProfessionBuildAttributeRules(guardianCatalog),
   guardianProfession.attributeContributions
 );
 

@@ -1,5 +1,4 @@
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
-import { getActiveTraits as getNecromancerActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import { necromancerAppAdapter } from '#gw2/professions/necromancer/app/app-definition.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
@@ -161,7 +160,6 @@ test('Radiant Power shares patched attribute and critical-chance values across c
   const { guardianTooltips } = await import('#gw2/professions/guardian/app/tooltips.js');
   const { GUARDIAN_TRAIT_IDS: traits } = await import('#gw2/professions/guardian/data/ids.js');
   const { createGuardianBuildDefaults } = await import('#gw2/professions/guardian/build/build.js');
-  const { getActiveTraits: getGuardianActiveTraits } = await import('#gw2/professions/guardian/data/traits-data.js');
   const { guardianCatalog } = await import('#gw2/professions/guardian/catalog.js');
   const preview = withPatchPreview(guardianProfession, {
     id: 'radiant-profile',
@@ -175,7 +173,7 @@ test('Radiant Power shares patched attribute and critical-chance values across c
   const build = createGuardianBuildDefaults();
   build.specializations = [{ name: 'Radiance', traits: '2-3-3' }];
   const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(guardianCatalog, getGuardianActiveTraits),
+    createProfessionBuildAttributeRules(guardianCatalog),
     guardianProfession.attributeContributions
   );
   const all = calculate(build, [], 1, null, null, preview).attributes;
@@ -199,7 +197,6 @@ test('Carbolic Composition shares one patched duration bonus across consumers', 
   const { engineerTooltips } = await import('#gw2/professions/engineer/app/tooltips.js');
   const { ENGINEER_TRAIT_IDS: traits } = await import('#gw2/professions/engineer/data/ids.js');
   const { createEngineerBuildDefaults } = await import('#gw2/professions/engineer/build/build.js');
-  const { getActiveTraits: getEngineerActiveTraits } = await import('#gw2/professions/engineer/data/traits-data.js');
   const { engineerCatalog } = await import('#gw2/professions/engineer/catalog.js');
   const preview = withPatchPreview(engineerProfession, {
     id: 'carbolic-profile',
@@ -211,7 +208,7 @@ test('Carbolic Composition shares one patched duration bonus across consumers', 
   const build = createEngineerBuildDefaults();
   build.specializations = [{ name: 'Amalgam', traits: '1-1-1' }];
   const calculated = createCalculateAttributes(
-    createProfessionBuildAttributeRules(engineerCatalog, getEngineerActiveTraits),
+    createProfessionBuildAttributeRules(engineerCatalog),
     engineerProfession.attributeContributions
   )(build, [], 1, null, null, preview);
   assert.equal(calculated.attributes['Poison Duration'].traits, 42);
@@ -497,7 +494,7 @@ test('selected balance context keeps trait tooltips and attribute bonuses on the
   const build = createNecromancerBuildDefaults();
   build.specializations = [{ name: 'Soul Reaping', traits: '1-1-2' }];
   const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(necromancerCatalog, getNecromancerActiveTraits),
+    createProfessionBuildAttributeRules(necromancerCatalog),
     profession.attributeContributions
   );
   const attributes = calculate(build, [], 1, null, null, preview);

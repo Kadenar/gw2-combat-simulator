@@ -3,23 +3,19 @@ import { equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.j
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createCalculateAttributes, resolveAttributeEffects } from '#gw2/platform/attributes/calculation.js';
-import { getActiveTraits as getGuardianActiveTraits } from '#gw2/professions/guardian/data/traits-data.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { getActiveTraits as getNecromancerActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
 
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
-import { getActiveTraits as getRevenantActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { getActiveTraits as getThiefActiveTraits } from '#gw2/professions/thief/data/traits-data.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 
@@ -28,19 +24,19 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const calculateGuardianAttributes = createCalculateAttributes(
-  createProfessionBuildAttributeRules(guardianCatalog, getGuardianActiveTraits),
+  createProfessionBuildAttributeRules(guardianCatalog),
   guardianProfession.attributeContributions
 );
 const calculateNecromancerAttributes = createCalculateAttributes(
-  createProfessionBuildAttributeRules(necromancerCatalog, getNecromancerActiveTraits),
+  createProfessionBuildAttributeRules(necromancerCatalog),
   necromancerProfession.attributeContributions
 );
 const calculateRevenantAttributes = createCalculateAttributes(
-  createProfessionBuildAttributeRules(revenantCatalog, getRevenantActiveTraits),
+  createProfessionBuildAttributeRules(revenantCatalog),
   revenantProfession.attributeContributions
 );
 const calculateThiefAttributes = createCalculateAttributes(
-  createProfessionBuildAttributeRules(thiefCatalog, getThiefActiveTraits),
+  createProfessionBuildAttributeRules(thiefCatalog),
   thiefProfession.attributeContributions
 );
 const revenantConduitRules = revenantProfession.resolveProfession({

@@ -7,7 +7,6 @@ import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as FB } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
-import { getActiveTraits as getRangerActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
@@ -149,7 +148,7 @@ test('Weighty Terms follows canonical mantra IDs and ignores names or final-char
 // Merge state and the current pet select intrinsic attributes from the same common seed.
 test('Soulbeast evaluates archetypes across merge state and pet changes', () => {
   const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(rangerCatalog, getRangerActiveTraits),
+    createProfessionBuildAttributeRules(rangerCatalog),
     rangerProfession.attributeContributions
   );
   const build = createRangerBuildDefaults();

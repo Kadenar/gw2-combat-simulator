@@ -5,25 +5,21 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
-import { getActiveTraits as getElementalistActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { ELEMENTALIST_TRAIT_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { getActiveTraits as getEngineerActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import {
   ENGINEER_TRAIT_IDS as ENGINEER,
   ENGINEER_SKILL_IDS as ENGINEER_SKILLS
 } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { getActiveTraits as getGuardianActiveTraits } from '#gw2/professions/guardian/data/traits-data.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import {
   GUARDIAN_TRAIT_IDS as GUARDIAN,
   GUARDIAN_SKILL_IDS as GUARDIAN_SKILLS
 } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { getActiveTraits as getMesmerActiveTraits } from '#gw2/professions/mesmer/data/traits-data.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_TRAIT_IDS as MESMER, MESMER_SKILL_IDS as MESMER_SKILLS } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -82,7 +78,7 @@ test('Luminary definitions preserve eligible build grants and applied armament w
     }
   });
   const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(guardianCatalog, getGuardianActiveTraits),
+    createProfessionBuildAttributeRules(guardianCatalog),
     family.attributeContributions
   );
   const build = {
@@ -136,7 +132,7 @@ test('Willbender build definitions read active tuning and honor disabled trait p
     }
   });
   const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(guardianCatalog, getGuardianActiveTraits),
+    createProfessionBuildAttributeRules(guardianCatalog),
     family.attributeContributions
   );
   for (const [choices, name, attribute, baseline, preview] of [
@@ -162,7 +158,7 @@ test('Imbued Haste shares patched attributes between build preview and current r
     balanceProfiles: { [GUARDIAN.IMBUED_HASTE]: { fields: { attributeBonus: 175 } } }
   });
   const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(guardianCatalog, getGuardianActiveTraits),
+    createProfessionBuildAttributeRules(guardianCatalog),
     family.attributeContributions
   );
   const build = { specializations: [{ name: 'Firebrand', traits: '1-1-1' }] };
@@ -214,7 +210,7 @@ test('Guardian Virtues share patched conversion and recharge without reapplying 
     }
   });
   const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(guardianCatalog, getGuardianActiveTraits),
+    createProfessionBuildAttributeRules(guardianCatalog),
     family.attributeContributions
   );
   const build = { specializations: [{ name: 'Virtues', traits: '1-1-1' }] };
@@ -256,7 +252,7 @@ test('Guardian weapon definitions preserve patched build bonuses and live weapon
   });
   const balance = family.balanceContextFor('s4-preview');
   const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(guardianCatalog, getGuardianActiveTraits),
+    createProfessionBuildAttributeRules(guardianCatalog),
     family.attributeContributions
   );
   const build = {
@@ -295,7 +291,7 @@ test('Engineer Core definitions share patched build grants and preserve static a
     balanceProfiles: { [ENGINEER.CHEMICAL_ROUNDS]: { fields: { attributeBonus: 180 } } }
   });
   const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(engineerCatalog, getEngineerActiveTraits),
+    createProfessionBuildAttributeRules(engineerCatalog),
     family.attributeContributions
   );
   const build = { specializations: [{ name: 'Firearms', traits: '1-2-3' }] };
@@ -360,7 +356,7 @@ test('Elementalist Core definitions preserve patched build grants and disabled-t
     }
   });
   const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(elementalistCatalog, getElementalistActiveTraits),
+    createProfessionBuildAttributeRules(elementalistCatalog),
     family.attributeContributions
   );
   const build = {
@@ -488,7 +484,7 @@ test('Virtuoso definitions share patched build conversion and live modifiers wit
   );
 
   const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(mesmerCatalog, getMesmerActiveTraits),
+    createProfessionBuildAttributeRules(mesmerCatalog),
     family.attributeContributions
   );
   const build = { specializations: [{ name: 'Virtuoso', traits: '0-0-0' }], assumptions: { fury: true } };
@@ -645,7 +641,7 @@ test('Mesmer Core and elite build owners consume patched values with independent
     }
   });
   const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(mesmerCatalog, getMesmerActiveTraits),
+    createProfessionBuildAttributeRules(mesmerCatalog),
     family.attributeContributions
   );
   const build = {

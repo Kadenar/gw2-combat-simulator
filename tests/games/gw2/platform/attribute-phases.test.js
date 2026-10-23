@@ -1,7 +1,6 @@
 import { equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
-import { getActiveTraits as getWarriorActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import assert from 'node:assert/strict';
@@ -537,7 +536,7 @@ test('Signet Mastery feeds oil conversions only while its stacks are active', ()
 test('Blademaster Expertise feeds utility conversions in build and combat attributes', () => {
   const family = families.warrior;
   const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(warriorCatalog, getWarriorActiveTraits),
+    createProfessionBuildAttributeRules(warriorCatalog),
     family.attributeContributions
   );
   const build = createWarriorBuildDefaults();
@@ -629,7 +628,7 @@ test('Chemical Rounds declares base-duration eligibility and respects patch tuni
 test('Blood Reaction build and live sources agree for both equipment sets', () => {
   const family = families.warrior;
   const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(warriorCatalog, getWarriorActiveTraits),
+    createProfessionBuildAttributeRules(warriorCatalog),
     family.attributeContributions
   );
   const build = createWarriorBuildDefaults();

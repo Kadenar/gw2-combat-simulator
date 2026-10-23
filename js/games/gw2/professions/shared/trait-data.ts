@@ -1,10 +1,12 @@
+import type { CanonicalCatalog, CatalogEntity } from '#gw2/platform/skills/types.js';
+
 export interface ProfessionTraitSelection {
   readonly name?: string;
   readonly traits?: string;
   readonly disabledMinorTraits?: readonly number[];
 }
 
-interface ProfessionTraitSpecialization<TTrait> {
+export interface ProfessionTraitSpecialization<TTrait> {
   readonly name: string;
   readonly minorTraits: readonly TTrait[];
   readonly majorTraits: readonly (readonly TTrait[])[];
@@ -36,6 +38,8 @@ function parseTraitChoices(value?: string | null): readonly number[] {
 export function createProfessionTraitData<TTrait>(
   catalogSpecializations: readonly ProfessionTraitSpecialization<TTrait>[]
 ): ProfessionTraitData<TTrait> {
+  // Index the immutable layout once; catalog overlays reuse the same specialization array.
+  const byName = new Map(catalogSpecializations.map((specialization) => [specialization.name, specialization]));
   const traits = Object.freeze(
     catalogSpecializations.flatMap((specialization) => [
       ...specialization.minorTraits,
@@ -50,7 +54,7 @@ export function createProfessionTraitData<TTrait>(
     const active: TTrait[] = [];
 
     for (const selection of selections || []) {
-      const specialization = catalogSpecializations.find((candidate) => candidate.name === selection.name);
+      const specialization = selection.name ? byName.get(selection.name) : undefined;
 
       if (!specialization) continue;
 
@@ -78,4 +82,23 @@ export function createProfessionTraitData<TTrait>(
     traits,
     getActiveTraits
   });
+}
+
+const selectedTraitIndexes = new WeakMap<object, ProfessionTraitData<CatalogEntity>>();
+
+/** Resolve saved positions against the selected patch, sharing an index across catalogs with the same layout. */
+export function selectedTraits(
+  catalog: Pick<CanonicalCatalog, 'specializations'>,
+  selections?: readonly ProfessionTraitSelection[] | null
+): CatalogEntity[] {
+  let index = selectedTraitIndexes.get(catalog.specializations);
+
+  if (!index) {
+    index = createProfessionTraitData(
+      catalog.specializations as unknown as readonly ProfessionTraitSpecialization<CatalogEntity>[]
+    );
+    selectedTraitIndexes.set(catalog.specializations, index);
+  }
+
+  return index.getActiveTraits(selections);
 }

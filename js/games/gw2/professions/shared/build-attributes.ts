@@ -4,6 +4,7 @@ import { finalizeBuildAttributes } from '#gw2/platform/attributes/calculation.js
 import type { Gw2ApplyBuildAttributeRules, Gw2BuildAttributeRuleContext } from '#gw2/platform/attributes/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 
 import type {
   Gw2AttributeSeed,
@@ -59,15 +60,14 @@ export function createBuildAttributeContext<TTrait extends BuildAttributeTrait>(
 }
 
 /** Bind profession selection once; each calculation resolves its own traits and selected patch context. */
-export function createProfessionBuildAttributeRules(
-  catalog: CanonicalCatalog,
-  getActiveTraits: (specializations: readonly ProfessionTraitSelection[]) => readonly BuildAttributeTrait[]
-): Gw2ApplyBuildAttributeRules {
+export function createProfessionBuildAttributeRules(catalog: CanonicalCatalog): Gw2ApplyBuildAttributeRules {
   return (common, context) =>
     finalizeProfessionBuildAttributes(
       common,
       attributeSeedFromCommon(common),
-      createBuildAttributeContext(context, catalog, getActiveTraits),
+      createBuildAttributeContext(context, catalog, (selections) =>
+        selectedTraits(context.balanceContext?.catalog ?? catalog, selections)
+      ),
       context
     );
 }

@@ -1,3 +1,4 @@
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -9,7 +10,6 @@ import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.
 test('disabled traits survive saving and loading for every profession', async () => {
   for (const { id } of professionOptions) {
     const adapter = await loadProfessionAppAdapter(id);
-    const { getActiveTraits } = await import(`#gw2/professions/${id}/data/traits-data.js`);
     const build = createDefaultBuild(adapter);
     build.specializations = build.specializations.map(({ name }) => ({
       name,
@@ -20,20 +20,20 @@ test('disabled traits survive saving and loading for every profession', async ()
     assert.equal(adapter.profession.validateBuild(saved).valid, true, id);
     const loaded = adapter.toApplicationBuild(JSON.parse(JSON.stringify(saved)));
     assert.deepEqual(loaded.specializations, build.specializations, id);
-    assert.deepEqual(getActiveTraits(loaded.specializations), [], id);
+    assert.deepEqual(selectedTraits(adapter.profession.catalog, loaded.specializations), [], id);
 
     const selection = loaded.specializations[0];
-    const spec = adapter.specializations.find(({ name }) => name === selection.name);
+    const spec = adapter.profession.catalog.specializations.find(({ name }) => name === selection.name);
     selection.traits = '0-2-0';
     selection.disabledMinorTraits = [0, 2];
     assert.deepEqual(
-      getActiveTraits(loaded.specializations).map(({ id }) => id),
+      selectedTraits(adapter.profession.catalog, loaded.specializations).map(({ id }) => id),
       [spec.minorTraits[1].id, spec.majorTraits[1][1].id],
       id
     );
     delete selection.disabledMinorTraits;
     assert.deepEqual(
-      getActiveTraits(loaded.specializations).map(({ id }) => id),
+      selectedTraits(adapter.profession.catalog, loaded.specializations).map(({ id }) => id),
       [...spec.minorTraits.map(({ id }) => id), spec.majorTraits[1][1].id],
       id
     );

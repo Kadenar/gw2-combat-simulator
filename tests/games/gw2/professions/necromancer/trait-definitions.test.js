@@ -3,7 +3,6 @@ import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/bui
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
-import { getActiveTraits as getNecromancerActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerNativeModules, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -41,7 +40,7 @@ test('Necromancer trait build contributions preserve patched conversion inputs a
     professions: { necromancer: { balanceProfiles: { [TRAIT.FURIOUS_DEMISE]: { fields: { attributeBonus: 250 } } } } }
   });
   const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(necromancerCatalog, getNecromancerActiveTraits),
+    createProfessionBuildAttributeRules(necromancerCatalog),
     family.attributeContributions
   );
   const build = { specializations: [{ name: 'Curses', traits: '1-1-1' }] };

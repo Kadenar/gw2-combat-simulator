@@ -4,7 +4,6 @@ import { paletteActionSkills } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-import { getActiveTraits as getElementalistActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
@@ -60,7 +59,7 @@ test('Gale Song and Bolstered Elements expand their selected boon profile at com
 
 // Attribute assertions use the same calculator composed into the Elementalist adapter.
 const calculateAttributes = createCalculateAttributes(
-  createProfessionBuildAttributeRules(elementalistCatalog, getElementalistActiveTraits),
+  createProfessionBuildAttributeRules(elementalistCatalog),
   elementalistProfession.attributeContributions
 );
 
