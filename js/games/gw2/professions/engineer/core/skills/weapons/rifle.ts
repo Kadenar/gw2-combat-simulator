@@ -1,4 +1,4 @@
-import { ACTOR, COMBO_FINISHER, COMBO_FIELD, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, COMBO_FINISHER, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -24,9 +24,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
           {
             ownerId: 'engineer',
             finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 0.2,
-            preferredFieldTypes: [COMBO_FIELD.FIRE],
-            ambiguousFieldSelection: 'oldest'
+            chance: 0.2
           }
         ],
         projectile: true
@@ -104,8 +102,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
             {
               ownerId: 'engineer',
               finisherType: COMBO_FINISHER.LEAP,
-              fieldSelectionAnchor: 'castStart',
-              ambiguousFieldSelection: 'oldest'
+              fieldSelectionAnchor: 'castStart'
             }
           ],
           metadata: {}

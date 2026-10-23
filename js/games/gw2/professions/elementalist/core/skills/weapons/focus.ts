@@ -149,8 +149,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ],
         metadata: {},
@@ -213,8 +212,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ],
         metadata: {}

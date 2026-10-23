@@ -44,8 +44,7 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
             ownerId: 'guardian',
             finisherType: COMBO_FINISHER.LEAP,
             // The leap can combo with an existing field, but not the field this cast creates.
-            excludeOwnField: true,
-            ambiguousFieldSelection: 'oldest'
+            excludeOwnField: true
           }
         ]
       }

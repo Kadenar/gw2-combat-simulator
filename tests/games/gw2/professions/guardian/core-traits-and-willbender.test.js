@@ -202,7 +202,7 @@ test('Guardian Blasts use centralized field binding and require an active field'
   const combo = inFireField.resolvedEvents.find((event) => event.type === 'combo' && event.skillName === 'Mighty Blow');
 
   assert.equal(finisher.finisherType, 'Blast');
-  assert.equal(finisher.fieldBinding.kind, 'field-id');
+  assert.ok(finisher.fieldId);
   assert.equal(combo.fieldType, 'Fire');
   assert.equal(combo.finisherType, 'Blast');
   assert.equal(

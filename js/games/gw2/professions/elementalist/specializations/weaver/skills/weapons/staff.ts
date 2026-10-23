@@ -227,8 +227,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ],
         metadata: {},

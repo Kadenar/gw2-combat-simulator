@@ -19,11 +19,6 @@ export interface OwnedComboDescriptor extends Readonly<Record<string, unknown>> 
   readonly ownerId: string;
 }
 
-export type ComboFieldBinding =
-  | { readonly kind: 'field-id'; readonly fieldId: string }
-  | { readonly kind: 'field-type'; readonly fieldType: ComboFieldType }
-  | { readonly kind: 'none' };
-
 export interface ComboFieldEvent extends SimulationEventBase<'combo_field'> {
   readonly fieldId: string;
   readonly fieldType: ComboFieldType;
@@ -40,7 +35,10 @@ export interface ComboFinisherEvent extends SimulationEventBase<'combo_finisher'
   readonly comboReaction?: SimulationEventBase['effectReaction'];
   readonly attemptId: string;
   readonly finisherType: ComboFinisherType;
-  readonly fieldBinding: ComboFieldBinding;
+  /** Selected field, or null when this attempt is unbound. */
+  readonly fieldId: string | null;
+  /** Select an active owned field when the attempt executes instead of using an explicit field ID. */
+  readonly comboAutoSelectField?: boolean;
   /** Lets an explicitly bound interaction consume its field at the field's exact expiry timestamp. */
   readonly allowFieldAtExpiry?: boolean;
   /** Earliest eligible field interaction; the window ends at the finisher event without moving its outcome. */
@@ -61,7 +59,6 @@ export interface ComboEvent extends SimulationEventBase<'combo'> {
   readonly fieldType: ComboFieldType;
   readonly finisherType: ComboFinisherType;
   readonly fieldSourceId: import('#gw2/platform/skills/types.js').SkillId;
-  readonly bindingKind: ComboFieldBinding['kind'];
   readonly applicationCount: number;
   readonly outcome: Readonly<Record<string, unknown>>;
 }

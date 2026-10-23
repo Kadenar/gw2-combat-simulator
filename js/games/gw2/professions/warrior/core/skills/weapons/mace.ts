@@ -67,8 +67,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
           {
             ownerId: 'warrior',
             finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 1,
-            ambiguousFieldSelection: 'oldest'
+            chance: 1
           }
         ],
         metadata: {}

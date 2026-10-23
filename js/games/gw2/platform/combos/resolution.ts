@@ -1,4 +1,3 @@
-import type { ComboFieldType } from '#gw2/platform/constants.js';
 import type {
   ComboEvent,
   ComboFieldEvent,
@@ -7,7 +6,6 @@ import type {
 } from '#gw2/platform/combos/types.js';
 import { timeKey } from '#kernel/core/clock.js';
 import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/definitions.js';
-import { normalizeComboFieldType } from '#gw2/platform/combos/validation.js';
 import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 
 /**
@@ -18,16 +16,8 @@ import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.
 /** Combo chance rolls use their own random streams, so isolated previews can recognize them without owning them. */
 export const COMBO_RANDOM_STREAM_PREFIX = 'gw2.combo:';
 
-interface SelectComboFieldOptions {
-  readonly preferredFieldTypes?: readonly ComboFieldType[];
-  readonly ambiguousFieldSelection?: 'none' | 'oldest';
-}
-
-/** Selects one owned field, honoring an authoritative field before preferences. */
-export function selectComboFieldForFinisher(
-  fields: readonly ComboFieldEvent[],
-  options: SelectComboFieldOptions = {}
-): { readonly field?: ComboFieldEvent; readonly ambiguous: boolean } {
+/** Selects the oldest eligible owned field within the highest binding priority, regardless of field type. */
+export function selectComboFieldForFinisher(fields: readonly ComboFieldEvent[]): ComboFieldEvent | undefined {
   const ordered = [...fields].sort(
     (left, right) => left.at - right.at || (left.eventOrder || 0) - (right.eventOrder || 0)
   );
@@ -42,17 +32,7 @@ export function selectComboFieldForFinisher(
     highestBindingPriority > 0
       ? ordered.filter((field) => (field.comboBindingPriority || 0) === highestBindingPriority)
       : ordered;
-  const preferredTypes = (options.preferredFieldTypes || []).map(normalizeComboFieldType);
-  const preferred = preferredTypes
-    .map((fieldType) => candidates.find((field) => field.fieldType === fieldType))
-    .find(Boolean);
-  // Ambiguous means multiple different field types are present; same type repeated is not ambiguous.
-  const ambiguous = new Set(candidates.map((field) => field.fieldType)).size > 1;
-  // Priority: preferred type → oldest unambiguous → undefined when ambiguous with no match/override.
-  return {
-    field: preferred || (!ambiguous || options.ambiguousFieldSelection === 'oldest' ? candidates[0] : undefined),
-    ambiguous
-  };
+  return candidates[0];
 }
 
 /** Creates isolated mutable state for combo resolution. */
@@ -112,55 +92,20 @@ function warnOnce(
 }
 
 function boundField(state: Gw2ComboRuntimeState, event: ComboFinisherEvent, warn: ComboWarn): ComboFieldEvent | null {
+  // An unbound finisher is a normal missed combo opportunity; only failed explicit bindings warrant warnings.
+  if (event.fieldId === null) return null;
+
   const at = event.fieldSelectionAt ?? event.at;
   const label = warningLabel(event);
 
-  if (event.fieldBinding.kind === 'none') {
-    // warnOnUnbound=false suppresses the warning for finishers that are
-    // intentionally unbound (e.g. a Whirl that self-manages its field choice).
-    if (event.warnOnUnbound === false) return null;
+  const field = state.fields.get(event.fieldId);
 
-    warnOnce(
-      state,
-      `none|${label}`,
-      `Combo field binding is unspecified for ${label}; no combo resolved.`,
-      event,
-      warn
-    );
-    return null;
-  }
-
-  if (event.fieldBinding.kind === 'field-id') {
-    const field = state.fields.get(event.fieldBinding.fieldId);
-
-    if (field && isComboFieldActiveAt(field, event.at, at, event.allowFieldAtExpiry === true)) return field;
-
-    warnOnce(
-      state,
-      `inactive-id|${event.fieldBinding.fieldId}|${label}`,
-      `Combo field ${event.fieldBinding.fieldId} is not active for ${label}; no combo resolved.`,
-      event,
-      warn
-    );
-    return null;
-  }
-
-  const binding = event.fieldBinding;
-  // The explicit field-id branch returned above; remaining bindings select by field type.
-  const candidates = [...state.fields.values()]
-    .filter(
-      (field) =>
-        field.fieldType === binding.fieldType &&
-        isComboFieldActiveAt(field, event.at, at, event.allowFieldAtExpiry === true)
-    )
-    .sort((left, right) => left.at - right.at);
-
-  if (candidates[0]) return candidates[0];
+  if (field && isComboFieldActiveAt(field, event.at, at, event.allowFieldAtExpiry === true)) return field;
 
   warnOnce(
     state,
-    `inactive-type|${binding.fieldType}|${label}`,
-    `${binding.fieldType} combo field is not active for ${label}; no combo resolved.`,
+    `inactive-id|${event.fieldId}|${label}`,
+    `Combo field ${event.fieldId} is not active for ${label}; no combo resolved.`,
     event,
     warn
   );
@@ -227,7 +172,6 @@ export function resolveComboAttempt(
       fieldSourceId: field.sourceId,
       fieldSource: field.source,
       fieldOwnerId: field.ownerId,
-      bindingKind: event.fieldBinding.kind,
       applicationCount: event.applications,
       outcome: definition.outcome,
       parentEventOrder: event.parentEventOrder

@@ -48,8 +48,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Mes
       {
         ownerId: 'mesmer',
         finisherType: COMBO_FINISHER.WHIRL,
-        applications: 2,
-        ambiguousFieldSelection: 'oldest'
+        applications: 2
       }
     ],
     resource: {

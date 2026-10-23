@@ -91,8 +91,7 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         comboFinishers: [
           {
             ownerId: 'guardian',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ]
       }
@@ -137,8 +136,7 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         comboFinishers: [
           {
             ownerId: 'guardian',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ]
       },

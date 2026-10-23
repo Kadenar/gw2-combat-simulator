@@ -45,6 +45,33 @@ const boundaryConfig = {
   target: { armor: 2597, conditions: {} }
 };
 
+test('automatic finishers resolve the oldest overlapping field and quietly skip absent fields', () => {
+  // The producer and resolver must agree on the default without requiring per-skill selection metadata.
+  for (const fields of [
+    [],
+    [boundaryField, { ...boundaryField, at: 0.5, fieldId: 'boundary:ice', fieldType: 'Ice' }]
+  ]) {
+    const profession = fixtureProfession((context) => {
+      for (const field of fields) context.effects.emit({ kind: 'packet', event: field });
+      context.effects.emit({
+        kind: 'packet',
+        event: { ...boundaryHit, comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Blast' }] }
+      });
+    });
+    const result = simulateGw2({
+      profession,
+      rotation: [{ type: 'wait', durationMs: 2000 }],
+      config: boundaryConfig
+    });
+    const combos = result.resolvedEvents.filter((event) => event.type === 'combo');
+    assert.deepEqual(
+      combos.map((event) => event.fieldId),
+      fields.length ? ['boundary:fire'] : []
+    );
+    assert.deepEqual(result.warnings, []);
+  }
+});
+
 test('combo boons and their relic grants settle before critical sampling in both phases', () => {
   for (const mode of ['deterministic', 'stochastic']) {
     const profession = fixtureProfession((context) => {
@@ -303,7 +330,7 @@ test('combo boons use profession duration modifiers at the combo time with finis
               ...(actorType === 'summon' ? { summonOwner: 'fixture-pet' } : {}),
               attemptId,
               finisherType: 'Blast',
-              fieldBinding: { kind: 'field-id', fieldId },
+              fieldId: fieldId,
               chance: 1,
               applications: 1,
               successfulCombos: 1
@@ -428,8 +455,7 @@ test('owned canonical descriptors produce shared combo events without a professi
             comboFinishers: [
               {
                 ownerId: 'combo-fixture',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
+                finisherType: 'Blast'
               }
             ]
           }
@@ -445,10 +471,7 @@ test('owned canonical descriptors produce shared combo events without a professi
   const combo = result.events.find((event) => event.type === 'combo');
 
   assert.equal(field.ownerId, 'combo-fixture');
-  assert.deepEqual(finisher.fieldBinding, {
-    kind: 'field-id',
-    fieldId: field.fieldId
-  });
+  assert.deepEqual(finisher.fieldId, field.fieldId);
   assert.equal(combo.fieldId, field.fieldId);
   assert.equal(combo.finisherType, 'Blast');
 });
@@ -519,7 +542,8 @@ test('pet fields retain their caster while combo conditions retain the finisher 
   assert.deepEqual(result.warnings, []);
 });
 
-test("an authoritative owned field overrides a finisher's field preference", () => {
+test('an authoritative owned field overrides an older ambient field', () => {
+  // Explicit binding priority takes precedence over field age during runtime selection.
   const profession = fixtureProfession((context) => {
     context.effects.emit({
       kind: 'packet',
@@ -540,7 +564,7 @@ test("an authoritative owned field overrides a finisher's field preference", () 
       kind: 'packet',
       event: {
         type: 'combo_field',
-        at: 0,
+        at: 0.5,
         source: 'Authoritative Ice Field',
         sourceId: 'ice.field',
         actorType: 'effect',
@@ -558,17 +582,15 @@ test("an authoritative owned field overrides a finisher's field preference", () 
         type: 'damage',
         weaponStrength: 1000,
         at: 1,
-        source: 'Preferred Dark Projectile',
-        sourceId: 'preferred-dark-projectile',
+        source: 'Projectile',
+        sourceId: 'projectile',
         actorType: 'player',
-        skillName: 'Preferred Dark Projectile',
+        skillName: 'Projectile',
         coefficient: 1,
         comboFinishers: [
           {
             ownerId: 'combo-fixture',
-            finisherType: 'Projectile',
-            preferredFieldTypes: ['Dark'],
-            ambiguousFieldSelection: 'oldest'
+            finisherType: 'Projectile'
           }
         ]
       }
@@ -578,10 +600,7 @@ test("an authoritative owned field overrides a finisher's field preference", () 
   const finisher = result.events.find((event) => event.type === 'combo_finisher');
   const combo = result.events.find((event) => event.type === 'combo');
 
-  assert.deepEqual(finisher.fieldBinding, {
-    kind: 'field-id',
-    fieldId: 'field:authoritative-ice'
-  });
+  assert.deepEqual(finisher.fieldId, 'field:authoritative-ice');
   assert.equal(combo.fieldId, 'field:authoritative-ice');
   assert.equal(combo.fieldType, 'Ice');
 });
@@ -609,8 +628,7 @@ test('pure movement skills resolve skill-level finishers end to end', () => {
         comboFinishers: [
           {
             ownerId: 'combo-fixture',
-            finisherType: 'Leap',
-            ambiguousFieldSelection: 'oldest'
+            finisherType: 'Leap'
           }
         ],
         effects: []
@@ -661,8 +679,7 @@ test('cancelled summon attacks do not create resolver combo outcomes', () => {
         comboFinishers: [
           {
             ownerId: 'combo-fixture',
-            finisherType: 'Projectile',
-            ambiguousFieldSelection: 'oldest'
+            finisherType: 'Projectile'
           }
         ]
       }
@@ -697,7 +714,7 @@ test('canonically equal fields register before finishers by default', () => {
         actorType: 'player',
         attemptId: 'leap:1',
         finisherType: 'Leap',
-        fieldBinding: { kind: 'field-id', fieldId: 'field:same-time' },
+        fieldId: 'field:same-time',
         chance: 1,
         applications: 1,
         successfulCombos: 1

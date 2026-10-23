@@ -33,8 +33,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
     comboFinishers: [
       {
         ownerId: 'thief',
-        finisherType: COMBO_FINISHER.WHIRL,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.WHIRL
       }
     ]
   },
@@ -103,8 +102,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
     comboFinishers: [
       {
         ownerId: 'thief',
-        finisherType: COMBO_FINISHER.WHIRL,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.WHIRL
       }
     ]
   },

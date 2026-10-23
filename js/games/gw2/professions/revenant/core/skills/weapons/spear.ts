@@ -233,8 +233,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     comboFinishers: [
       {
         ownerId: 'revenant',
-        finisherType: COMBO_FINISHER.BLAST,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.BLAST
       }
     ],
     // Share one impact timing while preserving independent payloads and declaration order.

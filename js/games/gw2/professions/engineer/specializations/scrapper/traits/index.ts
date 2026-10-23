@@ -428,8 +428,7 @@ function applyKineticAcceleratorsCast(context: EngineerRuntime, cast: RuntimeCas
       {
         ownerId: 'engineer',
         finisherType: COMBO_FINISHER.BLAST,
-        chance: 1,
-        ambiguousFieldSelection: 'oldest'
+        chance: 1
       }
     ]
   });

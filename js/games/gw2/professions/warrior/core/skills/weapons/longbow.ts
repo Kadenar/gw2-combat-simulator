@@ -9,8 +9,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: COMBO_FINISHER.BLAST,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.BLAST
       }
     ],
     castTimeMs: 560,
@@ -36,8 +35,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Pa
       {
         ownerId: 'warrior',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2,
-        ambiguousFieldSelection: 'oldest'
+        chance: 0.2
       }
     ],
     castTimeMs: 840,
@@ -62,8 +60,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: COMBO_FINISHER.PROJECTILE,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.PROJECTILE
       }
     ],
     castTimeMs: 680,
@@ -94,8 +91,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: COMBO_FINISHER.PROJECTILE,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.PROJECTILE
       }
     ],
     castTimeMs: 160,

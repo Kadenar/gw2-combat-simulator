@@ -38,9 +38,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
         projectile: true,
         coefficient: 1.95,
         hits: 1,
-        comboFinishers: [
-          { ownerId: 'ranger', finisherType: COMBO_FINISHER.PROJECTILE, ambiguousFieldSelection: 'oldest' }
-        ]
+        comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.PROJECTILE }]
       },
       {
         type: 'condition',
@@ -87,7 +85,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
         atMs: 840,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.LEAP, ambiguousFieldSelection: 'oldest' }]
+        comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.LEAP }]
       }
     ],
     castTimeMs: 960
@@ -208,8 +206,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ]
       },
@@ -249,8 +246,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: COMBO_FINISHER.LEAP,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.LEAP
           }
         ]
       },

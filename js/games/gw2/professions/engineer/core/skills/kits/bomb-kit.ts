@@ -25,8 +25,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
       {
         ownerId: 'engineer',
         finisherType: COMBO_FINISHER.BLAST,
-        successfulCombos: 2,
-        ambiguousFieldSelection: 'oldest'
+        successfulCombos: 2
       }
     ],
     // Share one impact timing while preserving independent payloads and declaration order.
@@ -60,8 +59,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: COMBO_FINISHER.BLAST,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.BLAST
       }
     ],
     // Share one impact timing while preserving independent payloads and declaration order.

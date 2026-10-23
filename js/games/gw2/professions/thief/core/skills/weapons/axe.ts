@@ -28,8 +28,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
             {
               ownerId: 'thief',
               finisherType: COMBO_FINISHER.PROJECTILE,
-              chance: 0.2,
-              ambiguousFieldSelection: 'oldest'
+              chance: 0.2
             }
           ]
         },
@@ -175,8 +174,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
           comboFinishers: [
             {
               ownerId: 'thief',
-              finisherType: COMBO_FINISHER.BLAST,
-              ambiguousFieldSelection: 'oldest'
+              finisherType: COMBO_FINISHER.BLAST
             }
           ],
           metadata: {}

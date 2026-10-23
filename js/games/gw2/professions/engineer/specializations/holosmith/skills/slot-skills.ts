@@ -1,4 +1,4 @@
-import { ACTOR, CONTROL, COMBO_FINISHER, COMBO_FIELD, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, CONTROL, COMBO_FINISHER, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import {
   requireBalanceProfileFromContext,
@@ -161,9 +161,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         comboFinishers: [
           {
             ownerId: 'engineer',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            preferredFieldTypes: [COMBO_FIELD.FIRE],
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ],
         projectile: true

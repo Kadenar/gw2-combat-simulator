@@ -30,7 +30,7 @@ export function detonateInspiringImagery(context: MesmerRuntime, cast: RuntimeCa
       actorType: ACTOR.PLAYER,
       attemptId: `${cast.id}:abstraction`,
       finisherType: COMBO_FINISHER.BLAST,
-      fieldBinding: { kind: 'field-id', fieldId: field.fieldId },
+      fieldId: field.fieldId,
       // Abstraction consumes this exact field at the shared detonation timestamp.
       allowFieldAtExpiry: true,
       chance: 1,

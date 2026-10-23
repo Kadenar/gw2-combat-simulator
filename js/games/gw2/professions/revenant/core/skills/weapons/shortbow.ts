@@ -36,8 +36,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
       {
         ownerId: 'revenant',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2,
-        ambiguousFieldSelection: 'oldest'
+        chance: 0.2
       }
     ],
     // Share one impact timing while preserving independent payloads and declaration order.
@@ -99,8 +98,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
       {
         ownerId: 'revenant',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2,
-        ambiguousFieldSelection: 'oldest'
+        chance: 0.2
       }
     ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.

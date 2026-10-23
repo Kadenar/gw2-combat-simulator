@@ -72,8 +72,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
       {
         ownerId: 'warrior',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 1,
-        ambiguousFieldSelection: 'oldest'
+        chance: 1
       }
     ],
     // Share impact timing while preserving independent payloads and declaration order.
@@ -113,8 +112,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: COMBO_FINISHER.WHIRL,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.WHIRL
           }
         ],
         metadata: {}
@@ -156,8 +154,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: COMBO_FINISHER.WHIRL,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.WHIRL
           }
         ],
         metadata: {}

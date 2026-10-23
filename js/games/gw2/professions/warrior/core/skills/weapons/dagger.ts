@@ -136,8 +136,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         ownerId: 'warrior',
         finisherType: COMBO_FINISHER.LEAP,
-        fieldSelectionAnchor: 'castStart',
-        ambiguousFieldSelection: 'oldest'
+        fieldSelectionAnchor: 'castStart'
       }
     ],
 

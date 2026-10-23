@@ -187,9 +187,7 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         ownerActorType: ACTOR.PLAYER,
         weapon: 'Unequipped',
         weaponStrengthProfileId: 'nonweapon.unequipped',
-        comboFinishers: [
-          { ownerId: 'engineer', finisherType: COMBO_FINISHER.BLAST, chance: 1, ambiguousFieldSelection: 'oldest' }
-        ]
+        comboFinishers: [{ ownerId: 'engineer', finisherType: COMBO_FINISHER.BLAST, chance: 1 }]
       }
     ]
   },

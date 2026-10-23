@@ -258,8 +258,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ],
         metadata: {}
@@ -491,8 +490,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ],
         metadata: {}
@@ -519,8 +517,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ],
         metadata: {}
@@ -568,8 +565,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
             comboFinishers: [
               {
                 ownerId: 'elementalist',
-                finisherType: COMBO_FINISHER.BLAST,
-                ambiguousFieldSelection: 'oldest'
+                finisherType: COMBO_FINISHER.BLAST
               }
             ],
             metadata: {}
@@ -620,8 +616,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ],
         metadata: {}

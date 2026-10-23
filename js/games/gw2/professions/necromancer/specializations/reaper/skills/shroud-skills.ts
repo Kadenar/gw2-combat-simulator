@@ -118,8 +118,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
           {
             ownerId: 'necromancer',
             finisherType: COMBO_FINISHER.WHIRL,
-            applications: 4,
-            ambiguousFieldSelection: 'oldest'
+            applications: 4
           }
         ],
         ticks: [240, 440, 560, 760, 880, 1080, 1200, 1400, 1520, 1720, 1840, 2040].map((atMs) => ({

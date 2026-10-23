@@ -118,8 +118,7 @@ export const blastZone = defineTrait({
             ownerId: 'engineer',
             finisherType: COMBO_FINISHER.BLAST,
             chance: 1,
-            attemptGroup: 'blast-zone',
-            ambiguousFieldSelection: 'oldest'
+            attemptGroup: 'blast-zone'
           }
         ]
       }

@@ -34,8 +34,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             ownerId: 'revenant',
             finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 1,
-            ambiguousFieldSelection: 'oldest'
+            chance: 1
           }
         ]
       },
@@ -63,8 +62,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         comboFinishers: [
           {
             ownerId: 'revenant',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ]
       },
@@ -103,8 +101,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         comboFinishers: [
           {
             ownerId: 'revenant',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ]
       },
@@ -166,8 +163,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             ownerId: 'revenant',
             finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 1,
-            ambiguousFieldSelection: 'oldest'
+            chance: 1
           }
         ]
       }

@@ -28,7 +28,7 @@ export const SOULBEAST_AVIAN_BEAST_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 1.2,
         hits: 1,
         // The merged leap can finish the same fields as its pet counterpart.
-        comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.LEAP, ambiguousFieldSelection: 'oldest' }]
+        comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.LEAP }]
       },
       {
         type: 'condition',

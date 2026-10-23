@@ -1,4 +1,4 @@
-import { COMBO_FINISHER, COMBO_FIELD, ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { COMBO_FINISHER, ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Amalgam offensive and defensive protocol skill fragments across mechanic slots.
  * Evolved-state actions and persistent morph behavior live in their named owners.
@@ -26,9 +26,7 @@ const shred: Partial<Skill> = {
   comboFinishers: [
     {
       ownerId: 'engineer',
-      finisherType: COMBO_FINISHER.PROJECTILE,
-      preferredFieldTypes: [COMBO_FIELD.FIRE],
-      ambiguousFieldSelection: 'oldest'
+      finisherType: COMBO_FINISHER.PROJECTILE
     }
   ],
   effects: [
@@ -94,8 +92,7 @@ const demolish: Partial<Skill> = {
       comboFinishers: [
         {
           ownerId: 'engineer',
-          finisherType: COMBO_FINISHER.WHIRL,
-          ambiguousFieldSelection: 'oldest'
+          finisherType: COMBO_FINISHER.WHIRL
         }
       ]
     },
@@ -109,8 +106,7 @@ const demolish: Partial<Skill> = {
       comboFinishers: [
         {
           ownerId: 'engineer',
-          finisherType: COMBO_FINISHER.BLAST,
-          ambiguousFieldSelection: 'oldest'
+          finisherType: COMBO_FINISHER.BLAST
         }
       ]
     }

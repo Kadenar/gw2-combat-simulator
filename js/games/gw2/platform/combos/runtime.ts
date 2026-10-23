@@ -1,4 +1,4 @@
-import { COMBO_FINISHER, type ComboFieldType } from '#gw2/platform/constants.js';
+import { COMBO_FINISHER } from '#gw2/platform/constants.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { fieldDescriptors, finisherDescriptors, fieldAt } from '#gw2/platform/combos/descriptors.js';
 import { comboCombatMetadata } from '#gw2/platform/combos/definitions.js';
@@ -8,9 +8,9 @@ import type { MechanicContext } from '#gw2/platform/profession-definition/mechan
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 
-/** Bind fields only when an authored finisher reaches its timestamp, using executed field registrations. */
+/** Automatically select fields at execution time only for opted-in finishers; preserve explicit field IDs. */
 export function bindRuntimeCombo(runtime: Gw2Runtime, event: Gw2ResolverEvent): Gw2ResolverEvent {
-  if (event.type !== 'combo_finisher' || !event.comboAllowRebind) return event;
+  if (event.type !== 'combo_finisher' || !event.comboAutoSelectField) return event;
 
   const candidates = [...runtime.combo.fields.values()].filter(
     (field) =>
@@ -18,14 +18,10 @@ export function bindRuntimeCombo(runtime: Gw2Runtime, event: Gw2ResolverEvent): 
       isComboFieldActiveAt(field, event.at, Number(event.fieldSelectionAt ?? event.at)) &&
       (event.comboExcludeOwnField !== true || field.activationId !== event.activationId)
   );
-  const { field, ambiguous } = selectComboFieldForFinisher(candidates, {
-    preferredFieldTypes: event.comboPreferredFieldTypes as readonly ComboFieldType[] | undefined,
-    ambiguousFieldSelection: event.comboAmbiguousFieldSelection === 'oldest' ? 'oldest' : 'none'
-  });
+  const field = selectComboFieldForFinisher(candidates);
   return {
     ...event,
-    fieldBinding: field ? { kind: 'field-id', fieldId: field.fieldId } : { kind: 'none' },
-    warnOnUnbound: ambiguous && !field
+    fieldId: field?.fieldId ?? null
   };
 }
 
@@ -102,11 +98,9 @@ export function produceRuntimeCombos(
           skillName: event.skillName,
           attemptId: `${event.activationId ?? event.eventOrder}:${descriptor.finisherType}:${descriptor.attemptGroup ?? 'skill'}:${index}:${attempt}${packet}`,
           finisherType: descriptor.finisherType,
-          fieldBinding: descriptor.fieldBinding ?? { kind: 'none' },
-          comboAllowRebind: descriptor.fieldBinding == null,
+          fieldId: descriptor.fieldId ?? null,
+          comboAutoSelectField: descriptor.fieldId == null,
           comboOwnerId: descriptor.ownerId,
-          comboPreferredFieldTypes: descriptor.preferredFieldTypes,
-          comboAmbiguousFieldSelection: descriptor.ambiguousFieldSelection,
           comboExcludeOwnField: descriptor.excludeOwnField,
           fieldSelectionAt: action?.at,
           effectAt: Math.max(at, Number(descriptor.effectAt ?? at + Number(descriptor.effectDelay ?? 0))),

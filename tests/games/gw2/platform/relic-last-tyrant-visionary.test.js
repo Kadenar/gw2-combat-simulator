@@ -347,7 +347,6 @@ function combo(at, finisherType = 'Blast') {
     comboId: `fixture-combo:${at}`,
     attemptId: `fixture-attempt:${at}`,
     fieldId: 'fixture-field',
-    bindingKind: 'field-id',
     applicationCount: 1,
     outcome: comboDefinition('Fire', finisherType).outcome
   };

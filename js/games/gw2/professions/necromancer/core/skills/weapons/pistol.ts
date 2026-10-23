@@ -39,8 +39,7 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
       {
         ownerId: 'necromancer',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2,
-        ambiguousFieldSelection: 'oldest'
+        chance: 0.2
       }
     ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -86,8 +85,7 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
       {
         ownerId: 'necromancer',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2,
-        ambiguousFieldSelection: 'oldest'
+        chance: 0.2
       }
     ],
     // Share this impact's timing while preserving independent payloads and declaration order.

@@ -86,8 +86,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: COMBO_FINISHER.BLAST,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.BLAST
       }
     ],
     effects: [

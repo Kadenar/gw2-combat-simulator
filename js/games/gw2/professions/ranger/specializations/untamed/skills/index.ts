@@ -182,8 +182,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ]
       },

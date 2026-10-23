@@ -110,9 +110,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
             {
               ownerId: 'guardian',
               finisherType: COMBO_FINISHER.WHIRL,
-              attemptGroup: `whirl:${atMs}`,
-              // Overlapping fields compete by age, regardless of their combo outcome.
-              ambiguousFieldSelection: 'oldest' as const
+              attemptGroup: `whirl:${atMs}`
             }
           ]
         }))

@@ -313,8 +313,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     comboFinishers: [
       {
         ownerId: 'thief',
-        finisherType: COMBO_FINISHER.WHIRL,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.WHIRL
       }
     ]
   }

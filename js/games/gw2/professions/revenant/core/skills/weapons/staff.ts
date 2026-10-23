@@ -32,7 +32,7 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
   },
   [ID.REJUVENATING_ASSAULT]: {
     castTimeMs: 680,
-    comboFinishers: [{ ownerId: 'revenant', finisherType: COMBO_FINISHER.WHIRL, ambiguousFieldSelection: 'oldest' }],
+    comboFinishers: [{ ownerId: 'revenant', finisherType: COMBO_FINISHER.WHIRL }],
     cooldown: 0,
     energyCost: 0,
     effects: [

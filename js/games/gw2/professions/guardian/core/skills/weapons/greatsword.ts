@@ -26,8 +26,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
           comboFinishers: [
             {
               ownerId: 'guardian',
-              finisherType: COMBO_FINISHER.LEAP,
-              ambiguousFieldSelection: 'oldest'
+              finisherType: COMBO_FINISHER.LEAP
             }
           ]
         },

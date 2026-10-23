@@ -76,8 +76,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
             {
               attemptGroup: 'effect:1:tick:1',
               ownerId: 'elementalist',
-              finisherType: COMBO_FINISHER.BLAST,
-              ambiguousFieldSelection: 'oldest'
+              finisherType: COMBO_FINISHER.BLAST
             }
           ],
           metadata: {}
@@ -119,8 +118,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
             {
               attemptGroup: 'effect:2:tick:1',
               ownerId: 'elementalist',
-              finisherType: COMBO_FINISHER.BLAST,
-              ambiguousFieldSelection: 'oldest'
+              finisherType: COMBO_FINISHER.BLAST
             }
           ],
           metadata: {}
@@ -308,8 +306,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
               attemptGroup: 'effect:1:tick:1',
               ownerId: 'elementalist',
               finisherType: COMBO_FINISHER.PROJECTILE,
-              chance: 0.2,
-              ambiguousFieldSelection: 'oldest'
+              chance: 0.2
             }
           ],
           metadata: {}
@@ -325,8 +322,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
               attemptGroup: 'effect:3:tick:1',
               ownerId: 'elementalist',
               finisherType: COMBO_FINISHER.PROJECTILE,
-              chance: 0.2,
-              ambiguousFieldSelection: 'oldest'
+              chance: 0.2
             }
           ],
           metadata: {}
@@ -342,8 +338,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
               attemptGroup: 'effect:5:tick:1',
               ownerId: 'elementalist',
               finisherType: COMBO_FINISHER.PROJECTILE,
-              chance: 0.2,
-              ambiguousFieldSelection: 'oldest'
+              chance: 0.2
             }
           ],
           metadata: {}
@@ -413,8 +408,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
           comboFinishers: [
             {
               ownerId: 'elementalist',
-              finisherType: COMBO_FINISHER.PROJECTILE,
-              ambiguousFieldSelection: 'oldest'
+              finisherType: COMBO_FINISHER.PROJECTILE
             }
           ]
         }))

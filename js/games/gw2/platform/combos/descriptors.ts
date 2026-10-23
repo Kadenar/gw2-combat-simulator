@@ -48,7 +48,7 @@ export function fieldDescriptors(catalog: CanonicalCatalog, event: SimulationEve
   ).map((raw) => ({
     ...raw,
     ownerId: raw.ownerId,
-    fieldType: normalizeComboFieldType(raw.fieldType ?? raw.type),
+    fieldType: normalizeComboFieldType(raw.fieldType),
     startMs: Math.max(0, Number(raw.startMs || 0)),
     startAnchor:
       raw.startAnchor === 'castEnd'
@@ -98,7 +98,7 @@ export function finisherDescriptors(
   ).map((raw) => ({
     ...raw,
     ownerId: raw.ownerId,
-    finisherType: normalizeComboFinisherType(raw.finisherType ?? raw.type),
+    finisherType: normalizeComboFinisherType(raw.finisherType),
     fieldSelectionAnchor: normalizeComboFieldSelectionAnchor(raw.fieldSelectionAnchor),
     chance: boundedNumber(raw.chance ?? 1, 1, 0, 1),
     attempts: Math.max(1, Math.trunc(Number(raw.attempts ?? 1))),

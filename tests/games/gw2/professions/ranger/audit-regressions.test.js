@@ -585,8 +585,7 @@ test('Flame Trap retains its double initial strike, later burning pulses, and a 
     assert.deepEqual(combo.warnings, []);
     assert.equal(
       combo.events.some(
-        (event) =>
-          event.type === 'combo_finisher' && event.successfulCombos > 0 && event.fieldBinding.kind === 'field-id'
+        (event) => event.type === 'combo_finisher' && event.successfulCombos > 0 && event.fieldId != null
       ),
       expected
     );

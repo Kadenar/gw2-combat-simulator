@@ -41,8 +41,7 @@ const minion = (
 const MINION_PROJECTILE_FINISHER = Object.freeze({
   ownerId: 'necromancer',
   finisherType: COMBO_FINISHER.PROJECTILE,
-  chance: 1,
-  ambiguousFieldSelection: 'oldest'
+  chance: 1
 });
 
 export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([

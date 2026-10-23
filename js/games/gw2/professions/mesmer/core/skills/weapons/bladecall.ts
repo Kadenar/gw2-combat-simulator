@@ -20,8 +20,7 @@ export function bladecallEffects(): SkillEffect[] {
           {
             ownerId: 'mesmer',
             finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
+            chance: 0.2
           }
         ],
         metadata: {}

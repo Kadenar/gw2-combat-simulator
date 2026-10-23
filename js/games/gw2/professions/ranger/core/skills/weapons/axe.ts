@@ -25,8 +25,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
           {
             ownerId: 'ranger',
             finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
+            chance: 0.2
           }
         ]
       },
@@ -52,8 +51,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
           {
             ownerId: 'ranger',
             finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
+            chance: 0.2
           }
         ]
       },
@@ -109,8 +107,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ]
       },
@@ -133,9 +130,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
           ticks: WHIRLING_DEFENSE_TICK_OFFSETS_MS.map((atMs) => ({
             atMs,
             coefficient: 0.66,
-            comboFinishers: [
-              { ownerId: 'ranger', finisherType: COMBO_FINISHER.WHIRL, ambiguousFieldSelection: 'oldest' }
-            ]
+            comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.WHIRL }]
           }))
         },
         {
@@ -191,8 +186,7 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ]
       },

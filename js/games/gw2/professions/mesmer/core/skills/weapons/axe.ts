@@ -92,8 +92,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
       {
         ownerId: 'mesmer',
         finisherType: COMBO_FINISHER.WHIRL,
-        applications: 2,
-        ambiguousFieldSelection: 'oldest'
+        applications: 2
       }
     ],
     resource: {
@@ -134,8 +133,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
     comboFinishers: [
       {
         ownerId: 'mesmer',
-        finisherType: COMBO_FINISHER.LEAP,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.LEAP
       }
     ],
     effects: [

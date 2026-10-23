@@ -15,8 +15,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       {
         ownerId: 'warrior',
         finisherType: COMBO_FINISHER.LEAP,
-        fieldSelectionAnchor: 'castStart',
-        ambiguousFieldSelection: 'oldest'
+        fieldSelectionAnchor: 'castStart'
       }
     ],
     // Share impact timing while preserving independent payloads and declaration order.
@@ -408,8 +407,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ],
         metadata: {}

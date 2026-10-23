@@ -757,8 +757,7 @@ test('Relic of Bloodstone records three Volatility stacks before the fourth blas
             comboFinishers: [
               {
                 ownerId: 'bloodstone-fixture',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
+                finisherType: 'Blast'
               }
             ]
           }

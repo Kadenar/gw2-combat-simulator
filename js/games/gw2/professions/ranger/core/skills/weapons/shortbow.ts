@@ -93,8 +93,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
             {
               ownerId: 'ranger',
               finisherType: COMBO_FINISHER.PROJECTILE,
-              chance: 0.2,
-              ambiguousFieldSelection: 'oldest'
+              chance: 0.2
             }
           ]
         },
@@ -124,8 +123,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
           comboFinishers: [
             {
               ownerId: 'ranger',
-              finisherType: COMBO_FINISHER.PROJECTILE,
-              ambiguousFieldSelection: 'oldest'
+              finisherType: COMBO_FINISHER.PROJECTILE
             }
           ]
         },
@@ -161,8 +159,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
           comboFinishers: [
             {
               ownerId: 'ranger',
-              finisherType: COMBO_FINISHER.PROJECTILE,
-              ambiguousFieldSelection: 'oldest'
+              finisherType: COMBO_FINISHER.PROJECTILE
             }
           ]
         },
@@ -195,8 +192,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
           comboFinishers: [
             {
               ownerId: 'ranger',
-              finisherType: COMBO_FINISHER.PROJECTILE,
-              ambiguousFieldSelection: 'oldest'
+              finisherType: COMBO_FINISHER.PROJECTILE
             }
           ]
         },

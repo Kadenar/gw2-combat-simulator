@@ -52,8 +52,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
           {
             ownerId: 'thief',
             finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
+            chance: 0.2
           }
         ],
         metadata: {}
@@ -110,8 +109,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
           {
             ownerId: 'thief',
             finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
+            chance: 0.2
           }
         ],
         metadata: {}
@@ -147,8 +145,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
           comboFinishers: [
             {
               ownerId: 'thief',
-              finisherType: COMBO_FINISHER.PROJECTILE,
-              ambiguousFieldSelection: 'oldest'
+              finisherType: COMBO_FINISHER.PROJECTILE
             }
           ],
           metadata: {}
@@ -188,8 +185,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
           {
             ownerId: 'thief',
             finisherType: COMBO_FINISHER.LEAP,
-            fieldSelectionAnchor: 'castStart',
-            ambiguousFieldSelection: 'oldest'
+            fieldSelectionAnchor: 'castStart'
           }
         ],
         metadata: {}
@@ -219,8 +215,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
           {
             ownerId: 'thief',
             finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
+            chance: 0.2
           }
         ],
         metadata: {}
@@ -248,8 +243,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
           comboFinishers: [
             {
               ownerId: 'thief',
-              finisherType: COMBO_FINISHER.PROJECTILE,
-              ambiguousFieldSelection: 'oldest'
+              finisherType: COMBO_FINISHER.PROJECTILE
             }
           ],
           metadata: {}
@@ -294,8 +288,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
           {
             ownerId: 'thief',
             finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
+            chance: 0.2
           }
         ],
         metadata: {}
@@ -336,8 +329,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ],
         metadata: {}

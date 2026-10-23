@@ -68,8 +68,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: COMBO_FINISHER.LEAP,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.LEAP
           }
         ]
       },
@@ -106,8 +105,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: COMBO_FINISHER.LEAP,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.LEAP
           }
         ]
       },

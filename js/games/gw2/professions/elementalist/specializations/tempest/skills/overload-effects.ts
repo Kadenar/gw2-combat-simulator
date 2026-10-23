@@ -61,8 +61,7 @@ function overloadFireEffects(): readonly SkillEffect[] {
                 finisherType: COMBO_FINISHER.WHIRL,
                 // Keep the singleton timeline's combo identity after lifting its payload onto the impact.
                 attemptGroup: `effect:${index * 3 + 1}:tick:1`,
-                ...(index < 3 ? { applications: 2 } : {}),
-                ambiguousFieldSelection: 'oldest'
+                ...(index < 3 ? { applications: 2 } : {})
               }
             ],
             metadata: {}
@@ -101,8 +100,7 @@ function overloadEarthEffects(): readonly SkillEffect[] {
                   ownerId: 'elementalist',
                   finisherType: COMBO_FINISHER.BLAST,
                   // Four effects per earlier pulse, plus the opening Stability, precede this strike.
-                  attemptGroup: `effect:${index * 4 + 2}:tick:1`,
-                  ambiguousFieldSelection: 'oldest'
+                  attemptGroup: `effect:${index * 4 + 2}:tick:1`
                 }
               ],
               metadata: {}

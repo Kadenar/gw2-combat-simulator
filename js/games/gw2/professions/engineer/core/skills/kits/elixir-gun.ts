@@ -25,9 +25,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
       {
         ownerId: 'engineer',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2,
-        preferredFieldTypes: [COMBO_FIELD.FIRE],
-        ambiguousFieldSelection: 'oldest'
+        chance: 0.2
       }
     ],
     effects: [
@@ -114,8 +112,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         comboFinishers: [
           {
             ownerId: 'engineer',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ]
       },

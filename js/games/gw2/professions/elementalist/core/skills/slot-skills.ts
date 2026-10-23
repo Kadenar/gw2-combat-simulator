@@ -41,8 +41,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
             comboFinishers: [
               {
                 ownerId: 'elementalist',
-                finisherType: COMBO_FINISHER.BLAST,
-                ambiguousFieldSelection: 'oldest'
+                finisherType: COMBO_FINISHER.BLAST
               }
             ],
             metadata: {}
@@ -108,8 +107,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
             comboFinishers: [
               {
                 ownerId: 'elementalist',
-                finisherType: COMBO_FINISHER.PROJECTILE,
-                ambiguousFieldSelection: 'oldest'
+                finisherType: COMBO_FINISHER.PROJECTILE
               }
             ],
             metadata: {}
@@ -150,8 +148,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ],
         metadata: {},

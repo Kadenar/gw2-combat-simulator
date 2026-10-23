@@ -80,8 +80,7 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: COMBO_FINISHER.BLAST,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.BLAST
       }
     ],
     effects: [

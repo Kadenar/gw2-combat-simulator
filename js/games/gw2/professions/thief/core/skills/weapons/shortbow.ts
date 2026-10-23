@@ -23,8 +23,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
           {
             ownerId: 'thief',
             finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
+            chance: 0.2
           }
         ],
         metadata: {}
@@ -99,8 +98,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ],
         metadata: {}
@@ -154,8 +152,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ],
         metadata: {}
@@ -183,8 +180,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ],
         metadata: {}

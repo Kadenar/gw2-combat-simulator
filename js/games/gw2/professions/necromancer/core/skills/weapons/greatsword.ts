@@ -156,8 +156,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
           {
             ownerId: 'necromancer',
             finisherType: COMBO_FINISHER.WHIRL,
-            applications: 3,
-            ambiguousFieldSelection: 'oldest'
+            applications: 3
           }
         ],
         timingAnchor: 'castStart',
@@ -197,8 +196,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
           {
             ownerId: 'necromancer',
             finisherType: COMBO_FINISHER.WHIRL,
-            applications: 2,
-            ambiguousFieldSelection: 'oldest'
+            applications: 2
           }
         ]
       },

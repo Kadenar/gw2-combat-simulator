@@ -31,7 +31,7 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         coefficient: 0.66,
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON,
-        comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.LEAP, ambiguousFieldSelection: 'oldest' }]
+        comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.LEAP }]
       },
       {
         type: 'condition',

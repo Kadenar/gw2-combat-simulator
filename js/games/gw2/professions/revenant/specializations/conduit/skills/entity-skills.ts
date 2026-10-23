@@ -223,8 +223,7 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
       ownerId: 'revenant',
       finisherType: COMBO_FINISHER.WHIRL,
       applications: 2,
-      effectDelay: 0.04,
-      ambiguousFieldSelection: 'oldest'
+      effectDelay: 0.04
     }
   ],
   // Share timing defaults while preserving each packet, effect order, and local schedule.

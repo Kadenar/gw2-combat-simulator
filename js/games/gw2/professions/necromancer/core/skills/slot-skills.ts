@@ -319,8 +319,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
               {
                 ownerId: 'necromancer',
                 finisherType: COMBO_FINISHER.PROJECTILE,
-                chance: 1,
-                ambiguousFieldSelection: 'oldest'
+                chance: 1
               }
             ]
           },
@@ -334,8 +333,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
               {
                 ownerId: 'necromancer',
                 finisherType: COMBO_FINISHER.PROJECTILE,
-                chance: 1,
-                ambiguousFieldSelection: 'oldest'
+                chance: 1
               }
             ]
           }

@@ -93,8 +93,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ],
         metadata: {}
@@ -226,8 +225,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ],
         metadata: {}

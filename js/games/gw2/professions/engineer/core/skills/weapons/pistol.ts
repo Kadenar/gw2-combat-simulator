@@ -1,4 +1,4 @@
-import { COMBO_FINISHER, COMBO_FIELD, ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { COMBO_FINISHER, ACTOR, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -14,9 +14,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
       {
         ownerId: 'engineer',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2,
-        preferredFieldTypes: [COMBO_FIELD.FIRE],
-        ambiguousFieldSelection: 'oldest'
+        chance: 0.2
       }
     ],
     // Share one impact timing while preserving independent payloads and declaration order.
@@ -104,8 +102,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: COMBO_FINISHER.BLAST,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.BLAST
       }
     ],
     effects: [

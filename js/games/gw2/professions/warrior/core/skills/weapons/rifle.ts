@@ -29,8 +29,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
       {
         ownerId: 'warrior',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2,
-        ambiguousFieldSelection: 'oldest'
+        chance: 0.2
       }
     ],
     interruptMode: 'per-packet',
@@ -58,8 +57,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
       {
         ownerId: 'warrior',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2,
-        ambiguousFieldSelection: 'oldest'
+        chance: 0.2
       }
     ],
     castTimeMs: 600,
@@ -110,8 +108,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
       {
         ownerId: 'warrior',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 1,
-        ambiguousFieldSelection: 'oldest'
+        chance: 1
       }
     ],
     castTimeMs: 500,

@@ -16,8 +16,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ],
         metadata: {}

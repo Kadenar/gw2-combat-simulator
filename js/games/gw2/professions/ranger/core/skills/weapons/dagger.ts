@@ -42,8 +42,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ]
       },
@@ -221,8 +220,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: COMBO_FINISHER.LEAP,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.LEAP
           }
         ]
       },

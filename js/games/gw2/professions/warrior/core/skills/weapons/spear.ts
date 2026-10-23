@@ -40,8 +40,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ],
         metadata: {}
@@ -99,8 +98,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
           {
             ownerId: 'warrior',
             finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 1,
-            ambiguousFieldSelection: 'oldest'
+            chance: 1
           }
         ],
         metadata: {}

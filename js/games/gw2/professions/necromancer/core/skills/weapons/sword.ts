@@ -17,8 +17,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     comboFinishers: [
       {
         ownerId: 'necromancer',
-        finisherType: COMBO_FINISHER.LEAP,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.LEAP
       }
     ],
     effects: [
@@ -73,8 +72,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     comboFinishers: [
       {
         ownerId: 'necromancer',
-        finisherType: COMBO_FINISHER.LEAP,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.LEAP
       }
     ],
     effects: [

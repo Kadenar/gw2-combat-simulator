@@ -56,9 +56,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         name: "Malicious Death's Judgment — Packet 1",
         actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true,
-        comboFinishers: [
-          { ownerId: 'thief', finisherType: COMBO_FINISHER.PROJECTILE, ambiguousFieldSelection: 'oldest' }
-        ],
+        comboFinishers: [{ ownerId: 'thief', finisherType: COMBO_FINISHER.PROJECTILE }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -78,9 +76,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         hits: 1,
         name: 'Malicious Surprise Shot',
         actorType: ACTOR.PLAYER,
-        comboFinishers: [
-          { ownerId: 'thief', finisherType: COMBO_FINISHER.PROJECTILE, ambiguousFieldSelection: 'oldest' }
-        ]
+        comboFinishers: [{ ownerId: 'thief', finisherType: COMBO_FINISHER.PROJECTILE }]
       },
       {
         type: 'condition',
@@ -120,9 +116,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         ticks: [120, 280, 400, 560, 680].map((atMs) => ({ atMs, coefficient: 1.8 / 5 })),
         name: 'Malicious Sneak Attack',
         actorType: ACTOR.PLAYER,
-        comboFinishers: [
-          { ownerId: 'thief', finisherType: COMBO_FINISHER.PROJECTILE, ambiguousFieldSelection: 'oldest' }
-        ],
+        comboFinishers: [{ ownerId: 'thief', finisherType: COMBO_FINISHER.PROJECTILE }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -320,7 +314,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         hits: 1,
         name: 'Malicious Cunning Salvo',
         actorType: ACTOR.PLAYER,
-        comboFinishers: [{ ownerId: 'thief', finisherType: COMBO_FINISHER.BLAST, ambiguousFieldSelection: 'oldest' }]
+        comboFinishers: [{ ownerId: 'thief', finisherType: COMBO_FINISHER.BLAST }]
       },
       {
         type: 'condition',

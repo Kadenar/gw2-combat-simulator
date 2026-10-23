@@ -92,8 +92,7 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
           {
             ownerId: 'warrior',
             finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 1,
-            ambiguousFieldSelection: 'oldest'
+            chance: 1
           }
         ],
         metadata: {}

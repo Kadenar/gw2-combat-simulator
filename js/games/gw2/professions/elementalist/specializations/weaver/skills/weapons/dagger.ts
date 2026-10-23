@@ -58,7 +58,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     specialization: 'Weaver'
   },
   // Fire+Air. Single hit that doubles as a Blast finisher into the oldest
-  // ambiguous field.
+  // eligible field.
   [ID.PLASMA_BURST]: {
     name: 'Plasma Burst',
     type: 'Weapon',
@@ -77,8 +77,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ],
         metadata: {}
@@ -140,8 +139,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
             {
               attemptGroup: 'effect:1:tick:1',
               ownerId: 'elementalist',
-              finisherType: COMBO_FINISHER.BLAST,
-              ambiguousFieldSelection: 'oldest'
+              finisherType: COMBO_FINISHER.BLAST
             }
           ],
           metadata: {},

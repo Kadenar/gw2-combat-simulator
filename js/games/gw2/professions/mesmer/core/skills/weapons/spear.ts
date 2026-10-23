@@ -43,8 +43,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
         comboFinishers: [
           {
             ownerId: 'mesmer',
-            finisherType: COMBO_FINISHER.LEAP,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.LEAP
           }
         ]
       },
@@ -114,8 +113,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
         comboFinishers: [
           {
             ownerId: 'mesmer',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ],
         metadata: {}

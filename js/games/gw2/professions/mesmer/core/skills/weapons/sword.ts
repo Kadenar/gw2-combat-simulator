@@ -15,8 +15,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
       {
         ownerId: 'mesmer',
         finisherType: COMBO_FINISHER.LEAP,
-        fieldSelectionAnchor: 'castStart',
-        ambiguousFieldSelection: 'oldest'
+        fieldSelectionAnchor: 'castStart'
       }
     ],
     // Swapping applies immobilize when the instant follow-up completes (wiki: Swap).
@@ -166,8 +165,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
         comboFinishers: [
           {
             ownerId: 'mesmer',
-            finisherType: COMBO_FINISHER.LEAP,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.LEAP
           }
         ]
       },
@@ -246,8 +244,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
           {
             ownerId: 'mesmer',
             finisherType: COMBO_FINISHER.LEAP,
-            fieldSelectionAnchor: 'castStart',
-            ambiguousFieldSelection: 'oldest'
+            fieldSelectionAnchor: 'castStart'
           }
         ]
       }

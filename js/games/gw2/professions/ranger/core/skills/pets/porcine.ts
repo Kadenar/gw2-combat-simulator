@@ -48,8 +48,7 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
           {
             ownerId: 'ranger',
             ownerActorType: ACTOR.SUMMON,
-            finisherType: COMBO_FINISHER.LEAP,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.LEAP
           }
         ],
         source: 'ranger-pet',

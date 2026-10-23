@@ -43,8 +43,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
       {
         ownerId: 'warrior',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 1,
-        ambiguousFieldSelection: 'oldest'
+        chance: 1
       }
     ],
     effects: [
@@ -312,8 +311,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: COMBO_FINISHER.LEAP,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.LEAP
       }
     ],
     effects: impactEffects({ persistsAfterInterrupt: true }, [

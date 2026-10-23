@@ -118,8 +118,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     comboFinishers: [
       {
         ownerId: 'thief',
-        finisherType: COMBO_FINISHER.BLAST,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.BLAST
       }
     ],
     shadowShroudSkill: true
@@ -154,8 +153,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     comboFinishers: [
       {
         ownerId: 'thief',
-        finisherType: COMBO_FINISHER.LEAP,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.LEAP
       }
     ],
     shadowShroudSkill: true
@@ -189,8 +187,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ]
       },
@@ -213,8 +210,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     comboFinishers: [
       {
         ownerId: 'thief',
-        finisherType: COMBO_FINISHER.BLAST,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.BLAST
       }
     ],
     shadowShroudSkill: true

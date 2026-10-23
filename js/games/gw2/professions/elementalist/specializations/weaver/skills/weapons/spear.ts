@@ -84,7 +84,7 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     ]),
     specialization: 'Weaver'
   },
-  // Fire+Earth. Blast finisher into the oldest ambiguous field, plus Burning
+  // Fire+Earth. Blast finisher into the oldest eligible field, plus Burning
   // and three stacks of Bleeding.
   [ID.FIERY_IMPACT]: {
     name: 'Fiery Impact',
@@ -106,8 +106,7 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
           {
             attemptGroup: 'effect:1:tick:1',
             ownerId: 'elementalist',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ],
         metadata: {}
@@ -160,8 +159,7 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
             comboFinishers: [
               {
                 ownerId: 'elementalist',
-                finisherType: COMBO_FINISHER.BLAST,
-                ambiguousFieldSelection: 'oldest'
+                finisherType: COMBO_FINISHER.BLAST
               }
             ],
             metadata: {}

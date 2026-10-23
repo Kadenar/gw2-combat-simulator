@@ -24,7 +24,7 @@ export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, Partia
     castTimeMs: 1240
   },
   [ID.CALL_OF_THE_WILD]: {
-    comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.BLAST, ambiguousFieldSelection: 'oldest' }],
+    comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.BLAST }],
     effects: [
       {
         type: 'boon',

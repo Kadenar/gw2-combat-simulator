@@ -1,7 +1,6 @@
 import type { SimulationActorType, ComboFieldType, ComboFinisherType } from '#gw2/platform/constants.js';
 import { ACTOR_TYPES } from '#gw2/platform/events/actors.js';
-import type { ComboFieldBinding, ComboFieldSelectionAnchor } from '#gw2/platform/combos/types.js';
-import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
+import type { ComboFieldSelectionAnchor } from '#gw2/platform/combos/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -61,33 +60,6 @@ export function normalizeComboFieldSelectionAnchor(value: unknown): ComboFieldSe
   if (value === 'castStart') return 'castStart';
 
   throw new TypeError(`Invalid combo fieldSelectionAnchor: ${String(value)}.`);
-}
-
-/** Normalizes and validates a finisher-to-field binding declaration. */
-function normalizeComboFieldBinding(value: unknown): ComboFieldBinding {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new TypeError('Combo finisher fieldBinding is required.');
-  }
-
-  const binding = value as UnvalidatedFields;
-
-  if (binding.kind === 'none') return Object.freeze({ kind: 'none' });
-
-  if (binding.kind === 'field-id') {
-    return Object.freeze({
-      kind: 'field-id',
-      fieldId: requiredString(binding.fieldId, 'Combo field binding fieldId')
-    });
-  }
-
-  if (binding.kind === 'field-type') {
-    return Object.freeze({
-      kind: 'field-type',
-      fieldType: normalizeComboFieldType(binding.fieldType)
-    });
-  }
-
-  throw new TypeError(`Invalid combo field binding kind: ${String(binding.kind)}.`);
 }
 
 /** Normalizes and validates GW2-owned semantic events before engine freezing. */
@@ -155,7 +127,7 @@ export function prepareGw2ComboEvent(event: SimulationEventBase): SimulationEven
       priority: event.priority ?? -0.5,
       attemptId: requiredString(event.attemptId, 'Combo finisher attemptId'),
       finisherType: normalizeComboFinisherType(event.finisherType),
-      fieldBinding: normalizeComboFieldBinding(event.fieldBinding),
+      fieldId: event.fieldId === null ? null : requiredString(event.fieldId, 'Combo finisher fieldId'),
       ...(fieldSelectionAt == null ? {} : { fieldSelectionAt }),
       effectAt,
       chance: clamp(chance, 0, 1),
@@ -179,15 +151,6 @@ export function prepareGw2ComboEvent(event: SimulationEventBase): SimulationEven
       fieldId: requiredString(event.fieldId, 'Combo fieldId'),
       fieldType: normalizeComboFieldType(event.fieldType),
       finisherType: normalizeComboFinisherType(event.finisherType),
-      // Reconstruct a full binding object just to validate and then discard
-      // everything except .kind — combo events only record how the field was bound.
-      bindingKind: normalizeComboFieldBinding(
-        event.bindingKind === 'field-id'
-          ? { kind: 'field-id', fieldId: event.fieldId }
-          : event.bindingKind === 'field-type'
-            ? { kind: 'field-type', fieldType: event.fieldType }
-            : { kind: event.bindingKind }
-      ).kind,
       applicationCount: positiveInteger(event.applicationCount, 'Combo applicationCount')
     };
   }

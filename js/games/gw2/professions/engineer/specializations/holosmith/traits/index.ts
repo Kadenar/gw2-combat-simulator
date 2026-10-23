@@ -293,9 +293,7 @@ function emitPhotonicBlastingModuleEffects(
             name: 'Photonic Blasting Module',
             canCrit: undefined,
             explosion: true,
-            comboFinishers: [
-              { ownerId: 'engineer', finisherType: COMBO_FINISHER.BLAST, ambiguousFieldSelection: 'oldest' }
-            ]
+            comboFinishers: [{ ownerId: 'engineer', finisherType: COMBO_FINISHER.BLAST }]
           }
         : {
             ...event,

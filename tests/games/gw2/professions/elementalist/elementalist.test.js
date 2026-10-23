@@ -137,8 +137,7 @@ test('Elementalist canonical strike timelines retain per-packet combat metadata'
   assert.deepEqual(strike.comboFinishers, [
     {
       ownerId: 'elementalist',
-      finisherType: 'Whirl',
-      ambiguousFieldSelection: 'oldest'
+      finisherType: 'Whirl'
     }
   ]);
 

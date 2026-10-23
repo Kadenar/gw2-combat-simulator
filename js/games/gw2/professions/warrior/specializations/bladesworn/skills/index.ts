@@ -552,8 +552,7 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
           {
             ownerId: 'warrior',
             finisherType: COMBO_FINISHER.LEAP,
-            fieldSelectionAnchor: 'castStart',
-            ambiguousFieldSelection: 'oldest'
+            fieldSelectionAnchor: 'castStart'
           }
         ]
       },
@@ -614,9 +613,7 @@ function artilleryEffects(
       projectile: sharp,
       ...(sharp
         ? {
-            comboFinishers: [
-              { ownerId: 'warrior', finisherType: COMBO_FINISHER.PROJECTILE, ambiguousFieldSelection: 'oldest' }
-            ]
+            comboFinishers: [{ ownerId: 'warrior', finisherType: COMBO_FINISHER.PROJECTILE }]
           }
         : {})
     });

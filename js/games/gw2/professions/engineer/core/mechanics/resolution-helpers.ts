@@ -1,9 +1,4 @@
-import {
-  ACTOR,
-  type ComboFieldType,
-  type ComboFinisherType,
-  type SimulationActorType
-} from '#gw2/platform/constants.js';
+import { ACTOR, type ComboFinisherType, type SimulationActorType } from '#gw2/platform/constants.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import {
@@ -29,8 +24,6 @@ interface QueueDamageOptions {
     readonly chance?: number;
     readonly applications?: number;
     readonly successfulCombos?: number;
-    readonly preferredFieldTypes?: readonly ComboFieldType[];
-    readonly ambiguousFieldSelection?: 'none' | 'oldest';
   };
 }
 
@@ -105,9 +98,7 @@ export function buildEngineerStrike(
               finisherType: comboFinisher.finisherType,
               chance: comboFinisher.chance ?? 1,
               applications: comboFinisher.applications ?? 1,
-              successfulCombos: comboFinisher.successfulCombos ?? 1,
-              preferredFieldTypes: comboFinisher.preferredFieldTypes,
-              ambiguousFieldSelection: comboFinisher.ambiguousFieldSelection ?? 'none'
+              successfulCombos: comboFinisher.successfulCombos ?? 1
             }
           ]
         }

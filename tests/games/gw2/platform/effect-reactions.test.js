@@ -494,14 +494,12 @@ test('resolved combo reactions retain finisher provenance, acceptance gates, and
     const result = run(
       [
         strike([reaction(grant(7), { on: 'combo.resolved' })], {
-          comboFinishers: [
-            { ownerId: 'fixture', finisherType: 'Projectile', chance, ambiguousFieldSelection: 'oldest' }
-          ]
+          comboFinishers: [{ ownerId: 'fixture', finisherType: 'Projectile', chance }]
         }),
         // A sibling packet with the same skill identity must not borrow the first packet's reaction.
         strike(undefined, {
           atMs: 200,
-          comboFinishers: [{ ownerId: 'fixture', finisherType: 'Blast', ambiguousFieldSelection: 'oldest' }]
+          comboFinishers: [{ ownerId: 'fixture', finisherType: 'Blast' }]
         })
       ],
       {

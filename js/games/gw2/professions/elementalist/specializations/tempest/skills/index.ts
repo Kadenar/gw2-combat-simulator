@@ -238,8 +238,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
             {
               attemptGroup: 'effect:5:tick:1',
               ownerId: 'elementalist',
-              finisherType: COMBO_FINISHER.BLAST,
-              ambiguousFieldSelection: 'oldest'
+              finisherType: COMBO_FINISHER.BLAST
             }
           ],
           metadata: {}

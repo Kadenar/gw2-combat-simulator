@@ -1,4 +1,4 @@
-import { COMBO_FINISHER, ACTOR, COMBO_FIELD, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { COMBO_FINISHER, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -12,8 +12,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: COMBO_FINISHER.LEAP,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.LEAP
       }
     ],
     effects: [
@@ -124,9 +123,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
           comboFinishers: [
             {
               ownerId: 'engineer',
-              finisherType: COMBO_FINISHER.PROJECTILE,
-              preferredFieldTypes: [COMBO_FIELD.FIRE],
-              ambiguousFieldSelection: 'oldest'
+              finisherType: COMBO_FINISHER.PROJECTILE
             }
           ],
           projectile: true

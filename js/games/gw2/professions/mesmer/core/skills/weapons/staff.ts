@@ -163,8 +163,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
       {
         ownerId: 'mesmer',
         finisherType: COMBO_FINISHER.LEAP,
-        fieldSelectionAnchor: 'castStart',
-        ambiguousFieldSelection: 'oldest'
+        fieldSelectionAnchor: 'castStart'
       }
     ],
     effects: []

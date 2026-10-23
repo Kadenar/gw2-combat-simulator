@@ -81,8 +81,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
       {
         ownerId: 'warrior',
         finisherType: COMBO_FINISHER.LEAP,
-        fieldSelectionAnchor: 'castStart',
-        ambiguousFieldSelection: 'oldest'
+        fieldSelectionAnchor: 'castStart'
       }
     ],
     castTimeMs: 1000,

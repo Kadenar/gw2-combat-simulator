@@ -91,8 +91,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
     comboFinishers: [
       {
         ownerId: 'thief',
-        finisherType: COMBO_FINISHER.WHIRL,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.WHIRL
       }
     ],
     requiredMainHand: WEAPON.DAGGER,
@@ -113,8 +112,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ],
         metadata: {}
@@ -152,8 +150,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
         comboFinishers: [
           {
             ownerId: 'thief',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ],
         metadata: {}
@@ -200,7 +197,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
   [ID.HEARTSEEKER]: {
     movementSkill: true,
     // Resolve the leap at impact through the shared field-selection contract.
-    comboFinishers: [{ ownerId: 'thief', finisherType: COMBO_FINISHER.LEAP, ambiguousFieldSelection: 'oldest' }],
+    comboFinishers: [{ ownerId: 'thief', finisherType: COMBO_FINISHER.LEAP }],
     castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 3,

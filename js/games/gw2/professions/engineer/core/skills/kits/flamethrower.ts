@@ -127,8 +127,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
           comboFinishers: [
             {
               ownerId: 'engineer',
-              finisherType: COMBO_FINISHER.BLAST,
-              ambiguousFieldSelection: 'oldest'
+              finisherType: COMBO_FINISHER.BLAST
             }
           ],
           damageKind: 'explosion'

@@ -228,8 +228,7 @@ function handleConduitSurge(context: EngineerResolverContext, event: EngineerRes
         // Attempt the leap only when the strike reaches impact.
         comboFinisher: {
           ownerId: 'engineer',
-          finisherType: COMBO_FINISHER.LEAP,
-          ambiguousFieldSelection: 'oldest'
+          finisherType: COMBO_FINISHER.LEAP
         }
       })
     });

@@ -41,8 +41,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
             {
               ownerId: 'necromancer',
               finisherType: COMBO_FINISHER.WHIRL,
-              applications: 3,
-              ambiguousFieldSelection: 'oldest'
+              applications: 3
             }
           ]
         },

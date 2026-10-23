@@ -46,8 +46,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: COMBO_FINISHER.LEAP,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.LEAP
       }
     ],
     cooldown: 8,
@@ -125,8 +124,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         comboFinishers: [
           {
             ownerId: 'warrior',
-            finisherType: COMBO_FINISHER.BLAST,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.BLAST
           }
         ],
         metadata: {}
@@ -157,8 +155,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       {
         ownerId: 'warrior',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 1,
-        ambiguousFieldSelection: 'oldest'
+        chance: 1
       }
     ],
     // Kill Shot lands before its measured animation ends; tier scaling preserves this packet.
@@ -273,8 +270,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     comboFinishers: [
       {
         ownerId: 'warrior',
-        finisherType: COMBO_FINISHER.LEAP,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.LEAP
       }
     ],
     cooldown: 8,

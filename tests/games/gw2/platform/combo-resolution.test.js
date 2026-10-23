@@ -53,7 +53,7 @@ function field(fieldId, fieldType, at = 0, expiresAt = 5) {
   };
 }
 
-function finisher(attemptId, fieldBinding, overrides = {}) {
+function finisher(attemptId, fieldId, overrides = {}) {
   return {
     type: 'combo_finisher',
     at: 1,
@@ -64,7 +64,7 @@ function finisher(attemptId, fieldBinding, overrides = {}) {
     skillName: 'Fixture Finisher',
     attemptId,
     finisherType: 'Projectile',
-    fieldBinding,
+    fieldId,
     chance: 1,
     applications: 1,
     successfulCombos: 1,
@@ -88,16 +88,12 @@ test('combo conditions keep same-named attacks separated by entity', () => {
   const result = resolve([
     field('fire:pets', 'Fire'),
     ...pets.map((entityName, index) =>
-      finisher(
-        `pet:${index}`,
-        { kind: 'field-id', fieldId: 'fire:pets' },
-        {
-          actorType: 'summon',
-          entityName,
-          summonOwner: `pet:${index}`,
-          skillName: 'Twin Darts'
-        }
-      )
+      finisher(`pet:${index}`, 'fire:pets', {
+        actorType: 'summon',
+        entityName,
+        summonOwner: `pet:${index}`,
+        skillName: 'Twin Darts'
+      })
     )
   ]);
   const conditions = result.resolvedEvents.filter((event) => event.type === 'condition');
@@ -122,15 +118,11 @@ test('combo boon resolution samples changing live concentration instead of confi
       stacks: 1
     },
     ...[0.25, 1, 3].map((at) =>
-      finisher(
-        `duration:${at}`,
-        { kind: 'field-id', fieldId: 'fire:duration' },
-        {
-          at,
-          effectAt: at,
-          finisherType: 'Blast'
-        }
-      )
+      finisher(`duration:${at}`, 'fire:duration', {
+        at,
+        effectAt: at,
+        finisherType: 'Blast'
+      })
     )
   ];
   const result = resolveTestGw2Events({
@@ -177,7 +169,7 @@ test('Dark projectile and whirl siphons own their hits without inflating the fin
         coefficient: 1,
         weaponStrength: 1000
       },
-      finisher('dark-finisher', { kind: 'field-id', fieldId: 'dark:1' }, { finisherType })
+      finisher('dark-finisher', 'dark:1', { finisherType })
     ]);
     const siphon = result.resolvedEvents.find((event) => event.type === 'damage' && event.damageKind === 'life-steal');
     assert.equal(siphon.name, siphonName);
@@ -195,13 +187,9 @@ test('Dark projectile and whirl siphons own their hits without inflating the fin
 test('explicit bindings resolve one authoritative combo at effectAt', () => {
   const result = resolve([
     field('fire:1', 'Fire'),
-    finisher(
-      'projectile:1',
-      { kind: 'field-id', fieldId: 'fire:1' },
-      {
-        effectAt: 3
-      }
-    )
+    finisher('projectile:1', 'fire:1', {
+      effectAt: 3
+    })
   ]);
   const combo = result.resolvedEvents.find((event) => event.type === 'combo');
   const burning = result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Burning');
@@ -216,7 +204,7 @@ test('explicit bindings resolve one authoritative combo at effectAt', () => {
 test('field interaction is inclusive and remains valid after later expiry', () => {
   const result = resolve([
     field('fire:delayed', 'Fire', 1, 2),
-    finisher('delayed-outcome', { kind: 'field-id', fieldId: 'fire:delayed' }, { at: 1, effectAt: 3 })
+    finisher('delayed-outcome', 'fire:delayed', { at: 1, effectAt: 3 })
   ]);
   const combo = result.resolvedEvents.find((event) => event.type === 'combo');
 
@@ -224,10 +212,10 @@ test('field interaction is inclusive and remains valid after later expiry', () =
   assert.equal(combo.fieldId, 'fire:delayed');
 });
 
-test('expiry is exclusive and an unbound ambiguous finisher does nothing', () => {
+test('expired explicit bindings warn while unbound finishers quietly skip combos', () => {
   const expired = resolve([
     field('fire:expired', 'Fire', 0, 1),
-    finisher('expired', { kind: 'field-id', fieldId: 'fire:expired' }, { activationId: 'expired-cast' })
+    finisher('expired', 'fire:expired', { activationId: 'expired-cast' })
   ]);
 
   assert.equal(
@@ -243,31 +231,32 @@ test('expiry is exclusive and an unbound ambiguous finisher does nothing', () =>
     }
   ]);
 
-  const ambiguous = resolve([
+  // An explicit absence of binding stays silent even when fields are available.
+  const unbound = resolve([
     field('dark:1', 'Dark'),
     field('ice:1', 'Ice'),
-    finisher('ambiguous', { kind: 'none' }),
-    finisher('ambiguous:duplicate-warning', { kind: 'none' })
+    finisher('unbound', null),
+    finisher('unbound:second', null)
   ]);
 
   assert.equal(
-    ambiguous.resolvedEvents.some((event) => event.type === 'combo'),
+    unbound.resolvedEvents.some((event) => event.type === 'combo'),
     false
   );
-  assert.equal(ambiguous.warnings.length, 1);
+  assert.deepEqual(unbound.warnings, []);
 });
 
-test('type bindings ignore other fields and use one oldest same-type field', () => {
+test('explicit field IDs preserve the selected field even when older fields exist', () => {
   const result = resolve([
     field('dark:1', 'Dark', 0, 5),
     field('ice:oldest', 'Ice', 0.25, 5),
     field('ice:newer', 'Ice', 0.5, 5),
-    finisher('ice-projectile', { kind: 'field-type', fieldType: 'Ice' })
+    finisher('ice-projectile', 'ice:newer')
   ]);
   const combos = result.resolvedEvents.filter((event) => event.type === 'combo');
 
   assert.equal(combos.length, 1);
-  assert.equal(combos[0].fieldId, 'ice:oldest');
+  assert.equal(combos[0].fieldId, 'ice:newer');
   assert.equal(combos[0].fieldType, 'Ice');
 });
 
@@ -287,7 +276,7 @@ test('attempt IDs deduplicate successful and failed rolls', () => {
     ['failed', 0],
     ['succeeded', 1]
   ]) {
-    const attempt = finisher(attemptId, { kind: 'field-id', fieldId: 'fire:1' }, { chance: 0.2 });
+    const attempt = finisher(attemptId, 'fire:1', { chance: 0.2 });
     assert.equal(resolveComboAttempt(state, attempt, options).length, count);
     assert.equal(resolveComboAttempt(state, attempt, options).length, 0);
   }
@@ -302,16 +291,8 @@ test('attempt IDs deduplicate successful and failed rolls', () => {
 test('Whirl applications do not multiply combos and authored double Blasts do', () => {
   const result = resolve([
     field('fire:packets', 'Fire'),
-    finisher(
-      'whirl:packets',
-      { kind: 'field-id', fieldId: 'fire:packets' },
-      { finisherType: 'Whirl', applications: 4 }
-    ),
-    finisher(
-      'blast:double',
-      { kind: 'field-id', fieldId: 'fire:packets' },
-      { at: 2, effectAt: 2, finisherType: 'Blast', successfulCombos: 2 }
-    )
+    finisher('whirl:packets', 'fire:packets', { finisherType: 'Whirl', applications: 4 }),
+    finisher('blast:double', 'fire:packets', { at: 2, effectAt: 2, finisherType: 'Blast', successfulCombos: 2 })
   ]);
   const combos = result.resolvedEvents.filter((event) => event.type === 'combo');
   const burning = result.resolvedEvents.filter((event) => event.type === 'condition' && event.condition === 'Burning');
@@ -324,8 +305,8 @@ test('Whirl applications do not multiply combos and authored double Blasts do', 
 test('Steamshrieker burns from water blasts and leaps without broadening Bloodstone triggers', () => {
   const comboEvents = [
     field('water:relic', 'Water'),
-    finisher('water:blast', { kind: 'field-id', fieldId: 'water:relic' }, { finisherType: 'Blast' }),
-    finisher('water:leap', { kind: 'field-id', fieldId: 'water:relic' }, { at: 2, effectAt: 2, finisherType: 'Leap' })
+    finisher('water:blast', 'water:relic', { finisherType: 'Blast' }),
+    finisher('water:leap', 'water:relic', { at: 2, effectAt: 2, finisherType: 'Leap' })
   ];
   const steamshrieker = resolve(comboEvents, { relic: 'Steamshrieker' });
 
@@ -359,10 +340,7 @@ test('target death prevents later authoritative combo outcomes', () => {
         coefficient: 100,
         skillWeapon: 'Unequipped'
       },
-      finisher('after-death', {
-        kind: 'field-id',
-        fieldId: 'fire:death'
-      })
+      finisher('after-death', 'fire:death')
     ],
     { target: { armor: 2597, health: 1 } }
   );
@@ -390,17 +368,13 @@ test('target death rejects distinct same-time combo finishers and reactions', ()
         skillWeapon: 'Unequipped'
       },
       ...Array.from({ length: 3 }, (_, index) =>
-        finisher(
-          `post-death-blast:${index + 1}`,
-          { kind: 'field-id', fieldId: 'fire:same-time-death' },
-          {
-            at: 0.5,
-            effectAt: 0.5,
-            activationId: `post-death:${index + 1}`,
-            priority: 1,
-            finisherType: 'Blast'
-          }
-        )
+        finisher(`post-death-blast:${index + 1}`, 'fire:same-time-death', {
+          at: 0.5,
+          effectAt: 0.5,
+          activationId: `post-death:${index + 1}`,
+          priority: 1,
+          finisherType: 'Blast'
+        })
       )
     ],
     {
@@ -433,11 +407,11 @@ function seededSignature(mode, seed, consumeUnrelated = false) {
     (_, index) =>
       resolveComboAttempt(
         state,
-        finisher(
-          `stochastic:${index}`,
-          { kind: 'field-id', fieldId: 'fire:stochastic' },
-          { at: 1 + index * 0.1, effectAt: 1 + index * 0.1, chance: 0.5 }
-        ),
+        finisher(`stochastic:${index}`, 'fire:stochastic', {
+          at: 1 + index * 0.1,
+          effectAt: 1 + index * 0.1,
+          chance: 0.5
+        }),
         {
           roll: random.roll,
           warn() {}
@@ -455,9 +429,7 @@ test('combo streams are seeded and isolated from unrelated rolls in both modes',
     // Exercise resolver wiring as well as the shared attempt contract, including guaranteed outcomes.
     const events = [
       field('fire:seeded', 'Fire'),
-      ...[0, 0.5, 0.5, 0.5, 1].map((chance, index) =>
-        finisher(`seeded:${index}`, { kind: 'field-id', fieldId: 'fire:seeded' }, { chance })
-      )
+      ...[0, 0.5, 0.5, 0.5, 1].map((chance, index) => finisher(`seeded:${index}`, 'fire:seeded', { chance }))
     ];
     const result = resolve(events, { randomness: { mode, seed: 7 } });
     const combos = result.resolvedEvents.filter((event) => event.type === 'combo');

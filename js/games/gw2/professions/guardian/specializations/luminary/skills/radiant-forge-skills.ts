@@ -129,8 +129,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
         comboFinishers: [
           {
             ownerId: 'guardian',
-            finisherType: COMBO_FINISHER.LEAP,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.LEAP
           }
         ]
       }
@@ -265,8 +264,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
               ownerId: 'guardian',
               finisherType: COMBO_FINISHER.BLAST,
               // Hammer can encounter a field from cast start through its committed impact, when it grants the aura.
-              fieldSelectionAnchor: 'castStart',
-              ambiguousFieldSelection: 'oldest'
+              fieldSelectionAnchor: 'castStart'
             }
           ]
         },

@@ -53,10 +53,23 @@ test('owned-field selection breaks timestamp ties by event order and preserves e
   // Callers may supply fields in either order; identical sort keys retain input order.
   const first = { at: 1, eventOrder: 1, fieldType: 'Fire' };
   const second = { ...first, eventOrder: 2 };
-  assert.equal(selectComboFieldForFinisher([second, first]).field, first);
-  assert.equal(selectComboFieldForFinisher([first, second]).field, first);
+  assert.equal(selectComboFieldForFinisher([second, first]), first);
+  assert.equal(selectComboFieldForFinisher([first, second]), first);
   const tied = { ...first };
-  assert.equal(selectComboFieldForFinisher([tied, first]).field, tied);
+  assert.equal(selectComboFieldForFinisher([tied, first]), tied);
+});
+
+test('mixed field types select the oldest field within the highest binding priority', () => {
+  // Field age decides the outcome regardless of type, after authoritative bindings narrow the candidates.
+  const fire = { at: 0, eventOrder: 1, fieldType: 'Fire' };
+  const ice = { at: 1, eventOrder: 2, fieldType: 'Ice' };
+  assert.equal(selectComboFieldForFinisher([ice, fire]), fire);
+  assert.equal(selectComboFieldForFinisher([fire, ice]), fire);
+  const olderIce = { ...ice, at: -1 };
+  assert.equal(selectComboFieldForFinisher([fire, olderIce]), olderIce);
+  const authoritativeIce = { ...ice, comboBindingPriority: 1 };
+  assert.equal(selectComboFieldForFinisher([fire, authoritativeIce]), authoritativeIce);
+  assert.equal(selectComboFieldForFinisher([]), undefined);
 });
 
 test('combo outcomes retain summon condition scaling from the finisher', () => {
@@ -94,8 +107,10 @@ test('combo outcomes retain summon condition scaling from the finisher', () => {
     summonUsesProfessionModifiers: true
   });
   assert.equal(events.length, 1);
+  assert.equal(events[0].comboAutoSelectField, true);
+  assert.equal(events[0].fieldId, null);
   const finisher = bindRuntimeCombo(runtime, events[0]);
-  assert.deepEqual(finisher.fieldBinding, { kind: 'field-id', fieldId: 'field:poison' });
+  assert.deepEqual(finisher.fieldId, 'field:poison');
   const [combo] = resolveComboAttempt(state, finisher, {
     roll: () => true,
     warn: () => {}
@@ -111,6 +126,16 @@ test('combo outcomes retain summon condition scaling from the finisher', () => {
     [poison.actorType, poison.independentSummonStrike, poison.summonBaseConditionDamage, poison.summonBaseExpertise],
     ['summon', true, 1000, 375]
   );
+});
+
+test('combo descriptors require canonical field and finisher type names', () => {
+  // Obsolete generic type keys must not silently supply the required combo vocabulary.
+  for (const [key, descriptor, message] of [
+    ['comboFields', { ownerId: 'fixture', type: 'Fire', duration: 4 }, /Invalid combo field type/],
+    ['comboFinishers', { ownerId: 'fixture', type: 'Blast' }, /Invalid combo finisher type/]
+  ]) {
+    assert.throws(() => normalizeGw2ComboCatalogSkill({ id: 1, [key]: [descriptor] }), message);
+  }
 });
 
 test('catalog combo field descriptors normalize and validate explicit metadata', () => {

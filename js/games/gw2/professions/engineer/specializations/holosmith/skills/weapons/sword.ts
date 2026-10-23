@@ -1,4 +1,4 @@
-import { COMBO_FINISHER, ACTOR, COMBO_FIELD, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { COMBO_FINISHER, ACTOR, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import {
@@ -38,8 +38,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     comboFinishers: [
       {
         ownerId: 'engineer',
-        finisherType: COMBO_FINISHER.LEAP,
-        ambiguousFieldSelection: 'oldest'
+        finisherType: COMBO_FINISHER.LEAP
       }
     ],
     effects: [
@@ -117,9 +116,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
           comboFinishers: [
             {
               ownerId: 'engineer',
-              finisherType: COMBO_FINISHER.PROJECTILE,
-              preferredFieldTypes: [COMBO_FIELD.FIRE],
-              ambiguousFieldSelection: 'oldest'
+              finisherType: COMBO_FINISHER.PROJECTILE
             }
           ],
           projectile: true
@@ -159,9 +156,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
         comboFinishers: [
           {
             ownerId: 'engineer',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            preferredFieldTypes: [COMBO_FIELD.FIRE],
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ],
         projectile: true
@@ -267,9 +262,7 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
             {
               ownerId: 'engineer',
               finisherType: COMBO_FINISHER.PROJECTILE,
-              chance: 1,
-              preferredFieldTypes: [COMBO_FIELD.FIRE],
-              ambiguousFieldSelection: 'oldest'
+              chance: 1
             }
           ]
         })

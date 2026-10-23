@@ -1,4 +1,4 @@
-import { COMBO_FINISHER, COMBO_FIELD, ACTOR, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { COMBO_FINISHER, ACTOR, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Photon Forge skill fragments, heat variants, and forge-only actions.
  * Persistent heat and forge state live under `mechanics/photon-forge.ts`.
@@ -33,9 +33,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
       {
         ownerId: 'engineer',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2,
-        preferredFieldTypes: [COMBO_FIELD.FIRE],
-        ambiguousFieldSelection: 'oldest'
+        chance: 0.2
       }
     ],
     effects: [
@@ -66,9 +64,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
       {
         ownerId: 'engineer',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2,
-        preferredFieldTypes: [COMBO_FIELD.FIRE],
-        ambiguousFieldSelection: 'oldest'
+        chance: 0.2
       }
     ],
     effects: [
@@ -194,9 +190,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
       {
         ownerId: 'engineer',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2,
-        preferredFieldTypes: [COMBO_FIELD.FIRE],
-        ambiguousFieldSelection: 'oldest'
+        chance: 0.2
       }
     ],
     effects: [
@@ -372,9 +366,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
       {
         ownerId: 'engineer',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2,
-        preferredFieldTypes: [COMBO_FIELD.FIRE],
-        ambiguousFieldSelection: 'oldest'
+        chance: 0.2
       }
     ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.

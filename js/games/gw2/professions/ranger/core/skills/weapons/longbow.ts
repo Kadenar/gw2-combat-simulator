@@ -40,8 +40,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
           {
             ownerId: 'ranger',
             finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
+            chance: 0.2
           }
         ]
       },
@@ -69,8 +68,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
           {
             ownerId: 'ranger',
             finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
+            chance: 0.2
           }
         ]
       }
@@ -87,8 +85,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ]
       },
@@ -109,8 +106,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
         comboFinishers: [
           {
             ownerId: 'ranger',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            ambiguousFieldSelection: 'oldest'
+            finisherType: COMBO_FINISHER.PROJECTILE
           }
         ]
       },

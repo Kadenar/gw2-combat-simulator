@@ -1,4 +1,4 @@
-import { ACTOR, COMBO_FINISHER, COMBO_FIELD, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 /** Core Engineer Grenade Kit skill mechanics. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -151,9 +151,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
       {
         ownerId: 'engineer',
         finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2,
-        preferredFieldTypes: [COMBO_FIELD.FIRE],
-        ambiguousFieldSelection: 'oldest'
+        chance: 0.2
       }
     ],
     effects: [
