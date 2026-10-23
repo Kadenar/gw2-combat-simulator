@@ -26,17 +26,17 @@ export const activePatchPreview: PatchPreview | null = null;
 
 ## Choose the owning declaration
 
-| Change                                                                 | Author through                                            |
-| ---------------------------------------------------------------------- | --------------------------------------------------------- |
-| Skill coefficient, condition/boon stacks or duration                   | Skills: effect or tick                                    |
-| Skill cooldown, resource cost, published activation duration           | Skills: numeric field (`castTimeMs` for duration)         |
-| Added or removed effect                                                | Skills: add/remove effect                                 |
-| Existing cast/effect resource grant                                    | Its stable resource-grant ID                              |
-| Shared mechanic tuning                                                 | Balance profiles                                          |
-| Static trait modifier                                                  | Traits & modifiers: stable modifier-rule ID               |
-| Runtime modifier scaling                                               | Modifier parameter                                        |
-| Internal packet offsets, interrupt commitment, summon cast calibration | Owning runtime source                                     |
-| Changed trigger, state transition, ownership, or new mechanic          | Ordinary implementation, explicitly patch-aware if needed |
+| Change                                                                 | Author through                                      |
+| ---------------------------------------------------------------------- | --------------------------------------------------- |
+| Skill coefficient, condition/boon stacks or duration                   | Skills: effect or tick                              |
+| Skill cooldown, resource cost, published activation duration           | Skills: numeric field (`castTimeMs` for duration)   |
+| Added or removed effect                                                | Skills: add/remove effect                           |
+| Existing cast/effect resource grant                                    | Its stable resource-grant ID                        |
+| Shared mechanic tuning                                                 | Balance profiles                                    |
+| Static trait modifier                                                  | Traits & modifiers: stable modifier-rule ID         |
+| Runtime modifier scaling                                               | Modifier parameter                                  |
+| Internal packet offsets, interrupt commitment, summon cast calibration | Owning runtime source                               |
+| Changed trigger, state transition, ownership, or new mechanic          | Registered replacement module selected by `reworks` |
 
 Patch values where the simulator already owns them. Do not duplicate profile values onto skills or create inert numeric
 entries to represent behavior that needs code. PvP/WvW-only, description-only, unsupported-system, unchanged, and
@@ -118,9 +118,35 @@ modifierRules: {
 ```
 
 Runtime resolver functions are not patched. Expose changing numeric inputs as named parameters first, then patch those
-parameters with the same stale-value guards. Behavioral changes belong in the owning implementation. If Live and Preview
-behavior must coexist, use an explicit patch-aware branch there. New skills, changed IDs, loadout topology, and new
-profession mechanics generally require implementation work beyond the sparse overlay.
+parameters with the same stale-value guards. Behavioral changes belong in a complete replacement module registered in
+`moduleVariants` and selected by name in the manifest's `reworks` array. The manifest selects behavior; it never carries
+code. Replacement modules own changed traits, specialization layouts, profiles and mechanics. Saved trait positions
+resolve against the selected catalog for every profession. Build codecs never read trait picks, because they run without
+a selected patch: saved rotations store trait-independent skill identities, and `modifySkillId` selects the traited
+variant when a rotation is simulated or displayed.
+
+Register replacement tooltip maps under the same variant ID in `ProfessionTooltips.reworks`. The shared resolver merges
+them in manifest order, including descriptions for reused IDs. Live code may gain only inert extension points: a trigger
+with no live listener or a profile field read by shared mechanics. Mark each with
+`Rework extension point (<variant id>)`.
+
+### Session-only provisional values
+
+Use `provisional` only while published values are unknown. Each control names an existing numeric balance-profile field
+or one effect field, its owning `traitId`, specialization, label, unit, range and step. Controls cannot patch skills or
+modifier rules. Percentage bonuses use fractions: `0.1` displays as `10%`. Limits and session values remain in canonical
+units. `resolvePatch({ id, values })` validates and caches the selection; values overlay the preview catalog without
+compiling another profession family. Live discards values. **Preview assumptions** appears directly below Traits, with
+equipped traits first and other traits in a separate disclosure. The panel and result notices appear only on Preview.
+The panel contains trait names, numeric inputs and Reset; full profile assumption notes remain in the change overview.
+Reset restores every preview default for the active tab.
+
+App consumers share a `ResolvedPatch`, including its catalog and balance context. Build contexts serialize the selection
+into `Gw2Config.patchId` and `previewValues`; runtime boundaries read them through `selectionFromConfig`. Values stay in
+the tab session and are excluded from workspace JSON and build exports. Switching to Live or refreshing clears
+overrides. Preview DPS and the preview side of the comparison link to the assumptions panel when equipped traits have
+unconfirmed values. Counts follow the preview trait layout, including disabled minor traits; overrides for unequipped
+traits do not mark the current result as customized.
 
 ## Overview and comparison
 
@@ -148,9 +174,15 @@ When the patch becomes live:
 
 1. Run `npm run patch-preview:report`. It builds and resolves affected preview catalogs/runtimes, rejecting stale
    selectors and invalid declarations, and prints a promotion checklist. Also inspect balance-profile manifest entries.
-2. Apply preview values to their live owning sources and update generated data where appropriate.
-3. Restore `activePatchPreview` to `null`.
-4. Rebuild and run release validation (`npm run check:all`).
-5. Verify the new Live result matches the former Preview result for the same scenario and seed.
+2. Replace all `provisional` controls with published values, then run `npm run patch-preview:report -- --promotion`.
+   Promotion validation fails while any provisional controls remain. The report lists selected replacement modules,
+   tooltip maps, controls and tagged extension points.
+3. Apply preview values to their live owning sources and update generated data where appropriate. Make each rework
+   module live: replace the old traits, specialization layout, profiles and mechanics.
+4. Merge each rework tooltip map into the base map and delete its `reworks` registration. Turn each tagged extension
+   point into live behavior or delete it. Remove the `moduleVariants` entry and the manifest's `reworks` entry.
+5. Restore `activePatchPreview` to `null`.
+6. Rebuild and run release validation (`npm run check:all`).
+7. Verify the new Live result matches the former Preview result for the same scenario and seed.
 
 Promotion is a reviewed source change. Remove the overlay when it ships instead of retaining historical preview data.
