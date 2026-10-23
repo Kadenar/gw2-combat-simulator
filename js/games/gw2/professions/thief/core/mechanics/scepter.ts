@@ -10,9 +10,8 @@ import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 export const THIEF_SCEPTER_CHAIN_EXPIRY = 'thief.scepter-chain-expire';
 
-// Manual test 20261023-164357 retains the chain 2.842s after completion and resets by 2.960s.
-// Approximate that boundary from completion; the exact in-animation timer anchor remains unconfirmed.
-const SCEPTER_CHAIN_RETENTION_SECONDS = 2.9;
+// Retain the modeled three-second window: EVTC animation-end gaps cannot be applied directly to the earlier cast-end clock.
+const SCEPTER_CHAIN_RETENTION_SECONDS = 3;
 
 /** Only a successful scepter chain step refreshes its retention window from cast completion. */
 export function transitionThiefScepterChain(
