@@ -1,3 +1,4 @@
+import { scenarioSimulation } from '#gw2/app/boss-scenarios/simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
@@ -180,4 +181,23 @@ test('EI importer rejects wrong modes and preserves conflicting observations wit
   assert.equal(combined.targets[0].health, 12345);
   assert.deepEqual(combined.corroboratingReports, []);
   assert.deepEqual(combined.differingReports, ['report-b']);
+});
+
+// Executable inputs must use verified health gates, never invent totals for multi-target or mechanic-driven fights.
+test('scenario execution compiles health gates and exposes unsupported encounter mechanics', () => {
+  const draft = makeDraft();
+  draft.phases[0].groupDps = 200000;
+  draft.phases[1].durationSeconds = 12;
+  const compiled = scenarioSimulation(draft);
+  assert.equal(compiled.reason, '');
+  assert.equal(compiled.config.health, draft.health);
+  assert.equal(compiled.config.phases[0].endHealthPercent, 66);
+  assert.equal(compiled.config.phases[0].groupDps, 200000);
+  assert.equal(compiled.config.phases[1].durationSeconds, 12);
+  for (const id of ['020304', '020602', '040601']) {
+    selectScenarioEncounter(draft, id, 'normal');
+    const unsupported = scenarioSimulation(draft);
+    assert.equal(unsupported.config, null);
+    assert.ok(unsupported.reason);
+  }
 });

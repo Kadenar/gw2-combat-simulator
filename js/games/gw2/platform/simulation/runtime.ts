@@ -417,6 +417,7 @@ export function runRuntime<T extends object>(
     );
     internal.register('runtime.encounter', (_context, work) => {
       if (work.type !== 'runtime.encounter') return;
+
       runtime.environmentDamage += runtime.encounter!.wake(runtime.time, work.payload.generation);
       runtime.deathTime = runtime.encounter!.deathTime;
     });
@@ -469,6 +470,7 @@ export function runRuntime<T extends object>(
       })
     });
   }
+
   conditions.initializeEnvironment(runtime);
   // A configured permanent field is an initial executed fact, available to the first eligible finisher.
   const assumedField = permanentComboFieldAssumption(config, profession.id, runtime.time);

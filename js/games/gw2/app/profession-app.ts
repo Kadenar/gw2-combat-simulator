@@ -342,7 +342,8 @@ export class ProfessionApp implements ProfessionAppState {
     this.randomDistributionRunner.schedule();
     this.modifierContributionRunner.schedule();
     this.relicComparisonRunner.schedule();
-    document.dispatchEvent(new Event(ENCOUNTER_RESULT_EVENT));
+
+    if (this.results.encounter) document.dispatchEvent(new Event(ENCOUNTER_RESULT_EVENT));
 
     if (render) {
       if (renderDeferredRotation) this.adapter.renderRotationBuilder(this);

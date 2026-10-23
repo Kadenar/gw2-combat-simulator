@@ -1,6 +1,7 @@
 ﻿# Boss encounter authoring
 
-Status: encounter authoring implemented; health-driven simulation pending.
+Status: authoring and single-target health-driven execution implemented. Multi-target, segmented-health, and
+mechanic-driven execution remain pending.
 
 ## Workflow
 
@@ -32,25 +33,34 @@ so it does not yet describe a complete multi-target health progression.
 [Phase definitions](../js/games/gw2/app/boss-scenarios/phases.ts) supply health thresholds or named mechanic stages,
 with a source for each encounter. Health gates and timed or event-driven mechanics are distinct. Repeating mechanics
 currently expose a repeating cycle's inputs; independently editing each repetition is not implemented. These authoring
-profiles are not yet executable encounter scripts and do not model every overlapping mechanic.
+profiles do not model every overlapping mechanic. Execution currently accepts a single non-segmented EI target with
+health-driven damage phases. Other encounters remain available for authoring and display an explicit execution
+limitation.
 
 ## Reporting
 
 Encounter metrics use the existing DPS-strip styling: total target health, next transition, damage required, current
-health, estimated time to threshold, phase DPS, and overall DPS. Until encounter execution exists, live values display
-Pending. Golem preview results are not presented as boss simulation results. Source attribution stays in a compact EI
-link; explanatory provenance belongs in documentation.
+health, estimated time to threshold, phase DPS, and overall DPS. Supported encounters update these values at the end of
+the authored rotation. Each visited phase also shows its player DPS beneath its group-DPS input. Unsupported encounter
+results display Unavailable; Golem preview results are not presented as boss simulation results. Source attribution
+stays in a compact EI link; explanatory provenance belongs in documentation.
 
-## Planned execution
+## Execution
 
-The engine will apply the authored group DPS once per second during damage phases, alongside the player's actual
-simulated damage. Reaching a boss-defined threshold starts its split automatically. Group damage pauses during the
-split, and the next damage phase starts after the authored duration. Skills, cooldowns, resources, buffs, and the
-rotation cursor continue across transitions. Damage to split targets must not count as damage to the main boss.
+The engine applies the authored group DPS once per second during damage phases, alongside the player's actual simulated
+damage. Reaching a boss-defined threshold starts its split automatically. Group damage pauses during the split, and the
+next damage phase starts after the authored duration. Skills, cooldowns, resources, buffs, and the rotation cursor
+continue across transitions. Blank split durations mean zero seconds. The first squad tick occurs one second after each
+damage phase starts. Target-facing hits and new conditions are rejected during splits; existing conditions expire
+normally and cannot bank downtime damage. Separate split targets are not yet simulated.
 
-Boss health reaching zero ends the encounter. Phase DPS uses that phase's damage and elapsed time. Overall boss DPS uses
-boss damage divided by total encounter time, including splits, so it decreases during downtime. Time-to-threshold
-estimates must distinguish authored group DPS from measured player contribution.
+Boss health reaching zero ends damage and encounter scoring; the rotation remains editable. The preview advances to the
+end of the authored commands, including waits, rather than running on a real-time wall clock. Phase DPS uses that
+phase's damage and elapsed time. Overall boss DPS uses boss damage divided by total encounter time, including splits, so
+it decreases during downtime. Time-to-threshold estimates combine the current phase?s authored group DPS and measured
+player DPS. They are estimates, not forecasts of future skill usage or exact tick deadlines. Encounter squad DPS
+replaces permanent golem-condition environmental damage to avoid counting the squad twice. Pure health reporting bands
+retain excess damage; invulnerability gates clamp the triggering packet at the transition.
 
 Player health remains fixed at 100%. Incoming damage and variable player health are outside scope.
 

@@ -91,6 +91,7 @@ export function createGw2ConditionResolution({
   function initializeEnvironment(ctx: Gw2ResolverRuntime): void {
     // Authored squad DPS already includes all non-player damage, including their conditions.
     if (ctx.encounter) return;
+
     for (const condition of GW2_DAMAGING_CONDITIONS) {
       const stacks = permanentTargetConditionStacks(condition);
 
@@ -586,12 +587,14 @@ export function createGw2ConditionResolution({
     const rawTotal = contributions.reduce((total, contribution) => total + contribution.rawDamage, 0);
     const rounded = roundHalfToEven(rawTotal);
     const damage = ctx.encounter?.damage(rounded, 'player', event.at) ?? rounded;
+
     // Attribute only accepted damage, preserving the existing largest-remainder rounding contract.
     if (damage < rounded && rawTotal > 0)
       for (const contribution of contributions) {
         contribution.rawDamage *= damage / rawTotal;
         contribution.damage = Math.floor(contribution.rawDamage);
       }
+
     const remainder = damage - contributions.reduce((total, contribution) => total + contribution.damage, 0);
     // Largest fractional remainders receive the remaining points; stable application order resolves ties.
     const ranked = [...contributions].sort((a, b) => b.rawDamage - b.damage - (a.rawDamage - a.damage));

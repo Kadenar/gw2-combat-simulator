@@ -410,7 +410,8 @@ export function createEffectDelivery<T extends object>(
     }
 
     // Invulnerability rejects hostile applications, while condition clocks still expire and self effects continue.
-    if (runtime.encounter?.damageable === false && hostile && event.type !== 'condition_tick') return;
+    if (runtime.encounter?.damageable === false && isHostileTargetEvent(event) && event.type !== 'condition_tick')
+      return;
 
     event = bindRuntimeCombo(runtime, event);
 

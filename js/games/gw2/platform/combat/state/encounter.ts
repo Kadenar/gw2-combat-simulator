@@ -50,11 +50,13 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
         phase.groupDps < 0
       )
         throw new TypeError('Encounter health gates must descend and group DPS must be non-negative.');
+
       previous = phase.endHealthPercent;
     } else if (!Number.isFinite(phase.durationSeconds) || phase.durationSeconds < 0) {
       throw new TypeError('Split duration must be finite and non-negative.');
     }
   }
+
   if (previous !== 0 || config.phases.at(-1)?.kind !== 'boss')
     throw new TypeError('Encounter must end with target defeat.');
 
@@ -84,25 +86,30 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
         groupDamage: 0,
         dps: 0
       });
+
       if (current.kind === 'split' && current.durationSeconds === 0) {
         phases.at(-1)!.end = at;
         index += 1;
         continue;
       }
+
       if (current.kind === 'split') schedule(canonicalTime(at + current.durationSeconds), generation);
       else if (current.groupDps > 0) schedule(canonicalTime(at + 1), generation);
+
       return;
     }
   }
 
   function begin(at: number): void {
     if (start !== null) return;
+
     start = at;
     enter(at);
   }
 
   function advance(at: number): void {
     phases.at(-1)!.end = at;
+
     if (remaining === 0) {
       death = at;
       generation += 1;
@@ -114,18 +121,23 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
 
   function damage(amount: number, owner: 'player' | 'group', at: number): number {
     if (start === null || death !== null || phase().kind === 'split') return 0;
+
     let accepted = 0;
     // Pure reporting bands do not discard overkill; an actual invulnerability gate does.
-    while (death === null && phase().kind === 'boss' && accepted < amount) {
+    while (remaining > 0 && phase().kind === 'boss' && accepted < amount) {
       const portion = Math.min(amount - accepted, Math.max(0, remaining - threshold()));
       remaining -= portion;
       accepted += portion;
       phases.at(-1)![owner === 'player' ? 'playerDamage' : 'groupDamage'] += portion;
+
       if (remaining > threshold()) break;
+
       const entersSplit = config.phases[index + 1]?.kind === 'split';
       advance(at);
+
       if (entersSplit) break;
     }
+
     return accepted;
   }
 
@@ -144,13 +156,18 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
     // Expired ticks cannot spill damage into a later phase when a player hit transitions early.
     wake(at: number, token: number): number {
       if (token !== generation || death !== null) return 0;
+
       const current = phase();
+
       if (current.kind === 'split') {
         advance(at);
         return 0;
       }
+
       const accepted = damage(current.groupDps, 'group', at);
+
       if (token === generation) schedule(canonicalTime(at + 1), generation);
+
       return accepted;
     },
     // Condition exposure excludes downtime even when a buffer sample straddles a transition.

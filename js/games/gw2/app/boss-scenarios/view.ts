@@ -37,7 +37,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
   analysis.id = 'boss-analysis';
   analysis.className = 'boss-workspace';
   analysis.innerHTML =
-    '<h2>Boss analysis</h2><p>Encounter simulation pending.</p><a href="#bosses">Return to Bosses</a>';
+    '<h2>Boss analysis</h2><p>Detailed boss analysis is not implemented yet. Encounter totals are shown in the rotation builder.</p><a href="#bosses">Return to Bosses</a>';
   host.append(analysis);
   const metrics = document.createElement('div');
   metrics.id = 'boss-encounter-summary';
@@ -238,6 +238,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
           : '';
       }
     };
+
     if (preserveControls) {
       refreshPhaseResults();
       workspace.querySelector('.boss-message')!.textContent = message || execution.reason;

@@ -10,13 +10,16 @@ export function scenarioSimulation(draft: BossScenarioDraft): { config: Encounte
   const evidence = encounterHealth(draft.encounterId, draft.difficulty);
   const targets = evidence?.targets.filter((target) => target.primary && target.health > 0) ?? [];
   const plan = encounterPhasePlan(draft.encounterId, draft.difficulty);
+
   if (!draft.health || targets.length !== 1 || targets[0]?.healthBars?.length)
     return {
       config: null,
       reason: 'Encounter execution for multiple targets, segmented health, and events is not implemented yet.'
     };
+
   if (plan.repeats || plan.phases.some((phase) => phase.kind === 'boss' && phase.endHealthPercent === null))
     return { config: null, reason: 'Execution for this encounter’s mechanic-driven phases is not implemented yet.' };
+
   const phases: EncounterPhase[] = plan.phases.map((definition, index) => {
     const input = draft.phases[index]!;
     return input.kind === 'boss'
