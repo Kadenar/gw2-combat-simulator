@@ -1,4 +1,4 @@
-import { ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, CONTROL, BOON, CONDITION, AURA, RECIPIENT } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
 
@@ -7,6 +7,7 @@ import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
  * Instrument and Tale runtime behavior lives under `mechanics/`.
  */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { cryOfPainConfusion } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { SkillId, BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -20,41 +21,60 @@ const TROUBADOUR_TALE_ACTIONS: NonNullable<MesmerSkill['sideEffects']> = [
   { on: 'castCommit', do: { type: 'mesmer.troubadour.resolve-tale' } }
 ];
 
+/** Cry of Pain augments only the player's Flute performance; afterimages keep the native conditions. */
+function traitedInstrumentConditions(
+  runtime: unknown,
+  effects: readonly SkillEffect[],
+  cryOfPainProfileId: string | undefined
+): readonly SkillEffect[] {
+  if (!cryOfPainProfileId) return effects;
+
+  return effects.map((effect) =>
+    effect.type === 'condition' && effect.condition === CONDITION.CONFUSION
+      ? cryOfPainConfusion(runtime, effect, cryOfPainProfileId)!
+      : effect
+  );
+}
+
 /** Player performances materialize the same patchable attacks as afterimages on an explicit cast-start clock. */
-function instrumentEffects(profileId: string): NonNullable<MesmerSkill['effectVariants']> {
+function instrumentEffects(profileId: string, cryOfPainProfileId?: string): NonNullable<MesmerSkill['effectVariants']> {
   return [
     {
       profileId,
       when: () => true,
-      transform: (_runtime, cast, effects) =>
-        [...(cast.skill.effects ?? []), ...effects].map((effect): SkillEffect => {
-          const damageAtMs = (cast.skill.instrument as MesmerInstrument).damageAtMs ?? 0;
-          const timing = {
-            source: 'Player',
-            actorType: ACTOR.PLAYER,
-            timingAnchor: 'castStart' as const,
-            timingScale: 'fixed' as const,
-            atMs: damageAtMs + (effect.atMs ?? 0)
-          };
+      transform: (runtime, cast, effects) =>
+        [...(cast.skill.effects ?? []), ...traitedInstrumentConditions(runtime, effects, cryOfPainProfileId)].map(
+          (effect): SkillEffect => {
+            const damageAtMs = (cast.skill.instrument as MesmerInstrument).damageAtMs ?? 0;
+            const timing = {
+              source: 'Player',
+              actorType: ACTOR.PLAYER,
+              timingAnchor: 'castStart' as const,
+              timingScale: 'fixed' as const,
+              atMs: damageAtMs + (effect.atMs ?? 0)
+            };
 
-          if (effect.type === 'condition' && effect.ticks)
+            if (effect.type === 'condition' && effect.ticks)
+              return {
+                ...effect,
+                ...timing,
+                ticks: effect.ticks.map((tick) => ({ ...tick, atMs: damageAtMs + tick.atMs }))
+              };
+
+            if (effect.type !== 'strike') return { ...effect, ...timing };
+
             return {
               ...effect,
               ...timing,
-              ticks: effect.ticks.map((tick) => ({ ...tick, atMs: damageAtMs + tick.atMs }))
+              name: cast.skill.name,
+              weaponStrengthProfileId: 'nonweapon.profession-mechanic',
+              persistsAfterInterrupt: Boolean((cast.skill.instrument as MesmerInstrument).persistsAfterInterrupt),
+              ...(effect.ticks
+                ? { ticks: effect.ticks.map((tick) => ({ ...tick, atMs: damageAtMs + tick.atMs })) }
+                : {})
             };
-
-          if (effect.type !== 'strike') return { ...effect, ...timing };
-
-          return {
-            ...effect,
-            ...timing,
-            name: cast.skill.name,
-            weaponStrengthProfileId: 'nonweapon.profession-mechanic',
-            persistsAfterInterrupt: Boolean((cast.skill.instrument as MesmerInstrument).persistsAfterInterrupt),
-            ...(effect.ticks ? { ticks: effect.ticks.map((tick) => ({ ...tick, atMs: damageAtMs + tick.atMs })) } : {})
-          };
-        })
+          }
+        )
     }
   ];
 }
@@ -111,13 +131,25 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     effects: []
   },
   [ID.TALE_OF_THE_SECOND_SCION]: {
-    castTimeMs: 666.666666667,
+    tale: {
+      name: 'Tale of the Second Scion',
+      profileId: 'mesmer.troubadour.tale-second-scion',
+      minimumInstruments: 2,
+      resourceGain: 1,
+      effects: []
+    },
+    // Commit the tale's rewards after its 520 ms base cast.
+    castTimeMs: 520,
     sideEffects: TROUBADOUR_TALE_ACTIONS,
     effects: []
   },
   [ID.FLUSTERING_FLUTE]: {
     sideEffects: INSTRUMENT_ACTIONS,
-    effectVariants: instrumentEffects('mesmer.troubadour.flustering-flute'),
+    // Flute uses the specialization's Cry of Pain bonuses on its native confusion.
+    effectVariants: instrumentEffects(
+      'mesmer.troubadour.flustering-flute',
+      'mesmer.troubadour.flustering-flute-cry-of-pain'
+    ),
     castTimeMs: 560,
     instrument: {
       slot: 2,
@@ -185,13 +217,41 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     // Default to a 480ms channel stop while allowing manually shortened 360ms performances.
     defaultInterruptMs: 480,
     interruptMode: 'per-packet',
-    instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0 },
+    // The damageless pulse reaches nearby foes at the shortest valid performance, where hit traits proc.
+    instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0, damageAtMs: 360 },
     effects: []
   },
   [ID.TALE_OF_THE_AUGUST_QUEEN]: {
-    castTimeMs: 666.666666667,
-    sideEffects: TROUBADOUR_TALE_ACTIONS,
-    effects: []
+    // Commit the tale's rewards after its 840 ms base cast.
+    castTimeMs: 840,
+    sideEffects: [
+      ...TROUBADOUR_TALE_ACTIONS,
+      { on: 'castCommit', do: { type: 'mesmer.troubadour.play-all-instruments' } }
+    ],
+    // The committed tale grants defensive effects without performing any instrument attacks.
+    effects: [
+      {
+        type: 'custom',
+        name: AURA.CHAOS,
+        eventType: 'aura',
+        actorType: ACTOR.PLAYER,
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        event: { aura: AURA.CHAOS, duration: 6 }
+      },
+      {
+        type: 'buff',
+        name: 'Distortion',
+        kind: 'distortion',
+        duration: 2,
+        stacks: 1,
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      }
+    ]
   },
   [ID.TALE_OF_THE_TORTURED_MASTERMIND]: {
     tale: {
@@ -250,15 +310,15 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     // Match the default stop without restricting the alternate Harp's shorter valid performances.
     defaultInterruptMs: 480,
     interruptMode: 'per-packet',
-    instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0 },
+    // Both Harp variants pulse nearby foes at the shortest valid performance.
+    instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0, damageAtMs: 360 },
     effects: []
   },
   [ID.DEAFENING_DRUM]: {
     sideEffects: INSTRUMENT_ACTIONS,
     effectVariants: instrumentEffects('mesmer.troubadour.deafening-drum'),
     castTimeMs: 680,
-    // The report's 600 ms Drum still lands its impact and delayed wave; preserve that committed performance.
-    interruptCommitMs: 600,
+    interruptCommitMs: 560,
     instrument: {
       slot: 3,
       instrument: 'Drum',

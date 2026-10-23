@@ -1,4 +1,4 @@
-import { WEAPON, COMBO_FIELD, ACTOR, CONTROL, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
+import { WEAPON, COMBO_FIELD, ACTOR, CONTROL, COMBO_FINISHER, CONDITION, AURA } from '#gw2/platform/constants.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -173,6 +173,14 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     effects: [
+      // The self aura must reach aura-gain traits independently of the offensive conditions.
+      {
+        type: 'custom',
+        name: AURA.CHAOS,
+        eventType: 'aura',
+        actorType: ACTOR.PLAYER,
+        event: { aura: AURA.CHAOS, duration: 5 }
+      },
       // The activation blinds once for five seconds, independently of its Confusion.
       {
         type: 'condition',

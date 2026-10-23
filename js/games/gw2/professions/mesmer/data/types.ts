@@ -4,7 +4,8 @@ import type { ConditionEffect, SkillEffect, StrikeEffect } from '#gw2/platform/e
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { EffectMetadata } from '#gw2/platform/events/events.js';
 
-export type MesmerSummonKind = 'clone' | 'phantasm';
+// Troubadour afterimages are illusions, so every illusion rule applies to them alongside clones and phantasms.
+export type MesmerSummonKind = 'clone' | 'phantasm' | 'afterimage';
 
 interface MesmerSkillResource {
   readonly mode?: string;
@@ -87,10 +88,14 @@ export interface MesmerSkill extends Skill {
   readonly tale?: {
     readonly name: string;
     readonly profileId: string;
-    readonly instrument: string;
     readonly resourceGain: number;
     readonly effects: readonly SkillEffect[];
-  };
+  } &
+    // Performance rewards require either a named instrument or a minimum number of distinct instruments.
+    (
+      | { readonly instrument: string; readonly minimumInstruments?: never }
+      | { readonly instrument?: never; readonly minimumInstruments: number }
+    );
   readonly mirrorPayload?: { readonly profileId: string; readonly skillId: number; readonly name: string };
   readonly duration?: number;
   readonly phantasm?: boolean;

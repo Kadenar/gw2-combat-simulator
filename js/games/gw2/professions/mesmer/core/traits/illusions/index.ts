@@ -80,8 +80,9 @@ export const cryOfPain = defineTrait<MesmerSkill>({
   id: TRAIT.CRY_OF_PAIN,
   name: 'Cry of Pain',
   balance: {
-    // This replaces the shatter's confusion package rather than emitting an independently owned proc.
-    effects: [{ name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 4, stacks: 2 }]
+    // Bonuses augment each native F2 application, preserving the owning skill's base tuning.
+    additionalStacks: 1,
+    durationMultiplier: 1 / 3
   }
 });
 
@@ -90,7 +91,7 @@ export const maimTheDisillusioned = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerShatterResolved, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterResolved>) =>
-        triggerMaimTheDisillusioned(runtime, input.resolution)
+        triggerMaimTheDisillusioned(runtime, { ...input.resolution, shatterTraitEligible: true })
     })
   ],
   id: TRAIT.MAIM_THE_DISILLUSIONED,
@@ -265,16 +266,20 @@ function triggerThePledge(context: MesmerRuntime, event: SimulationEvent): void 
   });
 }
 
-/** Returns Cry of Pain's Confusion override before the owning shatter emits packets. */
+/** Augments native confusion before shatter expansion; Troubadour supplies its specialization-specific bonuses. */
 export function cryOfPainConfusion(
-  context: MesmerRuntime,
-  condition: ConditionEffect | undefined
+  context: unknown,
+  condition: ConditionEffect | undefined,
+  profileId: BalanceProfile['id'] = TRAIT.CRY_OF_PAIN
 ): ConditionEffect | undefined {
-  if (!hasTrait(context, TRAIT.CRY_OF_PAIN)) return condition;
+  if (!condition || !hasTrait(context, TRAIT.CRY_OF_PAIN)) return condition;
 
-  const cryOfPainProfile = requireBalanceProfileFromContext(context, TRAIT.CRY_OF_PAIN);
-  const effect = requireEffect(cryOfPainProfile, 'condition', CONDITION.CONFUSION);
-  return effect ?? condition;
+  const profile = requireBalanceProfileFromContext(context, profileId);
+  return {
+    ...condition,
+    stacks: (condition.stacks ?? 1) + balanceProfileNumber(profile, 'additionalStacks'),
+    duration: (condition.duration ?? 0) * (1 + balanceProfileNumber(profile, 'durationMultiplier'))
+  };
 }
 
 /** Emits Compounding Power stacks and its proc record at the owning lifecycle position. */
@@ -332,9 +337,20 @@ function triggerCompoundingPower(
   }
 }
 
-/** Applies Maim the Disillusioned to the first-strike groups reported by the shatter resolver. */
-function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
-  if (!resolution.traitHits.length) return;
+/** Hit groups that apply Maim the Disillusioned, reported by shatters or Troubadour performances. */
+export interface MaimTheDisillusionedHits extends Pick<
+  MesmerShatterResolution,
+  'skill' | 'at' | 'delivery' | 'traitHits'
+> {
+  /** Shatter hits stay eligible for shatter reactions; instruments and Crescendo are not shatters. */
+  readonly shatterTraitEligible: boolean;
+  /** Torment survives a committed interrupt alongside the hits that launched before it. */
+  readonly persistsAfterInterrupt?: boolean;
+}
+
+/** Applies Maim the Disillusioned to shatter first-strike groups and Troubadour performance hits. */
+export function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: MaimTheDisillusionedHits): void {
+  if (!hasTrait(context, TRAIT.MAIM_THE_DISILLUSIONED) || !resolution.traitHits.length) return;
 
   const maimTheDisillusionedProfile = requireBalanceProfileFromContext(context, TRAIT.MAIM_THE_DISILLUSIONED);
   const effect = requireEffect(maimTheDisillusionedProfile, 'condition', CONDITION.TORMENT);
@@ -351,18 +367,22 @@ function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: MesmerS
       { ...effect, stacks: Number(effect.stacks) * hit.count },
       'Player',
       'Maim the Disillusioned — Torment',
-      // Preserve shatter ownership for reactions while naming the separate trait and its grouped hit opportunities.
+      // The caller decides shatter eligibility; the trait proc keeps its grouped hit opportunities.
       {
         skillId: resolution.skill.id,
         procType: 'trait',
-        metadata: { shatterTraitEligible: true, procCount: hit.count }
+        metadata: { shatterTraitEligible: resolution.shatterTraitEligible, procCount: hit.count }
       }
     ).forEach((packet) => {
       context.effects.emit({
         ...resolution.delivery,
         kind: 'packet',
-        // Trait ownership survives the shatter's skill attribution so previews report the torment as a trait proc.
-        event: { ...packet, traitId: TRAIT.MAIM_THE_DISILLUSIONED },
+        // Trait ownership survives the activating skill's attribution so previews report the torment as a trait proc.
+        event: {
+          ...packet,
+          traitId: TRAIT.MAIM_THE_DISILLUSIONED,
+          ...(resolution.persistsAfterInterrupt ? { persistsAfterInterrupt: true } : {})
+        },
         owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });

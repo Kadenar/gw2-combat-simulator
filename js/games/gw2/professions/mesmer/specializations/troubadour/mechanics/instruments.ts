@@ -14,7 +14,12 @@ import {
   buildMesmerStrikes,
   mesmerPacketOwner
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { masterOfFragmentationCrescendo } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
+import type { MesmerShatterTraitHit } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import { cloneShatterMaterialized } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
+import {
+  masterOfFragmentationCrescendo,
+  triggerMaimTheDisillusioned
+} from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import { mesmerInstruments } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
@@ -34,83 +39,145 @@ import {
 import type { MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-/** Resolves an instrument's player or afterimage packets with their Troubadour trait interactions. */
-export function instrumentAttack(
+/** Lists one hit per native packet; Harp's damageless pulse still hits foes once at its impact. */
+function instrumentHits(data: MesmerInstrument, damageAt: number): MesmerShatterTraitHit[] {
+  if (data.ticks?.length)
+    return data.ticks.map((tick) => ({ at: canonicalTime(damageAt + tick.atMs / 1000), count: 1 }));
+
+  return [{ at: damageAt, count: Math.max(1, Math.trunc(Number(data.hits) || 0)) }];
+}
+
+/** Resolves the player's instrument trait riders at the performance's native impact. */
+function instrumentTraitReactions(
   context: MesmerRuntime,
   skill: MesmerSkill,
   data: MesmerInstrument,
   damageAt: number,
-  source = 'Player',
-  actorType: typeof ACTOR.PLAYER | typeof ACTOR.SUMMON = ACTOR.PLAYER,
-  delivery: EffectDelivery = {}
+  delivery: EffectDelivery
 ): void {
-  // The extra note belongs to Shredding, so removing the native Lute strike does not remove it.
-  for (const attack of actorType === ACTOR.SUMMON ? [data] : []) {
-    if (attack.type !== 'strike') continue;
+  context.fireTrigger(troubadourInstrumentStrike, { skill, data, damageAt, delivery });
 
+  // Maim follows each of the player's own performance hits.
+  triggerMaimTheDisillusioned(context, {
+    skill,
+    at: damageAt,
+    delivery,
+    traitHits: instrumentHits(data, damageAt),
+    shatterTraitEligible: false,
+    persistsAfterInterrupt: data.persistsAfterInterrupt
+  });
+
+  // The trait condition is independent of the instrument's strike and recharge behavior.
+  context.fireTrigger(troubadourInstrumentConditions, { skill, data, damageAt, delivery });
+
+  // Flute is Troubadour's shatter skill 2, so Core's slot-two shatter reward (Blinding Dissipation) follows its
+  // materialized confusion exactly as it follows Cry of Frustration's.
+  if (data.slot === 2)
+    context.fireTrigger(cloneShatterMaterialized, { skillName: skill.name, at: damageAt, count: 1, delivery });
+
+  context.fireTrigger(troubadourInstrumentControl, { skill, data, damageAt, delivery });
+}
+
+/**
+ * Replays an instrument's native packets as a Call and Response afterimage. Afterimages are illusions, so illusion
+ * rules govern their packets and the player's instrument traits never ride on the replay.
+ */
+export function afterimageInstrumentAttack(
+  context: MesmerRuntime,
+  skill: MesmerSkill,
+  data: MesmerInstrument,
+  damageAt: number,
+  delivery: EffectDelivery
+): void {
+  const ownership = {
+    source: 'Afterimage',
+    sourceId: skill.id,
+    skillId: skill.id,
+    actorType: ACTOR.SUMMON,
+    summonKind: 'afterimage'
+  } as const;
+
+  if (data.type === 'strike')
     buildMesmerStrikes(
       context,
       skill,
       damageAt,
       {
-        ...attack,
+        ...data,
         name: undefined,
-        summonKind: undefined,
-        source,
-        actorType,
+        summonKind: ownership.summonKind,
+        source: ownership.source,
+        actorType: ownership.actorType,
         persistsAfterInterrupt: data.persistsAfterInterrupt,
         weaponStrengthProfileId: 'nonweapon.profession-mechanic'
       },
-      { source, sourceId: skill.id, skillId: skill.id, actorType }
+      ownership
     ).forEach((packet) => {
       context.effects.emit({
         ...delivery,
         kind: 'packet',
-        // The extra note is trait-owned; afterimage copies retain their summon actor and stay excluded from preview.
+        // Afterimage copies retain their summon actor and stay excluded from preview.
         event: packet,
         owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     });
-  }
 
-  context.fireTrigger(troubadourInstrumentStrike, { skill, data, damageAt, source, actorType, delivery });
+  for (const condition of data.conditions || [])
+    buildMesmerConditions(context, skill.name, damageAt, condition, ownership.source, '', ownership).forEach(
+      (packet) => {
+        context.effects.emit({
+          ...delivery,
+          kind: 'packet',
+          event: packet,
+          owner: mesmerPacketOwner(packet),
+          priority: Number(packet.priority ?? 0)
+        });
+      }
+    );
 
-  for (const condition of actorType === ACTOR.SUMMON ? data.conditions || [] : []) {
-    buildMesmerConditions(context, skill.name, damageAt, condition, source, '', {
-      source,
+  // The afterimage impact reuses the performance's authored control under its own illusion ownership.
+  context.effects.emit({
+    ...delivery,
+    kind: 'profile',
+    profile: skill,
+    effects: (skill.effects || [])
+      .filter((effect) => effect.type === 'control')
+      .map((effect) => ({
+        ...effect,
+        source: ownership.source,
+        actorType: ownership.actorType,
+        summonKind: ownership.summonKind
+      })),
+    at: damageAt,
+    fullEnd: damageAt,
+    attribution: {
+      source: ownership.source,
       sourceId: skill.id,
+      actorType: ownership.actorType,
       skillId: skill.id,
-      actorType
-    }).forEach((packet) => {
-      context.effects.emit({
-        ...delivery,
-        kind: 'packet',
-        event: packet,
-        owner: mesmerPacketOwner(packet),
-        priority: Number(packet.priority ?? 0)
-      });
-    });
-  }
+      skillName: skill.name
+    }
+  });
+}
 
-  // The trait condition is independent of the instrument's strike and recharge behavior.
-  context.fireTrigger(troubadourInstrumentConditions, { skill, data, damageAt, source, actorType, delivery });
-
-  // Player and valid afterimage impacts use the same authored control with distinct ownership.
-  if (actorType === ACTOR.SUMMON)
-    context.effects.emit({
-      ...delivery,
-      kind: 'profile',
-      profile: skill,
-      effects: (skill.effects || [])
-        .filter((effect) => effect.type === 'control')
-        .map((effect) => ({ ...effect, source, actorType })),
-      at: damageAt,
-      fullEnd: damageAt,
-      attribution: { source, sourceId: skill.id, actorType, skillId: skill.id, skillName: skill.name }
-    });
-
-  context.fireTrigger(troubadourInstrumentControl, { skill, data, damageAt, source, actorType, delivery });
+/** Publish a background playing window without spending notes or performing the instrument's attack. */
+export function startTroubadourInstrument(
+  context: MesmerRuntime,
+  instrument: string,
+  at: number,
+  expiresAt: number,
+  delivery: EffectDelivery = {}
+): void {
+  troubadourState.from(context).instruments[instrument] = expiresAt;
+  const packet = buildMesmerPacket({ type: 'mesmer.instrument', at, instrument, expiresAt });
+  context.effects.emit({
+    ...delivery,
+    kind: 'packet',
+    event: packet,
+    owner: mesmerPacketOwner(packet),
+    priority: Number(packet.priority ?? 0)
+  });
 }
 
 /** Spends notes and commits the active-instrument state after its cast completes. */
@@ -132,23 +199,8 @@ function commitInstrument(
   // Playing windows are exact and replace only the matching instrument, without action-tick rounding.
   const expiresAt = canonicalTime(at + baseDuration + spent * durationPerNote);
   const state = troubadourState.from(context);
-  state.instruments[data.instrument] = expiresAt;
   state.lastInstrument = data.instrument;
-  {
-    const packet = buildMesmerPacket({
-      type: 'mesmer.instrument',
-      at,
-      instrument: data.instrument,
-      expiresAt
-    });
-    context.effects.emit({
-      ...delivery,
-      kind: 'packet',
-      event: packet,
-      owner: mesmerPacketOwner(packet),
-      priority: Number(packet.priority ?? 0)
-    });
-  }
+  startTroubadourInstrument(context, data.instrument, at, expiresAt, delivery);
 
   context.fireTrigger(troubadourInstrumentCommitted, { skill, data, at, spent, delivery });
 
@@ -209,6 +261,15 @@ export function resolveCrescendo(
       });
     });
 
+  // Crescendo's single hit applies one Maim proc, independent of active instruments.
+  triggerMaimTheDisillusioned(context, {
+    skill,
+    at: damageAt,
+    delivery,
+    traitHits: [{ at: damageAt, count: 1 }],
+    shatterTraitEligible: false
+  });
+
   context.fireTrigger(troubadourCrescendoResolved, {
     skill,
     damageAt,
@@ -230,13 +291,11 @@ export function scheduleTroubadourPerformance(
 
   if (!instrument) return;
 
-  instrumentAttack(
+  instrumentTraitReactions(
     context,
     skill,
     instrument,
     cast.start + (instrument.damageAtMs || 0) / 1000,
-    undefined,
-    undefined,
     mesmerCastDelivery(cast, skill)
   );
 }

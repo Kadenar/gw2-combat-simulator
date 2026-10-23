@@ -1,4 +1,4 @@
-import { WEAPON, ACTOR } from '#gw2/platform/constants.js';
+import { WEAPON, ACTOR, AURA, RECIPIENT } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
@@ -16,7 +16,8 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { mesmerControlAccepted, mesmerHealCompleted } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
-import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -58,14 +59,34 @@ export const illusionaryMembrane = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerShatterResolved, {
       run: (runtime: MesmerRuntime, { shatter, resolution }: TriggerPointInput<typeof mesmerShatterResolved>) =>
-        triggerIllusionaryMembrane(runtime, shatter, resolution.skill.name, resolution.at, resolution.delivery)
-    })
+        grantShatterChaosAura(runtime, shatter?.slot, resolution.skill.name, resolution.at, resolution.delivery)
+    }),
+    // Instruments use their own completion path, but Flute is still the second profession skill.
+    {
+      on: 'castCommit',
+      when: (_runtime, cast) => cast.skill.id === ID.FLUSTERING_FLUTE,
+      emit: TRAIT.ILLUSIONARY_MEMBRANE,
+      effects: (effect) => effect.type === 'custom' && effect.name === AURA.CHAOS,
+      attribution: { actorType: ACTOR.PLAYER }
+    },
+    {
+      on: 'aura.applied',
+      when: (_runtime, event) =>
+        event.aura === AURA.CHAOS &&
+        event.actorType === ACTOR.PLAYER &&
+        (event.recipient == null || event.recipient === RECIPIENT.SELF),
+      run: applyIllusionaryMembrane
+    }
   ],
   id: TRAIT.ILLUSIONARY_MEMBRANE,
   name: 'Illusionary Membrane',
   balance: {
     conditionDamageIncrease: 0.07,
-    effects: [{ name: 'illusionary-membrane', type: 'buff', kind: 'illusionary-membrane', duration: 15, stacks: 1 }]
+    maximumDuration: 15,
+    effects: [
+      { name: AURA.CHAOS, type: 'custom', eventType: 'aura', event: { aura: AURA.CHAOS, duration: 4 } },
+      { name: 'illusionary-membrane', type: 'buff', kind: 'illusionary-membrane', duration: 5, stacks: 1 }
+    ]
   },
   modifierRules: [
     {
@@ -162,19 +183,19 @@ function triggerChaoticInterruption(context: MesmerRuntime, event: SimulationEve
   });
 }
 
-/** Applies Illusionary Membrane after earlier post-resolution shatter traits. */
-function triggerIllusionaryMembrane(
+/** F2 grants an aura after earlier shatter traits; aura acceptance owns the damage reward. */
+function grantShatterChaosAura(
   context: MesmerRuntime,
-  shatter: MesmerShatter | undefined,
+  slot: number | undefined,
   skillName: string,
   at: number,
   delivery: EffectDelivery = {}
 ): void {
-  if (shatter?.slot !== 2) return;
+  if (slot !== 2) return;
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE);
 
-  if (!requireEffect(profile, 'buff', 'illusionary-membrane')) return;
+  if (!requireEffect(profile, 'custom', AURA.CHAOS)) return;
 
   const traitSource = {
     source: 'Trait',
@@ -191,23 +212,39 @@ function triggerIllusionaryMembrane(
     attribution: { ...traitSource, actorType: ACTOR.EFFECT },
     announcement: { type: 'trait', name: profile.name, at, sourceSkill: skillName, detail: '' }
   });
-  // This stack settles after the same-time shatter packets under its original causal announcement.
+  // The aura settles after the same-time shatter packets under its original causal announcement.
   emitTraitProfile(context, TRAIT.ILLUSIONARY_MEMBRANE, TRAIT.ILLUSIONARY_MEMBRANE, proc, {
     ...delivery,
     at,
-    effect: { type: 'buff', name: 'illusionary-membrane' },
+    effect: { type: 'custom', name: AURA.CHAOS },
     attribution: traitSource,
     transform: (event) => ({
-      type: 'buff',
+      ...event,
       at,
       priority: 5,
       name: profile.name,
       ...traitSource,
       sourceSkill: skillName,
-      kind: event.kind,
-      stacks: event.stacks,
       duration: event.duration
     })
+  });
+}
+
+/** Every accepted self Chaos Aura extends the damage window by five seconds, capped at fifteen remaining. */
+function applyIllusionaryMembrane(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
+  const profile = requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE);
+  const buff = requireEffect(profile, 'buff', 'illusionary-membrane');
+
+  if (!buff) return;
+
+  const expiresAt = context.combat
+    .buffApplications('illusionary-membrane')
+    .reduce((latest, application) => Math.max(latest, application.expiresAt), event.at);
+  const duration = Math.min(balanceProfileNumber(profile, 'maximumDuration'), expiresAt - event.at + buff.duration);
+  emitTraitProfile(context, TRAIT.ILLUSIONARY_MEMBRANE, TRAIT.ILLUSIONARY_MEMBRANE, event, {
+    effect: { type: 'buff', name: 'illusionary-membrane' },
+    attribution: { actorType: ACTOR.PLAYER },
+    transform: (packet) => ({ ...packet, duration })
   });
 }
 

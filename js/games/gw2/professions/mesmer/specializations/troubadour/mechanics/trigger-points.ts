@@ -1,4 +1,3 @@
-import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -6,21 +5,20 @@ import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerInstrument } from '#gw2/professions/mesmer/types.js';
 
+/** The player's own performance impact; afterimage replays are illusions and never reach these trait points. */
 interface InstrumentImpact {
   readonly skill: MesmerSkill;
   readonly data: MesmerInstrument;
   readonly damageAt: number;
-  readonly source: string;
-  readonly actorType: typeof ACTOR.PLAYER | typeof ACTOR.SUMMON;
   readonly delivery: EffectDelivery;
 }
 
-/** Each boundary stays separated by the native instrument packets that precede the next reaction. */
+/** Each boundary keeps its trait reactions in the instrument's native strike, condition, and control order. */
 export const troubadourInstrumentStrike = defineTriggerPoint<InstrumentImpact>('mesmer.troubadour-instrument-strike', [
   TRAIT.SHREDDING
 ]);
 
-/** Trait conditions follow Shredding and the native afterimage conditions. */
+/** Trait conditions follow Shredding's extra note and Maim the Disillusioned. */
 export const troubadourInstrumentConditions = defineTriggerPoint<InstrumentImpact>(
   'mesmer.troubadour-instrument-conditions',
   [TRAIT.MAYHEM]

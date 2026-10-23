@@ -8,6 +8,11 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
 import { troubadourTaleResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
+import { startTroubadourInstrument } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
+import { MESMER_TROUBADOUR_INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
+import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 interface TroubadourTaleInvocation {
   readonly context: MesmerRuntime;
@@ -16,7 +21,7 @@ interface TroubadourTaleInvocation {
   readonly eligible: boolean;
 }
 
-/** Resolves a Tale's profile boons, matching-instrument note, and Troubadour trait effects together. */
+/** Resolves a Tale's profile boons, eligible performance notes, and Troubadour trait effects together. */
 function resolveTroubadourTale({ context, skill, at, eligible }: TroubadourTaleInvocation): void {
   const profileId = skill.tale?.profileId;
   const profile = profileId ? requireBalanceProfileFromContext(context, profileId) : null;
@@ -55,21 +60,42 @@ function resolveTroubadourTale({ context, skill, at, eligible }: TroubadourTaleI
 
 /** Capture instrument eligibility at acceptance and resolve the Tale using that snapshot at commitment. */
 const troubadourTaleActions: NonNullable<RuntimeHooks<MesmerRuntimeState, MesmerSkill>['sideEffectHandlers']> = {
+  'mesmer.troubadour.play-all-instruments'(runtime, context) {
+    if (context.kind !== 'cast') return;
+
+    // Capture the pre-grant count once so starting one instrument cannot lengthen the next one's window.
+    const at = runtime.time;
+    const playing = activeTroubadourInstrumentsAt(runtime.facts.read(), at).size;
+    const duration =
+      balanceNumberFromContext(runtime, PROFILE.augustQueen, 'baseDuration') +
+      playing * balanceNumberFromContext(runtime, PROFILE.augustQueen, 'durationPerTier');
+    const expiresAt = canonicalTime(at + duration);
+    const instruments = new Set(
+      Object.values(MESMER_TROUBADOUR_INSTRUMENTS).map((instrument) => instrument.instrument)
+    );
+    for (const instrument of instruments) {
+      startTroubadourInstrument(runtime, instrument, at, expiresAt, mesmerCastDelivery(context.cast));
+    }
+  },
   // Capture the event-order-sensitive gate while the accepted action is still the latest history entry.
   'mesmer.troubadour.prepare-tale'(runtime, context) {
     if (context.kind !== 'cast') return;
 
-    const required = context.skill.tale?.instrument;
+    const tale = context.skill.tale;
     const action = runtime.facts
       .read()
       .find((event) => event.type === 'action' && event.activationId === context.cast.id);
+    const instruments = activeTroubadourInstrumentsAt(
+      runtime.facts.read().filter((event) => event.type === 'mesmer.instrument'),
+      context.cast.start,
+      action
+    );
+    // Count distinct playing instruments at acceptance so expiry during recitation cannot revoke earned notes.
     runtime.profession.core.castDetails.get(context.cast.id)!.taleEligible = Boolean(
-      required &&
-      activeTroubadourInstrumentsAt(
-        runtime.facts.read().filter((event) => event.type === 'mesmer.instrument'),
-        context.cast.start,
-        action
-      ).has(required)
+      tale &&
+      (tale.minimumInstruments !== undefined
+        ? instruments.size >= tale.minimumInstruments
+        : instruments.has(tale.instrument))
     );
   },
   'mesmer.troubadour.resolve-tale'(runtime, context) {

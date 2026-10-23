@@ -18,10 +18,13 @@ export const TROUBADOUR_BALANCE_PROFILE_IDS = Object.freeze({
   livelyLute: 'mesmer.troubadour.lively-lute',
   livelyLuteAlternate: 'mesmer.troubadour.lively-lute-alternate',
   flusteringFlute: 'mesmer.troubadour.flustering-flute',
+  flusteringFluteCryOfPain: 'mesmer.troubadour.flustering-flute-cry-of-pain',
   harmoniousHarp: 'mesmer.troubadour.harmonious-harp',
   harmoniousHarpAlternate: 'mesmer.troubadour.harmonious-harp-alternate',
   deafeningDrum: 'mesmer.troubadour.deafening-drum',
   honorableRogue: 'mesmer.troubadour.tale-honorable-rogue',
+  secondScion: 'mesmer.troubadour.tale-second-scion',
+  augustQueen: 'mesmer.troubadour.tale-august-queen',
   soulkeeper: 'mesmer.troubadour.tale-soulkeeper',
   valiantMarshal: 'mesmer.troubadour.tale-valiant-marshal'
 });
@@ -119,6 +122,27 @@ export const TROUBADOUR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     )
   ),
   ...TROUBADOUR_TALE_PROFILES,
+  // August Queen starts every background instrument using the count already playing at commitment.
+  variant(
+    TROUBADOUR_BALANCE_PROFILE_IDS.augustQueen,
+    ID.TALE_OF_THE_AUGUST_QUEEN,
+    'Tale of the August Queen - Instruments',
+    {
+      baseDuration: 3,
+      durationPerTier: 3,
+      effects: []
+    }
+  ),
+  {
+    id: TROUBADOUR_BALANCE_PROFILE_IDS.flusteringFluteCryOfPain,
+    parentId: ID.FLUSTERING_FLUTE,
+    name: 'Flustering Flute (Cry of Pain)',
+    profileKind: 'skill-variant',
+    // Troubadour increases the trait's bonuses while retaining Flute's patchable base confusion.
+    additionalStacks: 2,
+    durationMultiplier: 0.5,
+    effects: []
+  },
   {
     id: TROUBADOUR_BALANCE_PROFILE_IDS.crescendo,
     parentId: ID.CRESCENDO,

@@ -24,11 +24,11 @@ export function isGw2PhantasmEvent(event: Partial<SimulationEventBase> | null | 
   return gw2EventActorType(event) === ACTOR.SUMMON && event?.summonKind === 'phantasm';
 }
 
-/** Clone and phantasm critical policies apply only to explicitly identified illusion actors. */
+const ILLUSION_SUMMON_KINDS = new Set(['clone', 'phantasm', 'afterimage']);
+
+/** Illusion critical policies apply only to explicitly identified clone, phantasm, and afterimage actors. */
 export function isGw2IllusionEvent(event: Partial<SimulationEventBase> | null | undefined): boolean {
-  return (
-    gw2EventActorType(event) === ACTOR.SUMMON && (event?.summonKind === 'clone' || event?.summonKind === 'phantasm')
-  );
+  return gw2EventActorType(event) === ACTOR.SUMMON && ILLUSION_SUMMON_KINDS.has(event?.summonKind ?? '');
 }
 
 /**

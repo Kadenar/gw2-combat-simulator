@@ -35,7 +35,7 @@ import {
   activeInstrumentCount,
   hasLute
 } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
-import { instrumentAttack } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
+import { afterimageInstrumentAttack } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import {
   troubadourCrescendoResolved,
   troubadourDodgeCompleted,
@@ -83,15 +83,7 @@ const mayhem = defineTrait<MesmerSkill>({
     }),
     onTriggerPoint(troubadourInstrumentConditions, {
       run: (runtime, input: TriggerPointInput<typeof troubadourInstrumentConditions>) =>
-        applyMayhemInstrument(
-          runtime,
-          input.skill,
-          input.data,
-          input.damageAt,
-          input.source,
-          input.actorType,
-          input.delivery
-        )
+        applyMayhemInstrument(runtime, input.skill, input.data, input.damageAt, input.delivery)
     })
   ],
   id: TRAIT.MAYHEM,
@@ -290,15 +282,7 @@ export const syncopate = defineTrait<MesmerSkill>({
     { on: 'control.resolved', run: observeSyncopateEvent },
     onTriggerPoint(troubadourInstrumentControl, {
       run: (runtime, input: TriggerPointInput<typeof troubadourInstrumentControl>) =>
-        scheduleSyncopateDrumWave(
-          runtime,
-          input.skill,
-          input.data,
-          input.damageAt,
-          input.source,
-          input.actorType,
-          input.delivery
-        )
+        scheduleSyncopateDrumWave(runtime, input.skill, input.data, input.damageAt, input.delivery)
     })
   ],
   id: TRAIT.SYNCOPATE,
@@ -363,25 +347,23 @@ function shreddingStrike(context: MesmerRuntime, data: MesmerInstrument): Strike
   return shredding;
 }
 
-/** Keep mayhem at the existing instrument execution boundary. */
+/** Mayhem adds Torment to the player's own Flute impact; afterimage replays never carry it. */
 function applyMayhemInstrument(
   context: MesmerRuntime,
   skill: MesmerSkill,
   data: MesmerInstrument,
   damageAt: number,
-  source: string,
-  actorType: typeof ACTOR.PLAYER | typeof ACTOR.SUMMON,
   delivery: EffectDelivery = {}
 ): void {
   if (data.instrument === 'Flute') {
     const condition = mesmerConditionFromProfile(context, TRAIT.MAYHEM, CONDITION.TORMENT);
 
     if (condition)
-      buildMesmerConditions(context, skill.name, damageAt, condition, source, 'Mayhem — Torment', {
-        source,
+      buildMesmerConditions(context, skill.name, damageAt, condition, 'Player', 'Mayhem — Torment', {
+        source: 'Player',
         sourceId: TRAIT.MAYHEM,
         skillId: skill.id,
-        actorType
+        actorType: ACTOR.PLAYER
       }).forEach((packet) => {
         context.effects.emit({
           ...delivery,
@@ -432,7 +414,7 @@ function applyCallAndResponse(
 ): void {
   if (spent === balanceNumberFromContext(context, TRAIT.CALL_AND_RESPONSE, 'threshold')) {
     const afterimageAt = at + balanceNumberFromContext(context, TRAIT.CALL_AND_RESPONSE, 'initialDelay');
-    instrumentAttack(context, skill, data, afterimageAt, 'Afterimage', ACTOR.SUMMON, delivery);
+    afterimageInstrumentAttack(context, skill, data, afterimageAt, delivery);
     context.effects.emit({
       ...delivery,
       kind: 'announcement',
@@ -562,14 +544,12 @@ function triggerMethodOfMadnessSyncopate(context: MesmerRuntime): void {
   });
 }
 
-/** Adds the delayed wave and its daze to player and afterimage Drum impacts when Syncopate is selected. */
+/** Adds the delayed wave and its daze to the player's own Drum impact; afterimage replays never carry it. */
 function scheduleSyncopateDrumWave(
   context: MesmerRuntime,
   skill: MesmerSkill,
   instrument: MesmerInstrument,
   damageAt: number,
-  source: string,
-  actorType: typeof ACTOR.PLAYER | typeof ACTOR.SUMMON,
   delivery: EffectDelivery = {}
 ): void {
   if (instrument.instrument !== 'Drum') return;
@@ -597,7 +577,7 @@ function scheduleSyncopateDrumWave(
         name: undefined,
         summonKind: undefined,
         source: 'Trait',
-        actorType,
+        actorType: ACTOR.PLAYER,
         // The committed Drum owns this delayed projectile even after its animation is interrupted.
         persistsAfterInterrupt: true,
         weaponStrengthProfileId: 'nonweapon.unequipped'
@@ -606,7 +586,7 @@ function scheduleSyncopateDrumWave(
         source: 'Trait',
         sourceId: TRAIT.SYNCOPATE,
         skillId: skill.id,
-        actorType,
+        actorType: ACTOR.PLAYER,
         damageBreakdownName: 'Syncopate (Delay Wave)',
         name: 'Syncopate — delayed wave'
       }
@@ -628,9 +608,9 @@ function scheduleSyncopateDrumWave(
       skillName: 'Syncopate — delayed wave',
       controlKind: daze.controlKind,
       persistsAfterInterrupt: true,
-      source,
+      source: 'Player',
       sourceId: TRAIT.SYNCOPATE,
-      actorType
+      actorType: ACTOR.PLAYER
     });
     context.effects.emit({
       ...delivery,
@@ -795,10 +775,10 @@ function queueFortissimoNotes(
   }
 }
 
-/** Shredding owns its extra note while native afterimage packets remain with the instrument. */
+/** Shredding adds its extra note to the player's own Lute; afterimage replays never carry it. */
 function emitShredding(
   context: MesmerRuntime,
-  { skill, data, damageAt, source, actorType, delivery }: TriggerPointInput<typeof troubadourInstrumentStrike>
+  { skill, data, damageAt, delivery }: TriggerPointInput<typeof troubadourInstrumentStrike>
 ): void {
   const shredding = shreddingStrike(context, data);
 
@@ -813,17 +793,17 @@ function emitShredding(
       ...shredding,
       name: undefined,
       summonKind: undefined,
-      source,
-      actorType,
+      source: 'Player',
+      actorType: ACTOR.PLAYER,
       persistsAfterInterrupt: data.persistsAfterInterrupt,
       weaponStrengthProfileId: 'nonweapon.profession-mechanic'
     },
-    { source, sourceId: skill.id, skillId: skill.id, actorType }
+    { source: 'Player', sourceId: skill.id, skillId: skill.id, actorType: ACTOR.PLAYER }
   ).forEach((packet) => {
     context.effects.emit({
       ...delivery,
       kind: 'packet',
-      // The extra note is trait-owned; afterimage copies retain their summon actor and stay excluded from preview.
+      // The extra note is trait-owned so previews and breakdowns report it as Shredding.
       event: { ...packet, name: 'Shredding', procType: 'trait', traitId: TRAIT.SHREDDING },
       owner: mesmerPacketOwner(packet),
       priority: Number(packet.priority ?? 0)

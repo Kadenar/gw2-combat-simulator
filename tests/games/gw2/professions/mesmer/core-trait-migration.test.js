@@ -208,7 +208,7 @@ test('Ineptitude emission observes the committed Chaotic Interruption recharge',
   assert.ok(observed);
 });
 
-test('Cry of Pain overrides Confusion before Blinding Dissipation', () => {
+test('Cry of Pain augments Confusion before Blinding Dissipation', () => {
   const result = simulateMesmer(
     ['Cry of Frustration'],
     defaultSimulationConfig({

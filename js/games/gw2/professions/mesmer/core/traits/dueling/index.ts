@@ -27,7 +27,11 @@ import {
   mesmerEvaded,
   mesmerStrikeResolved
 } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
-import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
+import {
+  illusionSource,
+  isIllusionSummonKind,
+  timedStacks
+} from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { cloneShatterMaterialized } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -422,9 +426,9 @@ function triggerMasterFencer(context: MesmerRuntime, event: SimulationEvent, cha
   });
 }
 
-/** Materializes Sharper Images for clone and phantasm critical observations. */
+/** Materializes Sharper Images for every illusion's critical observations, including afterimages. */
 function triggerSharperImages(context: MesmerRuntime, event: SimulationEvent, chance: number): void {
-  if (!['clone', 'phantasm'].includes(event.summonKind || '')) {
+  if (!isIllusionSummonKind(event.summonKind)) {
     return;
   }
 

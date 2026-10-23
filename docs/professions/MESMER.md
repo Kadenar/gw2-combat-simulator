@@ -35,6 +35,11 @@ specialization effects before emission. Applied buffs retain their granted lifet
 Chronomancer owns Continuum restoration in mechanics and delayed explosions in `traits/time-bomb.ts`; Troubadour owns
 instrument policies in its trait definitions and snapshots in mechanics.
 
+Cry of Pain augments native F2 confusion by one stack and one-third duration; Troubadour uses two stacks and 50%
+duration for the player's Flute performance. Afterimages retain the base application. Illusionary Membrane grants Chaos
+Aura from F2, including Flute, and reacts to every self Chaos Aura gain, including Chaos Armor and ethereal combos. Each
+aura extends the condition-damage buff by five seconds, capped at fifteen seconds remaining.
+
 Build and live queries share `mesmerProfession.attributeContributions`. The evaluator starts from equipment seeds and
 combines module declarations with selected trait attributes, using active balance profiles and live stacks/boons.
 Detached previews select contributions from their own inputs. Intrinsic Harmonize and Symphonic Resonance remain

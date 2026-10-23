@@ -41,6 +41,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Skill recharge': 'https://render.guildwars2.com/file/AAB7C5387A08367C2F023F19FEE70E1556AD4375/1770202.png',
   // Pulse timing uses the game's Interval fact glyph.
   Interval: 'https://render.guildwars2.com/file/B75E91EB22E0DFCC1D08030204055946506D56F6/1770206.png',
+  // Call and Response's repeat delay uses the timer glyph to identify its waiting period.
+  'Repeat delay': 'https://render.guildwars2.com/file/B75E91EB22E0DFCC1D08030204055946506D56F6/1770206.png',
   // Nature's Vengeance uses its in-game clock glyph for the simulator's repeat-slam delay.
   'Delay after final shake': 'https://render.guildwars2.com/file/B75E91EB22E0DFCC1D08030204055946506D56F6/1770206.png',
   'Attribute increase': 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
@@ -139,6 +141,9 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   Energy: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   Endurance: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   Motivation: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
+  // Troubadour note gains, requirements, and generation pulses share the standard resource book glyph.
+  Notes: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
+  'Note-generation pulses': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   // Tome-page costs, grants, refunds, and limits use the same book glyph as other resources.
   Pages: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   'Shared page capacity': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',

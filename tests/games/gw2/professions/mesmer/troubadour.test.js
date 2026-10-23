@@ -11,6 +11,10 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import {
+  TROUBADOUR_BALANCE_PROFILE_IDS,
+  TROUBADOUR_BALANCE_PROFILES
+} from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 
 // Trait-owned scheduling must keep honoring balance edits for both the disable proc and delayed wave.
@@ -140,6 +144,135 @@ test('Master of Misdirection reduces instrument and Crescendo recharge by fiftee
   }
 });
 
+const maimProcs = (result) =>
+  result.events.filter((event) => event.type === 'condition' && event.traitId === TRAIT.MAIM_THE_DISILLUSIONED);
+
+// Maim lands with each native player performance hit; Harp's damageless pulse and Crescendo each proc it once.
+test('Maim the Disillusioned procs on each player instrument and Crescendo hit', () => {
+  const run = (selectedTraitIds) =>
+    simulateMesmer(
+      ['Lively Lute', 'Flustering Flute', 'Deafening Drum', 'Harmonious Harp', 'Crescendo'],
+      defaultSimulationConfig({ specialization: 'Troubadour', initialResource: 0, selectedTraitIds })
+    );
+
+  assert.deepEqual(maimProcs(run([])), []);
+
+  const result = run([TRAIT.MAIM_THE_DISILLUSIONED]);
+  assert.deepEqual(result.warnings, []);
+  const procs = maimProcs(result);
+
+  const actions = result.events.filter((event) => event.type === 'action');
+  assert.equal(actions.length, 5);
+
+  for (const { name, skillId } of actions) {
+    const procTimes = procs.filter((event) => event.skillId === skillId).map((event) => event.at);
+
+    if (name === 'Harmonious Harp') {
+      assert.equal(procTimes.length, 1);
+      continue;
+    }
+
+    const hitTimes = result.resolvedEvents
+      .filter((event) => event.type === 'damage' && event.skillId === skillId && event.actorType === 'player')
+      .map((event) => event.at);
+    assert.ok(hitTimes.length > 0);
+    assert.deepEqual(procTimes, hitTimes);
+  }
+
+  // Performances are not shatters, so shatter-only modifiers never treat their torment as a shatter hit.
+  assert.ok(procs.every((event) => event.procType === 'trait' && event.metadata?.shatterTraitEligible === false));
+});
+
+const callAndResponse = (instrument, selectedTraitIds) =>
+  simulateMesmer(
+    [instrument, { name: '__wait', waitMs: 2500 }],
+    defaultSimulationConfig({
+      specialization: 'Troubadour',
+      initialResource: 3,
+      selectedTraitIds: [TRAIT.CALL_AND_RESPONSE, ...selectedTraitIds]
+    })
+  );
+
+// Afterimages are illusions: the player's instrument traits never ride on the replay.
+test('Call and Response afterimages carry no player instrument traits', () => {
+  for (const [instrument, riders] of [
+    ['Lively Lute', [TRAIT.SHREDDING, TRAIT.MAIM_THE_DISILLUSIONED]],
+    ['Flustering Flute', [TRAIT.MAYHEM]],
+    ['Deafening Drum', [TRAIT.SYNCOPATE]]
+  ]) {
+    const result = callAndResponse(instrument, riders);
+    const riderEvent = (event) => riders.includes(event.traitId) || riders.includes(event.sourceId);
+    const afterimageHits = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.source === 'Afterimage'
+    );
+
+    assert.deepEqual(result.warnings, []);
+    assert.ok(afterimageHits.length > 0);
+    assert.ok(afterimageHits.every((event) => event.summonKind === 'afterimage'));
+    assert.ok(result.events.some(riderEvent));
+    assert.ok(result.events.filter(riderEvent).every((event) => event.actorType !== 'summon'));
+  }
+});
+
+// Player-only damage bonuses skip afterimage strikes, as they skip every other illusion.
+test('Shredding does not increase afterimage Lively Lute damage', () => {
+  const afterimageDamage = (selectedTraitIds) =>
+    callAndResponse('Lively Lute', selectedTraitIds)
+      .resolvedEvents.filter((event) => event.type === 'damage' && event.source === 'Afterimage')
+      .map((event) => event.damage);
+
+  assert.ok(afterimageDamage([]).length > 0);
+  assert.deepEqual(afterimageDamage([TRAIT.SHREDDING]), afterimageDamage([]));
+});
+
+// Flute is shatter skill 2, so Blinding Dissipation follows the player's impact but not the afterimage replay.
+test('Blinding Dissipation blinds on the player Flustering Flute impact only', () => {
+  const blindingDissipation = (result) =>
+    result.events.filter((event) => event.type === 'condition' && event.sourceId === TRAIT.BLINDING_DISSIPATION);
+
+  assert.deepEqual(blindingDissipation(callAndResponse('Flustering Flute', [])), []);
+
+  const result = callAndResponse('Flustering Flute', [TRAIT.BLINDING_DISSIPATION]);
+  const fluteHits = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.name === 'Flustering Flute' && event.source === 'Player'
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.source === 'Afterimage'));
+  assert.deepEqual(
+    blindingDissipation(result).map((event) => event.at),
+    fluteHits.map((event) => event.at)
+  );
+});
+
+// Cry of Pain augments the player's native confusion; the afterimage replay keeps the base application.
+test('Cry of Pain upgrades only the player Flustering Flute confusion', () => {
+  const traited = TROUBADOUR_BALANCE_PROFILES.find(
+    (profile) => profile.id === TROUBADOUR_BALANCE_PROFILE_IDS.flusteringFluteCryOfPain
+  );
+  const confusion = (result, actorType) =>
+    result.events.filter(
+      (event) => event.type === 'condition' && event.condition === 'Confusion' && event.actorType === actorType
+    );
+  const base = callAndResponse('Flustering Flute', []);
+  const upgraded = callAndResponse('Flustering Flute', [TRAIT.CRY_OF_PAIN]);
+  const playerConfusion = confusion(upgraded, 'player');
+
+  assert.equal(
+    playerConfusion.reduce((total, event) => total + event.stacks, 0),
+    confusion(base, 'player').reduce((total, event) => total + event.stacks, 0) + traited.additionalStacks
+  );
+  assert.ok(
+    playerConfusion.every(
+      (event) => event.duration === confusion(base, 'player')[0].duration * (1 + traited.durationMultiplier)
+    )
+  );
+  assert.ok(confusion(base, 'summon').length > 0);
+  assert.deepEqual(
+    confusion(upgraded, 'summon').map(({ stacks, duration }) => ({ stacks, duration })),
+    confusion(base, 'summon').map(({ stacks, duration }) => ({ stacks, duration }))
+  );
+});
+
 test('Shatter Storm gives Lively Lute a second charge without a full cooldown', () => {
   const config = (selectedTraitIds) =>
     defaultSimulationConfig({
@@ -211,6 +344,7 @@ test('Troubadour tales grant their boons and instrument-specific notes', () => {
       ]
     ],
     ['Deafening Drum', 'Tale of the Honorable Rogue', 1, [['aegis', 1, 4]]],
+    ['Flustering Flute', 'Tale of the Tortured Mastermind', 1, []],
     [
       'Harmonious Harp',
       'Tale of the Valiant Marshal',
@@ -260,6 +394,155 @@ test('Troubadour tales grant their boons and instrument-specific notes', () => {
       );
     }
   }
+});
+
+// Background playing windows feed instrument queries without performing attacks or spending notes.
+test('August Queen starts all instruments with duration based on the previously playing count', () => {
+  const instruments = ['Lively Lute', 'Flustering Flute', 'Deafening Drum', 'Harmonious Harp'];
+  const config = defaultSimulationConfig({ specialization: 'Troubadour', initialResource: 0, selectedTraitIds: [] });
+  for (let count = 0; count <= 4; count++) {
+    const result = simulateMesmer(
+      [...instruments.slice(0, count), 'Tale of the August Queen', { type: 'wait', durationMs: 1 }],
+      config
+    );
+    assert.deepEqual(result.warnings, []);
+    const queen = result.events.find(
+      (event) => event.type === 'action' && event.skillId === ID.TALE_OF_THE_AUGUST_QUEEN
+    );
+    const windows = result.events.filter(
+      (event) => event.type === 'mesmer.instrument' && event.activationId === queen.activationId
+    );
+    assert.deepEqual(new Set(windows.map((event) => event.instrument)), new Set(['Lute', 'Flute', 'Drum', 'Harp']));
+    assert.ok(windows.every((event) => canonicalTime(event.expiresAt - event.at) === 3 + count * 3));
+    assert.equal(result.planningState.profession.activeInstruments.length, 4);
+    assert.equal(result.planningState.profession.notes.value, 0);
+  }
+});
+
+test('August Queen grants Chaos Aura and Distortion and enables Second Scion without spending notes', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Troubadour',
+    initialResource: 2,
+    selectedTraitIds: [TRAIT.ILLUSIONARY_MEMBRANE, TRAIT.CALL_AND_RESPONSE]
+  });
+  const queen = simulateMesmer(['Tale of the August Queen', { type: 'wait', durationMs: 1 }], config);
+  assert.equal(queen.planningState.profession.notes.value, 2);
+  assert.ok(
+    queen.resolvedEvents.some((event) => event.type === 'aura' && event.aura === 'Chaos Aura' && event.duration === 6)
+  );
+  assert.ok(queen.events.some((event) => event.kind === 'distortion' && event.duration === 2));
+  assert.ok(queen.events.some((event) => event.kind === 'illusionary-membrane'));
+  assert.equal(
+    queen.events.some((event) => event.type === 'damage' || event.type === 'condition'),
+    false
+  );
+  const scion = simulateMesmer(
+    ['Tale of the August Queen', 'Tale of the Second Scion', { type: 'wait', durationMs: 1 }],
+    config
+  );
+  assert.equal(scion.planningState.profession.notes.value, 3);
+  const expired = simulateMesmer(
+    ['Tale of the August Queen', { type: 'wait', durationMs: 3000 }, 'Tale of the Second Scion'],
+    config
+  );
+  assert.equal(expired.planningState.profession.activeInstruments.length, 0);
+  assert.equal(expired.planningState.profession.notes.value, 2);
+  const canceled = simulateMesmer(
+    [
+      { name: 'Tale of the August Queen', interruptMs: 0 },
+      { type: 'wait', durationMs: 1000 }
+    ],
+    config
+  );
+  assert.equal(canceled.planningState.profession.activeInstruments.length, 0);
+  assert.equal(
+    canceled.events.some(
+      (event) => event.type === 'aura' || event.kind === 'distortion' || event.kind === 'illusionary-membrane'
+    ),
+    false
+  );
+});
+
+test('Tortured Mastermind and Soulkeeper require their matching instrument for notes', () => {
+  for (const [wrong, tale] of [
+    ['Lively Lute', 'Tale of the Tortured Mastermind'],
+    ['Flustering Flute', 'Tale of the Soulkeeper']
+  ]) {
+    const result = simulateMesmer([wrong, tale, { type: 'wait', durationMs: 100 }], {
+      specialization: 'Troubadour',
+      initialResource: 0,
+      selectedTraitIds: []
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.notes.value, 0);
+  }
+});
+
+// Second Scion rewards the count of distinct playing instruments, regardless of their identities.
+test('Second Scion grants one note with at least two playing instruments', () => {
+  const instruments = ['Lively Lute', 'Flustering Flute', 'Deafening Drum', 'Harmonious Harp'];
+  const config = defaultSimulationConfig({ specialization: 'Troubadour', initialResource: 0, selectedTraitIds: [] });
+  const cases = [[], ...instruments.map((instrument) => [instrument]), instruments.slice(0, 3), instruments];
+  for (let first = 0; first < instruments.length; first++) {
+    for (let second = first + 1; second < instruments.length; second++)
+      cases.push([instruments[first], instruments[second]]);
+  }
+
+  for (const playing of cases) {
+    const result = simulateMesmer([...playing, 'Tale of the Second Scion', { type: 'wait', durationMs: 1 }], config);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.notes.value, playing.length >= 2 ? 1 : 0, playing.join(', '));
+  }
+});
+
+// Eligibility is captured before recitation; expired instruments cannot qualify a later cast.
+test('Second Scion snapshots its performance requirement at cast acceptance', () => {
+  const config = defaultSimulationConfig({ specialization: 'Troubadour', initialResource: 0, selectedTraitIds: [] });
+  const opening = ['Lively Lute', 'Flustering Flute'];
+  const probe = simulateMesmer(opening, config);
+  const expiryMs = Math.min(
+    ...probe.events.filter((event) => event.type === 'mesmer.instrument').map((event) => event.expiresAt * 1000)
+  );
+  const endMs = probe.steps.at(-1).end;
+  for (const [offset, expected] of [
+    [-40, 1],
+    [0, 0]
+  ]) {
+    const result = simulateMesmer(
+      [
+        ...opening,
+        { type: 'wait', durationMs: expiryMs - endMs + offset },
+        'Tale of the Second Scion',
+        { type: 'wait', durationMs: 1 }
+      ],
+      config
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.notes.value, expected);
+  }
+});
+
+// Performance grants use the shared capped note pool and require a committed tale.
+test('Second Scion respects cancellation and the note cap', () => {
+  const config = defaultSimulationConfig({ specialization: 'Troubadour', initialResource: 0, selectedTraitIds: [] });
+  const canceled = simulateMesmer(
+    ['Lively Lute', 'Flustering Flute', { name: 'Tale of the Second Scion', interruptMs: 0 }],
+    config
+  );
+  assert.equal(canceled.planningState.profession.notes.value, 0);
+  const capped = simulateMesmer(
+    [
+      'Lively Lute',
+      'Deafening Drum',
+      'Tale of the Soulkeeper',
+      'Tale of the Honorable Rogue',
+      'Tale of the Second Scion',
+      { type: 'wait', durationMs: 1 }
+    ],
+    config
+  );
+  assert.deepEqual(capped.warnings, []);
+  assert.equal(capped.planningState.profession.notes.value, 3);
 });
 
 test('Tale of the Honorable Rogue owns its Aegis, note gate, and two-charge timing', () => {

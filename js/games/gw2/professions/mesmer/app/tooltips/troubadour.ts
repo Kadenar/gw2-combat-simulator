@@ -100,13 +100,31 @@ export const troubadourTooltips = {
     [ID.TALE_OF_THE_TORTURED_MASTERMIND]: skillTooltip(
       'Tell a tale and strike your target. Gain a note if Flute was active when the cast began. Raconteur also grants party protection.'
     ),
-    ...Object.fromEntries(
-      [ID.TALE_OF_THE_SECOND_SCION, ID.TALE_OF_THE_AUGUST_QUEEN].map((id) => [
-        id,
-        skillTooltip(
-          'Tell a tale. Raconteur grants party protection. This tale has no additional instrument-note branch in the simulation.'
+    // Describe the same acceptance-time performance requirement used by the tale's resource reward.
+    [ID.TALE_OF_THE_SECOND_SCION]: skillTooltip(
+      'Tell a tale. Gain a note if at least two instruments were playing when the cast began. Raconteur grants party protection.',
+      (balanceContext) => [
+        profileFact(balanceContext, TROUBADOUR.secondScion, 'resourceGain', 'Notes with two or more instruments')
+      ]
+    ),
+    [ID.TALE_OF_THE_AUGUST_QUEEN]: skillTooltip(
+      'Grant Chaos Aura and Distortion, and start every instrument playing in the background. Duration increases with the number already playing when the tale completes. Raconteur grants party protection.',
+      (balanceContext) => [
+        profileFact(
+          balanceContext,
+          TROUBADOUR.augustQueen,
+          'baseDuration',
+          'Base instrument duration',
+          (value) => `${value}s`
+        ),
+        profileFact(
+          balanceContext,
+          TROUBADOUR.augustQueen,
+          'durationPerTier',
+          'Duration per playing instrument',
+          (value) => `${value}s`
         )
-      ])
+      ]
     )
   },
   traits: {

@@ -4,14 +4,26 @@ import { timedEffectState, type EffectState } from '#gw2/platform/combat/effect-
 
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
-import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceProfileFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Core owns shared weapon and trait effects; selected elites register their own policies. */
 export function mesmerBuffPolicies(context: unknown): BuffStatePolicy[] {
   const policies: BuffStatePolicy[] = [
     { kind: 'clarity', maximumStacks: 1 },
-    { kind: 'illusionary-membrane', maximumStacks: 1 },
+    // Aura grants extend one damage-buff window with a patchable remaining-duration cap.
+    {
+      kind: 'illusionary-membrane',
+      maximumStacks: 1,
+      maximumDuration: balanceProfileNumber(
+        requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE),
+        'maximumDuration'
+      )
+    },
     { kind: 'distortion', maximumStacks: 1 }
   ];
   for (const [kind, id] of [
