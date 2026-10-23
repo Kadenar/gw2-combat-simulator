@@ -134,7 +134,7 @@ test('gear optimizer tab owns relic comparison and restores through browser hist
   await expect(page.locator('#optimizer-relic-comparison')).toBeEmpty();
   await page
     .getByRole('navigation', { name: 'Simulator sections' })
-    .getByRole('link', { name: 'Workspace', exact: true })
+    .getByRole('link', { name: 'Golem', exact: true })
     .click();
   for (let index = 0; index < 3; index++) {
     await page.locator('.pal-skill[data-skill="Bladecall"]').click();

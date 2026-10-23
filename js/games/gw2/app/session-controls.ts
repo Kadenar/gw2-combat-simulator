@@ -43,6 +43,9 @@ export function bindSessionControls(app: ProfessionAppState): void {
   document.getElementById('btn-sim-undo')?.addEventListener('click', () => undoRotation(app));
   document.getElementById('btn-sim-redo')?.addEventListener('click', () => redoRotation(app));
   document.addEventListener('keydown', (event) => {
+    // Creating an encounter has no active rotation; leave the parked golem history untouched.
+    if (document.body.dataset.simulatorView === 'bosses' && document.body.dataset.bossEditorReady === 'false') return;
+
     if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
 
     const target = event.target;

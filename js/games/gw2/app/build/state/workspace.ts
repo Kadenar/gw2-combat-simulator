@@ -44,6 +44,8 @@ export interface BuildWorkspace {
   tabs: BuildTab[];
   activeTabId: string;
   storageError?: string;
+  /** Encounter workspaces persist phase edits to their scenario instead of the golem library. */
+  persist?: () => void;
 }
 
 export function createBuildTab(build: Gw2CanonicalBuild, name = 'New build', patchId = 'current'): BuildTab {
@@ -181,6 +183,12 @@ export function saveBuildWorkspace(app: ProfessionAppState): void {
   if (!workspace) return;
 
   captureActiveBuildTab(app);
+
+  if (workspace.persist) {
+    workspace.persist();
+    return;
+  }
+
   try {
     localStorage.setItem(
       workspaceStorageKey(app.adapter),

@@ -1,0 +1,118 @@
+/* Bosses adds encounter controls around the same mounted build editor used by Golem. */
+#boss-encounter-summary,
+#boss-workspace,
+#boss-analysis,
+#boss-scenario-toolbar {
+  display: none;
+}
+body[data-simulator-view='bosses'][data-boss-editor-ready='true'] #boss-encounter-summary,
+body[data-simulator-view='bosses'] #boss-workspace,
+body[data-simulator-view='analysis'][data-analysis-workspace='bosses'] #boss-analysis {
+  display: block;
+}
+body[data-simulator-view='bosses'] #boss-scenario-toolbar,
+body[data-simulator-view='analysis'][data-analysis-workspace='bosses'] #boss-scenario-toolbar {
+  display: flex;
+}
+body[data-simulator-view='bosses'][data-boss-editor-ready='false'] .build-editor,
+body[data-analysis-workspace='bosses'] :is(#header-dps, #rotation-dps-summary, #rotation-results),
+body[data-analysis-workspace='bosses'] [data-template-action='new-tab'],
+body[data-simulator-view='analysis'][data-analysis-workspace='bosses']
+  :is(.profession-layout, .build-editor, .patch-preview-picker, #build-workspace-tabs) {
+  display: none;
+}
+.boss-workspace {
+  margin: 8px 0;
+}
+.boss-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.boss-toolbar {
+  width: 100%;
+  padding-top: 0;
+}
+.boss-toolbar select {
+  max-width: min(320px, 100%);
+  min-width: 0;
+  margin-right: auto;
+}
+.boss-message {
+  color: #e3bf85;
+  overflow-wrap: anywhere;
+}
+.boss-message:empty {
+  display: none;
+}
+.boss-workspace label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.boss-workspace input:not([type='checkbox']),
+.boss-workspace select {
+  background: var(--bg-deep);
+  color: var(--text-bright);
+  border: 1px solid var(--border-light);
+  padding: 7px 9px;
+  border-radius: var(--radius);
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+}
+/* Phase inputs follow the predefined sequence without a second navigation or rotation editor. */
+.boss-setup {
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+.boss-fields {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.boss-fields label {
+  flex: 0 1 300px;
+  min-width: 0;
+}
+.boss-phase-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.boss-phase-input {
+  flex: 0 1 160px;
+  min-width: 0;
+}
+.boss-phase-input small {
+  color: var(--text-dim);
+}
+.boss-muted {
+  display: inline-block;
+  color: var(--text-dim);
+  margin: 8px 12px 0 0;
+}
+@media (max-width: 600px) {
+  .boss-phase-input {
+    flex: 1 1 130px;
+  }
+}
+
+/* Keep existing build actions; the scenario selector owns encounter document selection. */
+body[data-analysis-workspace='bosses']
+  #build-workspace-tabs
+  :is(
+    .build-switcher-count,
+    .build-tab-list,
+    .build-tab-list + hr,
+    .build-menu-heading:first-child,
+    .build-tab-new,
+    #build-new-menu,
+    .build-pinned-tabs,
+    [data-build-tab-action='duplicate']
+  ) {
+  display: none;
+}

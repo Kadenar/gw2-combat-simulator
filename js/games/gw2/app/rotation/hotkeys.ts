@@ -103,6 +103,9 @@ function currentHotkeyTarget(root: HTMLElement, action: InputControlId): HTMLEle
 }
 
 function activateRotationHotkey(controller: RotationHotkeyController, event: KeyboardEvent): void {
+  // Leaving Golem can hide the palette without moving the pointer; hidden controls must not cast.
+  if (!controller.root.checkVisibility()) return;
+
   if (shouldIgnoreHotkey(event)) return;
 
   const action = activeRotationHotkeyAction(controller.bindings, event, controller.active);
@@ -135,6 +138,8 @@ function activateRotationHotkey(controller: RotationHotkeyController, event: Key
 
 /** Activates standard browser Mouse 3/4/5 events while the pointer remains over the active rotation palette. */
 function activateRotationMouseHotkey(controller: RotationHotkeyController, event: PointerEvent): void {
+  if (!controller.root.checkVisibility()) return;
+
   const action = activeRotationMouseHotkeyAction(controller.bindings, event, controller.active);
 
   if (!action) return;

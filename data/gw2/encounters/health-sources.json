@@ -1,0 +1,1391 @@
+{
+  "collectedAt": "2026-10-23",
+  "selection": "Reports from Wingman; exact EI primary target health, separate encounter and mode. Selected report first; others cross-check its totals.",
+  "encounters": [
+    {
+      "encounterId": "020101",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/6e656-RoyalWabbit8359_20260827-212333_vg_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/6e656-RoyalWabbit8359_20260827-212333_vg_kill",
+          "format": "ei-html",
+          "triggerId": 15438,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/78bb0-20260811-212402_vg_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/78bb0-20260811-212402_vg_kill",
+          "format": "ei-html",
+          "triggerId": 15438,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020102",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/66ee1-20261004-125902_gors_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/66ee1-20261004-125902_gors_kill",
+          "format": "ei-html",
+          "triggerId": 15429,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/80480-20260811-224002_gors_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/80480-20260811-224002_gors_kill",
+          "format": "ei-html",
+          "triggerId": 15429,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020103",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/54fa2-Quadesh1345_20261022-230404_sab_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/54fa2-Quadesh1345_20261022-230404_sab_kill",
+          "format": "ei-html",
+          "triggerId": 15375,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/LKGt-20260928-223301_sab",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/LKGt-20260928-223301_sab",
+          "format": "ei-html",
+          "triggerId": 15375,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020104",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/66a0c-20260914-200815_sprtrace_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/66a0c-20260914-200815_sprtrace_kill",
+          "format": "ei-html",
+          "triggerId": 15415,
+          "primaryTargetIndexes": [0, 1, 2, 3]
+        }
+      ]
+    },
+    {
+      "encounterId": "020201",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/5b66f-20260921-215108_sloth_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/5b66f-20260921-215108_sloth_kill",
+          "format": "ei-html",
+          "triggerId": 16123,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/dccb9-RoyalWabbit8359_20260927-214505_sloth_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/dccb9-RoyalWabbit8359_20260927-214505_sloth_kill",
+          "format": "ei-html",
+          "triggerId": 16123,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020202",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/62972-NOTME1347_20260906-210901_trio_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/62972-NOTME1347_20260906-210901_trio_kill",
+          "format": "ei-html",
+          "triggerId": 16088,
+          "primaryTargetIndexes": [0, 1, 2]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/4a912-20260831-212829_trio_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/4a912-20260831-212829_trio_kill",
+          "format": "ei-html",
+          "triggerId": 16088,
+          "primaryTargetIndexes": [0, 1, 2]
+        }
+      ]
+    },
+    {
+      "encounterId": "020203",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/ef8f4-Quadesh1345_20261016-222604_matt_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/ef8f4-Quadesh1345_20261016-222604_matt_kill",
+          "format": "ei-html",
+          "triggerId": 16115,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/efdef-Quadesh1345_20261016-220714_matt_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/efdef-Quadesh1345_20261016-220714_matt_kill",
+          "format": "ei-html",
+          "triggerId": 16115,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020301",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/e8ec8-20260901-195823_escort_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/e8ec8-20260901-195823_escort_kill",
+          "format": "ei-html",
+          "triggerId": 16253,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020302",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/2fc24-20260821-223753_kc_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/2fc24-20260821-223753_kc_kill",
+          "format": "ei-html",
+          "triggerId": 16235,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/d6eb6-Trevo1437_20260803-223146_kc_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/d6eb6-Trevo1437_20260803-223146_kc_kill",
+          "format": "ei-html",
+          "triggerId": 16235,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020302",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/2f487-20260921-212257_kc_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/2f487-20260921-212257_kc_kill",
+          "format": "ei-html",
+          "triggerId": 16235,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/97io-20260906-230047_kc",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/97io-20260906-230047_kc",
+          "format": "ei-html",
+          "triggerId": 16235,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020303",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/732ea-Xerexia3064_20260802-175649_twstcstl_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/732ea-Xerexia3064_20260802-175649_twstcstl_kill",
+          "format": "ei-html",
+          "triggerId": 16247,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020304",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/c7207-Xcal2785_20261010-192601_xera_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/c7207-Xcal2785_20261010-192601_xera_kill",
+          "format": "ei-html",
+          "triggerId": 16246,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/283e5-RoyalWabbit8359_20260821-220443_xera_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/283e5-RoyalWabbit8359_20260821-220443_xera_kill",
+          "format": "ei-html",
+          "triggerId": 16246,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020401",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/6ef02-20261016-195626_cairn_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/6ef02-20261016-195626_cairn_kill",
+          "format": "ei-html",
+          "triggerId": 17194,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/21bd6-20260905-212156_cairn_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/21bd6-20260905-212156_cairn_kill",
+          "format": "ei-html",
+          "triggerId": 17194,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020401",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/56340-Shiina4673_20260901-212551_cairn_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/56340-Shiina4673_20260901-212551_cairn_kill",
+          "format": "ei-html",
+          "triggerId": 17194,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/42878-Rainer6432_20260901-211932_cairn_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/42878-Rainer6432_20260901-211932_cairn_kill",
+          "format": "ei-html",
+          "triggerId": 17194,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020402",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/93123-20260901-205542_mo_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/93123-20260901-205542_mo_kill",
+          "format": "ei-html",
+          "triggerId": 17172,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/4c67a-Rainer6432_20260901-205541_mo_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/4c67a-Rainer6432_20260901-205541_mo_kill",
+          "format": "ei-html",
+          "triggerId": 17172,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020402",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/4d278-Rainer6432_20260830-210143_mo_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/4d278-Rainer6432_20260830-210143_mo_kill",
+          "format": "ei-html",
+          "triggerId": 17172,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/50a73-Shiina4673_20260830-210143_mo_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/50a73-Shiina4673_20260830-210143_mo_kill",
+          "format": "ei-html",
+          "triggerId": 17172,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020403",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/62ec7-Bebim7240_20261002-211228_sam_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/62ec7-Bebim7240_20261002-211228_sam_kill",
+          "format": "ei-html",
+          "triggerId": 17188,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/3f3d2-Kerkhoven8264_20260825-204820_sam_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/3f3d2-Kerkhoven8264_20260825-204820_sam_kill",
+          "format": "ei-html",
+          "triggerId": 17188,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020403",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/2f9eb-20260804-205800_sam_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/2f9eb-20260804-205800_sam_kill",
+          "format": "ei-html",
+          "triggerId": 17188,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/3bad4-20260731-172333_sam_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/3bad4-20260731-172333_sam_kill",
+          "format": "ei-html",
+          "triggerId": 17188,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020404",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/9a012-20261022-210013_dei_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/9a012-20261022-210013_dei_kill",
+          "format": "ei-html",
+          "triggerId": 17154,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/ae203-20260922-232443_dei_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/ae203-20260922-232443_dei_kill",
+          "format": "ei-html",
+          "triggerId": 17154,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020404",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/c39ae-beeowulf9026_20260901-152032_dei_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/c39ae-beeowulf9026_20260901-152032_dei_kill",
+          "format": "ei-html",
+          "triggerId": 17154,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/3708c-Quadesh1345_20260723-231044_dei_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/3708c-Quadesh1345_20260723-231044_dei_kill",
+          "format": "ei-html",
+          "triggerId": 17154,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020501",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/3c92f-20261016-192248_sh_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/3c92f-20261016-192248_sh_kill",
+          "format": "ei-html",
+          "triggerId": 19767,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/44a63-Quadesh1345_20260827-231533_sh_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/44a63-Quadesh1345_20260827-231533_sh_kill",
+          "format": "ei-html",
+          "triggerId": 19767,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020501",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/e4600-20260901-225807_sh_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/e4600-20260901-225807_sh_kill",
+          "format": "ei-html",
+          "triggerId": 19767,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/b20cd-20260901-225807_sh_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/b20cd-20260901-225807_sh_kill",
+          "format": "ei-html",
+          "triggerId": 19767,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020503",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/jPDy-20240126-235534_bk",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getFullJson/jPDy-20240126-235534_bk",
+          "format": "ei-json",
+          "triggerId": 19691,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020504",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/d8b68-ArmageddonLPT6307_20260817-205017_souleater_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getFullJson/d8b68-ArmageddonLPT6307_20260817-205017_souleater_kill",
+          "format": "ei-json",
+          "triggerId": 19536,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020505",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/7cbc8-borer3648_20260914-204828_eyes_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/7cbc8-borer3648_20260914-204828_eyes_kill",
+          "format": "ei-html",
+          "triggerId": 19844,
+          "primaryTargetIndexes": [0, 1]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/31a82-Flippoo3976_20260716-204012_eyes_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/31a82-Flippoo3976_20260716-204012_eyes_kill",
+          "format": "ei-html",
+          "triggerId": 19844,
+          "primaryTargetIndexes": [0, 1]
+        }
+      ]
+    },
+    {
+      "encounterId": "020506",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/728ce-Ciottolo9608_20261019-214306_dhuum_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/728ce-Ciottolo9608_20261019-214306_dhuum_kill",
+          "format": "ei-html",
+          "triggerId": 19450,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/4c6f2-20260822-225133_dhuum_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/4c6f2-20260822-225133_dhuum_kill",
+          "format": "ei-html",
+          "triggerId": 19450,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020506",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/f923a-Quadesh1345_20260828-202457_dhuum_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/f923a-Quadesh1345_20260828-202457_dhuum_kill",
+          "format": "ei-html",
+          "triggerId": 19450,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/85e64-Rainer6432_20260730-222712_dhuum_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/85e64-Rainer6432_20260730-222712_dhuum_kill",
+          "format": "ei-html",
+          "triggerId": 19450,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020601",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/c97cc-Quadesh1345_20260825-230823_ca_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/c97cc-Quadesh1345_20260825-230823_ca_kill",
+          "format": "ei-html",
+          "triggerId": 43974,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/4c960-20260816-135607_ca_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/4c960-20260816-135607_ca_kill",
+          "format": "ei-html",
+          "triggerId": 43974,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020601",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/8a2a7-pai2759_20260731-205511_ca_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/8a2a7-pai2759_20260731-205511_ca_kill",
+          "format": "ei-html",
+          "triggerId": 43974,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/9208b-Kerkhoven8264_20260731-205008_ca_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/9208b-Kerkhoven8264_20260731-205008_ca_kill",
+          "format": "ei-html",
+          "triggerId": 43974,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020602",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/2a26a-20260813-223316_twinlargos_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/2a26a-20260813-223316_twinlargos_kill",
+          "format": "ei-html",
+          "triggerId": 21105,
+          "primaryTargetIndexes": [0, 1]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/9cba1-20260805-203825_twinlargos_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/9cba1-20260805-203825_twinlargos_kill",
+          "format": "ei-html",
+          "triggerId": 21105,
+          "primaryTargetIndexes": [0, 1]
+        }
+      ]
+    },
+    {
+      "encounterId": "020602",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/dade8-Cemox7089_20260828-215045_twinlargos_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/dade8-Cemox7089_20260828-215045_twinlargos_kill",
+          "format": "ei-html",
+          "triggerId": 21105,
+          "primaryTargetIndexes": [0, 1]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/059f3-20260828-215046_twinlargos_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/059f3-20260828-215046_twinlargos_kill",
+          "format": "ei-html",
+          "triggerId": 21105,
+          "primaryTargetIndexes": [0, 1]
+        }
+      ]
+    },
+    {
+      "encounterId": "020603",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/dd259-20260907-210533_qadim_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/dd259-20260907-210533_qadim_kill",
+          "format": "ei-html",
+          "triggerId": 20934,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/a51aa-Degneva6974_20260727-213314_qadim_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/a51aa-Degneva6974_20260727-213314_qadim_kill",
+          "format": "ei-html",
+          "triggerId": 20934,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020603",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/b1f29-20260819-200439_qadim_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/b1f29-20260819-200439_qadim_kill",
+          "format": "ei-html",
+          "triggerId": 20934,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/d710d-Cemox7089_20260801-175306_qadim_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/d710d-Cemox7089_20260801-175306_qadim_kill",
+          "format": "ei-html",
+          "triggerId": 20934,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020701",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/61d22-KonstantWalker4801_20260918-212248_adina_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/61d22-KonstantWalker4801_20260918-212248_adina_kill",
+          "format": "ei-html",
+          "triggerId": 22006,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/GJIC-20260816-204855_adina",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/GJIC-20260816-204855_adina",
+          "format": "ei-html",
+          "triggerId": 22006,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020701",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/a5d0e-20260910-212059_adina_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/a5d0e-20260910-212059_adina_kill",
+          "format": "ei-html",
+          "triggerId": 22006,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/mWdx-20260816-215207_adina",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/mWdx-20260816-215207_adina",
+          "format": "ei-html",
+          "triggerId": 22006,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020702",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/f968c-20260905-223001_sabir_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/f968c-20260905-223001_sabir_kill",
+          "format": "ei-html",
+          "triggerId": 21964,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/a4d50-20260905-203000_sabir_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/a4d50-20260905-203000_sabir_kill",
+          "format": "ei-html",
+          "triggerId": 21964,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020702",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/d81ce-Quadesh1345_20260903-233451_sabir_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/d81ce-Quadesh1345_20260903-233451_sabir_kill",
+          "format": "ei-html",
+          "triggerId": 21964,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/276e0-Quadesh1345_20260903-222508_sabir_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/276e0-Quadesh1345_20260903-222508_sabir_kill",
+          "format": "ei-html",
+          "triggerId": 21964,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020703",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/1017a-pai2759_20260905-224649_prlqadim_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/1017a-pai2759_20260905-224649_prlqadim_kill",
+          "format": "ei-html",
+          "triggerId": 22000,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/2b133-pai2759_20260828-194838_prlqadim_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/2b133-pai2759_20260828-194838_prlqadim_kill",
+          "format": "ei-html",
+          "triggerId": 22000,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020703",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/be024-20260923-203816_prlqadim_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/be024-20260923-203816_prlqadim_kill",
+          "format": "ei-html",
+          "triggerId": 22000,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/e80a7-pai2759_20260808-220550_prlqadim_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/e80a7-pai2759_20260808-220550_prlqadim_kill",
+          "format": "ei-html",
+          "triggerId": 22000,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020801",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/d4da1-SoTy5362_20260808-192405_greer_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/d4da1-SoTy5362_20260808-192405_greer_kill",
+          "format": "ei-html",
+          "triggerId": 26725,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/DjE0-20260803-234419_greer",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/DjE0-20260803-234419_greer",
+          "format": "ei-html",
+          "triggerId": 26725,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020801",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/42551-Tricked5349_20260808-200304_greer_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/42551-Tricked5349_20260808-200304_greer_kill",
+          "format": "ei-html",
+          "triggerId": 26725,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/63122-NotTJ2193_20260805-184405_greer_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/63122-NotTJ2193_20260805-184405_greer_kill",
+          "format": "ei-html",
+          "triggerId": 26725,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020802",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/59b39-20260823-164643_decima_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/59b39-20260823-164643_decima_kill",
+          "format": "ei-html",
+          "triggerId": 26867,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/665f4-hades4596_20260810-233418_decima_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/665f4-hades4596_20260810-233418_decima_kill",
+          "format": "ei-html",
+          "triggerId": 26867,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020802",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/a42d3-20260810-225747_decima_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/a42d3-20260810-225747_decima_kill",
+          "format": "ei-html",
+          "triggerId": 26774,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/87a66-Quadesh1345_20260810-235746_decima_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/87a66-Quadesh1345_20260810-235746_decima_kill",
+          "format": "ei-html",
+          "triggerId": 26774,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020803",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/e8ae9-20260817-134832_ura_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/e8ae9-20260817-134832_ura_kill",
+          "format": "ei-html",
+          "triggerId": 26712,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/0abaa-20260724-223703_ura_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/0abaa-20260724-223703_ura_kill",
+          "format": "ei-html",
+          "triggerId": 26712,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020803",
+      "difficulty": "legendary",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/I0hb-20260927-185108_ura",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/I0hb-20260927-185108_ura",
+          "format": "ei-html",
+          "triggerId": 26712,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/3530e-20260927-162839_ura_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/3530e-20260927-162839_ura_kill",
+          "format": "ei-html",
+          "triggerId": 26712,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "020803",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/Z6dN-20260925-232623_ura",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/Z6dN-20260925-232623_ura",
+          "format": "ei-html",
+          "triggerId": 26712,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/94544-Cemox7089_20260917-221025_ura_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/94544-Cemox7089_20260917-221025_ura_kill",
+          "format": "ei-html",
+          "triggerId": 26712,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040201",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/40b97-MoonMoon3826_20260928-220437_icebrood_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/40b97-MoonMoon3826_20260928-220437_icebrood_kill",
+          "format": "ei-html",
+          "triggerId": 22154,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/06b5b-Zeri4390_20260928-225020_icebrood_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/06b5b-Zeri4390_20260928-225020_icebrood_kill",
+          "format": "ei-html",
+          "triggerId": 22154,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040202",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/9cba5-20260826-060456_fraenir_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/9cba5-20260826-060456_fraenir_kill",
+          "format": "ei-html",
+          "triggerId": 22492,
+          "primaryTargetIndexes": [0, 1]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/4fda8-20260828-205053_fraenir_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/4fda8-20260828-205053_fraenir_kill",
+          "format": "ei-html",
+          "triggerId": 22492,
+          "primaryTargetIndexes": [0, 1]
+        }
+      ]
+    },
+    {
+      "encounterId": "040203",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/91892-20261010-175454_supkodbros_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/91892-20261010-175454_supkodbros_kill",
+          "format": "ei-html",
+          "triggerId": 22343,
+          "primaryTargetIndexes": [0, 1]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/MdFK-20260727-220116_falln",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/MdFK-20260727-220116_falln",
+          "format": "ei-html",
+          "triggerId": 22343,
+          "primaryTargetIndexes": [0, 1]
+        }
+      ]
+    },
+    {
+      "encounterId": "040204",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/a2bfa-20261012-221402_boneskin_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/a2bfa-20261012-221402_boneskin_kill",
+          "format": "ei-html",
+          "triggerId": 22521,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/a7199-20261012-221354_boneskin_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/a7199-20261012-221354_boneskin_kill",
+          "format": "ei-html",
+          "triggerId": 22521,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040205",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/359a4-Gordon5094_20261023-211527_woj_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/359a4-Gordon5094_20261023-211527_woj_kill",
+          "format": "ei-html",
+          "triggerId": 22711,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/113ba-20260728-104611_woj_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/113ba-20260728-104611_woj_kill",
+          "format": "ei-html",
+          "triggerId": 22711,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040301",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/6c31b-Quadesh1345_20260821-192743_aetherhide_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/6c31b-Quadesh1345_20260821-192743_aetherhide_kill",
+          "format": "ei-html",
+          "triggerId": 24033,
+          "primaryTargetIndexes": [0, 1]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/zgAy-20260810-220430_trin",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/zgAy-20260810-220430_trin",
+          "format": "ei-html",
+          "triggerId": 24033,
+          "primaryTargetIndexes": [0, 1]
+        }
+      ]
+    },
+    {
+      "encounterId": "040301",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/af583-20260719-211851_aetherhide_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/af583-20260719-211851_aetherhide_kill",
+          "format": "ei-html",
+          "triggerId": 24033,
+          "primaryTargetIndexes": [0, 1]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/3b286-20260720-205633_aetherhide_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/3b286-20260720-205633_aetherhide_kill",
+          "format": "ei-html",
+          "triggerId": 24033,
+          "primaryTargetIndexes": [0, 1]
+        }
+      ]
+    },
+    {
+      "encounterId": "040302",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/44ebd-Broth3780_20260731-215752_xunjadejunk_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/44ebd-Broth3780_20260731-215752_xunjadejunk_kill",
+          "format": "ei-html",
+          "triggerId": 23957,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/910b1-DDD3965_20260720-101348_xunjadejunk_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/910b1-DDD3965_20260720-101348_xunjadejunk_kill",
+          "format": "ei-html",
+          "triggerId": 23957,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040302",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/fedf3-20261022-001747_xunjadejunk_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/fedf3-20261022-001747_xunjadejunk_kill",
+          "format": "ei-html",
+          "triggerId": 23957,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/df85e-20260814-221220_xunjadejunk_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/df85e-20260814-221220_xunjadejunk_kill",
+          "format": "ei-html",
+          "triggerId": 23957,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040303",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/774ea-pai2759_20260909-201642_kaiover_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/774ea-pai2759_20260909-201642_kaiover_kill",
+          "format": "ei-html",
+          "triggerId": 24266,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/d76d7-20260824-203821_kaiover_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/d76d7-20260824-203821_kaiover_kill",
+          "format": "ei-html",
+          "triggerId": 24266,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040303",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/dc0d3-20260916-224259_kaiover_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/dc0d3-20260916-224259_kaiover_kill",
+          "format": "ei-html",
+          "triggerId": 24485,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/f39b9-20260906-030559_kaiover_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/f39b9-20260906-030559_kaiover_kill",
+          "format": "ei-html",
+          "triggerId": 24485,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040304",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/a5917-20261014-224901_harvsttmpl_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/a5917-20261014-224901_harvsttmpl_kill",
+          "format": "ei-html",
+          "triggerId": 43488,
+          "primaryTargetIndexes": [0, 1, 2, 3, 4, 5]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/2ae24-Olfe7489_20260719-165225_harvsttmpl_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/2ae24-Olfe7489_20260719-165225_harvsttmpl_kill",
+          "format": "ei-html",
+          "triggerId": 43488,
+          "primaryTargetIndexes": [0, 1, 2, 3, 4, 5]
+        }
+      ]
+    },
+    {
+      "encounterId": "040304",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/17690-CoffeeEnjoyer4568_20261018-131909_harvsttmpl_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/17690-CoffeeEnjoyer4568_20261018-131909_harvsttmpl_kill",
+          "format": "ei-html",
+          "triggerId": 43488,
+          "primaryTargetIndexes": [0, 1, 2, 3, 4, 5]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/EIqR-20260802-162628_void",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/EIqR-20260802-162628_void",
+          "format": "ei-html",
+          "triggerId": 43488,
+          "primaryTargetIndexes": [0, 1, 2, 3, 4, 5]
+        }
+      ]
+    },
+    {
+      "encounterId": "040305",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/23b38-20260925-230345_lioncourt_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/23b38-20260925-230345_lioncourt_kill",
+          "format": "ei-html",
+          "triggerId": 25414,
+          "primaryTargetIndexes": [0, 1, 2]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/e60e4-20260829-222349_lioncourt_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/e60e4-20260829-222349_lioncourt_kill",
+          "format": "ei-html",
+          "triggerId": 25414,
+          "primaryTargetIndexes": [0, 1, 2]
+        }
+      ]
+    },
+    {
+      "encounterId": "040305",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/PDwI-20260924-201133_olc",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/PDwI-20260924-201133_olc",
+          "format": "ei-html",
+          "triggerId": 25413,
+          "primaryTargetIndexes": [0, 1, 2]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/fae3e-20260725-200734_lioncourt_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/fae3e-20260725-200734_lioncourt_kill",
+          "format": "ei-html",
+          "triggerId": 25413,
+          "primaryTargetIndexes": [0, 1, 2]
+        }
+      ]
+    },
+    {
+      "encounterId": "040501",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/ba1fc-20260928-154019_cosobs_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/ba1fc-20260928-154019_cosobs_kill",
+          "format": "ei-html",
+          "triggerId": 25705,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/936fd-20260819-202325_cosobs_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/936fd-20260819-202325_cosobs_kill",
+          "format": "ei-html",
+          "triggerId": 25705,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040501",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/d1lS-20260927-182445_dagda",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/d1lS-20260927-182445_dagda",
+          "format": "ei-html",
+          "triggerId": 25705,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/R6PF-20260918-004100_dagda",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/R6PF-20260918-004100_dagda",
+          "format": "ei-html",
+          "triggerId": 25705,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040502",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/dd226-Nefastu4571_20260921-004013_tmplfeb_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/dd226-Nefastu4571_20260921-004013_tmplfeb_kill",
+          "format": "ei-html",
+          "triggerId": 25989,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/8e8bf-20260922-011132_tmplfeb_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/8e8bf-20260922-011132_tmplfeb_kill",
+          "format": "ei-html",
+          "triggerId": 25989,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040502",
+      "difficulty": "legendary",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/70b05-UnderGrave2458_20260914-000206_tmplfeb_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/70b05-UnderGrave2458_20260914-000206_tmplfeb_kill",
+          "format": "ei-html",
+          "triggerId": 25989,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/3bb77-20260913-230206_tmplfeb_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/3bb77-20260913-230206_tmplfeb_kill",
+          "format": "ei-html",
+          "triggerId": 25989,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040502",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/1ee5a-20260924-215229_tmplfeb_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/1ee5a-20260924-215229_tmplfeb_kill",
+          "format": "ei-html",
+          "triggerId": 25989,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/b5f27-Rainer6432_20260924-215229_tmplfeb_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/b5f27-Rainer6432_20260924-215229_tmplfeb_kill",
+          "format": "ei-html",
+          "triggerId": 25989,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040601",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/df1d7-SoTy5362_20260923-215056_guardglade_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/df1d7-SoTy5362_20260923-215056_guardglade_kill",
+          "format": "ei-html",
+          "triggerId": 27124,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/LyJf-20260831-113214_kela",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/LyJf-20260831-113214_kela",
+          "format": "ei-html",
+          "triggerId": 27124,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040601",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/02e0c-20260820-195636_guardglade_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/02e0c-20260820-195636_guardglade_kill",
+          "format": "ei-html",
+          "triggerId": 27124,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/76535-20260820-194647_guardglade_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/76535-20260820-194647_guardglade_kill",
+          "format": "ei-html",
+          "triggerId": 27124,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040602",
+      "difficulty": "challenge",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/512a0-Quadesh1345_20261015-213124_noe_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/512a0-Quadesh1345_20261015-213124_noe_kill",
+          "format": "ei-html",
+          "triggerId": 28106,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/e3601-20261011-214952_noe_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/e3601-20261011-214952_noe_kill",
+          "format": "ei-html",
+          "triggerId": 28106,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040602",
+      "difficulty": "legendary",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/bf329-20261013-105318_noe_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/bf329-20261013-105318_noe_kill",
+          "format": "ei-html",
+          "triggerId": 28106,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/69921-20261013-092347_noe_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/69921-20261013-092347_noe_kill",
+          "format": "ei-html",
+          "triggerId": 28106,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    },
+    {
+      "encounterId": "040602",
+      "difficulty": "normal",
+      "reports": [
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/01f38-20260915-213032_noe_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/01f38-20260915-213032_noe_kill",
+          "format": "ei-html",
+          "triggerId": 28106,
+          "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/24b3d-20260915-215521_noe_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/24b3d-20260915-215521_noe_kill",
+          "format": "ei-html",
+          "triggerId": 28106,
+          "primaryTargetIndexes": [0]
+        }
+      ]
+    }
+  ]
+}

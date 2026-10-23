@@ -16,7 +16,8 @@ export function analysisViewIsActive(): boolean {
 
   const mountedView = body.dataset.simulatorView;
 
-  if (mountedView) return mountedView === 'analysis';
+  // Golem results must never appear as results for an authored boss scenario.
+  if (mountedView) return mountedView === 'analysis' && body.dataset.analysisWorkspace !== 'bosses';
 
   return document.defaultView?.location.hash === '#analysis';
 }

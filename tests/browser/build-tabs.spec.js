@@ -33,10 +33,7 @@ test('header profession selector preserves navigation and the landing page owns 
   await navigation.getByRole('link', { name: 'Analysis', exact: true }).click();
   await expect(navigation.getByRole('link', { name: 'Analysis', exact: true })).toHaveAttribute('aria-current', 'page');
   await page.goBack();
-  await expect(navigation.getByRole('link', { name: 'Workspace', exact: true })).toHaveAttribute(
-    'aria-current',
-    'page'
-  );
+  await expect(navigation.getByRole('link', { name: 'Golem', exact: true })).toHaveAttribute('aria-current', 'page');
   await navigation.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
   await selector.click();
   for (const width of [320, 1440]) {
@@ -493,12 +490,12 @@ test('failed template loading clears progress and re-enables the picker', async 
   await expect(page.locator('.build-tab')).toHaveCount(1);
 });
 
-// Four section links stay readable in a mobile grid and retain keyboard access to the benchmark view.
-test('section navigation fits four tools on mobile and desktop', async ({ page }) => {
+// Five section links stay readable in a mobile grid and retain keyboard access to the benchmark view.
+test('section navigation fits five tools on mobile and desktop', async ({ page }) => {
   await openWorkspace(page);
   const navigation = page.getByRole('navigation', { name: 'Simulator sections' });
   const links = navigation.locator('.simulator-view-tab');
-  await expect(links).toHaveText(['Workspace', 'Analysis', 'Gear Optimizer', 'Benchmarks']);
+  await expect(links).toHaveText(['Golem', 'Bosses', 'Analysis', 'Gear Optimizer', 'Benchmarks']);
 
   for (const width of [320, 390, 600, 1100]) {
     await page.setViewportSize({ width, height: 844 });
@@ -512,7 +509,7 @@ test('section navigation fits four tools on mobile and desktop', async ({ page }
         })
       );
       const context = `${width}px ${font}: ${JSON.stringify(tabs)}`;
-      expect(new Set(tabs.map(({ top }) => top)).size, context).toBe(width <= 600 ? 2 : 1);
+      expect(new Set(tabs.map(({ top }) => top)).size, context).toBe(width <= 600 ? 3 : 1);
       expect(tabs[0].top, context).toBe(tabs[1].top);
       expect(tabs[2].top, context).toBe(tabs[3].top);
       expect(
@@ -532,7 +529,7 @@ test('section navigation fits four tools on mobile and desktop', async ({ page }
   await expect(benchmarks).toHaveAttribute('aria-current', 'page');
   await expect(page.locator('#benchmarks-view')).toBeVisible();
   await expect(page.locator('#header-dps')).toBeHidden();
-  const workspace = navigation.getByRole('link', { name: 'Workspace', exact: true });
+  const workspace = navigation.getByRole('link', { name: 'Golem', exact: true });
   await workspace.focus();
   await page.keyboard.press('Enter');
   await expect(workspace).toHaveAttribute('aria-current', 'page');

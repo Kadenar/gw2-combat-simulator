@@ -148,20 +148,20 @@ test('modifiers run on demand in Analysis and update only their own section', as
   expect(await rows.evaluate((element) => element.isConnected)).toBe(true);
 
   const completedWorkerCount = modifierWorkers.length;
-  await page.getByRole('link', { name: 'Workspace', exact: true }).click();
+  await page.getByRole('link', { name: 'Golem', exact: true }).click();
   await page.getByRole('link', { name: 'Analysis', exact: true }).click();
   expect(await page.evaluate(() => window.professionApp.modifierContributionRunner.isRunning)).toBe(false);
   expect(modifierWorkers).toHaveLength(completedWorkerCount);
   expect(await page.evaluate(() => window.baselineSchedulesAfterCharts)).toBe(0);
 
-  await page.getByRole('link', { name: 'Workspace', exact: true }).click();
+  await page.getByRole('link', { name: 'Golem', exact: true }).click();
   await page.evaluate(() => window.professionApp.addRotation('Bladecall'));
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
   expect(await page.evaluate(() => window.professionApp.results.modifierContributionsStale)).toBe(true);
   expect(await page.evaluate(() => window.professionApp.results.effectReport)).toBeNull();
   await page.getByRole('link', { name: 'Analysis', exact: true }).click();
   await expect(pending).toBeVisible();
-  await page.getByRole('link', { name: 'Workspace', exact: true }).click();
+  await page.getByRole('link', { name: 'Golem', exact: true }).click();
   expect(await page.evaluate(() => window.professionApp.modifierContributionRunner.isRunning)).toBe(false);
   expect(await page.evaluate(() => window.professionApp.results.modifierContributionsStale)).toBe(true);
 });
