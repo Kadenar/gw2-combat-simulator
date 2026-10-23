@@ -29,14 +29,17 @@ const reworkHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       specialization.kind === 'Daredevil' &&
       ['Bounding Dodger', 'Lotus Training', 'Unhindered Combatant'].includes(specialization.state.selectedDodge);
 
-    if (cast.skill.id === SKILL.SHADOW_SWAP || movingDodge) deferThiefCompletion(runtime, MOBILITY_COMPLETE, cast);
+    // Capture the accepted cost before the deferred task resolves its skill from the live catalog, as Core does.
+    if (cast.skill.id === SKILL.SHADOW_SWAP || movingDodge)
+      deferThiefCompletion(runtime, MOBILITY_COMPLETE, cast, {
+        initiativeCost: Math.max(0, cast.skill.initiativeCost || 0)
+      });
   },
   tasks: {
     [MOBILITY_COMPLETE](runtime, data) {
-      const { cast } = data as { cast: RuntimeCast<ThiefSkill> };
+      const { cast, initiativeCost } = data as { cast: RuntimeCast<ThiefSkill>; initiativeCost: number };
 
-      if (!cast.cancelled)
-        runtime.fireTrigger(thiefMobilityUsed, { cast, initiativeCost: cast.skill.initiativeCost ?? 0 });
+      if (!cast.cancelled) runtime.fireTrigger(thiefMobilityUsed, { cast, initiativeCost });
     }
   }
 };
