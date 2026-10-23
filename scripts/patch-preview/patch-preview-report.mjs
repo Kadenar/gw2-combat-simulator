@@ -8,6 +8,8 @@
 import { loadProfession } from '#gw2/profession-registry.js';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
+import { fileURLToPath } from 'node:url';
+import { assertPromotionReady, reworkChecklist, reworkExtensionPoints } from './rework-lifecycle.mjs';
 
 if (!activePatchPreview) {
   console.log('No active patch preview is authored.');
@@ -52,6 +54,18 @@ for (const [professionId, patch] of Object.entries(activePatchPreview.profession
 
   console.log(`\n${profession.name}`);
 
+  // Every temporary declaration gets a removal checklist, including reused tooltip IDs.
+  const tooltipModule = await import(`#gw2/professions/${professionId}/app/tooltips.js`);
+  console.log('  Reworks');
+  for (const item of reworkChecklist(profession, tooltipModule[`${professionId}Tooltips`], patch)) {
+    console.log(`  [ ] ${item}`);
+  }
+
+  console.log('  Provisional controls');
+  for (const control of patch.provisional ?? []) {
+    console.log(`  [ ] ${control.id}: ${control.label} (${control.profileId}.${control.field})`);
+  }
+
   for (const key of Object.keys(patch.skills || {})) {
     const numericId = /^\d+$/.test(key) ? Number(key) : null;
     const skill =
@@ -84,3 +98,10 @@ for (const [professionId, patch] of Object.entries(activePatchPreview.profession
     }
   }
 }
+
+console.log('\nRework extension points');
+for (const point of await reworkExtensionPoints(fileURLToPath(new URL('../../js', import.meta.url)))) {
+  console.log(`  [ ] ${point.variant}: js/${point.file}:${point.line}`);
+}
+
+if (process.argv.includes('--promotion')) assertPromotionReady(activePatchPreview);
