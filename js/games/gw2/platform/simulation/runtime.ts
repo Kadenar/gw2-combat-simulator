@@ -1,3 +1,4 @@
+import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
@@ -98,7 +99,18 @@ export function runRuntime<T extends object>(
     execution,
     onPhase
   } = { observation: undefined, ...options };
-  let config = inputConfig;
+  // Encounter health overrides the golem's finite-target assumptions for this run only.
+  let config = inputConfig.encounter
+    ? {
+        ...inputConfig,
+        target: {
+          ...inputConfig.target,
+          health: inputConfig.encounter.health,
+          startingHealthFraction: 1,
+          fixedHealthFraction: undefined
+        }
+      }
+    : inputConfig;
   const ownsEffect = options.output === 'damage' ? options.ownsEffect : undefined;
   let effectsCapturePending = false;
   const started = onPhase ? performance.now() : 0;
@@ -399,6 +411,17 @@ export function runRuntime<T extends object>(
     if (work.type === 'runtime.complete') casts.complete(work.payload.reservationId);
   });
 
+  if (config.encounter) {
+    runtime.encounter = createEncounter(config.encounter, (at, generation) =>
+      enqueueWork(makeWork({ type: 'runtime.encounter', at, priority: -150, payload: { generation } }), true)
+    );
+    internal.register('runtime.encounter', (_context, work) => {
+      if (work.type !== 'runtime.encounter') return;
+      runtime.environmentDamage += runtime.encounter!.wake(runtime.time, work.payload.generation);
+      runtime.deathTime = runtime.encounter!.deathTime;
+    });
+  }
+
   const deliveryOwner = createEffectDelivery(runtime, profession, execution, conditions, reactions, {
     makeWork,
     enqueueWork,
@@ -434,6 +457,18 @@ export function runRuntime<T extends object>(
     runtime.effects.emit({ kind: 'packet', event: marker });
   }
 
+  if (!markers.length && combatStartTime == null && config.encounter) {
+    runtime.effects.emit({
+      kind: 'packet',
+      event: assertSimulationEvent({
+        type: 'combat_start',
+        at: 0,
+        source: 'Encounter',
+        sourceId: 'encounter-start',
+        actorType: ACTOR.ENVIRONMENT
+      })
+    });
+  }
   conditions.initializeEnvironment(runtime);
   // A configured permanent field is an initial executed fact, available to the first eligible finisher.
   const assumedField = permanentComboFieldAssumption(config, profession.id, runtime.time);

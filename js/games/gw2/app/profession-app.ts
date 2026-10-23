@@ -1,3 +1,4 @@
+import { ENCOUNTER_RESULT_EVENT } from '#gw2/app/boss-scenarios/simulation.js';
 import type { ResolvedPatch } from '#gw2/integrations/patches/selection.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import * as comparisonState from '#gw2/app/rotation/comparison-state.js';
@@ -341,6 +342,7 @@ export class ProfessionApp implements ProfessionAppState {
     this.randomDistributionRunner.schedule();
     this.modifierContributionRunner.schedule();
     this.relicComparisonRunner.schedule();
+    document.dispatchEvent(new Event(ENCOUNTER_RESULT_EVENT));
 
     if (render) {
       if (renderDeferredRotation) this.adapter.renderRotationBuilder(this);

@@ -41,6 +41,8 @@ export interface BuildTab {
 }
 
 export interface BuildWorkspace {
+  /** Encounter inputs travel with the shared editor but are never saved as Golem build assumptions. */
+  scenario?: import('#gw2/app/boss-scenarios/model.js').BossScenarioDraft;
   tabs: BuildTab[];
   activeTabId: string;
   storageError?: string;

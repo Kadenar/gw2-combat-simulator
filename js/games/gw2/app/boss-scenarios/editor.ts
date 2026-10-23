@@ -11,7 +11,7 @@ export function createScenarioEditor(app: ProfessionAppState, persist: () => voi
 
     if (!workspace) {
       const tab = createBuildTab(structuredClone(draft.build), draft.buildName, draft.patchId);
-      workspace = { tabs: [tab], activeTabId: '' };
+      workspace = { tabs: [tab], activeTabId: '', scenario: draft };
       workspace.persist = () => {
         draft.build = structuredClone(tab.build);
         draft.patchId = tab.patchId;

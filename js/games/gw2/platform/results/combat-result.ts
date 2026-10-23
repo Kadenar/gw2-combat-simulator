@@ -18,7 +18,9 @@ export function buildSimulationScore(ctx: Gw2ResolverRuntime, rotationEndTime: n
   // DPS always begins with the first surviving positive damage event. An
   // explicit Combat Start only filters earlier combat events and provides the
   // fallback for a damage-free encounter; it is not itself damage.
-  const dpsStart = ctx.firstHitTime ?? (hasExplicitCombatStart ? explicitCombatStart : 0);
+  const dpsStart = ctx.encounter
+    ? explicitCombatStart
+    : (ctx.firstHitTime ?? (hasExplicitCombatStart ? explicitCombatStart : 0));
   const dpsWindow = Math.max(0, effectiveEnd - dpsStart);
   const damagePerSecond = (damage: number): number => (dpsWindow > 0 ? damage / dpsWindow : 0);
   // Environment DPS uses the target-active window and never borrows the

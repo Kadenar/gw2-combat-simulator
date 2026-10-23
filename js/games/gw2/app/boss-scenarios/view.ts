@@ -1,3 +1,4 @@
+import { scenarioSimulation, ENCOUNTER_RESULT_EVENT } from '#gw2/app/boss-scenarios/simulation.js';
 import { mountResultSummary } from '#gw2/app/results/summary-view.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { escapeHtml as h } from '#ui/shared/html.js';
@@ -112,6 +113,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     edit(candidate);
     Object.assign(current, parse(candidate));
     save();
+    app.changed(false);
   };
 
   const newDraft = (): void => {
@@ -161,14 +163,26 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     const evidence = encounterHealth(draft.encounterId, draft.difficulty);
     const first = plan.phases[0]!;
     const segmented = evidence?.targets.find((entry) => entry.index === draft.targetIndex)?.healthBars?.length;
+    const execution = scenarioSimulation(draft);
+    const result =
+      app.workspace?.scenario === draft && app.resultRevision === app.buildRevision
+        ? app.results?.encounter
+        : undefined;
+    const seconds = (value: number | null) => (value === null ? 'No damage rate' : `${value.toFixed(1)}s`);
+    const number = (value: number) => Math.round(value).toLocaleString('en-US');
     metrics.replaceChildren();
     mountResultSummary(metrics, {
       metrics: [
         { label: 'Target total health', value: format(draft.health) },
         {
-          label: 'First transition',
-          value:
-            first.kind === 'split'
+          label: 'Next transition',
+          value: result
+            ? result.defeated
+              ? 'Target defeated'
+              : result.phaseKind === 'split'
+                ? 'Split ends'
+                : `${result.nextHealthPercent}% HP`
+            : first.kind === 'split'
               ? first.label
               : first.endHealthPercent === null
                 ? 'Mechanic'
@@ -177,14 +191,29 @@ export function mountBossScenarios(app: ProfessionAppState): void {
                   : `${first.endHealthPercent}% HP`
         },
         {
-          label: 'Damage to first transition',
-          value:
-            first.kind === 'split' || first.endHealthPercent === null || segmented
+          label: 'Damage to next transition',
+          value: result
+            ? number(result.damageToTransition)
+            : first.kind === 'split' || first.endHealthPercent === null || segmented
               ? 'Pending'
               : format(draft.health === null ? null : Math.ceil(draft.health * (1 - first.endHealthPercent / 100)))
         },
-        { label: 'Current HP / time to threshold', value: 'Pending' },
-        { label: 'Phase DPS / overall DPS', value: 'Pending' }
+        {
+          label: 'Current HP / estimated time to transition',
+          value: result
+            ? `${number(result.remainingHealth)} / ${seconds(result.timeToTransition)}`
+            : execution.config
+              ? 'Calculating'
+              : 'Unavailable'
+        },
+        {
+          label: 'Your phase DPS / overall DPS',
+          value: result
+            ? `${number(result.phaseDps)} / ${number(result.overallDps)}`
+            : execution.config
+              ? 'Calculating'
+              : 'Unavailable'
+        }
       ]
     });
 
@@ -199,8 +228,19 @@ export function mountBossScenarios(app: ProfessionAppState): void {
       metrics.querySelector('.res-label-row')!.append(link);
     }
 
+    const refreshPhaseResults = () => {
+      for (const node of workspace.querySelectorAll<HTMLElement>('[data-phase-result]')) {
+        const row = result?.phases.find((phase) => phase.id === node.dataset.phaseResult);
+        node.textContent = row
+          ? row.kind === 'boss'
+            ? `Your DPS: ${number(row.dps)}`
+            : `Elapsed: ${seconds(Math.max(0, (row.end ?? app.results!.combatEndTime) - row.start))}`
+          : '';
+      }
+    };
     if (preserveControls) {
-      workspace.querySelector('.boss-message')!.textContent = message;
+      refreshPhaseResults();
+      workspace.querySelector('.boss-message')!.textContent = message || execution.reason;
       return;
     }
 
@@ -210,17 +250,18 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     const modes = encounterDifficulties(draft.encounterId);
     let bossIndex = 0;
     let splitIndex = 0;
-    workspace.innerHTML = `<p class="boss-message" role="status">${h(message)}</p><div class="boss-setup">
+    workspace.innerHTML = `<p class="boss-message" role="status">${h(message || execution.reason)}</p><div class="boss-setup">
       <div class="boss-fields"><label>Boss<select id="boss-encounter">${encounterOptions(draft.encounterId)}</select></label>${modes.length > 1 ? `<label>Difficulty<select id="boss-mode">${modes.map((mode) => `<option value="${mode}" ${mode === draft.difficulty ? 'selected' : ''}>${modeNames[mode]}</option>`).join('')}</select></label>` : ''}</div>
       <div class="boss-phase-inputs" aria-label="Encounter phases">${draft.phases
         .map((phase, index) => {
           const definition = plan.phases[index]!;
           return phase.kind === 'boss'
-            ? `<label class="boss-phase-input"><span>Phase ${++bossIndex} DPS</span><small>${h(definition.label)}</small><input type="number" data-phase-input="${h(phase.id)}" aria-label="Phase ${bossIndex} group DPS excluding you" min="0" max="1000000000" step="1000" value="${phase.groupDps}"></label>`
-            : `<label class="boss-phase-input boss-split-input"><span>Split ${++splitIndex} (seconds)</span><small>${h(definition.label)}</small><input type="number" data-phase-input="${h(phase.id)}" aria-label="Split ${splitIndex} duration in seconds" min="0" max="86400" step="0.1" placeholder="Seconds" value="${phase.durationSeconds ?? ''}"></label>`;
+            ? `<label class="boss-phase-input"><span>Phase ${++bossIndex} DPS</span><small>${h(definition.label)}</small><input type="number" data-phase-input="${h(phase.id)}" aria-label="Phase ${bossIndex} group DPS excluding you" min="0" max="1000000000" step="1000" value="${phase.groupDps}"><small data-phase-result="${h(phase.id)}"></small></label>`
+            : `<label class="boss-phase-input boss-split-input"><span>Split ${++splitIndex} (seconds)</span><small>${h(definition.label)}</small><input type="number" data-phase-input="${h(phase.id)}" aria-label="Split ${splitIndex} duration in seconds" min="0" max="86400" step="0.1" placeholder="0" value="${phase.durationSeconds ?? ''}"><small data-phase-result="${h(phase.id)}"></small></label>`;
         })
         .join('')}</div>${plan.repeats ? '<small class="boss-muted">Repeating mechanic cycle</small>' : ''}
       <small class="boss-muted">Group DPS excludes you.</small></div>`;
+    refreshPhaseResults();
   }
 
   const handle = (operation: () => void, preserveControls = false): void => {
@@ -347,5 +388,8 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     }
   });
   document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => render());
+  document.addEventListener(ENCOUNTER_RESULT_EVENT, () => {
+    if (workspace.childElementCount && document.body.dataset.analysisWorkspace === 'bosses') render(true);
+  });
   render();
 }

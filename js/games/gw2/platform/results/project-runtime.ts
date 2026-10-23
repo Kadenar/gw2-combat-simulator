@@ -101,6 +101,7 @@ export function projectRuntimeResult<T extends object>(
   const combat = buildCombatResult(runtime, score, executed);
   const result = {
     ...combat,
+    ...(runtime.encounter ? { encounter: runtime.encounter.result(score.combatEndTime) } : {}),
     // Delayed notices name their activation; reported steps map it to the authored input once, for every consumer.
     warnings: locateDiagnostics(combat.warnings, steps),
     output: 'detailed' as const,

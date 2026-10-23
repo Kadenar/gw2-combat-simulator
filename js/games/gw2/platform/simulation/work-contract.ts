@@ -6,6 +6,7 @@ import type { QueuedEvent } from '#kernel/events/queue.js';
 
 export type RuntimeWork =
   | InternalWork<'runtime.allied-strike', { sequence: number }>
+  | InternalWork<'runtime.encounter', { generation: number }>
   | InternalWork<
       'runtime.announcement',
       {

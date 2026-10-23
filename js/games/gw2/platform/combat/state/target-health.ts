@@ -2,6 +2,7 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 interface Gw2TargetDamageState {
+  readonly encounter?: { readonly remainingHealth: number };
   readonly totals?: {
     readonly strike?: number;
     readonly condition?: number;
@@ -30,6 +31,8 @@ export function targetHealthLoss(
   state: Gw2TargetDamageState | null | undefined
 ): number {
   const maximum = config?.target?.health || 0;
+
+  if (state?.encounter) return maximum - state.encounter.remainingHealth;
 
   // Isolated measurements hold a declared target state; ordinary simulations still subtract all resolved damage.
   if (config?.target?.fixedHealthFraction != null)

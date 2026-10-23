@@ -89,6 +89,8 @@ export function createGw2ConditionResolution({
    * ticks without inserting duplicate stacks into player condition state.
    */
   function initializeEnvironment(ctx: Gw2ResolverRuntime): void {
+    // Authored squad DPS already includes all non-player damage, including their conditions.
+    if (ctx.encounter) return;
     for (const condition of GW2_DAMAGING_CONDITIONS) {
       const stacks = permanentTargetConditionStacks(condition);
 
@@ -362,7 +364,9 @@ export function createGw2ConditionResolution({
       const formula = application.conditionDamageFormula;
       const dealsDamage = formula != null || Object.hasOwn(CONDITION_FORMULAS, condition);
       const through = Math.min(at, application.naturalExpiresAt);
-      const elapsedUs = timeKey(through) - timeKey(application.settledThrough);
+      const elapsedUs = ctx.encounter
+        ? Math.round(ctx.encounter.damageableDuration(application.settledThrough, through) * 1_000_000)
+        : timeKey(through) - timeKey(application.settledThrough);
 
       // Expiry remainders sampled before Combat Start cannot fund a later in-combat payout.
       if (elapsedUs > 0 && ctx.engagement.hostileEffectsAllowed(at)) {
@@ -564,7 +568,7 @@ export function createGw2ConditionResolution({
     bufferConditions(ctx, event.at);
     pruneGroup(group, event.at);
     group.nextPulseAt = canonicalTime(event.at + 1);
-    const canDamage = ctx.engagement.hostileEffectsAllowed(event.at);
+    const canDamage = ctx.engagement.hostileEffectsAllowed(event.at) && ctx.encounter?.damageable !== false;
     const contributions = [];
     for (const application of group.applications) {
       const fraction = application.bufferedDurationUs / 1_000_000;
@@ -579,7 +583,15 @@ export function createGw2ConditionResolution({
       contributions.push({ application, fraction, stackSeconds, rawDamage, damage: Math.floor(rawDamage) });
     }
 
-    const damage = roundHalfToEven(contributions.reduce((total, contribution) => total + contribution.rawDamage, 0));
+    const rawTotal = contributions.reduce((total, contribution) => total + contribution.rawDamage, 0);
+    const rounded = roundHalfToEven(rawTotal);
+    const damage = ctx.encounter?.damage(rounded, 'player', event.at) ?? rounded;
+    // Attribute only accepted damage, preserving the existing largest-remainder rounding contract.
+    if (damage < rounded && rawTotal > 0)
+      for (const contribution of contributions) {
+        contribution.rawDamage *= damage / rawTotal;
+        contribution.damage = Math.floor(contribution.rawDamage);
+      }
     const remainder = damage - contributions.reduce((total, contribution) => total + contribution.damage, 0);
     // Largest fractional remainders receive the remaining points; stable application order resolves ties.
     const ranked = [...contributions].sort((a, b) => b.rawDamage - b.damage - (a.rawDamage - a.damage));
