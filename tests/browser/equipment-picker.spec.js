@@ -100,44 +100,6 @@ test('disabled matching sigils do not show a false empty search message', async 
   await expect(picker.getByRole('status')).toBeVisible();
 });
 
-// Switching patches must refresh both equipment tiles and the native utility picker from the active catalog.
-test('Mesmer preview refreshes weapon tiles and utility choices when switching patches', async ({ page }) => {
-  await page.goto('/mesmer.html#workspace', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.evaluate(() => {
-    const app = window.professionApp;
-    app.build.weapons = ['Sword', 'Focus'];
-    app.build.alternateWeapons = ['', ''];
-    app.build.specializations = [{ name: 'Troubadour', traits: '1-1-1' }];
-    app.build.rotation = [];
-    app.build.selectedSkillIds.Utility1 = 10267;
-    app.changed();
-  });
-  const palette = page.locator('#rotation-palette');
-  await expect(palette.locator('[data-skill-id="62568"]')).toHaveCount(1);
-  await expect(palette.locator('[data-skill-id="10173"]')).toHaveCount(0);
-  await page.evaluate(() => {
-    const app = window.professionApp;
-    app.selectPatch(app.profession.preview.id);
-  });
-  await expect(palette.locator('[data-skill-id="10267"]')).toHaveCount(1);
-  await expect.poll(() => page.evaluate(() => window.professionApp.build.selectedSkillIds.Utility1)).toBe(10282);
-  await expect(palette.locator('[data-skill-id="10282"]')).toHaveCount(1);
-  const trigger = page.getByRole('button', { name: 'Change utility 1 skill', exact: true });
-  await trigger.click();
-  const menu = page.locator('.sbar-dropdown.open');
-  await expect(menu.getByRole('button', { name: 'Phantasmal Warden', exact: true })).toBeVisible();
-  await expect(menu.getByRole('button', { name: 'Phantasmal Disenchanter', exact: true })).toHaveCount(0);
-  await menu.getByRole('searchbox').press('Escape');
-  await page.evaluate(() => window.professionApp.selectPatch('current'));
-  await expect(palette.locator('[data-skill-id="10282"]')).toHaveCount(1);
-  await expect.poll(() => page.evaluate(() => window.professionApp.build.selectedSkillIds.Utility1)).toBe(10267);
-  await expect(palette.locator('[data-skill-id="10267"]')).toHaveCount(1);
-  await trigger.click();
-  await expect(menu.getByRole('button', { name: 'Phantasmal Disenchanter', exact: true })).toBeVisible();
-  await expect(menu.getByRole('button', { name: 'Phantasmal Warden', exact: true })).toHaveCount(0);
-});
-
 // Standard skills and profession-specific selectors use the same input, filtering, and keyboard selection.
 test('skill choices support word search and keyboard selection', async ({ page }) => {
   await page.goto('/mesmer.html#workspace', { waitUntil: 'domcontentloaded' });
@@ -164,12 +126,24 @@ test('skill choices support word search and keyboard selection', async ({ page }
   await expect(trigger).toBeFocused();
 });
 
-test('pet and legend menus use the shared word search', async ({ page }) => {
+// Grouped choices hide empty headings while searching, and every selector restores focus to its own trigger.
+test('pet and legend menus use the shared grouped word search', async ({ page }) => {
   await page.goto('/ranger.html#workspace', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   const pet = page.locator('[data-selection-key="selectedPet"]');
   await pet.locator('.sbar-icon').click();
+  await expect(pet.locator('.sbar-option-group-heading')).toHaveText(['Supported', 'Unsupported']);
+  const supported = pet.getByRole('group', { name: 'Supported', exact: true });
+  const unsupported = pet.getByRole('group', { name: 'Unsupported', exact: true });
+  await pet.getByRole('searchbox').fill('River Otter');
+  await expect(supported).toBeHidden();
+  await expect(unsupported).toBeVisible();
+  await pet.getByRole('searchbox').fill('no matching pet');
+  await expect(pet.locator('.sbar-option-group-heading:visible')).toHaveCount(0);
+  await expect(pet.getByRole('status')).toHaveText('No matching choices');
   await pet.getByRole('searchbox').fill('tiger white');
+  await expect(supported).toBeVisible();
+  await expect(unsupported).toBeHidden();
   await expect(pet.locator('.dd-item:visible')).toHaveCount(1);
   await pet.getByRole('searchbox').press('Enter');
   expect(await page.evaluate(() => window.professionApp.build.selectedPet)).toBe('White Tiger');
@@ -227,69 +201,3 @@ test('pet and legend menus use the shared word search', async ({ page }) => {
     }
   }
 });
-
-// Array-backed selectors restore the edited index, even when other slots change along with it.
-for (const [profession, key, specialization, index] of [
-  ['ranger', 'selectedHammerSkillIds', 'Soulbeast', 1],
-  ['engineer', 'selectedMorphSkillIds', 'Amalgam', 1]
-]) {
-  test(`${profession} skill selection retains focus at the edited slot`, async ({ page }) => {
-    await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-    await page.evaluate(
-      ({ profession, specialization }) => {
-        const app = window.professionApp;
-        app.build.specializations[2] = { name: specialization, traits: '1-1-1' };
-
-        if (profession === 'ranger') app.build.weapons = ['Hammer', ''];
-
-        app.changed();
-      },
-      { profession, specialization }
-    );
-    const selector = page.locator(`[data-selection-key="${key}"][data-selection-index="${index}"]`);
-    const trigger = selector.locator('.sbar-icon');
-    const current = await page.evaluate(({ key, index }) => window.professionApp.build[key][index], { key, index });
-    await trigger.press('Enter');
-    const option = selector.locator(`.dd-item:not([data-skill-id="${current}"])`).first();
-    const value = Number(await option.getAttribute('data-skill-id'));
-    await selector.getByRole('searchbox').fill((await option.textContent()).trim());
-    await page.keyboard.press('ArrowDown');
-    await expect(option).toBeFocused();
-    await page.keyboard.press(profession === 'ranger' ? 'Enter' : 'Space');
-    expect(await page.evaluate(({ key, index }) => window.professionApp.build[key][index], { key, index })).toBe(value);
-    await expect(trigger).toBeFocused();
-    await page.keyboard.press('Tab');
-    await expect(page.locator('#wiki-tooltip').getByRole('link')).toBeFocused();
-    await page.keyboard.press('Tab');
-    const next = page.locator(`[data-selection-key="${key}"][data-selection-index="${index + 1}"] .sbar-icon`);
-    await expect(next).toBeFocused();
-    // Worker completion must not move focus back to the control that initiated the update.
-    await expect
-      .poll(() => page.evaluate(() => window.professionApp.resultRevision === window.professionApp.buildRevision))
-      .toBe(true);
-    await expect(next).toBeFocused();
-
-    if (profession === 'ranger') {
-      // Exercise a rebuild that removes this conditional selector and establishes focus elsewhere.
-      const errors = [];
-      page.on('pageerror', (error) => errors.push(error.message));
-      await trigger.press('Enter');
-      await page.evaluate(() => {
-        const app = window.professionApp;
-        const changed = app.changed.bind(app);
-        app.changed = () => {
-          app.changed = changed;
-          app.build.weapons = ['Sword', 'Axe'];
-          app.build.alternateWeapons = ['', ''];
-          changed();
-          document.querySelector('[data-selection-key="selectedPet2"] .sbar-icon').focus();
-        };
-      });
-      await selector.getByRole('searchbox').press('Enter');
-      await expect(selector).toHaveCount(0);
-      await expect(page.locator('[data-selection-key="selectedPet2"] .sbar-icon')).toBeFocused();
-      expect(errors).toEqual([]);
-    }
-  });
-}

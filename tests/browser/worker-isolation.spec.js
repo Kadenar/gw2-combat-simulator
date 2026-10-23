@@ -1,107 +1,107 @@
 import { expect, test } from '@playwright/test';
 
-// Prepared jobs share one engine loader in both current and preview modes, without browser UI imports.
-for (const patchId of ['current', 'worker-preview']) {
-  test(`simulation workers load ${patchId} without UI dependencies`, async ({ page, context }) => {
-    await context.route('**/integrations/patches/active-preview.ts*', (route) =>
-      route.fulfill({
-        contentType: 'text/javascript',
-        body: `export const activePatchPreview = ${JSON.stringify(patchId === 'current' ? null : { id: patchId, label: 'Worker preview' })};`
-      })
-    );
-    await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-    await page.evaluate((patchId) => {
-      window.professionApp.patch = window.professionApp.profession.resolvePatch({ id: patchId });
-      window.professionApp.addRotation('Bladecall');
-    }, patchId);
-    await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+// Prepared jobs load their engine without browser UI imports. An active preview patch is used because the
+// baseline's patch comparison then simulates both the current and preview patches in the same worker.
+test('simulation workers load current and preview patches without UI dependencies', async ({ page, context }) => {
+  const patchId = 'worker-preview';
+  await context.route('**/integrations/patches/active-preview.ts*', (route) =>
+    route.fulfill({
+      contentType: 'text/javascript',
+      body: `export const activePatchPreview = ${JSON.stringify({ id: patchId, label: 'Worker preview' })};`
+    })
+  );
+  await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.evaluate((patchId) => {
+    window.professionApp.patch = window.professionApp.profession.resolvePatch({ id: patchId });
+    window.professionApp.addRotation('Bladecall');
+  }, patchId);
+  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
 
-    const uiImports = (worker) =>
-      worker.evaluate(() =>
-        performance
-          .getEntriesByType('resource')
-          .map((entry) => entry.name)
-          .filter((url) =>
-            /\/app\/(?:define-profession-app\.|build-editor\.|build\/|optimizer\/|rotation\/|results\/)/.test(url)
-          )
-      );
-
-    const baselineWorkerReady = page.waitForEvent('worker', (worker) =>
-      worker.url().includes('/simulation/baseline/worker.')
+  const uiImports = (worker) =>
+    worker.evaluate(() =>
+      performance
+        .getEntriesByType('resource')
+        .map((entry) => entry.name)
+        .filter((url) =>
+          /\/app\/(?:define-profession-app\.|build-editor\.|build\/|optimizer\/|rotation\/|results\/)/.test(url)
+        )
     );
-    const baseline = await page.evaluate(() => {
-      const app = window.professionApp;
-      const request = app.adapter.baselineSimulationRequest(app);
-      return new Promise((resolve, reject) => {
-        const worker = new Worker('/js/games/gw2/app/simulation/baseline/worker.ts', {
-          type: 'module'
-        });
-        worker.addEventListener('error', (event) => reject(new Error(event.message)));
-        worker.addEventListener('message', ({ data }) => {
-          if (data.error) reject(new Error(data.error));
-          else if (data.requestId === 1) worker.postMessage({ requestId: 2, request });
-          else resolve(data);
-        });
-        // Warmup loads the same engine as the actual job without publishing a simulated result.
-        worker.postMessage({ requestId: 1, request, warmup: true });
+
+  const baselineWorkerReady = page.waitForEvent('worker', (worker) =>
+    worker.url().includes('/simulation/baseline/worker.')
+  );
+  const baseline = await page.evaluate(() => {
+    const app = window.professionApp;
+    const request = app.adapter.baselineSimulationRequest(app);
+    return new Promise((resolve, reject) => {
+      const worker = new Worker('/js/games/gw2/app/simulation/baseline/worker.ts', {
+        type: 'module'
       });
-    });
-    expect(baseline.requestId).toBe(2);
-    expect(baseline.output.result.totalDamage).toBeGreaterThan(0);
-    expect(baseline.output.result.warnings).toEqual([]);
-    expect(baseline.output.patchComparison?.patchId ?? 'current').toBe(patchId);
-    expect(await uiImports(await baselineWorkerReady)).toEqual([]);
-
-    const modifierWorkerReady = page.waitForEvent('worker', (worker) =>
-      worker.url().includes('/simulation/modifier-contributions/worker.')
-    );
-    const contributions = await page.evaluate(() => {
-      const app = window.professionApp;
-      app.modifierContributionRunner.cancel();
-      const request = app.adapter.modifierContributionRequest(app);
-      return new Promise((resolve, reject) => {
-        const worker = new Worker('/js/games/gw2/app/simulation/modifier-contributions/worker.ts', {
-          type: 'module'
-        });
-        worker.addEventListener('error', (event) => reject(new Error(event.message)));
-        worker.addEventListener('message', ({ data }) => {
-          if (data.error) reject(new Error(data.error));
-          else resolve(data);
-        });
-        worker.postMessage({ requestId: 17, request });
+      worker.addEventListener('error', (event) => reject(new Error(event.message)));
+      worker.addEventListener('message', ({ data }) => {
+        if (data.error) reject(new Error(data.error));
+        else if (data.requestId === 1) worker.postMessage({ requestId: 2, request });
+        else resolve(data);
       });
+      // Warmup loads the same engine as the actual job without publishing a simulated result.
+      worker.postMessage({ requestId: 1, request, warmup: true });
     });
-    expect(contributions.requestId).toBe(17);
-    expect(contributions.contributions.length).toBeGreaterThan(0);
-    expect(contributions.contributions[0].dpsIncrease).toBeGreaterThan(0);
-    expect(await uiImports(await modifierWorkerReady)).toEqual([]);
-
-    const randomWorkerReady = page.waitForEvent('worker', (worker) =>
-      worker.url().includes('/simulation/random-distribution/worker.')
-    );
-    const random = await page.evaluate(() => {
-      const app = window.professionApp;
-      const request = { ...app.adapter.randomDistributionRequest(app), trials: 2 };
-      return new Promise((resolve, reject) => {
-        const worker = new Worker('/js/games/gw2/app/simulation/random-distribution/worker.ts', {
-          type: 'module'
-        });
-        const progress = [];
-        worker.addEventListener('error', (event) => reject(new Error(event.message)));
-        worker.addEventListener('message', ({ data }) => {
-          if (data.error) reject(new Error(data.error));
-          else if (data.progress) progress.push(data.progress.completed);
-          else resolve({ requestId: data.requestId, outcomes: data.outcomes, progress });
-        });
-        worker.postMessage({ requestId: 1, request });
-      });
-    });
-    expect(random.requestId).toBe(1);
-    expect(random.progress[0]).toBe(0);
-    expect(random.progress.at(-1)).toBe(2);
-    expect(random.outcomes).toHaveLength(2);
-    expect(random.outcomes.every((outcome) => outcome.dps > 0 && Array.isArray(outcome.metrics))).toBe(true);
-    expect(await uiImports(await randomWorkerReady)).toEqual([]);
   });
-}
+  expect(baseline.requestId).toBe(2);
+  expect(baseline.output.result.totalDamage).toBeGreaterThan(0);
+  expect(baseline.output.result.warnings).toEqual([]);
+  expect(baseline.output.patchComparison?.patchId).toBe(patchId);
+  expect(await uiImports(await baselineWorkerReady)).toEqual([]);
+
+  const modifierWorkerReady = page.waitForEvent('worker', (worker) =>
+    worker.url().includes('/simulation/modifier-contributions/worker.')
+  );
+  const contributions = await page.evaluate(() => {
+    const app = window.professionApp;
+    app.modifierContributionRunner.cancel();
+    const request = app.adapter.modifierContributionRequest(app);
+    return new Promise((resolve, reject) => {
+      const worker = new Worker('/js/games/gw2/app/simulation/modifier-contributions/worker.ts', {
+        type: 'module'
+      });
+      worker.addEventListener('error', (event) => reject(new Error(event.message)));
+      worker.addEventListener('message', ({ data }) => {
+        if (data.error) reject(new Error(data.error));
+        else resolve(data);
+      });
+      worker.postMessage({ requestId: 17, request });
+    });
+  });
+  expect(contributions.requestId).toBe(17);
+  expect(contributions.contributions.length).toBeGreaterThan(0);
+  expect(contributions.contributions[0].dpsIncrease).toBeGreaterThan(0);
+  expect(await uiImports(await modifierWorkerReady)).toEqual([]);
+
+  const randomWorkerReady = page.waitForEvent('worker', (worker) =>
+    worker.url().includes('/simulation/random-distribution/worker.')
+  );
+  const random = await page.evaluate(() => {
+    const app = window.professionApp;
+    const request = { ...app.adapter.randomDistributionRequest(app), trials: 2 };
+    return new Promise((resolve, reject) => {
+      const worker = new Worker('/js/games/gw2/app/simulation/random-distribution/worker.ts', {
+        type: 'module'
+      });
+      const progress = [];
+      worker.addEventListener('error', (event) => reject(new Error(event.message)));
+      worker.addEventListener('message', ({ data }) => {
+        if (data.error) reject(new Error(data.error));
+        else if (data.progress) progress.push(data.progress.completed);
+        else resolve({ requestId: data.requestId, outcomes: data.outcomes, progress });
+      });
+      worker.postMessage({ requestId: 1, request });
+    });
+  });
+  expect(random.requestId).toBe(1);
+  expect(random.progress[0]).toBe(0);
+  expect(random.progress.at(-1)).toBe(2);
+  expect(random.outcomes).toHaveLength(2);
+  expect(random.outcomes.every((outcome) => outcome.dps > 0 && Array.isArray(outcome.metrics))).toBe(true);
+  expect(await uiImports(await randomWorkerReady)).toEqual([]);
+});

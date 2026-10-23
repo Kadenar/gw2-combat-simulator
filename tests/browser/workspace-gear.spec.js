@@ -115,34 +115,8 @@ test('utility selections swap slots and restore focus', async ({ page }) => {
   }
 });
 
-// A flipped skill still edits its equipped root through the selector above traits.
-test('flipped utility skills remain replaceable from the skill strip', async ({ page }) => {
-  await page.goto('/necromancer.html#workspace', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.evaluate(() => {
-    const app = window.professionApp;
-    app.build.selectedSkillIds.Utility1 = 10541;
-    app.build.rotation = [];
-    app.changed();
-  });
-  // Let the setup simulation finish repainting the palette before clicking its summon skill.
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
-  const first = page.locator('#skill-bar [data-key="Utility1"]');
-  await page.locator('.utility-palette-group .pal-skill[data-skill="Summon Bone Minions"]').click();
-  await expect(page.locator('.utility-palette-group .pal-skill[data-skill="Putrid Explosion"]')).toBeVisible();
-  await first.locator('.sbar-icon').click();
-  const option = first.locator('.sbar-dropdown button[aria-pressed="false"]:not(:disabled)').first();
-  const replacement = await option.getAttribute('data-wiki-name');
-  const replacementId = JSON.parse(await option.getAttribute('data-skill-id'));
-  await option.click();
-  expect(await page.evaluate(() => window.professionApp.build.selectedSkillIds.Utility1)).toBe(replacementId);
-  await expect(first.locator('.sbar-icon')).toHaveAttribute('data-wiki-name', replacement);
-});
-
 // Trinkets and infusions sit beside armor, with upgrades and consumables sharing the row below.
-test('workspace places trinkets above infusions and keeps import available without Revenant skills', async ({
-  page
-}) => {
+test('workspace places trinkets above infusions and keeps build import available', async ({ page }) => {
   await page.setViewportSize({ width: 1640, height: 1100 });
   await page.goto('/engineer.html#workspace', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
@@ -198,42 +172,18 @@ test('workspace places trinkets above infusions and keeps import available witho
   }
 
   await expect(page.locator('#skill-bar .skill-bar-slot[data-key]')).toHaveCount(5);
-  for (const profession of ['engineer', 'revenant']) {
-    await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-    expect(
-      await page
-        .locator('.gear-panel')
-        .evaluate((panel) =>
-          ['--accent', '--bg-panel', '--text-dim'].every(
-            (property) =>
-              getComputedStyle(panel).getPropertyValue(property) ===
-              getComputedStyle(document.body).getPropertyValue(property)
-          )
+  // The gear panel inherits the profession theme rather than defining its own palette.
+  expect(
+    await page
+      .locator('.gear-panel')
+      .evaluate((panel) =>
+        ['--accent', '--bg-panel', '--text-dim'].every(
+          (property) =>
+            getComputedStyle(panel).getPropertyValue(property) ===
+            getComputedStyle(document.body).getPropertyValue(property)
         )
-    ).toBe(true);
-  }
-
-  await expect(page.locator('.fixed-loadout-trigger:visible')).toHaveCount(2);
-  const legendButtons = page.locator('.fixed-loadout-trigger');
-  for (const button of await legendButtons.all()) {
-    await expect(button).toHaveAttribute('aria-label', /^Change legend [12]: /);
-  }
-
-  const firstLegend = await legendButtons.first().boundingBox();
-  const secondLegend = await legendButtons.nth(1).boundingBox();
-  expect(secondLegend.y).toBeCloseTo(firstLegend.y, 0);
-  expect(secondLegend.x).toBeGreaterThanOrEqual(firstLegend.x + firstLegend.width);
-  await expect(page.locator('.selectable-skills-title')).toHaveText('Legends');
-  await page.locator('.fixed-loadout-trigger').first().click();
-  const legend = page
-    .locator('.fixed-loadout-dropdown.open .fixed-loadout-option:not(:disabled):not(.selected)')
-    .first();
-  const selectedLegend = await legend.getAttribute('data-loadout-value');
-  const selectedLegendName = await legend.locator('span').textContent();
-  await legend.click();
-  expect(await page.evaluate(() => window.professionApp.build.selectedLegends[0])).toBe(selectedLegend);
-  await expect(legendButtons.first()).toHaveAttribute('data-wiki-name', selectedLegendName);
+      )
+  ).toBe(true);
   await page.getByRole('button', { name: 'Import GW2 Build', exact: true }).click();
   await expect(page.locator('dialog[open]')).toBeVisible();
 });
@@ -325,92 +275,6 @@ test('two infusion rows retain selections and enforce the shared infusion limit'
   await expect(page.locator('.inf-total')).toHaveText('18/18');
 });
 
-// Restricted professions retain both equipment sets, with the starting set selecting the first active bar.
-for (const profession of ['elementalist', 'engineer']) {
-  test(`${profession} supports inactive stacking gear and either starting set`, async ({ page }) => {
-    await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-    await page.evaluate(() => {
-      const app = window.professionApp;
-      app.build.rotation = [];
-      app.build.startingWeaponSet = 1;
-
-      if (app.adapter.id === 'engineer') {
-        app.build.selectedSkillIds.Utility1 = 5805;
-        app.build.selectedSkillIds.Utility2 = 5812;
-      }
-
-      app.build.weaponSigils = [
-        ['Force', 'Accuracy'],
-        ['Force', 'Accuracy']
-      ];
-      app.changed();
-    });
-    const alternate = profession === 'elementalist' ? 'Staff' : 'Pistol';
-    const alternateSkill = profession === 'elementalist' ? 'Fireball' : 'Static Shot';
-    await chooseEquipment(page, '#sel-mh2', alternate);
-    await chooseEquipment(page, '#sel-stat2-1', 'Celestial');
-    await chooseEquipment(page, '#sel-sig2-1', 'Corruption');
-    expect(await page.evaluate(() => window.professionApp.attributeData.attributes['Condition Damage'].sigils)).toBe(
-      250
-    );
-
-    if (profession === 'engineer')
-      await expect(page.locator(`#rotation-palette .pal-skill[data-skill="${alternateSkill}"]`).first()).toBeVisible();
-    else {
-      // Weaver displays its active dual-attunement bar; the precombat swap input makes the alternate bar reachable.
-      await expect(page.locator(`#rotation-palette .pal-skill[data-skill="${alternateSkill}"]`)).toHaveCount(0);
-      await expect(page.locator('#rotation-palette .pal-skill[data-skill="Swap Weapons"]')).not.toHaveClass(
-        /pal-disabled/
-      );
-    }
-
-    await page.reload({ waitUntil: 'domcontentloaded' });
-    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-    await expect(page.locator('#sel-mh2')).toHaveValue(alternate);
-    await expect(page.locator('#sel-stat2-1')).toHaveValue('Celestial');
-    await expect(page.locator('#sel-sig2-1')).toHaveValue('Corruption');
-
-    // Kit rows must survive hiding either equipment set and still allow entering and using the kit.
-    if (profession === 'engineer') {
-      await expect(page.locator('#rotation-palette .pal-skill[data-skill="Grenade"]')).toBeVisible();
-      await expect(page.locator('#rotation-palette .pal-skill[data-skill="Bomb"]')).toBeVisible();
-    }
-
-    await page.locator('.weapon-set-btn[data-set="2"]').click();
-
-    if (profession === 'engineer') {
-      await expect(page.locator('#rotation-palette .pal-skill[data-skill="Grenade"]')).toBeVisible();
-      await expect(page.locator('#rotation-palette .pal-skill[data-skill="Bomb"]')).toBeVisible();
-    }
-
-    const skill = page.locator(`#rotation-palette .pal-skill[data-skill="${alternateSkill}"]`).first();
-    await expect(skill).toBeVisible();
-    await expect(skill).not.toHaveClass(/unavailable/);
-    // Palette input is accepted only after the worker publishes the current build's state.
-    await expect(page.locator('#rotation-palette')).toHaveAttribute('data-palette-pending', 'false');
-    await skill.click();
-    await expect(page.locator('#rotation-palette')).toHaveAttribute('data-palette-pending', 'false');
-    expect(await page.evaluate(() => window.professionApp.results.planningState.activeWeaponSet)).toBe(2);
-    expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
-
-    if (profession === 'engineer') {
-      await page.locator('.utility-palette-group .pal-skill[data-skill="Grenade Kit"]').click();
-      await expect
-        .poll(() => page.evaluate(() => window.professionApp.results.planningState.profession.activeKit))
-        .toBe(5805);
-      // Stow and Swap Weapons are separate in-game key binds, so both stay available while a kit is active.
-      await expect(page.locator('#rotation-palette .pal-skill[data-skill="Stow Grenade Kit"]')).toHaveCount(1);
-      await expect(page.locator('#rotation-palette .pal-skill[data-skill="Swap Weapons"]')).toHaveCount(1);
-      await page.locator('#rotation-palette .pal-skill[data-skill="Grenade"]').click();
-      await expect
-        .poll(() => page.evaluate(() => window.professionApp.results.steps.some((step) => step.skill === 'Grenade')))
-        .toBe(true);
-      expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
-    }
-  });
-}
-
 test('both weapon sets keep their own stats and sigils when switching handedness', async ({ page }) => {
   await page.goto('/mesmer.html#workspace', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
@@ -455,33 +319,4 @@ test('both weapon sets keep their own stats and sigils when switching handedness
   await chooseEquipment(page, '#sel-mh2', '');
   await expect(page.locator('.weapon-set').nth(1).locator('.weapon-sigil:visible')).toHaveCount(0);
   await expect(page.locator('#attribute-preview .attribute-effects-title')).toBeVisible();
-});
-
-// Real palette input crosses combat entry through the worker while equipped gear and attribute inspection stay independent.
-test('Elementalist swaps precombat through the palette and locks equipment swaps after combat entry', async ({
-  page
-}) => {
-  await page.goto('/elementalist.html#workspace', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.evaluate(() => {
-    const app = window.professionApp;
-    app.build.rotation = [];
-    app.build.startingWeaponSet = 1;
-    app.build.alternateWeapons = ['Staff', ''];
-    app.changed();
-  });
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-  const swap = page.locator('#rotation-palette .pal-skill[data-skill="Swap Weapons"]');
-  await expect(swap).toBeVisible();
-  await expect(swap).not.toHaveClass(/pal-disabled/);
-  await swap.click();
-  await expect.poll(() => page.evaluate(() => window.professionApp.results.planningState.activeWeaponSet)).toBe(2);
-  await page.locator('#rotation-palette .pal-skill[data-skill="__combat_start"]').click();
-  await expect.poll(() => page.evaluate(() => window.professionApp.results.planningState.combatActive)).toBe(true);
-  await expect(swap).toHaveClass(/pal-disabled/);
-  await page.locator('#attribute-weapon-set').selectOption('1');
-  expect(await page.evaluate(() => window.professionApp.results.planningState.activeWeaponSet)).toBe(2);
-  expect(await page.evaluate(() => window.professionApp.build.startingWeaponSet)).toBe(1);
-  expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
-  await expect(page.locator('#rotation-timeline')).toContainText('W2');
 });

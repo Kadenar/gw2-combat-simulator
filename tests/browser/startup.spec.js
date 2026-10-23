@@ -248,7 +248,8 @@ test('a transient startup failure recovers automatically and a ready page stays 
 });
 
 // A never-settling module covers stalled initialization independently of network rejection handling.
-for (const trigger of ['timeout', 'pageshow', 'visibilitychange']) {
+// pageshow and visibilitychange share one resume handler, so visibilitychange covers the resume path.
+for (const trigger of ['timeout', 'visibilitychange']) {
   test(`stalled startup recovers automatically on ${trigger}`, async ({ page }) => {
     await page.clock.install();
     let attempts = 0;
@@ -269,12 +270,10 @@ for (const trigger of ['timeout', 'pageshow', 'visibilitychange']) {
       );
       await page.clock.fastForward(31_000);
       expect(attempts).toBe(1);
-      await page.evaluate((event) => {
+      await page.evaluate(() => {
         Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' });
-
-        if (event === 'pageshow') window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
-        else document.dispatchEvent(new Event('visibilitychange'));
-      }, trigger);
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
     }
 
     await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);

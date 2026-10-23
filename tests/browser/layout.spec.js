@@ -389,35 +389,6 @@ test('simulation config stays inside the viewport after scrolling and hides in A
   await expect(config).toBeHidden();
 });
 
-// A palette drop and a timeline edit must preserve valid 40 ms wait increments through rerenders.
-test('a palette wait drop opens its editor and the timeline can edit the inserted wait', async ({ page }) => {
-  await openSimulator(page);
-  const timeline = page.locator('#rotation-timeline');
-  const wait = page.locator('.pal-skill[data-skill="__wait"]');
-  // Exercise the DOM drag handlers independently of Chrome's mouse gesture recognition.
-  const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
-  await wait.dispatchEvent('dragstart', { dataTransfer });
-  await timeline.dispatchEvent('dragover', { dataTransfer });
-  await timeline.dispatchEvent('drop', { dataTransfer });
-  await wait.dispatchEvent('dragend', { dataTransfer });
-  await dataTransfer.dispose();
-
-  const addWait = page.getByRole('dialog', { name: 'Add wait' });
-  await expect(addWait).toBeVisible();
-  await addWait.getByLabel('Duration', { exact: true }).fill('320');
-  await addWait.getByRole('button', { name: 'Apply' }).click();
-  await expect(timeline.locator('.rot-wait-badge')).toContainText('320ms');
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
-
-  await timeline.locator('.rot-skill[data-idx="0"]').hover();
-  await timeline.getByRole('button', { name: 'Edit Wait duration' }).click();
-  const editWait = page.getByRole('dialog', { name: 'Edit wait' });
-  await expect(editWait.getByLabel('Duration', { exact: true })).toHaveValue('320');
-  await editWait.getByLabel('Duration', { exact: true }).fill('120');
-  await editWait.getByRole('button', { name: 'Apply' }).click();
-  await expect(timeline.locator('.rot-wait-badge')).toContainText('120ms');
-});
-
 // Component styles must keep hidden controls out of layout on narrow hosts.
 test('relic comparison controls survive a narrow host', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });

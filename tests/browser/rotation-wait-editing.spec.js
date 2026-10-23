@@ -15,10 +15,15 @@ test('adding, dropping, and editing wait shapes enforces 40 ms increments', asyn
     if (mode === 'add') {
       await page.locator('#rotation-palette .pal-skill[data-skill="__wait"]').click();
     } else if (mode === 'drop') {
-      await page.evaluate(async () => {
-        const { resolvePaletteDrop } = await import('/js/games/gw2/app/rotation/palette/interactions.ts');
-        resolvePaletteDrop(window.professionApp, '__wait', null, 1);
-      });
+      // Exercise the DOM drag handlers independently of Chrome's mouse gesture recognition.
+      const wait = page.locator('#rotation-palette .pal-skill[data-skill="__wait"]');
+      const timeline = page.locator('#rotation-timeline');
+      const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
+      await wait.dispatchEvent('dragstart', { dataTransfer });
+      await timeline.dispatchEvent('dragover', { dataTransfer });
+      await timeline.dispatchEvent('drop', { dataTransfer });
+      await wait.dispatchEvent('dragend', { dataTransfer });
+      await dataTransfer.dispose();
     } else {
       const edit = page.locator('#rotation-timeline .rot-edit-wait');
       await edit.focus();

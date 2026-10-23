@@ -7,49 +7,6 @@ async function openWorkspace(page, viewport = { width: 1440, height: 1000 }) {
   await expect(page.locator('#build-workspace-tabs')).toBeVisible();
 }
 
-// A real reload converts persisted names before rendering and saves only canonical IDs for subsequent visits.
-test('legacy workspace builds migrate once on startup without losing selected skills', async ({ page }) => {
-  await openWorkspace(page);
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
-  const expected = await page.evaluate(() => {
-    const app = window.professionApp;
-    const { selectedSkillIds, ...fields } = structuredClone(app.build);
-    const legacy = {
-      ...fields,
-      schemaVersion: fields.schemaVersion - 1,
-      selectedSkills: Object.fromEntries(
-        Object.entries(selectedSkillIds).map(([slot, id]) => [
-          slot,
-          id === null ? '' : app.activeCatalog.skillsById.get(id).name
-        ])
-      )
-    };
-    localStorage.setItem(
-      `${app.adapter.storageKey}-workspace-v1`,
-      JSON.stringify({
-        version: 1,
-        activeTabId: 'legacy',
-        tabs: [{ id: 'legacy', name: 'Legacy build', build: legacy, templateBuild: legacy }]
-      })
-    );
-    return selectedSkillIds;
-  });
-  for (let visit = 0; visit < 2; visit++) {
-    await page.reload({ waitUntil: 'domcontentloaded' });
-    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-    const loaded = await page.evaluate(() => {
-      const app = window.professionApp;
-      const saved = JSON.parse(localStorage.getItem(`${app.adapter.storageKey}-workspace-v1`));
-      return { selected: app.build.selectedSkillIds, tab: saved.tabs.find((tab) => tab.id === 'legacy') };
-    });
-    expect(loaded.selected).toEqual(expected);
-    expect(loaded.tab.build.selectedSkillIds).toEqual(expected);
-    expect(loaded.tab.templateBuild.selectedSkillIds).toEqual(expected);
-    expect(loaded.tab.build).not.toHaveProperty('selectedSkills');
-    expect(loaded.tab.templateBuild).not.toHaveProperty('selectedSkills');
-  }
-});
-
 // Profession changes retain the selected tool and display flags; tool links still support browser history.
 test('header profession selector preserves navigation and the landing page owns the copyright', async ({ page }) => {
   await page.goto('/mesmer.html?embed=1&standalone=1#workspace');

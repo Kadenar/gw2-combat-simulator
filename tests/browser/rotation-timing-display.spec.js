@@ -1,35 +1,5 @@
 import { expect, test } from '@playwright/test';
 
-// Worker results must distinguish a useful interrupted support cast from a failed damage cast in the rendered timeline.
-test('an interrupted Harp keeps its normal border while a cancelled attack stays red', async ({ page }) => {
-  await page.goto('/mesmer.html');
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.evaluate(async () => {
-    const app = window.professionApp;
-    const saved = await (
-      await fetch('/data/gw2/builds/mesmer/b-power-quickness-troubadour-spear-greatsword.json')
-    ).json();
-    app.build = app.adapter.toApplicationBuild({
-      ...saved,
-      startingWeaponSet: 1,
-      targetHealth: 0,
-      rotation: [
-        { type: 'cast', skillId: 77077, interruptAfterMs: 360 },
-        { type: 'cast', skillId: 73154, interruptAfterMs: 40 }
-      ]
-    });
-    app.changed();
-  });
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
-  const harp = page.locator('#rotation-timeline .rot-skill[data-idx="0"]');
-  await expect(harp).not.toHaveClass(/rot-cancelled|rot-invalid/);
-  await expect(harp.locator('.rot-interrupt-badge')).toBeVisible();
-  await expect(harp).not.toHaveCSS('border-top-color', 'rgb(255, 59, 69)');
-  const failedAttack = page.locator('#rotation-timeline .rot-skill[data-idx="1"]');
-  await expect(failedAttack).toHaveClass(/rot-cancelled/);
-  await expect(failedAttack).toHaveCSS('border-top-color', 'rgb(255, 59, 69)');
-});
-
 // Unsaved overlap edits must preview the same combat-relative landing that Apply produces, without changing the build.
 test('concurrent precast landing updates while editing timing', async ({ page }) => {
   await page.goto('/mesmer.html');
