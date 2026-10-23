@@ -1,3 +1,4 @@
+import { ASHES_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
@@ -82,6 +83,14 @@ export const firebrandReworkModule = defineNativeModule({
     traits: [...specialization.minorTraits, ...specialization.majorTraits.flat()],
     specializations: [specialization],
     balanceProfiles: FIREBRAND_BALANCE_PROFILES.map((profile) => {
+      // Only the reworked ruleset selects Righteous Flames; live Quickfire shares its numeric identity.
+      if (profile.id === ASHES_PROFILE.mechanic)
+        return {
+          ...profile,
+          name: 'Ashes of the Just: Burning per charge (replaced when Righteous Flames is selected)',
+          burningOverrideTrait: REWORK.RIGHTEOUS_FLAMES
+        };
+
       if (profile.id !== PROFILE.resources) return profile;
 
       const { capacityTrait: _capacity, intervalTrait: _interval, ...baseline } = profile;

@@ -1,17 +1,10 @@
-import { CONDITION } from '#gw2/platform/constants.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createDiscreteResourceClock, type DiscreteResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import {
   defineProfessionSpecializationState,
   definePublicStateDefaults
 } from '#gw2/platform/profession-definition/state.js';
-import {
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { firebrandPageTuning } from '#gw2/professions/guardian/specializations/firebrand/traits/page-tuning.js';
 import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
 import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
@@ -21,7 +14,6 @@ export interface GuardianFirebrandState {
   activeTome: string;
   tomePages: DiscreteResourceClock;
   ashes: ChargeGrant;
-  ashesBurnDuration: number;
   swiftScholarTome: string;
   swiftScholarCount: number;
 
@@ -36,8 +28,6 @@ function createFirebrandState(profileContext: {
 }): GuardianFirebrandState {
   const { maximum, initial, interval } = firebrandPageTuning(profileContext);
   const pages = clamp(initial, 0, maximum);
-  const ashesProfile = requireBalanceProfileFromContext(profileContext, PROFILE.ashes);
-  const burn = requireEffect(ashesProfile, 'condition', CONDITION.BURNING);
   return {
     activeTome: '',
     tomePages: {
@@ -47,7 +37,6 @@ function createFirebrandState(profileContext: {
       nextAt: pages < maximum && interval > 0 ? interval : Infinity
     },
     ashes: grantCharges(0, 0),
-    ashesBurnDuration: burn ? effectNumber(ashesProfile, burn, 'duration') : 0,
     swiftScholarTome: '',
     swiftScholarCount: 0,
 

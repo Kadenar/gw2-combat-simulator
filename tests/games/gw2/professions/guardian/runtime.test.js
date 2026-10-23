@@ -1,3 +1,4 @@
+import { ASHES_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
 import { activeChargeCount, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
@@ -732,7 +733,7 @@ test('removed Firebrand components preserve independent page grants and Might wi
     professions: {
       guardian: {
         balanceProfiles: {
-          [FB_PROFILE.ashes]: { removeEffects: [{ type: 'condition', all: true }] },
+          [ASHES_PROFILE.mechanic]: { removeEffects: [{ type: 'condition', all: true }] },
           [TRAIT.WEIGHTY_TERMS]: { removeEffects: [{ type: 'condition', all: true }] },
           [TRAIT.STALWART_SPEED]: { removeEffects: [{ type: 'boon', all: true }] }
         }

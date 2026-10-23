@@ -1,8 +1,5 @@
-import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
-import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -11,13 +8,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
 import {
@@ -60,67 +51,6 @@ export function reactToTomeJusticeHit(
     skillName: 'Tome of Justice',
     // Tome passive Burning starts at one second; Amplified Wrath applies separately.
     passiveBurnDuration: 1
-  });
-}
-
-/** Ashes of the Just consumes its live charges on accepted player strikes. */
-
-/**
- * Consumes an available Ashes of the Just charge on an eligible player strike
- * and applies its burning packet subject to the trigger interval.
- */
-export function reactToAshesHit(
-  context: GuardianResolverContext,
-  event: GuardianResolverEvent,
-  { hitContext }: Pick<NativeResolvedDamageDetails, 'hitContext'> = {}
-): void {
-  const ashesProfile = requireBalanceProfileFromContext(context, PROFILE.ashes);
-  const burn = requireEffect(ashesProfile, 'condition', CONDITION.BURNING);
-
-  if (!burn) return;
-
-  if (!hitContext || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
-
-  const state = firebrandState.from(context);
-
-  if (!consumeCharge(state.ashes, event.at, balanceProfileNumber(ashesProfile, 'internalCooldown'), true)) return;
-
-  emitAshes(context, event, state.ashesBurnDuration);
-}
-
-/** One charge uses the same burn payload as an accepted combat hit. */
-export function emitAshes(context: GuardianResolverContext, event: GuardianResolverEvent, duration?: number): void {
-  const ashesProfile = requireBalanceProfileFromContext(context, PROFILE.ashes);
-  const burn = requireEffect(ashesProfile, 'condition', CONDITION.BURNING);
-
-  if (!burn) return;
-
-  // Ashes burns resolve at charge consumption so same-timestamp condition
-  // reactions cannot be reordered behind later damage packets.
-  context.effects.emit({
-    kind: 'packet',
-    settlement: 'reaction',
-    event: buildResolverCondition({
-      at: event.at,
-      source: 'guardian',
-      sourceId: 'guardian.ashes-of-the-just',
-      actorType: ACTOR.PLAYER,
-      skillId: ID.ASHES_OF_THE_JUST,
-      skillName: 'Epilogue: Ashes of the Just',
-      // The charge owns its burning; the triggering attack retains the causal activation only.
-      procType: 'profession',
-      icon: context.helpers.skillsById.get(ID.ASHES_OF_THE_JUST)?.icon,
-      name: 'Ashes of the Just — Burning',
-      activationId: event.activationId,
-      causalOrder: event.causalOrder ?? event.eventOrder,
-      condition: String(burn.condition),
-      stacks: effectNumber(ashesProfile, burn, 'stacks'),
-      duration: duration ?? effectNumber(ashesProfile, burn, 'duration')
-    })
-  });
-  context.effects.emit({
-    kind: 'announcement',
-    announcement: { type: 'profession', name: 'Ashes of the Just', at: event.at, sourceSkill: event.skillName }
   });
 }
 

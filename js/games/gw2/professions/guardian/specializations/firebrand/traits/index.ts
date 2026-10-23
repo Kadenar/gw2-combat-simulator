@@ -17,10 +17,7 @@ import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadat
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
-
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 
 import { effectNumber } from '#gw2/platform/skills/balance-profiles.js';
 import {
@@ -38,15 +35,26 @@ import {
   type TomeOpening
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import {
-  alliedAshes,
-  attribution,
-  FIREBRAND_ASHES_EXPIRE
-} from '#gw2/professions/guardian/specializations/firebrand/mechanics/effects.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
+  grantAshes,
+  resolveAshesGrantData
+} from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+
+/** Derived trait effects inherit attribution and causality, never the triggering buff's recipients or duration. */
+function attribution(event: Gw2ResolverEvent) {
+  return {
+    source: 'guardian',
+    actorType: ACTOR.PLAYER,
+    skillId: event.skillId,
+    skillName: event.skillName,
+    activationId: event.activationId,
+    causalOrder: event.causalOrder ?? event.eventOrder,
+    triggeredBy: event.skillName
+  };
+}
 
 const refundByCast = new WeakMap<RuntimeCast<GuardianSkill>, number>();
 
@@ -490,30 +498,21 @@ function grantStalwartSpeed(runtime: GuardianRuntime, { cause: boonCause }: Fire
 
 /** Delivered Quickness grants the selected allied or self Ashes count once both the charge and Burning survive. */
 function grantQuickfireAshes(runtime: GuardianRuntime, { cause: event }: FirebrandBuffApplication): void {
-  const state = firebrandState.from(runtime);
   const allies = event.resolvedAudience?.alliedPlayerCount ?? 0;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.QUICKFIRE);
-  const buff = requireEffect(profile, 'buff', 'ashes-of-the-just');
-  const ashes = requireBalanceProfileFromContext(runtime, PROFILE.ashes);
-  const burn = requireEffect(ashes, 'condition', CONDITION.BURNING);
+  const admission = resolveAshesGrantData(runtime, profile);
 
-  if (!buff || !burn || !runtime.procs.claim(TRAIT.QUICKFIRE, 'guardian.firebrand.quickfire', runtime.time)) return;
+  if (!admission || !runtime.procs.claim(TRAIT.QUICKFIRE, 'guardian.firebrand.quickfire', runtime.time)) return;
 
-  const expiresAt = gw2EffectExpiresAt(runtime.time, effectNumber(profile, buff, 'duration'));
-  const stacks = effectNumber(profile, buff, 'stacks');
-
-  if (allies > 0)
-    alliedAshes(runtime, event, stacks, expiresAt - runtime.time, {
-      maximumAllies: 1,
-      priority: 5,
-      skillName: 'Quickfire',
-      name: 'Quickfire'
-    });
-  else {
-    state.ashes = grantCharges(stacks, expiresAt, state.ashes, runtime.time);
-    state.ashesBurnDuration = effectNumber(ashes, burn, 'duration');
-    runtime.schedule(FIREBRAND_ASHES_EXPIRE, expiresAt, undefined, undefined, 10);
-  }
+  const lifetimeSeconds = effectNumber(profile, admission.buff, 'duration');
+  const stacks = effectNumber(profile, admission.buff, 'stacks');
+  grantAshes(runtime, admission, {
+    source: 'quickfire',
+    cause: event,
+    charges: stacks,
+    lifetimeSeconds,
+    recipients: { includesSelf: allies <= 0, maximumAllies: allies > 0 ? 1 : 0 }
+  });
 
   runtime.effects.emit({
     kind: 'announcement',

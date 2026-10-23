@@ -180,10 +180,14 @@ for (const [type, name] of [
   ['condition', 'Burning']
 ]) {
   test(`Ashes ${type} removal preserves Might and page spending without granting charges`, () => {
-    const result = run({ 'guardian.firebrand.ashes-of-the-just': remove(type, name) }, 'Firebrand', [
-      'Tome of Justice',
-      'Epilogue: Ashes of the Just'
-    ]);
+    const result = run(
+      {
+        [type === 'condition' ? 'guardian.firebrand.ashes-of-the-just' : 'guardian.firebrand.epilogue-ashes-grant']:
+          remove(type, name)
+      },
+      'Firebrand',
+      ['Tome of Justice', 'Epilogue: Ashes of the Just']
+    );
     assert.equal(has(result, 'buff', 'kind', 'ashes-of-the-just'), false);
     assert.equal(result.planningState.profession.ashes.charges, 0);
     assert.equal(result.planningState.profession.tomePages.value, 4);

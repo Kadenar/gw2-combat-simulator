@@ -13,9 +13,11 @@ import {
   firebrandStruck
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import {
-  firebrandEffectLifecycle,
-  startFirebrandAshes
-} from '#gw2/professions/guardian/specializations/firebrand/mechanics/effects.js';
+  firebrandAshesLifecycle,
+  startFirebrandAshes,
+  reactToAshesHit,
+  emitAshesForInspection
+} from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
 import {
   FIREBRAND_MANTRA_WAKE,
   firebrandMantraAvailability,
@@ -23,11 +25,9 @@ import {
   initializeFirebrandMantras
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/mantras.js';
 import {
-  emitAshes,
   firebrandTomeAvailability,
   firebrandTomeLifecycle,
   initializeFirebrandTomes,
-  reactToAshesHit,
   reactToTomeJusticeHit
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
@@ -37,7 +37,7 @@ import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guard
 export const firebrandHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianSkill>([
   firebrandMantraLifecycle,
   firebrandTomeLifecycle,
-  firebrandEffectLifecycle,
+  firebrandAshesLifecycle,
   {
     buffPolicies: firebrandBuffPolicies,
     observeEffects: firebrandEffectStates,
@@ -49,7 +49,7 @@ export const firebrandHooks = composeRuntimeHooks<GuardianRuntimeState, Guardian
         source: 'Profession',
         unit: 'charge',
         sourceIds: ['guardian.ashes-of-the-just'],
-        emit: (runtime) => emitAshes(runtime, damageInputEvent(runtime))
+        emit: (runtime) => emitAshesForInspection(runtime, damageInputEvent(runtime))
       }
     ],
 

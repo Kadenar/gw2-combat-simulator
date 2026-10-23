@@ -1,9 +1,6 @@
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -11,16 +8,15 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import {
   balanceNumberFromContext,
   effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
+  requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { GUARDIAN_SKILL_IDS as SKILL, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import {
-  alliedAshes,
-  FIREBRAND_ASHES_EXPIRE
-} from '#gw2/professions/guardian/specializations/firebrand/mechanics/effects.js';
+  grantAshes,
+  resolveAshesGrantData
+} from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
 import {
   finalMantraChargeUsed,
   firebrandControlAccepted,
@@ -28,8 +24,6 @@ import {
   type FirebrandControl,
   type FinalMantraCharge
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { firebrandTraits, swiftScholar } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
 import { FIREBRAND_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
 import type { GuardianRuntime, GuardianSkill } from '#gw2/professions/guardian/types.js';
@@ -104,16 +98,15 @@ const revelation = defineTrait({
 /** One admitted Swift Scholar refund grants expiring Ashes to the player and eligible nearby allies. */
 function grantFervidAshes(runtime: GuardianRuntime, { cast }: { readonly cast: RuntimeCast<GuardianSkill> }): void {
   const profile = requireBalanceProfileFromContext(runtime, REWORK.FERVID_CONVICTION);
-  const buff = requireEffect(profile, 'buff', 'ashes-of-the-just');
-  const ashes = requireBalanceProfileFromContext(runtime, PROFILE.ashes);
-  const burn = requireEffect(ashes, 'condition', CONDITION.BURNING);
+  const admission = resolveAshesGrantData(runtime, profile);
 
   if (
-    !buff ||
-    !burn ||
+    !admission ||
     !runtime.procs.claim(REWORK.FERVID_CONVICTION, 'guardian.firebrand.fervid-conviction', runtime.time)
   )
     return;
+
+  const { buff } = admission;
 
   const stacks = effectNumber(profile, buff, 'stacks');
   const duration = effectNumber(profile, buff, 'duration');
@@ -121,16 +114,12 @@ function grantFervidAshes(runtime: GuardianRuntime, { cast }: { readonly cast: R
 
   if (stacks <= 0 || duration <= 0 || maximumTargets <= 0) return;
 
-  const expiresAt = gw2EffectExpiresAt(runtime.time, duration);
-  const state = firebrandState.from(runtime);
-  state.ashes = grantCharges(stacks, expiresAt, state.ashes, runtime.time);
-  state.ashesBurnDuration = effectNumber(ashes, burn, 'duration');
-  runtime.schedule(FIREBRAND_ASHES_EXPIRE, expiresAt, undefined, undefined, 10);
-  alliedAshes(runtime, guardianCastCause(runtime, cast), stacks, duration, {
-    maximumAllies: maximumTargets - 1,
-    priority: 5,
-    skillName: 'Fervid Conviction',
-    name: 'Fervid Conviction'
+  grantAshes(runtime, admission, {
+    source: 'fervid-conviction',
+    cause: guardianCastCause(runtime, cast),
+    charges: stacks,
+    lifetimeSeconds: duration,
+    recipients: { includesSelf: true, maximumAllies: maximumTargets - 1 }
   });
   runtime.effects.emit({
     kind: 'announcement',
@@ -220,28 +209,6 @@ const righteousFlames = defineTrait({
   name: 'Righteous Flames',
   balance: {
     effects: [{ type: 'condition', name: CONDITION.BURNING, condition: CONDITION.BURNING, duration: 2, stacks: 1 }]
-  },
-  hooks: {
-    prepareEvent(runtime, event) {
-      if (
-        !hasTrait(runtime, REWORK.RIGHTEOUS_FLAMES) ||
-        event.type !== 'condition' ||
-        event.condition !== CONDITION.BURNING ||
-        event.sourceId !== 'guardian.ashes-of-the-just'
-      )
-        return event;
-
-      const profile = requireBalanceProfileFromContext(runtime, REWORK.RIGHTEOUS_FLAMES);
-      const burn = requireEffect(profile, 'condition', CONDITION.BURNING);
-
-      if (!burn) return event;
-
-      return {
-        ...event,
-        duration: effectNumber(profile, burn, 'duration'),
-        stacks: effectNumber(profile, burn, 'stacks')
-      };
-    }
   }
 });
 

@@ -1,4 +1,7 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
+import { ASHES_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
+import { resolveAshes, type ResolvedAshes } from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
+import { CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import {
   profileFact,
   simulationEffectFacts,
@@ -17,6 +20,22 @@ import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as FIREBRAND } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { virtueBoons } from '#gw2/professions/guardian/app/tooltips/shared.js';
 import { FIREBRAND_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
+
+/** Resolved Ashes payloads reuse the shared effect formatter so Burning rows match the grant rows' icons and stacks. */
+function ashesBurningFacts(burning: ResolvedAshes['burning'], qualifier: string) {
+  return simulationEffectFacts(
+    [
+      {
+        type: 'condition',
+        name: CONDITION.BURNING,
+        condition: CONDITION.BURNING,
+        stacks: burning.stacks,
+        duration: burning.baseDurationSeconds
+      }
+    ],
+    qualifier
+  ).facts;
+}
 
 const stowTomeTooltip: DescribeSimulationTooltip = skillTooltip(
   'Close the active tome and restore your weapon skills. This ends the current consecutive-page sequence for Swift Scholar.'
@@ -106,28 +125,41 @@ export const firebrandTooltips = {
         ]
       ])
     ),
-    [ID.ASHES_OF_THE_JUST]: skillTooltip(
-      "Grant Ashes of the Just and might to your party. Each recipient's qualifying strikes spend Ashes charges to burn the target, subject to the trigger interval.",
-      (balanceContext) => [
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, FIREBRAND.ashes)
-            .effects?.filter((effect) => effect.type !== 'condition')
-            .map((effect) => ({
-              ...effect,
-              ...(effect.type === 'buff'
-                ? { stacks: tooltipNumber(tooltipProfile(balanceContext, FIREBRAND.ashes), 'maximumStacks') }
-                : {}),
-              audience: { recipients: RECIPIENT.PARTY }
-            })),
-          'party grant'
-        ).facts,
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, FIREBRAND.ashes).effects?.filter((effect) => effect.type === 'condition'),
-          'per charge spent'
-        ).facts,
-        profileFact(balanceContext, FIREBRAND.ashes, 'internalCooldown', 'Minimum trigger interval', tooltipSeconds)
-      ]
-    )
+    [ID.ASHES_OF_THE_JUST]: (context, _entity, _specialization, build) => {
+      // Resolve saved trait positions against the displayed patch; absent build context is explicitly baseline.
+      const ashes = resolveAshes({
+        catalog: context.catalog,
+        traits: new Set(build ? selectedTraits(context.catalog, build.specializations).map((trait) => trait.id) : [])
+      });
+      const grant = simulationEffectFacts(
+        tooltipProfile(context, ASHES_PROFILE.epilogueGrant).effects?.map((effect) => ({
+          ...effect,
+          audience: { recipients: RECIPIENT.PARTY }
+        })),
+        'on cast'
+      ).facts;
+      const perCharge = ashes
+        ? [
+            ...ashesBurningFacts(ashes.burning, build ? 'per charge' : 'baseline per charge · no build selected'),
+            { name: 'Minimum trigger interval', detail: tooltipSeconds(ashes.triggerIntervalSeconds) }
+          ]
+        : [];
+      const adjustment =
+        ashes?.overrideTraitId !== undefined
+          ? [
+              {
+                name: 'Selected adjustment',
+                detail: `${tooltipProfile(context, ashes.payloadProfileId).name} — provisional`
+              },
+              ...ashesBurningFacts(ashes.baseline, 'baseline per charge')
+            ]
+          : [];
+      return {
+        description:
+          "Grant Ashes of the Just and might to your party. Each recipient's qualifying strikes spend one charge to burn the target. Burning values are base values before duration bonuses.",
+        facts: [...grant, ...perCharge, ...adjustment]
+      };
+    }
   },
   traits: {
     [TRAIT.PURITY_OF_WORD]: traitTooltip('Unlock tomes and their shared page resource.'),
@@ -209,7 +241,7 @@ export const firebrandReworkTooltips = {
       ]
     ),
     [REWORK.RIGHTEOUS_FLAMES]: traitTooltip(
-      'Retain Justice passive while dormant. Provisional: configure Ashes base burning duration and Burning stacks per charge. The final improvement is unknown.',
+      'When selected, retain Justice passive while dormant and replace Ashes Burning per charge with these values. Base duration and stacks are provisional; the final improvement is unknown.',
       [],
       'provisional per Ashes charge, before duration bonuses'
     ),

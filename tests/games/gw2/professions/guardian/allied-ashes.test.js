@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { alliedAshes } from '#gw2/professions/guardian/specializations/firebrand/mechanics/effects.js';
+import {
+  grantAshes,
+  resolveAshesGrantData
+} from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
+import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { ASHES_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // A Quickfire-sized grant isolates allied charge retention from the player's tome and strike activity.
@@ -9,9 +14,9 @@ function run({ duration = 5, combatStartTime = 3, output, secondGrantAt, end = 6
   const config = { specialization: 'Firebrand', allies: { count: 2, strikesPerSecond: 2 } };
   const native = guardianProfession.runtimeFor(config);
   const grant = (runtime) =>
-    alliedAshes(
-      runtime,
-      {
+    grantAshes(runtime, resolveAshesGrantData(runtime, runtime.helpers.balanceProfilesById.get(TRAIT.QUICKFIRE)), {
+      source: 'quickfire',
+      cause: {
         type: 'buff',
         at: runtime.time,
         source: 'test',
@@ -20,10 +25,10 @@ function run({ duration = 5, combatStartTime = 3, output, secondGrantAt, end = 6
         activationId: `grant:${runtime.time}`,
         skillName: 'Quickfire'
       },
-      1,
-      duration,
-      { maximumAllies: 1, priority: 0, skillName: 'Quickfire', name: 'Ashes of the Just' }
-    );
+      charges: 1,
+      lifetimeSeconds: duration,
+      recipients: { includesSelf: false, maximumAllies: 1 }
+    });
   return observeGw2Runtime({
     config,
     combatStartTime,
@@ -54,6 +59,13 @@ test('precast Ashes retains its charge for the first eligible allied strike and 
     [[3.5, 1]]
   );
   assert.deepEqual(result.warnings, []);
+  const [burn] = burns(result);
+  assert.equal(burn.actorType, 'player');
+  assert.equal(burn.skillName, 'Quickfire');
+  assert.equal(burn.name, 'Quickfire \u2014 Ally 1 Burning');
+  assert.equal(burn.procType, undefined);
+  assert.equal(burn.icon, undefined);
+  assert.match(burn.activationId, /^grant:0:ally:1:/);
   assert.equal(run({ output: 'score' }).totalDamage, result.totalDamage);
   assert.deepEqual(burns(run({ duration: 2 })), []);
 });
@@ -61,7 +73,8 @@ test('precast Ashes retains its charge for the first eligible allied strike and 
 test('later Ashes grants share the existing cadence and recipient cooldown', () => {
   const options = { combatStartTime: 0, secondGrantAt: 0.8 };
   const first = burns(run({ ...options, end: 1 })).at(-1);
-  const deadline = first.at + 1;
+  const deadline =
+    first.at + guardianProfession.catalog.balanceProfilesById.get(ASHES_PROFILE.mechanic).internalCooldown;
   // A replacement batch waits out the recipient ICD, fires on the strike at its deadline, and keeps the grid.
   assert.ok(burns(run({ ...options, end: deadline - 0.001 })).every(({ at }) => at <= first.at));
   const resumed = burns(run({ ...options, end: deadline })).at(-1);

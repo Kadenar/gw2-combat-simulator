@@ -1,14 +1,17 @@
-import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import {
+  ashesMechanic,
+  epilogueAshesGrant
+} from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
+import { BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 export const FIREBRAND_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'guardian.firebrand.tome-pages',
   tomeJustice: 'guardian.firebrand.tome-justice',
   tomeResolve: 'guardian.firebrand.tome-resolve',
   tomeCourage: 'guardian.firebrand.tome-courage',
-  ashes: 'guardian.firebrand.ashes-of-the-just',
   passiveCourage: 'guardian.firebrand.passive-courage'
 });
 
@@ -45,40 +48,8 @@ export const FIREBRAND_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     cooldown: 45,
     effects: []
   },
-  {
-    id: FIREBRAND_BALANCE_PROFILE_IDS.ashes,
-    name: 'Ashes of the Just',
-    profileKind: 'skill-variant',
-    parentId: ID.ASHES_OF_THE_JUST,
-    maximumStacks: 2,
-    internalCooldown: 1,
-    effects: [
-      {
-        type: 'condition',
-        name: CONDITION.BURNING,
-        condition: CONDITION.BURNING,
-        stacks: 1,
-        duration: 2,
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'buff',
-        name: 'ashes-of-the-just',
-        kind: 'ashes-of-the-just',
-        stacks: 2,
-        duration: 10,
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'boon',
-        name: boonKey(BOON.MIGHT),
-        boon: BOON.MIGHT,
-        stacks: 8,
-        duration: 10,
-        actorType: ACTOR.PLAYER
-      }
-    ]
-  },
+  epilogueAshesGrant,
+  ashesMechanic,
 
   {
     id: FIREBRAND_BALANCE_PROFILE_IDS.passiveCourage,

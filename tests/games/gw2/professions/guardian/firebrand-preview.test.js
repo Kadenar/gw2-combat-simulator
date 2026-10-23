@@ -1,3 +1,9 @@
+import { ASHES_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
+import { resolveAshes } from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
+import { emitAshesForInspection } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
+import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
+import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
+import { firebrandTooltips } from '#gw2/professions/guardian/app/tooltips/firebrand.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { profession, createBuildContext, toApplicationBuild } from '#gw2/professions/guardian/build/context.js';
@@ -228,11 +234,19 @@ test('provisional damage modifiers respect conditions, Ashes ownership, selectio
 
 // Righteous Flames changes the payload per charge for either recipient, while ordinary duration bonuses still apply.
 test('Righteous Flames tunes self and allied Burning per charge only when selected', () => {
-  for (const [selected, previewValues, duration, stacks] of [
-    [true, {}, 3, 1],
-    [true, { ashesDuration: 4, ashesStacks: 2 }, 4, 2],
-    [false, { ashesDuration: 4, ashesStacks: 2 }, 2, 1]
+  for (const [selected, previewValues] of [
+    [true, {}],
+    [true, { ashesDuration: 4 }],
+    [true, { ashesStacks: 2 }],
+    [true, { ashesDuration: 4, ashesStacks: 2 }],
+    [false, { ashesDuration: 4, ashesStacks: 2 }]
   ]) {
+    const catalog = profession.resolvePatch({ id: patchId, values: previewValues }).catalog;
+    const expected = catalog.balanceProfilesById
+      .get(selected ? REWORK.RIGHTEOUS_FLAMES : ASHES_PROFILE.mechanic)
+      .effects.find((effect) => effect.type === 'condition');
+    const { duration, stacks } = expected;
+    const durationBonus = catalog.balanceProfilesById.get(TRAIT.RADIANT_FIRE).conditionDurationBonus;
     const result = run(
       [
         'Tome of Justice',
@@ -262,7 +276,7 @@ test('Righteous Flames tunes self and allied Burning per charge only when select
     assert.ok(applications.every((event) => event.stacks === stacks));
     for (const burn of burns) {
       assert.equal(burn.duration, duration);
-      assert.ok(Math.abs(burn.effectiveDuration - duration * 1.2) < 1e-9);
+      assert.ok(Math.abs(burn.effectiveDuration - duration * (1 + durationBonus)) < 1e-9);
       assert.equal(burn.actorType, 'player');
     }
 
@@ -276,7 +290,11 @@ test('Righteous Flames tunes self and allied Burning per charge only when select
     assert.equal(ordinary.duration, base.duration);
     assert.equal(ordinary.stacks, base.stacks);
     const grant = result.events.find((event) => event.kind === 'ashes-of-the-just');
-    assert.equal(grant.stacks, 2);
+    assert.equal(
+      grant.stacks,
+      catalog.balanceProfilesById.get(ASHES_PROFILE.epilogueGrant).effects.find((effect) => effect.type === 'buff')
+        .stacks
+    );
   }
 });
 
@@ -471,4 +489,207 @@ test('experimental values select independent catalogs, attributes and worker-saf
     { unknown: 1 }
   ])
     assert.throws(() => profession.resolvePatch({ id: patchId, values: invalid }).catalog, /Invalid provisional value/);
+});
+
+// The selected ruleset owns ID 2179; numeric and serialized string IDs select the same replacement.
+test('Ashes resolves live Quickfire and preview Righteous Flames without mixing their catalogs', () => {
+  for (const id of ['current', patchId]) {
+    const catalog = profession.resolvePatch({
+      id,
+      ...(id === patchId ? { values: { ashesDuration: 4, ashesStacks: 2 } } : {})
+    }).catalog;
+    const base = catalog.balanceProfilesById.get(ASHES_PROFILE.mechanic).effects[0];
+    for (const traitId of [REWORK.RIGHTEOUS_FLAMES, String(REWORK.RIGHTEOUS_FLAMES)]) {
+      const resolved = resolveAshes({ catalog, traits: new Set([traitId]) });
+      assert.deepEqual(resolved.baseline, { stacks: base.stacks, baseDurationSeconds: base.duration });
+      assert.deepEqual(resolved.burning, id === patchId ? { stacks: 2, baseDurationSeconds: 4 } : resolved.baseline);
+      assert.equal(resolved.payloadProfileId, id === patchId ? REWORK.RIGHTEOUS_FLAMES : ASHES_PROFILE.mechanic);
+      assert.equal(resolved.overrideTraitId, id === patchId ? REWORK.RIGHTEOUS_FLAMES : undefined);
+    }
+  }
+});
+
+test('Ashes rejects malformed references and missing selected data while intentional removal retains its contract', () => {
+  const selected = profession.resolvePatch({ id: patchId }).catalog;
+  const mechanic = selected.balanceProfilesById.get(ASHES_PROFILE.mechanic);
+  const select = (profiles) =>
+    resolveAshes({
+      catalog: { ...selected, balanceProfilesById: profiles },
+      traits: new Set([REWORK.RIGHTEOUS_FLAMES])
+    });
+  for (const reference of [null, {}, '', NaN]) {
+    const profiles = new Map(selected.balanceProfilesById);
+    profiles.set(mechanic.id, { ...mechanic, burningOverrideTrait: reference });
+    assert.throws(() => select(profiles), /Invalid Ashes burningOverrideTrait/);
+  }
+
+  const missing = new Map(selected.balanceProfilesById);
+  missing.delete(REWORK.RIGHTEOUS_FLAMES);
+  assert.throws(() => select(missing), /Missing.*profile/i);
+  for (const removedId of [ASHES_PROFILE.mechanic, REWORK.RIGHTEOUS_FLAMES]) {
+    const patched = withPatchPreview(guardianProfession, {
+      id: 'ashes-removal',
+      label: 'Ashes removal',
+      professions: {
+        guardian: {
+          reworks: ['firebrand-rework'],
+          balanceProfiles: { [removedId]: { removeEffects: [{ type: 'condition', name: 'Burning' }] } }
+        }
+      }
+    });
+    const catalog = patched.resolvePatch({ id: 'ashes-removal' }).catalog;
+    const resolved = resolveAshes({ catalog, traits: new Set([REWORK.RIGHTEOUS_FLAMES]) });
+
+    if (removedId === ASHES_PROFILE.mechanic) assert.equal(resolved, undefined);
+    else {
+      assert.deepEqual(resolved.burning, resolved.baseline);
+      assert.equal(resolved.overrideTraitId, undefined);
+    }
+  }
+});
+
+test('Ashes inspection retains passive payload tuning with trait producers disabled and leaves charges untouched', () => {
+  const overrides = {
+    selectedTraitIds: [REWORK.RIGHTEOUS_FLAMES],
+    previewValues: { ashesDuration: 4, ashesStacks: 2 }
+  };
+  let before;
+  let after;
+  const result = run([wait(100)], overrides, {
+    profession: { runtimeFor: (config) => profession.runtimeFor(config, { traitTriggers: false }) },
+    timeline: [
+      {
+        at: 0.01,
+        run(runtime) {
+          runtime.profession.specialization.state.ashes = { charges: 7, expiresAt: 9, readyAt: 3 };
+          before = { ...runtime.profession.specialization.state.ashes };
+          emitAshesForInspection(runtime, { type: 'damage', at: runtime.time, activationId: 'inspection' });
+          after = { ...runtime.profession.specialization.state.ashes };
+        }
+      }
+    ]
+  });
+  assert.deepEqual(after, before);
+  const burn = result.resolvedEvents.find((event) => event.sourceId === 'guardian.ashes-of-the-just');
+  assert.equal(burn.duration, 4);
+  assert.equal(
+    result.resolvedEvents
+      .filter((event) => event.sourceId === 'guardian.ashes-of-the-just')
+      .reduce((stacks, event) => stacks + event.stacks, 0),
+    2
+  );
+  const config = { ...overrides, specialization: 'Firebrand', patchId };
+  const occurrence = damageOccurrences(profession.runtimeFor(config), config).find(
+    (entry) => entry.effect.id === 'ashes'
+  );
+  assert.equal(occurrence.unit, 'charge');
+  const measured = evaluateSkillDamage(
+    { config, inputs: { includeTraitProcs: 0 }, occurrences: [occurrence] },
+    profession
+  ).occurrences[0];
+  assert.equal(measured.status, 'measured');
+  assert.equal(measured.measurement.conditions[0].baseDurationSeconds, 4);
+});
+
+// A multi-stack payload spends one charge and remains passive when producer triggers are disabled.
+test('one eligible personal hit spends one charge for the selected Burning payload', () => {
+  const isolated = { runtimeFor: (config) => profession.runtimeFor(config, { traitTriggers: false }) };
+  const result = run(
+    [SKILL.TOME_OF_JUSTICE, SKILL.ASHES_OF_THE_JUST, wait(1000)],
+    {
+      selectedTraitIds: [REWORK.RIGHTEOUS_FLAMES],
+      previewValues: { ashesDuration: 4, ashesStacks: 2 }
+    },
+    {
+      profession: isolated,
+      initialize(runtime) {
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'damage',
+            at: 1,
+            source: 'guardian',
+            sourceId: SKILL.ORB_OF_WRATH,
+            skillId: SKILL.ORB_OF_WRATH,
+            actorType: 'player',
+            coefficient: 1,
+            weaponStrengthProfileId: 'weapon.scepter',
+            activationId: 'one-strike'
+          }
+        });
+      }
+    }
+  );
+  const grant = result.events.find((event) => event.kind === 'ashes-of-the-just');
+  assert.equal(result.planningState.profession.ashes.charges, grant.stacks - 1);
+  const burns = result.resolvedEvents.filter((event) => event.sourceId === 'guardian.ashes-of-the-just');
+  assert.equal(
+    burns.reduce((sum, burn) => sum + burn.stacks, 0),
+    2
+  );
+  for (const burn of burns) {
+    assert.equal(burn.duration, 4);
+    assert.equal(burn.activationId, 'one-strike');
+    assert.equal(burn.procType, 'profession');
+    assert.equal(burn.name, 'Ashes of the Just \u2014 Burning');
+    assert.equal(burn.skillId, SKILL.ASHES_OF_THE_JUST);
+  }
+});
+
+test('Ashes tooltips resolve build trait positions and distinguish baseline from selected provisional Burning', () => {
+  const patch = profession.resolvePatch({ id: patchId, values: { ashesDuration: 4, ashesStacks: 2 } });
+  const skill = patch.catalog.skillsById.get(SKILL.ASHES_OF_THE_JUST);
+  const tooltip = (build) =>
+    firebrandTooltips.skills[SKILL.ASHES_OF_THE_JUST](patch.balanceContext, skill, 'Firebrand', build);
+  const selected = tooltip({
+    specializations: [{ name: 'Firebrand', traits: '3-3-3', patchTraits: { [patchId]: '1-1-1' } }]
+  });
+  // Burning rows use the shared effect formatter: stacks are a fact field and the qualifier names the row.
+  const burning = (facts, stacks, duration, qualifier) =>
+    facts.some(
+      (fact) => fact.name === 'Burning' && fact.stacks === stacks && fact.detail === `${duration}s — ${qualifier}`
+    );
+  const base = patch.catalog.balanceProfilesById.get(ASHES_PROFILE.mechanic).effects[0];
+  assert.ok(burning(selected.facts, 2, 4, 'per charge'));
+  assert.ok(burning(selected.facts, base.stacks, base.duration, 'baseline per charge'));
+  assert.ok(
+    selected.facts.some(
+      (fact) => fact.name === 'Selected adjustment' && /Righteous Flames.*provisional/.test(fact.detail)
+    )
+  );
+  const unselected = tooltip({
+    specializations: [{ name: 'Firebrand', traits: '1-1-1', patchTraits: { [patchId]: '1-1-3' } }]
+  });
+  assert.ok(!unselected.facts.some((fact) => fact.name === 'Selected adjustment'));
+  assert.ok(burning(unselected.facts, base.stacks, base.duration, 'per charge'));
+  assert.ok(burning(tooltip().facts, base.stacks, base.duration, 'baseline per charge · no build selected'));
+});
+
+test('Ashes Burning edits remain relevant to a grant-trait build without an Epilogue cast', () => {
+  const patched = withPatchPreview(guardianProfession, {
+    id: 'ashes-overview',
+    label: 'Ashes overview',
+    professions: {
+      guardian: {
+        balanceProfiles: {
+          [ASHES_PROFILE.mechanic]: { effects: [{ type: 'condition', name: 'Burning', duration: 4 }] },
+          [ASHES_PROFILE.epilogueGrant]: { effects: [{ type: 'buff', name: 'ashes-of-the-just', duration: 7 }] }
+        }
+      }
+    }
+  });
+  const notes = patched.patchOverviewFor(
+    { specialization: 'Firebrand', selectedTraitIds: [TRAIT.QUICKFIRE], selectedSkillIds: [] },
+    []
+  );
+  assert.ok(
+    notes.some(
+      (entry) => entry.subject === guardianProfession.catalog.balanceProfilesById.get(ASHES_PROFILE.mechanic).name
+    )
+  );
+  assert.ok(
+    !notes.some(
+      (entry) => entry.subject === guardianProfession.catalog.balanceProfilesById.get(ASHES_PROFILE.epilogueGrant).name
+    )
+  );
 });
