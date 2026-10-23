@@ -47,7 +47,7 @@ function previewApp(name, traitNames = [], specialization = null) {
     results: null,
     profession: adapter.profession,
     activeCatalog: adapter.profession.catalog,
-    patchId: 'current',
+    patch: adapter.profession.resolvePatch({ id: 'current' }),
     attributeWeaponSet: 1,
     build: {
       ...createDefaultBuild(adapter),
@@ -58,8 +58,8 @@ function previewApp(name, traitNames = [], specialization = null) {
   app.attributeData = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   for (const name of traitNames)
@@ -80,7 +80,9 @@ const stats = (app, input = {}) => {
 test('Spellbreaker previews share capped Insight stacks independently of Signet Mastery', () => {
   const app = previewApp('warrior', ['Signet Mastery', 'Great Fortitude'], 'Spellbreaker');
   app.build.utility = 'Superior Sharpening Stone';
-  app.attributeData = app.adapter.createBuildContext({ build: app.build, patchId: 'current' }).attributes(1);
+  app.attributeData = app.adapter
+    .createBuildContext({ build: app.build, patch: app.adapter.profession.resolvePatch({ id: 'current' }) })
+    .attributes(1);
   const saved = structuredClone(app.build);
   const controls = skillDamageControls(app);
   for (const calculate of [
@@ -117,8 +119,8 @@ test('Signet of Fury replaces passive Precision with active Precision and Feroci
     app.attributeData = app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const saved = structuredClone(app.build);
@@ -149,8 +151,8 @@ test('Signet of Fury replaces passive Precision with active Precision and Feroci
     app.attributeData = app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     assert.equal(
@@ -169,8 +171,8 @@ test('Mechanist signet toggles independently honor J-Drive bonus strength', () =
     app.attributeData = app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const saved = structuredClone(app.build);
@@ -220,8 +222,8 @@ test('Engineer sword damage rows use Holosmith variants only for Holosmith', () 
     app.attributeData = app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const controls = skillDamageControls(app);
@@ -246,8 +248,8 @@ test("Assassin's Signet previews Off, Passive and Active as mutually exclusive P
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const unequipped = stats(app).Power.final;
@@ -255,8 +257,8 @@ test("Assassin's Signet previews Off, Passive and Active as mutually exclusive P
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const saved = structuredClone({ build: app.build, attributes: app.attributeData });
@@ -294,8 +296,8 @@ test("Assassin's Signet previews Off, Passive and Active as mutually exclusive P
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   for (const available of [skillDamageControls(app), attributeEffectControls(app)])
@@ -380,8 +382,8 @@ test('Berserk gives ordinary and primal previews their native attributes and tra
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const base = stats(app);
@@ -425,8 +427,8 @@ for (const [profession, specialization, skillName, key, weapons] of [
     app.attributeData = app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     assert.ok(
@@ -453,8 +455,8 @@ for (const [profession, trait, key, value, attribute] of [
       app.attributeData = app.adapter
         .createBuildContext({
           build: app.build,
-          patchId: app.patchId ?? 'current',
-          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+          patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
         })
         .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     }
@@ -504,8 +506,8 @@ test('Revenant upkeep gives the same outgoing factor to the stat strip and a wea
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const controls = skillDamageControls(app);
@@ -534,8 +536,8 @@ test('Cartridges apply the selected explosion bonus and leave ordinary strikes a
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const controls = skillDamageControls(app);
@@ -563,8 +565,8 @@ test('anonymous target conditions remain bounded alongside named damage conditio
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const controls = skillDamageControls(app);
@@ -588,8 +590,8 @@ test('Life Siphon previews its Bleeding-target bonus without applying actual Ble
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const controls = skillDamageControls(app);

@@ -53,13 +53,18 @@ test('simulation config snapshots preferences without adding them to imported or
   const build = createDefaultBuild(mesmerAppAdapter);
   const original = JSON.stringify(build);
   const app = {
+    patch: mesmerAppAdapter.profession.resolvePatch(),
     adapter: mesmerAppAdapter,
     build,
     activeCatalog: mesmerAppAdapter.profession.catalog,
     simulationSettings: { transitionDelays: normalizeTransitionDelays({ weaponSwapMs: 100 }) }
   };
   const config = mesmerAppAdapter
-    .createBuildContext({ build, patchId: 'current', transitionDelays: app.simulationSettings.transitionDelays })
+    .createBuildContext({
+      build,
+      transitionDelays: app.simulationSettings.transitionDelays,
+      patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' })
+    })
     .simulationConfig();
   app.simulationSettings.transitionDelays.weaponSwapMs = 200;
   assert.equal(config.transitionDelays.weaponSwapMs, 100);
@@ -76,7 +81,7 @@ test('optimizer workers retain a snapshot of simulation preferences outside the 
     adapter: mesmerAppAdapter,
     build,
     contentId: 'mesmer',
-    patchId: 'current',
+    patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
     buildRevision: 1,
     simulationSettings: { transitionDelays: normalizeTransitionDelays({ weaponSwapMs: 100 }) }
   };
@@ -122,10 +127,9 @@ function settingsWorkspace(t, initialDelay = 0) {
   const app = Object.assign(Object.create(ProfessionApp.prototype), emptyBuildTabSession(), {
     adapter,
     profession: adapter.profession,
-    activeCatalog: adapter.profession.catalog,
     workspace: { tabs: [tab], activeTabId: tab.id },
     build,
-    patchId: 'current',
+    patch: adapter.profession.resolvePatch({ id: 'current' }),
     buildRevision: 1,
     resultRevision: -1,
     simulationStatus: 'queued',
@@ -158,8 +162,8 @@ function settingsWorkspace(t, initialDelay = 0) {
   app.attributeData = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   settle();

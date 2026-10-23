@@ -66,7 +66,6 @@ test('build contexts calculate each requested weapon set once and detach configu
   const createBuildContext = bindBuildContext(
     mesmerAppAdapter.profession,
     {
-      getActiveTraits: () => [{ id: 1, name: 'Test' }],
       attributeContributions: ({ weaponSet }) => {
         calculatedSets.push(weaponSet);
         return [
@@ -77,7 +76,18 @@ test('build contexts calculate each requested weapon set once and detach configu
     () => ({}),
     { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }
   );
-  const input = { build: createDefaultBuild(), patchId: 'current', transitionDelays: normalizeTransitionDelays() };
+  const input = {
+    build: createDefaultBuild(),
+    patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
+    transitionDelays: normalizeTransitionDelays()
+  };
+  // Trait membership now comes from the selected layout, including for synthetic attribute callbacks.
+  const catalog = {
+    ...input.patch.catalog,
+    specializations: [{ name: 'Test line', minorTraits: [{ id: 1, name: 'Test' }], majorTraits: [] }]
+  };
+  input.patch = { ...input.patch, catalog, balanceContext: { ...input.patch.balanceContext, catalog } };
+  input.build.specializations = [{ name: 'Test line', traits: '0-0-0' }];
   for (const type of [null, 'Trait', 'Boon', 'Sigil', 'Food', 'Skill']) {
     calculatedSets.length = 0;
     const context = createBuildContext({
@@ -111,7 +121,7 @@ test('modifier requests preserve workspace target settings for baseline and remo
   // Every relic must retain finite health and starting health, including when the relic itself is removed.
   for (const relic of ['', 'Thief', 'Fractal', 'Eagle']) {
     const app = {
-      patchId: 'current',
+      patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
       build: { rotation: [], relic, assumptions: { might: 1 }, weaponSigils: [], food: '' },
       attributeData: { activeTraits: [] }
     };
@@ -390,7 +400,11 @@ test('simulation config aggregates each weapon set sigils independently', () => 
     ['Bursting', 'Malice']
   ];
   const config = mesmerAppAdapter
-    .createBuildContext({ build, patchId: 'current', transitionDelays: normalizeTransitionDelays() })
+    .createBuildContext({
+      build,
+      transitionDelays: normalizeTransitionDelays(),
+      patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' })
+    })
     .simulationConfig();
 
   assert.equal(config.sigilSets[0].strike, 1.05);
@@ -467,7 +481,11 @@ test('Mesmer browser simulations allow weapons from other specializations', () =
     ID.LINGERING_THOUGHTS,
     ID.AXES_OF_SYMMETRY
   ].map(cast);
-  const app = { patchId: 'current', build, attributeData: calcAttributes(build, []) };
+  const app = {
+    patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
+    build,
+    attributeData: calcAttributes(build, [])
+  };
 
   assert.deepEqual(
     mesmerAppAdapter
@@ -487,7 +505,11 @@ test('simulation config preserves non-sigil condition duration bonuses', () => {
     ['Bursting', 'Demons']
   ];
   const config = mesmerAppAdapter
-    .createBuildContext({ build, patchId: 'current', transitionDelays: normalizeTransitionDelays() })
+    .createBuildContext({
+      build,
+      transitionDelays: normalizeTransitionDelays(),
+      patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' })
+    })
     .simulationConfig();
 
   assert.equal(config.attributeInputs.weaponSets[0].commonTotals.conditionDurationBonus, 15);
@@ -505,7 +527,11 @@ test('Mesmer runtime includes Malicious Sorcery once through panel-derived stats
   build.specializations.find((spec) => spec.name === 'Illusions').traits = '1-2-3';
   const attributeData = calcAttributes(build, []);
   const config = mesmerAppAdapter
-    .createBuildContext({ build, patchId: 'current', transitionDelays: normalizeTransitionDelays() })
+    .createBuildContext({
+      build,
+      transitionDelays: normalizeTransitionDelays(),
+      patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' })
+    })
     .simulationConfig();
 
   assert.equal(attributeData.attributes['Confusion Duration'].traits, 25);
@@ -524,7 +550,11 @@ test('simulation config exposes the selected target skill activation rate', () =
 
   build.assumptions.targetSkillActivationsPerSecond = 1.25;
   const config = mesmerAppAdapter
-    .createBuildContext({ build, patchId: 'current', transitionDelays: normalizeTransitionDelays() })
+    .createBuildContext({
+      build,
+      transitionDelays: normalizeTransitionDelays(),
+      patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' })
+    })
     .simulationConfig();
 
   assert.equal(config.target.activatingSkills, true);
@@ -536,7 +566,11 @@ test('simulation config does not multiply duplicate sigil effects', () => {
 
   build.weaponSigils[0] = ['Force', 'Force'];
   const config = mesmerAppAdapter
-    .createBuildContext({ build, patchId: 'current', transitionDelays: normalizeTransitionDelays() })
+    .createBuildContext({
+      build,
+      transitionDelays: normalizeTransitionDelays(),
+      patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' })
+    })
     .simulationConfig();
 
   assert.equal(config.sigilSets[0].strike, 1.05);
@@ -549,7 +583,7 @@ test('modifier contributions compare the active build against each modifier remo
   build.relic = '';
   build.selectedSkillIds = {};
   const app = {
-    patchId: 'current',
+    patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
     build,
     attributeData: calcAttributes(build, []),
     attributeWeaponSet: 1,
@@ -580,7 +614,7 @@ test('Accuracy comparisons remove its attribute and one-strike critical chance b
   const attributeData = calcAttributes(build, []);
   const withoutAccuracy = calcAttributes(build, [], 1, null, 'Accuracy');
   const app = {
-    patchId: 'current',
+    patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
     build,
     attributeData,
     attributeWeaponSet: 1,
@@ -608,7 +642,7 @@ test('food comparisons remove both nourishment procs and attribute bonuses', () 
   build.food = 'Plate of Coq Au Vin with Salsa';
   build.selectedSkillIds = {};
   const app = {
-    patchId: 'current',
+    patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
     build,
     attributeData: calcAttributes(build, []),
     attributeWeaponSet: 1,
@@ -639,7 +673,7 @@ test('interactive simulation leaves contribution passes to the background worker
   build.relic = '';
   build.selectedSkillIds = {};
   const app = {
-    patchId: 'current',
+    patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
     build,
     attributeData: calcAttributes(build, []),
     attributeWeaponSet: 1,

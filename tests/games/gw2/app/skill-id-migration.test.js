@@ -128,7 +128,12 @@ function mockStorage(t) {
 test('JSON import converts old skill names once and exports reloadable IDs', () => {
   const saved = oldBuild();
   const original = structuredClone(saved);
-  const app = { adapter, build: adapter.profession.createBuildDefaults(), changed() {} };
+  const app = {
+    patch: adapter.profession.resolvePatch(),
+    adapter,
+    build: adapter.profession.createBuildDefaults(),
+    changed() {}
+  };
   const preview = previewBuildFileImport(saved, 'old-build.json', app);
   assert.deepEqual(saved, original);
   assert.equal(Object.hasOwn(preview.build, 'selectedSkills'), false);
@@ -199,7 +204,7 @@ test('failed legacy conversion preserves every original storage envelope and the
   for (const load of [loadBuild, loadBuildWorkspace, loadMyBuilds])
     assert.throws(() => load(adapter), /Cannot migrate/);
   assert.deepEqual([...values], original);
-  const app = { adapter, build: adapter.profession.createBuildDefaults() };
+  const app = { patch: adapter.profession.resolvePatch(), adapter, build: adapter.profession.createBuildDefaults() };
   const current = app.build;
   assert.throws(() => previewBuildFileImport(invalid, 'old.json', app), /Cannot migrate/);
   assert.equal(app.build, current);

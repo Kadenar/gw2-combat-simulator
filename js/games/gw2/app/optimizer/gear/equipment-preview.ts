@@ -18,7 +18,7 @@ import type { ProfessionAppState } from '#gw2/app/types.js';
 export function renderOptimizerPreview(
   container: HTMLElement,
   app: ProfessionAppState,
-  request: Pick<GearOptimizerRequest, 'build' | 'patchId'> = app,
+  request: Pick<GearOptimizerRequest, 'build' | 'patch'> = app,
   candidate?: OptimizerCandidate,
   weaponSet = request.build.startingWeaponSet,
   onApply?: () => void
@@ -27,19 +27,19 @@ export function renderOptimizerPreview(
   // Preserve the disclosure alongside its inputs when rebuilding a candidate preview.
   const attributePreviewOpen = container.querySelector('.attribute-effects')?.hasAttribute('open') ?? false;
   const build = structuredClone({ ...request.build, ...candidate?.equipment });
-  const activeCatalog = app.profession.catalogFor(request.patchId);
+  const patch = app.profession.resolvePatch(request.patch);
   const preview = {
     adapter: app.adapter,
     profession: app.profession,
     simulationSettings: app.simulationSettings,
     build,
-    patchId: request.patchId,
-    activeCatalog,
+    patch,
+    activeCatalog: patch.catalog,
     attributeWeaponSet: weaponSet,
     attributeData: app.adapter
       .createBuildContext({
         build,
-        patchId: request.patchId,
+        patch,
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
       })
       .attributes(weaponSet === 2 ? 2 : 1)

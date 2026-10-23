@@ -130,7 +130,7 @@ for (const entry of cases) {
       );
     }
 
-    const context = profession.balanceContextFor('triggered-skill-owner');
+    const context = profession.resolvePatch({ id: 'triggered-skill-owner' }).balanceContext;
     const trait = context.catalog.traits.find((value) => value.id === entry.trait);
     const facts = describeSimulationTrait(context, trait, engineerTooltips).facts;
     assert.ok(

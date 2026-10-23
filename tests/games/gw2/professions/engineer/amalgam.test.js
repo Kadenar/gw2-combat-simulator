@@ -601,7 +601,7 @@ test('Amalgam app config excludes temporary attributes from Evolve', () => {
     { name: 'Amalgam', traits: '2-2-3' }
   ];
   const app = {
-    patchId: 'current',
+    patch: engineerAppAdapter.profession.resolvePatch({ id: 'current' }),
     build: toApplicationBuild(canonical),
     activeCatalog: engineerCatalog,
     attributeWeaponSet: 1
@@ -610,15 +610,15 @@ test('Amalgam app config excludes temporary attributes from Evolve', () => {
   app.attributeData = engineerAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: engineerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const config = engineerAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: engineerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .simulationConfig();
 
@@ -636,7 +636,7 @@ test('Amalgam food comparisons use the recalculated Evolve attribute pool', () =
     { name: 'Amalgam', traits: '2-2-3' }
   ];
   const app = {
-    patchId: 'current',
+    patch: engineerAppAdapter.profession.resolvePatch({ id: 'current' }),
     build: toApplicationBuild(canonical),
     activeCatalog: engineerCatalog,
     attributeWeaponSet: 1
@@ -645,8 +645,8 @@ test('Amalgam food comparisons use the recalculated Evolve attribute pool', () =
   app.attributeData = engineerAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: engineerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const request = engineerAppAdapter.modifierContributionRequest(app);
@@ -692,7 +692,7 @@ test('Amalgam build assumptions map to the canonical runtime configuration', () 
     ];
     canonical.assumptions.inDamagingField = inDamagingField;
     const app = {
-      patchId: 'current',
+      patch: engineerAppAdapter.profession.resolvePatch({ id: 'current' }),
       adapter: engineerAppAdapter,
       build: toApplicationBuild(canonical),
       activeCatalog: engineerCatalog,
@@ -701,15 +701,15 @@ test('Amalgam build assumptions map to the canonical runtime configuration', () 
     app.attributeData = engineerAppAdapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: engineerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const config = engineerAppAdapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: engineerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig();
 

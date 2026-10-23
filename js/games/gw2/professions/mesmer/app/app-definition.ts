@@ -22,7 +22,7 @@ export const mesmerAppAdapter = defineProfessionApp({
     };
   },
   storageVersion: 2,
-  isSkillAvailable(skill, { specialization } = {}) {
+  isSkillAvailable(skill, { specialization }) {
     return !skill.ambush || specialization === 'Mirage';
   },
   defaultOffhand() {

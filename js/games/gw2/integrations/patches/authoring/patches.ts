@@ -101,9 +101,29 @@ export interface ModifierRulePatchEdit {
 }
 
 export interface ProfessionPatchPreview {
+  /** Select registered executable reworks before applying numeric edits. */
+  readonly reworks?: readonly string[];
+  /** Explicit, bounded controls for session-only experiments with unpublished values. */
+  readonly provisional?: readonly ProvisionalParameter[];
   readonly skills?: Readonly<Record<string, SkillPatchEdit>>;
   readonly balanceProfiles?: Readonly<Record<string, SkillPatchEdit>>;
   readonly modifierRules?: Readonly<Record<string, ModifierRulePatchEdit>>;
+}
+
+export interface ProvisionalParameter {
+  readonly id: string;
+  readonly label: string;
+  readonly specialization: string;
+  /** Associate controls with equipped traits even when their balance profile has a different identity. */
+  readonly traitId: string;
+  readonly profileId: string;
+  readonly field: string;
+  readonly effect?: EffectSelector;
+  readonly minimum: number;
+  readonly maximum: number;
+  readonly step: number;
+  /** Keep condition stacks distinct from consumable charges in provisional controls. */
+  readonly unit: '%' | 's' | 'charges' | 'stacks';
 }
 
 /** Patch-scoped reworks keep unsettled builds visible without publishing a misleading DPS comparison. */

@@ -19,7 +19,7 @@ export function prepareComparisonRequest(
   const build = adapter.toApplicationBuild({ ...buildData, rotation: rotationItems });
   const context = adapter.createBuildContext({
     build,
-    patchId: 'current',
+    patch: adapter.profession.resolvePatch(),
     transitionDelays: normalizeTransitionDelays(undefined)
   });
   return {

@@ -1,8 +1,8 @@
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { PatchSelection, ResolvedPatch } from '#gw2/integrations/patches/selection.js';
+import type { BalanceProfile, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
 import type { PatchPreview, ProfessionPatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 
@@ -72,8 +72,7 @@ export type NativePatchAuthoringContract<
   readonly preview: PatchPreview | null;
   /** Build-scoped notes share native ownership and equipment eligibility with simulation. */
   readonly patchOverviewFor: (config: Gw2Config, observedIds: readonly SkillId[]) => readonly PatchOverviewEntry[];
-  readonly catalogFor: (patchId?: string) => Readonly<CanonicalCatalog>;
-  readonly balanceContextFor: (patchId?: string) => ProfessionBalanceContext;
+  readonly resolvePatch: (selection?: PatchSelection) => ResolvedPatch;
   /** Serializable live metadata consumed by the local patch authoring UI. */
   readonly patchAuthoring: NativePatchAuthoringMetadata;
   /** Validates one profession's authored edits against live declarations. */

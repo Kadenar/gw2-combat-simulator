@@ -1,3 +1,4 @@
+import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import type {
   ProfessionAttributePreviewContext,
@@ -60,7 +61,7 @@ export function bindReaperUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill
     resourceViews: (context: NecromancerUiContext): ProfessionResourceView[] =>
       necromancerSoulShardResourceViews(context),
     // Suppress the default 50% Gravedigger threshold when the core layer already defines its own thresholds.
-    targetHealthThresholds: (context: NecromancerUiContext) =>
+    targetHealthThresholds: (context: NecromancerUiContext & ProfessionCatalogContext) =>
       necromancerCoreTargetHealthThresholds(context).length ? [] : [0.5]
   });
 }

@@ -19,7 +19,7 @@ export function clampStartingResourceValues(app: ProfessionAppState, specializat
 
 /** Applies one picker choice while keeping lines unique and placing the sole elite line at the bottom. */
 export function selectSpecialization(app: ProfessionAppState, line: number, name: string): void {
-  const specializations = app.specializations as unknown as readonly ProfessionSpecialization[];
+  const specializations = app.activeCatalog.specializations as unknown as readonly ProfessionSpecialization[];
   const current = app.build.specializations[line];
   const selected = specializations.find((specialization) => specialization.name === name);
 
@@ -67,7 +67,7 @@ export function renderTraits(app: ProfessionAppState): void {
 
   if (!container) throw new Error('Required traits panel is missing.');
 
-  const specializations = app.specializations as unknown as readonly ProfessionSpecialization[];
+  const specializations = app.activeCatalog.specializations as unknown as readonly ProfessionSpecialization[];
   const selectedNames = app.build.specializations.map((spec) => spec.name);
   // Trait payloads follow the build's elite specialization, including unselected traits being inspected.
   const eliteSpecialization = app.adapter.eliteSpecialization(app.build);
@@ -130,14 +130,14 @@ export function renderTraits(app: ProfessionAppState): void {
                                     <button type="button" class="spec-trait-minor ${selection.disabledMinorTraits?.includes(tier) ? 'dim' : 'sel'}"
                                       data-line="${lineIndex}" data-tier="${tier}" data-pick="0"
                                       aria-pressed="${!selection.disabledMinorTraits?.includes(tier)}" aria-label="${esc(minor.name)}"
-                                      ${traitTooltipAttributes(minor, app.adapter.traitTooltip(minor, app.patchId, eliteSpecialization))}><img src="${esc(minor.icon)}" alt=""></button>
+                                      ${traitTooltipAttributes(minor, app.adapter.traitTooltip(minor, app.patch, eliteSpecialization))}><img src="${esc(minor.icon)}" alt=""></button>
                                     <div class="spec-trait-majors">${spec.majorTraits[tier]
                                       .map(
                                         (trait, position) =>
                                           `<button type="button" class="spec-trait-major ${picks[tier] === position + 1 ? 'sel' : 'dim'}"
                                             data-line="${lineIndex}" data-tier="${tier}" data-pick="${position + 1}"
                                             aria-pressed="${picks[tier] === position + 1}" aria-label="${esc(trait.name)}"
-                                            ${traitTooltipAttributes(trait, app.adapter.traitTooltip(trait, app.patchId, eliteSpecialization))}><img src="${esc(trait.icon)}" alt=""></button>`
+                                            ${traitTooltipAttributes(trait, app.adapter.traitTooltip(trait, app.patch, eliteSpecialization))}><img src="${esc(trait.icon)}" alt=""></button>`
                                       )
                                       .join('')}</div>
                                 </div>`;

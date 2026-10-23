@@ -32,6 +32,7 @@ export function createNativeApp({ lines, rotation = [], ...extras }) {
     ...extras
   });
   const app = {
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
@@ -42,8 +43,8 @@ export function createNativeApp({ lines, rotation = [], ...extras }) {
   app.attributeData = elementalistAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: elementalistAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
 
@@ -59,8 +60,8 @@ export function runNative(options) {
     elementalistAppAdapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: elementalistAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig(),
     {

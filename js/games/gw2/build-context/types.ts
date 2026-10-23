@@ -1,16 +1,14 @@
+import type { PatchSelection, ResolvedPatch } from '#gw2/integrations/patches/selection.js';
 import type { Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type {
   Gw2AttributeContributionCalculator,
   Gw2FinalizedAttributeResult
 } from '#gw2/platform/attributes/types.js';
-import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 import type { ResolvedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import type { TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { CatalogEntity, SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type { AnyNativeModule } from '#gw2/platform/profession-definition/module-types.js';
 import type { NativePatchAuthoringContract } from '#gw2/integrations/patches/authoring/module-types.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
@@ -33,7 +31,6 @@ export interface BuildAttributes extends Readonly<Gw2FinalizedAttributeResult> {
 
 /** Trait selection is independent of the profession effects evaluated only for requested previews. */
 export interface BuildContextAttributeRules {
-  readonly getActiveTraits: (specializations: readonly ProfessionTraitSelection[]) => readonly CatalogEntity[];
   readonly attributeContributions: Gw2AttributeContributionCalculator;
 }
 
@@ -46,7 +43,7 @@ export interface BuildContextDeclarations<TBuild extends Gw2CanonicalBuild> {
 /** A context borrows an immutable build for one calculation; callers create a new context after edits. */
 export interface BuildContextInput<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
   readonly build: Readonly<TBuild>;
-  readonly patchId: string;
+  readonly patch: ResolvedPatch;
   readonly transitionDelays: Readonly<TransitionDelays>;
   readonly disabledModifier?: Readonly<ProfessionModifier>;
 }
@@ -67,8 +64,7 @@ export type BuildContextFactory<TBuild extends Gw2CanonicalBuild = Gw2CanonicalB
 export type BuildContextProfession = Gw2ProfessionSource & {
   readonly preview?: PatchPreview | null;
   /** Bound professions resolve the selected patch and reject unavailable patch IDs. */
-  readonly catalogFor: (patchId?: string) => Readonly<CanonicalCatalog>;
-  readonly balanceContextFor: (patchId?: string) => ProfessionBalanceContext;
+  readonly resolvePatch: (selection?: PatchSelection) => ResolvedPatch;
 };
 
 export interface BuildContextModule {

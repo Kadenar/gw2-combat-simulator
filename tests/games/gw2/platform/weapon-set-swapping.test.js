@@ -168,6 +168,7 @@ test('restricted palettes expose both sets precombat and only the active set in 
   build.weapons = ['Rifle', ''];
   build.alternateWeapons = ['Pistol', 'Shield'];
   const app = {
+    patch: adapter.profession.resolvePatch(),
     adapter,
     profession: adapter.profession,
     build,

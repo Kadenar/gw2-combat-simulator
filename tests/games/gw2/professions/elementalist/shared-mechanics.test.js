@@ -320,6 +320,7 @@ test('rotation palette resolves equipped glyphs to the active attunement', () =>
     }
   });
   const app = {
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,

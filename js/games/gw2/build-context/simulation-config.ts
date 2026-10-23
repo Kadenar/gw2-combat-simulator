@@ -3,7 +3,8 @@ import type { Gw2AttributeSeed } from '#gw2/platform/attributes/types.js';
 import type { BuildContextInput, ProfessionModifier } from '#gw2/build-context/types.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 
-interface SimulationConfigOptions extends BuildContextInput {
+interface SimulationConfigOptions extends Omit<BuildContextInput, 'patch'> {
+  readonly patchId: string;
   readonly attributeSeeds: readonly [Gw2AttributeSeed, Gw2AttributeSeed];
   readonly specialization: string;
   readonly disabled?: ProfessionModifier;

@@ -36,9 +36,9 @@ export function calculateBaselineSimulation(
     return debugInputs ? { ...result, debugInputs } : result;
   };
 
-  const { rotation, referenceRotation, baseConfig, selectedPatchId, previewPatchId } = request;
+  const { rotation, referenceRotation, baseConfig, selectedPatchId, patchConfigs } = request;
 
-  if (!previewPatchId) {
+  if (!patchConfigs) {
     return {
       result: simulateBuild(rotation, baseConfig),
       patchComparison: null,
@@ -46,15 +46,13 @@ export function calculateBaselineSimulation(
     };
   }
 
-  const configForPatch = (patchId: string): Gw2Config => ({ ...baseConfig, patchId });
-  const current = simulateBuild(rotation, configForPatch('current'));
-  const preview = simulateBuild(rotation, configForPatch(previewPatchId));
+  const previewPatchId = patchConfigs.preview.patchId!;
+  const current = simulateBuild(rotation, patchConfigs.current);
+  const preview = simulateBuild(rotation, patchConfigs.preview);
   return {
     result: selectedPatchId === previewPatchId ? preview : current,
     patchComparison: { patchId: previewPatchId, current, preview },
     // Reference uses only the selected patch; patch comparison remains a Current-only analysis.
-    ...(referenceRotation
-      ? { referenceResult: simulateBuild(referenceRotation, configForPatch(selectedPatchId)) }
-      : null)
+    ...(referenceRotation ? { referenceResult: simulateBuild(referenceRotation, baseConfig) } : null)
   };
 }

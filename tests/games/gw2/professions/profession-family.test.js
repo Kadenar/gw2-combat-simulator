@@ -826,6 +826,7 @@ test('Guardian presentation and public projection preserve their contracts', () 
     const state = runtime.createState(config);
     const resourceIds = guardianProfession.ui
       .resourceViews({
+        catalog: runtime.catalog,
         config,
         professionState: flattenProfessionState(state)
       })
@@ -1243,6 +1244,7 @@ test('Engineer presentation and public projection preserve their contracts', () 
       })
       .map((resource) => resource.id);
     const uiContext = {
+      catalog: engineerProfession.catalog,
       config,
       specialization: active,
       professionState: flattenProfessionState(state)

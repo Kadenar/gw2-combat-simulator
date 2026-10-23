@@ -40,7 +40,7 @@ for (const [professionId, patch] of Object.entries(activePatchPreview.profession
   // Reporting opts into patch decoration after the neutral profession is loaded.
   const profession = withActivePatchPreview(nativeProfession);
 
-  profession.catalogFor?.(activePatchPreview.id);
+  profession.resolvePatch({ id: activePatchPreview.id }).catalog;
 
   for (const specialization of [
     'Core',

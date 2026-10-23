@@ -15,7 +15,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import {
   RITUALIST_SPIRIT_SKILL_IDS,
   spiritAttackEffects
@@ -33,7 +33,9 @@ const weaponSpellTooltip: DescribeSimulationTooltip = (balanceContext, entity, _
 
   if (!skill) throw new Error(`Missing tooltip skill: ${entity.id}`);
 
-  const empowered = getActiveTraits(build?.specializations).some(({ id }) => id === TRAIT.WIELDERS_BOON);
+  const empowered = selectedTraits(balanceContext.catalog, build?.specializations).some(
+    ({ id }) => id === TRAIT.WIELDERS_BOON
+  );
   const effects = (skill.effects ?? []).map((effect) => {
     if (effect.type !== 'buff' || !['nightmare-weapon', 'splinter-weapon'].includes(String(effect.kind)))
       return simulationEffectFacts([effect]);

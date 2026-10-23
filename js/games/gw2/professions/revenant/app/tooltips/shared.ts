@@ -10,13 +10,13 @@ import {
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 
 /** Share tooltip formatting and descriptions used by multiple profession owners. */
 
 /** Describe only the landing and modifiers selected by this build, matching the simulated dodge choice. */
 export const vindicatorDodgeTooltip: DescribeSimulationTooltip = (balanceContext, _entity, _specialization, build) => {
-  const traits = new Set(getActiveTraits(build?.specializations).map((trait) => trait.id));
+  const traits = new Set(selectedTraits(balanceContext.catalog, build?.specializations).map((trait) => trait.id));
   const landingId = traits.has(TRAIT.SAINT_OF_ZU_HELTZER)
     ? ID.SAINTS_SHIELD
     : traits.has(TRAIT.VASSALS_OF_THE_EMPIRE)

@@ -1,3 +1,5 @@
+import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
+import type { ProfessionStateSnapshotContext } from '#gw2/platform/profession-presentation/types.js';
 import { activeChargeCount, activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -10,14 +12,16 @@ import {
   THIEF_ARTIFACT_IDS,
   THIEF_TRAIT_IDS as TRAIT
 } from '#gw2/professions/thief/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/thief/data/traits-data.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 /** Surfaces Combat High plus artifact effects with duration or consumable charges. */
-function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {
+function antiquaryStateSnapshot(
+  context: ThiefUiContext & Pick<ProfessionStateSnapshotContext, 'balanceContext'>
+): RotationStateSnapshotItem[] {
   const state = thiefUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
@@ -25,7 +29,9 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   // Pincher is spending progress, while Scuffle predicts the next automatic artifact replacement.
   if (
     hasTrait(context, TRAIT.PRODIGIOUS_PINCHER) ||
-    getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.PRODIGIOUS_PINCHER)
+    selectedTraits(context.balanceContext.catalog, context.build?.specializations || []).some(
+      (trait) => trait.id === TRAIT.PRODIGIOUS_PINCHER
+    )
   ) {
     const threshold = balanceNumberFromContext(context.balanceContext, TRAIT.PRODIGIOUS_PINCHER, 'threshold');
     const spent = Math.max(0, state.initiativeSpentSincePilfer || 0);
@@ -160,12 +166,14 @@ export const antiquaryUi = Object.freeze({
     preStealResourceView(context.professionState?.artifactUsesRemaining || 0)
   ],
   // Reshuffle is queue-only; this veto affects direct palette insertion, never runtime legality.
-  paletteOverride: (context: ThiefUiContext, skill: ThiefSkill) => {
+  paletteOverride: (context: ThiefUiContext & ProfessionCatalogContext, skill: ThiefSkill) => {
     if (skill.id !== ID.RESHUFFLE) return;
 
     const cardSwap =
       hasTrait(context, TRAIT.CARD_SWAP) ||
-      getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.CARD_SWAP);
+      selectedTraits(context.catalog, context.build?.specializations || []).some(
+        (trait) => trait.id === TRAIT.CARD_SWAP
+      );
     return {
       available: false,
       message: cardSwap ? 'All artifacts are already available to choose' : 'Requires the Card Swap trait'

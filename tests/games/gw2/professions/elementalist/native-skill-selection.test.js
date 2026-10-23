@@ -13,6 +13,7 @@ function weaverApp(selectedSkillIds = {}) {
   });
 
   return {
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,

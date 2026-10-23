@@ -46,6 +46,7 @@ export interface ProfessionSpecialization extends CatalogEntity {
 }
 
 export interface ProfessionSkillAvailabilityContext {
+  readonly catalog: import('#gw2/platform/skills/types.js').CanonicalCatalog;
   readonly build?: Gw2CanonicalBuild;
   readonly specialization?: string;
   readonly professionState?: unknown;
@@ -56,7 +57,7 @@ export interface ProfessionOffhandContext {
   readonly offHands?: readonly string[];
 }
 
-export type ProfessionIsSkillAvailable = (skill: Skill, context?: ProfessionSkillAvailabilityContext) => boolean;
+export type ProfessionIsSkillAvailable = (skill: Skill, context: ProfessionSkillAvailabilityContext) => boolean;
 
 export type ProfessionDefaultOffhand = (context?: ProfessionOffhandContext) => string;
 
@@ -64,7 +65,7 @@ export type ProfessionDefaultOffhand = (context?: ProfessionOffhandContext) => s
 export type AttributePreviewState = Pick<
   import('#gw2/app/types.js').ProfessionAppState,
   | 'build'
-  | 'patchId'
+  | 'patch'
   | 'simulationSettings'
   | 'adapter'
   | 'profession'

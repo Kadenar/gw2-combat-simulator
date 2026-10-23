@@ -1,3 +1,4 @@
+import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
@@ -68,7 +69,7 @@ import { createDefaultConfig, simulateMesmer } from '#tests/helpers/mesmer-simul
 
 test('starting resource clamps cover every active resource view', () => {
   const app = {
-    patchId: 'current',
+    patch: patchSelectionFixture(undefined),
     build: {
       initialResource: 25,
       initialBlight: 15,
@@ -127,7 +128,15 @@ test('15-pip initiative uses specialization-neutral rows', () => {
 test('specialization selection replaces another elite line and refreshes its resources', () => {
   let changed = 0;
   const app = {
-    patchId: 'current',
+    patch: patchSelectionFixture({
+      specializations: [
+        { name: 'Damage', elite: false },
+        { name: 'Support', elite: false },
+        { name: 'Fallback', elite: false },
+        { name: 'Old Elite', elite: true },
+        { name: 'New Elite', elite: true }
+      ]
+    }),
     build: {
       initialResource: 10,
       specializations: [
@@ -136,13 +145,15 @@ test('specialization selection replaces another elite line and refreshes its res
         { name: 'Support', traits: '2-2-2' }
       ]
     },
-    specializations: [
-      { name: 'Damage', elite: false },
-      { name: 'Support', elite: false },
-      { name: 'Fallback', elite: false },
-      { name: 'Old Elite', elite: true },
-      { name: 'New Elite', elite: true }
-    ],
+    activeCatalog: {
+      specializations: [
+        { name: 'Damage', elite: false },
+        { name: 'Support', elite: false },
+        { name: 'Fallback', elite: false },
+        { name: 'Old Elite', elite: true },
+        { name: 'New Elite', elite: true }
+      ]
+    },
     adapter: {
       eliteSpecialization: (build) =>
         build.specializations.find((specialization) => specialization.name.endsWith('Elite'))?.name || 'Core'
@@ -179,10 +190,10 @@ test('elite specialization changes preserve unique Warrior lines through persist
     const original = structuredClone(build.specializations);
     let changed = 0;
     const app = {
-      patchId: 'current',
+      patch: adapter.profession.resolvePatch({ id: 'current' }),
       build,
       adapter,
-      specializations: adapter.specializations,
+      activeCatalog: adapter.profession.catalog,
       resourceDefinitions: (specialization) => adapter.profession.ui.resourceViews({ specialization }),
       changed() {
         changed += 1;
@@ -195,8 +206,9 @@ test('elite specialization changes preserve unique Warrior lines through persist
     assert.deepEqual(build.specializations, expected);
     assert.equal(new Set(build.specializations.map(({ name }) => name)).size, 3);
     assert.equal(
-      build.specializations.filter(({ name }) => adapter.specializations.find((spec) => spec.name === name).elite)
-        .length,
+      build.specializations.filter(
+        ({ name }) => adapter.profession.catalog.specializations.find((spec) => spec.name === name).elite
+      ).length,
       1
     );
     // Save-time migration and application loading must retain the chosen elite and the existing core traits.
@@ -220,9 +232,13 @@ test('selecting an elite shifts the remaining core lines above it', () => {
   for (const line of [0, 1, 2]) {
     let changed = 0;
     const app = {
-      patchId: 'current',
+      patch: patchSelectionFixture({
+        specializations: [...original.map(({ name }) => ({ name, elite: false })), { name: 'Elite', elite: true }]
+      }),
       build: { specializations: structuredClone(original) },
-      specializations: [...original.map(({ name }) => ({ name, elite: false })), { name: 'Elite', elite: true }],
+      activeCatalog: {
+        specializations: [...original.map(({ name }) => ({ name, elite: false })), { name: 'Elite', elite: true }]
+      },
       adapter: { eliteSpecialization: () => 'Elite' },
       resourceDefinitions: () => [],
       changed() {
@@ -578,7 +594,7 @@ test('rotation skill highlights group occurrences by displayed skill', () => {
 test('palette additions insert at an armed cursor and advance it', () => {
   const changes = [];
   const app = {
-    patchId: 'current',
+    patch: patchSelectionFixture({ skillsById: new Map(), skillsByName: new Map() }),
     build: {
       rotation: [
         { type: 'cast', skillId: 'First' },
@@ -626,7 +642,7 @@ test('Dragon Slash editor choices execute prefix candidates through the applicat
     { type: 'combat-start' }
   ];
   const app = {
-    patchId: 'current',
+    patch: adapter.profession.resolvePatch({ id: 'current' }),
     adapter,
     build,
     activeCatalog: { skillsByName: skills },
@@ -636,8 +652,8 @@ test('Dragon Slash editor choices execute prefix candidates through the applicat
   app.attributeData = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.patch
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const preview = (command) => adapter.rotationPreviewAt(app, 1, command ? [command] : []);
@@ -713,7 +729,7 @@ test('proc visibility remains hidden after its first render', () => {
 test('rotation items preserve default interrupts when options contain nullish values', () => {
   const skill = { name: 'Counter', defaultInterruptMs: 120 };
   const app = {
-    patchId: 'current',
+    patch: patchSelectionFixture({ skillsById: new Map(), skillsByName: new Map([[skill.name, skill]]) }),
     activeCatalog: { skillsById: new Map(), skillsByName: new Map([[skill.name, skill]]) }
   };
 
@@ -733,7 +749,7 @@ test('rotation items preserve default interrupts when options contain nullish va
 test('cooldown-reduction procs use a refresh icon and reduction badge', () => {
   const sourceIcon = 'https://example.com/source-skill.png';
   const app = {
-    patchId: 'current',
+    patch: patchSelectionFixture({ skillsByName: new Map([['Abyssal Strike', { icon: sourceIcon }]]) }),
     attributeData: { activeTraits: [] },
     activeCatalog: { skillsByName: new Map([['Abyssal Strike', { icon: sourceIcon }]]) }
   };
@@ -883,7 +899,7 @@ test('empty rotations keep placeholder DPS metrics grouped with the builder', ()
   results.ownerDocument = mockDocument;
   globalThis.document = mockDocument;
   try {
-    const app = { patchId: 'current', build: { rotation: [] }, results: null };
+    const app = { patch: patchSelectionFixture(undefined), build: { rotation: [] }, results: null };
     gw2SimulationPresentation.render(app, gw2SimulationPresentation.createViewModel(app));
   } finally {
     globalThis.document = previousDocument;
@@ -903,7 +919,7 @@ test('empty rotations keep placeholder DPS metrics grouped with the builder', ()
 test('rotations waiting for results show an accessible analysis skeleton', () => {
   for (const simulationStatus of ['idle', 'queued', 'running']) {
     const app = {
-      patchId: 'current',
+      patch: patchSelectionFixture(undefined),
       build: { rotation: [{ type: 'cast', skillId: 'Strike' }] },
       results: null,
       simulationStatus
@@ -962,7 +978,7 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
   globalThis.document = mockDocument;
   try {
     const app = {
-      patchId: 'current',
+      patch: patchSelectionFixture(undefined),
       build: { rotation: [{ type: 'cast', skillId: 'Strike' }], targetHealth: 0 },
       buildRevision: 2,
       resultRevision: 1,
@@ -1070,7 +1086,12 @@ test('build file import detects which parts a file carries', async () => {
   const adapter = await loadProfessionAppAdapter('mesmer');
   const source = createDefaultBuild(adapter);
   const skill = Object.values(source.selectedSkillIds).find(Boolean);
-  const app = { patchId: 'current', adapter, build: createDefaultBuild(adapter), changed() {} };
+  const app = {
+    patch: adapter.profession.resolvePatch({ id: 'current' }),
+    adapter,
+    build: createDefaultBuild(adapter),
+    changed() {}
+  };
 
   const combined = previewBuildFileImport(
     getBuildWithRotationExportPayload({ ...source, rotation: [skill] }),
@@ -1111,7 +1132,7 @@ test('build file import clears the template highlight but keeps the tab reset ta
   const templateBuild = createDefaultBuild(adapter);
   const tab = { id: 'tab', templateBuild };
   const app = {
-    patchId: 'current',
+    patch: adapter.profession.resolvePatch({ id: 'current' }),
     adapter,
     build: createDefaultBuild(adapter),
     changed() {},
@@ -1178,7 +1199,7 @@ test('build file import applies only the selected parts', async () => {
   const importInto = (selection) => {
     const calls = [];
     const app = {
-      patchId: 'current',
+      patch: adapter.profession.resolvePatch({ id: 'current' }),
       adapter,
       build: createDefaultBuild(adapter),
       changed: (rebuild = true) => calls.push(rebuild)
@@ -1290,7 +1311,7 @@ test('weapon palette families display one live autoattack or flip skill', () => 
   const skills = [autoRoot, autoSecond, flipRoot, flip];
   const skillById = new Map(skills.map((skill) => [skill.id, skill]));
   const app = {
-    patchId: 'current',
+    patch: patchSelectionFixture({ skills, skillsById: skillById }),
     build: { rotation: [] },
     activeCatalog: { skills, skillsById: skillById },
     profession: { catalog: { skillsById: skillById } },
@@ -1323,7 +1344,7 @@ test('palette flip projection infers catalog children and honors timed expiry', 
   const skills = [parent, child];
   const skillsById = new Map(skills.map((skill) => [skill.id, skill]));
   const app = {
-    patchId: 'current',
+    patch: patchSelectionFixture({ skills, skillsById }),
     activeCatalog: { skills, skillsById },
     profession: { catalog: { skills, skillsById } },
     results: {
@@ -1358,7 +1379,7 @@ test('Mesmer weapon flips replace and restore their parent palette tile', () => 
   const parent = mesmerProfession.catalog.skillsByName.get('Illusionary Counter');
   const flip = mesmerProfession.catalog.skillsByName.get('Counterspell');
   const app = {
-    patchId: 'current',
+    patch: patchSelectionFixture(mesmerProfession.catalog),
     build: { rotation: [] },
     activeCatalog: mesmerProfession.catalog,
     profession: mesmerProfession,
@@ -1383,7 +1404,11 @@ test('damage result rows reuse the icons shown for generated procs', () => {
   const meltdownIcon = 'meltdown.png';
   const explicitIcon = 'soul-shards.png';
   const app = {
-    patchId: 'current',
+    patch: patchSelectionFixture({
+      skillsById: new Map([[123, { icon: 'gust.png' }]]),
+      skillsByName: new Map(),
+      skills: []
+    }),
     attributeData: {
       activeTraits: [
         {
@@ -1443,7 +1468,13 @@ test('clone attack damage rows use their weapon skill icons', () => {
   const windsIcon = 'winds-of-chaos.png';
   const etherBoltIcon = 'ether-bolt.png';
   const app = {
-    patchId: 'current',
+    patch: patchSelectionFixture({
+      skillsByName: new Map([
+        ['Winds of Chaos', { icon: windsIcon }],
+        ['Ether Bolt', { icon: etherBoltIcon }]
+      ]),
+      skills: []
+    }),
     attributeData: { activeTraits: [] },
     results: { procSteps: [] },
     activeCatalog: {
@@ -1465,7 +1496,7 @@ test('Mesmer weapon palette displays only the current autoattack chain step', ()
   build.specializations[2] = { name: 'Mirage', traits: '1-1-1' };
   build.weapons = ['Axe', 'Sword'];
   const app = {
-    patchId: 'current',
+    patch: patchSelectionFixture(mesmerProfession.catalog),
     profession: mesmerProfession,
     build,
     activeCatalog: mesmerProfession.catalog,
@@ -1574,6 +1605,7 @@ test('weapon actions stay ordered beside the stacked weapon sets', () => {
 test('Engineer swap action changes from precombat equipment swapping to a live kit exit', async () => {
   const adapter = await loadProfessionAppAdapter('engineer');
   const engineer = {
+    patch: adapter.profession.resolvePatch(),
     profession: adapter.profession,
     build: createEngineerBuildDefaults(),
     activeCatalog: adapter.profession.catalog,
@@ -1734,7 +1766,7 @@ test('Firebrand mantra flips replace their selected skill-bar parent', async () 
   const normal = skillByName.get('Flame Rush');
   const final = skillByName.get('Flame Surge');
   const app = {
-    patchId: 'current',
+    patch: patchSelectionFixture({ skillsById: skillById }),
     activeCatalog: { skillsById: skillById },
     results: { planningState: { availability: {}, profession: { availableFlips: {} } } }
   };
@@ -1751,7 +1783,37 @@ test('Firebrand mantra flips replace their selected skill-bar parent', async () 
 
 test('shared palettes reject supplemental effects from weapon and action rows', () => {
   const app = {
-    patchId: 'current',
+    patch: patchSelectionFixture({
+      skills: [
+        {
+          id: 1,
+          name: 'Rifle Shot',
+          type: 'Weapon',
+          slot: 'Weapon_1',
+          weapon: 'Rifle'
+        },
+        {
+          id: 2,
+          name: 'Temporary Bundle Shot',
+          type: 'Weapon',
+          slot: 'Weapon_1',
+          weapon: ''
+        },
+        {
+          id: 3,
+          name: 'Trait Proc',
+          type: 'Action',
+          slot: 'Action'
+        },
+        {
+          id: -3,
+          inputCategory: 'weapon-swap',
+          name: 'Swap Weapons',
+          type: 'Action',
+          slot: 'Action'
+        }
+      ]
+    }),
     profession: {
       catalog: {
         weaponHands: new Map([['Rifle', '2h']])

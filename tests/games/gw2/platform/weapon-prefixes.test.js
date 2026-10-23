@@ -125,6 +125,7 @@ test('runtime stats follow chronological weapon-set swaps', () => {
   build.alternateWeaponPrefixes = ["Viper's", "Viper's"];
   build.assumptions.might = 0;
   const app = {
+    patch: mesmerAppAdapter.profession.resolvePatch(),
     adapter: mesmerAppAdapter,
     attributeData: calculateAttributes(build, [], 1),
     attributeWeaponSet: 1,
@@ -136,8 +137,8 @@ test('runtime stats follow chronological weapon-set swaps', () => {
   const config = mesmerAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: mesmerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .simulationConfig();
   const query = createGw2CombatQuery({

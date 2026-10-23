@@ -44,7 +44,7 @@ test('Necromancer trait build contributions preserve patched conversion inputs a
     family.attributeContributions
   );
   const build = { specializations: [{ name: 'Curses', traits: '1-1-1' }] };
-  const balance = family.balanceContextFor('necromancer-trait-owners');
+  const balance = family.resolvePatch({ id: 'necromancer-trait-owners' }).balanceContext;
   const preview = calculate(build, [], 1, null, null, balance).attributes;
   assert.equal(preview.Precision.traits, 250);
   assert.equal(preview['Condition Damage'].traits, 162);

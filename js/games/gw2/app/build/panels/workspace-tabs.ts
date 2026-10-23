@@ -294,7 +294,7 @@ export function mountBuildTabs(app: ProfessionAppState): void {
 
     if (action === 'duplicate') {
       const tab = app.workspace.tabs.find((tab) => tab.id === id)!;
-      addBuildTab(app, app.build, `${tab.name} copy`, app.patchId, tab.templateBuild);
+      addBuildTab(app, app.build, `${tab.name} copy`, app.patch.id, tab.templateBuild);
     }
 
     renderBuildTabs(app);

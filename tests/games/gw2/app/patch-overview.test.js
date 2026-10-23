@@ -53,7 +53,11 @@ test('rendering and saving keep generated overview entries out of the draft and 
   assert.match(overviewForProfession()[0].text, /7/);
   const updated = validateAuthoringPreview(editorState.draft, runtime);
   assert.equal(Object.hasOwn(updated.professions.warrior, 'overview'), false);
-  assert.equal(withPatchPreview(warriorProfession, updated).catalogFor(updated.id).skillsById.get(skillId).cooldown, 7);
+  assert.equal(
+    withPatchPreview(warriorProfession, updated).resolvePatch({ id: updated.id }).catalog.skillsById.get(skillId)
+      .cooldown,
+    7
+  );
 });
 
 test('persisted overview fields are rejected by runtime and authoring validation', () => {

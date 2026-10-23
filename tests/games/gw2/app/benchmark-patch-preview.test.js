@@ -52,7 +52,8 @@ test('active reworks cover Vindicator and Firebrand but only the longbow Berserk
   );
   for (const row of results.filter(({ outcome }) => outcome === 'tbd')) {
     assert.equal('previewDps' in row, false);
-    assert.match(row.reason, /rework pending/);
+    // Benchmarks stay pending whether the blocker is an unimplemented rework or unpublished tuning.
+    assert.match(row.reason, /pending/);
   }
 
   assert.equal(patchBenchmarks(rows, null).length, 0);

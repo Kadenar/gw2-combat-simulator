@@ -88,6 +88,7 @@ export interface Gw2BuildResources {
   initialCatalystEnergy?: number;
   initialEvokerCharges?: number;
   initialEvokerEmpowered?: number;
+  initialTomePages?: number;
 }
 
 /** Known build fields; persisted input stays unknown until the build codec normalizes it. */

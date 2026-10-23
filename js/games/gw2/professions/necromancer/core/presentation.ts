@@ -1,3 +1,4 @@
+import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import { WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import { necromancerSoulShardMaximum } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
@@ -20,7 +21,7 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import type {
   NecromancerSkill,
   NecromancerState,
@@ -132,9 +133,11 @@ export function necromancerTransformPaletteGroups(
 }
 
 /** Returns target-health boundaries required by selected traits and threshold-dependent weapons. */
-export function necromancerCoreTargetHealthThresholds(context: NecromancerUiContext = {}): number[] {
+export function necromancerCoreTargetHealthThresholds(
+  context: NecromancerUiContext & ProfessionCatalogContext
+): number[] {
   const build = context.build || {};
-  const traits = getActiveTraits(build.specializations || []);
+  const traits = selectedTraits(context.catalog, build.specializations || []);
   const hasHalfHealthTrait = traits.some((trait) => HALF_HEALTH_TRAITS.has(trait.name));
   const weapons = [...(build.weapons || []), ...(build.alternateWeapons || [])];
   const hasThresholdWeapon = weapons.some((weapon) => weapon === WEAPON.GREATSWORD || weapon === WEAPON.SPEAR);

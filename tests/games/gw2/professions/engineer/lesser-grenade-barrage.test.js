@@ -103,7 +103,7 @@ test('Lesser Grenade Barrage owns proc balance and damage breakdown identity', (
   assert.equal(row.icon, catalog.skillsById.get(barrageId).icon);
   assert.equal(resultSkillIcon({}, row), 'barrage-owned-icon.png');
 
-  const context = { ...withPatchPreview(engineerProfession, null).balanceContextFor(), catalog };
+  const context = { ...withPatchPreview(engineerProfession, null).resolvePatch().balanceContext, catalog };
   const trait = catalog.traits.find((entry) => entry.id === TRAIT.GRENADIER);
   const tooltip = describeSimulationTrait(context, trait, engineerTooltips);
   assert.equal(tooltip.facts.find((fact) => fact.name === 'Base skill recharge').detail, '8s');

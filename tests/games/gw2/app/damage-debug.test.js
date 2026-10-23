@@ -72,7 +72,11 @@ test('patch and reference baselines retain their own capture context', () => {
       ...request(),
       damageDiagnostics: true,
       selectedPatchId: 'preview',
-      previewPatchId: 'preview',
+      baseConfig: { ...request().baseConfig, patchId: 'preview' },
+      patchConfigs: {
+        current: { ...request().baseConfig, patchId: 'current' },
+        preview: { ...request().baseConfig, patchId: 'preview' }
+      },
       referenceRotation: [{ type: 'wait', durationMs: 2000 }]
     },
     profession

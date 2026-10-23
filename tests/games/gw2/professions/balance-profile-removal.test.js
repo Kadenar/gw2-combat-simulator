@@ -227,7 +227,7 @@ test('patched resource capacities seed simulation and presentation from the same
     });
     const views = patched.ui.resourceViews({
       specialization,
-      catalog: patched.catalogFor('capacity'),
+      catalog: patched.resolvePatch({ id: 'capacity' }).catalog,
       build: { specializations: [{ name: 'Tools', traits: '1-1-1' }] }
     });
     const resource = views.find((view) => ['catalyst-energy', 'evoker-charges', 'endurance'].includes(view.id));
@@ -247,7 +247,7 @@ test('patched resource capacities seed simulation and presentation from the same
   });
   const [charges] = patched.ui.resourceViews({
     specialization: 'Evoker',
-    catalog: patched.catalogFor('specialized-capacity'),
+    catalog: patched.resolvePatch({ id: 'specialized-capacity' }).catalog,
     build: { specializations: [{ name: 'Evoker', traits: '1-1-3' }] }
   });
   assert.equal(charges.maximum, 8);

@@ -47,7 +47,7 @@ test('Warrior initialization and resource displays honor selected caps', () => {
       assert.equal(state.adrenaline.value, adrenalineCap);
       const resources = family.ui.resourceViews({
         specialization,
-        catalog: family.catalogFor(patchId),
+        catalog: family.resolvePatch({ id: patchId }).catalog,
         professionState: state
       });
 
@@ -74,7 +74,7 @@ test('Warrior displays use selected stack caps and bonuses', () => {
       [TRAIT.GUNS_AND_GLORY]: { fields: { maximumStacks: 9 } }
     }
   });
-  const balanceContext = family.balanceContextFor(patchId);
+  const balanceContext = family.resolvePatch({ id: patchId }).balanceContext;
   const result = {
     events: [],
     ...effectFields(

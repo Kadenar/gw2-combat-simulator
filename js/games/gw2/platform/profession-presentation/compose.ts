@@ -1,3 +1,4 @@
+import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import type { EndurancePolicy, ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
 import type { ProfessionAttributePreviewPreparation } from '#gw2/platform/profession-presentation/attribute-preview.js';
@@ -297,7 +298,9 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     // Core and elite exceptions own independent fields; later slices refine tile identity or editor access.
     return Object.assign(
       {},
-      ...selected.slices.map((slice) => slice.paletteOverride?.(selected.context as ProfessionPaletteContext, skill))
+      ...selected.slices.map((slice) =>
+        slice.paletteOverride?.(selected.context as ProfessionPaletteContext & ProfessionCatalogContext, skill)
+      )
     );
   };
 

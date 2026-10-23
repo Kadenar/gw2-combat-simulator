@@ -110,7 +110,7 @@ test('Kinetic Battery charges and buff timer appear in Active State across Engin
     assert.equal(snapshot(15, 1)['engineer-kinetic-battery'], undefined);
     assert.equal(
       engineerProfession.ui
-        .rotationStateSnapshot({ specialization })
+        .rotationStateSnapshot({ specialization, balanceContext: { catalog } })
         .some((item) => item.id === 'engineer-kinetic-charges'),
       false
     );

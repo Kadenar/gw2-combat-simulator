@@ -61,8 +61,7 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>)
 
       if (skill.id === ID.HAWKEYE || skill.id === ID.KEEN_SHOT) {
         const maximum =
-          state.windForce?.maximum ??
-          balanceNumberFromContext({ catalog: context.catalog ?? catalog }, PROFILE.resources, 'minimumStacks');
+          state.windForce?.maximum ?? balanceNumberFromContext(context, PROFILE.resources, 'minimumStacks');
         return { tileActive: (skill.id === ID.HAWKEYE) === (state.windForce?.value ?? 0) >= maximum };
       }
     },

@@ -8,7 +8,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Dual-attunement weapon skills share the catalog with the single-attunement ones, so
 // hide them from every non-Weaver build before applying the shared availability rules.
-function isElementalistSkillAvailable(skill: Skill, context: ProfessionSkillAvailabilityContext = {}): boolean {
+function isElementalistSkillAvailable(skill: Skill, context: ProfessionSkillAvailabilityContext): boolean {
   if (skill.type === 'Weapon' && String(skill.attunement || '').includes('+') && context.specialization !== 'Weaver') {
     return false;
   }

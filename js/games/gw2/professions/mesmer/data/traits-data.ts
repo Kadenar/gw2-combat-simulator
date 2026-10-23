@@ -3,4 +3,4 @@ import type { Gw2ApiTrait } from '#gw2/platform/profession-definition/api-metada
 import { createProfessionTraitData } from '#gw2/professions/shared/trait-data.js';
 
 // Generated metadata already carries the numeric tier and position used by trait selection.
-export const { traits: TRAITS, getActiveTraits } = createProfessionTraitData<Gw2ApiTrait>(CATALOG_SPECIALIZATIONS);
+export const { traits: TRAITS } = createProfessionTraitData<Gw2ApiTrait>(CATALOG_SPECIALIZATIONS);

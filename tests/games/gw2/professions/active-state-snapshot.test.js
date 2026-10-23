@@ -230,7 +230,7 @@ function snapshot(profession, specialization, professionState, atSeconds, result
   if (result) result = { ...result, events: result.resolvedEvents };
 
   return profession.ui.rotationStateSnapshot({
-    balanceContext: withPatchPreview(profession).balanceContextFor(),
+    balanceContext: withPatchPreview(profession).resolvePatch().balanceContext,
     specialization,
     professionState,
     atSeconds,

@@ -1,6 +1,7 @@
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
+import { withoutTraitSkillVariants } from '#tests/helpers/patch-selection.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -25,7 +26,7 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
   const skill = { id: 1, name: 'Example Skill' };
   const packetSkill = { id: 2, name: 'Packet Skill', interruptMode: 'per-packet' };
   const buffSkill = { id: 3, name: 'Committed Buff', interruptCommitMs: 1 };
-  const app = {
+  const app = withoutTraitSkillVariants({
     activeCatalog: {
       skills: [skill, packetSkill, buffSkill],
       skillsById: new Map([
@@ -38,7 +39,7 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
     profession: {
       ui: normalizeProfessionUi('fixture', { timelineWeaponLineTransition: () => null })
     }
-  };
+  });
   const steps = [
     { interrupted: true },
     { interrupted: true },
@@ -114,6 +115,7 @@ test('both Harp variants keep normal timeline styling after starting to play, in
         adapter: { ...adapter, eliteSpecialization: () => 'Troubadour' },
         profession,
         build,
+        patch: profession.resolvePatch(),
         activeCatalog: profession.catalog
       };
       for (const readOnly of [false, true]) {
@@ -132,7 +134,7 @@ test('timeline labels the executed skill variant while preserving the saved comm
   // A build trait may replace an imported action without rewriting the user's rotation.
   const base = { id: 76642, name: 'Evolve (Base)' };
   const traited = { id: 76651, name: 'Evolve (Double Helix)' };
-  const app = {
+  const app = withoutTraitSkillVariants({
     activeCatalog: {
       skills: [base, traited],
       skillsById: new Map([
@@ -144,7 +146,7 @@ test('timeline labels the executed skill variant while preserving the saved comm
     profession: {
       ui: normalizeProfessionUi('fixture', { timelineWeaponLineTransition: () => null })
     }
-  };
+  });
   const build = {
     rotation: [{ type: 'cast', skillId: base.id }],
     startingWeaponSet: 1,
@@ -442,6 +444,7 @@ test('timeline preserves weapon-swap rows after target death in editable and ref
     adapter: { ...adapter, eliteSpecialization: () => 'Core' },
     profession,
     build,
+    patch: profession.resolvePatch(),
     activeCatalog: profession.catalog
   };
   for (const readOnly of [false, true]) {
@@ -480,6 +483,7 @@ test('timeline keeps tome and kit transitions on their equipped set and follows 
       adapter: { ...adapter, eliteSpecialization: () => specialization },
       profession,
       build,
+      patch: profession.resolvePatch(),
       activeCatalog: profession.catalog
     };
     const rows = timelineRowsView(app, build, results, false, new Set(), false).rows;

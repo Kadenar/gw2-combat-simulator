@@ -138,6 +138,7 @@ test('Distracting Throw stays visible alongside Revealed and disappears at expir
     Object.fromEntries(
       thiefProfession.ui
         .rotationStateSnapshot({
+          balanceContext: { catalog: thiefProfession.catalog },
           specialization: 'Antiquary',
           professionState,
           atSeconds,

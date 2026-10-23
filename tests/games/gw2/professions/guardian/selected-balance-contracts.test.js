@@ -100,7 +100,7 @@ test('Guardian snapshots display selected caps and modifier bonuses', () => {
   const app = {
     build: { rotation: [] },
     profession,
-    patchId: 'guardian-snapshot',
+    patch: profession.resolvePatch({ id: 'guardian-snapshot' }),
     adapter: { eliteSpecialization: () => 'Luminary' },
     results: {
       events,
@@ -126,7 +126,7 @@ test('Guardian snapshots display selected caps and modifier bonuses', () => {
 });
 
 test('the retained Courage variant describes its implemented behavior separately', () => {
-  const context = withPatchPreview(guardianProfession, null).balanceContextFor();
+  const context = withPatchPreview(guardianProfession, null).resolvePatch().balanceContext;
   const describe = (id) => guardianTooltips.skills[id](context, context.catalog.skillsById.get(id));
   assert.match(describe(ID.TOME_OF_COURAGE).description, /^Open this tome/);
   const variant = describe(ID.TOME_OF_COURAGE_ID_42371);

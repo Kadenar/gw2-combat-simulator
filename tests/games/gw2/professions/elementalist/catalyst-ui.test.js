@@ -123,6 +123,7 @@ test('Elementalist utilities render beside profession controls before weapons', 
     ]
   });
   const app = {
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,

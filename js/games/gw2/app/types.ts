@@ -1,3 +1,4 @@
+import type { PatchSelection, ResolvedPatch } from '#gw2/integrations/patches/selection.js';
 import type { BuildContextFactory } from '#gw2/build-context/types.js';
 import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import type { BuildLibraryState } from '#gw2/app/build/library/state.js';
@@ -7,7 +8,6 @@ import type { RotationComparisonSession } from '#gw2/app/rotation/comparison-sta
 import type { ResultViewState } from '#gw2/app/results/state.js';
 import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ProfessionTooltips, SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 
 /** Composes application state, adapters, and runtime callbacks from domain-owned contracts. */
@@ -46,11 +46,15 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { BuildEditor, SimulationPresentation } from '#browser/shell/types.js';
 
 export type ProfessionAppContract = Gw2ProfessionSource & {
+  readonly nativeDefinition: {
+    readonly moduleVariants?: Readonly<
+      Record<string, import('#gw2/platform/profession-definition/module-types.js').AnyNativeModule>
+    >;
+  };
   readonly preview?: PatchPreview | null;
   readonly patchOverviewFor: (config: Gw2Config, observedIds: readonly SkillId[]) => readonly PatchOverviewEntry[];
   /** Bound professions resolve the selected patch and reject unavailable patch IDs. */
-  readonly catalogFor: (patchId?: string) => Readonly<CanonicalCatalog>;
-  readonly balanceContextFor: (patchId?: string) => ProfessionBalanceContext;
+  readonly resolvePatch: (selection?: PatchSelection) => ResolvedPatch;
 };
 
 export interface ProfessionAppState
@@ -64,14 +68,13 @@ export interface ProfessionAppState
   adapter: Gw2AppAdapter;
   profession: ProfessionAppContract;
   /** All skill lists and lookups follow this catalog when the active patch or workspace tab changes. */
-  activeCatalog: Readonly<CanonicalCatalog>;
-  patchId: string;
+  readonly activeCatalog: Readonly<CanonicalCatalog>;
+  patch: ResolvedPatch;
   patchComparison: PatchComparison | null;
   build: Gw2CanonicalBuild;
   simulationSettings?: import('#gw2/app/simulation/settings.js').SimulationSettings;
   weaponData: Readonly<Record<string, Gw2WeaponDataEntry>>;
   relicNames: readonly string[];
-  specializations: CanonicalCatalog['specializations'];
   resourceDefinitions(specialization: string): ProfessionResourceView[];
   attributeWeaponSet: number;
   attributeData: BuildAttributes | null;
@@ -173,10 +176,10 @@ export interface ProfessionFeatureRunner {
 export interface Gw2AppAdapter extends ProfessionRuntimeApi {
   readonly skillTooltip: (
     skill: Skill,
-    patchId: string,
+    patch: ResolvedPatch,
     build?: Pick<Gw2CanonicalBuild, 'specializations'>
   ) => SimulationTooltip;
-  readonly traitTooltip: (trait: CatalogEntity, patchId: string, specialization: string) => SimulationTooltip;
+  readonly traitTooltip: (trait: CatalogEntity, patch: ResolvedPatch, specialization: string) => SimulationTooltip;
   readonly gameId: 'gw2';
   readonly contentId: string;
   readonly id: string;
@@ -191,7 +194,6 @@ export interface Gw2AppAdapter extends ProfessionRuntimeApi {
   readonly rotationImportLookup: (app: ProfessionAppState) => CatalogLookup;
   readonly isSkillAvailable: ProfessionIsSkillAvailable;
   readonly defaultOffhand: ProfessionDefaultOffhand;
-  readonly specializations: CanonicalCatalog['specializations'];
   readonly weaponData: Readonly<Record<string, Gw2WeaponDataEntry>>;
   readonly relicNames: readonly string[];
   readonly renderRotationBuilder: (app: ProfessionAppState) => void;

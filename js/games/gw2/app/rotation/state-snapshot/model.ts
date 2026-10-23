@@ -88,7 +88,7 @@ export function rotationStateSnapshot(app: ProfessionAppState): {
   items.push(
     ...app.profession.ui.rotationStateSnapshot({
       // Keep profiles and modifiers on one selected patch, as simulation and tooltips do.
-      balanceContext: app.profession.balanceContextFor(app.patchId),
+      balanceContext: app.patch.balanceContext,
       specialization: activeSpecialization(app),
       professionState: state?.profession,
       planningState: state,

@@ -40,7 +40,7 @@ async function signetApp(name) {
   const catalog = adapter.profession.catalog;
   const app = {
     adapter,
-    patchId: 'current',
+    patch: adapter.profession.resolvePatch({ id: 'current' }),
     attributeWeaponSet: 1,
     activeCatalog: catalog,
     build: {
@@ -56,8 +56,8 @@ async function signetApp(name) {
   app.attributeData = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   return app;
@@ -134,8 +134,8 @@ for (const [name, entries] of Object.entries(signets)) {
     app.attributeData = app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     assert.equal(
@@ -192,8 +192,8 @@ for (const [name, label, traitName, buff, attribute, activeBonus] of [
     app.attributeData = app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const request = app.adapter.modifierContributionRequest(app);
@@ -249,8 +249,8 @@ test('Signet of the Wild contribution includes player and pet passive removal', 
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const request = app.adapter.modifierContributionRequest(app);

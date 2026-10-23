@@ -248,8 +248,8 @@ test('Bolstered Bonds follows both selected legends in build attributes', () => 
   app.attributeData = revenantAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: revenantAppAdapter.profession.resolvePatch()
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const assassin = app.attributeData.attributes;
@@ -264,8 +264,8 @@ test('Bolstered Bonds follows both selected legends in build attributes', () => 
   app.attributeData = revenantAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: revenantAppAdapter.profession.resolvePatch()
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const dwarf = app.attributeData.attributes;
@@ -280,8 +280,8 @@ test('Bolstered Bonds follows both selected legends in build attributes', () => 
   app.attributeData = revenantAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: revenantAppAdapter.profession.resolvePatch()
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   assert.equal(app.attributeData.attributes['Healing Power'].traits, 225);

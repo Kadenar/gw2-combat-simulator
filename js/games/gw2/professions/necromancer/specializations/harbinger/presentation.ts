@@ -1,3 +1,4 @@
+import type { ProfessionStateSnapshotContext } from '#gw2/platform/profession-presentation/types.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -22,7 +23,7 @@ import {
 } from '#gw2/professions/necromancer/core/presentation.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import {
   harbingerBlightMaximum,
   MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS
@@ -32,7 +33,9 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
 import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** Builds compact Blight, Cascading Corruption, and active Meltdown rotation-state rows. */
-function harbingerStateSnapshot(context: NecromancerUiContext): RotationStateSnapshotItem[] {
+function harbingerStateSnapshot(
+  context: NecromancerUiContext & Pick<ProfessionStateSnapshotContext, 'balanceContext'>
+): RotationStateSnapshotItem[] {
   const state = necromancerUiState(context);
   const maximum = harbingerBlightMaximum(context.balanceContext);
   const blight = boundedInteger(state.blight || 0, 0, 0, maximum);
@@ -42,7 +45,7 @@ function harbingerStateSnapshot(context: NecromancerUiContext): RotationStateSna
     0,
     MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS
   );
-  const hasTrait = getActiveTraits(context.build?.specializations || []).some(
+  const hasTrait = selectedTraits(context.balanceContext.catalog, context.build?.specializations || []).some(
     (trait) => trait.id === TRAIT.CASCADING_CORRUPTION
   );
   const items: RotationStateSnapshotItem[] = [

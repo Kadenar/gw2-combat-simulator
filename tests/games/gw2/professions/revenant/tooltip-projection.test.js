@@ -20,7 +20,11 @@ test('Vindicator dodge tooltips show only the selected landing and trait descrip
     [1, 'Death Drop', ['Strike damage', 'Vulnerability']]
   ]) {
     build.specializations[0].traits = `1-1-${choice}`;
-    const model = revenantAppAdapter.skillTooltip(skill, 'current', build);
+    const model = revenantAppAdapter.skillTooltip(
+      skill,
+      revenantAppAdapter.profession.resolvePatch({ id: 'current' }),
+      build
+    );
     assert.ok(!model.incomplete);
     assert.deepEqual(
       model.facts.map(({ name }) => name),
@@ -29,11 +33,18 @@ test('Vindicator dodge tooltips show only the selected landing and trait descrip
     assert.match(model.description, new RegExp(landing));
     assert.match(model.description, /Reaver's Curse/);
     assert.equal(model.description.includes('Forerunner of Death'), choice === 1);
-    assert.equal(revenantAppAdapter.skillTooltip(skill, 'current', build), model);
+    assert.equal(
+      revenantAppAdapter.skillTooltip(skill, revenantAppAdapter.profession.resolvePatch({ id: 'current' }), build),
+      model
+    );
   }
 
   build.specializations[0].traits = '1-2-3';
-  assert.doesNotMatch(revenantAppAdapter.skillTooltip(skill, 'current', build).description, /Reaver's Curse/);
+  assert.doesNotMatch(
+    revenantAppAdapter.skillTooltip(skill, revenantAppAdapter.profession.resolvePatch({ id: 'current' }), build)
+      .description,
+    /Reaver's Curse/
+  );
 });
 
 // Editing the canonical landing data must update the trait facts as well as the dodge facts.
@@ -60,7 +71,7 @@ test('Vindicator trait facts follow the selected patch landing payload', () => {
       }
     }
   });
-  const context = profession.balanceContextFor('landing-tooltip');
+  const context = profession.resolvePatch({ id: 'landing-tooltip' }).balanceContext;
   const facts = (id) =>
     describeSimulationTrait(
       context,

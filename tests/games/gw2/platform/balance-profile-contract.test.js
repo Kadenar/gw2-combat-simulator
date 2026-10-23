@@ -365,7 +365,7 @@ test('full previews and selected runtimes preserve removals without leaking acro
     }
   );
   for (const catalog of [
-    family.catalogFor('preview'),
+    family.resolvePatch({ id: 'preview' }).catalog,
     family.resolveProfession({ specialization: 'Elite', patchId: 'preview' }).catalog
   ]) {
     for (const kind of ['skill', 'balance-profile']) {
@@ -392,7 +392,10 @@ test('full previews and selected runtimes preserve removals without leaking acro
     }
   }
 
-  for (const catalog of [family.catalogFor(), family.resolveProfession({ specialization: 'Elite' }).catalog]) {
+  for (const catalog of [
+    family.resolvePatch().catalog,
+    family.resolveProfession({ specialization: 'Elite' }).catalog
+  ]) {
     assert.deepEqual(requireEffect(ownerOf(catalog, 'skill'), 'condition', 'First'), first);
     assert.deepEqual(requireEffect(ownerOf(catalog, 'balance-profile'), 'condition', 'First'), first);
   }

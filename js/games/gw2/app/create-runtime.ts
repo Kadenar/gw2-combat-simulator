@@ -83,7 +83,7 @@ export function createProfessionRuntime({
   function randomDistributionRequest(app: ProfessionAppState): RandomDistributionJobRequest {
     const config = createBuildContext({
       build: app.build,
-      patchId: app.patchId,
+      patch: app.patch,
       transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
     }).simulationConfig();
     const baseConfig = {
@@ -129,11 +129,11 @@ export function createProfessionRuntime({
     );
   }
 
-  function baselineSimulationConfig(app: ProfessionAppState): Gw2Config {
+  function baselineSimulationConfig(app: ProfessionAppState, patchId = app.patch.id): Gw2Config {
     return deterministicSimulationConfig(
       createBuildContext({
         build: app.build,
-        patchId: app.patchId,
+        patch: profession.resolvePatch({ id: patchId, values: app.patch.values }),
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
       }).simulationConfig()
     );
@@ -194,8 +194,15 @@ export function createProfessionRuntime({
         ? { referenceRotation: cloneRotation(app.rotationComparison.referenceRotation) }
         : null),
       baseConfig: baselineSimulationConfig(app),
-      selectedPatchId: app.patchId,
-      ...(profession.preview?.id ? { previewPatchId: profession.preview.id } : null)
+      selectedPatchId: app.patch.id,
+      ...(profession.preview?.id
+        ? {
+            patchConfigs: {
+              current: baselineSimulationConfig(app, 'current'),
+              preview: baselineSimulationConfig(app, profession.preview.id)
+            }
+          }
+        : null)
     };
   }
 

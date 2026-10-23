@@ -12,7 +12,7 @@ export const rangerAppAdapter = defineProfessionApp({
   createBuildContext,
   toApplicationBuild,
   resetPrompt: 'Reset the Ranger build, pet, assumptions, and rotation?',
-  isSkillAvailable(skill, context = {}) {
+  isSkillAvailable(skill, context) {
     // Greatsword Maul changes recipient when Soulbeast merges, so expose the matching skill ID.
     if (skill.id === ID.MAUL_SOULBEAST || skill.id === ID.MAUL_BASE) {
       const merged =

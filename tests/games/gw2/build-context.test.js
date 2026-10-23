@@ -7,10 +7,6 @@ import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lo
 import { bindBuildContext } from '#gw2/build-context/create.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { getActiveTraits } from '#gw2/professions/mesmer/data/traits-data.js';
-import { getActiveTraits as getWarriorTraits } from '#gw2/professions/warrior/data/traits-data.js';
-import { getActiveTraits as getRevenantTraits } from '#gw2/professions/revenant/data/traits-data.js';
-import { getActiveTraits as getEngineerTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as REVENANT } from '#gw2/professions/revenant/data/ids.js';
 import { resolveRevenantSkillLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
@@ -18,7 +14,11 @@ import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/as
 import { loadOptimizerContext } from '#gw2/app/optimizer/gear/context.js';
 import { createOptimizerEvaluator } from '#gw2/app/optimizer/gear/search.js';
 
-const input = (build, patchId = 'current') => ({ build, patchId, transitionDelays: normalizeTransitionDelays() });
+const input = (profession, build, patchId = 'current') => ({
+  build,
+  patch: profession.resolvePatch({ id: patchId }),
+  transitionDelays: normalizeTransitionDelays()
+});
 
 // Fail at the dependency boundary even if a prior test has already initialized the real lazy UI.
 const withoutPresentation = (profession) =>
@@ -38,7 +38,7 @@ for (const { id } of professionRegistry) {
     const build = module.toApplicationBuild(module.profession.createBuildDefaults());
     const original = structuredClone(build);
     for (const patchId of ['current', ...(module.profession.preview ? [module.profession.preview.id] : [])]) {
-      const context = module.createBuildContext(input(build, patchId));
+      const context = module.createBuildContext(input(module.profession, build, patchId));
       const configBeforePreview = context.simulationConfig();
       const first = context.attributes(1);
       assert.equal(context.attributes(1), first);
@@ -68,8 +68,11 @@ for (const { id } of professionRegistry) {
       assert.deepEqual(build, original);
     }
 
-    assert.throws(() => module.createBuildContext(input(build, 'removed-preview')), /Unknown patch/);
-    assert.throws(() => module.createBuildContext(input(build)).attributes(0), /Weapon set/);
+    assert.throws(
+      () => module.createBuildContext(input(module.profession, build, 'removed-preview')),
+      /Unknown .*patch/
+    );
+    assert.throws(() => module.createBuildContext(input(module.profession, build)).attributes(0), /Weapon set/);
   });
 }
 
@@ -84,7 +87,6 @@ test('a selected preview supplies both the attribute catalog and balance context
   const factory = bindBuildContext(
     withoutPresentation(profession),
     {
-      getActiveTraits,
       attributeContributions: (facts) => {
         seen = facts;
         return profession.attributeContributions(facts);
@@ -93,12 +95,12 @@ test('a selected preview supplies both the attribute catalog and balance context
     () => ({}),
     { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }
   );
-  const context = factory(input(build, 'context-preview'));
+  const context = factory(input(profession, build, 'context-preview'));
   context.simulationConfig();
   assert.equal(seen, undefined);
   context.attributes(1);
-  assert.equal(seen.balanceContext, profession.balanceContextFor('context-preview'));
-  assert.equal(seen.profession.catalog, profession.catalogFor('context-preview'));
+  assert.equal(seen.balanceContext, profession.resolvePatch({ id: 'context-preview' }).balanceContext);
+  assert.equal(seen.profession.catalog, profession.resolvePatch({ id: 'context-preview' }).catalog);
   assert.deepEqual(seen.config.selectedSkillIds, context.selectedSkillIds);
   assert.equal(context.simulationConfig().patchId, 'context-preview');
 });
@@ -110,7 +112,7 @@ test('Revenant starting legend determines skills regardless of displayed set or 
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.DWARF],
     startingLegend: LEGEND.ASSASSIN
   });
-  const context = module.createBuildContext(input(build));
+  const context = module.createBuildContext(input(module.profession, build));
   const loadout = resolveRevenantSkillLoadout(build, context.specialization);
   const expected = loadout.bars.find((bar) => bar.id === LEGEND.ASSASSIN).skillIds;
   context.attributes(2);
@@ -119,7 +121,7 @@ test('Revenant starting legend determines skills regardless of displayed set or 
   const { revenantAppAdapter } = await import('#gw2/professions/revenant/app/app-definition.js');
   const app = {
     build,
-    patchId: 'current',
+    patch: module.profession.resolvePatch({ id: 'current' }),
     attributeWeaponSet: 2,
     attributeData: { activeTraits: [] },
     results: { planningState: { profession: { activeLegend: LEGEND.DWARF } } }
@@ -136,11 +138,11 @@ test('headless fixed loadouts retain both bars while attribute skills follow the
   });
   const factory = bindBuildContext(
     withoutPresentation(module.profession),
-    { getActiveTraits: getRevenantTraits, attributeContributions: module.profession.attributeContributions },
+    { attributeContributions: module.profession.attributeContributions },
     () => ({}),
     { assumptionControls: REVENANT_ASSUMPTION_CONTROLS, resolveSkillLoadout: resolveRevenantSkillLoadout }
   );
-  const context = factory(input(build));
+  const context = factory(input(module.profession, build));
   const config = context.simulationConfig();
   assert.ok(context.selectedSkillIds.includes(REVENANT.SOOTHING_STONE));
   assert.ok(!context.selectedSkillIds.includes(REVENANT.ENCHANTED_DAGGERS));
@@ -163,19 +165,22 @@ test('headless ordinary loadouts preserve empty slots and specialization-scoped 
   delete build.assumptions.inDamagingField;
   const factory = bindBuildContext(
     withoutPresentation(module.profession),
-    { getActiveTraits: getEngineerTraits, attributeContributions: module.profession.attributeContributions },
+    { attributeContributions: module.profession.attributeContributions },
     () => ({}),
     { assumptionControls: ENGINEER_ASSUMPTION_CONTROLS, resolveSkillLoadout: resolveSelectedSkillLoadout }
   );
   build.specializations = [{ name: 'Amalgam', traits: '1-1-1' }];
-  const config = factory(input(build)).simulationConfig();
+  const config = factory(input(module.profession, build)).simulationConfig();
   assert.deepEqual(config.selectedSkillIds, [utility]);
   assert.deepEqual(config.skillInputBars, [{ id: 'selected', slots: { 'slot-8': utility } }]);
   assert.equal(config.professionAssumptions.inDamagingField, false);
   build.assumptions.inDamagingField = true;
-  assert.equal(factory(input(build)).simulationConfig().professionAssumptions.inDamagingField, true);
+  assert.equal(factory(input(module.profession, build)).simulationConfig().professionAssumptions.inDamagingField, true);
   build.specializations = [];
-  assert.equal(Object.hasOwn(factory(input(build)).simulationConfig().professionAssumptions, 'inDamagingField'), false);
+  assert.equal(
+    Object.hasOwn(factory(input(module.profession, build)).simulationConfig().professionAssumptions, 'inDamagingField'),
+    false
+  );
 });
 
 test('profession starting resources and selections survive headless composition', async () => {
@@ -207,7 +212,7 @@ test('profession starting resources and selections survive headless composition'
   for (const [id, names] of Object.entries(fields)) {
     const module = await loadBuildContext(id);
     const build = module.toApplicationBuild(module.profession.createBuildDefaults());
-    const config = module.createBuildContext(input(build)).simulationConfig();
+    const config = module.createBuildContext(input(module.profession, build)).simulationConfig();
     for (const name of names) assert.deepEqual(config[name], build[name], `${id}.${name}`);
     const resource = { engineer: 'initialHeat', revenant: 'initialEnergy', thief: 'initialInitiative' }[id];
 
@@ -220,7 +225,7 @@ test('profession starting resources and selections survive headless composition'
   for (const name of ['Virtuoso', 'Troubadour', 'Chronomancer']) {
     build.specializations = [{ name, traits: '1-1-1' }];
     assert.equal(
-      mesmer.createBuildContext(input(build)).simulationConfig().initialResource,
+      mesmer.createBuildContext(input(mesmer.profession, build)).simulationConfig().initialResource,
       name === 'Chronomancer' ? 0 : 3
     );
   }
@@ -233,7 +238,6 @@ test('optimizer requirements reuse cached sets, reject early, and keep each cand
   const factory = bindBuildContext(
     module.profession,
     {
-      getActiveTraits: getWarriorTraits,
       attributeContributions: (facts) => {
         calls.push(facts.weaponSet);
         return module.profession.attributeContributions(facts);
@@ -248,7 +252,7 @@ test('optimizer requirements reuse cached sets, reject early, and keep each cand
     contentId: 'warrior',
     revision: 0,
     build,
-    patchId: 'current',
+    patch: module.profession.resolvePatch({ id: 'current' }),
     observationPolicy: { kind: 'rotation' },
     selections: { minToughness: 99999 },
     limit: 20

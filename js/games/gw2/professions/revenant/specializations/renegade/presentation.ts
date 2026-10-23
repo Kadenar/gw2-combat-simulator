@@ -1,3 +1,4 @@
+import type { ProfessionStateSnapshotContext } from '#gw2/platform/profession-presentation/types.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
@@ -7,7 +8,7 @@ import { readProfessionCoreState } from '#gw2/platform/profession-definition/sta
 import { REVENANT_MAXIMUM_ENDURANCE, type RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
@@ -20,11 +21,13 @@ import type {
 import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 
 /** Both displays select the same trait-dependent cap as runtime Fervor grants. */
-function fervorMaximum(context: RevenantUiContext): number {
+function fervorMaximum(context: RevenantUiContext & Pick<ProfessionStateSnapshotContext, 'balanceContext'>): number {
   // App snapshots provide a build; direct runtime UI queries provide resolved trait IDs.
   const lastingLegacy =
     hasTrait(context, TRAIT.LASTING_LEGACY) ||
-    getActiveTraits(context.build?.specializations).some((trait) => trait.id === TRAIT.LASTING_LEGACY);
+    selectedTraits(context.balanceContext.catalog, context.build?.specializations).some(
+      (trait) => trait.id === TRAIT.LASTING_LEGACY
+    );
   return Math.max(
     1,
     balanceNumberFromContext(
@@ -36,7 +39,9 @@ function fervorMaximum(context: RevenantUiContext): number {
 }
 
 /** Shows Kalla's Fervor stacks and the one-use Band Together enhancement window. */
-function renegadeStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
+function renegadeStateSnapshot(
+  context: RevenantUiContext & Pick<ProfessionStateSnapshotContext, 'balanceContext'>
+): RotationStateSnapshotItem[] {
   const state = revenantUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];

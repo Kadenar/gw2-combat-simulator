@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { withoutTraitSkillVariants } from '#tests/helpers/patch-selection.js';
 
 import { hasConfigurableDoubleEdgeOutcome } from '#gw2/app/rotation/editing/double-edge-editor.js';
 import { dispatchPaletteActivation, resolvePaletteDrop } from '#gw2/app/rotation/palette/interactions.js';
@@ -16,7 +17,7 @@ function activationApp(skills) {
   };
   const added = [];
   let professionAction;
-  const app = {
+  const app = withoutTraitSkillVariants({
     build: {
       rotation: [],
       startingWeaponSet: 1,
@@ -42,7 +43,7 @@ function activationApp(skills) {
     addRotation(name, options) {
       added.push({ name, options });
     }
-  };
+  });
   return {
     app,
     added,

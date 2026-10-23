@@ -41,6 +41,7 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
       }
 
       const app = {
+        patch: adapter.profession.resolvePatch(),
         build,
         adapter,
         profession: adapter.profession,
@@ -50,23 +51,23 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
       app.attributeData = adapter
         .createBuildContext({
           build: app.build,
-          patchId: app.patchId ?? 'current',
-          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+          patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
         })
         .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
       const without = adapter
         .createBuildContext({
           build: app.build,
-          patchId: 'current',
           transitionDelays: normalizeTransitionDelays(),
-          disabledModifier: { type: 'Sigil', name: sigil }
+          disabledModifier: { type: 'Sigil', name: sigil },
+          patch: adapter.profession.resolvePatch({ id: 'current' })
         })
         .simulationConfig();
       const baseline = adapter
         .createBuildContext({
           build: app.build,
-          patchId: app.patchId ?? 'current',
-          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+          patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
         })
         .simulationConfig();
       const field = { Bloodlust: 'power', Corruption: 'conditionDamage', Cruelty: 'ferocity', Stars: 'precision' }[
@@ -97,6 +98,7 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
       alternateWeapons: adapter.id === 'elementalist' ? ['Staff', ''] : ['Pistol', 'Shield']
     });
     const app = {
+      patch: adapter.profession.resolvePatch(),
       adapter,
       build,
       profession: adapter.profession,
@@ -113,8 +115,8 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
     app.attributeData = adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const result = simulateGw2({
@@ -126,8 +128,8 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
       config: adapter
         .createBuildContext({
           build: app.build,
-          patchId: app.patchId ?? 'current',
-          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+          patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
         })
         .simulationConfig()
     });

@@ -536,6 +536,7 @@ test('weapon palette rows group Elementalist skills by attunement and slot', () 
     ]
   });
   const app = {
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
@@ -595,6 +596,7 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
     ]
   });
   const app = {
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
@@ -712,6 +714,7 @@ test('starting attunement controls render primary and secondary selectors', () =
     ]
   });
   const app = {
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
@@ -746,6 +749,7 @@ test('rotation palette exposes each attunement as an action', () => {
     ]
   });
   const app = {
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
@@ -914,6 +918,7 @@ test('Evoker layers familiar charges beside F5', () => {
   assert.equal(charges.showValue, false);
 
   const resourceHtml = activeResourceGroup({
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
@@ -927,6 +932,7 @@ test('Evoker layers familiar charges beside F5', () => {
   assert.doesNotMatch(resourceHtml, /<strong>4\/6<\/strong>/);
 
   const basicReadyHtml = activeResourceGroup({
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
@@ -943,6 +949,7 @@ test('Evoker layers familiar charges beside F5', () => {
     }
   });
   const empoweredReadyHtml = activeResourceGroup({
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
@@ -975,6 +982,7 @@ test('Evoker renders stacked starting controls for basic and empowered charges',
     ]
   });
   const app = {
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
@@ -1069,6 +1077,7 @@ test('core attunements enforce and report their individual recharge', () => {
   assert.ok(waterAvailability.retryAt > result.planningState.atSeconds);
   const waterView = paletteSkillView(
     {
+      patch: elementalistAppAdapter.profession.resolvePatch(),
       build: elementalistProfession.createBuildDefaults(),
       adapter: elementalistAppAdapter,
       profession: elementalistProfession,

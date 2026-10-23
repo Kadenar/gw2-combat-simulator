@@ -8,7 +8,7 @@ test('gear artwork follows the active specialization', async ({ page }) => {
   for (const specialization of ['Amalgam', 'Scrapper', null]) {
     await page.evaluate((name) => {
       const app = window.professionApp;
-      const core = app.specializations.filter((spec) => !spec.elite);
+      const core = app.activeCatalog.specializations.filter((spec) => !spec.elite);
       app.build.specializations = core.slice(0, 3).map((spec, index) => ({
         name: index === 2 && name ? name : spec.name,
         traits: '1-1-1'

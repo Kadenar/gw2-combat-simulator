@@ -14,7 +14,7 @@ export async function headlessApp(professionId, buildPath) {
   const app = {
     gameId: 'gw2',
     contentId: professionId,
-    patchId: 'current',
+    patch: adapter.profession.resolvePatch({ id: 'current' }),
     adapter,
     profession: adapter.profession,
     activeCatalog: catalog,
@@ -26,8 +26,8 @@ export async function headlessApp(professionId, buildPath) {
   app.attributeData = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   return app;

@@ -1429,7 +1429,7 @@ test('zero passive grants cannot advertise an endless affordability retry', () =
 });
 
 // Legality is evaluated before any cast reserves recharge, creates a summon, or grants a trait effect.
-test('live slot selection and trait replacements reject unavailable commands without state changes', () => {
+test('live slot selection rejects unavailable commands without state changes', () => {
   const empty = simulate([cast(ID.SUMMON_BONE_MINIONS)], { ...base, selectedSkillIds: [] });
   assert.deepEqual(empty.planningState.profession.activeMinions, {});
   assert.ok(empty.warnings.some(({ message: warning }) => warning.includes('not equipped')));
@@ -1439,12 +1439,6 @@ test('live slot selection and trait replacements reject unavailable commands wit
   });
   assert.deepEqual(equipped.warnings, []);
   assert.equal(equipped.planningState.profession.activeMinions['bone-minion'], 1);
-  assert.ok(
-    simulate([cast(ID.DEVOURING_DARKNESS)]).warnings.some(({ message: warning }) => warning.includes('Lingering Curse'))
-  );
-  const replacement = simulate([cast(ID.FEAST_OF_CORRUPTION)], { ...base, selectedTraitIds: [TRAIT.LINGERING_CURSE] });
-  assert.ok(replacement.warnings.some(({ message: warning }) => warning.includes('Devouring Darkness replaces')));
-  assert.equal([...observedRuntime(replacement).cooldownController.cooldownSkillIds()].length, 0);
 });
 
 test('a completed parent arms one exclusive follow-up window and interruption arms nothing', () => {

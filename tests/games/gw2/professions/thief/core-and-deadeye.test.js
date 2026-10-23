@@ -748,6 +748,7 @@ test('stealth replaces weapon skill 1 without a separate palette group', () => {
     specializations: []
   };
   const app = {
+    patch: thiefAppAdapter.profession.resolvePatch(),
     build,
     adapter: thiefAppAdapter,
     profession: thiefProfession,
@@ -892,6 +893,7 @@ test('Thief weapon chains and follow-ups occupy one live palette tile', () => {
       { name: specialization === 'Core' ? 'Shadow Arts' : specialization, traits: '1-1-1' }
     ];
     const app = {
+      patch: thiefAppAdapter.profession.resolvePatch(),
       build: {
         ...defaults,
         weapons,

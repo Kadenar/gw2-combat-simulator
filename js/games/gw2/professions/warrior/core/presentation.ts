@@ -28,7 +28,7 @@ import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import type { WarriorSkill, WarriorState, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const WARRIOR_REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze({
@@ -141,8 +141,10 @@ export function warriorAdrenalineResourceViews(
 }
 
 /** True when the build has the Arms trait Signet Mastery selected. */
-function hasSignetMasteryTrait(context: WarriorUiContext): boolean {
-  return getActiveTraits(context.build?.specializations || []).some(
+function hasSignetMasteryTrait(
+  context: WarriorUiContext & { readonly balanceContext: ProfessionBalanceContext }
+): boolean {
+  return selectedTraits(context.balanceContext.catalog, context.build?.specializations || []).some(
     (trait) => Number(trait.id) === TRAIT.SIGNET_MASTERY
   );
 }

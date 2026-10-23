@@ -156,6 +156,8 @@ export interface NativeProfessionDefinition<
   readonly id: string;
   readonly name: string;
   readonly modules: TModules & readonly AnyNativeModule<string, TSkill>[];
+  /** Named executable replacements let integrations select reworked modules before compiling a runtime. */
+  readonly moduleVariants?: Readonly<Record<string, AnyNativeModule>>;
   /** Bind family-owned mechanics to the selected specialization without upward imports from Core. */
   readonly runtimeHooks?: (specialization: string) => RuntimeHooks<NativeProfessionRuntimeState<TModules>, TSkill>;
   readonly build?: ProfessionBuildDefinition<TBuild>;

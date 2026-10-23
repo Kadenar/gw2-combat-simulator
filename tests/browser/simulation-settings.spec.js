@@ -218,8 +218,8 @@ test('simulation seed and critical damage settings persist with the build', asyn
         window.professionApp.adapter
           .createBuildContext({
             build: window.professionApp.build,
-            patchId: window.professionApp.patchId ?? 'current',
-            transitionDelays: window.professionApp.simulationSettings.transitionDelays
+            transitionDelays: window.professionApp.simulationSettings.transitionDelays,
+            patch: window.professionApp.patch
           })
           .simulationConfig().criticalDamageMode
     )

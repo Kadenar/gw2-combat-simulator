@@ -1,3 +1,4 @@
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
@@ -78,16 +79,11 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
   professionConfig: (build: Readonly<TBuild>, specialization: string) => ProfessionConfig,
   declarations: BuildContextDeclarations<TBuild>
 ): BuildContextFactory<TBuild> {
-  const eliteNames = new Set(profession.catalog.specializations.filter((spec) => spec.elite).map((spec) => spec.name));
   const assumptionControls = buildAssumptionControls(declarations.assumptionControls);
-  return ({ build: inputBuild, patchId, transitionDelays, disabledModifier: disabled }) => {
-    if (patchId !== 'current' && (!profession.preview || patchId !== profession.preview.id)) {
-      throw new TypeError(`Unknown patch: ${patchId}`);
-    }
-
+  return ({ build: inputBuild, patch, transitionDelays, disabledModifier: disabled }) => {
+    const { catalog, balanceContext } = patch;
+    const eliteNames = new Set(catalog.specializations.filter((spec) => spec.elite).map((spec) => spec.name));
     const specialization = inputBuild.specializations.find((spec) => eliteNames.has(spec.name))?.name || 'Core';
-    const catalog = profession.catalogFor(patchId);
-    const balanceContext = profession.balanceContextFor(patchId);
     // Remove attribute-backed effects before conversions while borrowing untouched equipment and rotation data.
     let build: Readonly<TBuild> = inputBuild;
 
@@ -108,10 +104,8 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
       .map((id) => catalog.skillsById.get(id))
       .filter((skill): skill is Skill => skill != null);
     const disabledTrait = disabled?.type === 'Trait' ? disabled.name : null;
-    const traitContext = createBuildAttributeContext(
-      { build, disabledTrait, balanceContext },
-      catalog,
-      attributeRules.getActiveTraits
+    const traitContext = createBuildAttributeContext({ build, disabledTrait, balanceContext }, catalog, (selections) =>
+      selectedTraits(catalog, selections)
     );
     const selectedTraitIds = traitContext.activeTraits.map((trait) => trait.id);
     // Keep equipment seeds independent of finalized previews, including when requirements request a preview first.
@@ -170,7 +164,7 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
           })),
           ...createGw2SimulationConfig({
             build,
-            patchId,
+            patchId: patch.id,
             transitionDelays,
             attributeSeeds: [equipment(1).seed, equipment(2).seed],
             specialization,
@@ -179,7 +173,8 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
             selectedTraitIds,
             assumptionControls
           }),
-          ...structuredClone(professionConfig(build, specialization))
+          ...structuredClone(professionConfig(build, specialization)),
+          ...(patch.values ? { previewValues: { ...patch.values } } : {})
         };
       }
     };

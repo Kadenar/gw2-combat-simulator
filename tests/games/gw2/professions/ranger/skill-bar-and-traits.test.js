@@ -404,6 +404,7 @@ describe('Galeshot Cyclone Bow', () => {
       traits: '3-3-2'
     };
     const galeshotApp = {
+      patch: rangerAppAdapter.profession.resolvePatch(),
       build: galeshotBuild,
       adapter: rangerAppAdapter,
       profession: rangerProfession,

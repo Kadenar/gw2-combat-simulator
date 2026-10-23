@@ -514,12 +514,16 @@ test('Infinite Horizon axe clones each apply one 4-second Torment', () => {
 
 // Defensive cleansing remains selectable for builds but has no simulated effects or balance tuning.
 test('Elusive Mind retains its out-of-scope tooltip without a balance profile', () => {
-  const trait = mesmerAppAdapter.specializations
+  const trait = mesmerAppAdapter.profession.catalog.specializations
     .find((specialization) => specialization.name === 'Mirage')
     .majorTraits.flat()
     .find((entry) => entry.id === TRAIT.ELUSIVE_MIND);
   assert.ok(trait);
-  assert.match(mesmerAppAdapter.traitTooltip(trait, 'current', 'Mirage').description, /outside the simulator's scope/);
+  assert.match(
+    mesmerAppAdapter.traitTooltip(trait, mesmerAppAdapter.profession.resolvePatch({ id: 'current' }), 'Mirage')
+      .description,
+    /outside the simulator's scope/
+  );
   assert.equal(mesmerCatalog.balanceProfilesById.has(TRAIT.ELUSIVE_MIND), false);
 });
 

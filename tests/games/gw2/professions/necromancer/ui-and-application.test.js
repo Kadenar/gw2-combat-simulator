@@ -156,7 +156,7 @@ test('Necromancer resources and palette change with specialization state', () =>
   );
   assert.deepEqual(
     necromancerProfession.ui.rotationStateSnapshot({
-      balanceContext: withPatchPreview(necromancerProfession).balanceContextFor('current'),
+      balanceContext: withPatchPreview(necromancerProfession).resolvePatch({ id: 'current' }).balanceContext,
       specialization: 'Harbinger',
       build: {
         specializations: [{ name: 'Harbinger', traits: '3-3-1' }]
@@ -225,6 +225,7 @@ test('Necromancer resources and palette change with specialization state', () =>
   assert.equal(formatResourceValue(113.89999999999999), '113.9');
   assert.deepEqual(
     necromancerProfession.ui.targetHealthThresholds({
+      catalog: necromancerCatalog,
       specialization: 'Core',
       build: { weapons: ['Axe', 'Focus'], specializations: [] }
     }),
@@ -232,6 +233,7 @@ test('Necromancer resources and palette change with specialization state', () =>
   );
   assert.deepEqual(
     necromancerProfession.ui.targetHealthThresholds({
+      catalog: necromancerCatalog,
       specialization: 'Reaper',
       build: { weapons: ['Greatsword', ''], specializations: [] }
     }),
@@ -243,6 +245,7 @@ test('Necromancer renders life force above its F-skills', async () => {
   const adapter = await loadProfessionAppAdapter('necromancer');
   const build = adapter.toApplicationBuild(createNecromancerBuildDefaults());
   const app = {
+    patch: adapter.profession.resolvePatch(),
     build,
     adapter,
     profession: necromancerProfession,
@@ -430,6 +433,7 @@ test('slot skills are inaccessible in transformed shrouds', () => {
 test('Harbinger can equip torch skills through Weaponmaster Training', async () => {
   const adapter = await loadProfessionAppAdapter('necromancer');
   const skills = weaponSkills({
+    patch: adapter.profession.resolvePatch(),
     adapter,
     activeCatalog: necromancerCatalog,
     build: {
@@ -459,6 +463,7 @@ test('Harbinger can equip torch skills through Weaponmaster Training', async () 
   );
   const scepterSkills = weaponSkills(
     {
+      patch: adapter.profession.resolvePatch(),
       adapter,
       activeCatalog: necromancerCatalog,
       build: {
@@ -487,6 +492,7 @@ test('Harbinger can equip torch skills through Weaponmaster Training', async () 
   );
   assert.equal(
     adapter.isSkillAvailable(necromancerCatalog.skillsById.get(ID.FEAST_OF_CORRUPTION), {
+      catalog: necromancerCatalog,
       specialization: 'Harbinger',
       build: { specializations: [] }
     }),
@@ -494,6 +500,7 @@ test('Harbinger can equip torch skills through Weaponmaster Training', async () 
   );
   assert.equal(
     adapter.isSkillAvailable(necromancerCatalog.skillsById.get(ID.DEVOURING_DARKNESS), {
+      catalog: necromancerCatalog,
       specialization: 'Harbinger',
       build: { specializations: [] }
     }),

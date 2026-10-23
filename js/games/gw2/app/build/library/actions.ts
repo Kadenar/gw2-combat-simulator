@@ -21,7 +21,7 @@ export function loadMyBuildEntry(app: ProfessionAppState, entry: MyBuild): void 
 
   if (newBuild) {
     delete container.dataset.newBuild;
-    addBuildTab(app, entry.build, entry.name, app.patchId, entry.build);
+    addBuildTab(app, entry.build, entry.name, app.patch.id, entry.build);
     saveBuildWorkspace(app);
     renderBuildTabs(app);
     return;
@@ -92,7 +92,7 @@ export async function loadTemplateAction(
 
   const previousBuild = structuredClone(app.build);
   const validateDestination = captureBuildDestination(app);
-  const patchId = app.patchId;
+  const patchId = app.patch.id;
   const buttons = container?.querySelectorAll<HTMLButtonElement>('button[data-template-index]') || [button];
   // A selection dismisses the picker immediately; progress stays in the editor while assets load.
   for (const control of buttons) control.disabled = true;

@@ -971,26 +971,6 @@ test('remaining outgoing Necromancer trait families affect combat state', () => 
   );
 });
 
-test('trait skill replacements expose only their active variant', () => {
-  const scepterBase = simulate('Core', ['Feast of Corruption'], {
-    primaryWeapon: 'Scepter'
-  });
-  const scepterTrait = simulate('Core', ['Feast of Corruption', 'Devouring Darkness'], {
-    primaryWeapon: 'Scepter',
-    selectedTraitIds: [TRAIT.LINGERING_CURSE]
-  });
-  const scourgeTrait = simulate('Scourge', ['Desert Shroud', 'Sandstorm Shroud', { type: 'wait', durationMs: 4100 }], {
-    initialResource: 100,
-    selectedTraitIds: [TRAIT.HERALD_OF_SORROW]
-  });
-
-  assert.deepEqual(scepterBase.warnings, []);
-  assert.match(scepterTrait.warnings.map(({ message }) => message).join(' '), /Feast of Corruption is unavailable/);
-  assert.ok(scepterTrait.breakdown.some((entry) => entry.name === 'Devouring Darkness'));
-  assert.match(scourgeTrait.warnings.map(({ message }) => message).join(' '), /Desert Shroud is unavailable/);
-  assert.ok(scourgeTrait.resolvedEvents.some((event) => event.name === 'Sandstorm Shroud'));
-});
-
 test('Corrupted Talent owns the Harbinger shroud-entry life-force gain', () => {
   const withoutTrait = simulate('Harbinger', ['Harbinger Shroud'], {
     initialResource: 0
@@ -1006,13 +986,18 @@ test('Corrupted Talent owns the Harbinger shroud-entry life-force gain', () => {
 
 test('modifier candidates include every active Necromancer trait', () => {
   const build = createNecromancerBuildDefaults();
-  const app = { patchId: 'current', build, activeCatalog: necromancerCatalog, attributeWeaponSet: 1 };
+  const app = {
+    patch: necromancerAppAdapter.profession.resolvePatch({ id: 'current' }),
+    build,
+    activeCatalog: necromancerCatalog,
+    attributeWeaponSet: 1
+  };
 
   app.attributeData = necromancerAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: necromancerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
 

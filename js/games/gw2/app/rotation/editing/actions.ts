@@ -1,14 +1,39 @@
+import { buildContextInput } from '#gw2/app/build/isolated-preview.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
+import { createSkillSelectionContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
 import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
-import { activeSpecialization } from '#gw2/app/rotation/context.js';
+
+type SkillIdSelector = (skillId: SkillId) => SkillId;
+
+let lastSelection: { readonly patch: object; readonly layout: string; readonly select: SkillIdSelector } | null = null;
+
+/**
+ * Applies the same trait-selected identity transform as the rotation driver, so stored commands display the variant
+ * that will actually be cast (for example, Evolve under Double Helix). Timeline rows call this for every entry, so only
+ * a patch or trait change rebuilds the selector.
+ */
+function selectedSkillId(app: ProfessionAppState, skillId: SkillId): SkillId {
+  const layout = JSON.stringify(app.build.specializations ?? []);
+
+  if (lastSelection?.patch !== app.patch || lastSelection.layout !== layout) {
+    const config = app.adapter.createBuildContext(buildContextInput(app)).simulationConfig();
+    const runtime = app.profession.runtimeFor(config);
+    const context = createSkillSelectionContext(normalizeSelectedTraitIds(config.selectedTraitIds));
+    lastSelection = { patch: app.patch, layout, select: (id) => runtime.modifySkillId?.(context, id) ?? id };
+  }
+
+  return lastSelection.select(skillId);
+}
 
 /**
  * Resolves the catalog skill behind a rotation entry or palette item. Non-cast
  * commands (wait, combat-start, …) have no skill and return undefined. Prefers a
- * numeric skillId lookup; duplicated names select the variant available to the build.
+ * numeric skillId lookup, resolved to the trait-selected variant; duplicated names
+ * select the variant available to the build.
  */
 export function resolveEntrySkill(
   app: ProfessionAppState,
@@ -19,7 +44,8 @@ export function resolveEntrySkill(
   const identity = 'type' in item ? item.skillId : (item.skillId ?? item.name);
   const skillId = identity == null ? null : Number(identity);
 
-  if (skillId !== null && Number.isFinite(skillId)) return app.activeCatalog.skillsById.get(skillId);
+  if (skillId !== null && Number.isFinite(skillId))
+    return app.activeCatalog.skillsById.get(selectedSkillId(app, skillId));
 
   const name = String(identity);
   const skill = app.activeCatalog.skillsByName.get(name);
@@ -28,7 +54,7 @@ export function resolveEntrySkill(
 
   // Runtime catalog overrides already select specialization-specific weapon identities.
   return app.profession
-    .runtimeFor({ specialization: activeSpecialization(app), patchId: app.patchId })
+    .runtimeFor(app.adapter.createBuildContext(buildContextInput(app)).simulationConfig())
     .catalog.skillsByName.get(name);
 }
 

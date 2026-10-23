@@ -1,3 +1,4 @@
+import type { ResolvedPatch } from '#gw2/integrations/patches/selection.js';
 import { gw2BuildEditor } from '#gw2/app/build/editor.js';
 import type {
   ProfessionDefaultOffhand,
@@ -9,6 +10,7 @@ import { renderGearOptimizerView } from '#gw2/app/optimizer/view.js';
 import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
 import { renderRotationBuilder } from '#gw2/app/rotation/builder.js';
 import {
+  resolveTooltips,
   describeSimulationSkill,
   describeSimulationTrait,
   type SimulationTooltip
@@ -48,6 +50,12 @@ export function defineProfessionApp({
   isSkillAvailable,
   defaultOffhand = ({ offHands = [] } = {}) => offHands[0] || ''
 }: DefineProfessionAppOptions): Readonly<Gw2AppAdapter> {
+  // A typo in a tooltip registration must fail at composition rather than silently describe live behavior.
+  for (const id of Object.keys(tooltips.reworks ?? {})) {
+    if (!Object.hasOwn(profession.nativeDefinition.moduleVariants ?? {}, id))
+      throw new TypeError(`Unknown tooltip module rework ${id}.`);
+  }
+
   // Storage and export identities follow the profession; only the saved-build schema version varies.
   const storageKey = `gw2-${profession.id}-simulator-v${storageVersion}`;
   const globalName = `${profession.id}App`;
@@ -80,9 +88,10 @@ export function defineProfessionApp({
     id: profession.id,
     name: profession.name,
     profession,
-    skillTooltip: (skill: Skill, patchId: string, build?: Pick<Gw2CanonicalBuild, 'specializations'>) =>
+    skillTooltip: (skill: Skill, patch: ResolvedPatch, build?: Pick<Gw2CanonicalBuild, 'specializations'>) =>
       tooltip(() => {
-        const context = profession.balanceContextFor(patchId);
+        const context = patch.balanceContext;
+        const selectedTooltips = resolveTooltips(context, tooltips);
         // Trait changes invalidate cached payloads even when the selected balance patch stays the same.
         const selection = JSON.stringify(build?.specializations ?? []);
         let cached = skillTooltips.get(context);
@@ -99,8 +108,8 @@ export function defineProfessionApp({
         const selected = context.catalog.skillsById.get(skill.id);
 
         // Palette-only actions have explicit local descriptions but no combat catalog entry.
-        if (!selected && tooltips.skills?.[skill.id])
-          return tooltips.skills[skill.id](context, skill, undefined, build);
+        if (!selected && selectedTooltips.skills?.[skill.id])
+          return selectedTooltips.skills[skill.id](context, skill, undefined, build);
 
         if (!selected) throw new Error(`Missing tooltip skill: ${skill.id}`);
 
@@ -108,17 +117,13 @@ export function defineProfessionApp({
         cached.models.set(skill.id, model);
         return model;
       }, skill.name),
-    traitTooltip: (trait: CatalogEntity, patchId: string, specialization: string) =>
+    traitTooltip: (trait: CatalogEntity, patch: ResolvedPatch, specialization: string) =>
       // Core traits can change their payload when an elite specialization is selected.
-      tooltip(
-        () => describeSimulationTrait(profession.balanceContextFor(patchId), trait, tooltips, specialization),
-        trait.name
-      ),
+      tooltip(() => describeSimulationTrait(patch.balanceContext, trait, tooltips, specialization), trait.name),
     storageKey,
     globalName,
     filenames,
     resetPrompt,
-    specializations: profession.catalog.specializations,
     weaponData: createProfessionWeaponData(profession.catalog, {
       weaponData: WEAPON_DATA
     }),
@@ -141,7 +146,7 @@ export function defineProfessionApp({
       Object.freeze([])) as readonly ProfessionAssumptionControl[],
     weaponSkillMatchesSet: profession.weaponSkillMatchesSet || defaultWeaponSkillMatchesSet,
     // Profession filters may add restrictions, but cannot bypass shared build eligibility.
-    isSkillAvailable: (skill: Skill, context: ProfessionSkillAvailabilityContext = {}) =>
+    isSkillAvailable: (skill: Skill, context: ProfessionSkillAvailabilityContext) =>
       isBuildSkillAvailable(skill, context) && (isSkillAvailable?.(skill, context) ?? true),
     defaultOffhand
   });

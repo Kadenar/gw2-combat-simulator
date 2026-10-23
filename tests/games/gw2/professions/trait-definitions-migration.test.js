@@ -87,7 +87,7 @@ test('Luminary definitions preserve eligible build grants and applied armament w
       { name: 'Virtues', traits: '1-1-1' }
     ]
   };
-  const balance = family.balanceContextFor('s4-preview');
+  const balance = family.resolvePatch({ id: 's4-preview' }).balanceContext;
   const attributes = calculate(build, [], 1, null, null, balance).attributes;
   assert.equal(attributes.Vitality.traits, 240);
   assert.equal(attributes['Condition Damage'].traits, 87);
@@ -145,7 +145,7 @@ test('Willbender build definitions read active tuning and honor disabled trait p
       ['current', baseline],
       ['s4-preview', preview]
     ]) {
-      const balance = family.balanceContextFor(patchId);
+      const balance = family.resolvePatch({ id: patchId }).balanceContext;
       assert.equal(calculate(build, [], 1, null, null, balance).attributes[attribute].traits, bonus);
       assert.equal(calculate(build, [], 1, name, null, balance).attributes[attribute].traits, 0);
     }
@@ -166,7 +166,7 @@ test('Imbued Haste shares patched attributes between build preview and current r
     ['current', 250],
     ['s4-preview', 175]
   ]) {
-    const balance = family.balanceContextFor(patchId);
+    const balance = family.resolvePatch({ id: patchId }).balanceContext;
     const preview = calculate(build, [], 1, null, null, balance);
     const disabled = calculate(build, [], 1, 'Imbued Haste', null, balance);
     const withoutQuickness = calculate({ ...build, assumptions: { quickness: false } }, [], 1, null, null, balance);
@@ -218,7 +218,7 @@ test('Guardian Virtues share patched conversion and recharge without reapplying 
     ['current', 70, 25.5],
     ['s4-preview', 110, 15]
   ]) {
-    const balance = family.balanceContextFor(patchId);
+    const balance = family.resolvePatch({ id: patchId }).balanceContext;
     assert.equal(calculate(build, [], 1, null, null, balance).attributes['Condition Damage'].traits, bonus);
     assert.equal(
       calculate(build, [], 1, 'Power of the Virtuous', null, balance).attributes['Condition Damage'].traits,
@@ -250,7 +250,7 @@ test('Guardian weapon definitions preserve patched build bonuses and live weapon
       [GUARDIAN.RIGHT_HAND_STRENGTH]: { fields: { attributeBonus: 40 } }
     }
   });
-  const balance = family.balanceContextFor('s4-preview');
+  const balance = family.resolvePatch({ id: 's4-preview' }).balanceContext;
   const calculate = createCalculateAttributes(
     createProfessionBuildAttributeRules(guardianCatalog),
     family.attributeContributions
@@ -299,7 +299,7 @@ test('Engineer Core definitions share patched build grants and preserve static a
     ['current', 120],
     ['s4-preview', 180]
   ]) {
-    const balance = family.balanceContextFor(patchId);
+    const balance = family.resolvePatch({ id: patchId }).balanceContext;
     assert.equal(calculate(build, [], 1, null, null, balance).attributes['Condition Damage'].traits, bonus);
     assert.equal(calculate(build, [], 1, 'Chemical Rounds', null, balance).attributes['Condition Damage'].traits, 0);
     const runtime = family.runtimeFor({ patchId });
@@ -365,15 +365,16 @@ test('Elementalist Core definitions preserve patched build grants and disabled-t
       { name: 'Air', traits: '1-1-1' }
     ]
   };
-  const live = calculate(build, [], 1, null, null, family.balanceContextFor('current'));
-  const preview = calculate(build, [], 1, null, null, family.balanceContextFor('s4-preview'));
+  const live = calculate(build, [], 1, null, null, family.resolvePatch({ id: 'current' }).balanceContext);
+  const preview = calculate(build, [], 1, null, null, family.resolvePatch({ id: 's4-preview' }).balanceContext);
   assert.equal(live.attributes['Condition Damage'].traits, 180);
   assert.equal(preview.attributes['Condition Damage'].traits, 240);
   assert.equal(preview.attributes['Burning Duration'].traits, 30);
   assert.equal(preview.attributes['Critical Chance'].traits, 10);
   assert.equal(
-    calculate(build, [], 1, 'Burning Rage', null, family.balanceContextFor('s4-preview')).attributes['Condition Damage']
-      .traits,
+    calculate(build, [], 1, 'Burning Rage', null, family.resolvePatch({ id: 's4-preview' }).balanceContext).attributes[
+      'Condition Damage'
+    ].traits,
     0
   );
 });
@@ -488,13 +489,14 @@ test('Virtuoso definitions share patched build conversion and live modifiers wit
     family.attributeContributions
   );
   const build = { specializations: [{ name: 'Virtuoso', traits: '0-0-0' }], assumptions: { fury: true } };
-  const live = calculate(build, [], 1, null, null, family.balanceContextFor('current'));
-  const preview = calculate(build, [], 1, null, null, family.balanceContextFor('s4-preview'));
+  const live = calculate(build, [], 1, null, null, family.resolvePatch({ id: 'current' }).balanceContext);
+  const preview = calculate(build, [], 1, null, null, family.resolvePatch({ id: 's4-preview' }).balanceContext);
   assert.equal(live.attributes.Ferocity.traits, 100);
   assert.equal(preview.attributes.Ferocity.traits, 200);
   assert.equal(preview.attributes['Critical Chance'].final - live.attributes['Critical Chance'].final, 10);
   assert.equal(
-    calculate(build, [], 1, 'Quiet Intensity', null, family.balanceContextFor('s4-preview')).attributes.Ferocity.traits,
+    calculate(build, [], 1, 'Quiet Intensity', null, family.resolvePatch({ id: 's4-preview' }).balanceContext)
+      .attributes.Ferocity.traits,
     0
   );
   assert.equal(
@@ -623,7 +625,7 @@ test('Persisting Flames patches transform packets before emission and display th
   }
 
   const tooltip = describeSimulationTrait(
-    family.balanceContextFor('s4-preview'),
+    family.resolvePatch({ id: 's4-preview' }).balanceContext,
     { id: ELEMENTALIST.PERSISTING_FLAMES, name: 'Persisting Flames' },
     elementalistTooltips
   );
@@ -654,7 +656,7 @@ test('Mesmer Core and elite build owners consume patched values with independent
     ['current', 100, 250],
     ['s4-preview', 180, 320]
   ]) {
-    const balance = family.balanceContextFor(patchId);
+    const balance = family.resolvePatch({ id: patchId }).balanceContext;
     const attributes = calculate(build, [], 1, null, null, balance).attributes;
     assert.equal(attributes.Expertise.traits, expertise);
     assert.equal(attributes.Concentration.traits, concentration);

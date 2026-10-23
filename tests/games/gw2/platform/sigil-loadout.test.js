@@ -104,7 +104,7 @@ test('optimizer rejects incompatible pairs and cross-set candidates before prepa
     profession: adapter.profession,
     contentId: adapter.id,
     buildRevision: 0,
-    patchId: 'current'
+    patch: adapter.profession.resolvePatch({ id: 'current' })
   };
   assert.throws(() => captureGearOptimizerRequest(app, { sigils: [[['Bloodlust'], ['Corruption']]] }), /legal pair/);
   const request = captureGearOptimizerRequest(app, {});

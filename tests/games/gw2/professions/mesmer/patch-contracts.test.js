@@ -10,8 +10,8 @@ import { applySkillPatch, applyBalanceProfilePatch } from '#gw2/integrations/pat
 // Role changes must affect both catalog selection and runtime equipment checks without modifying live skills.
 test('preview swaps Disenchanter and Warden weapon and utility placement', () => {
   const profession = withActivePatchPreview(mesmerProfession);
-  const live = profession.catalogFor('current');
-  const preview = profession.catalogFor(activePatchPreview.id);
+  const live = profession.resolvePatch({ id: 'current' }).catalog;
+  const preview = profession.resolvePatch({ id: activePatchPreview.id }).catalog;
   for (const [id, type, weapon, slot] of [
     [ID.PHANTASMAL_DISENCHANTER, 'Weapon', 'Focus', 'Weapon_5'],
     [ID.PHANTASMAL_WARDEN, 'Utility', '', 'Utility']

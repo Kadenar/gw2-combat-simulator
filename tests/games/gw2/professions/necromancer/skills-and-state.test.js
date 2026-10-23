@@ -263,7 +263,11 @@ test('core heals remain selectable and castable without requiring damage effects
     const skill = necromancerCatalog.skillsByName.get(name);
     assert.equal(skill.type, 'Heal', name);
     assert.equal(isSlotSkillSelectable(app, skill, 'Core'), true, name);
-    assert.equal(adapter.isSkillAvailable(skill, { build, specialization: 'Core' }), true, name);
+    assert.equal(
+      adapter.isSkillAvailable(skill, { catalog: adapter.profession.catalog, build, specialization: 'Core' }),
+      true,
+      name
+    );
     const result = simulate('Core', [name]);
     assert.deepEqual(result.warnings, [], name);
     assert.ok(
@@ -407,6 +411,7 @@ test('Scourge point capacity and fixed costs use the selected balance profiles',
 test('Reaper greatsword chain is ordered and Chilling Scythe recharges Gravedigger', async () => {
   const adapter = await loadProfessionAppAdapter('necromancer');
   const skills = weaponSkills({
+    patch: adapter.profession.resolvePatch(),
     adapter,
     activeCatalog: necromancerCatalog,
     build: {

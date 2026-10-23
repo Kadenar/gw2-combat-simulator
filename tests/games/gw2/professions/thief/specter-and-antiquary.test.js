@@ -854,6 +854,7 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
   const paletteAtStage = (stage) =>
     weaponPaletteRows(
       {
+        patch: thiefAppAdapter.profession.resolvePatch(),
         build: {
           ...createThiefBuildDefaults(),
           weapons: ['Spear', ''],

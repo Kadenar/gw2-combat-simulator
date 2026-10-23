@@ -6,15 +6,13 @@ import {
   normalizeAmalgamMorphs,
   validAmalgamMorphs
 } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
-import { ENGINEER_SKILL_IDS as SKILL, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { ENGINEER_SKILL_IDS as SKILL } from '#gw2/professions/engineer/data/ids.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
@@ -102,15 +100,13 @@ const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
   normalizeExtra(build, { saved }) {
     // Normalize the morph loadout first so rotation casts use its selected slot identities.
     const selectedMorphSkillIds = normalizeAmalgamMorphs(engineerCatalog, saved.selectedMorphSkillIds);
-    const traits = new Set(getActiveTraits(build.specializations).map((trait) => trait.id));
     return {
       ...build,
       selectedMorphSkillIds,
-      // Resolve morph slots and the selected Evolve variant before UI rendering.
+      // Saved rotations keep one trait-independent Evolve identity; the selected patch's traits choose the variant
+      // when the rotation is simulated or displayed, so persisted builds never depend on a trait layout.
       rotation: normalizeMorphRotation(saved.rotation, selectedMorphSkillIds).map((command) =>
-        command.type === 'cast'
-          ? { ...command, skillId: resolveAmalgamSkillId(hasTrait(traits, TRAIT.DOUBLE_HELIX), command.skillId) }
-          : command
+        command.type === 'cast' ? { ...command, skillId: resolveAmalgamSkillId(false, command.skillId) } : command
       )
     };
   },

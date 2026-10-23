@@ -212,6 +212,7 @@ test('build edits cancel prior analysis even when browser storage rejects writes
   // Supply normalized build inputs and a real tab so the edit reaches the failing storage write.
   const tab = createBuildTab({ rotation: [{ type: 'wait', durationMs: 1000 }], selectedSkillIds: {}, infusions: [] });
   const app = Object.assign(Object.create(ProfessionApp.prototype), {
+    patch: { id: 'current', catalog: { skills: [], skillsByName: new Map(), skillsById: new Map() } },
     initialRenderGeneration: 0,
     deferredRotationRenderRevision: null,
     build: tab.build,
@@ -222,7 +223,6 @@ test('build edits cancel prior analysis even when browser storage rejects writes
     results: { contributions: [], modifierContributionsStale: false },
     profession,
     adapter,
-    activeCatalog: { skills: [], skillsByName: new Map(), skillsById: new Map() },
     randomDistributionRunner: { cancel: () => cancelled.push('random') },
     modifierContributionRunner: { cancel: () => cancelled.push('modifiers') },
     baselineSimulationRunner: {
@@ -468,7 +468,7 @@ test('baseline requests refresh a queued reference once, using independent comma
     profession: adapter.profession,
     activeCatalog: adapter.profession.catalog,
     attributeWeaponSet: 1,
-    patchId: 'current',
+    patch: adapter.profession.resolvePatch({ id: 'current' }),
     build,
     rotationComparison: {
       referenceRotation,
@@ -480,8 +480,8 @@ test('baseline requests refresh a queued reference once, using independent comma
   app.attributeData = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
 
@@ -1041,7 +1041,7 @@ async function relicFixture() {
   const baseConfig = adapter
     .createBuildContext({
       build: adapter.profession.createBuildDefaults(),
-      patchId: 'current'
+      patch: adapter.profession.resolvePatch({ id: 'current' })
     })
     .simulationConfig();
   let updates = 0;

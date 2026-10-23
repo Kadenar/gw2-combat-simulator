@@ -13,6 +13,7 @@ import { loadPresetBundle } from '#gw2/app/build/library/assets.js';
 
 function createApp() {
   return {
+    patch: mesmerAppAdapter.profession.resolvePatch(),
     adapter: {
       id: 'mesmer',
       profession: {},
@@ -222,7 +223,7 @@ test('template loading resolves duplicate Mesmer skill names before the first si
     build: mesmerAppAdapter.toApplicationBuild(buildData),
     attributeWeaponSet: 1,
     results: null,
-    patchId: 'current'
+    patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' })
   };
 
   await loadTemplateAction(
@@ -239,8 +240,8 @@ test('template loading resolves duplicate Mesmer skill names before the first si
   app.attributeData = mesmerAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: mesmerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const result = mesmerAppAdapter.simulateBuild(
@@ -248,8 +249,8 @@ test('template loading resolves duplicate Mesmer skill names before the first si
     mesmerAppAdapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: mesmerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig()
   );
@@ -289,7 +290,7 @@ test('Engineer rotation-only template loading resolves morph slots before simula
     build,
     attributeWeaponSet: 1,
     results: null,
-    patchId: 'current'
+    patch: adapter.profession.resolvePatch({ id: 'current' })
   };
   await loadTemplateAction(app, { label: 'Morph rotation', rotation: 'rotation.json' }, 'rotation', createButton());
   assert.deepEqual(app.build, {
@@ -302,8 +303,8 @@ test('Engineer rotation-only template loading resolves morph slots before simula
   app.attributeData = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const result = adapter.simulateBuild(
@@ -311,8 +312,8 @@ test('Engineer rotation-only template loading resolves morph slots before simula
     adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig()
   );

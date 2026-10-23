@@ -489,7 +489,7 @@ test('successive result applies remain valid while unrelated edits still fail th
   const app = {
     build: structuredClone(captured.build),
     contentId: captured.contentId,
-    patchId: captured.patchId,
+    patch: adapter.profession.resolvePatch(captured.patch),
     buildRevision: captured.revision,
     changed() {
       changes++;
@@ -572,7 +572,7 @@ function request(selections = {}, overrides = {}) {
     profession: adapter.profession,
     build,
     buildRevision: 7,
-    patchId: 'current'
+    patch: adapter.profession.resolvePatch({ id: 'current' })
   };
   return captureGearOptimizerRequest(app, selections);
 }
@@ -609,12 +609,16 @@ test('requirements use inclusive finalized stats and reject before simulation co
     ]
   };
   const captured = request({}, overrides);
-  const app = { build: captured.build, attributeWeaponSet: captured.build.startingWeaponSet };
+  const app = {
+    patch: adapter.profession.resolvePatch(captured.patch),
+    build: captured.build,
+    attributeWeaponSet: captured.build.startingWeaponSet
+  };
   app.attributeData = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const toughness = app.attributeData.attributes.Toughness.final;
@@ -726,12 +730,12 @@ test('minimum vitality checks every usable weapon set', () => {
       infusions: []
     }
   );
-  const app = { build: initial.build, attributeWeaponSet: 2 };
+  const app = { patch: adapter.profession.resolvePatch(initial.patch), build: initial.build, attributeWeaponSet: 2 };
   app.attributeData = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const minVitality = app.attributeData.attributes.Vitality.final + 1;
@@ -739,8 +743,8 @@ test('minimum vitality checks every usable weapon set', () => {
   app.attributeData = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   assert.ok(app.attributeData.attributes.Vitality.final >= minVitality);

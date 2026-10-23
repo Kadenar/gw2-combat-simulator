@@ -113,7 +113,7 @@ export function createModifierContributionRequest(
     deterministicSimulationConfig(
       createBuildContext({
         build: app.build,
-        patchId: app.patchId,
+        patch: app.patch,
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
         disabledModifier: disabled ?? undefined
       }).simulationConfig()

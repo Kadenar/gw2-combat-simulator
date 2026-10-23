@@ -1,3 +1,4 @@
+import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ProfessionApp } from '#gw2/app/profession-app.js';
@@ -95,6 +96,7 @@ test('saved legacy rotations load canonically from every persistence boundary', 
     assert.deepEqual(loadMyBuilds(adapter)[0].build.rotation, expected, profession);
     const file = new File([JSON.stringify({ rotation })], 'saved-rotation.json', { type: 'application/json' });
     const preview = await previewRotationFile(file, {
+      patch: adapter.profession.resolvePatch(),
       activeCatalog: adapter.profession.catalog,
       adapter,
       build: workspace.tabs[0].build
@@ -105,7 +107,7 @@ test('saved legacy rotations load canonically from every persistence boundary', 
       profession: adapter.profession,
       workspace,
       build: workspace.tabs[0].build,
-      patchId: 'current'
+      patch: adapter.profession.resolvePatch({ id: 'current' })
     });
     assert.deepEqual(JSON.parse(values.get(workspaceStorageKey(adapter))).tabs[0].build.rotation, expected, profession);
   }
@@ -133,10 +135,10 @@ const adapter = {
     catalog,
     createBuildDefaults: () => build(),
     migrateBuild: (value) => structuredClone(value),
-    catalogFor(id) {
+    resolvePatch({ id, values }) {
       if (!['current', 'preview'].includes(id)) throw new Error('Removed preview');
 
-      return catalog;
+      return patchSelectionFixture(catalog, { id, values });
     }
   },
   toApplicationBuild: (value) => structuredClone(value),
@@ -153,10 +155,10 @@ function appFixture() {
   const app = Object.assign(Object.create(ProfessionApp.prototype), emptyBuildTabSession(), {
     adapter,
     profession: adapter.profession,
-    activeCatalog: catalog,
+
     workspace: { tabs: [tab], activeTabId: tab.id },
     build: tab.build,
-    patchId: 'current',
+    patch: adapter.profession.resolvePatch({ id: 'current' }),
     buildRevision: 1,
     resultRevision: 1,
     simulationStatus: 'idle',
@@ -189,10 +191,14 @@ test('legacy build migrates once and workspace round trips only durable inputs a
   assert.equal(app.build.gear.Helm, 'legacy');
   const other = addBuildTab(app, build('second'), 'Second', 'preview');
   app.results = { dps: 17 };
+  // Experiments travel with in-memory tab sessions but never enter durable builds or workspace JSON.
+  app.patch = app.profession.resolvePatch({ id: 'preview', values: { ashesStacks: 2 } });
   saveBuildWorkspace(app);
   const saved = JSON.parse(values.get(workspaceStorageKey(adapter)));
   assert.equal(saved.version, 1);
   assert.equal(saved.tabs[1].session, undefined);
+  assert.equal(JSON.stringify(saved).includes('ashesStacks'), false);
+  assert.deepEqual(other.session.values, { ashesStacks: 2 });
   assert.equal(values.get(adapter.storageKey), legacy);
   const restored = loadBuildWorkspace(adapter);
   assert.deepEqual(
@@ -205,6 +211,7 @@ test('legacy build migrates once and workspace round trips only durable inputs a
   assert.equal(restored.activeTabId, other.id);
   assert.equal(restored.tabs[1].patchId, 'preview');
   assert.equal(restored.tabs[1].session.results, null);
+  assert.equal(restored.tabs[1].session.values, undefined);
 });
 
 test('workspace save and load give empty infusion selections two unequipped rows', async (t) => {
@@ -219,7 +226,7 @@ test('workspace save and load give empty infusion selections two unequipped rows
     adapter: warrior,
     profession: warrior.profession,
     build,
-    patchId: 'current',
+    patch: warrior.profession.resolvePatch({ id: 'current' }),
     workspace: { tabs: [tab], activeTabId: tab.id }
   };
   saveBuildWorkspace(app);
@@ -406,9 +413,21 @@ test('switching tabs uses each patch catalog for skill lists and lookups', (t) =
       ];
     })
   );
-  app.profession = { ...app.profession, ui: {}, catalog: catalogs.current, catalogFor: (id) => catalogs[id] };
-  app.adapter = { ...app.adapter, profession: app.profession, isSkillAvailable: () => true };
-  app.activeCatalog = catalogs.current;
+  app.profession = {
+    ...app.profession,
+    ui: {},
+    catalog: catalogs.current,
+    resolvePatch: (selection) => patchSelectionFixture(catalogs[selection.id], selection),
+    // No trait selects another skill identity in this fixture.
+    runtimeFor: () => ({})
+  };
+  app.adapter = {
+    ...app.adapter,
+    profession: app.profession,
+    isSkillAvailable: () => true,
+    createBuildContext: () => ({ attributes: () => null, simulationConfig: () => ({ selectedTraitIds: [] }) })
+  };
+  app.patch = app.profession.resolvePatch({ id: 'current' });
   const other = addBuildTab(app, build('preview'), 'Preview', 'preview');
   for (const [id, patch] of [
     [other.id, 'preview'],
@@ -507,7 +526,7 @@ test('duplicated builds share no nested input objects or undo history', (t) => {
   app.build.rotation.push({ type: 'wait', durationMs: 10 });
   app.changed();
   tab.templateBuild = build('template');
-  const copy = addBuildTab(app, app.build, 'Copy', app.patchId, tab.templateBuild);
+  const copy = addBuildTab(app, app.build, 'Copy', app.patch.id, tab.templateBuild);
   assert.deepEqual(copy.templateBuild, tab.templateBuild);
   copy.templateBuild.gear.Helm = 'copy-template';
   assert.equal(tab.templateBuild.gear.Helm, 'template');

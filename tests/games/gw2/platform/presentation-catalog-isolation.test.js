@@ -30,7 +30,7 @@ const skill = (id, name, fields = {}) => ({ id, name, castTimeMs: 0, effects: []
 const catalog = (...skills) => createCanonicalCatalog({ extraSkills: skills });
 const groupIds = (ui, context, id) => ui.paletteGroups(context).find((group) => group.id === id).skillIds;
 
-// Read each instance before and after binding another, in both initialization orders.
+// Read each instance with its selected catalog before and after binding another, in both initialization orders.
 function assertIsolated(bind, catalogs, read, expected) {
   for (const order of [
     [0, 1],
@@ -38,10 +38,10 @@ function assertIsolated(bind, catalogs, read, expected) {
   ]) {
     const [first, second] = order;
     const a = bind(catalogs[first]);
-    assert.deepEqual(read(a), expected[first]);
+    assert.deepEqual(read(a, catalogs[first]), expected[first]);
     const b = bind(catalogs[second]);
-    assert.deepEqual(read(b), expected[second]);
-    assert.deepEqual(read(a), expected[first]);
+    assert.deepEqual(read(b, catalogs[second]), expected[second]);
+    assert.deepEqual(read(a, catalogs[first]), expected[first]);
   }
 }
 
@@ -49,7 +49,12 @@ test('Engineer Core and elite toolbelts use their own catalogs without Core bind
   const catalogs = [1, 2].map((id) => catalog(skill(100, 'Heal'), skill(id, 'Toolbelt', { toolbeltParentId: 100 })));
   const context = { config: { selectedSkillIds: [100] } };
   for (const bind of [bindEngineerCoreUi, bindHolosmithUi, bindAmalgamUi, bindScrapperUi]) {
-    assertIsolated(bind, catalogs, (ui) => groupIds(ui, context, 'engineer-profession')[0], [1, 2]);
+    assertIsolated(
+      bind,
+      catalogs,
+      (ui, catalog) => groupIds(ui, { ...context, catalog }, 'engineer-profession')[0],
+      [1, 2]
+    );
   }
 });
 
@@ -77,14 +82,14 @@ test('Engineer Forge and protocol controls retain their local skill lists and lo
   assertIsolated(
     bindHolosmithUi,
     catalogs,
-    (ui) => groupIds(ui, {}, 'engineer-forge'),
+    (ui, catalog) => groupIds(ui, { catalog }, 'engineer-forge'),
     ids.map((id) => [id])
   );
   const context = { build: { selectedMorphSkillIds: [ids[0]] } };
   assertIsolated(
     bindAmalgamUi,
     catalogs,
-    (ui) => ui.skillBarGroups(context)[0].selections[0].optionSkillIds,
+    (ui, catalog) => ui.skillBarGroups({ ...context, catalog })[0].selections[0].optionSkillIds,
     ids.map((id) => [id])
   );
 });

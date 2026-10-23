@@ -32,7 +32,7 @@ test('Depth of Elements tooltip shares the selected Catalyst energy capacity', (
     ['tooltip-projection', 12],
     ['current', 30]
   ]) {
-    const context = family.balanceContextFor(patchId);
+    const context = family.resolvePatch({ id: patchId }).balanceContext;
     assert.equal(context.catalog.balanceProfilesById.get(TRAIT.DEPTH_OF_ELEMENTS)?.maximumStacks, undefined);
     const trait = context.catalog.traits.find(({ id }) => id === TRAIT.DEPTH_OF_ELEMENTS);
     const model = describeSimulationTrait(context, trait, elementalistTooltips);
@@ -89,7 +89,11 @@ test('skill aura grants share one declaration between combat and tooltip facts',
     observedRuntime(run([{ type: 'cast', skillId: ID.TRANSMUTE_FIRE }])).profession.core.activeAuras,
     []
   );
-  const model = describeSimulationSkill(preview().balanceContextFor('current'), declared, elementalistTooltips);
+  const model = describeSimulationSkill(
+    preview().resolvePatch({ id: 'current' }).balanceContext,
+    declared,
+    elementalistTooltips
+  );
   assert.ok(!model.incomplete);
   assert.equal(model.facts.find(({ name }) => name === AURA.FIRE).detail, '7s');
 });
@@ -145,14 +149,15 @@ test('skill-owned Evoker utility profiles project edits and removals into toolti
           [profileId]: removed ? { removeEffects: [{ type, name }] } : { effects: [{ type, name, duration: 9 }] }
         }
       });
-      const context = profession.balanceContextFor('tooltip-projection');
+      const context = profession.resolvePatch({ id: 'tooltip-projection' }).balanceContext;
       assert.equal(context.catalog.balanceProfilesById.get(profileId).parentId, skillId);
       for (const [otherProfile] of cases) {
         if (otherProfile === profileId) continue;
 
         assert.deepEqual(
           context.catalog.balanceProfilesById.get(otherProfile).effects,
-          profession.balanceContextFor('current').catalog.balanceProfilesById.get(otherProfile).effects
+          profession.resolvePatch({ id: 'current' }).balanceContext.catalog.balanceProfilesById.get(otherProfile)
+            .effects
         );
       }
 
@@ -206,7 +211,7 @@ test('Familiar blessing previews preserve the runtime element choice after remov
       }
     });
     for (const patchId of ['current', 'tooltip-projection']) {
-      const context = profession.balanceContextFor(patchId);
+      const context = profession.resolvePatch({ id: patchId }).balanceContext;
       const model = describeSimulationTrait(
         context,
         context.catalog.traits.find(({ id }) => id === TRAIT.FAMILIARS_BLESSING),
@@ -265,7 +270,7 @@ test('Ignite tier facts and combat preserve native stacks and non-Burning condit
     balanceProfiles: { [IGNITE_PROFILE]: { effects: [{ type: 'condition', name: 'Tier 1', duration: 7, stacks: 9 }] } }
   });
   for (const patchId of ['current', 'tooltip-projection']) {
-    const context = profession.balanceContextFor(patchId);
+    const context = profession.resolvePatch({ id: patchId }).balanceContext;
     const facts = skillTooltip(context, ID.IGNITE).factTabs.find(({ label }) => label === 'Tier 1').facts;
     const burning = facts.find(({ name }) => name === 'Burning');
     const patched = patchId === 'tooltip-projection';
@@ -295,7 +300,7 @@ test('Ignite removal preserves tier identity and suppresses Burning in both cons
         ? { skills: { [ID.IGNITE]: { removeEffects: [{ type: 'condition', condition: 'Burning' }] } } }
         : { balanceProfiles: { [IGNITE_PROFILE]: { removeEffects: [{ type: 'condition', name: 'Tier 2' }] } } }
     );
-    const context = profession.balanceContextFor('tooltip-projection');
+    const context = profession.resolvePatch({ id: 'tooltip-projection' }).balanceContext;
     const model = skillTooltip(context, ID.IGNITE);
     const state = evokerState.create();
     const runtime = { helpers: context.catalog, profession: { specialization: { kind: 'Evoker', state } } };
@@ -316,7 +321,7 @@ test('Ignite removal preserves tier identity and suppresses Burning in both cons
     }
 
     assert.ok(
-      skillTooltip(profession.balanceContextFor('current'), ID.IGNITE).factTabs.every(({ facts }) =>
+      skillTooltip(profession.resolvePatch({ id: 'current' }).balanceContext, ID.IGNITE).factTabs.every(({ facts }) =>
         facts.some(({ name }) => name === 'Burning')
       )
     );
@@ -352,7 +357,7 @@ test('Ignite mixed condition timelines share tier removal semantics with tooltip
     },
     balanceProfiles: { [IGNITE_PROFILE]: { removeEffects: [{ type: 'condition', name: 'Tier 1' }] } }
   });
-  const context = profession.balanceContextFor('tooltip-projection');
+  const context = profession.resolvePatch({ id: 'tooltip-projection' }).balanceContext;
   const facts = skillTooltip(context, ID.IGNITE).factTabs[0].facts;
   assert.equal(
     facts.some(({ name }) => name === 'Burning'),
@@ -379,7 +384,7 @@ test('Elemental Procession tooltip and combat use the same selected familiar pay
     }
   });
   for (const patchId of ['current', 'tooltip-projection']) {
-    const context = profession.balanceContextFor(patchId);
+    const context = profession.resolvePatch({ id: patchId }).balanceContext;
     const facts = skillTooltip(context, ID.ELEMENTAL_PROCESSION).facts.filter(({ detail }) =>
       detail.includes('Conflagration')
     );
@@ -426,7 +431,7 @@ test('Inferno tooltip derives its Power rate from the canonical Burning formula'
     ['current', 0.0825],
     ['tooltip-projection', 0.0775]
   ]) {
-    const context = profession.balanceContextFor(patchId);
+    const context = profession.resolvePatch({ id: patchId }).balanceContext;
     const model = describeSimulationTrait(
       context,
       context.catalog.traits.find(({ id }) => id === TRAIT.INFERNO),

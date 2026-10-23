@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 // Prepared jobs share one engine loader in both current and preview modes, without browser UI imports.
 for (const patchId of ['current', 'worker-preview']) {
   test(`simulation workers load ${patchId} without UI dependencies`, async ({ page, context }) => {
-    await context.route('**/integrations/patches/active-preview.ts', (route) =>
+    await context.route('**/integrations/patches/active-preview.ts*', (route) =>
       route.fulfill({
         contentType: 'text/javascript',
         body: `export const activePatchPreview = ${JSON.stringify(patchId === 'current' ? null : { id: patchId, label: 'Worker preview' })};`
@@ -12,7 +12,7 @@ for (const patchId of ['current', 'worker-preview']) {
     await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
     await page.evaluate((patchId) => {
-      window.professionApp.patchId = patchId;
+      window.professionApp.patch = window.professionApp.profession.resolvePatch({ id: patchId });
       window.professionApp.addRotation('Bladecall');
     }, patchId);
     await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);

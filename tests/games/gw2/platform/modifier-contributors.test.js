@@ -26,8 +26,8 @@ async function bladesworn() {
     ...app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig(),
     randomness: { mode: 'deterministic', seed: 7 }

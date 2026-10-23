@@ -53,8 +53,8 @@ for (const profession of professions) {
       const build = adapter.toApplicationBuild({ ...savedBuild, rotation: savedRotation.rotation ?? savedRotation });
       const context = adapter.createBuildContext({
         build,
-        patchId: 'current',
-        transitionDelays: normalizeTransitionDelays()
+        transitionDelays: normalizeTransitionDelays(),
+        patch: adapter.profession.resolvePatch({ id: 'current' })
       });
       cases.push({
         id,

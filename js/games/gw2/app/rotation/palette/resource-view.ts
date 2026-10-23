@@ -1,3 +1,4 @@
+import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2BuildResources } from '#gw2/platform/builds/types.js';
 /**
  * Renders normalized profession resource views in the rotation builder.
@@ -86,7 +87,7 @@ function normalizeResourceView(view: ProfessionResourceView): ProfessionResource
  */
 export function resourceDisplayViews(
   profession: ProfessionAppContract,
-  context: ProfessionResourceViewContext
+  context: ProfessionResourceViewContext & ProfessionCatalogContext
 ): ProfessionResourceView[] {
   const views = profession.ui.resourceViews(context);
 

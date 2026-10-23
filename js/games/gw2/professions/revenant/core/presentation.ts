@@ -1,3 +1,4 @@
+import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import { WEAPON } from '#gw2/platform/constants.js';
 import type { Skill as PreviewSkill } from '#gw2/platform/skills/types.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
@@ -16,7 +17,7 @@ import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/
 import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
 import { revenantLegend, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import type { RevenantState, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 
 export function revenantUiState(context: RevenantUiContext = {}): Partial<RevenantState> {
@@ -188,8 +189,8 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
     ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
     ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
   ]),
-  targetHealthThresholds: (context: RevenantUiContext = {}) => {
-    const traits = getActiveTraits(context.build?.specializations || []);
+  targetHealthThresholds: (context: RevenantUiContext & ProfessionCatalogContext) => {
+    const traits = selectedTraits(context.catalog, context.build?.specializations || []);
     return traits.some((trait) => trait.name === 'Swift Termination') ? [0.5] : [];
   },
   slotLoadout: revenantLegendLoadout,

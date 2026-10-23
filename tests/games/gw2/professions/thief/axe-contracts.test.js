@@ -148,6 +148,7 @@ test('precast autoattack axes survive build loading and initialize a recallable 
   const build = thiefAppAdapter.toApplicationBuild(JSON.parse(JSON.stringify(saved)));
   const profession = thiefAppAdapter.profession;
   const app = {
+    patch: thiefAppAdapter.profession.resolvePatch(),
     build,
     adapter: thiefAppAdapter,
     profession,
@@ -157,15 +158,15 @@ test('precast autoattack axes survive build loading and initialize a recallable 
   app.attributeData = thiefAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: thiefAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const config = thiefAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: thiefAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .simulationConfig();
   assert.equal(config.initialSpinningAxes, 4);

@@ -1,3 +1,4 @@
+import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import {
   resolveAmalgamSkillId,
   amalgamProtocolOptions,
@@ -25,7 +26,7 @@ import {
 } from '#gw2/professions/engineer/core/presentation.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import type {
   EngineerSkill,
   EngineerUiContext,
@@ -43,10 +44,10 @@ function selectedMorphIds(context: EngineerUiContext): number[] {
 /** Projects the selected protocols and trait-selected Evolve, preferring the editable build. */
 function amalgamProfessionSkills(
   catalog: Readonly<CanonicalCatalog<EngineerSkill>>,
-  context: EngineerUiContext
+  context: EngineerUiContext & ProfessionCatalogContext
 ): (SkillId | null)[] {
   const traits = context.build?.specializations
-    ? new Set(getActiveTraits(context.build.specializations).map((trait) => trait.id))
+    ? new Set(selectedTraits(context.catalog, context.build.specializations).map((trait) => trait.id))
     : context.config;
   return [
     engineerToolbeltSkillIds(catalog, context)[0],
@@ -58,7 +59,7 @@ function amalgamProfessionSkills(
 /** Builds only editable protocol selectors; fixed F1 and F5 skills stay in the palette. */
 function amalgamSkillBarGroups(
   catalog: Readonly<CanonicalCatalog<EngineerSkill>>,
-  context: EngineerUiContext
+  context: EngineerUiContext & ProfessionCatalogContext
 ): ProfessionSkillBarGroup[] {
   const skillIds = amalgamProfessionSkills(catalog, context);
   // Match pet selectors with concise selected-name headers while dropdowns retain the full protocol names.
@@ -221,10 +222,10 @@ export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>
 
     assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,
     rotationStateSnapshot: amalgamStateSnapshot,
-    skillBarGroups: (context: EngineerUiContext) => amalgamSkillBarGroups(catalog, context),
+    skillBarGroups: (context: EngineerUiContext & ProfessionCatalogContext) => amalgamSkillBarGroups(catalog, context),
     updateSkillBarSelection: (context: EngineerUiContext, selection: EngineerUiSelection) =>
       updateAmalgamSkillBarSelection(catalog, context, selection),
-    paletteGroups: (context: EngineerUiContext) => [
+    paletteGroups: (context: EngineerUiContext & ProfessionCatalogContext) => [
       {
         id: 'engineer-profession',
         label: 'F',

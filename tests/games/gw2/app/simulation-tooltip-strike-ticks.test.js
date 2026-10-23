@@ -32,7 +32,7 @@ test('Signet of Vampirism tooltip exposes the selected per-tick damage formula',
     ['current', 163, 0.05],
     ['vampirism-tooltip', 250, 0.1]
   ]) {
-    const context = profession.balanceContextFor(patchId);
+    const context = profession.resolvePatch({ id: patchId }).balanceContext;
     const model = describeSimulationSkill(
       context,
       context.catalog.skillsById.get(ID.SIGNET_OF_VAMPIRISM),

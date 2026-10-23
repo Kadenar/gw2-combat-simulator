@@ -1,3 +1,4 @@
+import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
@@ -10,7 +11,7 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import type {
   ElementalistSkill,
@@ -212,14 +213,16 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
       }
     ];
   },
-  resourceViews: (context: ElementalistUiContext): ProfessionResourceView[] => {
+  resourceViews: (context: ElementalistUiContext & ProfessionCatalogContext): ProfessionResourceView[] => {
     const state = uiState(context);
     const build = context.build;
     const maximum =
       state.familiarCharges?.maximum ??
       balanceNumberFromContext(
         context,
-        getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.SPECIALIZED_ELEMENTS)
+        selectedTraits(context.catalog, context.build?.specializations || []).some(
+          (trait) => trait.id === TRAIT.SPECIALIZED_ELEMENTS
+        )
           ? TRAIT.SPECIALIZED_ELEMENTS
           : PROFILE.resources,
         'maximumStacks'

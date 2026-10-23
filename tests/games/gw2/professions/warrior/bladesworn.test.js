@@ -52,7 +52,7 @@ test('precombat control leaves base Flow inactive in execution and presentation 
     [result.combatStartTime, '1 stack']
   ]) {
     const display = warriorProfession.ui.rotationStateSnapshot({
-      balanceContext: withPatchPreview(warriorProfession).balanceContextFor(),
+      balanceContext: withPatchPreview(warriorProfession).resolvePatch().balanceContext,
       specialization: 'Bladesworn',
       professionState: result.planningState.profession,
       atSeconds,
@@ -853,7 +853,7 @@ test('Flow Stabilizer uses authored stacks for regeneration and both observation
     3
   );
   const display = source.ui.rotationStateSnapshot({
-    balanceContext: source.balanceContextFor('flow-count'),
+    balanceContext: source.resolvePatch({ id: 'flow-count' }).balanceContext,
     specialization: 'Bladesworn',
     professionState: result.planningState.profession,
     atSeconds: 1.2,

@@ -1,3 +1,4 @@
+import type { ResolvedPatch } from '#gw2/integrations/patches/selection.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import * as comparisonState from '#gw2/app/rotation/comparison-state.js';
 import { updatePaletteFreshness } from '#gw2/app/rotation/palette/freshness.js';
@@ -58,14 +59,16 @@ export class ProfessionApp implements ProfessionAppState {
   readonly contentId: string;
   readonly adapter: Gw2AppAdapter;
   readonly profession: ProfessionAppState['profession'];
-  activeCatalog: ProfessionAppState['activeCatalog'];
-  patchId: string;
+  /** Derive all selected data from the captured patch, including session tuning. */
+  get activeCatalog(): ProfessionAppState['activeCatalog'] {
+    return this.patch.catalog;
+  }
+  patch: ResolvedPatch;
   patchComparison: ProfessionAppState['patchComparison'];
   build: Gw2CanonicalBuild;
   simulationSettings: SimulationSettings;
   readonly weaponData: ProfessionAppState['weaponData'];
   readonly relicNames: ProfessionAppState['relicNames'];
-  readonly specializations: ProfessionAppState['specializations'];
   readonly resourceDefinitions: ProfessionAppState['resourceDefinitions'];
   attributeWeaponSet: number;
   attributeData: BuildAttributes | null;
@@ -106,14 +109,12 @@ export class ProfessionApp implements ProfessionAppState {
     this.profession = adapter.profession;
     this.workspace = loadBuildWorkspace(adapter);
     const activeTab = this.workspace.tabs.find((tab) => tab.id === this.workspace.activeTabId)!;
-    this.patchId = activeTab.patchId;
-    this.activeCatalog = this.profession.catalogFor(this.patchId);
+    this.patch = this.profession.resolvePatch({ id: activeTab.patchId, values: activeTab.session.values });
     this.patchComparison = null;
     this.build = activeTab.build;
     this.simulationSettings = loadSimulationSettings();
     this.weaponData = adapter.weaponData;
     this.relicNames = adapter.relicNames || SHARED_RELIC_NAMES;
-    this.specializations = adapter.specializations;
     // Starting resource controls use the selected patch before any simulation exists.
     this.resourceDefinitions = (specialization: string) =>
       this.profession.ui.resourceViews({ specialization, catalog: this.activeCatalog, build: this.build });
@@ -235,6 +236,7 @@ export class ProfessionApp implements ProfessionAppState {
 
   /** Commits cheap build derivations now and assigns the immutable revision used by worker results. */
   private prepareSimulationState(): number {
+    // Session experiments share one selected catalog across controls, previews and worker requests.
     recordRotationHistory(this);
 
     // Optimizer results can contain zero or one allocation; keep both editor rows before recalculating.
@@ -244,7 +246,7 @@ export class ProfessionApp implements ProfessionAppState {
     this.attributeData = this.adapter
       .createBuildContext({
         build: this.build,
-        patchId: this.patchId,
+        patch: this.patch,
         transitionDelays: normalizeTransitionDelays(this.simulationSettings?.transitionDelays)
       })
       .attributes(this.attributeWeaponSet === 2 ? 2 : 1);
@@ -411,9 +413,9 @@ export class ProfessionApp implements ProfessionAppState {
     this.buildRevision += 1;
     this.workspace.activeTabId = id;
     this.build = tab.build;
-    this.patchId = tab.patchId;
-    this.activeCatalog = this.profession.catalogFor(this.patchId);
-    Object.assign(this, tab.session);
+    this.patch = this.profession.resolvePatch({ id: tab.patchId, values: tab.session.values });
+    const { values: _values, ...session } = tab.session;
+    Object.assign(this, session);
 
     // A cached tab must match the session's capture setting before its result can be reused.
     if (Boolean(this.results?.debugInputs) !== Boolean(this.damageDiagnostics)) tab.resultsFresh = false;
@@ -430,7 +432,7 @@ export class ProfessionApp implements ProfessionAppState {
     this.attributeData = this.adapter
       .createBuildContext({
         build: this.build,
-        patchId: this.patchId,
+        patch: this.patch,
         transitionDelays: normalizeTransitionDelays(this.simulationSettings?.transitionDelays)
       })
       .attributes(this.attributeWeaponSet === 2 ? 2 : 1);
@@ -456,7 +458,7 @@ export class ProfessionApp implements ProfessionAppState {
       // Discard transient dialogs and previews tied to the outgoing editor, including unfinished imports.
       document.querySelectorAll<HTMLDialogElement>('dialog[open]').forEach((dialog) => dialog.close());
       for (const option of document.querySelectorAll<HTMLButtonElement>('.patch-preview-option')) {
-        const active = option.dataset.patchId === this.patchId;
+        const active = option.dataset.patchId === this.patch.id;
         option.classList.toggle('active', active);
         option.setAttribute('aria-pressed', String(active));
       }
@@ -547,13 +549,12 @@ export class ProfessionApp implements ProfessionAppState {
 
   selectPatch(patchId: string): void {
     // Resolve before changing selections so an unavailable patch leaves the active build intact.
-    const catalog = this.profession.catalogFor(patchId);
+    const patch = this.profession.resolvePatch({ id: patchId });
 
-    if (patchId === this.patchId) return;
+    if (patchId === this.patch.id) return;
 
-    swapSelectedSkillsForPatch(this, catalog);
-    this.patchId = patchId;
-    this.activeCatalog = catalog;
+    swapSelectedSkillsForPatch(this, patch.catalog);
+    this.patch = patch;
     this.changed();
   }
 

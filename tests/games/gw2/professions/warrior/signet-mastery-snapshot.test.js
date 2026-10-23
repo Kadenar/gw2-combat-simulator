@@ -67,7 +67,7 @@ const WITHOUT_TRAIT = { specializations: [{ name: 'Arms', traits: '1-1-1' }] };
 
 function snapshot(build, atSeconds) {
   return warriorCoreUi.rotationStateSnapshot({
-    balanceContext: withPatchPreview(warriorProfession).balanceContextFor(),
+    balanceContext: withPatchPreview(warriorProfession).resolvePatch().balanceContext,
     build,
     result: RESULT,
     planningState: effectPlanningState(RESULT, atSeconds),

@@ -33,7 +33,7 @@ test('capture leaves saved input unchanged and rejects unknown patches', async (
   assert.notEqual(build, source);
   assert.deepEqual(source, snapshot);
   assert.deepEqual(rotation, { rotation: [] });
-  assert.throws(() => simulateBenchmarkPreset(module, source, rotation, 'missing'), /Unknown patch/);
+  assert.throws(() => simulateBenchmarkPreset(module, source, rotation, 'missing'), /Unknown .*patch/);
 });
 
 test('analysis modules stay inert on import and execute their CLI when launched directly', () => {

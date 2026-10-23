@@ -2,13 +2,15 @@ import { BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type {
+  ProfessionCatalogContext,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
+  ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import {
@@ -18,7 +20,7 @@ import {
   guardianUiSkillsByMode
 } from '#gw2/professions/guardian/core/presentation.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
+import { firebrandPageTuning } from '#gw2/professions/guardian/specializations/firebrand/traits/page-tuning.js';
 import type {
   GuardianResolverEvent,
   GuardianSkill,
@@ -162,19 +164,18 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
         color
       }))
     ],
-    resourceViews: (context: GuardianUiContext) => {
+    resourceViews: (context: GuardianUiContext & ProfessionCatalogContext): ProfessionResourceView[] => {
       const state = professionState(context);
-      // Preview capacity follows the selected catalog even before a simulation supplies resource state.
-      const maximum =
-        state.tomePages?.maximum ??
-        context.resources?.tomePages?.maximum ??
-        balanceNumberFromContext(
-          context,
-          hasTrait(context.config, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS)
-            ? GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS
-            : PROFILE.resources,
-          'maximumStacks'
-        );
+      // Starting limits follow the current build and patch, independently of an older simulation's projection.
+      const tuningContext = {
+        ...context,
+        config: context.config ?? {},
+        traits: context.build
+          ? new Set(selectedTraits(context.catalog, context.build.specializations).map((trait) => trait.id))
+          : context.traits
+      };
+      const startMaximum = firebrandPageTuning(tuningContext).maximum;
+      const maximum = state.tomePages?.maximum ?? startMaximum;
       const simulationTime = context.simulationTime || 0;
       const readyAt = state.virtueReadyAt || { justice: 0, resolve: 0, courage: 0 };
       // Keep passive readiness visible without adding three more resource bars.
@@ -190,8 +191,10 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
           plural: 'pages',
           maximum,
           value: state.tomePages?.value ?? maximum,
-          // Pages regen passively; the user cannot manually start regeneration.
-          canStart: false,
+          // Edit starting pages independently of passive regeneration using the selected patch's capacity.
+          canStart: true,
+          startMaximum,
+          buildKey: 'initialTomePages',
           shortLabel: 'Pgs',
           statusLabel: 'Current'
         },

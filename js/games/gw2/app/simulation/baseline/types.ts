@@ -33,7 +33,8 @@ export interface BaselineSimulationRequest extends GameContentAddress {
   readonly referenceRotation?: readonly RotationCommand[];
   readonly baseConfig: Gw2Config;
   readonly selectedPatchId: string;
-  readonly previewPatchId?: string;
+  /** Each side resolves its own trait layout and experimental values before entering the worker. */
+  readonly patchConfigs?: { readonly current: Gw2Config; readonly preview: Gw2Config };
 }
 
 /** Complete baseline output, including both sides of an optional patch preview. */

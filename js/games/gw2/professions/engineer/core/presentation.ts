@@ -20,7 +20,7 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import type {
   EngineerResolverEvent,
   EngineerSkill,
@@ -95,8 +95,8 @@ function uniqueSkillsById(skills: readonly EngineerSkill[]): EngineerSkill[] {
 }
 
 /** Reports whether the build's selected trait lines activate the named trait. */
-export function hasActiveTrait(context: EngineerUiContext, name: string): boolean {
-  return getActiveTraits(context.build?.specializations || []).some((trait) => trait.name === name);
+export function hasActiveTrait(catalog: CanonicalCatalog, context: EngineerUiContext, name: string): boolean {
+  return selectedTraits(catalog, context.build?.specializations || []).some((trait) => trait.name === name);
 }
 
 /** Detects the Tools trait line even when programmatic contexts omit build specialization metadata. */
@@ -295,7 +295,10 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
     rotationStateSnapshot: (context): RotationStateSnapshotItem[] => {
       const items: RotationStateSnapshotItem[] = [];
 
-      if (hasTrait(context, TRAIT.KINETIC_BATTERY) || hasActiveTrait(context, 'Kinetic Battery')) {
+      if (
+        hasTrait(context, TRAIT.KINETIC_BATTERY) ||
+        hasActiveTrait(context.balanceContext.catalog, context, 'Kinetic Battery')
+      ) {
         // The inspected rotation's balance source owns the cap displayed beside its charge count.
         const maximum = balanceNumberFromContext(context.balanceContext, TRAIT.KINETIC_BATTERY, 'maximumStacks');
         items.push({

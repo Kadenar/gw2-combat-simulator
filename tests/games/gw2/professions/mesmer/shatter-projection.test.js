@@ -9,7 +9,7 @@ import { createDefaultConfig, runMesmer } from '#tests/helpers/mesmer-simulation
 
 /** Compare one committed spend with its tooltip tier, keeping preview and live catalogs independently selectable. */
 function scenario(profession, patchId, specialization, skillId, spent, selectedTraitIds = []) {
-  const context = profession.balanceContextFor(patchId);
+  const context = profession.resolvePatch({ id: patchId }).balanceContext;
   const skill = context.catalog.skillsById.get(skillId);
   const tooltip = describeSimulationSkill(context, skill, mesmerTooltips);
   assert.ok(!tooltip.incomplete);

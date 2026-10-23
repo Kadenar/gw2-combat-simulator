@@ -520,16 +520,16 @@ test('Guardian build attributes expose static Zeal and Radiance bonuses', () => 
   app.attributeData = guardianAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: guardianAppAdapter.profession.resolvePatch()
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   assert.equal(
     guardianAppAdapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: guardianAppAdapter.profession.resolvePatch()
       })
       .simulationConfig().attributeInputs.weaponSets[0].commonTotals.conditionDurationBonuses.Burning,
     0
@@ -869,6 +869,7 @@ test('elite specializations expose their profession mechanics', () => {
     })
     .flatMap((group) => group.skillIds);
   const firebrandResources = guardianProfession.ui.resourceViews({
+    catalog: guardianCatalog,
     specialization: 'Firebrand',
     simulationTime: 10,
     professionState: {

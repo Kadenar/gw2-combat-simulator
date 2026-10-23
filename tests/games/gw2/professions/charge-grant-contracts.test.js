@@ -408,6 +408,7 @@ test('Mistburn projects its grant without aliases or mutations to runtime state'
   // Detached snapshots and planning projections show the same count and remaining duration.
   for (const professionState of [projected, snapshotProfessionState(context.profession)]) {
     const items = thiefProfession.ui.rotationStateSnapshot({
+      balanceContext: { catalog: thiefProfession.catalog },
       specialization: 'Antiquary',
       professionState,
       atSeconds: 2

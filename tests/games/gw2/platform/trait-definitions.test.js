@@ -11,8 +11,10 @@ import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profes
 import {
   defineTrait,
   traitAttributeBonuses,
-  traitAttributeEffects
+  traitAttributeEffects,
+  traitSkillReplacement
 } from '#gw2/platform/profession-definition/traits.js';
+import { createSkillSelectionContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import {
   createBuildAttributeContext,
@@ -21,9 +23,227 @@ import {
 import { createProfessionTraitData } from '#gw2/professions/shared/trait-data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { bindBuildContext } from '#gw2/build-context/create.js';
+import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
+import { selectionFromConfig } from '#gw2/integrations/patches/selection.js';
+import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
+import { describeSimulationSkill, resolveTooltips } from '#gw2/app/shared/simulation-tooltip.js';
+
+// Generic reworks keep selection, layout and tooltip contracts independent of a temporary profession preview.
+function selectionFixture() {
+  let declarationReads = 0;
+  const first = { id: 301, name: 'First' };
+  const second = { id: 302, name: 'Second' };
+  const line = (traits) => ({ id: 30, name: 'Line', elite: false, minorTraits: [], majorTraits: [traits] });
+  const data = (traits) => ({
+    generatedSkills: [skill],
+    traits,
+    specializations: [line(traits)],
+    balanceProfiles: [
+      { id: 'fixture.tuning', name: 'Tuning', profileKind: 'mechanic', maximumStacks: 2, duration: 1, effects: [] }
+    ]
+  });
+  const replacement = new Proxy(
+    defineNativeModule({ id: 'Core', data: data([second, first]), state: { create: () => ({}) } }),
+    {
+      get(target, key, receiver) {
+        // Compiling a family reads module declarations; value changes must never revisit them.
+        if (key === 'data') declarationReads++;
+
+        return Reflect.get(target, key, receiver);
+      }
+    }
+  );
+  const family = defineNativeProfession({
+    id: 'fixture',
+    name: 'Fixture',
+    modules: [defineNativeModule({ id: 'Core', data: data([first, second]), state: { create: () => ({}) } })],
+    moduleVariants: { 'fixture-rework': replacement }
+  });
+  const profession = withPatchPreview(family, {
+    id: 'preview',
+    label: 'Preview',
+    professions: {
+      fixture: {
+        reworks: ['fixture-rework'],
+        provisional: [
+          {
+            id: 'charges',
+            traitId: '301',
+            label: 'Charges',
+            specialization: 'Line',
+            profileId: 'fixture.tuning',
+            field: 'maximumStacks',
+            minimum: 1,
+            maximum: 9,
+            step: 1,
+            unit: 'charges'
+          },
+          {
+            id: 'duration',
+            traitId: '301',
+            label: 'Duration',
+            specialization: 'Line',
+            profileId: 'fixture.tuning',
+            field: 'duration',
+            minimum: 0,
+            maximum: 9,
+            step: 0.1,
+            unit: 's'
+          }
+        ]
+      }
+    }
+  });
+  const createBuildContext = bindBuildContext(
+    profession,
+    { attributeContributions: profession.attributeContributions },
+    () => ({}),
+    {
+      assumptionControls: [],
+      resolveSkillLoadout: () => ({ activeBarId: 'main', bars: [{ id: 'main', skillIds: [] }] })
+    }
+  );
+  const build = {
+    ...createCommonBuildDefaults(),
+    profession: 'fixture',
+    specializations: [{ name: 'Line', traits: '1' }],
+    gear: {},
+    weapons: [],
+    alternateWeapons: [],
+    infusions: [],
+    selectedSkillIds: {},
+    sigils: [],
+    rune: '',
+    relic: '',
+    food: '',
+    utility: ''
+  };
+  const tooltips = {
+    traits: {
+      301: () => ({ description: 'Live first', facts: [] }),
+      302: () => ({ description: 'Live second', facts: [] })
+    },
+    reworks: {
+      'fixture-rework': {
+        traits: { 302: () => ({ description: 'Reworked second', facts: [] }) },
+        skills: {
+          1: () => ({ description: 'Reworked strike', facts: [] }),
+          99: (context, _entity, _specialization, build) => ({
+            description: `Reworked palette: ${selectedTraits(context.catalog, build.specializations)[0].name}`,
+            facts: []
+          })
+        }
+      }
+    }
+  };
+  return { profession, createBuildContext, build, tooltips, declarationReads: () => declarationReads };
+}
+
+test('resolved patch normalization, isolation and serialization share a cached selection without compilation', () => {
+  const { profession, createBuildContext, build, declarationReads } = selectionFixture();
+  const base = profession.resolvePatch({ id: 'preview' });
+  assert.equal(profession.resolvePatch({ id: 'preview', values: {} }), base);
+  assert.equal(profession.resolvePatch({ id: 'current', values: { unknown: NaN } }), profession.resolvePatch());
+  const before = declarationReads();
+  const patch = profession.resolvePatch({ id: 'preview', values: { duration: 3, charges: 4 } });
+  assert.equal(patch, profession.resolvePatch({ id: 'preview', values: { charges: 4, duration: 3 } }));
+  for (const values of [
+    { unknown: 1 },
+    { duration: NaN },
+    { duration: Infinity },
+    { charges: 0 },
+    { charges: 10 },
+    { charges: 1.5 }
+  ]) {
+    assert.throws(() => profession.resolvePatch({ id: 'preview', values }), /Invalid provisional value/);
+  }
+
+  assert.equal(declarationReads(), before);
+  assert.equal(base.catalog.balanceProfilesById.get('fixture.tuning').maximumStacks, 2);
+  const config = JSON.parse(
+    JSON.stringify(
+      createBuildContext({ build, patch, transitionDelays: normalizeTransitionDelays() }).simulationConfig()
+    )
+  );
+  assert.equal(profession.resolvePatch(selectionFromConfig(config)), patch);
+  const runtime = profession.runtimeFor(config);
+  assert.deepEqual(
+    runtime.catalog.balanceProfilesById.get('fixture.tuning'),
+    patch.catalog.balanceProfilesById.get('fixture.tuning')
+  );
+  // A warmed runtime also reuses its compiled declarations when only the overlay changes.
+  const compiled = declarationReads();
+  profession.runtimeFor({ ...config, previewValues: { charges: 5 } });
+  assert.equal(declarationReads(), compiled);
+});
+
+test('rework trait positions and all tooltip lookup paths follow the selected catalog', () => {
+  const { profession, createBuildContext, build, tooltips } = selectionFixture();
+  const adapter = defineProfessionApp({
+    profession,
+    createBuildContext,
+    toApplicationBuild: (value) => value,
+    tooltips
+  });
+  for (const [id, expected, description] of [
+    ['current', 301, 'Live first'],
+    ['preview', 302, 'Reworked second']
+  ]) {
+    const patch = profession.resolvePatch({ id });
+    const context = createBuildContext({ build, patch, transitionDelays: normalizeTransitionDelays() });
+    assert.deepEqual(context.simulationConfig().selectedTraitIds, [expected]);
+    assert.deepEqual(
+      context.attributes(1).activeTraits.map(({ id }) => id),
+      [expected]
+    );
+    const selected = selectedTraits(patch.catalog, build.specializations)[0];
+    assert.equal(adapter.traitTooltip(selected, patch, 'Core').description, description);
+  }
+
+  const patch = profession.resolvePatch({ id: 'preview' });
+  assert.equal(describeSimulationSkill(patch.balanceContext, skill, tooltips).description, 'Reworked strike');
+  assert.equal(adapter.skillTooltip({ id: 99, name: 'Palette' }, patch, build).description, 'Reworked palette: Second');
+  assert.equal(resolveTooltips(patch.balanceContext, tooltips), resolveTooltips(patch.balanceContext, tooltips));
+  assert.throws(
+    () => describeSimulationTrait(patch.balanceContext, { id: 302 }, { traits: tooltips.traits }),
+    /Missing rework tooltip/
+  );
+  assert.throws(
+    () =>
+      defineProfessionApp({
+        profession,
+        createBuildContext,
+        toApplicationBuild: (value) => value,
+        tooltips: { traits: {}, reworks: { missing: { traits: {} } } }
+      }),
+    /Unknown tooltip module rework/
+  );
+});
 
 const tuning = (context, field) => balanceNumberFromContext(context, 101, field);
 const metadata = { id: 101, name: 'Fixture Trait' };
+
+// Saved rotations may hold either identity of a trait-swapped skill; the current selection alone decides the cast.
+test('trait skill replacements resolve either identity to the selected variant', () => {
+  const modifySkillId = traitSkillReplacement(7, [
+    [1, 2],
+    [3, 4]
+  ]);
+  for (const [traits, expected] of [
+    [[], [1, 1, 3, 3]],
+    [[7], [2, 2, 4, 4]]
+  ]) {
+    const context = createSkillSelectionContext(new Set(traits));
+    assert.deepEqual(
+      [1, 2, 3, 4].map((id) => modifySkillId(context, id)),
+      expected
+    );
+    assert.equal(modifySkillId(context, 5), 5);
+  }
+});
 
 // Producer slots cannot be hidden among retained policies, even by JavaScript callers or object spreads.
 test('trait authoring rejects obsolete producer hooks and unsupported lifetime registrations', () => {
@@ -393,13 +613,13 @@ test('preview rules, active profiles, removed effects, and tooltip values share 
     }
   };
   assert.deepEqual(
-    describeSimulationTrait(family.balanceContextFor('preview'), metadata, presentation).facts.map(
+    describeSimulationTrait(family.resolvePatch({ id: 'preview' }).balanceContext, metadata, presentation).facts.map(
       ({ value }) => value
     ),
     ['40', '2']
   );
   assert.deepEqual(
-    describeSimulationTrait(family.balanceContextFor('current'), metadata, presentation).facts.map(
+    describeSimulationTrait(family.resolvePatch({ id: 'current' }).balanceContext, metadata, presentation).facts.map(
       ({ value }) => value
     ),
     ['20', '1']
@@ -435,14 +655,14 @@ test('definition attributes use resolved minors, eligible conversions and patch 
       attributeSeedFromCommon(common),
       {
         activeTraits,
-        profileContext: context.balanceContext ?? family.balanceContextFor()
+        profileContext: context.balanceContext ?? family.resolvePatch().balanceContext
       },
       context
     );
   }, family.attributeContributions);
   const build = { specializations: [{ name: 'Line' }] };
   const current = calculate(build);
-  const patched = calculate(build, [], 1, null, null, family.balanceContextFor('preview'));
+  const patched = calculate(build, [], 1, null, null, family.resolvePatch({ id: 'preview' }).balanceContext);
   assert.equal(current.attributes.Power.traits, 30);
   assert.equal(patched.attributes.Power.traits, 50);
   assert.equal(patched.attributes['Critical Chance'].final - current.attributes['Critical Chance'].final, 1);
@@ -500,7 +720,7 @@ test('trait attribute helpers resolve overridden profile IDs without changing co
       ['preview', 70, patched],
       ['current', 50, current]
     ]) {
-      const { attributeEffects } = contribute({ balanceContext: family.balanceContextFor(patchId) });
+      const { attributeEffects } = contribute({ balanceContext: family.resolvePatch({ id: patchId }).balanceContext });
       assert.deepEqual(
         resolveAttributeEffects(
           { conversionPool: { Power: 105 }, conversions: equipmentAttributeConversions() },
@@ -518,7 +738,7 @@ test('trait attribute helpers resolve overridden profile IDs without changing co
 // Required values fail in the supplied patch even when a different source contains a usable profile.
 test('trait attribute helpers reject missing profiles and invalid balance fields in the active context', () => {
   const family = previewFamily();
-  const current = family.balanceContextFor('current');
+  const current = family.resolvePatch({ id: 'current' }).balanceContext;
   const missing = {
     ...current,
     catalog: {
@@ -566,8 +786,8 @@ test('profile-only attribute bonuses are immutable and isolated between patches'
       traitCriticalChance: profile.attributeBonus
     };
   });
-  const current = { balanceContext: family.balanceContextFor('current') };
-  const preview = { balanceContext: family.balanceContextFor('preview') };
+  const current = { balanceContext: family.resolvePatch({ id: 'current' }).balanceContext };
+  const preview = { balanceContext: family.resolvePatch({ id: 'preview' }).balanceContext };
   const bonuses = contribute(current);
   assert.equal(contribute(current), bonuses);
   assert.notEqual(contribute(preview), bonuses);

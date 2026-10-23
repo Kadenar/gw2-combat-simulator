@@ -1130,7 +1130,10 @@ test('Revenant palette exposes upkeep releases and enforces Energy costs', () =>
     [phase, '30'],
     [relinquish, '0']
   ]) {
-    const view = paletteSkillView({ adapter: revenantAppAdapter, results: null }, skill);
+    const view = paletteSkillView(
+      { adapter: revenantAppAdapter, patch: revenantAppAdapter.profession.resolvePatch(), results: null },
+      skill
+    );
     assert.equal(view.tooltip.facts.find((fact) => fact.name === 'Base energy cost').detail, cost);
   }
 });

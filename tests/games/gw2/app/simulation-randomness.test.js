@@ -50,7 +50,11 @@ const simulateNecromancer = ({ config, rotation }) =>
 function simulationConfig(profession, build) {
   return contexts
     .get(profession.id)
-    .createBuildContext({ build, patchId: 'current', transitionDelays: normalizeTransitionDelays() })
+    .createBuildContext({
+      build,
+      transitionDelays: normalizeTransitionDelays(),
+      patch: contexts.get(profession.id).profession.resolvePatch({ id: 'current' })
+    })
     .simulationConfig();
 }
 
@@ -431,7 +435,7 @@ test('RNG analysis is available while detailed Engineer results stay determinist
     skillId: engineerProfession.catalog.skillsByName.get(name).id
   }));
   const app = {
-    patchId: 'current',
+    patch: engineerAppAdapter.profession.resolvePatch({ id: 'current' }),
     adapter: engineerAppAdapter,
     profession: engineerProfession,
     build,
@@ -443,8 +447,8 @@ test('RNG analysis is available while detailed Engineer results stay determinist
   app.attributeData = engineerAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: engineerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   // Keep test setup on the same baseline request/calculation path as the application.

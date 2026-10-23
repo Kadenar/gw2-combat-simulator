@@ -83,6 +83,7 @@ function createTempestApp(rotation = [], { tempestTraits = '1-1-2', alacrity = t
     startAttunement: 'Air'
   });
   const app = {
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
@@ -95,8 +96,8 @@ function createTempestApp(rotation = [], { tempestTraits = '1-1-2', alacrity = t
   app.attributeData = elementalistAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: elementalistAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   app.results = runElementalist(
@@ -104,8 +105,8 @@ function createTempestApp(rotation = [], { tempestTraits = '1-1-2', alacrity = t
     elementalistAppAdapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: elementalistAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig(),
     {

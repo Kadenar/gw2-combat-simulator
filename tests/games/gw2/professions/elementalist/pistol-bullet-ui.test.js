@@ -26,6 +26,7 @@ function createPistolApp() {
   });
   let changeCount = 0;
   const app = {
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,

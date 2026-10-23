@@ -173,6 +173,7 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
     const profession = adapter.profession;
     const specialization = config.specialization || 'Core';
     const app = {
+      patch: adapter.profession.resolvePatch(),
       ...projectionApp(profession, { specialization }),
       adapter,
       weaponData: adapter.weaponData,
@@ -679,7 +680,7 @@ test('Holosmith Forge tiles follow weapon slots for normal and Storm autos', asy
     });
     app.build.specializations = [{ name: 'Holosmith', traits: storm ? '1-1-1' : '1-2-1' }];
     const group = profession.ui
-      .paletteGroups({ specialization: 'Holosmith', build: app.build })
+      .paletteGroups({ specialization: 'Holosmith', build: app.build, catalog: app.activeCatalog })
       .find((candidate) => candidate.id === 'engineer-forge');
     const tiles = displayedSkillTiles(
       app,

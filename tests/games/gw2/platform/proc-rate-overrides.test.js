@@ -175,6 +175,7 @@ test('proc rates round-trip with builds and become detached worker configuration
   const build = adapter.toApplicationBuild(JSON.parse(JSON.stringify(original)));
   assert.deepEqual(build.assumptions.procRateOverrides, original.assumptions.procRateOverrides);
   const app = {
+    patch: adapter.profession.resolvePatch(),
     build,
     adapter,
     profession: adapter.profession,
@@ -184,15 +185,15 @@ test('proc rates round-trip with builds and become detached worker configuration
   app.attributeData = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const config = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .simulationConfig();
   assert.deepEqual(config.procRateOverrides, original.assumptions.procRateOverrides);

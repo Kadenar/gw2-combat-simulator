@@ -1,3 +1,4 @@
+import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
@@ -33,7 +34,7 @@ import {
   ELEMENTALIST_WEAVER_SKILL_IDS,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 
 import type { ElementalistBuildSpecialization } from '#gw2/professions/elementalist/build/types.js';
@@ -45,9 +46,11 @@ import {
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
 
 // Unravel and its F5 palette group only exist when the trait is selected.
-function hasElementsOfRage(context: ElementalistUiContext): boolean {
+function hasElementsOfRage(context: ElementalistUiContext & ProfessionCatalogContext): boolean {
   const build = context.build as { specializations?: readonly ElementalistBuildSpecialization[] } | undefined;
-  return getActiveTraits(build?.specializations || []).some((trait) => trait.id === TRAIT.ELEMENTS_OF_RAGE);
+  return selectedTraits(context.catalog, build?.specializations || []).some(
+    (trait) => trait.id === TRAIT.ELEMENTS_OF_RAGE
+  );
 }
 
 // An attunement swap changes Weaver's primary-hand bar immediately, but GW2
@@ -455,7 +458,7 @@ export const weaverUi: ElementalistUiSlice = Object.freeze({
           (elementalistUiState(context).perfectWeaveUntil || 0) > (context.time || 0)
       };
   },
-  paletteGroups: (context: ElementalistUiContext) =>
+  paletteGroups: (context: ElementalistUiContext & ProfessionCatalogContext) =>
     hasElementsOfRage(context)
       ? [
           {

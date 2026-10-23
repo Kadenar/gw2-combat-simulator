@@ -1,6 +1,7 @@
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import {
@@ -84,6 +85,7 @@ test('Mechanist keeps its mech present and exposes only trait-selected commands'
   assert.ok(result.events.some((event) => event.type === 'damage' && event.mechBasicAttack));
 
   const groups = engineerProfession.ui.paletteGroups({
+    catalog: engineerCatalog,
     specialization: 'Mechanist',
     professionState: result.planningState.profession
   });
@@ -232,6 +234,7 @@ test('Poison Dart Volley and Static Shot are not combo finishers', () => {
 test('Holosmith palette exposes tool-belt skills, forge, and replacement bars', () => {
   const build = createEngineerBuildDefaults();
   const groups = engineerProfession.ui.paletteGroups({
+    catalog: engineerCatalog,
     build,
     specialization: 'Holosmith',
     professionState: { photonForgeActive: false }
@@ -332,6 +335,7 @@ test('Engineer Tools endurance renders beneath Dodge instead of as a standalone 
   ];
   const build = adapter.toApplicationBuild(canonicalBuild);
   const app = {
+    patch: adapter.profession.resolvePatch(),
     build,
     adapter,
     profession: engineerProfession,
@@ -366,6 +370,7 @@ test('Engineer kits render beneath weapons while Holosmith mechanics stay groupe
   canonicalBuild.selectedSkillIds.Utility3 = 5812;
   const build = adapter.toApplicationBuild(canonicalBuild);
   const app = {
+    patch: adapter.profession.resolvePatch(),
     build,
     adapter,
     profession: engineerProfession,
@@ -439,8 +444,9 @@ test('Engineer event log exposes Heat only for Holosmith heat transitions', () =
   assert.equal(eventLogRow('Holosmith', event).description, 'heat - Heat 25.0');
 });
 
-test('Amalgam selects and labels Evolve from the current build traits in the palette and saved rotations', () => {
-  // Trait changes replace F5 and normalize old names/IDs without exposing both variants.
+test('Amalgam selects and labels Evolve from the current build traits in the palette and saved rotations', async () => {
+  // Trait changes replace F5; saved rotations keep one trait-independent identity that displays as the selected variant.
+  const adapter = await loadProfessionAppAdapter('engineer');
   const build = createEngineerBuildDefaults();
   for (const [traits, expectedId, name] of [
     ['1-1-1', ID.EVOLVE_BASE, 'Evolve (Base)'],
@@ -449,7 +455,7 @@ test('Amalgam selects and labels Evolve from the current build traits in the pal
   ]) {
     build.specializations[2] = { name: 'Amalgam', traits };
     const group = engineerProfession.ui
-      .paletteGroups({ specialization: 'Amalgam', build })
+      .paletteGroups({ specialization: 'Amalgam', build, catalog: engineerCatalog })
       .find((group) => group.id === 'engineer-profession');
     assert.deepEqual(
       group.skillIds.filter((id) => [ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX].includes(id)),
@@ -457,8 +463,18 @@ test('Amalgam selects and labels Evolve from the current build traits in the pal
     );
     assert.equal(engineerCatalog.skillsById.get(expectedId).name, name);
     const migrated = migrateEngineerBuild({ ...build, rotation: ['Evolve', ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX] });
-    assert.ok(migrated.rotation.every((command) => command.skillId === expectedId));
+    assert.ok(migrated.rotation.every((command) => command.skillId === ID.EVOLVE_BASE));
     assert.deepEqual(validateEngineerBuild(migrated), { valid: true, errors: [] });
+    const app = {
+      adapter,
+      profession: adapter.profession,
+      build: toApplicationBuild(migrated),
+      patch: adapter.profession.resolvePatch(),
+      get activeCatalog() {
+        return this.patch.catalog;
+      }
+    };
+    assert.ok(app.build.rotation.every((command) => resolveEntrySkill(app, command)?.id === expectedId));
   }
 });
 

@@ -29,7 +29,7 @@ import test from 'node:test';
 
 // Removing any spirit strike must leave surviving summon and coordinated attacks in their original tooltip groups.
 test('Ritualist tooltip packet roles survive balance-profile removals', () => {
-  const base = withPatchPreview(necromancerProfession, null).balanceContextFor();
+  const base = withPatchPreview(necromancerProfession, null).resolvePatch().balanceContext;
   const facts = (context, skillId) =>
     describeSimulationSkill(context, context.catalog.skillsById.get(skillId), necromancerTooltips).facts;
   for (const [profileId, skillId] of [
@@ -48,7 +48,7 @@ test('Ritualist tooltip packet roles survive balance-profile removals', () => {
             balanceProfiles: { [profileId]: { removeEffects: [{ type: effect.type, name: effect.name }] } }
           }
         }
-      }).balanceContextFor('spirit-tooltip-removal');
+      }).resolvePatch({ id: 'spirit-tooltip-removal' }).balanceContext;
       for (const id of [skillId, ID.SUMMON_SPIRITS]) {
         assert.deepEqual(
           facts(preview, id),
@@ -71,7 +71,7 @@ test('Combustive Shot tooltip tabs own their patched field durations', async () 
     professions: {
       warrior: { balanceProfiles: { [profiles.combustiveShot]: { fields: { durationPerTier: 4 } } } }
     }
-  }).balanceContextFor('burst-field-preview');
+  }).resolvePatch({ id: 'burst-field-preview' }).balanceContext;
   const tooltip = describeSimulationSkill(
     context,
     context.catalog.skillsByName.get('Combustive Shot'),
@@ -99,7 +99,7 @@ test('Combustive Shot tooltip tabs own their patched field durations', async () 
 
 // Raw Scourge costs are rounded only for display, with the same digit grouping as the in-game facts.
 test('Scourge life-force tooltip costs display whole points', () => {
-  const context = withPatchPreview(necromancerProfession, null).balanceContextFor();
+  const context = withPatchPreview(necromancerProfession, null).resolvePatch().balanceContext;
   for (const [skillId, expected] of [
     [ID.NEFARIOUS_FAVOR, '1,935'],
     [ID.SAND_CASCADE, '2,487'],
@@ -116,7 +116,7 @@ test('Scourge life-force tooltip costs display whole points', () => {
 test("Serpent's Touch distinguishes Potent Poison without repeating its base effect label", async () => {
   const { thiefProfession } = await import('#gw2/professions/thief/profession.js');
   const { thiefTooltips } = await import('#gw2/professions/thief/app/tooltips.js');
-  const context = withPatchPreview(thiefProfession, null).balanceContextFor();
+  const context = withPatchPreview(thiefProfession, null).resolvePatch().balanceContext;
   const trait = context.catalog.traits.find(({ name }) => name === "Serpent's Touch");
   const potentPoison = context.catalog.traits.find(({ name }) => name === 'Potent Poison');
   const { facts } = describeSimulationTrait(context, trait, thiefTooltips);
@@ -136,7 +136,7 @@ test("Serpent's Touch distinguishes Potent Poison without repeating its base eff
 test('Specter barrier tooltips distinguish self recipients and use the barrier CDN glyph', async () => {
   const { thiefProfession } = await import('#gw2/professions/thief/profession.js');
   const { thiefTooltips } = await import('#gw2/professions/thief/app/tooltips.js');
-  const context = withPatchPreview(thiefProfession, null).balanceContextFor();
+  const context = withPatchPreview(thiefProfession, null).resolvePatch().balanceContext;
   const icon = 'https://render.guildwars2.com/file/357922487919E8E84B914EAC13D5796DDDC42D14/1770209.png';
   // Entering shroud targets an ally; Dawn's Repose includes the caster in its party barrier.
   for (const [name, excludesSelf] of [
@@ -169,7 +169,7 @@ test('Radiant Power shares patched attribute and critical-chance values across c
         balanceProfiles: { [traits.RADIANT_POWER]: { fields: { attributeBonus: 237, criticalChance: 0.17 } } }
       }
     }
-  }).balanceContextFor('radiant-profile');
+  }).resolvePatch({ id: 'radiant-profile' }).balanceContext;
   const build = createGuardianBuildDefaults();
   build.specializations = [{ name: 'Radiance', traits: '2-3-3' }];
   const calculate = createCalculateAttributes(
@@ -204,7 +204,7 @@ test('Carbolic Composition shares one patched duration bonus across consumers', 
     professions: {
       engineer: { balanceProfiles: { [traits.CARBOLIC_COMPOSITION]: { fields: { conditionDurationBonus: 0.42 } } } }
     }
-  }).balanceContextFor('carbolic-profile');
+  }).resolvePatch({ id: 'carbolic-profile' }).balanceContext;
   const build = createEngineerBuildDefaults();
   build.specializations = [{ name: 'Amalgam', traits: '1-1-1' }];
   const calculated = createCalculateAttributes(
@@ -235,7 +235,7 @@ test('Pure Strike has one authored critical-damage multiplier shared by combat a
     id: 'pure-strike-profile',
     label: 'Pure Strike profile',
     professions: { warrior: { balanceProfiles: { [traits.PURE_STRIKE]: { fields: { criticalDamage: 1.35 } } } } }
-  }).balanceContextFor('pure-strike-profile');
+  }).resolvePatch({ id: 'pure-strike-profile' }).balanceContext;
   const profile = preview.catalog.balanceProfilesById.get(traits.PURE_STRIKE);
   assert.equal(Object.hasOwn(profile, 'coefficientMultiplier'), false);
   assert.equal(Object.hasOwn(profile, 'damageMultiplier'), false);
@@ -254,7 +254,7 @@ test('Revenant trait tooltips show bonuses, resource icons, and excluded traits'
   const { revenantProfession } = await import('#gw2/professions/revenant/profession.js');
   const { revenantTooltips } = await import('#gw2/professions/revenant/app/tooltips.js');
   const { REVENANT_TRAIT_IDS: traits } = await import('#gw2/professions/revenant/data/ids.js');
-  const context = withPatchPreview(revenantProfession, null).balanceContextFor();
+  const context = withPatchPreview(revenantProfession, null).resolvePatch().balanceContext;
   const trait = (id) => context.catalog.traits.find((entry) => entry.id === id);
   const describe = (id) => describeSimulationTrait(context, trait(id), revenantTooltips);
   for (const [id, detail] of [
@@ -317,8 +317,8 @@ test('adapter caches skill tooltips without retaining row state', () => {
     toApplicationBuild
   });
   const skill = necromancerProfession.catalog.skillsById.get(ID.BLOOD_CURSE);
-  const live = adapter.skillTooltip(skill, 'current');
-  assert.equal(adapter.skillTooltip({ ...skill }, 'current'), live);
+  const live = adapter.skillTooltip(skill, adapter.profession.resolvePatch({ id: 'current' }));
+  assert.equal(adapter.skillTooltip({ ...skill }, adapter.profession.resolvePatch({ id: 'current' })), live);
   assert.equal(descriptions, 1);
   assert.match(
     skillTooltipAttributes(skill, live, { details: 'Available now', detailsTitle: 'Cast details' }),
@@ -360,7 +360,7 @@ test('combo finisher tooltips show chance only for projectiles', () => {
     name: 'Finisher tooltip',
     comboFinishers: ['Leap', 'Blast', 'Whirl', 'Projectile'].map((finisherType) => ({ finisherType, chance: 1 }))
   };
-  const model = describeSimulationSkill({}, skill, { traits: {} });
+  const model = describeSimulationSkill({ catalog: {} }, skill, { traits: {} });
   assert.deepEqual(
     model.facts.filter(({ name }) => name === 'Combo finisher').map(({ detail }) => detail),
     ['Leap', 'Blast', 'Whirl', 'Projectile · 100% chance']
@@ -388,7 +388,7 @@ test('combo finisher tooltips group repeated attempts by displayed type and chan
       }
     ]
   };
-  const model = describeSimulationSkill({}, skill, { traits: {} });
+  const model = describeSimulationSkill({ catalog: {} }, skill, { traits: {} });
   assert.deepEqual(
     model.facts
       .filter(({ name }) => name === 'Combo finisher')
@@ -403,7 +403,7 @@ test('combo finisher tooltips group repeated attempts by displayed type and chan
 
 // Alternative packets stay separate from shared costs for every Blight-enhanced action.
 test('Harbinger payloads use separate base and enhanced tabs', () => {
-  const context = withPatchPreview(necromancerProfession, null).balanceContextFor();
+  const context = withPatchPreview(necromancerProfession, null).resolvePatch().balanceContext;
   for (const skill of context.catalog.skills.filter((entry) =>
     [
       ID.ELIXIR_OF_BLISS,
@@ -444,7 +444,7 @@ test('Sinister Shroud tooltip and recharge handling share the selected profile',
     [undefined, '+15%', 17],
     ['sinister-tooltip', '+30%', 14]
   ]) {
-    const context = profession.balanceContextFor(patchId);
+    const context = profession.resolvePatch({ id: patchId }).balanceContext;
     const trait = context.catalog.traits.find((entity) => entity.id === TRAIT.SINISTER_SHROUD);
     const model = describeSimulationTrait(context, trait, necromancerTooltips);
     assert.equal(model.facts.find((fact) => fact.name === 'Shroud and shade recharge reduction').detail, detail);
@@ -478,8 +478,8 @@ test('selected balance context keeps trait tooltips and attribute bonuses on the
       }
     }
   });
-  const live = profession.balanceContextFor();
-  const preview = profession.balanceContextFor('tooltip-check');
+  const live = profession.resolvePatch().balanceContext;
+  const preview = profession.resolvePatch({ id: 'tooltip-check' }).balanceContext;
   const find = (id) => preview.catalog.traits.find((trait) => trait.id === id);
   const death = describeSimulationTrait(preview, find(893), necromancerTooltips);
   assert.equal(death.facts.find((fact) => fact.name === 'Critical chance').detail, '+20%');
@@ -488,8 +488,8 @@ test('selected balance context keeps trait tooltips and attribute bonuses on the
   assert.match(septic.facts.find((fact) => fact.name === 'Poisoned').detail, /4s/);
   assert.equal(septic.facts.find((fact) => fact.name === 'Poisoned').stacks, 2);
   assert.equal(live.catalog.balanceProfilesById.get(TRAIT.DEATH_PERCEPTION).criticalChance, 0.15);
-  assert.equal(profession.balanceContextFor('tooltip-check'), preview);
-  assert.throws(() => profession.balanceContextFor('missing'), /Unknown/);
+  assert.equal(profession.resolvePatch({ id: 'tooltip-check' }).balanceContext, preview);
+  assert.throws(() => profession.resolvePatch({ id: 'missing' }).balanceContext, /Unknown/);
 
   const build = createNecromancerBuildDefaults();
   build.specializations = [{ name: 'Soul Reaping', traits: '1-1-2' }];
@@ -572,7 +572,7 @@ test('boon tooltip stack counts appear only for Might and Stability', () => {
 // Bad references cannot masquerade as zero bonuses, and external metadata has no path into generated facts.
 test('tooltip construction rejects missing inputs and ignores external fact strings', () => {
   assert.notEqual(tooltipDecimal(0.0000064), '0');
-  const context = withPatchPreview(necromancerProfession, null).balanceContextFor();
+  const context = withPatchPreview(necromancerProfession, null).resolvePatch().balanceContext;
   const skill = {
     id: 'example',
     name: 'Example',
@@ -622,7 +622,7 @@ test('Necromancer condition handlers and tooltips share selected skill effects',
       }
     }
   });
-  const context = profession.balanceContextFor('condition-tooltips');
+  const context = profession.resolvePatch({ id: 'condition-tooltips' }).balanceContext;
   const describe = (id) => describeSimulationSkill(context, context.catalog.skillsById.get(id), necromancerTooltips);
   assert.match(describe(51647).facts.find((fact) => fact.name === 'Strike damage').detail, /^2 coefficient/);
   assert.match(describe(51647).facts.find((fact) => fact.name === 'Torment').detail, /7s.*per distinct/);
@@ -688,14 +688,14 @@ test('condition-transfer tooltips expose the same limits used by combat', () => 
     [ID.PUTRID_MARK, 3],
     [ID.SUFFER, 2]
   ]) {
-    const context = profession.balanceContextFor();
+    const context = profession.resolvePatch().balanceContext;
     const model = describeSimulationSkill(context, context.catalog.skillsById.get(id), necromancerTooltips);
     const fact = model.facts.find((entry) => entry.name === 'Conditions Transferred');
     assert.equal(fact.detail, String(count));
     assert.equal(fact.icon, 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png');
   }
 
-  const context = profession.balanceContextFor('transfer-tooltip');
+  const context = profession.resolvePatch({ id: 'transfer-tooltip' }).balanceContext;
   const model = describeSimulationSkill(context, context.catalog.skillsById.get(ID.PLAGUE_SIGNET), necromancerTooltips);
   assert.equal(model.facts.find((entry) => entry.name === 'Conditions Transferred').detail, '1');
   const simulate = createObservedProfessionSimulator(profession, {
@@ -736,7 +736,7 @@ test('Soulbeast condition triggers preserve the same patched stack count shown i
       }
     }
   });
-  const context = profession.balanceContextFor('stance-tooltip');
+  const context = profession.resolvePatch({ id: 'stance-tooltip' }).balanceContext;
   const tooltip = describeSimulationSkill(context, context.catalog.skillsById.get(40498), rangerTooltips);
   assert.match(tooltip.facts.find((fact) => fact.name === 'Poisoned').detail, /6s.*per trigger/);
   assert.equal(tooltip.facts.find((fact) => fact.name === 'Poisoned').stacks, 3);
@@ -773,7 +773,7 @@ test('completed profession skill declarations cover ordinary and handler-driven 
   ]) {
     const { [`${name}Profession`]: profession } = await import(`#gw2/professions/${name}/profession.js`);
     const { [`${name}Tooltips`]: presentation } = await import(`#gw2/professions/${name}/app/tooltips.js`);
-    const context = withPatchPreview(profession, null).balanceContextFor();
+    const context = withPatchPreview(profession, null).resolvePatch().balanceContext;
     for (const skill of context.catalog.skills) {
       const tooltip = describeSimulationSkill(context, skill, presentation);
       assert.ok(tooltip.description, skill.name);
@@ -802,7 +802,7 @@ test('Engineer spear resolver and tooltip use the same selected packet profile',
       }
     }
   });
-  const selected = profession.balanceContextFor('spear-tooltip');
+  const selected = profession.resolvePatch({ id: 'spear-tooltip' }).balanceContext;
   const skill = selected.catalog.skillsByName.get('Electric Artillery');
   const model = describeSimulationSkill(selected, skill, engineerTooltips);
   assert.ok(
@@ -866,7 +866,7 @@ test('Amalgam strain tooltips and activation use the same patched Stability pack
     ['current', 5, 8],
     ['strain-tooltip', 3, 4]
   ]) {
-    const context = profession.balanceContextFor(patchId);
+    const context = profession.resolvePatch({ id: patchId }).balanceContext;
     for (const [skillId, selectedTraitIds] of [
       [skills.EVOLVE_BASE, []],
       [skills.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954, [traits.SILVER_LINING]]
@@ -907,7 +907,7 @@ test('Song of the Mists tooltip reads patched core invocation skills', async () 
         }
       }
     }
-  }).balanceContextFor('invocation-tooltip');
+  }).resolvePatch({ id: 'invocation-tooltip' }).balanceContext;
   const model = describeSimulationTrait(
     context,
     { id: traitIds.SONG_OF_THE_MISTS, name: 'Song of the Mists' },
@@ -930,7 +930,7 @@ test('Song of the Mists tooltip reads patched core invocation skills', async () 
 test('Blast Zone tooltip describes its combo finisher', async () => {
   const { engineerProfession } = await import('#gw2/professions/engineer/profession.js');
   const { engineerTooltips } = await import('#gw2/professions/engineer/app/tooltips.js');
-  const context = withPatchPreview(engineerProfession, null).balanceContextFor();
+  const context = withPatchPreview(engineerProfession, null).resolvePatch().balanceContext;
   const trait = context.catalog.traits.find(({ name }) => name === 'Blast Zone');
   const model = describeSimulationTrait(context, trait, engineerTooltips);
   assert.ok(!model.incomplete);
@@ -941,7 +941,7 @@ test('Blast Zone tooltip describes its combo finisher', async () => {
 test('New Genes tooltip lists shared boons and each Morph bonus once', async () => {
   const { engineerProfession } = await import('#gw2/professions/engineer/profession.js');
   const { engineerTooltips } = await import('#gw2/professions/engineer/app/tooltips.js');
-  const context = withPatchPreview(engineerProfession, null).balanceContextFor();
+  const context = withPatchPreview(engineerProfession, null).resolvePatch().balanceContext;
   const trait = context.catalog.traits.find(({ name }) => name === 'New Genes');
   const model = describeSimulationTrait(context, trait, engineerTooltips);
   const effects = context.catalog.balanceProfilesById.get(trait.id).effects;
@@ -975,7 +975,7 @@ test('profession trait declarations resolve without missing references or invali
   ]) {
     const { [`${name}Profession`]: source } = await import(`#gw2/professions/${name}/profession.js`);
     const declarations = (await import(`#gw2/professions/${name}/app/tooltips.js`))[`${name}Tooltips`];
-    const context = withPatchPreview(source, null).balanceContextFor();
+    const context = withPatchPreview(source, null).resolvePatch().balanceContext;
     for (const entity of context.catalog.traits) {
       const model = describeSimulationTrait(context, entity, declarations);
       assert.ok(model.description, `${name}: ${entity.name}`);
@@ -989,7 +989,7 @@ test('profession trait declarations resolve without missing references or invali
 test('handler-owned tooltips distinguish conditional values and recipients', async () => {
   const { warriorProfession: warrior } = await import('#gw2/professions/warrior/profession.js');
   const { warriorTooltips } = await import('#gw2/professions/warrior/app/tooltips.js');
-  const warriorContext = withPatchPreview(warrior, null).balanceContextFor();
+  const warriorContext = withPatchPreview(warrior, null).resolvePatch().balanceContext;
   const sundering = describeSimulationTrait(warriorContext, { id: 1316, name: 'Sundering Burst' }, warriorTooltips);
   assert.equal(sundering.facts.find((fact) => fact.detail.includes('noncritical')).stacks, 5);
   assert.equal(sundering.facts.find((fact) => /— critical hit/.test(fact.detail)).stacks, 10);

@@ -774,6 +774,7 @@ test('Ranger palette groups the active pet, command, swap, and Dodge endurance',
   build.weapons = ['Longbow', ''];
   build.alternateWeapons = ['Axe', 'Axe'];
   const app = {
+    patch: rangerAppAdapter.profession.resolvePatch(),
     build,
     adapter: rangerAppAdapter,
     profession: rangerProfession,
@@ -1041,6 +1042,7 @@ test('Soulbeast palette swaps between merged skills and the active pet', () => {
   assert.equal(availability(unmerged.planningState, ID.LEAVE_BEASTMODE), false);
 
   const actionApp = {
+    patch: rangerAppAdapter.profession.resolvePatch(),
     activeCatalog: rangerCatalog,
     adapter: rangerAppAdapter,
     profession: rangerProfession,
@@ -1253,6 +1255,7 @@ test('Ranger Hammer autoattacks advance their palette chain', () => {
     selectedHammerSkillIds: config.selectedHammerSkillIds
   };
   const app = {
+    patch: rangerAppAdapter.profession.resolvePatch(),
     build,
     activeCatalog: rangerCatalog,
     adapter: rangerAppAdapter,
@@ -1303,6 +1306,7 @@ test('Selected unleashed Hammer skills remain castable after Overbearing Smash',
     selectedHammerSkillIds
   };
   const app = {
+    patch: rangerAppAdapter.profession.resolvePatch(),
     build,
     activeCatalog: rangerCatalog,
     adapter: rangerAppAdapter,
@@ -1491,6 +1495,7 @@ test('Untamed ambush skills require the specialization and an active unleash pro
     initialUntamedState: 'Pet'
   };
   const app = {
+    patch: rangerAppAdapter.profession.resolvePatch(),
     build,
     adapter: rangerAppAdapter,
     profession: rangerProfession,
@@ -1532,6 +1537,7 @@ test('Greatsword Counterattack flips to Counterattack Kick and restores its tile
     ]
   };
   const app = {
+    patch: rangerAppAdapter.profession.resolvePatch(),
     build,
     adapter: rangerAppAdapter,
     profession: rangerProfession,
@@ -1576,6 +1582,7 @@ test("Panther's Prowl replaces all four Ranger spear stealth-attack slots", () =
     ]
   };
   const app = {
+    patch: rangerAppAdapter.profession.resolvePatch(),
     build,
     adapter: rangerAppAdapter,
     profession: rangerProfession,

@@ -128,6 +128,7 @@ test('Shatter Storm gives Lively Lute a second charge without a full cooldown', 
   const shatterStormBeforeUse = simulateMesmer([], config([TRAIT.SHATTER_STORM]));
   const livelyLute = mesmerCatalog.skillsById.get(ID.LIVELY_LUTE);
   const paletteApp = (results) => ({
+    patch: mesmerAppAdapter.profession.resolvePatch(),
     // Palette models now resolve tooltip presentation through the profession adapter.
     adapter: mesmerAppAdapter,
     build: { rotation: [] },

@@ -25,6 +25,7 @@ test('Soulbeast spear diagnostic import loads and simulates with the requested e
     ['Force', 'Impact']
   ]);
   const app = {
+    patch: adapter.profession.resolvePatch(),
     build,
     adapter,
     profession: adapter.profession,
@@ -34,8 +35,8 @@ test('Soulbeast spear diagnostic import loads and simulates with the requested e
   app.attributeData = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const result = adapter.simulateBuild(
@@ -43,8 +44,8 @@ test('Soulbeast spear diagnostic import loads and simulates with the requested e
     adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig()
   );

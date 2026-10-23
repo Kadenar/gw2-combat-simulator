@@ -73,7 +73,7 @@ test('Revenant supplemental identities leave simulation mechanics to their owner
 test('modifier contribution candidates include every active Revenant trait', () => {
   const build = createRevenantBuildDefaults();
   const app = {
-    patchId: 'current',
+    patch: revenantAppAdapter.profession.resolvePatch({ id: 'current' }),
     build,
     attributeData: calculateRevenantAttributes(build, []),
     attributeWeaponSet: 1,
@@ -578,7 +578,7 @@ test('legend palette shows only the destination legend with the shared swap cool
 
   build.rotation = ['__combat_start', 'Swap Legends'];
   const app = {
-    patchId: 'current',
+    patch: revenantAppAdapter.profession.resolvePatch({ id: 'current' }),
     build,
     adapter,
     profession: revenantProfession,
@@ -622,7 +622,7 @@ test('Revenant utilities and Conduit resources render by their related skills', 
   canonicalBuild.startingLegend = LEGEND.ENTITY;
   const build = adapter.toApplicationBuild(canonicalBuild);
   const app = {
-    patchId: 'current',
+    patch: revenantAppAdapter.profession.resolvePatch({ id: 'current' }),
     build,
     adapter,
     profession: revenantProfession,
@@ -683,6 +683,7 @@ test('Revenant utilities and Conduit resources render by their related skills', 
 test('Swift Termination exposes the 50% target-health timeline marker', () => {
   assert.deepEqual(
     revenantProfession.ui.targetHealthThresholds({
+      catalog: revenantCatalog,
       build: {
         specializations: [{ name: 'Devastation', traits: '1-1-2' }]
       }
@@ -691,6 +692,7 @@ test('Swift Termination exposes the 50% target-health timeline marker', () => {
   );
   assert.deepEqual(
     revenantProfession.ui.targetHealthThresholds({
+      catalog: revenantCatalog,
       build: {
         specializations: [{ name: 'Devastation', traits: '1-1-1' }]
       }
@@ -714,7 +716,7 @@ test('weapon swap changes the active Revenant weapon set', () => {
 
 test('Revenant scepter follow-ups replace and restore weapon slots 2 and 3', () => {
   const app = {
-    patchId: 'current',
+    patch: revenantAppAdapter.profession.resolvePatch({ id: 'current' }),
     activeCatalog: revenantCatalog,
     profession: revenantProfession,
     results: null

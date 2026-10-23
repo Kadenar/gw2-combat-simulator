@@ -25,7 +25,7 @@ export function appLogReconstructionOptions(app: ProfessionAppState): AppLogReco
     professionConfig: app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId,
+        patch: app.patch,
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
       })
       .simulationConfig()

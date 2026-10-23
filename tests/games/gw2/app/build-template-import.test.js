@@ -27,6 +27,7 @@ test('in-game build import replaces selections without discarding gear or rotati
   ];
   let changedCalls = 0;
   const app = {
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     adapter: elementalistAppAdapter,
     activeCatalog: elementalistCatalog,
     build: current,
@@ -64,6 +65,7 @@ test('Engineer build import equips the inferred primary spear', () => {
   const current = engineerAppAdapter.toApplicationBuild({});
   const alternateWeapons = [...current.alternateWeapons];
   const app = {
+    patch: engineerAppAdapter.profession.resolvePatch(),
     adapter: engineerAppAdapter,
     activeCatalog: engineerCatalog,
     build: current,
@@ -83,6 +85,7 @@ test('Engineer build import equips the inferred primary spear', () => {
 
 test('cross-profession imports identify the build and offer its simulator', () => {
   const app = {
+    patch: mesmerAppAdapter.profession.resolvePatch(),
     adapter: mesmerAppAdapter,
     activeCatalog: mesmerCatalog,
     build: mesmerAppAdapter.toApplicationBuild({})

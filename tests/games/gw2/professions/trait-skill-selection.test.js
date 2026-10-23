@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import {
@@ -78,12 +80,40 @@ const cases = [
 ];
 
 for (const entry of cases) {
-  // Resolve either saved skill identity through the selected trait before execution, preserving authored commands.
-  test(`${entry.name}: saved variants follow trait selection in execution`, () => {
+  // A trait edit changes the displayed and executed identity while leaving the authored command intact.
+  test(`${entry.name}: saved variants follow trait selection in display and execution`, async () => {
+    const adapter = await loadProfessionAppAdapter(entry.profession.id);
+    const patch = adapter.profession.resolvePatch();
+    const line = patch.catalog.specializations.find((line) =>
+      line.majorTraits.flat().some((trait) => trait.id === entry.traitId)
+    );
+    assert.ok(line);
+    const unrelated = patch.catalog.skills.find((skill) => skill.type === 'Heal' && !skill.specialization);
+    assert.ok(unrelated);
+    const app = {
+      adapter,
+      profession: adapter.profession,
+      patch,
+      activeCatalog: patch.catalog,
+      build: adapter.toApplicationBuild(adapter.profession.createBuildDefaults())
+    };
     const commands = [entry.base, entry.variant].map((skillId) => ({ type: 'cast', skillId }));
     const original = structuredClone(commands);
+    // Reuse the app and patch when toggling back off to exercise the display selector's trait cache.
     for (const selected of [false, true, false]) {
+      app.build.specializations = [
+        {
+          name: line.name,
+          traits: line.majorTraits
+            .map((tier) => (selected ? tier.findIndex((trait) => trait.id === entry.traitId) + 1 : 0))
+            .join('-')
+        }
+      ];
       const expected = selected ? entry.variant : entry.base;
+      for (const command of commands) assert.equal(resolveEntrySkill(app, command)?.id, expected);
+      assert.deepEqual(commands, original);
+      assert.equal(resolveEntrySkill(app, { type: 'cast', skillId: unrelated.id })?.id, unrelated.id);
+
       const config = {
         specialization: entry.specialization,
         primaryWeapon: entry.primaryWeapon,

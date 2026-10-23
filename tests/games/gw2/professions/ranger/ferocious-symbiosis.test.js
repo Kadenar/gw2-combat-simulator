@@ -1,9 +1,10 @@
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { untamedStrike } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';
+import { rangerCatalog as rangerTraitCatalog } from '#gw2/professions/ranger/catalog.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -16,7 +17,7 @@ const config = {
   primaryWeapon: 'Hammer',
   selectedPet: 'Tiger',
   selectedSkillIds: [12491],
-  selectedTraitIds: getActiveTraits([
+  selectedTraitIds: selectedTraits(rangerTraitCatalog, [
     { name: 'Marksmanship', traits: '1-1-1' },
     { name: 'Skirmishing', traits: '1-2-3' },
     { name: 'Untamed', traits: '3-1-3' }

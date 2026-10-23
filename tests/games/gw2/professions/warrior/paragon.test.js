@@ -60,7 +60,7 @@ test('Motivation policies initialize empty, cap fractional rewards, and isolate 
     const view = source.ui
       .resourceViews({
         specialization: 'Paragon',
-        catalog: source.catalogFor(patchId),
+        catalog: source.resolvePatch({ id: patchId }).catalog,
         professionState: result.planningState.profession
       })
       .find(({ id }) => id === 'motivation');

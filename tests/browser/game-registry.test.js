@@ -62,7 +62,7 @@ test('the GW2 game plug-in exposes the existing lazy profession registry', async
   // Worker drivers expose the engine directly; browser-only composition belongs to the app loader.
   assert.equal(profession.id, 'warrior');
   assert.equal(typeof profession.resolveProfession, 'function');
-  assert.equal(typeof profession.catalogFor, 'function');
+  assert.equal(typeof profession.resolvePatch, 'function');
   assert.equal('buildEditor' in profession, false);
   assert.equal(await loadGameWorkerDriver({ gameId: 'gw2', contentId: 'warrior' }), profession);
   assert.equal(await loadGameWorkerDriver({ gameId: 'unknown', contentId: 'warrior' }), null);

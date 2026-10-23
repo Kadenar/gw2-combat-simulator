@@ -1,3 +1,4 @@
+import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
 import type { SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
@@ -57,7 +58,7 @@ const PALETTE_ACTION_ORDER = new Map<string, number>([
  */
 export function paletteView(
   profession: ProfessionAppContract,
-  context: ProfessionPaletteContext
+  context: ProfessionPaletteContext & ProfessionCatalogContext
 ): NormalizedPaletteGroup[] {
   const groups = profession.ui.paletteGroups(context);
 
@@ -149,6 +150,7 @@ export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
 
       if (
         !app.adapter.isSkillAvailable(skill, {
+          catalog: app.activeCatalog,
           build: app.build,
           specialization: activeSpecialization(app)
         })
@@ -320,7 +322,7 @@ function paletteFlipFamilies(
   return { familyIdBySkillId, membersByFamilyId };
 }
 
-function paletteProjectionContext(app: ProfessionAppState): ProfessionPaletteContext {
+function paletteProjectionContext(app: ProfessionAppState): ProfessionPaletteContext & ProfessionCatalogContext {
   const planningState = palettePlanningState(app);
   return {
     specialization: app.adapter ? activeSpecialization(app) : '',
@@ -342,7 +344,7 @@ interface PaletteSkillAvailability {
 /** UI-only actions inherit their existing cast components' gates without changing the commands they insert. */
 function compositePaletteAvailability(
   app: ProfessionAppState,
-  context: ProfessionPaletteContext,
+  context: ProfessionPaletteContext & ProfessionCatalogContext,
   skill: Skill,
   planning: Gw2SimulationPlanningState
 ): PaletteSkillAvailability {
@@ -384,7 +386,7 @@ function compositePaletteAvailability(
 /** Read current default-command gates; missing completed verdicts are denied, while startup is explicitly unevaluated. */
 export function paletteAvailability(
   app: ProfessionAppState,
-  context: ProfessionPaletteContext,
+  context: ProfessionPaletteContext & ProfessionCatalogContext,
   skill: Skill
 ): PaletteSkillAvailability {
   if (!isBuildSkillAvailable(skill, { specialization: context.specialization }))
@@ -409,7 +411,7 @@ export function paletteAvailability(
 
 function paletteCandidateActive(
   app: ProfessionAppState,
-  context: ProfessionPaletteContext,
+  context: ProfessionPaletteContext & ProfessionCatalogContext,
   skill: Skill
 ): boolean | null {
   return app.profession.ui?.paletteOverride?.(context, skill)?.tileActive ?? null;
@@ -446,7 +448,7 @@ function paletteTileCandidateOrder(skill: Skill, fallback: number): number {
 export function displayedSkillTiles(
   app: ProfessionAppState,
   skills: readonly Skill[],
-  context: ProfessionPaletteContext = paletteProjectionContext(app)
+  context: ProfessionPaletteContext & ProfessionCatalogContext = paletteProjectionContext(app)
 ): Skill[] {
   const planningState = palettePlanningState(app);
   const professionState = paletteProfessionState(app);
@@ -543,7 +545,7 @@ export function displayedWeaponSkills(
   app: ProfessionAppState,
   skills: readonly Skill[],
   weaponSet = Number(palettePlanningState(app)?.activeWeaponSet || app.build.startingWeaponSet || 1),
-  paletteContext: ProfessionPaletteContext = paletteProjectionContext(app)
+  paletteContext: ProfessionPaletteContext & ProfessionCatalogContext = paletteProjectionContext(app)
 ): Skill[] {
   const planningState = palettePlanningState(app);
   const professionState = paletteProfessionState(app);
@@ -603,7 +605,7 @@ export function displayedWeaponSkills(
 export function weaponPaletteRows(
   app: ProfessionAppState,
   activeWeaponSet = 1,
-  context?: ProfessionPaletteContext
+  context?: ProfessionPaletteContext & ProfessionCatalogContext
 ): WeaponPaletteRow[] {
   const planning = palettePlanningState(app);
   const canSwap = app.profession.resolveProfession({
@@ -653,7 +655,7 @@ export function currentAutoattackSkill(app: ProfessionAppState): Skill | null {
 export function paletteActionSkills(
   app: ProfessionAppState,
   specialization = activeSpecialization(app),
-  context?: ProfessionPaletteContext
+  context?: ProfessionPaletteContext & ProfessionCatalogContext
 ): Skill[] {
   const professionState = paletteProfessionState(app);
   const actions = uniqueById(
@@ -666,6 +668,7 @@ export function paletteActionSkills(
         (skill.inputCategory !== 'weapon-swap' || Boolean(app.build.alternateWeapons?.[0])) &&
         (!skill.specialization || skill.specialization === specialization) &&
         app.adapter.isSkillAvailable(skill, {
+          catalog: app.activeCatalog,
           build: app.build,
           specialization,
           professionState
@@ -700,7 +703,7 @@ export function rotationSelectedSlotSkills(app: ProfessionAppState): Skill[] {
 
 export function paletteSkillIsInstant(
   app: ProfessionAppState,
-  context: ProfessionPaletteContext,
+  context: ProfessionPaletteContext & ProfessionCatalogContext,
   skill: Skill | null | undefined,
   name = skill?.name || ''
 ): boolean {
@@ -746,7 +749,8 @@ export interface PaletteGroupView {
 export type RenderedPaletteGroup = ProfessionPaletteGroup & { skills: Skill[] };
 
 export type PaletteContext = SlotLoadoutContext &
-  ProfessionPaletteContext & {
+  ProfessionPaletteContext &
+  ProfessionCatalogContext & {
     readonly build: ProfessionAppState['build'];
     readonly catalog: ProfessionAppState['activeCatalog'];
     readonly specialization: string;
@@ -857,7 +861,7 @@ export function paletteSkillView(
   return {
     name: skill.name,
     skill,
-    tooltip: app.adapter.skillTooltip(skill, app.patchId, app.build),
+    tooltip: app.adapter.skillTooltip(skill, app.patch, app.build),
     skillId: skill.id,
     hotkeyAction:
       String(skill.inputControl || '') ||

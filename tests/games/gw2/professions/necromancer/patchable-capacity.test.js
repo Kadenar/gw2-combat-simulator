@@ -59,14 +59,14 @@ for (const [shards, blight] of [
     assert.equal(state.blight, blight);
     assert.deepEqual(owner.profession, before);
 
-    const catalog = family.catalogFor(PATCH);
+    const catalog = family.resolvePatch({ id: PATCH }).catalog;
     const context = { catalog, specialization: 'Harbinger', config, professionState: state };
     const views = family.ui.resourceViews(context);
     assert.equal(views.find((view) => view.id === 'soul-shards').maximum, shards);
     assert.equal(views.find((view) => view.id === 'blight').maximum, blight);
     const snapshot = family.ui.rotationStateSnapshot({
       ...context,
-      balanceContext: family.balanceContextFor(PATCH)
+      balanceContext: family.resolvePatch({ id: PATCH }).balanceContext
     });
     assert.equal(snapshot.find((item) => item.id === 'harbinger-blight').value, `${blight}/${blight}`);
     const controls = family.ui.previewControls({

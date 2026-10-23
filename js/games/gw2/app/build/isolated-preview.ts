@@ -16,12 +16,12 @@ export interface IsolatedPreview {
 
 /** Build-context inputs for the saved build or a detached copy; preview caches key on this same object. */
 export function buildContextInput(
-  app: Pick<AttributePreviewState, 'build' | 'patchId' | 'simulationSettings'>,
+  app: Pick<AttributePreviewState, 'build' | 'patch' | 'simulationSettings'>,
   build: AttributePreviewState['build'] = app.build
 ): BuildContextInput {
   return {
     build,
-    patchId: app.patchId,
+    patch: app.patch,
     transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
   };
 }

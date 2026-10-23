@@ -4,7 +4,7 @@ import test from 'node:test';
 import { createDefaultBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
-import { createBuildContext } from '#gw2/professions/guardian/build/context.js';
+import { profession, createBuildContext } from '#gw2/professions/guardian/build/context.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 
 // All application entry paths must agree before attributes or simulations consume the build.
@@ -32,8 +32,8 @@ test('application simulation config always supplies permanent quickness and alac
     build.assumptions = { ...assumptions, fury: false };
     const config = createBuildContext({
       build,
-      patchId: 'current',
-      transitionDelays: normalizeTransitionDelays()
+      transitionDelays: normalizeTransitionDelays(),
+      patch: profession.resolvePatch({ id: 'current' })
     }).simulationConfig();
     assert.equal(config.boons.quickness, true);
     assert.equal(config.boons.fury, false);

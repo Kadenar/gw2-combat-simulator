@@ -39,6 +39,7 @@ test('native saved rotations keep their manual preparation without receiving the
   const preview = await previewRotationFile(
     { name: 'manual.json', type: 'application/json', text: async () => JSON.stringify(rotation) },
     {
+      patch: guardianAppAdapter.profession.resolvePatch(),
       activeCatalog: guardianCatalog,
       adapter: guardianAppAdapter,
       build: guardianAppAdapter.toApplicationBuild(guardianAppAdapter.profession.createBuildDefaults())

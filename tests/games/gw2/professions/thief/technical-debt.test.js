@@ -31,7 +31,7 @@ test('Maleficent Seven owns the raised malice cap in previews and tooltips', () 
   );
   const context = patched({
     [TRAIT.MALEFICENT_SEVEN]: { fields: { maximumStacks: 11 } }
-  }).balanceContextFor('thief-debt');
+  }).resolvePatch({ id: 'thief-debt' }).balanceContext;
   const trait = describeSimulationTrait(context, { id: TRAIT.MALEFICENT_SEVEN }, thiefTooltips);
   const mark = describeSimulationSkill(context, context.catalog.skillsById.get(ID.DEADEYES_MARK), thiefTooltips);
   assert.equal(trait.facts.find((fact) => fact.name === 'Maximum malice').detail, '11');
@@ -52,7 +52,7 @@ test('Lead Attacks selected cap and bonus govern grants, damage, siphons and fac
   const runtime = observedRuntime(result);
   assert.equal(runtime.profession.core.leadAttackExpirations.length, 2);
   const rule = thiefCoreModule.modifiers.modifierRules.find((rule) => rule.id === 'thief.lead-attacks');
-  const context = profession.balanceContextFor('thief-debt');
+  const context = profession.resolvePatch({ id: 'thief-debt' }).balanceContext;
   // An excess seeded stack also checks the modifier's cap independently of grant capping.
   runtime.profession.core.leadAttackExpirations.push(runtime.time + 10);
   const modifierContext = { ...context, runtime, config: runtime.config, time: runtime.time };
@@ -154,7 +154,7 @@ for (const [traitId, labels] of [
               [traitId]: { removeEffects: [{ type: 'boon', name: removed }] }
             }
           : {}
-      ).balanceContextFor('thief-debt');
+      ).resolvePatch({ id: 'thief-debt' }).balanceContext;
       const profile = context.catalog.balanceProfilesById.get(traitId);
       const catalog = withProfile(context.catalog, traitId, { effects: [...profile.effects].reverse() });
       const { facts } = describeSimulationTrait({ ...context, catalog }, { id: traitId }, thiefTooltips);

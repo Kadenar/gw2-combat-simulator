@@ -51,7 +51,7 @@ test('Shade Step tooltips omit a removed boon without relabeling a surviving one
     label: 'Thief tooltip removal',
     professions: { thief: { balanceProfiles: { [TRAIT.SHADESTEP]: remove('boon', 'alacrity') } } }
   });
-  const context = profession.balanceContextFor('thief-tooltip-removal');
+  const context = profession.resolvePatch({ id: 'thief-tooltip-removal' }).balanceContext;
   const describe = (id) => describeSimulationSkill(context, context.catalog.skillsById.get(id), thiefTooltips);
   const grasping = JSON.stringify(describe(ID.GRASPING_SHADOWS));
   assert.doesNotMatch(grasping, /Alacrity|Protection|Aegis/i);
@@ -411,7 +411,7 @@ test('Preparedness owns patched initiative capacity in initial state, live resou
     ['current', 12, 15],
     ['preparedness-capacity', 18, 21]
   ]) {
-    const balanceContext = family.balanceContextFor(patchId);
+    const balanceContext = family.resolvePatch({ id: patchId }).balanceContext;
     const { facts } = describeSimulationTrait(balanceContext, { id: TRAIT.PREPAREDNESS }, thiefTooltips);
     assert.equal(facts.find(({ name }) => name === 'Maximum initiative with Preparedness').detail, String(traited));
     assert.equal(

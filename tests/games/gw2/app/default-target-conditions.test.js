@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createBuildContext } from '#gw2/professions/mesmer/build/context.js';
+import { profession, createBuildContext } from '#gw2/professions/mesmer/build/context.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 import { createElementalistBuildDefaults } from '#gw2/professions/elementalist/build/build.js';
@@ -52,8 +52,8 @@ test('simulation config carries the persisted target starting-health percentage'
 
   const config = createBuildContext({
     build,
-    patchId: 'current',
-    transitionDelays: normalizeTransitionDelays()
+    transitionDelays: normalizeTransitionDelays(),
+    patch: profession.resolvePatch({ id: 'current' })
   }).simulationConfig();
 
   assert.equal(config.target.startingHealthFraction, 0.49);
@@ -66,8 +66,8 @@ test('ally calculations use the fixed 520 ms attack cadence per ally', () => {
   build.assumptions.alliedPlayerStrikesPerSecond = 9;
   const config = createBuildContext({
     build,
-    patchId: 'current',
-    transitionDelays: normalizeTransitionDelays()
+    transitionDelays: normalizeTransitionDelays(),
+    patch: profession.resolvePatch({ id: 'current' })
   }).simulationConfig();
 
   // Shared effects use the fixed ally cadence even when a saved build includes an obsolete rate assumption.
@@ -81,8 +81,8 @@ test('ally calculations use the fixed 520 ms attack cadence per ally', () => {
   build.assumptions.sharePlayerBoonsWithSummons = false;
   const isolatedSummonConfig = createBuildContext({
     build,
-    patchId: 'current',
-    transitionDelays: normalizeTransitionDelays()
+    transitionDelays: normalizeTransitionDelays(),
+    patch: profession.resolvePatch({ id: 'current' })
   }).simulationConfig();
 
   assert.equal(isolatedSummonConfig.sharePlayerBoonsWithSummons, false);

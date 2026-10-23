@@ -11,7 +11,7 @@ import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js'
 const build = toApplicationBuild({});
 const input: BuildContextInput<EngineerCanonicalBuild> = {
   build,
-  patchId: 'current',
+  patch: profession.resolvePatch({ id: 'current' }),
   transitionDelays: normalizeTransitionDelays(undefined)
 };
 const context = createBuildContext(input);
@@ -22,7 +22,7 @@ createBuildContext({ ...input, build: thiefBuild({}) });
 // @ts-expect-error Patch identity is explicit.
 createBuildContext({ build, transitionDelays: input.transitionDelays });
 // @ts-expect-error Settings are explicit, including zero-delay callers.
-createBuildContext({ build, patchId: 'current' });
+createBuildContext({ build, patch: profession.resolvePatch({ id: 'current' }) });
 // @ts-expect-error Contexts borrow immutable input.
 input.build.initialHeat = 10;
 // @ts-expect-error Only two weapon sets exist.

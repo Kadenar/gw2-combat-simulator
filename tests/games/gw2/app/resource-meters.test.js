@@ -35,7 +35,7 @@ for (const [professionId, elite, resourceId, key] of [
       catalog: profession.catalog,
       specialization,
       professionState: planning.profession,
-      balanceContext: profession.balanceContextFor()
+      balanceContext: profession.resolvePatch().balanceContext
     }).find((view) => view.id === resourceId);
     assert.ok(view, 'resource presentation is registered');
     assert.ok(Number.isFinite(view.value));

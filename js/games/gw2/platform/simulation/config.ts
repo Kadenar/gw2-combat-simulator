@@ -15,6 +15,8 @@ export interface Gw2Config {
   readonly initialResource?: number;
   /** Patch the simulation runs against, when the application previews balance changes. */
   readonly patchId?: string;
+  /** Session-only experimental patch values; never part of a persisted build. */
+  readonly previewValues?: Readonly<Record<string, number>>;
   readonly procRateOverrides?: Readonly<Record<string, number>>;
   readonly transitionDelays?: Partial<TransitionDelays>;
   /** Both weapon sets contain common sources before any profession or temporary contribution. */

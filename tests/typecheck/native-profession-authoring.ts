@@ -89,8 +89,8 @@ type NativeAuthoringAssertions = [
   Assert<typeof applicationProfession extends ProfessionAppContract ? true : false>,
   Assert<typeof applicationProfession extends BuildContextProfession ? true : false>,
   // Bound consumers require patch lookup even when the wrapper has no active preview.
-  Assert<Equal<Omit<ProfessionAppContract, 'catalogFor'> extends ProfessionAppContract ? true : false, false>>,
-  Assert<Equal<Omit<BuildContextProfession, 'catalogFor'> extends BuildContextProfession ? true : false, false>>,
+  Assert<Equal<Omit<ProfessionAppContract, 'resolvePatch'> extends ProfessionAppContract ? true : false, false>>,
+  Assert<Equal<Omit<BuildContextProfession, 'resolvePatch'> extends BuildContextProfession ? true : false, false>>,
   Assert<typeof profession extends Gw2ProfessionSource ? true : false>,
   Assert<
     Equal<

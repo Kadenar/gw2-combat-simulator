@@ -92,7 +92,7 @@ export function mountPatchPreviewControls(app: ProfessionAppState): void {
     button.className = 'patch-preview-option';
     button.textContent = label;
     button.dataset.patchId = patchId;
-    const active = patchId === app.patchId;
+    const active = patchId === app.patch.id;
     button.classList.toggle('active', active);
     button.setAttribute('aria-pressed', String(active));
     button.addEventListener('click', () => {
@@ -126,17 +126,18 @@ export function renderPatchComparison(container: HTMLElement, app: ProfessionApp
   const observedIds = [...comparison.current.events, ...comparison.preview.events].flatMap((event) =>
     [event.skillId, event.sourceId].filter((id): id is string | number => id != null)
   );
+  // Notes describe the preview run, including its trait layout and session tuning, on either tab.
   const overview = app.profession.patchOverviewFor(
     app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId,
+        patch: app.profession.resolvePatch({ id: preview.id, values: app.patch.values }),
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
       })
       .simulationConfig(),
     observedIds
   );
-  const selectedLabel = app.patchId === preview.id ? preview.label : 'Live game data';
+  const selectedLabel = app.patch.id === preview.id ? preview.label : 'Live game data';
   const sourceUrl = httpUrl(preview.sourceUrl);
   // A native disclosure keeps overall DPS visible while detailed changes stay collapsed until requested.
   const section = document.createElement('details');

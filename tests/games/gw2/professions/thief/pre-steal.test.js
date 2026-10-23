@@ -119,6 +119,7 @@ test('pre-steal persists as a bounded starting resource and is specialization sc
   const build = thiefAppAdapter.toApplicationBuild(JSON.parse(JSON.stringify(saved)));
   const profession = thiefAppAdapter.profession;
   const app = {
+    patch: thiefAppAdapter.profession.resolvePatch(),
     build,
     adapter: thiefAppAdapter,
     profession,
@@ -128,16 +129,16 @@ test('pre-steal persists as a bounded starting resource and is specialization sc
   app.attributeData = thiefAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: thiefAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   assert.equal(
     thiefAppAdapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: thiefAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig().initialPreSteal,
     1

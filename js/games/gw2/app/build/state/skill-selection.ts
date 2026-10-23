@@ -33,6 +33,7 @@ export function availableSlotSkills(app: ProfessionAppState, type: string): Skil
       !isSlotSkillSelectable(app, skill, spec) ||
       (skill.specialization && skill.specialization !== spec) ||
       !app.adapter.isSkillAvailable(skill, {
+        catalog: app.activeCatalog,
         build: app.build,
         specialization: spec
       })
@@ -113,6 +114,7 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
       isSlotSkillSelectable(app, current, spec) &&
       (!current.specialization || current.specialization === spec) &&
       app.adapter.isSkillAvailable(current, {
+        catalog: app.activeCatalog,
         build: app.build,
         specialization: spec
       });
@@ -126,6 +128,7 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
             isSlotSkillSelectable(app, skill, spec) &&
             (!skill.specialization || skill.specialization === spec) &&
             app.adapter.isSkillAvailable(skill, {
+              catalog: app.activeCatalog,
               build: app.build,
               specialization: spec
             })

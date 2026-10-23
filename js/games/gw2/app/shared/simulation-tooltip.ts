@@ -26,9 +26,43 @@ export type DescribeSimulationTooltip = (
 /** Separate entity namespaces retain identity even when a skill and trait share the same numeric API ID. */
 export interface ProfessionTooltips {
   readonly traits: Readonly<Record<string, DescribeSimulationTooltip>>;
+  /** Replacement descriptions selected in manifest order by registered module variants. */
+  readonly reworks?: Readonly<Record<string, Pick<ProfessionTooltips, 'traits' | 'skills'>>>;
   readonly skills?: Readonly<Record<string, DescribeSimulationTooltip>>;
   /** Profession resources supplement both ordinary skills and explicitly described skills. */
   readonly skillFacts?: (context: ProfessionBalanceContext, skill: Skill) => readonly TooltipFact[];
+}
+
+const tooltipSelections = new WeakMap<ProfessionTooltips, WeakMap<object, ProfessionTooltips>>();
+
+/** Resolve reused IDs against the selected reworks once, sharing maps across all tooltip lookup paths. */
+export function resolveTooltips(context: ProfessionBalanceContext, tooltips: ProfessionTooltips): ProfessionTooltips {
+  let catalogs = tooltipSelections.get(tooltips);
+
+  if (!catalogs) {
+    catalogs = new WeakMap();
+    tooltipSelections.set(tooltips, catalogs);
+  }
+
+  const cached = catalogs.get(context.catalog);
+
+  if (cached) return cached;
+
+  let selected = tooltips;
+  for (const id of context.catalog.balanceDataContext?.reworks ?? []) {
+    const replacement = tooltips.reworks?.[id];
+
+    if (!replacement) throw new Error(`Missing rework tooltip map: ${id}`);
+
+    selected = {
+      ...selected,
+      traits: { ...selected.traits, ...replacement.traits },
+      skills: { ...selected.skills, ...replacement.skills }
+    };
+  }
+
+  catalogs.set(context.catalog, selected);
+  return selected;
 }
 
 /** Tuples read the described profile; named sources keep cross-profile and modifier facts explicit. */
@@ -491,6 +525,7 @@ export function describeSimulationSkill(
   presentation: ProfessionTooltips,
   build?: Pick<Gw2CanonicalBuild, 'specializations'>
 ): SimulationTooltip {
+  presentation = resolveTooltips(context, presentation);
   const describe = presentation.skills?.[skill.id];
   // Custom descriptions own their packets; only format generic effects when no override handles the skill.
   let model: SimulationTooltip;
@@ -575,6 +610,7 @@ export function describeSimulationTrait(
   presentation: ProfessionTooltips,
   specialization = 'Core'
 ): SimulationTooltip {
+  presentation = resolveTooltips(context, presentation);
   const describe = presentation.traits[trait.id];
 
   if (!describe) throw new Error(`Missing trait tooltip: ${trait.id} (${trait.name})`);

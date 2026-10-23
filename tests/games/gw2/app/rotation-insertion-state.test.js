@@ -35,7 +35,7 @@ test('palette state uses and caches the selected insertion checkpoint', () => {
   });
   let previewCount = 0;
   const app = {
-    patchId: 'current',
+    patch: { id: 'current' },
     build: {
       rotation: [
         { type: 'cast', skillId: 'First' },
@@ -103,7 +103,7 @@ test('precombat insertion previews preserve Flow and the boundary inside an unfi
       { type: 'wait', durationMs: 1000 }
     ];
     const app = {
-      patchId: 'current',
+      patch: adapter.profession.resolvePatch({ id: 'current' }),
       adapter,
       build,
       activeCatalog: adapter.profession.catalog,
@@ -113,8 +113,8 @@ test('precombat insertion previews preserve Flow and the boundary inside an unfi
     app.attributeData = adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     // Publish the baseline explicitly so insertion previews can reuse its planning state.
@@ -144,7 +144,7 @@ test('Ranger prefix simulations keep precast traps armed until the inherited bou
     { type: 'wait', durationMs: 1000 }
   ];
   const app = {
-    patchId: 'current',
+    patch: adapter.profession.resolvePatch({ id: 'current' }),
     adapter,
     build,
     activeCatalog: adapter.profession.catalog,
@@ -154,8 +154,8 @@ test('Ranger prefix simulations keep precast traps armed until the inherited bou
   app.attributeData = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   // Publish the baseline explicitly so insertion previews can reuse its planning state.
@@ -170,8 +170,8 @@ test('Ranger prefix simulations keep precast traps armed until the inherited bou
       config: adapter
         .createBuildContext({
           build: app.build,
-          patchId: app.patchId ?? 'current',
-          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+          patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
         })
         .simulationConfig(),
       combatStartTime: result.combatStartTime
@@ -198,7 +198,7 @@ test('native insertion previews project weapon set and cooldown state', async ()
     skillId: adapter.profession.catalog.skillsByName.get(name).id
   }));
   const app = {
-    patchId: 'current',
+    patch: adapter.profession.resolvePatch({ id: 'current' }),
     adapter,
     build,
     activeCatalog: adapter.profession.catalog,
@@ -209,8 +209,8 @@ test('native insertion previews project weapon set and cooldown state', async ()
   app.attributeData = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   // Publish the baseline explicitly so insertion previews can reuse its planning state.
@@ -232,8 +232,8 @@ test('native insertion previews project weapon set and cooldown state', async ()
     adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig(),
     {
@@ -251,8 +251,8 @@ test('native insertion previews project weapon set and cooldown state', async ()
   const config = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .simulationConfig();
   app.results = adapter.simulateBuild(build.rotation, {

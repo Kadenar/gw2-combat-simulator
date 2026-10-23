@@ -31,7 +31,13 @@ test.beforeEach((t) => {
 function appFor(line = 'Virtuoso') {
   const build = adapter.toApplicationBuild(adapter.profession.createBuildDefaults());
   build.specializations[2] = { name: line, traits: '1-1-1' };
-  return { adapter, build, activeCatalog: adapter.profession.catalog, changed() {} };
+  return {
+    patch: adapter.profession.resolvePatch(),
+    adapter,
+    build,
+    activeCatalog: adapter.profession.catalog,
+    changed() {}
+  };
 }
 
 const sources = {
@@ -107,6 +113,7 @@ for (const [source, preview] of Object.entries(sources)) {
 
 test('rotation previews preserve explicit commands that saved-build migration would remove', async (t) => {
   const app = {
+    patch: rangerAppAdapter.profession.resolvePatch(),
     adapter: rangerAppAdapter,
     activeCatalog: rangerAppAdapter.profession.catalog,
     build: rangerAppAdapter.toApplicationBuild(rangerAppAdapter.profession.createBuildDefaults())

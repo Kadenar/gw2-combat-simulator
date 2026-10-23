@@ -104,7 +104,7 @@ for (const [name, boon] of [
 // Protection belongs to Seismic Impact itself and reaches the party even without a target or boon-granting traits.
 test('Seismic Impact exposes and applies its intrinsic party Protection', () => {
   const skill = elementalistCatalog.skillsByName.get('Seismic Impact');
-  const context = withPatchPreview(elementalistProfession, null).balanceContextFor();
+  const context = withPatchPreview(elementalistProfession, null).resolvePatch().balanceContext;
   const tooltip = describeSimulationSkill(context, skill, elementalistTooltips);
   const protection = tooltip.facts.find((fact) => fact.name === 'Protection');
   assert.ok(protection);

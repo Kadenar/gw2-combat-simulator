@@ -13,6 +13,7 @@ export function emptyBuildTabSession() {
   return {
     results: null,
     patchComparison: null,
+
     attributeData: null,
     attributeWeaponSet: 1,
     ...emptyBuildLibrarySession(),
@@ -23,7 +24,9 @@ export function emptyBuildTabSession() {
   } satisfies Partial<ProfessionAppState>;
 }
 
-type BuildTabSession = Pick<ProfessionAppState, keyof ReturnType<typeof emptyBuildTabSession>>;
+type BuildTabSession = Pick<ProfessionAppState, keyof ReturnType<typeof emptyBuildTabSession>> & {
+  values?: Readonly<Record<string, number>>;
+};
 
 export interface BuildTab {
   id: string;
@@ -99,7 +102,7 @@ export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
           // Removed preview patches fall back to current data without discarding the build.
           try {
             if (typeof entry.patchId === 'string') {
-              adapter.profession.catalogFor(entry.patchId);
+              adapter.profession.resolvePatch({ id: entry.patchId }).catalog;
               tab.patchId = entry.patchId;
             }
           } catch {
@@ -152,10 +155,11 @@ export function captureActiveBuildTab(app: ProfessionAppState): void {
   if (!tab) return;
 
   tab.build = app.build;
-  tab.patchId = app.patchId;
+  tab.patchId = app.patch.id;
   tab.session = Object.fromEntries(
-    Object.keys(emptyBuildTabSession()).map((key) => [key, app[key as keyof BuildTabSession]])
-  ) as BuildTabSession;
+    Object.keys(emptyBuildTabSession()).map((key) => [key, app[key as keyof ReturnType<typeof emptyBuildTabSession>]])
+  ) as unknown as BuildTabSession;
+  tab.session.values = app.patch.values;
   tab.resultsFresh =
     app.results !== null && app.resultRevision === app.buildRevision && app.simulationStatus === 'idle';
 }
@@ -204,7 +208,7 @@ export function addBuildTab(
   app: ProfessionAppState,
   build = createDefaultBuild(app.adapter),
   name = 'New build',
-  patchId = app.patchId,
+  patchId = app.patch.id,
   templateBuild?: Gw2CanonicalBuild
 ): BuildTab | undefined {
   if (!app.workspace || !app.activateBuildTab) return;

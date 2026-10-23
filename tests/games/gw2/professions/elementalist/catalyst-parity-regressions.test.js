@@ -66,8 +66,8 @@ test('Catalyst includes build-time derived Condition Damage in its empowerment p
   const config = elementalistAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: elementalistAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .simulationConfig();
 
@@ -85,8 +85,8 @@ test('Empowerment scales defensive and healing attributes without compounding Re
   const buildConfig = elementalistAppAdapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: elementalistAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .simulationConfig();
   assert.equal(
@@ -240,8 +240,8 @@ test('Frigid Flurry can finish combos with either initial ice-bullet state', () 
       elementalistAppAdapter
         .createBuildContext({
           build: app.build,
-          patchId: app.patchId ?? 'current',
-          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+          patch: elementalistAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
         })
         .simulationConfig(),
       {

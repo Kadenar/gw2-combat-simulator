@@ -1,3 +1,4 @@
+import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { availableSlotSkills, swapSelectedSkillsForPatch } from '#gw2/app/build/state/skill-selection.js';
@@ -79,18 +80,24 @@ test('patch selection refreshes skill lists and both lookups from the new catalo
   );
   const refreshed = [];
   const app = Object.assign(Object.create(ProfessionApp.prototype), {
-    patchId: 'current',
-    activeCatalog: catalogs.current,
+    patch: patchSelectionFixture(catalogs.current),
+
     profession: {
       catalog: catalogs.current,
-      catalogFor(id) {
+      resolvePatch({ id }) {
         if (!Object.hasOwn(catalogs, id)) throw new TypeError(`Unknown patch ${id}.`);
 
-        return catalogs[id];
+        return patchSelectionFixture(catalogs[id], { id });
       },
+      // No trait selects another skill identity in this fixture.
+      runtimeFor: () => ({}),
       ui: {}
     },
-    adapter: { eliteSpecialization: () => 'Core', isSkillAvailable: () => true },
+    adapter: {
+      eliteSpecialization: () => 'Core',
+      isSkillAvailable: () => true,
+      createBuildContext: () => ({ simulationConfig: () => ({ selectedTraitIds: [] }) })
+    },
     build: { selectedSkillIds: { Utility1: 1 } },
     changed() {
       const selected = this.activeCatalog.skillsById.get(this.build.selectedSkillIds.Utility1);
@@ -100,13 +107,13 @@ test('patch selection refreshes skill lists and both lookups from the new catalo
         availableSlotSkills(this, 'Utility'),
         this.activeCatalog.skills.filter((skill) => skill.type === 'Utility')
       );
-      refreshed.push([this.patchId, selected.id]);
+      refreshed.push([this.patch.id, selected.id]);
     }
   });
   app.selectPatch('preview');
   // Rejected patch IDs must not mutate the active patch, selection, or displayed catalog.
   assert.throws(() => app.selectPatch('removed-preview'), /Unknown patch/);
-  assert.equal(app.patchId, 'preview');
+  assert.equal(app.patch.id, 'preview');
   assert.equal(app.activeCatalog, catalogs.preview);
   assert.equal(app.build.selectedSkillIds.Utility1, 2);
   app.selectPatch('current');

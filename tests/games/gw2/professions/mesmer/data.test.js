@@ -105,7 +105,8 @@ const strikeEffects = (skill) => skill.effects.filter((effect) => effect.type ==
 
 // Follow-up tooltips expose the same window and recharge units used by the runtime.
 test('Mesmer follow-up facts show canonical windows and a percentage of parent base recharge', () => {
-  const factsFor = (id) => mesmerAppAdapter.skillTooltip(mesmerCatalog.skillsById.get(id)).facts;
+  const factsFor = (id) =>
+    mesmerAppAdapter.skillTooltip(mesmerCatalog.skillsById.get(id), mesmerAppAdapter.profession.resolvePatch()).facts;
   for (const [id, duration] of [
     [ID.SINGULARITY_SHOT, '3s'],
     [ID.INSPIRING_IMAGERY, '2s']
@@ -426,6 +427,7 @@ test('Mesmer module overrides select weapon replacements for loading, editing, a
     const loaded = migrateMesmerBuild({ ...createMesmerBuildDefaults(), specialization, rotation: [name] });
     assert.equal(loaded.rotation[0].skillId, expectedId, `${specialization} loaded ${name}`);
     const app = {
+      patch: mesmerAppAdapter.profession.resolvePatch(),
       adapter: mesmerAppAdapter,
       profession: mesmerProfession,
       activeCatalog: mesmerCatalog,
@@ -450,6 +452,7 @@ test('Mesmer module overrides select weapon replacements for loading, editing, a
   for (const specialization of ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']) {
     // Sword replacements share a tile even though the specialization gives the skill a different name.
     const app = {
+      patch: mesmerAppAdapter.profession.resolvePatch(),
       adapter: mesmerAppAdapter,
       profession: mesmerProfession,
       activeCatalog: mesmerCatalog,

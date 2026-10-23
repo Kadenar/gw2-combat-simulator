@@ -251,7 +251,11 @@ export interface AutoattackChainPosition {
 
 export interface CanonicalCatalog<TSkill extends Skill = Skill> {
   /** Selected patch metadata used by shared validation diagnostics. */
-  readonly balanceDataContext?: { readonly professionId: string; readonly patchId: string };
+  readonly balanceDataContext?: {
+    readonly professionId: string;
+    readonly patchId: string;
+    readonly reworks?: readonly string[];
+  };
   readonly skills: readonly TSkill[];
   readonly skillsById: ReadonlyMap<SkillId, TSkill>;
   readonly skillsByName: ReadonlyMap<string, TSkill>;

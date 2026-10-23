@@ -1,3 +1,4 @@
+import type { PatchSelection } from '#gw2/integrations/patches/selection.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
@@ -50,7 +51,7 @@ export interface GearOptimizerRequest {
   readonly revision: number;
   readonly build: Gw2CanonicalBuild;
   readonly simulationSettings?: SimulationSettings;
-  readonly patchId: string;
+  readonly patch: PatchSelection;
   readonly observationPolicy: ObservationPolicy;
   readonly selections: GearOptimizerSelections;
   readonly limit: number;
@@ -119,7 +120,7 @@ export function captureGearOptimizerRequest(
     build: app.build,
     // Candidate workers reconstruct application input, so carry browser settings outside the build snapshot.
     simulationSettings: { transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays) },
-    patchId: app.patchId,
+    patch: { id: app.patch.id, values: app.patch.values },
     observationPolicy,
     selections,
     limit: 20,
@@ -197,7 +198,7 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
   if (!Number.isInteger(request.limit) || request.limit < 1 || request.limit > 20)
     throw new RangeError('Invalid result limit.');
 
-  if (request.patchId !== 'current' && request.patchId !== adapter.profession.preview?.id)
+  if (request.patch.id !== 'current' && request.patch.id !== adapter.profession.preview?.id)
     throw new TypeError('Unknown patch.');
 
   const policy = request.observationPolicy;
@@ -454,7 +455,7 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
     // Each candidate borrows the captured build and computes only the sets required before rejection.
     const context = adapter.createBuildContext({
       build: { ...request.build, ...equipment },
-      patchId: request.patchId,
+      patch: adapter.profession.resolvePatch(request.patch),
       transitionDelays: normalizeTransitionDelays(request.simulationSettings?.transitionDelays)
     });
     // Reject candidates using finalized build attributes on every usable set before creating a combat simulation.
@@ -617,7 +618,7 @@ const optimizerApplications = new WeakMap<
 export function isOptimizerRequestCurrent(app: ProfessionAppState, request: GearOptimizerRequest): boolean {
   const applied = optimizerApplications.get(app);
   const revision = applied?.request === request ? applied.revision : request.revision;
-  return app.buildRevision === revision && app.contentId === request.contentId && app.patchId === request.patchId;
+  return app.buildRevision === revision && app.contentId === request.contentId && app.patch.id === request.patch.id;
 }
 
 /** The pinned comparison follows the last applied result without modifying the immutable search snapshot. */

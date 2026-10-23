@@ -6,7 +6,7 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { ScourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
-import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   necromancerTransformPaletteGroups,
@@ -50,7 +50,7 @@ export function bindScourgeUi(catalog: Readonly<CanonicalCatalog<NecromancerSkil
     paletteOverride: (context, skill) => {
       if (skill.id !== ID.DESERT_SHROUD && skill.id !== ID.SANDSTORM_SHROUD) return;
 
-      const replaced = getActiveTraits(context.build?.specializations || []).some(
+      const replaced = selectedTraits(context.catalog, context.build?.specializations || []).some(
         (trait) => trait.id === TRAIT.HERALD_OF_SORROW
       );
       return { tileActive: (skill.id === ID.SANDSTORM_SHROUD) === replaced };

@@ -24,8 +24,8 @@ function refreshAttributes(app) {
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId,
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id })
     })
     .attributes(1);
 }
@@ -164,8 +164,8 @@ test('Amalgam damage previews apply Willing Host, Evolve and Titanic Strain inde
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const saved = structuredClone({ build: app.build, attributes: app.attributeData });
@@ -252,8 +252,8 @@ test('damage preview weapon scope is independent of Attribute Preview selection'
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   for (const startingWeaponSet of [1, 2]) {
@@ -261,8 +261,8 @@ test('damage preview weapon scope is independent of Attribute Preview selection'
     app.attributeData = app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const plans = [];
@@ -369,8 +369,8 @@ test('target movement controls equipment Torment independently of skill declarat
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const saved = structuredClone(app.build);
@@ -404,8 +404,8 @@ test('unslotted effects preserve the build loadout instead of manufacturing lega
     app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig().selectedSkillIds
   );
@@ -562,8 +562,8 @@ test('Evoker measures both familiar forms using existing initial charge settings
     app.attributeData = app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const saved = structuredClone(app.build);
@@ -604,8 +604,8 @@ test('Evoker familiar damage follows the preview attunement independently of fam
     app.attributeData = app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const saved = structuredClone(app.build);
@@ -651,8 +651,8 @@ test('cleared preview values remove saved assumptions without altering the build
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const controls = skillDamageControls(app);

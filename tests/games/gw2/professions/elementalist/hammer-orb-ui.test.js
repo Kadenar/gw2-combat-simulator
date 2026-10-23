@@ -18,6 +18,7 @@ function createHammerApp(hammerOrbs, time = 0) {
   });
 
   return {
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,

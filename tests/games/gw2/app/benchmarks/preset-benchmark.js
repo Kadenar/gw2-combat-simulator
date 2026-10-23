@@ -65,7 +65,11 @@ export async function assertManifestRegressions(
       });
       assert.equal(build.schemaVersion, adapter.profession.createBuildDefaults().schemaVersion, label);
       const config = adapter
-        .createBuildContext({ build, patchId: 'current', transitionDelays: normalizeTransitionDelays() })
+        .createBuildContext({
+          build,
+          transitionDelays: normalizeTransitionDelays(),
+          patch: adapter.profession.resolvePatch({ id: 'current' })
+        })
         .simulationConfig();
 
       // Build-only presets still exercise loading and configuration without inventing a benchmark rotation.

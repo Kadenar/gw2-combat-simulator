@@ -172,7 +172,7 @@ test('calculation input changes invalidate preparation and unchanged normalized 
     app.simulationSettings.transitionDelays.weaponSwapMs = 200;
   });
   updateBuild(() => {
-    app.patchId = activePatchPreview.id;
+    app.patch = app.profession.resolvePatch({ id: activePatchPreview.id });
   });
   updateBuild(() => {
     app.activeCatalog = { ...app.activeCatalog };

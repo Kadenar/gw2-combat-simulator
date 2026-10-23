@@ -1,3 +1,4 @@
+import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import type { CanonicalCatalog, Skill as PreviewSkill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
@@ -122,8 +123,8 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
 
       return undefined;
     },
-    paletteGroups: (context: EngineerUiContext) => {
-      const storm = hasActiveTrait(context, 'Crystal Configuration: Storm');
+    paletteGroups: (context: EngineerUiContext & ProfessionCatalogContext) => {
+      const storm = hasActiveTrait(context.catalog, context, 'Crystal Configuration: Storm');
       // Keep profession toggles and Forge weapon skills in separate stacked palette groups.
       return [
         {

@@ -33,7 +33,7 @@ test('weapon-spell tooltips project Wielders Boon from the build and selected sk
     ['current', 5, 3],
     ['tooltip-projection', 7, 2]
   ]) {
-    const context = profession.balanceContextFor(patchId);
+    const context = profession.resolvePatch({ id: patchId }).balanceContext;
 
     for (const id of [ID.NIGHTMARE_WEAPON, ID.SPLINTER_WEAPON]) {
       const skill = context.catalog.skillsById.get(id);
@@ -98,8 +98,8 @@ test('Dark Barrage shares selected pulse expansion and ignores added boons in co
   for (const patchId of ['current', 'tooltip-projection']) {
     const patched = patchId === 'tooltip-projection';
     const count = 8;
-    const facts = skillFacts(profession.balanceContextFor(patchId), ID.DARK_BARRAGE).filter(({ detail }) =>
-      detail.includes('with Doom Approaches;')
+    const facts = skillFacts(profession.resolvePatch({ id: patchId }).balanceContext, ID.DARK_BARRAGE).filter(
+      ({ detail }) => detail.includes('with Doom Approaches;')
     );
     assert.equal(
       facts.some(({ name }) => name === 'Might'),
@@ -149,9 +149,10 @@ test('Dark Barrage preserves strike and condition removal and an empty selected 
             : { removeEffects: [{ type: mode, name: mode === 'strike' ? 'Strike' : 'Torment' }] }
       }
     });
-    const facts = skillFacts(profession.balanceContextFor('tooltip-projection'), ID.DARK_BARRAGE).filter(({ detail }) =>
-      detail.includes('with Doom Approaches;')
-    );
+    const facts = skillFacts(
+      profession.resolvePatch({ id: 'tooltip-projection' }).balanceContext,
+      ID.DARK_BARRAGE
+    ).filter(({ detail }) => detail.includes('with Doom Approaches;'));
     const result = simulate(
       profession,
       'tooltip-projection',
@@ -194,7 +195,7 @@ test('Dhuumfire tooltip and combat agree on selected stacks and specialization d
     ['Scourge', ['Manifest Sand Shade'], 2, 4]
   ]) {
     for (const patchId of ['current', 'tooltip-projection']) {
-      const context = profession.balanceContextFor(patchId);
+      const context = profession.resolvePatch({ id: patchId }).balanceContext;
       const facts = describeSimulationTrait(
         context,
         context.catalog.traits.find(({ id }) => id === TRAIT.DHUUMFIRE),
@@ -243,7 +244,7 @@ test('Dhuumfire removal leaves the cooldown unclaimed and unrelated conditions o
       }
     }
   });
-  const context = profession.balanceContextFor('tooltip-projection');
+  const context = profession.resolvePatch({ id: 'tooltip-projection' }).balanceContext;
   const emitted = captureEffectEmissions();
   let claims = 0;
   const runtime = {
@@ -283,7 +284,7 @@ test('Dhuumfire removal leaves the cooldown unclaimed and unrelated conditions o
 test('Dhuumfire metadata precedence and zero-cooldown behavior survive projection extraction', () => {
   const context = preview({
     balanceProfiles: { [TRAIT.DHUUMFIRE]: { effects: [{ type: 'condition', name: 'Burning', duration: 7 }] } }
-  }).balanceContextFor('tooltip-projection');
+  }).resolvePatch({ id: 'tooltip-projection' }).balanceContext;
   const emitted = captureEffectEmissions();
   const runtime = {
     catalog: context.catalog,
@@ -311,7 +312,7 @@ test('Dhuumfire metadata precedence and zero-cooldown behavior survive projectio
 
 // Pulse count belongs to volley authoring; an empty timeline must not materialize a default single application.
 test('Dark Barrage projection supports authored pulse counts without manufacturing empty-volley packets', () => {
-  const context = preview({}).balanceContextFor('current');
+  const context = preview({}).resolvePatch({ id: 'current' }).balanceContext;
   const profile = context.catalog.balanceProfilesById.get(BARRAGE);
   const volley = darkBarrageEffects({ ...profile, pulseCount: 3 }, profile.effects);
   assert.ok(volley.every((effect) => effect.ticks.length === 3));
@@ -330,7 +331,7 @@ test('Ritualist attack projections reject cross-spirit packets and preserve sele
     }
   });
   for (const patchId of ['current', 'tooltip-projection']) {
-    const context = profession.balanceContextFor(patchId);
+    const context = profession.resolvePatch({ id: patchId }).balanceContext;
     const patched = patchId === 'tooltip-projection';
     const summon = skillFacts(context, ID.WANDERLUST);
     assert.equal(

@@ -30,7 +30,7 @@ export async function openBenchmarkWorkspace(app: ProfessionAppState, root: Docu
     if (preset.rotation && !rotationItems) throw new Error('Benchmark rotation unavailable.');
 
     const build = app.adapter.toApplicationBuild({ ...buildData, rotation: rotationItems ?? [] });
-    addBuildTab(app, build, `${preset.specialization} · ${preset.label}`, app.patchId, build);
+    addBuildTab(app, build, `${preset.specialization} · ${preset.label}`, app.patch.id, build);
     saveBuildWorkspace(app);
     renderBuildTabs(app);
     // Consume the request after success so a refresh does not create another copy.

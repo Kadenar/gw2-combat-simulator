@@ -76,8 +76,8 @@ test('Elemental Explosion damage is measurable without stored bullets while comb
     ...app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig(),
     pistolBullets: { Fire: false, Water: false, Air: false, Earth: false },
@@ -357,8 +357,8 @@ test('Fractal evaluates its shared payload without a Bleeding prerequisite and w
     ...app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig(),
     relic: 'Fractal',

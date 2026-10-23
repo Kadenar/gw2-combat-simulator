@@ -40,7 +40,7 @@ function previewApp(name, traitNames = [], specialization = null) {
     adapter,
     profession: adapter.profession,
     activeCatalog: adapter.profession.catalog,
-    patchId: 'current',
+    patch: adapter.profession.resolvePatch({ id: 'current' }),
     attributeWeaponSet: 1,
     build: {
       ...createDefaultBuild(adapter),
@@ -51,8 +51,8 @@ function previewApp(name, traitNames = [], specialization = null) {
   app.attributeData = adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   for (const name of traitNames)
@@ -75,8 +75,8 @@ test('Amalgam previews Titanic Might scaling and both Evolve variants without ch
       app.adapter
         .createBuildContext({
           build: app.build,
-          patchId: app.patchId ?? 'current',
-          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+          patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
         })
         .simulationConfig(),
       'common'
@@ -119,8 +119,8 @@ test('Aristocracy previews bounded condition duration stacks for every professio
     app.attributeData = app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const original = structuredClone({ build: app.build, attributes: app.attributeData });
@@ -144,8 +144,8 @@ test('Aristocracy previews bounded condition duration stacks for every professio
     app.attributeData = app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     assert.ok(!attributeEffectControls(app).some((control) => control.key === 'aristocracy'));
@@ -160,8 +160,8 @@ test('boons are independent, bounded, reversible and isolated from the displayed
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const original = structuredClone({ build: app.build, attributes: app.attributeData });
@@ -195,8 +195,8 @@ test('Catalyst accepts zero, partial and maximum empowerment stacks with the cor
       config: app.adapter
         .createBuildContext({
           build: app.build,
-          patchId: app.patchId ?? 'current',
-          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+          patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
         })
         .simulationConfig(),
       catalog: app.activeCatalog,
@@ -224,8 +224,8 @@ test('Elementalist attunement, Fresh Air and hammer orbs are independent and wea
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const base = stats(app);
@@ -236,8 +236,8 @@ test('Elementalist attunement, Fresh Air and hammer orbs are independent and wea
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   assert.ok(!attributeEffectControls(app).some((control) => control.key === 'crescentWind'));
@@ -252,8 +252,8 @@ test('Weaver and Evoker preview elements override detached state and config with
   weaver.attributeData = weaver.adapter
     .createBuildContext({
       build: weaver.build,
-      patchId: weaver.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(weaver.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(weaver.simulationSettings?.transitionDelays),
+      patch: weaver.adapter.profession.resolvePatch({ id: weaver.patchId ?? 'current' })
     })
     .attributes(weaver.attributeWeaponSet === 2 ? 2 : 1);
   const original = structuredClone(weaver.build);
@@ -308,8 +308,8 @@ test('Shroud preview appears only for relevant traits or Signet of Spite', () =>
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   assert.equal(shroud(app).description, 'Signet of Spite');
@@ -318,8 +318,8 @@ test('Shroud preview appears only for relevant traits or Signet of Spite', () =>
   app.attributeData = app.adapter
     .createBuildContext({
       build: app.build,
-      patchId: app.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+      patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   assert.equal(shroud(app), undefined);
@@ -329,8 +329,8 @@ test('Shroud preview appears only for relevant traits or Signet of Spite', () =>
   scourge.attributeData = scourge.adapter
     .createBuildContext({
       build: scourge.build,
-      patchId: scourge.patchId ?? 'current',
-      transitionDelays: normalizeTransitionDelays(scourge.simulationSettings?.transitionDelays)
+      transitionDelays: normalizeTransitionDelays(scourge.simulationSettings?.transitionDelays),
+      patch: scourge.adapter.profession.resolvePatch({ id: scourge.patchId ?? 'current' })
     })
     .attributes(scourge.attributeWeaponSet === 2 ? 2 : 1);
   assert.equal(shroud(scourge), undefined);
@@ -424,8 +424,8 @@ test('player health changes only the isolated stat preview', () => {
     const config = app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig();
     const low = stats(app, { playerHealth: 50 });
@@ -445,8 +445,8 @@ test('player health changes only the isolated stat preview', () => {
       app.adapter
         .createBuildContext({
           build: app.build,
-          patchId: app.patchId ?? 'current',
-          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+          patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
         })
         .simulationConfig(),
       config
@@ -467,8 +467,8 @@ test('all professions remove legacy player-health assumptions and expose no simu
     app.attributeData = app.adapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     assert.equal(
@@ -476,8 +476,8 @@ test('all professions remove legacy player-health assumptions and expose no simu
         app.adapter
           .createBuildContext({
             build: app.build,
-            patchId: app.patchId ?? 'current',
-            transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+            transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+            patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
           })
           .simulationConfig(),
         'playerHealthFraction'
@@ -520,8 +520,8 @@ test('all professions and specializations accept their available controls and re
         app.attributeData = app.adapter
           .createBuildContext({
             build: app.build,
-            patchId: app.patchId ?? 'current',
-            transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+            transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+            patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
           })
           .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
         const controls = attributeEffectControls(app);

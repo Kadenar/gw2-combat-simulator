@@ -66,7 +66,11 @@ export function simulateBenchmarkPreset(adapter, savedBuild, savedRotation, patc
     ...structuredClone(savedBuild),
     rotation: structuredClone(savedRotation.rotation ?? savedRotation)
   });
-  const context = adapter.createBuildContext({ build, patchId, transitionDelays: normalizeTransitionDelays() });
+  const context = adapter.createBuildContext({
+    build,
+    transitionDelays: normalizeTransitionDelays(),
+    patch: adapter.profession.resolvePatch({ id: patchId })
+  });
   const config = deterministicSimulationConfig(context.simulationConfig());
   // Benchmarks need combat events and APM, but never consume chart histories or projected party-boon reports.
   return {

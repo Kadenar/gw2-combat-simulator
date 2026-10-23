@@ -81,8 +81,8 @@ test('Persisting Flames grants stacks from Fire Sphere without extending profess
           ...elementalistAppAdapter
             .createBuildContext({
               build: app.build,
-              patchId: app.patchId ?? 'current',
-              transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+              transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+              patch: elementalistAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
             })
             .simulationConfig(),
           selectedTraitIds: selected ? [TRAIT.PERSISTING_FLAMES] : []
@@ -754,6 +754,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
     ]
   });
   const app = {
+    patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
@@ -792,8 +793,8 @@ test('Flame Barrage cannot apply future projectile burns outside the observation
     elementalistAppAdapter
       .createBuildContext({
         build: app.build,
-        patchId: app.patchId ?? 'current',
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        patch: elementalistAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig(),
     {

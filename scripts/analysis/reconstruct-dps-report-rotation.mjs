@@ -96,7 +96,10 @@ if (buildPath) {
   if (!adapter) throw new TypeError(`No build context for ${selected.professionId}.`);
 
   professionConfig = adapter
-    .createBuildContext({ build: adapter.toApplicationBuild(build), patchId: 'current' })
+    .createBuildContext({
+      build: adapter.toApplicationBuild(build),
+      patch: adapter.profession.resolvePatch({ id: 'current' })
+    })
     .simulationConfig();
 }
 

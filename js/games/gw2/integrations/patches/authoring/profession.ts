@@ -1,4 +1,10 @@
+import { selectionFromConfig, type PatchSelection, type ResolvedPatch } from '#gw2/integrations/patches/selection.js';
 import { generatePatchOverview } from '#gw2/integrations/patches/authoring/overview-generation.js';
+import {
+  replaceProvisionalEffect,
+  validateProvisionalCatalog,
+  validateProvisionalParameters
+} from '#gw2/integrations/patches/authoring/provisional-values.js';
 import { buildRelevantPatch } from '#gw2/integrations/patches/authoring/build-overview.js';
 import {
   balanceProfileAuthoringReference,
@@ -126,10 +132,11 @@ function createPatchAuthoringMetadata(
   });
 }
 
-const PROFESSION_PATCH_FIELDS = new Set(['skills', 'balanceProfiles', 'modifierRules']);
+const PROFESSION_PATCH_FIELDS = new Set(['skills', 'balanceProfiles', 'modifierRules', 'reworks', 'provisional']);
 
 function assertProfessionPatchShape(professionId: string, patch: ProfessionPatchPreview): void {
   assertObject(patch, `${professionId} patch`);
+  validateProvisionalParameters(patch.provisional);
   for (const field of Object.keys(patch)) {
     if (!PROFESSION_PATCH_FIELDS.has(field)) {
       throw new TypeError(`${professionId} patch has unsupported field ${field}.`);
@@ -141,6 +148,36 @@ function assertProfessionPatchShape(professionId: string, patch: ProfessionPatch
       assertObject(patch[field], `${professionId} patch ${field}`);
     }
   }
+
+  if (
+    patch.reworks !== undefined &&
+    (!Array.isArray(patch.reworks) ||
+      patch.reworks.some((id) => typeof id !== 'string') ||
+      new Set(patch.reworks).size !== patch.reworks.length)
+  ) {
+    throw new TypeError(`${professionId} reworks must be unique registered names.`);
+  }
+}
+
+/** Recompile registered replacements before tuning; JSON can select behavior but cannot supply executable code. */
+function selectReworkedModules(
+  modules: readonly AnyNativeModule[],
+  variants: Readonly<Record<string, AnyNativeModule>>,
+  patch: ProfessionPatchPreview | null | undefined
+): readonly AnyNativeModule[] {
+  const replacements = new Map<string, AnyNativeModule>();
+  for (const id of patch?.reworks ?? []) {
+    const replacement = Object.hasOwn(variants, id) ? variants[id] : undefined;
+
+    if (!replacement || !modules.some((module) => module.id === replacement.id))
+      throw new TypeError(`Unknown module rework ${id}.`);
+
+    if (replacements.has(replacement.id)) throw new TypeError(`Multiple reworks replace ${replacement.id}.`);
+
+    replacements.set(replacement.id, replacement);
+  }
+
+  return modules.map((module) => replacements.get(module.id) ?? module);
 }
 
 function modifierPatchFields(edit: ModifierRulePatchEdit): readonly string[] {
@@ -220,16 +257,63 @@ export function withPatchPreview<
   candidatePreview: PatchPreview | null | undefined
 ): NativePatchAuthoringContract<TModules, TPresentation, TBuild> {
   const definition = family.nativeDefinition;
-  const modules = definition.modules as readonly AnyNativeModule[];
+  const liveModules = definition.modules as readonly AnyNativeModule[];
   const preview = candidatePreview ? validatePatchPreview(candidatePreview) : null;
   const professionPatch = professionPatchFor(preview, definition.id);
+
+  if (professionPatch) assertProfessionPatchShape(definition.id, professionPatch);
+
+  // Session edits only change balance profiles; compiled module declarations stay shared.
+  const editsForValues = (values: PatchSelection['values'], includeAuthored = true): ProfessionPatchPreview => {
+    const edited = structuredClone(includeAuthored ? (professionPatch ?? {}) : {}) as {
+      balanceProfiles?: Record<string, import('./patches.js').SkillPatchEdit>;
+    };
+    edited.balanceProfiles ??= {};
+    for (const [id, value] of Object.entries(values ?? {})) {
+      const parameter = professionPatch?.provisional?.find((entry) => entry.id === id);
+
+      if (
+        !parameter ||
+        !Number.isFinite(value) ||
+        value < parameter.minimum ||
+        value > parameter.maximum ||
+        (['charges', 'stacks'].includes(parameter.unit) && !Number.isInteger(value))
+      )
+        throw new TypeError(`Invalid provisional value ${id}.`);
+
+      const old = edited.balanceProfiles[parameter.profileId] ?? {};
+      edited.balanceProfiles[parameter.profileId] = {
+        ...old,
+        assumption: [
+          professionPatch?.balanceProfiles?.[parameter.profileId]?.assumption,
+          'Session values override this assumption; final balance values remain unknown.'
+        ]
+          .filter(Boolean)
+          .join(' '),
+        ...(parameter.effect
+          ? { effects: replaceProvisionalEffect(old.effects ?? [], parameter, value) }
+          : { fields: { ...old.fields, [parameter.field]: value } })
+      };
+    }
+
+    return edited;
+  };
+
+  const modules = selectReworkedModules(liveModules, definition.moduleVariants ?? {}, professionPatch);
+  const reworkedFamily = professionPatch?.reworks?.length
+    ? (defineStableNativeProfession({ ...definition, modules: modules as TModules }) as NativeProfessionContract<
+        TModules,
+        TPresentation,
+        TBuild
+      >)
+    : family;
   const assembly = getNativeCatalogAssembly(modules, definition.catalog);
   const modifierRules = modules.flatMap((module) => [...(module.modifiers.modifierRules ?? [])]);
   const patchAuthoring = createPatchAuthoringMetadata(definition.id, definition.name, modules, assembly.fragments);
   const previewModifierRules = preparePreviewModifierRules(modules, professionPatch?.modifierRules);
   let previewFamily: NativeProfessionContract<TModules, TPresentation, TBuild> | null = null;
   const familyForPreview = () => {
-    if (!previewModifierRules.targets.length) return family;
+    if (!previewModifierRules.targets.length) return reworkedFamily;
 
     previewFamily ||= defineStableNativeProfession({
       ...definition,
@@ -243,23 +327,29 @@ export function withPatchPreview<
   const previewCatalogSource = (catalog: Readonly<CanonicalCatalog>): Readonly<CanonicalCatalog> =>
     Object.freeze({
       ...catalog,
-      balanceDataContext: Object.freeze({ professionId: definition.id, patchId: preview?.id ?? '<validation>' })
+      balanceDataContext: Object.freeze({
+        professionId: definition.id,
+        patchId: preview?.id ?? '<validation>',
+        reworks: Object.freeze([...(professionPatch?.reworks ?? [])])
+      })
     });
   const validatedPreviewCatalog = (): Readonly<CanonicalCatalog> => {
-    previewCatalog ||= applyBalanceProfilePatch(
-      applySkillPatch(previewCatalogSource(family.catalog), professionPatch),
+    if (previewCatalog) return previewCatalog;
+
+    const catalog = applyBalanceProfilePatch(
+      applySkillPatch(previewCatalogSource(reworkedFamily.catalog), professionPatch),
       professionPatch
     );
-    return previewCatalog;
+    validateProvisionalCatalog(catalog, professionPatch?.provisional);
+    previewCatalog = catalog;
+    return catalog;
   };
 
-  // Cache patched runtime catalogs so repeated preview simulations reuse the same immutable overlay.
-  const runtimeCatalogs = new WeakMap<Readonly<CanonicalCatalog>, Readonly<CanonicalCatalog>>();
-  const runtimeOverlays = new WeakMap<object, object>();
+  const runtimeOverlays = new WeakMap<object, Map<string, object>>();
+  const runtimeCatalogs = new WeakMap<Readonly<CanonicalCatalog>, Map<string, Readonly<CanonicalCatalog>>>();
+  const resolvedPatches = new Map<string, ResolvedPatch>();
   const assertPatchId = (patchId = CURRENT_PATCH_ID): string => {
-    if (patchId === CURRENT_PATCH_ID) return patchId;
-
-    if (preview && patchId === preview.id) return patchId;
+    if (patchId === CURRENT_PATCH_ID || (preview && patchId === preview.id)) return patchId;
 
     throw new TypeError(
       `Unknown ${definition.name} patch ${patchId}. Expected ${CURRENT_PATCH_ID}` +
@@ -267,38 +357,68 @@ export function withPatchPreview<
     );
   };
 
-  const catalogFor = (patchId = CURRENT_PATCH_ID): Readonly<CanonicalCatalog> => {
-    if (assertPatchId(patchId) === CURRENT_PATCH_ID) return family.catalog;
+  /** Normalize once so every consumer sees the same selection and invalid tuning fails before state changes. */
+  const resolvePatch = (selection: PatchSelection = { id: CURRENT_PATCH_ID }): ResolvedPatch => {
+    const id = assertPatchId(selection.id);
 
-    return validatedPreviewCatalog();
-  };
+    if (id !== CURRENT_PATCH_ID && selection.values !== undefined) assertObject(selection.values, 'Provisional values');
 
-  // Reuse the selected declarations used by runtime compilation so tooltip and attribute values cannot mix patches.
-  const balanceContexts = new Map<string, ProfessionBalanceContext>();
-  const balanceContextFor = (patchId = CURRENT_PATCH_ID): ProfessionBalanceContext => {
-    const catalog = catalogFor(patchId);
-    let context = balanceContexts.get(patchId);
+    const entries =
+      id === CURRENT_PATCH_ID ? [] : Object.entries(selection.values ?? {}).sort(([a], [b]) => a.localeCompare(b));
+    const values = entries.length ? Object.freeze(Object.fromEntries(entries)) : undefined;
+    const key = JSON.stringify([id, entries]);
+    const cached = resolvedPatches.get(key);
 
-    if (!context) {
-      const selectedRules =
-        patchId === CURRENT_PATCH_ID || !previewModifierRules.targets.length
-          ? modifierRules
-          : [...previewModifierRules.byModule.values()].flat();
-      context = Object.freeze({ catalog, modifierRulesById: new Map(selectedRules.map((rule) => [rule.id, rule])) });
-      balanceContexts.set(patchId, context);
+    if (cached) return cached;
+
+    const catalog =
+      id === CURRENT_PATCH_ID
+        ? family.catalog
+        : values
+          ? applyBalanceProfilePatch(validatedPreviewCatalog(), editsForValues(values, false))
+          : validatedPreviewCatalog();
+    const selectedRules =
+      id === CURRENT_PATCH_ID
+        ? liveModules.flatMap((module) => [...(module.modifiers.modifierRules ?? [])])
+        : previewModifierRules.targets.length
+          ? [...previewModifierRules.byModule.values()].flat()
+          : modifierRules;
+    const balanceContext = Object.freeze({
+      catalog,
+      modifierRulesById: new Map(selectedRules.map((rule) => [rule.id, rule]))
+    });
+    const patch = Object.freeze({
+      id,
+      ...(values ? { values } : {}),
+      key,
+      catalog,
+      balanceContext,
+      reworks: Object.freeze(id === CURRENT_PATCH_ID ? [] : [...(professionPatch?.reworks ?? [])])
+    });
+
+    // Bound experimental catalogs while retaining the two stable default selections.
+    if (values && resolvedPatches.size >= 34) {
+      const oldest = [...resolvedPatches].find(([, entry]) => entry.values)?.[0];
+
+      if (oldest) resolvedPatches.delete(oldest);
     }
 
-    return context;
+    resolvedPatches.set(key, patch);
+    return patch;
   };
 
   const validatePatch = (candidate: ProfessionPatchPreview | null | undefined): true => {
     if (!candidate) return true;
 
     assertProfessionPatchShape(definition.id, candidate);
-    const catalog = previewCatalogSource(family.catalog);
-    applySkillPatch(catalog, candidate);
-    applyBalanceProfilePatch(catalog, candidate);
-    applyModifierRulePatch(modifierRules, candidate.modifierRules);
+    const candidateModules = selectReworkedModules(liveModules, definition.moduleVariants ?? {}, candidate);
+    const catalog = previewCatalogSource(getNativeCatalogAssembly(candidateModules, definition.catalog).catalog);
+    const patchedCatalog = applyBalanceProfilePatch(applySkillPatch(catalog, candidate), candidate);
+    applyModifierRulePatch(
+      candidateModules.flatMap((module) => [...(module.modifiers.modifierRules ?? [])]),
+      candidate.modifierRules
+    );
+    validateProvisionalCatalog(patchedCatalog, candidate.provisional);
     return true;
   };
 
@@ -309,67 +429,90 @@ export function withPatchPreview<
       readonly createState: (config: Gw2Config, balanceContext?: ProfessionBalanceContext) => object;
     }
   >(
-    runtime: T
+    runtime: T,
+    patch: ResolvedPatch
   ): T => {
-    validatedPreviewCatalog();
-    const cachedRuntime = runtimeOverlays.get(runtime);
+    let overlays = runtimeOverlays.get(runtime);
 
-    if (cachedRuntime) return cachedRuntime as typeof runtime;
+    if (!overlays) {
+      overlays = new Map();
+      runtimeOverlays.set(runtime, overlays);
+    }
 
-    const cached = runtimeCatalogs.get(runtime.catalog);
+    const cached = overlays.get(patch.key);
+
+    if (cached) return cached as T;
+
+    // Isolation modes can share a source catalog; retain skill identity across their equivalent overlays.
+    let catalogs = runtimeCatalogs.get(runtime.catalog);
+
+    if (!catalogs) {
+      catalogs = new Map();
+      runtimeCatalogs.set(runtime.catalog, catalogs);
+    }
+
     const catalog =
-      cached ||
+      catalogs.get(patch.key) ??
       applyBalanceProfilePatch(
-        applySkillPatch(previewCatalogSource(runtime.catalog), professionPatch, {
-          unknownSkills: 'ignore'
-        }),
-        professionPatch,
+        applySkillPatch(previewCatalogSource(runtime.catalog), professionPatch, { unknownSkills: 'ignore' }),
+        patch.values ? editsForValues(patch.values) : professionPatch,
         { unknownProfiles: 'ignore' }
       );
 
-    if (!cached) runtimeCatalogs.set(runtime.catalog, catalog);
+    if (!catalogs.has(patch.key)) {
+      if (catalogs.size >= 32) catalogs.delete(catalogs.keys().next().value!);
 
-    if (catalog === runtime.catalog) return runtime;
+      catalogs.set(patch.key, catalog);
+    }
 
-    // Attribute-derived resources must use the same patched profiles as later combat queries.
+    // Starting resources and combat queries must observe the same captured balance selection.
     const overlay = Object.freeze({
       ...runtime,
       catalog,
-      createState: (config: Gw2Config) => runtime.createState(config, balanceContextFor(preview!.id))
+      createState: (config: Gw2Config) => runtime.createState(config, patch.balanceContext)
     });
-    runtimeOverlays.set(runtime, overlay);
+
+    if (overlays.size >= 32) overlays.delete(overlays.keys().next().value!);
+
+    overlays.set(patch.key, overlay);
     return overlay;
   };
 
   const resolveProfession = (config: Readonly<Gw2Config> = {}) => {
-    const patchId = assertPatchId(String(config.patchId || CURRENT_PATCH_ID));
-    return patchId === CURRENT_PATCH_ID
+    const patch = resolvePatch(selectionFromConfig(config));
+    return patch.id === CURRENT_PATCH_ID
       ? family.resolveProfession(config)
-      : overlayRuntime(familyForPreview().resolveProfession(config));
+      : overlayRuntime(familyForPreview().resolveProfession(config), patch);
   };
 
-  // Preserve runtime isolation options for both live and preview simulations.
+  // Preserve isolation options while reusing the compiled family for every session value set.
   const runtimeFor = (config: Readonly<Gw2Config> = {}, options?: ProfessionRuntimeOptions) => {
-    const patchId = assertPatchId(String(config.patchId || CURRENT_PATCH_ID));
-    return patchId === CURRENT_PATCH_ID
+    const patch = resolvePatch(selectionFromConfig(config));
+    return patch.id === CURRENT_PATCH_ID
       ? family.runtimeFor(config, options)
-      : overlayRuntime(familyForPreview().runtimeFor(config, options));
+      : overlayRuntime(familyForPreview().runtimeFor(config, options), patch);
   };
 
   const services = {
+    // Detached attribute previews carry the selected catalog even when their config has no patch id.
+    attributeContributions: ((context) =>
+      (context.balanceContext.catalog.balanceDataContext?.patchId === preview?.id && preview
+        ? familyForPreview()
+        : family
+      ).attributeContributions(context)) as typeof family.attributeContributions,
     preview,
-    catalogFor,
-    balanceContextFor,
+    resolvePatch,
     patchAuthoring,
     // Generate from filtered edits so similarly named skill variants cannot leak unrelated notes into a build.
     patchOverviewFor(config: Gw2Config, observedIds: readonly (string | number)[]) {
       if (!preview || !professionPatch) return [];
 
+      const patch = resolvePatch(selectionFromConfig(config));
       const relevantPatch = buildRelevantPatch(
-        professionPatch,
+        patch.values ? editsForValues(patch.values) : professionPatch,
         config,
         observedIds,
-        family.catalog,
+        reworkedFamily.catalog,
         modules,
         patchAuthoring,
         family.weaponSkillMatchesSet
@@ -381,6 +524,10 @@ export function withPatchPreview<
     runtimeFor,
     previewModifierRuleTargets: previewModifierRules.targets
   };
+
+  // Exposed controls must be valid at load, even before a caller asks for the preview catalog.
+  if (professionPatch?.provisional?.length) validatedPreviewCatalog();
+
   // Preserve lazy family getters: decorating a headless profession must not initialize its presentation.
   return Object.freeze(
     Object.defineProperties(

@@ -309,7 +309,7 @@ test('Heat the Soul selects its own Decapitate variant and tooltip independently
     assert.equal(quickness[0].duration, expected);
   }
 
-  const context = source.balanceContextFor('heat-duration');
+  const context = source.resolvePatch({ id: 'heat-duration' }).balanceContext;
   const tooltip = warriorTooltips.traits[TRAIT.HEAT_THE_SOUL](context, { id: TRAIT.HEAT_THE_SOUL });
   assert.ok(tooltip.facts.some((fact) => /Decapitate/.test(fact.detail) && /3s/.test(fact.detail)));
 });
