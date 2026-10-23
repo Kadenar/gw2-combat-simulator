@@ -3,7 +3,11 @@ import type { BossScenarioDraft } from '#gw2/app/boss-scenarios/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /** Each encounter uses the existing build and rotation editor once, with one continuous history. */
-export function createScenarioEditor(app: ProfessionAppState, persist: () => void) {
+export function createScenarioEditor(
+  app: ProfessionAppState,
+  persist: () => void,
+  fileActions: NonNullable<BuildWorkspace['fileActions']>
+) {
   const golem = app.workspace!;
   const workspaces = new Map<string, BuildWorkspace>();
   function open(draft: BossScenarioDraft): void {
@@ -11,7 +15,7 @@ export function createScenarioEditor(app: ProfessionAppState, persist: () => voi
 
     if (!workspace) {
       const tab = createBuildTab(structuredClone(draft.build), draft.buildName, draft.patchId);
-      workspace = { tabs: [tab], activeTabId: '', scenario: draft };
+      workspace = { tabs: [tab], activeTabId: '', scenario: draft, fileActions };
       workspace.persist = () => {
         draft.build = structuredClone(tab.build);
         draft.patchId = tab.patchId;

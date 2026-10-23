@@ -383,7 +383,7 @@ test('switcher menu exposes builds and actions and supports keyboard dismissal',
   await expect(switcher).toBeFocused();
   await tabAction(page, 'Duplicate');
   await expect(page.locator('.build-tab')).toHaveCount(3);
-  await expect(page.locator('.build-switcher-name')).toHaveText('Build 1 copy');
+  await expect(page.locator('#build-switcher .build-switcher-name')).toHaveText('Build 1 copy');
   await expect(switcher).toBeFocused();
 });
 
@@ -433,7 +433,7 @@ test('Load build replaces the current build and Reset restores only that build',
   await expect(page.locator('.build-tab')).toHaveCount(2);
   await expect(switcher).toBeFocused();
   // The label already names its weapons, so the loaded build must not repeat them.
-  await expect(page.locator('.build-switcher-name')).toHaveText('Mirage · Power (Spear)');
+  await expect(page.locator('#build-switcher .build-switcher-name')).toHaveText('Mirage · Power (Spear)');
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
   // Reset restores this build's loaded template after edits, leaving the blank build independent.
   await page.evaluate(() => {

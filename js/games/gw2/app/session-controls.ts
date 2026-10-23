@@ -69,7 +69,13 @@ export function bindSessionControls(app: ProfessionAppState): void {
       redoRotation(app);
     }
   });
-  requiredElement('btn-export-build').addEventListener('click', () =>
+  // One header pair transfers the active document, including encounter inputs in Bosses.
+  requiredElement('btn-export-build').addEventListener('click', () => {
+    if (app.workspace?.fileActions) {
+      app.workspace.fileActions.export();
+      return;
+    }
+
     downloadJson([
       {
         label: 'Build only',
@@ -81,9 +87,15 @@ export function bindSessionControls(app: ProfessionAppState): void {
         filename: app.adapter.filenames.build.replace(/-build\.json$/i, '-build-rotation.json'),
         payload: getBuildWithRotationExportPayload(app.build)
       }
-    ])
-  );
-  bindBuildFileImportDialog(app, requiredElement('btn-import-build'), requiredInput('import-file-input'));
+    ]);
+  });
+  const openBuildImport = bindBuildFileImportDialog(app, requiredInput('import-file-input'));
+  const importButton = requiredElement('btn-import-build');
+  importButton.setAttribute('aria-haspopup', 'dialog');
+  importButton.addEventListener('click', () => {
+    if (app.workspace?.fileActions) app.workspace.fileActions.import();
+    else openBuildImport();
+  });
   app.adapter.buildEditor.bindControls?.(app);
   requiredElement('btn-export-rotation').addEventListener('click', () =>
     downloadJson(app.adapter.filenames.rotation, {

@@ -34,10 +34,24 @@ body[data-simulator-view='analysis'][data-analysis-workspace='bosses']
   width: 100%;
   padding-top: 0;
 }
-.boss-toolbar select {
-  max-width: min(320px, 100%);
-  min-width: 0;
+.boss-toolbar .build-switcher {
   margin-right: auto;
+}
+/* Scenario rows share the Golem selector styling, including its inline close control. */
+.build-tab > .boss-scenario-option {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.build-tab.is-active > .boss-scenario-option {
+  font-weight: 600;
+}
+.boss-scenario-option > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .boss-message {
   color: #e3bf85;

@@ -195,11 +195,18 @@ test('encounter editor keeps one rotation and history across boss and difficulty
   const savedGolem = values.get(workspaceStorageKey(adapter));
   const draft = createBossScenario('020102', app.build, 'Encounter build', 'current', true);
   let savedDraft;
-  const editor = createScenarioEditor(app, () => {
-    savedDraft = structuredClone(draft);
-  });
+  const fileActions = { import() {}, export() {} };
+  const editor = createScenarioEditor(
+    app,
+    () => {
+      savedDraft = structuredClone(draft);
+    },
+    fileActions
+  );
   const validateGolemImport = captureBuildDestination(app);
   editor.open(draft);
+  // Header transfers follow the active encounter workspace and disappear when Golem is restored.
+  assert.equal(app.workspace.fileActions, fileActions);
   assert.throws(validateGolemImport, /build changed/);
   app.build.gear.Helm = 'encounter gear';
   app.build.rotation.push({ type: 'wait', durationMs: 2000 });
@@ -216,6 +223,7 @@ test('encounter editor keeps one rotation and history across boss and difficulty
   assert.equal(values.get(workspaceStorageKey(adapter)), savedGolem);
   editor.close();
   assert.equal(app.workspace, golem);
+  assert.equal(app.workspace.fileActions, undefined);
   assert.equal(app.build.gear.Helm, 'original');
   assert.equal(app._rotationHistory, golemHistory);
   editor.open(draft);
@@ -230,7 +238,7 @@ test('discarding an encounter releases its editor session and restores Golem', (
   const { app } = appFixture();
   const golem = app.workspace;
   const draft = createBossScenario('020102', app.build, 'Encounter build', 'current', true);
-  const editor = createScenarioEditor(app, () => {});
+  const editor = createScenarioEditor(app, () => {}, { import() {}, export() {} });
   editor.open(draft);
   const discarded = app.workspace;
   app.build.rotation.push({ type: 'wait', durationMs: 1000 });

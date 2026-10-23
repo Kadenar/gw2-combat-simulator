@@ -20,8 +20,12 @@ Encounter settings sit **directly below the DPS strip inside the rotation builde
 
 The selected boss supplies the phase sequence automatically. Users do not create, delete, select, or author separate
 rotations for phases. Changing boss or difficulty replaces encounter inputs while retaining the build and rotation.
-Scenario names follow the selected boss. Duplicate, close, import, and export remain available in the scenario toolbar.
-Closing removes the selected saved scenario and selects a neighbor. Closing the last scenario loads a fresh default.
+Scenario names follow the selected boss. New and Duplicate sit beside the scenario selector. Each scenario has a close
+button inside that selector, matching the Golem build selector. Closing an inactive scenario keeps the current
+selection; closing the active scenario selects a neighbor. Closing the last scenario loads a fresh default.
+
+The shared header Import and Export buttons transfer the complete scenario (encounter inputs, build, and rotation) in
+Bosses. In Golem they retain the existing build import and export behavior.
 
 ## Encounter data
 

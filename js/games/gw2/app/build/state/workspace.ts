@@ -48,6 +48,8 @@ export interface BuildWorkspace {
   storageError?: string;
   /** Encounter workspaces persist phase edits to their scenario instead of the golem library. */
   persist?: () => void;
+  /** Shared header transfers use the complete encounter document when this workspace owns one. */
+  fileActions?: { export: () => void; import: () => void };
 }
 
 export function createBuildTab(build: Gw2CanonicalBuild, name = 'New build', patchId = 'current'): BuildTab {

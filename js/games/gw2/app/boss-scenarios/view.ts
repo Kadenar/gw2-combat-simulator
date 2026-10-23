@@ -102,7 +102,35 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     }
   };
 
-  const editor = createScenarioEditor(app, save);
+  // Keep the native popover mounted so closing a row preserves the open selector and keyboard focus.
+  toolbar.innerHTML = `<button type="button" id="boss-scenario-select" class="build-switcher" popovertarget="boss-scenario-menu" aria-label="Boss scenario">
+    <span class="build-switcher-text"><span class="build-switcher-name"></span><span class="build-switcher-count"></span></span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </button><div id="boss-scenario-menu" class="build-toolbar-menu build-switcher-menu" popover="auto" role="group" aria-label="Open scenarios">
+    <div class="build-menu-heading">Open scenarios</div><div class="build-tab-list"></div></div>
+    ${button('new', 'New')}${button('duplicate', 'Duplicate')}<input type="file" id="boss-file" accept=".json,application/json" hidden>`;
+  const selector = toolbar.querySelector<HTMLButtonElement>('#boss-scenario-select')!;
+  const menu = toolbar.querySelector<HTMLElement>('#boss-scenario-menu')!;
+  const fileInput = toolbar.querySelector<HTMLInputElement>('#boss-file')!;
+  menu.addEventListener('toggle', () => {
+    if (!menu.matches(':popover-open')) return;
+
+    const bounds = selector.getBoundingClientRect();
+    menu.style.left = `${Math.max(8, Math.min(bounds.left, innerWidth - menu.offsetWidth - 8))}px`;
+    menu.style.top = `${Math.max(8, Math.min(bounds.bottom + 4, innerHeight - menu.offsetHeight - 8))}px`;
+    const selected = menu.querySelector<HTMLButtonElement>('[aria-pressed="true"]');
+    selected?.scrollIntoView({ block: 'nearest' });
+    selected?.focus({ preventScroll: true });
+  });
+  const editor = createScenarioEditor(app, save, {
+    export: () =>
+      handle(() => {
+        editor.capture();
+        const draft = active()!;
+        downloadJson(`${draft.name}.json`, draft);
+      }, true),
+    import: () => fileInput.click()
+  });
   const mutate = (edit: (draft: BossScenarioDraft) => void): void => {
     const current = active();
 
@@ -245,9 +273,20 @@ export function mountBossScenarios(app: ProfessionAppState): void {
       return;
     }
 
-    // Scenario selection uses automatic encounter names without a separate naming workflow.
-    toolbar.innerHTML = `<select id="boss-scenario-select" aria-label="Boss scenario">${scenarios.map((entry) => `<option value="${h(entry.id)}" ${entry.id === activeId ? 'selected' : ''}>${h(entry.name)}</option>`).join('')}</select>
-      ${button('new', 'New')}${button('duplicate', 'Duplicate')}${button('close', 'Close')}${button('export', 'Export')}${button('import', 'Import')}<input type="file" id="boss-file" accept=".json,application/json" hidden>`;
+    selector.title = draft.name;
+    selector.querySelector('.build-switcher-name')!.textContent = draft.name;
+    selector.querySelector('.build-switcher-count')!.textContent =
+      `${scenarios.length} open scenario${scenarios.length === 1 ? '' : 's'}`;
+    menu.querySelector('.build-tab-list')!.innerHTML = scenarios
+      .map((entry) => {
+        const selected = entry.id === activeId;
+        return `<div class="build-tab${selected ? ' is-active' : ''}">
+        <button type="button" class="boss-scenario-option" data-boss-action="select" data-scenario-id="${h(entry.id)}" aria-pressed="${selected}" title="${h(entry.name)}">
+        <svg class="build-tab-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17 19 7"/></svg><span>${h(entry.name)}</span></button>
+        <button type="button" class="build-tab-close" data-boss-action="close" data-scenario-id="${h(entry.id)}" aria-label="Close ${h(entry.name)}" title="Close">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
+      })
+      .join('');
     const modes = encounterDifficulties(draft.encounterId);
     let bossIndex = 0;
     let splitIndex = 0;
@@ -278,17 +317,12 @@ export function mountBossScenarios(app: ProfessionAppState): void {
   };
 
   toolbar.addEventListener('click', (event) => {
-    const action =
-      event.target instanceof Element
-        ? event.target.closest<HTMLElement>('[data-boss-action]')?.dataset.bossAction
-        : undefined;
+    const trigger = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-boss-action]') : null;
+    const action = trigger?.dataset.bossAction;
 
     if (!action) return;
 
-    if (action === 'import') {
-      toolbar.querySelector<HTMLInputElement>('#boss-file')!.click();
-      return;
-    }
+    const rowIndex = scenarios.findIndex((entry) => entry.id === trigger?.dataset.scenarioId);
 
     handle(() => {
       editor.capture();
@@ -300,21 +334,25 @@ export function mountBossScenarios(app: ProfessionAppState): void {
 
       const draft = active()!;
 
-      // Closing removes the saved draft and selects a neighbor; the last closure gets a fresh default.
-      if (action === 'close') {
-        const index = scenarios.indexOf(draft);
-        editor.discard(draft.id);
-        scenarios.splice(index, 1);
-        activeId = scenarios[Math.min(index, scenarios.length - 1)]?.id ?? '';
+      if (action === 'select' && rowIndex >= 0) {
+        activeId = scenarios[rowIndex]!.id;
+        save();
+        menu.hidePopover();
+        selector.focus();
+        return;
+      }
+
+      // Closing an inactive row leaves the current scenario intact; the last closure creates a fresh default.
+      if (action === 'close' && rowIndex >= 0) {
+        const removed = scenarios[rowIndex]!;
+        editor.discard(removed.id);
+        scenarios.splice(rowIndex, 1);
+
+        if (activeId === removed.id) activeId = scenarios[Math.min(rowIndex, scenarios.length - 1)]?.id ?? '';
 
         if (!activeId) newDraft();
         else save();
 
-        return;
-      }
-
-      if (action === 'export') {
-        downloadJson(`${draft.name}.json`, draft);
         return;
       }
 
@@ -329,6 +367,11 @@ export function mountBossScenarios(app: ProfessionAppState): void {
         save();
       }
     });
+
+    if (action === 'close' && menu.matches(':popover-open')) {
+      const rows = menu.querySelectorAll<HTMLButtonElement>('[data-boss-action="close"]');
+      rows[Math.min(rowIndex, rows.length - 1)]?.focus({ preventScroll: true });
+    }
   });
   workspace.addEventListener('change', (event) => {
     const control = event.target;
@@ -359,13 +402,6 @@ export function mountBossScenarios(app: ProfessionAppState): void {
   toolbar.addEventListener('change', async (event) => {
     const control = event.target;
 
-    if (control instanceof HTMLSelectElement && control.id === 'boss-scenario-select')
-      handle(() => {
-        editor.capture();
-        activeId = control.value;
-        save();
-      });
-
     if (!(control instanceof HTMLInputElement) || control.id !== 'boss-file' || !control.files?.[0]) return;
 
     const file = control.files[0];
@@ -386,6 +422,8 @@ export function mountBossScenarios(app: ProfessionAppState): void {
       handle(() => {
         throw error;
       });
+    } finally {
+      control.value = '';
     }
   });
   document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => render());
