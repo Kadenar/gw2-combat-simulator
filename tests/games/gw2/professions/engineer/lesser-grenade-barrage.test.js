@@ -75,7 +75,7 @@ test('Lesser Grenade Barrage owns proc balance and damage breakdown identity', (
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(catalog.balanceProfilesById.get(TRAIT.GRENADIER).damageMultiplier, 1);
+  assert.equal(catalog.balanceProfilesById.get(TRAIT.GRENADIER).damageIncrease, 0);
   const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.sourceId === barrageId);
   assert.equal(
     hits.reduce((sum, event) => sum + event.coefficient, 0),
@@ -117,7 +117,7 @@ test('barrage skill patches and explosion modifiers reach both damage paths', ()
     professions: {
       engineer: {
         skills: { [barrageId]: { effects: [{ type: 'strike', coefficient: 3 }] } },
-        balanceProfiles: { 514: { fields: { damageMultiplier: { from: 1, to: 2 } } } }
+        balanceProfiles: { 514: { fields: { damageIncrease: { from: 0, to: 1 } } } }
       }
     }
   });

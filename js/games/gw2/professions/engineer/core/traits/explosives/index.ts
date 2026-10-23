@@ -34,8 +34,8 @@ import {
 export const grenadier = defineTrait({
   id: TRAIT.GRENADIER,
   name: 'Grenadier',
-  // The trait balance owns tuning consumed by damage rules and presentation.
-  balance: { damageMultiplier: 1 },
+  // Store the bonus as a fraction so preview controls and tooltips share the same percentage convention.
+  balance: { damageIncrease: 0 },
   // Completed heals request the skill-owned barrage, which shares its recharge with direct casts. The barrage follows
   // Core elixir rewards and precedes the remaining imperative commit hooks.
   triggers: [
@@ -54,7 +54,7 @@ export const grenadier = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       // Live remains neutral; preview tuning increases only player-owned explosion strikes with Grenadier selected.
-      factor: (context) => balanceNumberFromContext(context, TRAIT.GRENADIER, 'damageMultiplier'),
+      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.GRENADIER, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         isExplosion(

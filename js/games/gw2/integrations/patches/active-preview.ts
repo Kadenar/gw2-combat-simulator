@@ -808,9 +808,9 @@ export const activePatchPreview: PatchPreview = {
         '514': {
           assumption: 'TBD: final Grenadier explosion-damage percentage pending; 10% assumed for this preview.',
           fields: {
-            damageMultiplier: {
-              from: 1,
-              to: 1.1
+            damageIncrease: {
+              from: 0,
+              to: 0.1
             }
           }
         },

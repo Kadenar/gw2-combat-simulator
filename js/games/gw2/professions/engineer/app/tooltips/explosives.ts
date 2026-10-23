@@ -50,13 +50,7 @@ export const engineerExplosivesTooltips = {
       facts: [
         { name: 'Base skill recharge', detail: tooltipSeconds(tooltipNumber(skill, 'cooldown')) },
         // Show the selected preview's explosion bonus alongside Grenadier's existing proc.
-        profileFact(
-          balanceContext,
-          TRAIT.GRENADIER,
-          'damageMultiplier',
-          'Explosion strike damage',
-          tooltipFactorChange
-        ),
+        profileFact(balanceContext, TRAIT.GRENADIER, 'damageIncrease', 'Explosion strike damage', tooltipPercent),
         ...simulationEffectFacts(effects).facts
       ]
     };
