@@ -59,9 +59,10 @@ test('Forge exits finalize once at the actual transition and clear weapon state'
 
 // Default factories and profile initialization share normalization but never mutable state.
 test('Firebrand page initialization preserves explicit pages, caps, trait defaults, and patched cadence', () => {
+  // Capacity bonuses change the omitted default, never an explicit starting-page choice.
   for (const [initial, expected] of [
     [undefined, 8],
-    [5, 8],
+    [5, 5],
     [0, 0],
     [3, 3],
     [99, 8]
@@ -103,8 +104,9 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
     { initialize: () => {}, profession: patched }
   );
   const pages = observedRuntime(result).profession.specialization.state.tomePages;
-  assert.equal(pages.value, 10);
-  assert.equal(pages.nextAt, Infinity);
+  assert.equal(pages.value, 6);
+  assert.equal(pages.maximum, 10);
+  assert.equal(pages.nextAt, 2);
   assert.equal(pages.interval, 2);
 });
 

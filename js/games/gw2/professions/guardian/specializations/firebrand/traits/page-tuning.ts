@@ -20,10 +20,10 @@ export function firebrandPageTuning(context: { readonly config: GuardianConfig }
   const interval = hasTrait(context, TRAIT.LOREMASTER)
     ? balanceNumberFromContext(context, TRAIT.LOREMASTER, 'pulseInterval')
     : balanceProfileNumber(resourcesProfile, 'pulseInterval');
-  const initial = context.config.initialTomePages ?? traitMaximum;
   return {
     maximum: traitMaximum,
-    initial: archivistOfWhispers && initial === defaultMaximum ? traitMaximum : initial,
+    // Default to capacity only when no starting value was supplied; explicit values remain player-owned.
+    initial: context.config.initialTomePages ?? traitMaximum,
     interval
   };
 }

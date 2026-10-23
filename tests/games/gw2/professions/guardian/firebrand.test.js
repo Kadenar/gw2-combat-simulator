@@ -35,6 +35,17 @@ test('Firebrand public projections preserve configured pages and detach the cano
   assert.notEqual(projected.ashes, state.ashes);
 });
 
+test('Archivist increases page capacity without replacing explicit starting pages', () => {
+  // An omitted value starts full, while every editable starting value survives initialization.
+  const selectedTraitIds = [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS];
+  assert.equal(createFirebrandState({ selectedTraitIds }).tomePages.value, 8);
+  for (const initialTomePages of [0, 4, 5, 6, 7, 8]) {
+    const state = createFirebrandState({ selectedTraitIds, initialTomePages });
+    assert.equal(state.tomePages.maximum, 8);
+    assert.equal(state.tomePages.value, initialTomePages);
+  }
+});
+
 test('Firebrand tomes consume shared pages and execute tome damage', () => {
   const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
