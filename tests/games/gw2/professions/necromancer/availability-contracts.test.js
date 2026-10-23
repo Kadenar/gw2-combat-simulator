@@ -3,7 +3,7 @@ import test from 'node:test';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { necromancerAvailability } from '#gw2/professions/necromancer/core/mechanics/availability.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
@@ -29,20 +29,6 @@ function fixture(overrides = {}) {
     }
   };
 }
-
-test('Lingering Curse replacement takes precedence over form restrictions', () => {
-  const normal = fixture();
-  normal.core.activeShroud = 'death';
-  assert.equal(normal.check(ID.DEVOURING_DARKNESS).code, 'necromancer.trait-locked');
-  normal.core.activeShroud = null;
-  assert.deepEqual(normal.check(ID.FEAST_OF_CORRUPTION), { ready: true });
-
-  const trait = fixture({ selectedTraitIds: [TRAIT.LINGERING_CURSE] });
-  trait.core.activeShroud = 'death';
-  assert.equal(trait.check(ID.FEAST_OF_CORRUPTION).code, 'necromancer.trait-replacement');
-  trait.core.activeShroud = null;
-  assert.deepEqual(trait.check(ID.DEVOURING_DARKNESS), { ready: true });
-});
 
 test('minion ownership precedes generic flip and shroud denials', () => {
   const { runtime, core, check } = fixture();

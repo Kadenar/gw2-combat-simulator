@@ -9,7 +9,7 @@ import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitSkillReplacement } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
@@ -218,7 +218,12 @@ const birdOfPrey = defineTrait({
 });
 
 /** Owns Perilous Skies's live tuning and trait behavior. */
-const perilousSkies = defineTrait({ id: TRAIT.PERILOUS_SKIES, name: 'Perilous Skies' });
+const perilousSkies = defineTrait({
+  id: TRAIT.PERILOUS_SKIES,
+  name: 'Perilous Skies',
+  // Saved Cyclone Bow casts follow the selected replacement without rewriting the rotation on trait edits.
+  hooks: { modifySkillId: traitSkillReplacement(TRAIT.PERILOUS_SKIES, [[ID.QUARRYS_PERIL, ID.PELT]]) }
+});
 
 /** Register authored owners in a fixed order; runtime boundaries stay explicit. */
 export const galeshotTraits = [

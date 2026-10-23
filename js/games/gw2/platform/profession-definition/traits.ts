@@ -39,6 +39,21 @@ export type TraitHooks<TSkill extends Skill = Skill> = Pick<
   ) => void;
 };
 
+/**
+ * Builds a `modifySkillId` hook for skills a trait swaps in place. Either saved identity resolves to the variant the
+ * current selection picks, so rotations survive trait edits and the inactive variant can never be cast.
+ */
+export function traitSkillReplacement(
+  traitId: SkillId,
+  pairs: readonly (readonly [base: SkillId, replacement: SkillId])[]
+): NonNullable<TraitHooks['modifySkillId']> {
+  const pairBySkillId = new Map(pairs.flatMap((pair) => [[pair[0], pair] as const, [pair[1], pair] as const]));
+  return (context, skillId) => {
+    const pair = pairBySkillId.get(skillId);
+    return pair ? pair[context.hasTrait(traitId) ? 1 : 0] : skillId;
+  };
+}
+
 /** Explicitly retained handlers finish admitted work; new activation belongs in triggers, including loop startup. */
 export type TraitLifetimeHooks<TSkill extends Skill = Skill> = Pick<
   NativeModuleHooks<TSkill>,

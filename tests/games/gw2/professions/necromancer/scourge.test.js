@@ -95,11 +95,6 @@ test('shade skills consume Core life force once and never enter a draining shrou
     assert.equal(core.activeShroud, '');
     assert.equal(core.lifeForce.rate, 0);
   }
-
-  const rejected = run([cast(ID.DESERT_SHROUD)], { ...base, selectedTraitIds: [TRAIT.HERALD_OF_SORROW] });
-  assert.equal(rejected.steps[0].invalid, true);
-  assert.equal(lifeForcePercent(rejected.planningState.profession.lifeForce), 100);
-  assert.equal(run([cast(ID.SANDSTORM_SHROUD)]).steps[0].invalid, true);
 });
 
 // A selected catalog cost must affect the affordability boundary and debit with the same build conversion.

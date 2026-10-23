@@ -1,9 +1,10 @@
 import { CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { cloudburstBlusterReset } from '#gw2/professions/ranger/specializations/galeshot/traits/behavior.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 /** Explicit PvE skill mechanics owned by the Galeshot Ranger module. */
 
@@ -11,6 +12,13 @@ import { cloudburstBlusterReset } from '#gw2/professions/ranger/specializations/
 const CYCLONE_BOW_PALETTE_TILE = 'galeshot-cyclone-bow';
 // Keen Shot flips to Hawkeye at full Wind Force without creating a second weapon tile.
 const CYCLONE_BOW_ONE_PALETTE_TILE = 'galeshot-cyclone-bow-one';
+
+/** Both Cyclone Bow variants reset Bluster at commitment when Cloudburst is selected. */
+const cloudburstBlusterReset: SkillSideEffect = {
+  on: 'castCommit',
+  when: (runtime, cast) => Boolean(cast.skill.cycloneBowSkill) && hasTrait(runtime, TRAIT.CLOUDBURST),
+  do: { type: 'rechargeReset', skillIds: [ID.BLUSTER] }
+};
 
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
 export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

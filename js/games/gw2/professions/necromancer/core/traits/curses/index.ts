@@ -10,7 +10,11 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import {
+  defineTrait,
+  traitAttributeEffects,
+  traitSkillReplacement
+} from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
@@ -204,6 +208,10 @@ export const targetTheWeak = defineTrait({
 export const lingeringCurse = defineTrait({
   id: TRAIT.LINGERING_CURSE,
   name: 'Lingering Curse',
+  // Scepter 3 resolves to the selected variant, so saved rotations survive trait edits.
+  hooks: {
+    modifySkillId: traitSkillReplacement(TRAIT.LINGERING_CURSE, [[ID.FEAST_OF_CORRUPTION, ID.DEVOURING_DARKNESS]])
+  },
   balance: {
     attributeBonus: 200,
     durationMultiplier: 1.5

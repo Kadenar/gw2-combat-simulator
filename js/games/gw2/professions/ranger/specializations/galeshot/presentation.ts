@@ -3,6 +3,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionPaletteGroup,
@@ -10,9 +11,8 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
-import { perilousSkiesSelected } from '#gw2/professions/ranger/specializations/galeshot/traits/behavior.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 
 const BOW_SKILLS = Object.freeze([
@@ -45,7 +45,7 @@ function galeshotStateSnapshot(context: RangerUiContext): RotationStateSnapshotI
 
 /** Replaces Quarry's Peril with Pelt only while Perilous Skies is selected. */
 function visibleBowSkills(context: RangerUiContext) {
-  const perilousSkies = perilousSkiesSelected(context);
+  const perilousSkies = hasTrait(context, TRAIT.PERILOUS_SKIES);
   return BOW_SKILLS.filter((skillId) => skillId !== (perilousSkies ? ID.QUARRYS_PERIL : ID.PELT));
 }
 

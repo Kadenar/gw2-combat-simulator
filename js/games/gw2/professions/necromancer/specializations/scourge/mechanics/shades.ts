@@ -1,4 +1,5 @@
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -11,12 +12,11 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { scourgeShadeManifested } from '#gw2/professions/necromancer/specializations/scourge/mechanics/trigger-points.js';
 import { shadeDhuumfireParameters } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-projection.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import { purgeScourgeTimedState, scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
-import { sandSavantShadeProfile } from '#gw2/professions/necromancer/specializations/scourge/traits/behavior.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,
@@ -112,6 +112,14 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
       }
     });
   }
+}
+
+/** Select shade lifetime and capacity from the active patch's ordinary or Sand Savant profile. */
+function sandSavantShadeProfile(runtime: NecromancerRuntime) {
+  return requireBalanceProfileFromContext(
+    runtime,
+    hasTrait(runtime, TRAIT.SAND_SAVANT) ? TRAIT.SAND_SAVANT : PROFILE.shade
+  );
 }
 
 /** Manifest refreshes the capped shade lifetime before its queued impact. */

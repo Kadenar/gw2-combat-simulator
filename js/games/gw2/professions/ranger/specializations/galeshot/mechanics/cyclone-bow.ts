@@ -21,7 +21,6 @@ import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/trigger-po
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
-import { perilousSkiesAvailability } from '#gw2/professions/ranger/specializations/galeshot/traits/behavior.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -142,10 +141,6 @@ export function galeshotCastAvailability(
   if (skill.id === ID.KEEN_SHOT && windForce >= maximumWindForce) {
     return deny(skill, 'ranger.hawkeye-ready', `Hawkeye replaces Keen Shot at ${maximumWindForce} Wind Force.`);
   }
-
-  const replacement = perilousSkiesAvailability(context, skill);
-
-  if (replacement) return replacement;
 
   if (state.cycloneBowActive && skill.type === 'Weapon' && !skill.cycloneBowSkill) {
     return deny(skill, 'ranger.cyclone-bow-weapon-bar', 'the Cyclone Bow replaces weapon skills.');

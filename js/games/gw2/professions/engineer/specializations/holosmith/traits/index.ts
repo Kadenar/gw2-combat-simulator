@@ -7,7 +7,7 @@ import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/char
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitSkillReplacement } from '#gw2/platform/profession-definition/traits.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
@@ -16,7 +16,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { engineerSpecializationState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   holosmithEventMetadata,
   type HolosmithResolverEvent
@@ -54,10 +54,17 @@ const thermalReleaseValve = defineTrait({
   ]
 });
 
-/** Owns the selected Forge autoattack family; skill fragments retain each attack's packets. */
+/** Owns the selected Forge autoattack family; each chain stage keeps its position in the melee or Storm chain. */
 const crystalConfigurationStorm = defineTrait({
   id: TRAIT.CRYSTAL_CONFIGURATION_STORM,
-  name: 'Crystal Configuration: Storm'
+  name: 'Crystal Configuration: Storm',
+  hooks: {
+    modifySkillId: traitSkillReplacement(TRAIT.CRYSTAL_CONFIGURATION_STORM, [
+      [ID.LIGHT_STRIKE, ID.LIGHT_STRIKE_STORM],
+      [ID.BRIGHT_SLASH, ID.BRIGHT_SLASH_STORM],
+      [ID.FLASH_CUTTER, ID.FLASH_CUTTER_STORM]
+    ])
+  }
 });
 
 /** Owns Enhanced Capacity Storage Unit at its established heat and impact boundaries. */

@@ -3,7 +3,6 @@ import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { necromancerMinionAvailability } from '#gw2/professions/necromancer/core/mechanics/minions.js';
 import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
-import { lingeringCurseAvailability } from '#gw2/professions/necromancer/core/traits/curses/availability.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Follow-up skills require an armed window; shroud exits and autoattack chains own their own gates. */
@@ -80,13 +79,12 @@ function shroudSkillAvailability(
   return { ready: true };
 }
 
-/** Preserve trait, minion, flip, and form precedence, including successful Lich and shroud-entry short circuits. */
+/** Preserve minion, flip, and form precedence, including successful Lich and shroud-entry short circuits. */
 export function necromancerAvailability(
   runtime: MechanicQueriesOf<NecromancerRuntime>,
   skill: NecromancerSkill
 ): AvailabilityResult {
   return (
-    lingeringCurseAvailability(runtime, skill) ??
     necromancerMinionAvailability(runtime, skill) ??
     weaponFlipAvailability(runtime, skill) ??
     lichAvailability(runtime, skill) ??

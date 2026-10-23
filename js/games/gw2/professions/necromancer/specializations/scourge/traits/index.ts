@@ -9,7 +9,11 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import {
+  defineTrait,
+  traitAttributeEffects,
+  traitSkillReplacement
+} from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
@@ -27,10 +31,6 @@ import {
   scourgeShadeCommitted,
   scourgeShadeManifested
 } from '#gw2/professions/necromancer/specializations/scourge/mechanics/trigger-points.js';
-import {
-  heraldOfSorrowAvailability,
-  sandSavantMaximumAmmo
-} from '#gw2/professions/necromancer/specializations/scourge/traits/behavior.js';
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
@@ -101,7 +101,13 @@ const sandSavant = defineTrait({
       multiplier: { profile: TRAIT.SAND_SAVANT, field: 'rechargePenalty' }
     }
   ],
-  hooks: { maximumAmmo: (runtime, skill, maximum) => sandSavantMaximumAmmo(runtime, skill, maximum) }
+  hooks: {
+    // Sand Savant changes Manifest's ammo cap only while the trait is selected.
+    maximumAmmo: (context, skill, maximum) =>
+      skill.id === ID.MANIFEST_SAND_SHADE && context.hasTrait(TRAIT.SAND_SAVANT)
+        ? balanceProfileNumber(context.requireBalanceProfile(TRAIT.SAND_SAVANT), 'maximumStacks')
+        : maximum
+  }
 });
 
 /** Owns Abrasive Grit tuning and behavior at its existing execution boundaries. */
@@ -272,7 +278,8 @@ const nourishingAshes = defineTrait({
 const heraldOfSorrow = defineTrait({
   id: TRAIT.HERALD_OF_SORROW,
   name: 'Herald of Sorrow',
-  hooks: { availability: (runtime, skill, command) => heraldOfSorrowAvailability(runtime, skill, command) }
+  // F5 resolves to the selected shroud, so saved rotations survive trait edits.
+  hooks: { modifySkillId: traitSkillReplacement(TRAIT.HERALD_OF_SORROW, [[ID.DESERT_SHROUD, ID.SANDSTORM_SHROUD]]) }
 });
 
 /** Registers each native trait owner once in its existing execution order. */

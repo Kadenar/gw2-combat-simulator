@@ -5,11 +5,14 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { extendPeriodicEffects } from '#gw2/platform/effects/periodic.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import {
+  defineTrait,
+  traitAttributeEffects,
+  traitSkillReplacement
+} from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -220,7 +223,10 @@ export const unscathedContender = defineTrait({
 
 /** Owns Glacial Heart tuning and behavior at its existing mechanic boundaries. */
 export const glacialHeart = defineTrait({
-  hooks: { availability: (runtime, skill) => glacialHeartAvailability(runtime, skill) ?? { ready: true } },
+  // Hammer 2 resolves to the selected variant, so saved rotations survive trait edits.
+  hooks: {
+    modifySkillId: traitSkillReplacement(GUARDIAN_TRAIT_IDS.GLACIAL_HEART, [[ID.MIGHTY_BLOW, ID.GLACIAL_BLOW]])
+  },
   id: GUARDIAN_TRAIT_IDS.GLACIAL_HEART,
   name: 'Glacial Heart'
 });
@@ -279,21 +285,4 @@ function masterOfConsecrationsEffects(
   const multiplier = consecrationMultiplier(runtime, skill);
   const duration = Number(skill.comboFields?.[0]?.duration ?? 0);
   return multiplier > 1 ? extendPeriodicEffects(effects, Math.round(duration * (multiplier - 1) * 1000)) : effects;
-}
-
-/** Resolve hammer replacement before the Core weapon-flip availability checks. */
-function glacialHeartAvailability(runtime: MechanicQueriesOf<GuardianRuntime>, skill: Skill) {
-  const glacial = hasTrait(runtime, GUARDIAN_TRAIT_IDS.GLACIAL_HEART);
-
-  if (skill.id === ID.MIGHTY_BLOW && glacial)
-    return denySkillCast(
-      skill,
-      'guardian.trait-replacement',
-      'Glacial Blow replaces it while Glacial Heart is selected.'
-    );
-
-  if (skill.id === ID.GLACIAL_BLOW && !glacial)
-    return denySkillCast(skill, 'guardian.trait-replacement', 'requires the Glacial Heart trait.');
-
-  return null;
 }
