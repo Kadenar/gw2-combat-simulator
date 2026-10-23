@@ -807,6 +807,108 @@ body[data-profession] #app > header .community-actions {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
 }
 
+/* Plain rows keep preview assumptions close to Traits without adding another card. */
+.preview-assumptions {
+  margin: 8px 0 12px;
+  scroll-margin-top: 120px;
+  font-size: 12px;
+}
+
+.preview-assumptions > summary {
+  padding: 8px 0;
+  cursor: pointer;
+  color: var(--accent);
+}
+
+.preview-assumptions-content {
+  max-height: min(65vh, 540px);
+  padding: 0 0 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.preview-assumption-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+  gap: 20px 32px;
+  max-width: 960px;
+}
+
+.preview-assumption-group {
+  min-width: 0;
+}
+
+.preview-assumption-group h3 {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--text-bright);
+}
+
+.preview-assumption-value {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
+  margin-bottom: 12px;
+}
+
+.preview-assumption-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.preview-assumption-input input {
+  box-sizing: border-box;
+  width: 76px;
+  padding: 5px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-panel);
+  color: var(--text-bright);
+  font: inherit;
+}
+
+.preview-assumptions :is(input, button, summary):focus-visible,
+.preview-assumption-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.preview-other-assumptions {
+  margin: 12px 0;
+}
+
+.preview-other-assumptions > summary {
+  margin-bottom: 12px;
+  color: var(--text-bright);
+  cursor: pointer;
+}
+
+.preview-assumptions-content > .btn {
+  margin-top: 12px;
+}
+
+.preview-assumption-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.preview-assumption-link:hover {
+  text-decoration: underline;
+}
+
+.preview-result-assumptions {
+  flex-basis: 100%;
+  padding: 4px 0;
+}
+
 .patch-comparison {
   margin-bottom: 14px;
   padding: 14px;

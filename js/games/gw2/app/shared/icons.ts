@@ -125,6 +125,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   Defiance: 'https://assets.gw2dat.com/1938788.png',
   Blind: 'https://render.guildwars2.com/file/09770136BB76FD0DBE1CC4267DEED54774CB20F6/102837.png',
   Ammunition: 'https://render.guildwars2.com/file/B4490FB81AA1E7C06F1B22056AE09A0F54CBE2C4/1770201.png',
+  // Charge-count facts share the game's stack glyph, including familiar charge limits and grants.
+  Charges: 'https://render.guildwars2.com/file/B4490FB81AA1E7C06F1B22056AE09A0F54CBE2C4/1770201.png',
   // Boon-copy limits use the game's stack glyph; added boon duration uses the standard book glyph.
   'Maximum Boon Stacks Copied':
     'https://render.guildwars2.com/file/B4490FB81AA1E7C06F1B22056AE09A0F54CBE2C4/1770201.png',

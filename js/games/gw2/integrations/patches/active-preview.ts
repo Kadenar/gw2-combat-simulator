@@ -946,6 +946,21 @@ export const activePatchPreview: PatchPreview = {
       }
     },
     engineer: {
+      // Expose the unknown explosion bonus as a fraction, matching other percentage-based preview controls.
+      provisional: [
+        {
+          id: 'grenadierExplosionDamage',
+          label: 'Grenadier: explosion damage bonus',
+          specialization: 'Explosives',
+          traitId: '514',
+          profileId: '514',
+          field: 'damageIncrease',
+          minimum: 0,
+          maximum: 1,
+          step: 0.01,
+          unit: '%'
+        }
+      ],
       balanceProfiles: {
         '514': {
           assumption: 'TBD: final Grenadier explosion-damage percentage pending; 10% assumed for this preview.',

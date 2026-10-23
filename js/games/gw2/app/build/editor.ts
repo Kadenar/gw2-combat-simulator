@@ -9,6 +9,7 @@ import { renderSkills } from '#gw2/app/build/panels/skills.js';
 import { renderTraits } from '#gw2/app/build/panels/traits.js';
 import { mountRotationDisplayControls } from '#gw2/app/rotation/timeline/display-controls.js';
 import { mountSimulationSettings } from '#gw2/app/build/panels/simulation-settings.js';
+import { mountPreviewAssumptions } from '#gw2/app/patch-preview/assumptions.js';
 import type { BuildEditor } from '#browser/shell/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
@@ -17,6 +18,7 @@ export const gw2BuildEditor: BuildEditor<ProfessionAppState> = Object.freeze({
   sections: Object.freeze([
     { id: 'gear', render: renderGear },
     { id: 'traits', render: renderTraits },
+    { id: 'preview-assumptions', render: mountPreviewAssumptions },
     { id: 'attributes', render: renderAttributes },
     { id: 'skills', render: renderSkills },
     {

@@ -1,6 +1,7 @@
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { escapeHtml } from '#ui/shared/html.js';
+import { bindPreviewAssumptionNotice, previewAssumptionNotice } from '#gw2/app/patch-preview/assumptions.js';
 import type { PatchComparison } from '#gw2/app/simulation/baseline/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
@@ -155,6 +156,7 @@ export function renderPatchComparison(container: HTMLElement, app: ProfessionApp
         <div class="patch-comparison-metrics">
           <span>Live <strong>${Math.round(currentDps).toLocaleString()}</strong> &rarr; Preview <strong>${Math.round(previewDps).toLocaleString()}</strong> DPS</span>
           <strong class="${delta > 0 ? 'positive' : delta < 0 ? 'negative' : ''}">${signed(delta)} (${signed(percent, 2)}%)</strong>
+          ${previewAssumptionNotice(app)}
         </div>
         <span class="patch-selected-badge">Showing ${escapeHtml(selectedLabel)}</span>
       </div>
@@ -182,5 +184,6 @@ export function renderPatchComparison(container: HTMLElement, app: ProfessionApp
       }
     </details>
     </div>`;
+  bindPreviewAssumptionNotice(section);
   container.prepend(section);
 }

@@ -13,6 +13,7 @@ import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.j
 import { ownerConditionBreakdown, skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { analysisViewIsActive, renderSimulationViewModel } from '#browser/shell/result-view.js';
 import { renderPatchComparison } from '#gw2/app/patch-preview/view.js';
+import { mountPreviewAssumptionNotice } from '#gw2/app/patch-preview/assumptions.js';
 import type { SimulationViewModel, SimulationViewSection } from '#ui/results/simulation-view.js';
 import type { ResultIconRow } from '#gw2/app/results/skill-icons.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
@@ -142,6 +143,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
   const sharedView: SimulationViewModel = {
     summary: resultSection(
       (container) => mountResultSummary(container, summary),
+      (container) => mountPreviewAssumptionNotice(container, app),
       (container) => mountInputActivity(container, result.inputTrace)
     ),
     headerDps: metrics.find((metric) => metric.className === 'dps')?.value,
