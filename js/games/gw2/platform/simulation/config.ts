@@ -54,6 +54,9 @@ export interface Gw2Config {
   readonly professionAssumptions?: Readonly<ProfessionBuildAssumptions>;
   readonly target?: Gw2TargetConfig;
   readonly modifiers?: {
+    /** Player-owned damage factors exclude summon actors, even when their conditions inherit player stats. */
+    readonly playerStrike?: number;
+    readonly playerCondition?: number;
     readonly strike?: number;
     readonly condition?: number;
   };

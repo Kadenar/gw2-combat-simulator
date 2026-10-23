@@ -192,7 +192,8 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   const currentFood = await page.evaluate(() => window.professionApp.build.food);
   await panel.getByRole('button', { name: `Remove ${currentFood} from food`, exact: true }).click();
   await addChoice(panel, 'food', '');
-  await expect(panel.locator('form input[type="checkbox"]')).toHaveCount(0);
+  // Equipment choices use removable chips; scenario settings may use ordinary checkboxes.
+  await expect(panel.locator('[data-picker] input[type="checkbox"]')).toHaveCount(0);
   await expect(panel.locator('select[multiple]')).toHaveCount(0);
   await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Ready to run.');
   const before = await page.evaluate(() => ({

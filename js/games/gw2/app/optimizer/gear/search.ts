@@ -18,8 +18,14 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { SimulationSettings } from '#gw2/app/simulation/settings.js';
+import {
+  createOptimizerBuildContext,
+  validateFractalBuffs,
+  type FractalBuffs
+} from '#gw2/app/optimizer/gear/fractal-buffs.js';
 
 export interface GearOptimizerSelections {
+  fractal?: FractalBuffs;
   prefixes?: string[];
   rune?: string[];
   relic?: string[];
@@ -231,6 +237,7 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
           'infusionCount',
           'locks',
           'forcedSlots',
+          'fractal',
           ...Object.keys(OPTIMIZER_REQUIREMENTS)
         ].includes(key)
     )
@@ -238,6 +245,7 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
     throw new TypeError('Invalid optimizer selections.');
   }
 
+  validateFractalBuffs(selections.fractal);
   // Omitted requirements are unrestricted; reject malformed bounds before starting workers.
   for (const key of Object.keys(OPTIMIZER_REQUIREMENTS) as (keyof typeof OPTIMIZER_REQUIREMENTS)[]) {
     const value = selections[key];
@@ -453,11 +461,15 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
     }
 
     // Each candidate borrows the captured build and computes only the sets required before rejection.
-    const context = adapter.createBuildContext({
-      build: { ...request.build, ...equipment },
-      patch: adapter.profession.resolvePatch(request.patch),
-      transitionDelays: normalizeTransitionDelays(request.simulationSettings?.transitionDelays)
-    });
+    const context = createOptimizerBuildContext(
+      adapter,
+      {
+        build: { ...request.build, ...equipment },
+        patch: adapter.profession.resolvePatch(request.patch),
+        transitionDelays: normalizeTransitionDelays(request.simulationSettings?.transitionDelays)
+      },
+      request.selections.fractal
+    );
     // Reject candidates using finalized build attributes on every usable set before creating a combat simulation.
     const limits = request.selections;
 

@@ -439,6 +439,7 @@ export function calculateCommonAttributes(
       sigils: sigilStats[stat] || 0,
       infusions: infusions[stat] || 0
     };
+
     breakdown.final = Object.values(breakdown).reduce((sum, value) => sum + value, 0);
     attributes[stat] = breakdown;
   }

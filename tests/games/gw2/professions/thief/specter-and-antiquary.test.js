@@ -547,17 +547,17 @@ test('scepter autoattack progress survives other damaging skill casts', () => {
   }
 });
 
-test('scepter chain expires 2.9 seconds after its last successful cast completes', () => {
-  // Other skills cannot refresh the measured retention window; advancing invalidates the previous expiry.
+test('scepter chain expires three seconds after its last successful cast completes', () => {
+  // Other skills cannot refresh the modeled retention window; advancing invalidates the previous expiry.
   const wait = (durationMs) => ({ type: 'wait', durationMs });
   for (const [rotation, expected] of [
-    [['Shadow Bolt', wait(2899)], ID.DOUBLE_BOLT],
-    [['Shadow Bolt', wait(2900)], ID.SHADOW_BOLT],
-    [['Shadow Bolt', 'Double Bolt', wait(2900)], ID.SHADOW_BOLT],
+    [['Shadow Bolt', wait(2999)], ID.DOUBLE_BOLT],
+    [['Shadow Bolt', wait(3000)], ID.SHADOW_BOLT],
+    [['Shadow Bolt', 'Double Bolt', wait(3000)], ID.SHADOW_BOLT],
     [['Shadow Bolt', wait(2000), 'Double Bolt', wait(1000)], ID.TRIPLE_BOLT],
     [['Shadow Bolt', wait(2000), 'Shadow Sap', wait(400)], ID.SHADOW_BOLT],
-    [['Shadow Bolt', wait(2880), 'Double Bolt'], ID.TRIPLE_BOLT],
-    [['Shadow Bolt', wait(2900), 'Shadow Bolt'], ID.DOUBLE_BOLT]
+    [['Shadow Bolt', wait(2960), 'Double Bolt'], ID.TRIPLE_BOLT],
+    [['Shadow Bolt', wait(3000), 'Shadow Bolt'], ID.DOUBLE_BOLT]
   ]) {
     const result = simulate('Specter', rotation, {
       primaryWeapon: 'Scepter',
@@ -567,7 +567,7 @@ test('scepter chain expires 2.9 seconds after its last successful cast completes
     assert.equal(result.planningState.profession.autoattackChains[ID.SHADOW_BOLT] ?? ID.SHADOW_BOLT, expected);
   }
 
-  const expired = simulate('Specter', ['Shadow Bolt', wait(2900), 'Double Bolt'], {
+  const expired = simulate('Specter', ['Shadow Bolt', wait(3000), 'Double Bolt'], {
     primaryWeapon: 'Scepter',
     secondaryWeapon: 'Pistol'
   });

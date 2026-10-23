@@ -14,6 +14,7 @@ import type { Gw2DamageInputs, Gw2ModifierContext, Gw2ModifierContribution } fro
 import { appliedEffectStacks } from '#gw2/platform/combat/query/effect-stacks.js';
 import {
   gw2EventActorType,
+  isGw2PlayerModifierOwnedEvent,
   isGw2IllusionEvent,
   isGw2PhantasmEvent
 } from '#gw2/platform/combat/state/event-ownership.js';
@@ -580,12 +581,17 @@ export function createGw2CombatQuery({
             : sigilFactor - 1;
       const timeOfDayMultiplier = config.timeOfDay === 'night' ? sigils.nightStrikeMultiplier || 1 : 1;
       const utilityMultiplier = 1 + (UTILITY_STRIKE_DAMAGE_BONUSES[config.utility || ''] || 0) / 100;
+      const playerMultiplier =
+        event.actorType !== ACTOR.SUMMON && isGw2PlayerModifierOwnedEvent(event)
+          ? (config.modifiers?.playerStrike ?? 1)
+          : 1;
       // Independent factors retain their established order; only additive equipment enters the shared bucket.
       const base =
         vulnerability *
         timeOfDayMultiplier *
         (sigils.strikeMultiplier || 1) *
         utilityMultiplier *
+        playerMultiplier *
         (config.modifiers?.strike || 1);
       const total = modifier(
         hookContext(time, {
@@ -603,6 +609,7 @@ export function createGw2CombatQuery({
         traceFactor(contributors, 'equipment.night', 'Night sigil', timeOfDayMultiplier);
         traceFactor(contributors, 'equipment.sigil-multiplier', 'Sigils', sigils.strikeMultiplier || 1);
         traceFactor(contributors, 'equipment.utility', 'Utility', utilityMultiplier);
+        traceFactor(contributors, 'config.player-strike', 'Configured player modifier', playerMultiplier);
         traceFactor(contributors, 'config.strike', 'Configured modifier', config.modifiers?.strike || 1);
         closeContributions(contributors, total);
       }
@@ -617,6 +624,11 @@ export function createGw2CombatQuery({
       sample?: Gw2ConditionSample,
       contributors?: Gw2ModifierContribution[]
     ) {
+      // Capture the original actor before condition inheritance rewrites summon ownership.
+      const playerMultiplier =
+        event?.actorType !== ACTOR.SUMMON && isGw2PlayerModifierOwnedEvent(event)
+          ? (config.modifiers?.playerCondition ?? 1)
+          : 1;
       event = conditionOwnerEvent(event);
       const relicContext = runtime?.relic ? runtime : historicalRelicContext;
       const usesEquipmentModifiers = event?.summonUsesEquipmentModifiers !== false;
@@ -634,7 +646,7 @@ export function createGw2CombatQuery({
       const modifier = activeProfession.modifyConditionDamage;
       const vulnerability = 1 + (sample?.vulnerabilityStacks ?? vulnerabilityStacksAt(time, runtime)) / 100;
       // Equipment enters the canonical evaluator's additive bucket, separate from target and configured factors.
-      const base = vulnerability * (config.modifiers?.condition || 1);
+      const base = vulnerability * playerMultiplier * (config.modifiers?.condition || 1);
       const total = modifier(
         hookContext(time, {
           event,
@@ -650,6 +662,7 @@ export function createGw2CombatQuery({
       if (contributors) {
         traceFactor(contributors, 'target.vulnerability', CONDITION.VULNERABILITY, vulnerability);
         traceFactor(contributors, 'config.condition', 'Configured modifier', config.modifiers?.condition || 1);
+        traceFactor(contributors, 'config.player-condition', 'Configured player modifier', playerMultiplier);
         closeContributions(contributors, total);
       }
 

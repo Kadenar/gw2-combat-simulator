@@ -13,12 +13,13 @@ import {
 } from '#gw2/app/optimizer/gear/search.js';
 import { optimizerEquipmentIdentity } from '#gw2/app/optimizer/gear/candidate-results.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { optimizerBuildContextFactory } from '#gw2/app/optimizer/gear/fractal-buffs.js';
 
 /** Show current gear by default, or inspect a captured candidate without equipping or saving it. */
 export function renderOptimizerPreview(
   container: HTMLElement,
   app: ProfessionAppState,
-  request: Pick<GearOptimizerRequest, 'build' | 'patch'> = app,
+  request: Pick<GearOptimizerRequest, 'build' | 'patch'> & Partial<Pick<GearOptimizerRequest, 'selections'>> = app,
   candidate?: OptimizerCandidate,
   weaponSet = request.build.startingWeaponSet,
   onApply?: () => void
@@ -28,21 +29,21 @@ export function renderOptimizerPreview(
   const attributePreviewOpen = container.querySelector('.attribute-effects')?.hasAttribute('open') ?? false;
   const build = structuredClone({ ...request.build, ...candidate?.equipment });
   const patch = app.profession.resolvePatch(request.patch);
+  // Only this detached adapter applies optimizer bonuses when preview controls rebuild the context.
+  const createBuildContext = optimizerBuildContextFactory(app.adapter, request.selections?.fractal);
   const preview = {
-    adapter: app.adapter,
+    adapter: { ...app.adapter, createBuildContext },
     profession: app.profession,
     simulationSettings: app.simulationSettings,
     build,
     patch,
     activeCatalog: patch.catalog,
     attributeWeaponSet: weaponSet,
-    attributeData: app.adapter
-      .createBuildContext({
-        build,
-        patch,
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
-      })
-      .attributes(weaponSet === 2 ? 2 : 1)
+    attributeData: createBuildContext({
+      build,
+      patch,
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    }).attributes(weaponSet === 2 ? 2 : 1)
   };
   const specialization = app.adapter.eliteSpecialization(build);
   const entry = getProfessionEntry(app.adapter.id);

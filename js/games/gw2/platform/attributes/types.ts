@@ -92,6 +92,8 @@ interface Gw2ConversionAttributeEffect extends Gw2AttributeEffectBase {
 export type Gw2AttributeEffect = Gw2FlatAttributeEffect | Gw2ConversionAttributeEffect;
 
 export interface Gw2AttributeBreakdown {
+  /** Fractal potion bonuses stay separate from equipment and do not feed further attribute conversions. */
+  fractalPotions?: number;
   /** Permanent armor reinforcement is applied after conversions, separately from equipment and trait grants. */
   reinforcedArmor?: number;
   final: number;

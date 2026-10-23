@@ -170,6 +170,7 @@ export function validateCommonAssumptions(assumptions: unknown): string[] {
   }
 
   const errors: string[] = [];
+
   try {
     normalizeProcRateOverrides((assumptions as Record<string, unknown>).procRateOverrides);
   } catch (error) {
