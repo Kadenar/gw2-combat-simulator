@@ -5,6 +5,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
+import { addCarapace, deathCarapaceStacks } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerNativeModules, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -126,6 +127,58 @@ test('Carapace grants and Deadly Strength use the same patched capacity and expi
   }
 
   assert.equal(necromancerProfession.catalog.balanceProfilesById.get(TRAIT.FLESH_OF_THE_MASTER).maximumStacks, 30);
+});
+
+// Overflow is discarded, so only expiry frees timed-stack capacity and rejected grants cannot extend attributes.
+test('Carapace rejects capped grants and admits only slots freed by expiry', () => {
+  const config = { specialization: 'Core', selectedTraitIds: [TRAIT.DEADLY_STRENGTH] };
+  const profession = necromancerProfession.runtimeFor(config);
+  const runtime = observedRuntime(observeGw2Runtime({ profession, config, rotation: [] }));
+  const state = runtime.profession.core;
+
+  addCarapace(runtime, 28, 0, 10);
+  addCarapace(runtime, 5, 1, 20);
+  const capped = [...Array(28).fill(10), 21, 21];
+  assert.deepEqual(state.carapaceExpiries, capped);
+
+  addCarapace(runtime, 10, 5, 60);
+  assert.deepEqual(state.carapaceExpiries, capped);
+  assert.equal(deathCarapaceStacks(runtime, state, 10), 2);
+  assert.equal(
+    profession.modifyAttributes({ catalog: profession.catalog, config, runtime, time: 10 }, { power: 1000 }).power,
+    1020
+  );
+
+  addCarapace(runtime, 40, 10, 20);
+  assert.deepEqual(state.carapaceExpiries, [21, 21, ...Array(28).fill(30)]);
+  assert.equal(deathCarapaceStacks(runtime, state, 21), 28);
+  assert.equal(deathCarapaceStacks(runtime, state, 30), 0);
+});
+
+// Selected minions occupy shared capacity; rejected timed stacks must not surface when those minions disappear.
+test('Carapace admission includes minion stacks only with Flesh of the Master selected', () => {
+  for (const selected of [false, true]) {
+    const config = { specialization: 'Core', selectedTraitIds: selected ? [TRAIT.FLESH_OF_THE_MASTER] : [] };
+    const profession = necromancerProfession.runtimeFor(config);
+    const runtime = observedRuntime(observeGw2Runtime({ profession, config, rotation: [] }));
+    const state = runtime.profession.core;
+    state.activeMinions = { [ID.SUMMON_BONE_MINIONS]: 2 };
+
+    addCarapace(runtime, 40, 0, 10);
+    assert.deepEqual(state.carapaceExpiries, Array(selected ? 26 : 30).fill(10));
+    assert.equal(deathCarapaceStacks(runtime, state, 0), 30);
+    addCarapace(runtime, 10, 5, 60);
+    assert.deepEqual(state.carapaceExpiries, Array(selected ? 26 : 30).fill(10));
+
+    state.activeMinions = {};
+    assert.equal(deathCarapaceStacks(runtime, state, 5), selected ? 26 : 30);
+    addCarapace(runtime, 10, 5, 20);
+    assert.deepEqual(
+      state.carapaceExpiries,
+      selected ? [...Array(26).fill(10), ...Array(4).fill(25)] : Array(30).fill(10)
+    );
+    assert.equal(deathCarapaceStacks(runtime, state, 10), selected ? 4 : 0);
+  }
 });
 
 // Soul Comprehension applies its own counted-stack limit to the same capped, live Carapace total as attributes.
