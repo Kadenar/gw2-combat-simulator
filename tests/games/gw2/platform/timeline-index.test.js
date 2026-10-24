@@ -251,13 +251,13 @@ test('appended boon extensions invalidate intensity and duration queries', () =>
   const events = [buffEvent(), buffEvent({ kind: 'fury', stacks: 1 })];
   const timeline = createGw2TimelineIndex({ events });
   assert.equal(timeline.buffStacksAt('might', 2.5, 0, 25), 0);
-  assert.equal(timeline.timedActive('fury', 2.5), false);
+  assert.equal(timeline.buffStacksAt('fury', 2.5, 0, 1), 0);
   const extension = { type: 'boon_extension', at: 1, duration: 2, source: 'Trait' };
   events.push(extension);
   assert.equal(timeline.buffStacksAt('might', 2.5, 0, 25), 4);
-  assert.equal(timeline.timedActive('fury', 2.5), true);
+  assert.equal(timeline.buffStacksAt('fury', 2.5, 0, 1), 1);
   assert.equal(timeline.buffStacksAt('might', 0.5, 0, 25), 4);
-  assert.equal(timeline.timedActive('fury', 0.5), true);
+  assert.equal(timeline.buffStacksAt('fury', 0.5, 0, 1), 1);
 });
 
 test('buff history bounds preserve mixed lifetimes, fallback durations, and backward queries', () => {

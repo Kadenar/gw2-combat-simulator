@@ -33,7 +33,6 @@ export interface RangerSharpenedEdgesObservation {
   readonly playerCriticalHits: number;
   readonly petCriticalHits: number;
   readonly matchedApplications: number;
-  readonly playerMatchedApplications: number;
   readonly observedProcRate: number;
   readonly expectedProcChance: number;
   readonly expectedApplications: number;
@@ -167,7 +166,6 @@ export function analyzeRangerSharpenedEdgesObservation(
     playerCriticalHits,
     petCriticalHits,
     matchedApplications,
-    playerMatchedApplications,
     observedProcRate: matchedApplications / criticalHits,
     expectedProcChance,
     expectedApplications: criticalHits * expectedProcChance,

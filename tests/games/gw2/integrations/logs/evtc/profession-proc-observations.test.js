@@ -479,7 +479,6 @@ test('matches Sharpened Edges with separate player and equipped-pet expertise', 
     playerCriticalHits: 2,
     petCriticalHits: 2,
     matchedApplications: 3,
-    playerMatchedApplications: 1,
     observedProcRate: 0.75,
     expectedProcChance: 0.33,
     expectedApplications: 1.32,
@@ -520,7 +519,7 @@ test('matches Sharpened Edges before and during Light on Your Feet', () => {
   );
 
   assert.equal(result.playerCriticalHits, 2);
-  assert.equal(result.playerMatchedApplications, 2);
+  assert.equal(result.matchedApplications, 2);
   assert.deepEqual(result.playerMatchedDurationsMs, [4_500, 4_800]);
 });
 

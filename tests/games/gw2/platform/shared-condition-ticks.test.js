@@ -15,6 +15,10 @@ import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-phase.js';
 
+// Derive paid lifetime from reported payouts so tests protect accounting without a runtime-only accumulator.
+const paidStackSeconds = (application) =>
+  application.damageTicks.reduce((total, tick) => total + tick.fraction * application.stacks, 0);
+
 // Resolver queries must follow executed state changes, including cache invalidation within one timestamp.
 test('samples and strikes see cooldown resets, checkpoint restoration, and swaps only after execution', () => {
   for (const output of ['detailed', 'score']) {
@@ -584,7 +588,7 @@ test('first damage replaces existing condition wakes while preserving precombat 
     { combatStartTime: 0.2, end: 3.375 }
   );
   assert.equal(result.firstHitTime, 0.375);
-  assert.equal(applications(result)[0].damagingStackSeconds, 2.625);
+  assert.equal(paidStackSeconds(applications(result)[0]), 2.625);
   assert.equal(applications(result)[1].damage, 0);
 });
 
@@ -747,7 +751,7 @@ test('condition accounting preserves complete lifetimes across empty target wind
     { end: 12.6 }
   );
   for (const application of applications(result).slice(0, 3)) {
-    assert.ok(Math.abs(application.damagingStackSeconds - application.effectiveDuration) < 1e-9);
+    assert.ok(Math.abs(paidStackSeconds(application) - application.effectiveDuration) < 1e-9);
   }
 });
 
@@ -758,8 +762,8 @@ test('short lifetimes settle once on the shared pulse without rounding both spli
     condition(0.8, { duration: 0.04 })
   ]);
   const [, split, short] = applications(result);
-  assert.equal(split.damagingStackSeconds, 0.5);
-  assert.equal(short.damagingStackSeconds, 0.04);
+  assert.equal(paidStackSeconds(split), 0.5);
+  assert.equal(paidStackSeconds(short), 0.04);
   assert.equal(resolve([condition(0, { duration: 0.52 })], { end: 0.8 }).conditionDamage, 0);
   assert.equal(resolve([condition(0, { duration: 0.52 })], { end: 1 }).conditionDamage, 15);
 });

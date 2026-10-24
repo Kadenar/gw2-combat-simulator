@@ -51,11 +51,7 @@ export function getSkillDropInsertionIndex(skillElement: HTMLElement, clientX: n
 export function bindTimelineInteractions(
   root: HTMLElement | null | undefined,
   options: TimelineInteractionOptions
-):
-  | {
-      readonly applyDrop: (insertAt: number) => boolean;
-    }
-  | undefined {
+): void {
   if (!root) return;
 
   // Interaction helpers mutate the caller-owned rotation in place, then use
@@ -269,6 +265,4 @@ export function bindTimelineInteractions(
   bindEdit('.rot-edit-activation, .rot-interrupt-badge', options.onEditActivation);
   bindEdit('.rot-double-edge-badge', options.onEditDoubleEdgeOutcome);
   bindEdit('.rot-edit-wait, .rot-wait-badge', options.onEditWait);
-
-  return { applyDrop };
 }

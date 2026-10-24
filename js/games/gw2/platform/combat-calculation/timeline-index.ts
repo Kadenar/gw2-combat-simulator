@@ -300,7 +300,6 @@ export function createGw2TimelineIndex({
 
   return Object.freeze({
     buffStacksAt,
-    timedActive,
     vigorActiveAt,
     activeWeaponSetAt,
     skillOnCooldownAt,
@@ -318,7 +317,6 @@ export interface Gw2TimelineIndex {
     audience?: Gw2BuffAudience,
     companionId?: string | null
   ): number;
-  timedActive(kind: string, time: number): boolean;
   vigorActiveAt(time: number): boolean;
   activeWeaponSetAt(time: number): number;
   skillOnCooldownAt(skillId: SkillId, time: number): boolean;

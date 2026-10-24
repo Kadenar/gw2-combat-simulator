@@ -5,7 +5,6 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { applyRangerPetSwap } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /**
@@ -47,7 +46,6 @@ export function swapRangerPets(runtime: RangerRuntime, skill: Skill): void {
   const state = runtime.profession.core;
   const slot = state.activePetSlot === 1 ? 2 : 1;
   applyRangerPetSwap(runtime, slot);
-  const pet = rangerPetForState(state);
   runtime.effects.emit({
     kind: 'packet',
     event: buildRangerPacket(
@@ -55,8 +53,7 @@ export function swapRangerPets(runtime: RangerRuntime, skill: Skill): void {
         at: runtime.time,
         skillId: skill.id,
         skillName: skill.name,
-        activePet: pet.name,
-        activePetSlot: slot,
+        // The marker identifies the incoming lifetime; pet selection remains in the live state.
         companionId: state.pet!.id
       },
       'ranger.pet-swapped'

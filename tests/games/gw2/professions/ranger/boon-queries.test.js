@@ -46,7 +46,7 @@ test('Ranger and Soulbeast standard boons use live player recipients and duratio
   assert.equal(rangerActiveBoonCount({ time: 8, config: { boons: { fury: true, might: 25 } } }, 'player'), 2);
   assert.equal(boonActive({ time: 4 }, 'fury'), false);
   // Pure boon queries cannot retrieve custom pet-command windows.
-  assert.equal(boonActive({ time: 4, timeline: { timedActive: () => true } }, 'sic-em-pet'), false);
+  assert.equal(boonActive({ time: 4, timeline: { buffStacksAt: () => 1 } }, 'sic-em-pet'), false);
 });
 
 test('pet retirement clears live boon queries while preserving pre-swap history', () => {

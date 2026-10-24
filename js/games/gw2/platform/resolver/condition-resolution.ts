@@ -499,7 +499,6 @@ export function createGw2ConditionResolution({
         bufferedRawDamage: 0,
         bufferedDurationUs: 0,
         damage: 0,
-        damagingStackSeconds: 0,
         damageTicks: [],
         ...(durationTrace
           ? {
@@ -602,9 +601,8 @@ export function createGw2ConditionResolution({
     const ranked = [...contributions].sort((a, b) => b.rawDamage - b.damage - (a.rawDamage - a.damage));
     for (let index = 0; index < remainder; index += 1) ranked[index].damage += 1;
     for (const contribution of contributions) {
-      const { application, fraction, stackSeconds, damage: share } = contribution;
+      const { application, fraction, damage: share } = contribution;
       application.damage += share;
-      application.damagingStackSeconds += stackSeconds;
 
       if (ctx.reporting) application.damageTicks.push({ at: event.at, damage: share, fraction });
 
@@ -684,7 +682,6 @@ export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
   bufferedRawDamage: number;
   bufferedDurationUs: number;
   damage: number;
-  damagingStackSeconds: number;
   /** Present only in diagnostic runs. */
   conditionCalculation?: Gw2ConditionCalculation;
   readonly damageTicks: Array<{

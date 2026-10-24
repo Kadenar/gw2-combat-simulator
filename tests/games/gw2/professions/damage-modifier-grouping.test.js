@@ -41,7 +41,6 @@ function modifierContext({
     ...events.filter((event) => event.type === 'buff')
   ])
     recordBuffApplication(buffs, { ...event, resolvedAudience: { includesSelf: true } });
-  const activeKinds = new Set(active);
   const mightStacksAt = () => Number(config.boons?.might || 0);
   const furyActiveAt = () => Boolean(config.boons?.fury);
   const vulnerabilityStacksAt = () => Number(config.target?.conditions?.Vulnerability || 0);
@@ -75,7 +74,6 @@ function modifierContext({
       conditionSigilBonus: sigils.conditionAdd ?? Number(sigils.condition || 1) - 1
     },
     timeline: {
-      timedActive: (kind) => activeKinds.has(kind),
       vigorActiveAt: () => Boolean(config.boons?.vigor)
     }
   };

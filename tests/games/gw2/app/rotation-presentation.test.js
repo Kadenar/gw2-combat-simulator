@@ -438,7 +438,20 @@ test('timeline canonical entries expose stable presentation names', () => {
   assert.equal(rotationEntryName({ type: 'wait', durationMs: 50 }), '__wait');
 });
 
-test('timeline binding inserts palette entries and drop positions use tile halves', () => {
+test('timeline binding inserts palette entries and drop positions use tile halves', (t) => {
+  // Drive the registered drop handler through an insertion gap, as the browser does.
+  const originalElement = Object.getOwnPropertyDescriptor(globalThis, 'Element');
+  class DropTarget {
+    closest(selector) {
+      return selector === '.rot-insertion-gap' ? { dataset: { insertionIndex: '1' } } : null;
+    }
+  }
+  Object.defineProperty(globalThis, 'Element', { configurable: true, value: DropTarget });
+  t.after(() => {
+    if (originalElement) Object.defineProperty(globalThis, 'Element', originalElement);
+    else delete globalThis.Element;
+  });
+  const drop = () => root.ondrop({ target: new DropTarget(), preventDefault() {}, stopPropagation() {} });
   let dragState = { source: 'palette', name: 'New', skillId: 12345 };
   let changes = 0;
   const rotation = [{ type: 'cast', skillId: 'A' }];
@@ -453,7 +466,7 @@ test('timeline binding inserts palette entries and drop positions use tile halve
     return true;
   };
 
-  const binding = bindTimelineInteractions(root, {
+  bindTimelineInteractions(root, {
     rotation,
     getDragState: () => dragState,
     setDragState: (value) => {
@@ -471,7 +484,7 @@ test('timeline binding inserts palette entries and drop positions use tile halve
     }
   });
 
-  assert.equal(binding.applyDrop(1), true);
+  drop();
   assert.deepEqual(rotation, [
     { type: 'cast', skillId: 'A' },
     { type: 'cast', skillId: 12345, interruptAfterMs: 100 }
@@ -480,7 +493,7 @@ test('timeline binding inserts palette entries and drop positions use tile halve
   assert.equal(changes, 1);
 
   dragState = { source: 'palette', name: 'Macro' };
-  const macroBinding = bindTimelineInteractions(root, {
+  bindTimelineInteractions(root, {
     rotation,
     getDragState: () => dragState,
     setDragState: (value) => {
@@ -497,7 +510,7 @@ test('timeline binding inserts palette entries and drop positions use tile halve
     }
   });
 
-  assert.equal(macroBinding.applyDrop(1), true);
+  drop();
   assert.deepEqual(rotation, [
     { type: 'cast', skillId: 'A' },
     { type: 'cast', skillId: 10 },

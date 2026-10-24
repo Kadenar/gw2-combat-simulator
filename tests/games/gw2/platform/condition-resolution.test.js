@@ -14,6 +14,10 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { gw2ResolverPhase } from '#gw2/platform/resolver/event-phase.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
 
+// Derive paid lifetime from reported payouts so tests protect accounting without a runtime-only accumulator.
+const paidStackSeconds = (application) =>
+  application.damageTicks.reduce((total, tick) => total + tick.fraction * application.stacks, 0);
+
 // Condition resolution preserves fractional ticks, observation boundaries, and environment attribution.
 function tormentDamageAtMight(might) {
   const defaults = defaultSimulationConfig();
@@ -110,7 +114,7 @@ test('condition applications shorter than one second deal fractional damage', ()
   assert.deepEqual(result.resolvedEvents[0].metadata, metadata);
   for (const field of Object.keys(metadata)) assert.equal(Object.hasOwn(result.resolvedEvents[0], field), false);
   assert.equal(result.firstHitTime, 1);
-  assert.equal(result.resolvedEvents[0].damagingStackSeconds, 0.5);
+  assert.equal(paidStackSeconds(result.resolvedEvents[0]), 0.5);
   assert.deepEqual(result.warnings, [{ message: 'resolver handoff warning' }]);
 });
 
@@ -176,7 +180,7 @@ test('staggered condition applications preserve fractional stack-seconds', () =>
 
   // Whole-millisecond durations retain exactly 1.25 + 0.5 stack-seconds.
   assert.equal(
-    applications.reduce((total, application) => total + application.damagingStackSeconds, 0),
+    applications.reduce((total, application) => total + paidStackSeconds(application), 0),
     1.75
   );
   // At 1s: roundEven(82 + 20.5); at 2s: roundEven(20.5 + 20.5) from both expiry remainders.
@@ -301,8 +305,8 @@ test('observation horizons omit future condition ticks without creating endpoint
   const extendedApplication = extended.resolvedEvents.find((event) => event.type === 'condition');
 
   // An observation cutoff must not manufacture the unpaid partial interval.
-  assert.equal(clippedApplication.damagingStackSeconds, 1);
-  assert.equal(extendedApplication.damagingStackSeconds, 2);
+  assert.equal(paidStackSeconds(clippedApplication), 1);
+  assert.equal(paidStackSeconds(extendedApplication), 2);
   assert.equal(clipped.conditionDamage, extendedApplication.damageTicks[0].damage);
 });
 
@@ -321,7 +325,7 @@ test('target death occurs on shared condition pulses rather than expiry or the o
   assert.equal(deadTarget.deathTime, 0);
   assert.equal(deadTarget.totalDamage, 0);
   assert.equal(throughNaturalRemainder.deathTime, 2);
-  assert.equal(remainderApplication.damagingStackSeconds, 1.5);
+  assert.equal(paidStackSeconds(remainderApplication), 1.5);
 });
 
 test('precombat target conditions are rejected rather than carried into combat', () => {
