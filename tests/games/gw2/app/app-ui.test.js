@@ -992,7 +992,7 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
         conditionDamage: 0,
         randomDistributionRequested: true,
         randomDistributionTrials: 500,
-        inputTrace: { version: 1, start: 0, end: 1, actions: [] }
+        inputTrace: { start: 0, end: 1, actions: [] }
       },
       runRandomDistribution() {
         runCount += 1;

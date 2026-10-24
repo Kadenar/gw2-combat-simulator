@@ -34,7 +34,7 @@ export function storeThiefStolenSkillChoices(runtime: ThiefRuntime, skillIds: re
 /** Stores the steal's choices and grants Core's on-steal initiative; specializations add theirs afterwards. */
 export function completeThiefSteal(runtime: ThiefRuntime, skillIds: readonly SkillId[]): void {
   storeThiefStolenSkillChoices(runtime, skillIds);
-  runtime.fireTrigger(stealCompleted, { at: runtime.time });
+  runtime.fireTrigger(stealCompleted, {});
 }
 
 /** Using a stored skill spends one use; a remaining Improvisation use stays locked to the same skill. */

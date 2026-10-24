@@ -140,7 +140,7 @@ function detonatePrecastMines(runtime: EngineerRuntime): void {
         skillName: skill.name
       }
     });
-    notifyToolbeltActivation(runtime, detonation, activationId);
+    notifyToolbeltActivation(runtime, detonation);
   }
 }
 
@@ -150,7 +150,7 @@ const mineFieldActions: NonNullable<RuntimeHooks<EngineerRuntimeState, EngineerS
     if (context.kind !== 'cast') throw new TypeError('Mine Field requires a cast trigger.');
 
     if (runtime.engagement.boundaryPending) runtime.profession.core.pendingMineFieldActivationIds.push(context.cast.id);
-    else notifyToolbeltActivation(runtime, runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!, context.cast.id);
+    else notifyToolbeltActivation(runtime, runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!);
   }
 };
 

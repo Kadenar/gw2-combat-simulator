@@ -34,7 +34,7 @@ test('Kinetic Battery resets before its reward and admits only qualifying toolbe
     bindTriggerPoints(context, engineerProfession);
     const activate = (at, activated = skill) => {
       context.time = at;
-      notifyToolbeltActivation(context, activated, `cast:${at}`);
+      notifyToolbeltActivation(context, activated);
     };
 
     return { core, observations, activate };

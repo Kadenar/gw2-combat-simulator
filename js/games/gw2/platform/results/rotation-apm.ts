@@ -23,7 +23,6 @@ export interface RotationApm {
 interface RotationApmPeak {
   readonly startSeconds: number;
   readonly endSeconds: number;
-  readonly actionCount: number;
   readonly apm: number;
 }
 
@@ -42,7 +41,7 @@ function occupiedSeconds(intervals: [number, number][]): number {
 /** Project the canonical trace window into APM units; the activity chart uses the same window counts. */
 function peakApm(trace: InputTrace, seconds: number): RotationApmPeak | null {
   const peak = rankedInputWindows(trace, seconds)[0];
-  return peak ? { startSeconds: peak.start, endSeconds: peak.end, actionCount: peak.count, apm: peak.rate * 60 } : null;
+  return peak ? { startSeconds: peak.start, endSeconds: peak.end, apm: peak.rate * 60 } : null;
 }
 
 /** Manual counts come from accepted inputs; executed events supply autoattack and animation occupancy details. */

@@ -8,13 +8,12 @@ export function isEngineerToolbeltSkill(skill: EngineerSkill | undefined): boole
 }
 
 /** Every toolbelt entry path fires the same point at the live clock; other skills are not toolbelt activations. */
-export function notifyToolbeltActivation(runtime: EngineerRuntime, skill: EngineerSkill, activationId: string): void {
+export function notifyToolbeltActivation(runtime: EngineerRuntime, skill: EngineerSkill): void {
   if (!isEngineerToolbeltSkill(skill)) return;
 
   const at = runtime.time;
   runtime.fireTrigger(toolbeltActivated, {
     skill,
-    activationId,
     at,
     cause: {
       type: 'action',

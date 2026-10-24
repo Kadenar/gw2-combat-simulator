@@ -2,7 +2,6 @@ import type { InputAction } from '#gw2/platform/execution/input-controls.js';
 
 /** A detached reporting window over accepted execution inputs. */
 export interface InputTrace {
-  readonly version: 1;
   readonly start: number;
   readonly end: number;
   readonly actions: readonly InputAction[];
@@ -12,7 +11,6 @@ export interface InputTrace {
 export function projectInputTrace(actions: readonly InputAction[], start: number, end: number): InputTrace {
   const seen = new Set<string>();
   return {
-    version: 1,
     start,
     end,
     actions: actions

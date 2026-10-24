@@ -24,13 +24,8 @@ export const artifactActivated = defineTriggerPoint<ArtifactActivation>('thief.a
   TRAIT.METICULOUS_CUSTODIAN
 ]);
 
-/** A committed artifact, after its identity window. */
-export interface ArtifactCompletion {
-  readonly cast: RuntimeCast<ThiefSkill>;
-}
-
 /** Repeat Ransacker follows the artifact identity grant. */
-export const artifactCompleted = defineTriggerPoint<ArtifactCompletion>('thief.artifact-completed', [
+export const artifactCompleted = defineTriggerPoint<Record<string, never>>('thief.artifact-completed', [
   TRAIT.REPEAT_RANSACKER
 ]);
 

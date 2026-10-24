@@ -30,7 +30,6 @@ export const stealAccepted = defineTriggerPoint<StealAcceptance>('thief.steal-ac
 
 /** A completed steal whose stolen skills or artifacts are already stored; `swipe` marks an Antiquary Swipe. */
 export interface StealCompletion {
-  readonly at: number;
   readonly swipe?: boolean;
 }
 
@@ -76,21 +75,15 @@ export const stealthAttackCompleted = defineTriggerPoint<StealthAttackCompletion
   TRAIT.SUNDERING_SHADE
 ]);
 
-/** A signet activation whose cast completed; an interrupted activation never reaches this point. */
-export interface SignetCompletion {
-  readonly cast: RuntimeCast<ThiefSkill>;
-}
-
 /** Signets of Power grants initiative at cast end, so an interrupted signet grants nothing. */
-export const signetCompleted = defineTriggerPoint<SignetCompletion>('thief.signet-completed', [TRAIT.SIGNETS_OF_POWER]);
-
-/** A completed weapon swap, after the Thief stands up. */
-export interface ThiefWeaponSwap {
-  readonly at: number;
-}
+export const signetCompleted = defineTriggerPoint<Record<string, never>>('thief.signet-completed', [
+  TRAIT.SIGNETS_OF_POWER
+]);
 
 /** Quick Pockets grants in-combat initiative once per its cooldown. */
-export const thiefWeaponSwapped = defineTriggerPoint<ThiefWeaponSwap>('thief.weapon-swapped', [TRAIT.QUICK_POCKETS]);
+export const thiefWeaponSwapped = defineTriggerPoint<Record<string, never>>('thief.weapon-swapped', [
+  TRAIT.QUICK_POCKETS
+]);
 
 /** An accepted dodge, at takeoff; the runtime has already paid its endurance. */
 export interface ThiefDodge {

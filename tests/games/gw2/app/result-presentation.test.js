@@ -305,7 +305,7 @@ test('Analysis projections are prepared only when the Analysis view is active', 
       totalDamage: 100,
       dps: 100,
       randomDistributionRequested: true,
-      inputTrace: { version: 1, start: 0, end: 1, actions: [] }
+      inputTrace: { start: 0, end: 1, actions: [] }
     }
   };
   for (const [name, value] of Object.entries(analysisFields)) {

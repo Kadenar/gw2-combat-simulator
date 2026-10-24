@@ -6,7 +6,6 @@ import type { EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engi
 /** One accepted toolbelt activation; the cause is the toolbelt action that triggered skills keep as their parent. */
 export interface ToolbeltActivation {
   readonly skill: EngineerSkill;
-  readonly activationId: string;
   readonly at: number;
   readonly cause: EngineerResolverEvent;
 }

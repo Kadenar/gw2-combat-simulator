@@ -64,7 +64,7 @@ export const engineerCoreHooks = composeRuntimeHooks<EngineerRuntimeState, Engin
       }
     },
     onCastStart(runtime, cast) {
-      if (cast.skill.independentCast) notifyToolbeltActivation(runtime, cast.skill, cast.id);
+      if (cast.skill.independentCast) notifyToolbeltActivation(runtime, cast.skill);
 
       if (cast.skill.id !== SHARED_SKILL_IDS.DODGE) return;
 
@@ -75,7 +75,7 @@ export const engineerCoreHooks = composeRuntimeHooks<EngineerRuntimeState, Engin
     },
     onCastCommit(runtime, cast) {
       // Independent commands notify at acceptance; ordinary toolbelt casts notify only on completion.
-      if (!cast.skill.independentCast) notifyToolbeltActivation(runtime, cast.skill, cast.id);
+      if (!cast.skill.independentCast) notifyToolbeltActivation(runtime, cast.skill);
     },
     eventHandlers: {
       'engineer.air-blast': handleAirBlast

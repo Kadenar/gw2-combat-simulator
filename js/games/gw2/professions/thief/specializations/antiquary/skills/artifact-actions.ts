@@ -50,7 +50,7 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
         runtime.fireTrigger(artifactActivated, { cast: context.cast, slot: artifactSlotsUsed.get(context.cast) });
     },
     'thief.artifact-completed'(runtime, context) {
-      if (context.kind === 'cast') runtime.fireTrigger(artifactCompleted, { cast: context.cast });
+      if (context.kind === 'cast') runtime.fireTrigger(artifactCompleted, {});
     },
     'thief.skritt-swipe'(runtime, context) {
       if (context.kind === 'cast') completeSkrittSwipe(runtime, context.cast);

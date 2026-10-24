@@ -49,10 +49,10 @@ test('activation subscriptions remain isolated between simulations and respect t
   const selected = fixture([TRAIT.KINETIC_BATTERY]);
   const unselected = fixture([]);
   const toolbelt = engineerCatalog.skillsById.get(ID.DETONATE_MINE_FIELD);
-  notifyToolbeltActivation(selected.runtime, { ...toolbelt, countsAsToolbeltSkill: false }, 'cast:1');
+  notifyToolbeltActivation(selected.runtime, { ...toolbelt, countsAsToolbeltSkill: false });
   assert.equal(selected.runtime.profession.core.kineticCharges, 0);
-  notifyToolbeltActivation(selected.runtime, toolbelt, 'cast:1');
-  notifyToolbeltActivation(unselected.runtime, toolbelt, 'cast:1');
+  notifyToolbeltActivation(selected.runtime, toolbelt);
+  notifyToolbeltActivation(unselected.runtime, toolbelt);
   assert.equal(selected.runtime.profession.core.kineticCharges, 1);
   assert.equal(unselected.runtime.profession.core.kineticCharges, 0);
   assert.deepEqual(unselected.events, []);

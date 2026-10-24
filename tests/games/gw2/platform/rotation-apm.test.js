@@ -152,11 +152,11 @@ test('rolling 5s and 10s windows report sustained peaks with their actual timest
   assert.deepEqual(activity.windows[0], {
     start: metrics.peak5s.startSeconds,
     end: metrics.peak5s.endSeconds,
-    count: metrics.peak5s.actionCount,
+    count: 12,
     rate: metrics.peak5s.apm / 60
   });
-  assert.deepEqual(metrics.peak5s, { startSeconds: 7.52, endSeconds: 12.52, actionCount: 12, apm: 144 });
-  assert.deepEqual(metrics.peak10s, { startSeconds: 7.52, endSeconds: 17.52, actionCount: 12, apm: 72 });
+  assert.deepEqual(metrics.peak5s, { startSeconds: 7.52, endSeconds: 12.52, apm: 144 });
+  assert.deepEqual(metrics.peak10s, { startSeconds: 7.52, endSeconds: 17.52, apm: 72 });
   assert.equal(analyze(['Replacement']).metrics.peak5s, null);
   assert.equal(analyze([{ type: 'wait', durationMs: 5000 }]).metrics.peak10s, null);
   assert.equal(analyze(Array(10).fill('Standalone auto')).metrics.peak10s.apm, 0);
@@ -170,8 +170,8 @@ test('rolling windows respect exact edges and keep the final window inside execu
     { type: 'wait', durationMs: 5000 },
     'Instant'
   ]);
-  assert.deepEqual(metrics.peak5s, { startSeconds: 5, endSeconds: 10, actionCount: 2, apm: 24 });
-  assert.deepEqual(metrics.peak10s, { startSeconds: 0, endSeconds: 10, actionCount: 3, apm: 18 });
+  assert.deepEqual(metrics.peak5s, { startSeconds: 5, endSeconds: 10, apm: 24 });
+  assert.deepEqual(metrics.peak10s, { startSeconds: 0, endSeconds: 10, apm: 18 });
 });
 
 test('canonical autoattack metadata covers kits, transformed bars and manual replacements across professions', async () => {

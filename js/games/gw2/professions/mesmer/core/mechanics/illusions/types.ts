@@ -15,13 +15,6 @@ export interface MesmerClone {
   nextAttackAt?: number;
 }
 
-/** Adds trait profile and lifetime metadata to the shared strike definition. */
-export interface MesmerTraitDamage extends Partial<StrikeEffect> {
-  readonly balanceProfileId?: SkillId;
-  readonly cooldown?: number;
-  readonly duration?: number;
-}
-
 export interface MesmerPhantasmPolicy {
   readonly spawnModifiers: Readonly<
     Record<number, { readonly countMultiplier: number; readonly damageMultiplier: number }>
@@ -38,7 +31,7 @@ export interface MesmerPhantasmPolicy {
     /** Canonical granting trait identity is independent of the display name. */
     readonly traitId: number;
     readonly traitName: string;
-    readonly damage: MesmerTraitDamage;
+    readonly damage: Partial<StrikeEffect>;
   };
   readonly conversionTiming: 'spawn' | 'blade-tick';
 }

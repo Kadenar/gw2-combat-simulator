@@ -6,7 +6,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
-import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import type { StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { MesmerShatter, MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { CHAOS_STORM_POISON_PROFILE } from '#gw2/professions/mesmer/core/skills/weapons/staff.js';
@@ -115,16 +115,13 @@ export function mesmerProfiledShatter(context: unknown, shatter: MesmerShatterDe
   };
 }
 
-export function mesmerProfiledTraitDamage(context: unknown, balanceProfileId: SkillId): MesmerTraitDamage {
+/** Capture the selected trait strike and weapon strength for phantasm bonus attacks. */
+export function mesmerProfiledTraitDamage(context: unknown, balanceProfileId: SkillId): Partial<StrikeEffect> {
   const profile = requireBalanceProfileFromContext(context, balanceProfileId);
   const strike = requireEffect(profile, 'strike', 'Strike');
-  // Remaining Mesmer trait attacks use optional internal cooldowns from the selected profile.
   return {
-    balanceProfileId,
     weaponStrength: profile.weaponStrength === undefined ? undefined : balanceProfileNumber(profile, 'weaponStrength'),
     ...strike,
-    name: undefined,
-    cooldown: profile.internalCooldown === undefined ? undefined : balanceProfileNumber(profile, 'internalCooldown'),
-    duration: profile.duration === undefined ? undefined : balanceProfileNumber(profile, 'duration')
+    name: undefined
   };
 }

@@ -39,7 +39,6 @@ export interface InputSection extends InputWindow {
 export interface InputKeyUsage {
   readonly code: string;
   readonly count: number;
-  readonly controls: readonly InputControlId[];
   readonly modifier: boolean;
 }
 
@@ -156,7 +155,6 @@ export function summarizeInputAnalysis(trace: InputTrace, analysis: InputAnalysi
     keyUsage.set(code, {
       code,
       count: (current?.count ?? 0) + row.count,
-      controls: [...new Set([...(current?.controls ?? []), ...row.controls])],
       modifier: (current?.modifier ?? false) || modifier
     });
   };

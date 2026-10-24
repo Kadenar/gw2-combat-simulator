@@ -93,7 +93,7 @@ export function completeSkrittSwipe(runtime: ThiefRuntime, cast: RuntimeCast<Thi
   runtime.fireTrigger(stealAccepted, { cast });
   pilferArtifacts(runtime, 'swipe');
   // Swipe's pilfer also reaches Core Improvisation before Kleptomaniac.
-  runtime.fireTrigger(stealCompleted, { at: runtime.time, swipe: true });
+  runtime.fireTrigger(stealCompleted, { swipe: true });
 }
 
 /** Artifacts require a held slot; backfire variants are internal; Reshuffle rerolls only an existing pool. */
