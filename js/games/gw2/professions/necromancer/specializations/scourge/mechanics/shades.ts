@@ -139,7 +139,7 @@ function manifestShade(runtime: NecromancerRuntime, cast: RuntimeCast<Necromance
     refreshShadeExpiry(runtime);
   }
 
-  runtime.fireTrigger(scourgeShadeManifested, { cast, at: runtime.time, activationId: cast.id });
+  runtime.fireTrigger(scourgeShadeManifested, { cast });
 }
 
 /** Shade commands share manifestation, lifetime replacement, and their common strike. */

@@ -137,7 +137,7 @@ test('Mesmer spend phases and Bladesworn outcomes come from the active presentat
     const annotation = mesmerProfession.ui.timelineAnnotation({
       specialization,
       formattedTime: '',
-      spend: { resource, count: 2, sourceSkill: 'Mechanic' }
+      spend: { resource, count: 2 }
     });
     assert.equal(annotation.resourceShortLabel, `2${short}`);
     assert.equal(annotation.resourceLabel, `2 ${resource} consumed at ${phase}`);

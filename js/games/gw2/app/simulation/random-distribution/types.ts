@@ -52,7 +52,6 @@ export interface RandomDistributionDriver {
   readonly lowAverage: number;
   readonly highAverage: number;
   readonly delta: number;
-  readonly correlation: number;
   readonly estimatedDpsDelta: number;
 }
 

@@ -223,7 +223,7 @@ test('Swift Scholar resets the page cycle on acceptance and retains the earned c
   onCastStart(context, cast);
   assert.equal(state.swiftScholarCount, 0);
   assert.deepEqual(grants, []);
-  context.fireTrigger(tomeStowed, {});
+  context.fireTrigger(tomeStowed);
   const otherCast = { skill: { tome: 'resolve', name: 'Other page' } };
   onCastStart(context, otherCast);
   swiftScholar.lifetime.onCastCommit(context, otherCast);

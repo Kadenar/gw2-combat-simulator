@@ -501,7 +501,6 @@ export function summarizeRandomDistributionOutcomes(
         lowAverage,
         highAverage,
         delta,
-        correlation,
         estimatedDpsDelta: slope * delta
       }
     });

@@ -335,7 +335,8 @@ export function runRuntime<T extends object>(
         return candidate?.id === owner.id && candidate.generation === owner.generation;
       });
     },
-    fireTrigger(point: TriggerPoint, input: object) {
+    fireTrigger(point: TriggerPoint, input: object = {}) {
+      // Payload-free boundaries still give listeners an object; typed callers must supply all other payloads.
       // Listeners settle before the firing mechanic continues; isolated payload runtimes compile none.
       const listeners = profession.triggerListeners?.get(point.id);
 

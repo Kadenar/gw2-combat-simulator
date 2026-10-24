@@ -964,7 +964,6 @@ test('shared results render summaries, totals, contributions, and icons', () => 
             lowAverage: 18.2,
             highAverage: 25.4,
             delta: 7.2,
-            correlation: 0.84,
             estimatedDpsDelta: 360
           }
         ]

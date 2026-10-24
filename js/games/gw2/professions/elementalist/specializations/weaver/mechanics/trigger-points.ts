@@ -18,7 +18,7 @@ export interface WeaverUnraveled extends ElementalistCastCompleted {
 }
 
 /** Both starting hands are assigned before the opener's Elements of Rage window is seeded. */
-export const weaverHandsInitialized = defineTriggerPoint<{ readonly at: number }>(
+export const weaverHandsInitialized = defineTriggerPoint<Record<string, never>>(
   'elementalist.weaver-hands-initialized',
   [TRAIT.ELEMENTS_OF_RAGE]
 );

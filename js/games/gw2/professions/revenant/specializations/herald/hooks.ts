@@ -27,10 +27,10 @@ export const heraldHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   availability: heraldFacetAvailability,
   // Facet actions finish before the observer evaluates the resulting aggregate upkeep.
   onCastCancel(runtime) {
-    runtime.fireTrigger(heraldUpkeepSettled, { at: runtime.time });
+    runtime.fireTrigger(heraldUpkeepSettled);
   },
   onCastCommit(runtime) {
-    runtime.fireTrigger(heraldUpkeepSettled, { at: runtime.time });
+    runtime.fireTrigger(heraldUpkeepSettled);
   },
   sideEffectHandlers: {
     'revenant.start-facet'(runtime, context) {

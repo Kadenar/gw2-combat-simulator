@@ -23,9 +23,7 @@ import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/profes
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** The selected trait observes this accepted transition before subsequent mechanic work. */
-export const avatarExited = defineTriggerPoint<{ readonly at: number }>('ranger.avatar-exited', [
-  TRAIT.NATURAL_BALANCE
-]);
+export const avatarExited = defineTriggerPoint<Record<string, never>>('ranger.avatar-exited', [TRAIT.NATURAL_BALANCE]);
 
 /** Avatar changes the one resource clock and bar; expiration cannot retire a later entry. */
 function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): void {
@@ -53,7 +51,7 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
     runtime.resourceController.spend('astralForce', state.astralClock.value * (1 - retained));
   }
 
-  runtime.fireTrigger(avatarExited, { at: runtime.time });
+  runtime.fireTrigger(avatarExited);
 
   resetAutoattackChains(runtime);
   const skill = runtime.helpers.skillsById.get(active ? ID.CELESTIAL_AVATAR : ID.RELEASE_CELESTIAL_AVATAR)!;

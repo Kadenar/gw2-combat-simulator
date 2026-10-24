@@ -388,13 +388,13 @@ function activateOverclockSignet(context: EngineerRuntime, skill: EngineerSkill)
 export const engineerMechLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
   initialize(runtime) {
     // Preserve implicit-start admission before the autonomous mech lane starts.
-    if (!runtime.engagement.boundaryPending) runtime.fireTrigger(mechanistCombatReady, {});
+    if (!runtime.engagement.boundaryPending) runtime.fireTrigger(mechanistCombatReady);
 
     initializeEngineerMech(runtime);
   },
   onCombatStart(runtime) {
     // Deferred explicit combat starts the same guarded producer, never a second renewal loop.
-    if (runtime.engagement.explicit) runtime.fireTrigger(mechanistCombatReady, {});
+    if (runtime.engagement.explicit) runtime.fireTrigger(mechanistCombatReady);
 
     initializeEngineerMech(runtime);
   },

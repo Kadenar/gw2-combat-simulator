@@ -3,8 +3,6 @@ import { clamp } from '#kernel/core/numeric.js';
 export interface AmmoDisplayView {
   readonly current: number;
   readonly maximum: number;
-  readonly available: boolean;
-  readonly label: string;
   readonly pips: boolean[];
 }
 
@@ -22,8 +20,6 @@ export function ammoDisplayView(charges: unknown, maximum: unknown): AmmoDisplay
   return {
     current,
     maximum: normalizedMaximum,
-    available: current > 0,
-    label: `${current}/${normalizedMaximum} ammo`,
     // Boolean pips let HTML, canvas, and tests choose their own presentation.
     pips: Array.from({ length: normalizedMaximum }, (_, index) => index < current)
   };

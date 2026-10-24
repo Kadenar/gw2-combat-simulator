@@ -169,8 +169,7 @@ test('Rewinder cooldown applies shatter CDR, source refunds, then Alacrity', () 
 
   assert.deepEqual(mechanicResourceSpends(fullShatter).get(0), {
     count: 3,
-    resource: 'clones',
-    sourceSkill: 'Rewinder'
+    resource: 'clones'
   });
 });
 

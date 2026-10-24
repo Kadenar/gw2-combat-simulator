@@ -689,7 +689,6 @@ test('Dragon Slash resource spends preserve charge outcome details', () => {
         amount: -4,
         resource: 'dragon charges',
         skillName: 'Dragon Slash—Force',
-        requestedCharges: 3,
         maximumCharges: 10,
         chargesReached: 4,
         chargingSeconds: 0.75,
@@ -701,8 +700,6 @@ test('Dragon Slash resource spends preserve charge outcome details', () => {
   assert.deepEqual(spends.get(4), {
     count: 4,
     resource: 'dragon charges',
-    sourceSkill: 'Dragon Slash—Force',
-    requestedCharges: 3,
     maximumCharges: 10,
     chargesReached: 4,
     chargingSeconds: 0.75,

@@ -283,8 +283,7 @@ test('Mind the Gap grants its clone before a concurrent two-clone Continuum Spli
   assert.ok(clone.at * 1000 <= result.steps[1].start);
   assert.deepEqual(mechanicResourceSpends(result).get(1), {
     count: 2,
-    resource: 'clones',
-    sourceSkill: 'Continuum Split'
+    resource: 'clones'
   });
   assert.equal(result.steps[1].start, 560);
   assert.equal(result.steps[3].start, 600);

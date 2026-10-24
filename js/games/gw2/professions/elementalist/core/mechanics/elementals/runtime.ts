@@ -51,9 +51,6 @@ function stepElemental(
   }
 ): {
   at: number;
-  state: {
-    summonGeneration: number;
-  };
 } | null {
   const elemental = professionCoreState(context).summonedElemental;
 
@@ -84,7 +81,8 @@ function stepElemental(
     startSingleImpactAttack(context, at, FIRE_ELEMENTAL_EVTC_PROFILE.fireball, 'Fireball', 'fireball');
   }
 
-  return elemental.busyUntil < elemental.activeUntil ? { at: elemental.busyUntil, state } : null;
+  // Only the next decision deadline escapes; scheduling captures the current summon generation.
+  return elemental.busyUntil < elemental.activeUntil ? { at: elemental.busyUntil } : null;
 }
 
 /** A command replaces only the next decision; impact tasks keep their action-generation checks. */

@@ -37,7 +37,7 @@ export function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<Re
 
   if (enhanced) consumeCharge(state.bandTogether, runtime.time);
 
-  runtime.fireTrigger(warbandCompleted, { enhanced, at: runtime.time });
+  runtime.fireTrigger(warbandCompleted, { enhanced });
 
   if (profile)
     runtime.effects.emit({
@@ -187,7 +187,6 @@ export function razorclawProc(runtime: RevenantRuntime, event: Gw2ResolverEvent)
 }
 
 /** The accepted summon enhancement determines its Energy reward. */
-export const warbandCompleted = defineTriggerPoint<{ readonly enhanced: boolean; readonly at: number }>(
-  'revenant.warband-completed',
-  [TRAIT.ALL_FOR_ONE]
-);
+export const warbandCompleted = defineTriggerPoint<{ readonly enhanced: boolean }>('revenant.warband-completed', [
+  TRAIT.ALL_FOR_ONE
+]);

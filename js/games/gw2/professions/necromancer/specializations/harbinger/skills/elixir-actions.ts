@@ -29,7 +29,7 @@ const IMPACT = 'harbinger.elixir-impact';
 function launchElixir(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>, impactAt: number): void {
   const empowered = spendBlight(runtime, cast);
   const blight = harbingerState.from(runtime).blight;
-  runtime.fireTrigger(harbingerElixirLaunched, { cast, at: runtime.time, activationId: cast.id });
+  runtime.fireTrigger(harbingerElixirLaunched, { cast });
 
   runtime.scheduleForCast(IMPACT, impactAt, cast, { empowered, blight });
 }

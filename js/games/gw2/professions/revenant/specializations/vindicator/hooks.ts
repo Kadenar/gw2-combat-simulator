@@ -66,7 +66,7 @@ function land(runtime: RevenantRuntime, data: unknown): void {
         forerunnerOfDeathActive: forerunnerActive
       })
     });
-    runtime.fireTrigger(vindicatorLanded, { profile, activationId, at: runtime.time });
+    runtime.fireTrigger(vindicatorLanded, { profile, activationId });
   }
 
   // Secondary effects retain their own timing and applications, independent of the strike timeline.
@@ -89,7 +89,7 @@ function land(runtime: RevenantRuntime, data: unknown): void {
 
 /** Energy Meld arms Reaver's Curse and refunds in-combat Energy independently of its boon reward. */
 function energyMeld(runtime: RevenantRuntime): void {
-  runtime.fireTrigger(energyMeldCompleted, { at: runtime.time });
+  runtime.fireTrigger(energyMeldCompleted);
 }
 
 /** Vindicator owns its dodge landings, Energy Meld, and Alliance invocation on the shared live state. */
@@ -102,7 +102,7 @@ export const vindicatorHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> 
     skill.id === SHARED_SKILL_IDS.DODGE ? { ...skill, castTimeMs: VINDICATOR_DODGE_MS } : skill,
   sideEffectHandlers: {
     'revenant.energy-meld-endurance'(runtime, context) {
-      if (context.kind === 'cast') runtime.fireTrigger(energyMeldEnduranceGranted, { cast: context.cast });
+      if (context.kind === 'cast') runtime.fireTrigger(energyMeldEnduranceGranted);
     }
   },
   onCastStart(runtime, cast) {
@@ -113,7 +113,7 @@ export const vindicatorHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> 
   onCastCommit(runtime, cast) {
     if (ENERGY_MELD_IDS.has(cast.skill.id)) energyMeld(runtime);
 
-    if (cast.skill.id === ID.SWAP_LEGENDS) runtime.fireTrigger(eliteLegendInvoked, { at: runtime.time });
+    if (cast.skill.id === ID.SWAP_LEGENDS) runtime.fireTrigger(eliteLegendInvoked);
   },
   tasks: { [VINDICATOR_LANDING_TASK]: land }
 };

@@ -16,7 +16,7 @@ export function swapGunsaber(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
   // Every actual Gunsaber entry or exit shares weapon-swap recovery, including entry through Dragon Trigger.
   lockTransitionInput(runtime, 'weaponSwapMs', cast.skill);
   resetAutoattackChains(runtime);
-  runtime.fireTrigger(focusReset, {});
+  runtime.fireTrigger(focusReset);
   const swapId = cast.skill.id === ID.DRAGON_TRIGGER ? ID.UNSHEATHE_GUNSABER : cast.skill.id;
 
   if (cast.skill.id === ID.DRAGON_TRIGGER)

@@ -94,7 +94,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
 
     if (pet) runtime.combat.registerCompanion(pet.id, pet.effects);
 
-    runtime.fireTrigger(rangerInitialized, {});
+    runtime.fireTrigger(rangerInitialized);
     startRangerPet(runtime);
   },
   onCombatStart(runtime) {
@@ -114,7 +114,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   onCastCommit(runtime, cast) {
     const skill = cast.skill;
 
-    if (skill.id === ID.PET_SWAP) runtime.fireTrigger(petSwapped, { skill, at: runtime.time });
+    if (skill.id === ID.PET_SWAP) runtime.fireTrigger(petSwapped, { skill });
 
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) runtime.fireTrigger(weaponSwapped, { skill, at: runtime.time });
 
@@ -123,7 +123,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     runtime.fireTrigger(castCompleted, { skill, at: runtime.time });
 
     // Completed pet commands grant Rejuvenation and Wolfsong rewards.
-    if (isBeastSkill(skill)) runtime.fireTrigger(beastSkillUsed, { skill, at: runtime.time });
+    if (isBeastSkill(skill)) runtime.fireTrigger(beastSkillUsed, { skill });
   },
   tasks: {
     'ranger.stealth'(runtime, duration) {

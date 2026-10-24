@@ -100,7 +100,7 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
   onCastCommit(runtime, cast) {
     runtime.fireTrigger(renegadeCastCompleted, { cast });
 
-    if (cast.skill.id === ID.SWAP_LEGENDS) runtime.fireTrigger(eliteLegendInvoked, { at: runtime.time });
+    if (cast.skill.id === ID.SWAP_LEGENDS) runtime.fireTrigger(eliteLegendInvoked);
   },
   // Only Bombardment's first resolved hit emits Vindication's control packet.
 

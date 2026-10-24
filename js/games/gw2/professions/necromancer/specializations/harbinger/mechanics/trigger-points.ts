@@ -7,20 +7,16 @@ import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 /** Preserve the accepted blight-consumed boundary and its original reward order. */
 export const harbingerBlightConsumed = defineTriggerPoint<{
   readonly cast: RuntimeCast<NecromancerSkill>;
-  readonly at: number;
-  readonly activationId: string;
   readonly consumed: number;
 }>('necromancer.blight-consumed', [TRAIT.CASCADING_CORRUPTION]);
 
 /** Preserve the accepted elixir-launched boundary and its original reward order. */
 export const harbingerElixirLaunched = defineTriggerPoint<{
   readonly cast: RuntimeCast<NecromancerSkill>;
-  readonly at: number;
-  readonly activationId: string;
 }>('necromancer.elixir-launched', [TRAIT.BOLSTERING_BREW]);
 
 /** Preserve the accepted harbinger-shroud-entered boundary and its original reward order. */
-export const harbingerShroudEntered = defineTriggerPoint<{ readonly skill: NecromancerSkill; readonly at: number }>(
+export const harbingerShroudEntered = defineTriggerPoint<{ readonly skill: NecromancerSkill }>(
   'necromancer.harbinger-shroud-entered',
   [TRAIT.CORRUPTED_TALENT, TRAIT.DEATHLY_HASTE, TRAIT.IMPLACABLE_FOE]
 );

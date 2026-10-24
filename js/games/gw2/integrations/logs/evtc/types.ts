@@ -41,8 +41,6 @@ export interface ParsedEvtcAgent {
   readonly address: bigint;
   readonly profession: number;
   readonly elite: number;
-  readonly toughness: number;
-  readonly concentration: number;
   readonly condition: number;
   readonly character: string;
   readonly account: string;

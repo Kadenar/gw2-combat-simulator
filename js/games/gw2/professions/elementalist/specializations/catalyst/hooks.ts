@@ -45,7 +45,7 @@ export const catalystHooks = composeRuntimeHooks<ElementalistRuntimeState, Eleme
     initialize,
     // Publish combat entry so selection and isolation govern admission of trait renewal loops.
     onCombatStart(runtime) {
-      runtime.fireTrigger(catalystCombatStarted, {});
+      runtime.fireTrigger(catalystCombatStarted);
     },
     modifyEffects(runtime, cast, effects) {
       // Augment actions sample live conditions at commitment instead of materializing effects at cast start.

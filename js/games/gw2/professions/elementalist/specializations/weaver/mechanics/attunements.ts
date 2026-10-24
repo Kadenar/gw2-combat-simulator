@@ -63,7 +63,7 @@ function initializeWeaverAttunements(context: ElementalistRuntime): void {
   state.secondaryAttunement = isElementalistAttunement(context.config.secondaryAttunement)
     ? context.config.secondaryAttunement
     : core.primaryAttunement;
-  context.fireTrigger(weaverHandsInitialized, { at: context.time });
+  context.fireTrigger(weaverHandsInitialized);
 }
 
 // Enforce Weaver's dual-hand attunement model, Unravel replacement state, and

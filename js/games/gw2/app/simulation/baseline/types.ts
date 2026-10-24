@@ -18,7 +18,6 @@ export interface BaselineSimulationResult extends Gw2SimulationResult {
 }
 
 export interface PatchComparison {
-  readonly patchId: string;
   readonly current: BaselineSimulationResult;
   readonly preview: BaselineSimulationResult;
 }

@@ -65,7 +65,7 @@ export function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast<Necro
   );
   const empowered = state.blight >= cost;
   const consumed = empowered ? consumeBlight(state, cost, runtime.time, harbingerBlightMaximum(runtime)) : 0;
-  runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed, at: runtime.time, activationId: cast.id });
+  runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed });
 
   publishBlight(runtime);
   return empowered;
@@ -78,7 +78,7 @@ function initializeHarbingerBlight(runtime: NecromancerRuntime): void {
       if (skill.shroudEntry !== 'harbinger') return;
 
       harbingerState.from(runtime).nextBlightAt = Math.floor(runtime.time) + 1;
-      runtime.fireTrigger(harbingerShroudEntered, { skill, at: runtime.time });
+      runtime.fireTrigger(harbingerShroudEntered, { skill });
       refreshBlight(runtime);
     },
     onExit() {

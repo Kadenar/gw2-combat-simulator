@@ -25,7 +25,7 @@ export const virtuosoHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
       recovery: () => 0
     }
   },
-  initialize: (runtime) => runtime.fireTrigger(virtuosoInitialized, { at: runtime.time }),
+  initialize: (runtime) => runtime.fireTrigger(virtuosoInitialized),
   availability: virtuosoAvailability,
   tasks: {
     'mesmer.blade-spend'(runtime, data) {

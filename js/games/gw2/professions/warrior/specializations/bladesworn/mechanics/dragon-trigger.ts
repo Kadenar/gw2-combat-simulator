@@ -296,7 +296,6 @@ function captureSlash(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>):
       reason: 'profession mechanic',
       amount: -release.charges,
       value: 0,
-      requestedCharges: requestedDragonCharges(cast.command.releaseAtCharges, release.maximum),
       maximumCharges: release.maximum,
       chargesReached: release.charges,
       flowSpent: release.flowSpent,

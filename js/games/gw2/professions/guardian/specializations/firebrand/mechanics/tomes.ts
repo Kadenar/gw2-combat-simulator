@@ -135,7 +135,7 @@ const firebrandTomeActions: NonNullable<RuntimeHooks<GuardianRuntimeState, Guard
     const cast = context.cast;
     const state = firebrandState.from(runtime);
     state.activeTome = '';
-    runtime.fireTrigger(tomeStowed, {});
+    runtime.fireTrigger(tomeStowed);
     runtime.effects.emit({
       kind: 'packet',
       event: {

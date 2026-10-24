@@ -297,16 +297,15 @@ export function soulbeastCastAvailability(
 }
 
 /** The selected trait observes this accepted transition before subsequent mechanic work. */
-export const beastmodeChanged = defineTriggerPoint<{ readonly skill: RangerSkill; readonly at: number }>(
-  'ranger.beastmode-changed',
-  [TRAIT.UNSTOPPABLE_UNION]
-);
+export const beastmodeChanged = defineTriggerPoint<{ readonly skill: RangerSkill }>('ranger.beastmode-changed', [
+  TRAIT.UNSTOPPABLE_UNION
+]);
 
 /** Keep merge, pet lifetime, and Unstoppable Union in one ordered transition. */
 export function setBeastmode(runtime: RangerRuntime, skill: Skill, active: boolean): void {
   soulbeastState.from(runtime).beastmodeActive = active;
   setRangerPetActive(runtime, !active, skill.id);
-  runtime.fireTrigger(beastmodeChanged, { skill, at: runtime.time });
+  runtime.fireTrigger(beastmodeChanged, { skill });
 }
 
 /** Merge transitions, pet presence, availability, and merged-command rewards share one Beastmode lifecycle. */
@@ -328,10 +327,7 @@ export const beastmodeLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> =
     runtime.fireTrigger(mergedCommandApplied, { skill: skill, at: runtime.time });
 
     if (skill.beastmodeSkill && skill.id !== ID.BEASTMODE && skill.id !== ID.LEAVE_BEASTMODE)
-      runtime.fireTrigger(beastSkillUsed, {
-        skill,
-        at: runtime.time
-      });
+      runtime.fireTrigger(beastSkillUsed, { skill });
   },
   sideEffectHandlers: {
     'ranger.beastmode-enter'(runtime, context) {

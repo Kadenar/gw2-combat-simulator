@@ -105,5 +105,6 @@ export interface MechanicContext<T extends object = object, TSkill extends Skill
   ): void;
   cancelOwner(owner: WorkOwner): void;
   /** Run the selected traits listening to a mechanic-owned boundary, synchronously and in the point's order. */
+  fireTrigger(point: TriggerPoint<Record<string, never>>): void;
   fireTrigger<TInput extends object>(point: TriggerPoint<TInput>, input: NoInfer<TInput>): void;
 }

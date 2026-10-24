@@ -307,11 +307,7 @@ function grantRenegadeInvocationFervor(runtime: RevenantRuntime): void {
   if (!song) return;
 
   for (let index = 0; index < balanceNumberFromContext(runtime, TRAIT.SONG_OF_THE_MISTS, 'resourceGain'); index += 1)
-    runtime.fireTrigger(invocationFervorGranted, {
-      sourceId: TRAIT.SONG_OF_THE_MISTS,
-      sourceName: song.name,
-      at: runtime.time
-    });
+    runtime.fireTrigger(invocationFervorGranted, { sourceId: TRAIT.SONG_OF_THE_MISTS, sourceName: song.name });
 }
 
 /** Core emits the invocation packets; Alliance additionally restores the Song skill's authored endurance. */

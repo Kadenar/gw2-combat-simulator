@@ -171,8 +171,7 @@ test('Virtuoso cast-end blade spends retain their owning activation for the time
   assert.ok(Math.abs(spend.at - action.fullEndsAt) < 0.00001);
   assert.deepEqual(mechanicResourceSpends(result).get(0), {
     count: 5,
-    resource: 'blades',
-    sourceSkill: 'Bladesong Harmony'
+    resource: 'blades'
   });
 });
 

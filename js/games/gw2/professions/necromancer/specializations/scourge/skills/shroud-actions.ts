@@ -72,12 +72,7 @@ function emitShroudEffects(
 /** Shroud commands own their cleanse, control, and delayed barrier effects. */
 const scourgeShroudActions = {
   'scourge.barrier'(runtime, context) {
-    if (context.kind === 'cast')
-      runtime.fireTrigger(scourgeBarrierApplied, {
-        cast: context.cast,
-        at: runtime.time,
-        activationId: context.cast.id
-      });
+    if (context.kind === 'cast') runtime.fireTrigger(scourgeBarrierApplied, { cast: context.cast });
   },
   'scourge.cleanse'(runtime) {
     removeNecromancerSelfCondition(runtime.profession.core, runtime.time, 1);
@@ -141,7 +136,7 @@ const scourgeShroudActions = {
 const scourgeShroudTasks = {
   [BARRIER](runtime, data) {
     const { cast, event } = data as { cast: RuntimeCast<NecromancerSkill>; event: Gw2ResolverEvent };
-    runtime.fireTrigger(scourgeBarrierApplied, { cast, at: runtime.time, activationId: cast.id });
+    runtime.fireTrigger(scourgeBarrierApplied, { cast });
     const packet = assertSimulationEvent({ ...event, audience: necromancerPartyAudience(runtime) });
     runtime.effects.emit({
       kind: 'packet',

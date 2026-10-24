@@ -61,7 +61,7 @@ export function reactDeadeyeMalice(
     refundMaliciousTacticalStrike(runtime, event);
     runtime.resourceController.replace('malice', 0);
     state.maleficentSevenTriggered = false;
-    runtime.fireTrigger(maliceSpent, {});
+    runtime.fireTrigger(maliceSpent);
 
     return;
   }

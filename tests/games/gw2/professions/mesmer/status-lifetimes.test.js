@@ -77,7 +77,7 @@ function lifetimeContext(traits = [], rechargeRate = 1) {
   context.schedule = () => {};
 
   bindTriggerPoints(context, mesmerProfession, config);
-  context.fireTrigger(mirageInitialized, {});
+  context.fireTrigger(mirageInitialized);
   return context;
 }
 

@@ -178,7 +178,7 @@ test('Elemental Empowerment starts only one selected and enabled renewal loop', 
     for (const traitTriggers of [false, true]) {
       const { result, runtime } = run(
         { duration: 31, traitTriggers, selectedTraitIds: selected ? [TRAIT.ELEMENTAL_EMPOWERMENT] : [] },
-        { timeline: [{ at: 1, run: (runtime) => runtime.fireTrigger(catalystCombatStarted, {}) }] }
+        { timeline: [{ at: 1, run: (runtime) => runtime.fireTrigger(catalystCombatStarted) }] }
       );
       const active = selected && traitTriggers;
       assert.equal(catalystState.from(runtime).elementalEmpowermentRefreshStarted, active);

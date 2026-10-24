@@ -29,8 +29,8 @@ export const revenantCastCompleted = defineTriggerPoint<RevenantCastCompletion>(
   TRAIT.SERENE_REJUVENATION
 ]);
 
-/** Accepted legend swaps grant their ordered rewards only after energy, flips, upkeep, and sigil effects settle. */
-export const legendInvoked = defineTriggerPoint<{ readonly at: number }>('revenant.legend-invoked', [
+/** Accepted swaps grant ordered rewards from live state after energy, flips, upkeep, and sigils settle. */
+export const legendInvoked = defineTriggerPoint<Record<string, never>>('revenant.legend-invoked', [
   TRAIT.INVOKERS_RAGE,
   TRAIT.SPIRIT_BOON,
   TRAIT.SONG_OF_THE_MISTS,
@@ -54,7 +54,7 @@ export const revenantLifecycleAnchored = defineTriggerPoint<{ readonly at: numbe
 ]);
 
 /** Elite invocation rewards retain their later observer position after Core invocation packets. */
-export const eliteLegendInvoked = defineTriggerPoint<{ readonly at: number }>('revenant.elite-legend-invoked', [
+export const eliteLegendInvoked = defineTriggerPoint<Record<string, never>>('revenant.elite-legend-invoked', [
   TRAIT.SONG_OF_THE_MISTS
 ]);
 
@@ -62,5 +62,4 @@ export const eliteLegendInvoked = defineTriggerPoint<{ readonly at: number }>('r
 export const invocationFervorGranted = defineTriggerPoint<{
   readonly sourceId: SkillId;
   readonly sourceName: string;
-  readonly at: number;
 }>('revenant.invocation-fervor-granted', [TRAIT.AMBUSH_COMMANDER]);

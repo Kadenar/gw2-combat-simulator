@@ -10,6 +10,6 @@ export const virtuosoBladeCritical = defineTriggerPoint<{
 }>('mesmer.blade-critical', [TRAIT.DEADLY_BLADES, TRAIT.JAGGED_MIND]);
 
 /** Initialize Infinite Forge only after the specialization has installed the blade resource lifecycle. */
-export const virtuosoInitialized = defineTriggerPoint<{ readonly at: number }>('mesmer.virtuoso-initialized', [
+export const virtuosoInitialized = defineTriggerPoint<Record<string, never>>('mesmer.virtuoso-initialized', [
   TRAIT.INFINITE_FORGE
 ]);

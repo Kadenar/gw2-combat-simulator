@@ -13,14 +13,13 @@ export const castCompleted = defineTriggerPoint<{ readonly skill: RangerSkill; r
 /** Completed pet and merged Beast skills grant Rejuvenation and Wolfsong rewards in order. */
 export const beastSkillUsed = defineTriggerPoint<{
   readonly skill: RangerSkill;
-  readonly at: number;
 }>('ranger.beast-skill-used', [TRAIT.REJUVENATION, TRAIT.WOLFSONG]);
 
 /** The new pet incarnation is committed before its arrival and warhorn rewards. */
-export const petSwapped = defineTriggerPoint<{ readonly skill: RangerSkill; readonly at: number }>(
-  'ranger.pet-swapped',
-  [TRAIT.SPIRITED_ARRIVAL, TRAIT.CLARION_BOND]
-);
+export const petSwapped = defineTriggerPoint<{ readonly skill: RangerSkill }>('ranger.pet-swapped', [
+  TRAIT.SPIRITED_ARRIVAL,
+  TRAIT.CLARION_BOND
+]);
 
 /** Committed weapon and elite bar swaps grant boons around the one-use Quick Draw window. */
 export const weaponSwapped = defineTriggerPoint<{ readonly skill: RangerSkill; readonly at: number }>(

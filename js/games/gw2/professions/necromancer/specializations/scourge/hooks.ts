@@ -27,9 +27,9 @@ export const scourgeHooks = composeRuntimeHooks<NecromancerRuntimeState, Necroma
     observeEffects: scourgeEffectStates,
     onCastCommit(runtime, cast) {
       if (cast.skill.id === ID.DESERT_SHROUD || cast.skill.id === ID.SANDSTORM_SHROUD)
-        runtime.fireTrigger(shroudInvoked, { cast, at: runtime.time, activationId: cast.id });
+        runtime.fireTrigger(shroudInvoked, { cast });
 
-      runtime.fireTrigger(scourgeShadeCommitted, { cast, at: runtime.time, activationId: cast.id });
+      runtime.fireTrigger(scourgeShadeCommitted, { cast });
     },
     reactions: {
       'condition.applied': (runtime, event) => runtime.fireTrigger(scourgeConditionApplied, { event })

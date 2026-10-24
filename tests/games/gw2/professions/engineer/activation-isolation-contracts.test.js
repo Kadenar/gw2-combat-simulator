@@ -200,7 +200,7 @@ test('Barrier Engine admits one selected loop at implicit or deferred explicit c
               { type: 'wait', durationMs: 7000 }
             ]
           },
-          { timeline: [{ at: start + 1, run: (runtime) => runtime.fireTrigger(mechanistCombatReady, {}) }] }
+          { timeline: [{ at: start + 1, run: (runtime) => runtime.fireTrigger(mechanistCombatReady) }] }
         );
         const active = selected && traitTriggers;
         const barriers = rewards(result, TRAIT.MECH_CORE_BARRIER_ENGINE);

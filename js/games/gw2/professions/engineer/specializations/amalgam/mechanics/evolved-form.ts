@@ -27,7 +27,6 @@ import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/
 
 /** A committed Morph; its protocol kind is captured from the accepted skill. */
 export interface AmalgamMorph {
-  readonly skill: EngineerSkill;
   readonly morphKind: AmalgamMorphKind | undefined;
   readonly at: number;
 }
@@ -40,13 +39,8 @@ export const amalgamMorphed = defineTriggerPoint<AmalgamMorph>('engineer.amalgam
   TRAIT.NEW_GENES
 ]);
 
-/** An accepted Evolve, fired after Evolve has granted its own strains. */
-export interface AmalgamEvolution {
-  readonly at: number;
-}
-
 /** Symbiotic Synergy silently resets Morph recharge before Hardened Chrome grants its longer protection. */
-export const amalgamEvolved = defineTriggerPoint<AmalgamEvolution>('engineer.amalgam-evolved', [
+export const amalgamEvolved = defineTriggerPoint<Record<string, never>>('engineer.amalgam-evolved', [
   TRAIT.SYMBIOTIC_SYNERGY,
   TRAIT.HARDENED_CHROME
 ]);
@@ -113,7 +107,7 @@ function evolveAmalgam(context: EngineerRuntime, skill: EngineerSkill): void {
   if (!hasTrait(context.traits, TRAIT.SILVER_LINING))
     for (const morphKind of selected) applyAmalgamStrain(context, morphKind, at);
 
-  context.fireTrigger(amalgamEvolved, { at });
+  context.fireTrigger(amalgamEvolved);
 }
 
 /** Plasmatic State strengthens eligible player packets while its accepted strain is active. */
@@ -178,7 +172,6 @@ export const evolvedFormLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerSk
     'engineer.morph-traits'(runtime, data) {
       const { skill } = (data as SkillTaskData<EngineerSkill>).cast;
       runtime.fireTrigger(amalgamMorphed, {
-        skill,
         morphKind: AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id),
         at: runtime.time
       });

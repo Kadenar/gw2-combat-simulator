@@ -8,7 +8,7 @@ export interface EvokerEvent {
 }
 
 /** Initialized charges precede the selected fixed-element policy. */
-export const evokerInitialized = defineTriggerPoint<{ readonly at: number }>('elementalist.evoker-initialized', [
+export const evokerInitialized = defineTriggerPoint<Record<string, never>>('elementalist.evoker-initialized', [
   TRAIT.SPECIALIZED_ELEMENTS
 ]);
 

@@ -22,12 +22,11 @@ export function gainAffinity(runtime: RevenantRuntime, amount: number): void {
   const state = conduitState.from(runtime);
   const previous = runtime.resourceController.value('affinity');
   runtime.resourceController.grant('affinity', amount);
-  runtime.fireTrigger(affinityGranted, { previous, maximum: state.affinity.maximum, at: runtime.time });
+  runtime.fireTrigger(affinityGranted, { previous, maximum: state.affinity.maximum });
 }
 
 /** Capture the pre-grant pool so a cap crossing can reward Energy only once. */
 export const affinityGranted = defineTriggerPoint<{
   readonly previous: number;
   readonly maximum: number;
-  readonly at: number;
 }>('revenant.affinity-granted', [TRAIT.EXPANDED_CONSCIOUSNESS]);

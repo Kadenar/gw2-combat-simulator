@@ -51,7 +51,7 @@ export function calculateBaselineSimulation(
   const preview = simulateBuild(rotation, patchConfigs.preview);
   return {
     result: selectedPatchId === previewPatchId ? preview : current,
-    patchComparison: { patchId: previewPatchId, current, preview },
+    patchComparison: { current, preview },
     // Reference uses only the selected patch; patch comparison remains a Current-only analysis.
     ...(referenceRotation ? { referenceResult: simulateBuild(referenceRotation, baseConfig) } : null)
   };

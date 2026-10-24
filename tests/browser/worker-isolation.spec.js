@@ -51,7 +51,9 @@ test('simulation workers load current and preview patches without UI dependencie
   expect(baseline.requestId).toBe(2);
   expect(baseline.output.result.totalDamage).toBeGreaterThan(0);
   expect(baseline.output.result.warnings).toEqual([]);
-  expect(baseline.output.patchComparison?.patchId).toBe(patchId);
+  // The worker must publish both comparison results after loading the selected preview.
+  expect(baseline.output.patchComparison.current.totalDamage).toBeGreaterThan(0);
+  expect(baseline.output.patchComparison.preview.totalDamage).toBe(baseline.output.result.totalDamage);
   expect(await uiImports(await baselineWorkerReady)).toEqual([]);
 
   const modifierWorkerReady = page.waitForEvent('worker', (worker) =>

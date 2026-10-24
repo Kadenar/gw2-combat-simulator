@@ -89,7 +89,7 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>,
   // Swapping weapons stands up before swap rewards.
   if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
     setThiefKneeling(runtime, false);
-    runtime.fireTrigger(thiefWeaponSwapped, {});
+    runtime.fireTrigger(thiefWeaponSwapped);
   }
 
   if (committed) {
@@ -144,7 +144,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     'thief.assassins-signet': activateAssassinsSignet,
     // Signet rewards follow a completed activation, ahead of the skill's other completion actions.
     'thief.signet-completed'(runtime, context) {
-      if (context.kind === 'cast') runtime.fireTrigger(signetCompleted, {});
+      if (context.kind === 'cast') runtime.fireTrigger(signetCompleted);
     },
     'thief.kneel': (runtime) => setThiefKneeling(runtime, true),
     'thief.stand': (runtime) => setThiefKneeling(runtime, false),

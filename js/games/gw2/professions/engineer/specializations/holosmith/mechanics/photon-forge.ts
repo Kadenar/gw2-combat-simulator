@@ -62,13 +62,8 @@ export interface HeatGain {
 /** Crossing the Enhanced Capacity threshold starts its Might cadence immediately. */
 export const heatGained = defineTriggerPoint<HeatGain>('engineer.heat-gained', [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]);
 
-/** Configured heat at the start of a run. */
-export interface HeatInitialization {
-  readonly at: number;
-}
-
 /** Preheated runs seed the Enhanced Capacity cadence before passive cooling begins. */
-export const heatInitialized = defineTriggerPoint<HeatInitialization>('engineer.heat-initialized', [
+export const heatInitialized = defineTriggerPoint<Record<string, never>>('engineer.heat-initialized', [
   TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT
 ]);
 
@@ -173,7 +168,7 @@ function initializePhotonForgeHeat(context: EngineerRuntime<HolosmithSkill>): vo
   const state = holosmithState.from(context);
   // The policy has already clamped initialHeat against the trait-selected capacity.
   state.forgeExitedAt = state.heat.value > 0 ? context.time : null;
-  context.fireTrigger(heatInitialized, { at: context.time });
+  context.fireTrigger(heatInitialized);
 
   // Preheated simulations start the same 100 ms cooling cadence as a Forge exit.
   if (state.heat.value > 0 && state.forgeExitedAt != null) {

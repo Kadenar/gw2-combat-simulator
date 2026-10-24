@@ -57,7 +57,7 @@ export function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantS
   // The form state before the reset decides Enhanced Embodiment and the form update.
   const formActive = state.cosmicWisdomUntil > runtime.time;
   runtime.resourceController.replace('affinity', 0);
-  runtime.fireTrigger(conduitLegendReset, { cast, combat, formActive });
+  runtime.fireTrigger(conduitLegendReset, { combat, formActive });
 
   if (formActive) updateConduitForm(runtime);
 
@@ -79,7 +79,6 @@ export const cosmicWisdomEntered = defineTriggerPoint<{ readonly cast: RuntimeCa
 
 /** Captured form activity survives affinity reset; affinity rewards precede the extension. */
 export const conduitLegendReset = defineTriggerPoint<{
-  readonly cast: RuntimeCast<RevenantSkill>;
   readonly combat: boolean;
   readonly formActive: boolean;
 }>('revenant.conduit-legend-reset', [TRAIT.LINGERING_DETERMINATION, TRAIT.ENHANCED_EMBODIMENT]);

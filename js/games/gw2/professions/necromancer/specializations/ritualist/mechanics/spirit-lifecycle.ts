@@ -129,10 +129,10 @@ export function summonRitualistSpirit(
     busyUntil: canonicalTime(runtime.time + spirit.initialBusyMs / 1000)
   };
   runtime.resourceController.refresh('lifeForce');
-  runtime.fireTrigger(ritualistSpiritCommitted, { cast, at: runtime.time, activationId: cast.id });
+  runtime.fireTrigger(ritualistSpiritCommitted, { cast });
 
   runtime.fireTrigger(creatureSummoned, { skill: cast.skill, at: runtime.time, count: 1, activationId: cast.id });
-  runtime.fireTrigger(ritualistSpiritSummoned, { cast, key, at: runtime.time, activationId: cast.id });
+  runtime.fireTrigger(ritualistSpiritSummoned, { cast, key });
 
   startRitualistSpirits(runtime);
 }
@@ -192,7 +192,7 @@ export function initializeRitualistSpiritLifecycle(runtime: NecromancerRuntime):
       const state = ritualistState.from(runtime);
       state.resummonedSpiritAutoCycle = Object.keys(state.activeSpirits).length > 0;
       state.spiritAutoAnchorAt = NaN;
-      runtime.fireTrigger(ritualistShroudEntered, { skill, at: runtime.time });
+      runtime.fireTrigger(ritualistShroudEntered);
     },
     onExit: () => {
       if (!lingeringSpiritsActive(runtime)) clearSpirits(runtime);
@@ -235,20 +235,16 @@ export const ritualistSpiritTasks: NonNullable<RuntimeHooks<NecromancerRuntimeSt
 /** Preserve the accepted spirit-committed boundary and its original reward order. */
 export const ritualistSpiritCommitted = defineTriggerPoint<{
   readonly cast: RuntimeCast<NecromancerSkill>;
-  readonly at: number;
-  readonly activationId: string;
 }>('necromancer.spirit-committed', [TRAIT.SOUL_TWISTING]);
 
 /** Preserve the accepted spirit-summoned boundary and its original reward order. */
 export const ritualistSpiritSummoned = defineTriggerPoint<{
   readonly cast: RuntimeCast<NecromancerSkill>;
-  readonly at: number;
-  readonly activationId: string;
   readonly key: string;
 }>('necromancer.spirit-summoned', [TRAIT.EMPOWERING_SPIRITS]);
 
 /** Preserve the accepted ritualist-shroud-entered boundary and its original reward order. */
-export const ritualistShroudEntered = defineTriggerPoint<{ readonly skill: NecromancerSkill; readonly at: number }>(
+export const ritualistShroudEntered = defineTriggerPoint<Record<string, never>>(
   'necromancer.ritualist-shroud-entered',
   [TRAIT.SOUL_TWISTING]
 );

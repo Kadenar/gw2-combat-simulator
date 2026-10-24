@@ -126,7 +126,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   },
 
   initialize(runtime) {
-    runtime.fireTrigger(coreInitialized, {});
+    runtime.fireTrigger(coreInitialized);
   },
   endurance: {
     state: (runtime) => runtime.profession.core.endurance,
@@ -189,7 +189,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   onCastCommit(runtime, cast) {
     completeWarriorBurst(runtime, cast);
 
-    if (cast.skill.inputCategory === 'weapon-swap') runtime.fireTrigger(weaponSwapped, {});
+    if (cast.skill.inputCategory === 'weapon-swap') runtime.fireTrigger(weaponSwapped);
   },
   onCooldownReset: resetWarriorAdrenaline,
   reactions: {

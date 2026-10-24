@@ -536,7 +536,6 @@ test('legend palette shows only the destination legend with the shared swap cool
   const loadout = revenantLegendLoadout.view(context);
 
   assert.equal(loadout.selectionControl, 'icons');
-  assert.equal(loadout.formatActiveBar, false);
   assert.equal(loadout.selectors.length, 2);
   assert.ok(loadout.bars.every((bar) => bar.icon));
   assert.ok(loadout.bars.every((bar) => !/Legendary|Stance/.test(bar.compactLabel)));

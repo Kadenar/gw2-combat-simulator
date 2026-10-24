@@ -299,15 +299,11 @@ test('Shatter Storm gives Lively Lute a second charge without a full cooldown', 
   assert.deepEqual(paletteSkillView(paletteApp(shatterStormBeforeUse), livelyLute).ammo, {
     current: 2,
     maximum: 2,
-    available: true,
-    label: '2/2 ammo',
     pips: [true, true]
   });
   assert.deepEqual(paletteSkillView(paletteApp(shatterStormAfterOne), livelyLute).ammo, {
     current: 1,
     maximum: 2,
-    available: true,
-    label: '1/2 ammo',
     pips: [true, false]
   });
 });
@@ -659,13 +655,11 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
 
   assert.deepEqual(spends.get(0), {
     count: 3,
-    resource: 'notes',
-    sourceSkill: 'Lively Lute'
+    resource: 'notes'
   });
   assert.deepEqual(spends.get(2), {
     count: 2,
-    resource: 'notes',
-    sourceSkill: 'Flustering Flute'
+    resource: 'notes'
   });
   assert.deepEqual(
     result.planningState.profession.activeInstruments.map((instrument) => instrument.name),
@@ -715,7 +709,14 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
 
     assert.ok(action);
     assert.equal(spend.activationId, action.activationId);
-    assert.ok(Math.abs(spend.at - action.fullEndsAt) < 0.00001);
+    const playing = result.events.find(
+      (event) => event.type === 'mesmer.instrument' && event.activationId === spend.activationId
+    );
+
+    // Notes are consumed before the instrument starts playing, which can precede cast completion.
+    assert.ok(playing);
+    assert.equal(spend.at, playing.at);
+    assert.ok(result.events.indexOf(spend) < result.events.indexOf(playing));
   }
 
   const empty = simulateMesmer(
@@ -728,8 +729,7 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
 
   assert.deepEqual(mechanicResourceSpends(empty).get(0), {
     count: 0,
-    resource: 'notes',
-    sourceSkill: 'Deafening Drum'
+    resource: 'notes'
   });
 });
 

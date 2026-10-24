@@ -52,8 +52,6 @@ export interface ProfessionTimelineOverlay {
 export interface MechanicResourceSpend {
   readonly count: number;
   readonly resource: string;
-  readonly sourceSkill: string;
-  readonly requestedCharges?: number;
   readonly maximumCharges?: number;
   readonly chargesReached?: number;
   readonly chargingSeconds?: number;

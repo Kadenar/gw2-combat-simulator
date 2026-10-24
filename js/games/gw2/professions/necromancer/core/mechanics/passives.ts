@@ -53,7 +53,7 @@ export function nextNecromancerPassiveGain(runtime: NecromancerRuntime, cost: nu
 
 /** Selected passive producers each begin with one bounded wake, including out-of-combat resource pulses. */
 export function initializeNecromancerPassives(runtime: NecromancerRuntime): void {
-  runtime.fireTrigger(necromancerPassivesStarting, { at: runtime.time });
+  runtime.fireTrigger(necromancerPassivesStarting);
   const selected = selectedSkillIdSet(runtime.config.selectedSkillIds);
   for (const { passive, skillId, profileId } of NECROMANCER_SIGNET_PASSIVES) {
     if (!selected.has(skillId)) continue;
@@ -67,7 +67,7 @@ export function initializeNecromancerPassives(runtime: NecromancerRuntime): void
     if (interval > 0) schedulePassive(runtime, { passive, interval, deadline: interval });
   }
 
-  runtime.fireTrigger(necromancerPassivesInitialized, { at: runtime.time });
+  runtime.fireTrigger(necromancerPassivesInitialized);
 }
 
 const necromancerPassiveTasks = { [PASSIVE]: passivePulse };
@@ -79,16 +79,15 @@ export const necromancerPassiveLifecycle = {
 } satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;
 
 /** Keep the original reward order at the passives-initialized boundary. */
-export const necromancerPassivesInitialized = defineTriggerPoint<{ readonly at: number }>(
+export const necromancerPassivesInitialized = defineTriggerPoint<Record<string, never>>(
   'necromancer.passives-initialized',
   [TRAIT.VAMPIRIC_PRESENCE]
 );
 
 /** Trait loop admission precedes signet scheduling to preserve same-time resource ordering. */
-export const necromancerPassivesStarting = defineTriggerPoint<{ readonly at: number }>(
-  'necromancer.passives-starting',
-  [TRAIT.ETERNAL_LIFE]
-);
+export const necromancerPassivesStarting = defineTriggerPoint<Record<string, never>>('necromancer.passives-starting', [
+  TRAIT.ETERNAL_LIFE
+]);
 
 /** Readiness advertises only the actual next pulse when its threshold can cover the cost. */
 function eternalLifeReadyAt(runtime: NecromancerRuntime, cost: number): number {

@@ -850,6 +850,7 @@ export function mechanicResourceSpends(
 ): Map<number, MechanicResourceSpend> {
   const spends = new Map<number, MechanicResourceSpend>();
   // Match executed spends to their owning activation; future planning indices are not event identity.
+  // Record outcomes here; the owning rotation entry already supplies requested release settings.
   const activations = new Map((result?.steps ?? []).map((step) => [step.activationId, step]));
   for (const event of result?.events || []) {
     const activation = event.activationId == null ? undefined : activations.get(event.activationId);
@@ -861,8 +862,6 @@ export function mechanicResourceSpends(
     spends.set(activation.ri, {
       count: Math.abs(Number(event.amount || 0)),
       resource: String(event.resource || 'resources'),
-      sourceSkill: activation.skill,
-      ...(event.requestedCharges == null ? {} : { requestedCharges: Number(event.requestedCharges) }),
       ...(event.maximumCharges == null ? {} : { maximumCharges: Number(event.maximumCharges) }),
       ...(event.chargesReached == null ? {} : { chargesReached: Number(event.chargesReached) }),
       ...(event.chargingSeconds == null ? {} : { chargingSeconds: Number(event.chargingSeconds) }),

@@ -44,7 +44,7 @@ export const evokerHooks = composeRuntimeHooks<ElementalistRuntimeState, Element
     damageEffects: [electricEnchantmentDamageEffect],
 
     initialize(runtime) {
-      runtime.fireTrigger(evokerInitialized, { at: runtime.time });
+      runtime.fireTrigger(evokerInitialized);
       registerElementalistEliteEvents(runtime, onAcceptedEvent);
       registerElementalistAttunementTransition(runtime, (context, cast) => {
         completeEvokerAttunement(context, cast, cast.skill);

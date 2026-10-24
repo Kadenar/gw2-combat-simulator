@@ -153,7 +153,6 @@ const baseRevenantLegendLoadout = createFixedSlotLoadout<RevenantCanonicalBuild>
   selectionCount: 2,
   selectionControl: 'icons',
   includeStartingSelector: false,
-  formatActiveBar: false,
   entries: REVENANT_LEGENDS,
   defaults: [LEGEND.ASSASSIN, LEGEND.DEMON]
 });

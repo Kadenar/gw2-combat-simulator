@@ -31,7 +31,7 @@ export const mirageHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
     return skill.id === MESMER_SKILL_IDS.PICK_UP_MIRAGE_MIRROR ? null : undefined;
   },
   initialize(runtime) {
-    runtime.fireTrigger(mirageInitialized, {});
+    runtime.fireTrigger(mirageInitialized);
   },
   endurance: mirageEndurance,
   availability: mirageAvailability,

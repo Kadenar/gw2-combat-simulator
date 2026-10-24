@@ -120,7 +120,7 @@ export function completeConsume(runtime: RevenantRuntime, cast: RuntimeCast<Reve
   // Parent ownership makes Facet of Nature's cooldown shared by every legend-specific True Nature.
   if (cast.rechargeWork > 0) runtime.cooldownController.startRecharge(facet, runtime.time, cast.rechargeWork);
 
-  runtime.fireTrigger(facetConsumed, { facet, wasActive, at: runtime.time });
+  runtime.fireTrigger(facetConsumed, { facet, wasActive });
 }
 
 /** Facet consumes require their armed follow-up, while active facets cannot be activated twice. */

@@ -29,7 +29,7 @@ export interface InputAnalysis {
   modifierActions: number;
   coverage: {
     actions: number;
-    missing: { control: InputControlId | null; reason: string; count: number }[];
+    missing: { control: InputControlId | null; count: number }[];
   };
 }
 
@@ -68,7 +68,8 @@ export function analyzeInputTrace(trace: InputTrace, profile: InputProfile): Inp
     if (!parsed) {
       const reason = input.control ? 'Binding is unresolved or unbound.' : input.unresolvedReason;
       const key = `${input.control}:${reason}`;
-      const item = missing.get(key) ?? { control: input.control, reason, count: 0 };
+      // Reasons keep distinct missing-input groups separate; the view needs only their control and count.
+      const item = missing.get(key) ?? { control: input.control, count: 0 };
       item.count++;
       missing.set(key, item);
     }

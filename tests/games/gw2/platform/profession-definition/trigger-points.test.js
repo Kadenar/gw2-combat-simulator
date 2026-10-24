@@ -434,6 +434,30 @@ test('nested trigger points preserve causal listener ordering', () => {
   assert.deepEqual(calls, ['before', 'cast:1', 'after', 'next']);
 });
 
+test('payload-free trigger points settle synchronously with an empty listener input', () => {
+  const point = defineTriggerPoint('fixture.empty', [101]);
+  const calls = [];
+  const profession = family(
+    [
+      defineTrait({
+        id: 101,
+        name: 'Empty boundary',
+        triggers: [onTriggerPoint(point, { run: (_runtime, input) => calls.push(input) })]
+      })
+    ],
+    [],
+    {
+      onCastCommit(runtime) {
+        // Omitting the payload preserves the same synchronous listener contract as populated boundaries.
+        runtime.fireTrigger(point);
+        calls.push('settled');
+      }
+    }
+  );
+  simulateGw2({ profession, rotation: [1], config: { selectedTraitIds: [101] } });
+  assert.deepEqual(calls, [{}, 'settled']);
+});
+
 // Duration adjustments are value hooks and compose once after ordinary shared duration scaling.
 test('trait boon duration hooks validate and compose in Core then elite order', () => {
   const core = defineTrait({

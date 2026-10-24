@@ -44,7 +44,7 @@ test('burst completion refunds accepted spend and Gunsaber Focus reset excludes 
   runtime.fireTrigger(burstCompleted, { cast, spent: 30 });
   assert.equal(runtime.resourceController.value('adrenaline'), 11.9);
   runtime.procs.setDeadline('warrior.core.soldierFocus', 99);
-  runtime.fireTrigger(focusReset, {});
+  runtime.fireTrigger(focusReset);
   assert.equal(runtime.procs.deadline('warrior.core.soldierFocus'), runtime.time);
   assert.equal(runtime.resourceController.value('adrenaline'), 11.9);
 });

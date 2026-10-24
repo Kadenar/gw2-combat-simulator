@@ -83,7 +83,7 @@ export function exitNecromancerShroud(runtime: NecromancerRuntime): void {
   }
 
   transition(runtime, false);
-  runtime.fireTrigger(shroudExited, { at: runtime.time });
+  runtime.fireTrigger(shroudExited);
 }
 
 /** Lich entry arms one generation-owned expiry shared with manual exit. */
@@ -106,7 +106,7 @@ export function enterNecromancerShroud(runtime: NecromancerRuntime, cast: Runtim
     isTimeInWindow(runtime.time, application.appliedAt, application.expiresAt)
   );
   state.plagueSendingArmed = false;
-  runtime.fireTrigger(shroudEntering, { cast, at: runtime.time, activationId: cast.id });
+  runtime.fireTrigger(shroudEntering);
   state.activeShroud = skill.shroudEntry!;
   state.activeShroudEntryId = skill.id;
   state.activeShroudProfileId = skill.shroudProfileId || PROFILE.shroud;
@@ -118,7 +118,7 @@ export function enterNecromancerShroud(runtime: NecromancerRuntime, cast: Runtim
   runtime.cooldownController.setReadyAt(skill.id, Infinity);
   runNecromancerShroudEnter(runtime, skill);
   runtime.resourceController.refresh('lifeForce');
-  runtime.fireTrigger(shroudEntered, { cast, at: runtime.time, activationId: cast.id });
+  runtime.fireTrigger(shroudEntered, { cast });
   transition(runtime, true, skill);
 }
 
@@ -135,12 +135,8 @@ export const necromancerFormLifecycle = {
   tasks: necromancerFormTasks
 } satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;
 
-/** Keep the original reward order at the shroud-entering boundary. */
-export const shroudEntering = defineTriggerPoint<{
-  readonly cast: RuntimeCast<NecromancerSkill>;
-  readonly at: number;
-  readonly activationId: string;
-}>('necromancer.shroud-entering', [
+/** Entry listeners read live state in reward order, so this boundary needs no cast snapshot. */
+export const shroudEntering = defineTriggerPoint<Record<string, never>>('necromancer.shroud-entering', [
   TRAIT.SOUL_COMPREHENSION,
   TRAIT.ARMORED_SHROUD,
   TRAIT.SHROUDED_REMOVAL,
@@ -150,8 +146,6 @@ export const shroudEntering = defineTriggerPoint<{
 /** Keep the original reward order at the shroud-entered boundary. */
 export const shroudEntered = defineTriggerPoint<{
   readonly cast: RuntimeCast<NecromancerSkill>;
-  readonly at: number;
-  readonly activationId: string;
 }>('necromancer.shroud-entered', [
   TRAIT.SOUL_BARBS,
   TRAIT.AWAKEN_THE_PAIN,
@@ -163,13 +157,9 @@ export const shroudEntered = defineTriggerPoint<{
 ]);
 
 /** Keep the original reward order at the shroud-exited boundary. */
-export const shroudExited = defineTriggerPoint<{ readonly at: number }>('necromancer.shroud-exited', [
-  TRAIT.SOUL_BARBS
-]);
+export const shroudExited = defineTriggerPoint<Record<string, never>>('necromancer.shroud-exited', [TRAIT.SOUL_BARBS]);
 
 /** Keep the original reward order at the shroud-invoked boundary. */
 export const shroudInvoked = defineTriggerPoint<{
   readonly cast: RuntimeCast<NecromancerSkill>;
-  readonly at: number;
-  readonly activationId: string;
 }>('necromancer.shroud-invoked', [TRAIT.PLAGUE_SENDING, TRAIT.SOUL_BARBS]);

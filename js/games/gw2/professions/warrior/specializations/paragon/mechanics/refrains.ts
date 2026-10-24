@@ -183,7 +183,7 @@ export const paragonRefrainLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorS
     paragonState.from(runtime).activeRefrainId = inputs.refrain ? Number(inputs.refrain) : null;
   },
   onCombatStart(runtime) {
-    runtime.fireTrigger(paragonCombatStarted, {});
+    runtime.fireTrigger(paragonCombatStarted);
   },
   resources: { motivation: paragonMotivationPolicy },
   sideEffectHandlers: {

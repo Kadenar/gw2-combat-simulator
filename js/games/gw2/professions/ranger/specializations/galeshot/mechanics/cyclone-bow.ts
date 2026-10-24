@@ -226,16 +226,17 @@ export const galeshotControlAccepted = defineTriggerPoint<{ readonly event: Gw2R
 );
 
 /** The selected trait observes this accepted transition before subsequent mechanic work. */
-export const galeshotCastCompleted = defineTriggerPoint<{ readonly skill: RangerSkill; readonly at: number }>(
+export const galeshotCastCompleted = defineTriggerPoint<{ readonly skill: RangerSkill }>(
   'ranger.galeshot-cast-completed',
   [TRAIT.FLOCK_TOGETHER]
 );
 
 /** Hawkeye grants its damage window and Bluster primes its pet strike before Cloudburst party boons. */
-export const cycloneBowCompleted = defineTriggerPoint<{ readonly skill: RangerSkill; readonly at: number }>(
-  'ranger.cyclone-bow-completed',
-  [TRAIT.GALE_FORCE, TRAIT.WUTHERING_WIND, TRAIT.CLOUDBURST]
-);
+export const cycloneBowCompleted = defineTriggerPoint<{ readonly skill: RangerSkill }>('ranger.cyclone-bow-completed', [
+  TRAIT.GALE_FORCE,
+  TRAIT.WUTHERING_WIND,
+  TRAIT.CLOUDBURST
+]);
 
 /** Keep bar transitions, arrow spending, delayed Wind Force, and ordered trait observations with Cyclone Bow. */
 export const cycloneBowLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
@@ -266,9 +267,9 @@ export const cycloneBowLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> 
   onCastCommit(runtime, cast) {
     const skill = cast.skill;
 
-    if (skill.cycloneBowSkill) runtime.fireTrigger(cycloneBowCompleted, { skill, at: runtime.time });
+    if (skill.cycloneBowSkill) runtime.fireTrigger(cycloneBowCompleted, { skill });
 
-    runtime.fireTrigger(galeshotCastCompleted, { skill, at: runtime.time });
+    runtime.fireTrigger(galeshotCastCompleted, { skill });
   },
   tasks: {
     // Scheduled rewards survive bar dismissal; only their original cast gate decides whether to enqueue them.

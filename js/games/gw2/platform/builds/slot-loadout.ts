@@ -79,7 +79,6 @@ interface SlotLoadoutView {
   id: string;
   label: string;
   selectionControl: string;
-  formatActiveBar: boolean;
   selectors: SlotLoadoutSelector[];
   activeBar: SlotLoadoutBar | undefined;
   inactiveBars: SlotLoadoutBar[];
@@ -105,7 +104,6 @@ interface CreateFixedSlotLoadoutOptions<TBuild extends object = Record<string, u
   selectionCount?: number;
   selectionControl?: string;
   includeStartingSelector?: boolean;
-  formatActiveBar?: boolean;
   entries?: readonly SlotLoadoutEntryInput[];
   defaults?: readonly unknown[];
 }
@@ -181,7 +179,6 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
   selectionCount = 2,
   selectionControl = 'select',
   includeStartingSelector = true,
-  formatActiveBar = true,
   entries: rawEntries,
   defaults
 }: CreateFixedSlotLoadoutOptions<TBuild> = {}): FixedSlotLoadout<TBuild> {
@@ -324,7 +321,6 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
       id,
       label,
       selectionControl,
-      formatActiveBar,
       selectors,
       activeBar: bars.find((bar) => bar.active) || bars[0],
       inactiveBars: bars.filter((bar) => !bar.active),
