@@ -136,6 +136,10 @@ export async function loadTemplateAction(
       validateDestination();
       // The codec rejects a build saved for another profession.
       app.build = replaceBuildConfiguration(buildData, app.build, app.adapter);
+
+      // A new boss build starts with an empty rotation; Undo still retains the previous encounter work.
+      if (app.workspace?.scenario) app.build.rotation = [];
+
       app.currentTemplate = null;
       app.changed(true, true, { deferRotationRender: true });
     } else {

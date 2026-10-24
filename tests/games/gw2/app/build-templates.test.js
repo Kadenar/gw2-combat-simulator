@@ -348,8 +348,8 @@ test('a complete template without a rotation clears stale rotation state', async
   assert.deepEqual(app.build.rotation, []);
 });
 
-// Boss loading must never request repository rotation assets or replace a locally authored encounter rotation.
-test('boss manifest selections fetch only the build and preserve the local rotation', async (t) => {
+// Boss loading starts an empty rotation without fetching repository rotations; Undo restores the prior work.
+test('boss manifest selections fetch only the build and clear the rotation with undo support', async (t) => {
   const requested = [];
   t.mock.method(globalThis, 'fetch', async (url) => {
     requested.push(String(url).split('?')[0]);
@@ -368,7 +368,7 @@ test('boss manifest selections fetch only the build and preserve the local rotat
       await loadTemplateAction(app, preset, action, createButton());
       assert.deepEqual(requested, [preset.build]);
       assert.equal(app.build.marker, 'downloaded');
-      assert.deepEqual(app.build.rotation, rotation);
+      assert.deepEqual(app.build.rotation, []);
       assert.equal(app.workspace.tabs.length, 0);
       undoTemplateLoad(app);
       assert.equal(app.build.marker, 'current');
