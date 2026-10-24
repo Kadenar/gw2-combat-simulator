@@ -132,8 +132,7 @@ test('removed Berserk window retains resource spending and entry boons without a
     initialResource: 30,
     selectedTraitIds: [TRAIT.BURST_OF_AGGRESSION]
   });
-  assert.equal(result.planningState.profession.berserkActive, false);
-  assert.equal(result.planningState.profession.berserkUntil, 0);
+  assert.equal(result.planningState.profession.berserkUntil, null);
   assert.equal(result.planningState.profession.adrenaline.maximum, 30);
   assert.ok(result.planningState.profession.adrenaline.value < 30);
   assert.ok(result.events.some((e) => e.kind === 'quickness'));

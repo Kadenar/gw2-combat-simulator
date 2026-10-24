@@ -54,9 +54,10 @@ export const berserkerUi: WarriorUiSlice = Object.freeze({
   },
   /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
   prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
-    readProfessionSpecializationState<BerserkerState>(context.professionState, 'Berserker')!.berserkActive = Boolean(
-      context.values.berserk
-    );
+    readProfessionSpecializationState<BerserkerState>(context.professionState, 'Berserker')!.berserkUntil = context
+      .values.berserk
+      ? Infinity
+      : null;
   },
 
   // Only this specialization offers its trait-proc overlay; storage remains a browser concern.
@@ -80,9 +81,9 @@ export const berserkerUi: WarriorUiSlice = Object.freeze({
   resourceViews: warriorAdrenalineResourceViews,
   rotationStateSnapshot: (context: WarriorUiContext) => {
     const state = warriorUiState(context);
-    const remaining = (state.berserkUntil || 0) - warriorSnapshotAt(context);
+    const remaining = (state.berserkUntil ?? 0) - warriorSnapshotAt(context);
 
-    if (!state.berserkActive || remaining <= 0) return [];
+    if (state.berserkUntil == null || remaining <= 0) return [];
 
     const items: RotationStateSnapshotItem[] = [
       {

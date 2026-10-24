@@ -19,9 +19,10 @@ import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/type
 export const DETONATE = 'warrior.king-of-fires-detonate';
 
 export function active(context: Gw2ModifierContext): boolean {
-  return Boolean(
-    readProfessionSpecializationState<{ berserkActive?: boolean }>(context.runtime?.profession, 'Berserker')
-      ?.berserkActive
+  // The mode owner clears the deadline on exit, preserving task ordering at the expiry boundary.
+  return (
+    readProfessionSpecializationState<{ berserkUntil?: number | null }>(context.runtime?.profession, 'Berserker')
+      ?.berserkUntil != null
   );
 }
 

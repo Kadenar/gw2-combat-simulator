@@ -28,7 +28,7 @@ const berserkerRules: WarriorBurstRules = {
   bypass: (runtime, skill) =>
     skill.id === ID.BERSERK &&
     runtime.profession.specialization.kind === 'Berserker' &&
-    runtime.profession.specialization.state.berserkActive
+    runtime.profession.specialization.state.berserkUntil != null
 };
 const bladeswornRules: WarriorBurstRules = {
   required: () => 0,

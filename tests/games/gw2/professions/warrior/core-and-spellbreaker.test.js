@@ -539,7 +539,7 @@ test('Berserker gates primal bursts behind berserk mode', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.berserkActive, true);
+  assert.notEqual(result.planningState.profession.berserkUntil, null);
   assert.equal(result.totalDamage > 0, true);
 });
 
@@ -608,7 +608,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
         profession: {
           specialization: {
             kind: 'Berserker',
-            state: { berserkActive: true }
+            state: { berserkUntil: Infinity }
           }
         }
       }
@@ -636,7 +636,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
         profession: {
           specialization: {
             kind: 'Berserker',
-            state: { berserkActive: false }
+            state: { berserkUntil: null }
           }
         }
       }
@@ -664,7 +664,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
         profession: {
           specialization: {
             kind: 'Berserker',
-            state: { berserkActive: true }
+            state: { berserkUntil: Infinity }
           }
         }
       }

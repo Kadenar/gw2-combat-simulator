@@ -4,8 +4,8 @@ import {
 } from '#gw2/platform/profession-definition/state.js';
 
 export interface BerserkerState {
-  berserkActive: boolean;
-  berserkUntil: number;
+  /** Null is inactive; the expiry task clears finite windows and previews may hold Infinity. */
+  berserkUntil: number | null;
   fireAuraUntil: number;
 
   /** Actual completed activations let delayed hits react without reading action history. */
@@ -14,15 +14,13 @@ export interface BerserkerState {
 
 /** Declares Berserker's public mode fields and inactive values. */
 export const BERSERKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  berserkActive: false,
-  berserkUntil: 0
+  berserkUntil: null
 } satisfies Partial<BerserkerState>);
 
 // Aura and proc deadlines are shared by the chronological Berserker reactions.
 function createBerserkerState(): BerserkerState {
   return {
-    berserkActive: false,
-    berserkUntil: 0,
+    berserkUntil: null,
     // Aura acquisition, consumption, and expiry share this current window.
     fireAuraUntil: 0,
 

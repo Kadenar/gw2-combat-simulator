@@ -17,7 +17,7 @@ export function berserkerBuffPolicies(): BuffStatePolicy[] {
 export function berserkerEffectStates(runtime: MechanicQueriesOf<WarriorRuntime>): EffectState[] {
   const state = berserkerState.from(runtime);
   return [
-    timedEffectState('berserk', state.berserkActive ? [{ stacks: 1, expiresAt: state.berserkUntil }] : [], 1),
+    timedEffectState('berserk', state.berserkUntil != null ? [{ stacks: 1, expiresAt: state.berserkUntil }] : [], 1),
     timedEffectState('fire-aura', [{ stacks: 1, expiresAt: state.fireAuraUntil }], 1)
   ];
 }

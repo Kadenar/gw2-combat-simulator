@@ -570,13 +570,13 @@ test('Blood Reaction and Great Fortitude exclude Might and Berserk grants from t
   const probe = scenario('warrior', 'Berserker', ['Blood Reaction', 'Pinnacle of Strength', 'Great Fortitude'], {
     boons: { might: 25 }
   });
-  const runtime = { profession: { specialization: { kind: 'Berserker', state: { berserkActive: true } } } };
+  const runtime = { profession: { specialization: { kind: 'Berserker', state: { berserkUntil: Infinity } } } };
   const active = probe.query.statsAt(0, null, runtime);
   assert.equal(active.power, 2300);
   assert.equal(active.conditionDamage, 1140);
   assert.equal(active.ferocity, 340);
   assert.equal(active.vitality, 1150); // Reinforced Armor excludes Great Fortitude's converted Vitality.
-  runtime.profession.specialization.state.berserkActive = false;
+  runtime.profession.specialization.state.berserkUntil = null;
   assert.equal(probe.query.statsAt(0, null, runtime).ferocity, 220);
 });
 
@@ -588,7 +588,7 @@ test('Blood Reaction rounds eligible stats and ignores signet and converted util
     attributeInputs: inputs,
     selectedSkillIds: [14404]
   });
-  const runtime = { profession: { specialization: { kind: 'Berserker', state: { berserkActive: true } } } };
+  const runtime = { profession: { specialization: { kind: 'Berserker', state: { berserkUntil: Infinity } } } };
   for (const signetOnCooldown of [false, true]) {
     const query = createGw2CombatQuery({
       config: probe.config,

@@ -109,6 +109,21 @@ test('temporary Elemental Empowerment stacks survive the final microsecond and e
   assert.deepEqual(state.elementalEmpowermentExpiries, [2.04, 2.04]);
 });
 
+// Each grant evicts before insertion, so shorter replacements may evict one another while older long stacks survive.
+test('Elemental Empowerment preserves expiry ordering and per-grant replacement at the cap', () => {
+  for (const [initial, duration, stacks, expected] of [
+    [[30, 0, 10, 20], 5, 2, [5, 20, 30]],
+    [[30, 10, 20], 25, 2, [25, 25, 30]],
+    [[30, 10, 20], 20, 3, [20, 20, 30]],
+    [[10], 5, 2, [5, 5, 10]],
+    [[30, 10, 20], 0, 2, [20, 30]]
+  ]) {
+    const state = { elementalEmpowermentExpiries: initial };
+    grantCatalystElementalEmpowerment(state, 0, duration, stacks, 3);
+    assert.deepEqual(state.elementalEmpowermentExpiries, expected);
+  }
+});
+
 test('Shattering Ice uses the same exclusive tick deadline for grants and hits', () => {
   for (const at of [1.039999, 1.04, 1.040001]) {
     const context = elementalistContext('Catalyst');

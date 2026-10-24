@@ -43,14 +43,13 @@ const berserkerAdrenalinePolicy: typeof coreAdrenalinePolicy = {
   ...coreAdrenalinePolicy,
   // Build-only resource views have catalog/config but no live mode; they use the starting Core cap.
   maximum: (runtime) =>
-    'profession' in runtime && berserkerState.from(runtime).berserkActive
+    'profession' in runtime && berserkerState.from(runtime).berserkUntil != null
       ? balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks')
       : coreAdrenalinePolicy.maximum(runtime)
 };
 
 /** The status and expiry task share one deadline; older wakes cannot close a refreshed mode. */
-function publishBerserk(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
-  const state = berserkerState.from(runtime);
+function publishBerserk(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>, until: number): void {
   runtime.effects.emit({
     kind: 'packet',
     event: {
@@ -65,10 +64,10 @@ function publishBerserk(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>
       name: 'Berserk',
       kind: 'berserk',
       stacks: 1,
-      duration: state.berserkUntil - runtime.time
+      duration: until - runtime.time
     }
   });
-  runtime.schedule(BERSERK_EXPIRE, state.berserkUntil, state.berserkUntil, undefined, -220);
+  runtime.schedule(BERSERK_EXPIRE, until, until, undefined, -220);
 }
 
 /** Completed activation opens or extends the current mode; expiring during a cast cannot revive it. */
@@ -82,7 +81,7 @@ function completeBerserk(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill
   }
 
   // An unbounded preview window is already held open and must not schedule a finite extension.
-  if (!state.berserkActive || !Number.isFinite(state.berserkUntil)) return;
+  if (state.berserkUntil == null || !Number.isFinite(state.berserkUntil)) return;
 
   const extension =
     (berserkExtensions.get(cast) ?? 0) +
@@ -91,7 +90,7 @@ function completeBerserk(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill
 
   if (extension > 0) {
     state.berserkUntil = gw2EffectExpiresAt(state.berserkUntil, extension);
-    publishBerserk(runtime, cast);
+    publishBerserk(runtime, cast, state.berserkUntil);
   }
 }
 
@@ -109,11 +108,10 @@ const berserkActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['side
     const effect = requireEffect(profile, 'buff', 'berserk');
 
     if (effect && effectNumber(profile, effect, 'duration') > 0) {
-      state.berserkActive = true;
       state.berserkUntil = gw2EffectExpiresAt(runtime.time, effectNumber(profile, effect, 'duration'));
       // Mode entry changes capacity without refilling the pool.
       runtime.resourceController.refresh('adrenaline');
-      publishBerserk(runtime, cast);
+      publishBerserk(runtime, cast, state.berserkUntil);
     }
   },
   'warrior.berserk-extension'(runtime, context, action) {
@@ -129,16 +127,15 @@ export const berserkLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> =
   prepareDamageState(runtime, skill, inputs) {
     // Primal bursts require Berserk; ordinary attacks can inspect either form without a prerequisite cast.
     const state = berserkerState.from(runtime);
-    state.berserkActive = Boolean(skill?.primalBurst || inputs.berserk);
-    state.berserkUntil = state.berserkActive ? Infinity : 0;
+    state.berserkUntil = skill?.primalBurst || inputs.berserk ? Infinity : null;
   },
   availability(runtime, skill) {
     const state = berserkerState.from(runtime);
 
-    if (skill.primalBurst && !state.berserkActive)
+    if (skill.primalBurst && state.berserkUntil == null)
       return { ready: false, retryAt: null, code: 'warrior.berserk', reason: 'Primal bursts require berserk mode.' };
 
-    if (skill.id === ID.BERSERK && state.berserkActive)
+    if (skill.id === ID.BERSERK && state.berserkUntil != null)
       return {
         ready: false,
         retryAt: state.berserkUntil,
@@ -165,8 +162,7 @@ export const berserkLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> =
 
       if (state.berserkUntil !== deadline) return;
 
-      state.berserkActive = false;
-      state.berserkUntil = 0;
+      state.berserkUntil = null;
       runtime.resourceController.refresh('adrenaline');
     }
   }

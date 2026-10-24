@@ -25,11 +25,12 @@ export function activeKallasFervorStacks(
   at: number,
   maximumStacks = state.kallasFervorMaximumStacks
 ): number {
-  return Math.min(
-    Math.max(1, Number(maximumStacks)),
-    (state.kallasFervor || []).filter((application) => (application.at || 0) <= at && (application.expiresAt || 0) > at)
-      .length
-  );
+  // Count in place so hit-time queries and repeated grants do not allocate temporary stack arrays.
+  let count = 0;
+  for (const application of state.kallasFervor || [])
+    if ((application.at || 0) <= at && (application.expiresAt || 0) > at) count++;
+
+  return Math.min(Math.max(1, Number(maximumStacks)), count);
 }
 
 export function bandTogetherReady(runtime: MechanicQueriesOf<RevenantRuntime>, skillId: SkillId): boolean {

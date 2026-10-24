@@ -225,13 +225,13 @@ test('Warrior live flats stay outside ordinary conversions and Blood Reaction so
   const probe = scenario('warrior', 'Berserker', ['Pinnacle of Strength', 'Great Fortitude', 'Blood Reaction'], {
     boons: { might: 25 }
   });
-  const runtime = { profession: { specialization: { kind: 'Berserker', state: { berserkActive: false } } } };
+  const runtime = { profession: { specialization: { kind: 'Berserker', state: { berserkUntil: null } } } };
   const before = probe.query.statsAt(0, null, runtime);
   assert.equal(before.power, 2000);
   assert.equal(before.vitality, 1150); // Reinforcement excludes converted Vitality.
   assert.equal(before.ferocity, 220);
   assert.equal(before.conditionDamage, 870);
-  runtime.profession.specialization.state.berserkActive = true;
+  runtime.profession.specialization.state.berserkUntil = Infinity;
   const after = probe.query.statsAt(0, null, runtime);
   assert.equal(after.power, 2300);
   assert.equal(after.vitality, 1150);

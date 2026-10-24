@@ -30,9 +30,9 @@ test('Berserk entry spends once, changes the cap, and expiry restores the Core c
   assert.deepEqual(entered.warnings, []);
   assert.equal(entered.planningState.profession.adrenaline.value, 10);
   assert.equal(entered.planningState.profession.adrenaline.maximum, 10);
-  assert.equal(state(entered).berserkActive, true);
+  assert.notEqual(state(entered).berserkUntil, null);
   const expired = run(['Berserk', wait(20000)]);
-  assert.equal(state(expired).berserkActive, false);
+  assert.equal(state(expired).berserkUntil, null);
   assert.equal(expired.planningState.profession.adrenaline.maximum, 30);
   assert.equal(expired.planningState.profession.adrenaline.value, 10);
   const unavailable = run(['Decapitate']);
@@ -45,12 +45,11 @@ test('Rage extension survives the original expiry and cannot revive mode after e
   const rotation = ['Berserk', wait(19000), 'Outrage', wait(2000)];
   const extended = run(rotation, config);
   assert.deepEqual(extended.warnings, []);
-  assert.equal(state(extended).berserkActive, true);
   assert.equal(state(extended).berserkUntil, 23);
   const expired = run([...rotation, wait(2000)], config);
-  assert.equal(state(expired).berserkActive, false);
+  assert.equal(state(expired).berserkUntil, null);
   const late = run(['Berserk', wait(20000), 'Outrage'], config);
-  assert.equal(state(late).berserkActive, false);
+  assert.equal(state(late).berserkUntil, null);
   assert.equal(late.planningState.profession.adrenaline.maximum, 30);
   const reentry = run(['Berserk', 'Berserk']);
   assert.equal(observedRuntime(reentry).time, 20);
@@ -64,8 +63,7 @@ test('mode expiration during a Rage cast restores the cap before independent com
     selectedTraitIds: [TRAIT.LAST_BLAZE]
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(state(result).berserkActive, false);
-  assert.equal(state(result).berserkUntil, 0);
+  assert.equal(state(result).berserkUntil, null);
   assert.equal(result.planningState.profession.adrenaline.maximum, 30);
   assert.ok(
     result.resolvedEvents.some((event) => event.sourceId === TRAIT.LAST_BLAZE && event.skillId === ID.SHATTERING_BLOW)
@@ -80,7 +78,7 @@ test('canceled Berserk retains spending while removed mode keeps independent ent
   const canceled = run([{ name: 'Berserk', interruptAfterMs: 1 }], {}, delayed);
   assert.deepEqual(canceled.warnings, []);
   assert.equal(canceled.planningState.profession.adrenaline.value, 0);
-  assert.equal(state(canceled).berserkActive, false);
+  assert.equal(state(canceled).berserkUntil, null);
   const removed = withPatchPreview(warriorProfession, {
     id: 'berserk-removed',
     label: 'Berserk removed',
@@ -88,7 +86,7 @@ test('canceled Berserk retains spending while removed mode keeps independent ent
   });
   const result = run(['Berserk'], { patchId: 'berserk-removed' }, removed);
   assert.deepEqual(result.warnings, []);
-  assert.equal(state(result).berserkActive, false);
+  assert.equal(state(result).berserkUntil, null);
   assert.equal(result.planningState.profession.adrenaline.maximum, 30);
   assert.ok(result.resolvedEvents.some((event) => event.sourceId === TRAIT.BURST_OF_AGGRESSION));
 });
@@ -229,7 +227,6 @@ test('Last Blaze preserves completion, profile edits, and mode-before-condition 
           initialize(runtime) {
             native.initialize(runtime);
             Object.assign(runtime.profession.specialization.state, {
-              berserkActive: true,
               berserkUntil: 10,
               fireAuraUntil: 10
             });

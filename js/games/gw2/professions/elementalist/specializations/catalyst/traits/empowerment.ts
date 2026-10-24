@@ -45,9 +45,11 @@ export function grantCatalystElementalEmpowerment(
       active.shift();
     }
 
-    if (expiresAt > at) active.push(expiresAt);
-
-    active.sort((left, right) => left - right);
+    if (expiresAt > at) {
+      // Insert after equal deadlines so the next grant can evict the earliest stack without sorting again.
+      const next = active.findIndex((expiry) => expiry > expiresAt);
+      active.splice(next < 0 ? active.length : next, 0, expiresAt);
+    }
   }
 
   state.elementalEmpowermentExpiries = active;
