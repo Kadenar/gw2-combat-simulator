@@ -750,6 +750,7 @@ test('profession event-log hooks present, hide, and diagnose custom events', () 
 });
 
 test('Engineer contracts present state and suppress known packet events', () => {
+  // Event-log presenters select the elite from canonical build trait lines, independently of simulation config.
   const engineerRows = simulationEventLogRows(
     {
       events: [
@@ -766,7 +767,7 @@ test('Engineer contracts present state and suppress known packet events', () => 
       resolvedEvents: [],
       planningState: { profession: {} }
     },
-    { specialization: 'Holosmith' },
+    { specializations: [{ name: 'Holosmith', traits: '' }] },
     withPatchPreview(engineerProfession)
   );
 
@@ -808,12 +809,12 @@ test('Guardian weapon-bar transitions and canonical Necromancer conditions have 
     });
     const firebrandRows = simulationEventLogRows(
       firebrand,
-      { specialization: 'Firebrand' },
+      { specializations: [{ name: 'Firebrand', traits: '' }] },
       withPatchPreview(guardianProfession)
     );
     const luminaryRows = simulationEventLogRows(
       luminary,
-      { specialization: 'Luminary' },
+      { specializations: [{ name: 'Luminary', traits: '' }] },
       withPatchPreview(guardianProfession)
     );
     assert.ok(firebrandRows.some((row) => row.description === 'TOME STOWED'));
@@ -838,7 +839,7 @@ test('Guardian weapon-bar transitions and canonical Necromancer conditions have 
         ],
         planningState: { profession: {} }
       },
-      { specialization: 'Core' },
+      { specializations: [] },
       withPatchPreview(necromancerProfession)
     );
     const ritualistRows = simulationEventLogRows(
@@ -847,7 +848,7 @@ test('Guardian weapon-bar transitions and canonical Necromancer conditions have 
         resolvedEvents: [],
         planningState: { profession: {} }
       },
-      { specialization: 'Ritualist' },
+      { specializations: [{ name: 'Ritualist', traits: '' }] },
       withPatchPreview(necromancerProfession)
     );
     const necromancerRows = [...necromancerCoreRows, ...ritualistRows];

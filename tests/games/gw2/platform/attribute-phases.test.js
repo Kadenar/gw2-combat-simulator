@@ -379,7 +379,7 @@ test('accepted Insight remains until its exclusive expiry with no selected trait
   assert.deepEqual(expiries, [2, 3, 4]);
 });
 
-test('ordinary conversions, accumulated scaling, actor projection and final replacement have distinct inputs', () => {
+test('ordinary conversions, current-attribute conversions, actor projection and final replacement have distinct inputs', () => {
   const probe = scenario('engineer', 'Core');
   const facts = { ...probe.facts, event: { type: 'condition', condition: 'Bleeding', actorType: 'player' } };
   const declarations = [
@@ -388,10 +388,10 @@ test('ordinary conversions, accumulated scaling, actor projection and final repl
         { kind: 'flat', to: 'Power', amount: 100, feedsConversions: 'none' },
         { kind: 'conversion', from: 'Power', to: 'Ferocity', multiplier: 0.1, input: 'common', rounding: 'none' }
       ],
-      // Projection must follow scaling even when listed first.
+      // Current conversions include Might and flat grants before projection, even when projection is listed first.
       transforms: [
         { kind: 'project', replace: false, attributes: { power: 1800 } },
-        { kind: 'scale', factor: 1.2 }
+        { kind: 'convert-current', from: 'power', to: 'ferocity', multiplier: 0.2 }
       ],
       finalCondition: { condition: 'Bleeding', powerMultiplier: 0.5 },
       traitDurations: { 'Boon Duration': 10 },
@@ -405,7 +405,8 @@ test('ordinary conversions, accumulated scaling, actor projection and final repl
     declarations
   );
   assert.equal(ordinary.power, 1800);
-  assert.equal(ordinary.ferocity, 120);
+  // Common Power contributes 100; current Power (1000 + 300 Might + 100 flat) contributes another 280.
+  assert.equal(ordinary.ferocity, 380);
   assert.equal(ordinary.boonDurationBonus, 10);
   assert.equal(ordinary.uncappedBoonDurationBonus, 20);
   const final = applyFinalConditionAttributes(facts, { ...ordinary, conditionDamage: 300 }, declarations);

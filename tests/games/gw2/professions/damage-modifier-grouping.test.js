@@ -357,25 +357,27 @@ test('Mesmer instrument checks skip other specializations and observe new histor
   assert.equal(irrelevant.reads(), 0);
 
   const relevant = countedEvents();
+  // Fortissimo converts the authored eligible pool, so seed every stat used by this instrument-count fixture.
+  const baseAttributes = {
+    power: 100,
+    precision: 100,
+    toughness: 100,
+    vitality: 100,
+    ferocity: 100,
+    conditionDamage: 100,
+    expertise: 100,
+    concentration: 100,
+    healingPower: 100
+  };
   const troubadour = modifierContext({
     traits: [MESMER.FORTISSIMO, MESMER.SHREDDING],
-    config: { specialization: 'Troubadour', attributeInputs: baseAttributeInputs({ vitality: 100 }) },
+    config: { specialization: 'Troubadour', attributeInputs: baseAttributeInputs(baseAttributes) },
     events: relevant.events
   });
   relevant.resetReads();
   const attributes = mesmerRules('Troubadour').modifyAttributes(
     { catalog: mesmerCatalog, ...troubadour },
-    {
-      power: 100,
-      precision: 100,
-      toughness: 100,
-      vitality: 100,
-      ferocity: 100,
-      conditionDamage: 100,
-      expertise: 100,
-      concentration: 100,
-      healingPower: 100
-    }
+    baseAttributes
   );
   const first = mesmerRules('Troubadour').modifyStrikeDamage(troubadour, 1);
   const second = mesmerRules('Troubadour').modifyStrikeDamage(troubadour, 1);
@@ -399,6 +401,12 @@ test('Mesmer instrument checks skip other specializations and observe new histor
   // A later instrument event must be visible even when this history was queried earlier.
   relevant.events.push({ type: 'mesmer.instrument', instrument: 'Lute', at: 1, expiresAt: 1 });
   assert.ok(mesmerRules('Troubadour').modifyStrikeDamage(troubadour, 1) < first);
+  const updatedAttributes = mesmerRules('Troubadour').modifyAttributes(
+    { catalog: mesmerCatalog, ...troubadour },
+    baseAttributes
+  );
+  for (const attribute of Object.keys(baseAttributes))
+    assert.equal(updatedAttributes[attribute], attribute === 'vitality' ? 109 : 104, attribute);
 });
 
 test('Vicious Expression always applies its boonless-target modifier', () => {
