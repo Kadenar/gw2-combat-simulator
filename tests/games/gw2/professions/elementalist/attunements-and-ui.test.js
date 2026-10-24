@@ -448,16 +448,12 @@ test('attunement swaps start labeled rotation timeline rows', () => {
   });
 
   assert.deepEqual(
-    rows.map((row) => row.weaponLine),
-    ['Fire', 'Air', 'Water']
-  );
-  assert.deepEqual(
     rows.map((row) => row.skills.map((skill) => skill.index)),
     [[0, 1], [2, 3], [4]]
   );
 });
 
-test('Weaver timeline rows show both active attunements', () => {
+test('Weaver attunement transitions split timeline rows', () => {
   const transition = elementalistProfession.ui.timelineWeaponLineTransition;
   const build = {
     startAttunement: 'Fire',
@@ -483,9 +479,10 @@ test('Weaver timeline rows show both active attunements', () => {
     }
   });
 
+  // Row boundaries follow actual transformations while command order stays intact.
   assert.deepEqual(
-    rows.map((row) => row.weaponLine),
-    ['F/A', 'W/F', 'A/W']
+    rows.map((row) => row.skills.map((skill) => skill.index)),
+    [[0], [1], [2]]
   );
 });
 
@@ -515,10 +512,6 @@ test('Unravel starts a fully attuned Weaver timeline row', () => {
     }
   });
 
-  assert.deepEqual(
-    rows.map((row) => row.weaponLine),
-    ['A/F', 'A/A']
-  );
   assert.deepEqual(
     rows.map((row) => row.skills.map((skill) => skill.index)),
     [[0, 1], [2]]

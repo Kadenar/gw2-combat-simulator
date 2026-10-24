@@ -143,10 +143,6 @@ test('Gunsaber transitions start separate rotation lines', () => {
   });
 
   assert.deepEqual(
-    rows.map((row) => row.weaponLine),
-    [null, 'Gunsaber', null, 'Gunsaber']
-  );
-  assert.deepEqual(
     rows.map((row) => row.skills.map((skill) => skill.index)),
     [[0, 1], [2, 3], [4, 5], [6]]
   );

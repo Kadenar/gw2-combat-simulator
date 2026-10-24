@@ -531,9 +531,10 @@ test('an overheated Forge lane stays open until its authored exit', () => {
     }
   });
   assert.deepEqual(result.warnings, []);
+  // Row boundaries follow actual transformations while command order stays intact.
   assert.deepEqual(
-    rows.map((row) => row.weaponLine),
-    [null, 'Photon Forge', null]
+    rows.map((row) => row.skills.map((skill) => skill.index)),
+    [[0], [1, 2], [3]]
   );
 });
 

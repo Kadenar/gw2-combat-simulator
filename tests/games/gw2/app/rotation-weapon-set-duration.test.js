@@ -20,9 +20,7 @@ test('one usable weapon set owns the full timeline', () => {
       weaponSwapSkillIds: new Set([SWAP_WEAPONS_ID])
     };
     assert.deepEqual([...weaponSetDurationTotals(steps, options)], [[startingWeaponSet, 10000]]);
-    assert.deepEqual(weaponSetActiveSegments(steps, options), [
-      { weaponSet: startingWeaponSet, startMs: 0, endMs: 10000, durationMs: 10000 }
-    ]);
+    assert.deepEqual(weaponSetActiveSegments(steps, options), [{ weaponSet: startingWeaponSet, durationMs: 10000 }]);
   }
 });
 

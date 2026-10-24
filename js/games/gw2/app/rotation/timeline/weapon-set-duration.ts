@@ -11,8 +11,6 @@ export interface WeaponSetDurationOptions {
 
 export interface WeaponSetActiveSegment {
   readonly weaponSet: 1 | 2;
-  readonly startMs: number;
-  readonly endMs: number;
   readonly durationMs: number;
 }
 
@@ -35,9 +33,7 @@ export function weaponSetActiveSegments(
   let activeSet: 1 | 2 = Number(startingWeaponSet) === 2 ? 2 : 1;
 
   if (!hasSecondWeaponSet) {
-    return [
-      { weaponSet: activeSet, startMs: timelineStartMs, endMs: timelineEnd, durationMs: timelineEnd - timelineStartMs }
-    ];
+    return [{ weaponSet: activeSet, durationMs: timelineEnd - timelineStartMs }];
   }
 
   const segments: WeaponSetActiveSegment[] = [];
@@ -54,15 +50,13 @@ export function weaponSetActiveSegments(
 
   for (const swap of swaps) {
     const at = boundedNumber(swap.end, segmentStart, segmentStart, timelineEnd);
-    segments.push({ weaponSet: activeSet, startMs: segmentStart, endMs: at, durationMs: at - segmentStart });
+    segments.push({ weaponSet: activeSet, durationMs: at - segmentStart });
     activeSet = activeSet === 1 ? 2 : 1;
     segmentStart = at;
   }
 
   segments.push({
     weaponSet: activeSet,
-    startMs: segmentStart,
-    endMs: timelineEnd,
     durationMs: timelineEnd - segmentStart
   });
   return segments;

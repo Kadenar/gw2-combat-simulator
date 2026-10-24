@@ -1748,10 +1748,6 @@ test('Engineer kits register distinct weapon lines in the timeline', async () =>
   });
 
   assert.deepEqual(
-    rows.map((row) => row.weaponLine),
-    [null, 'Grenade Kit', 'Flamethrower', null]
-  );
-  assert.deepEqual(
     rows.map((row) => row.skills.map((skill) => skill.index)),
     [[0], [1, 2], [3, 4], [5]]
   );

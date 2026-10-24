@@ -358,9 +358,10 @@ test('Firebrand page exhaustion requires an explicit stow before weapon inputs',
     }
   });
 
+  // Row boundaries follow actual transformations while command order stays intact.
   assert.deepEqual(
-    rows.map((row) => row.weaponLine),
-    [null, 'Tome of Resolve', null]
+    rows.map((row) => row.skills.map((skill) => skill.index)),
+    [[0], [1, 2, 3], [4]]
   );
 });
 
@@ -735,10 +736,6 @@ test('Firebrand tome transitions are weapon swaps and timeline row changes', () 
     }
   });
 
-  assert.deepEqual(
-    rows.map((row) => row.weaponLine),
-    [null, 'Tome of Justice', null, 'Tome of Resolve']
-  );
   assert.deepEqual(
     rows.map((row) => row.skills.map((skill) => skill.index)),
     [[0], [1, 2], [3, 4], [5]]

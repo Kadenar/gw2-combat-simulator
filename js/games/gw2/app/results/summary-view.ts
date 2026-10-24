@@ -26,8 +26,6 @@ export interface ResultBreakpoint {
   readonly dps: number;
   readonly elapsed: number;
   readonly damage?: number;
-  readonly environmentDamage?: number;
-  readonly targetDamage?: number;
 }
 
 export interface ResultSummaryModel {

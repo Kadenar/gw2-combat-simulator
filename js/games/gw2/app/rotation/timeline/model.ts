@@ -19,7 +19,6 @@ export interface TimelineCastOrdinal {
 
 export interface TimelineRow {
   readonly weaponSet: number;
-  readonly weaponLine: string | null;
   readonly skills: Array<{
     readonly entry: RotationCommand;
     readonly index: number;
@@ -481,11 +480,11 @@ function timelineRows(
   const rows: TimelineRow[] = [
     {
       weaponSet: startingWeaponSet,
-      weaponLine: startingWeaponLine,
       skills: []
     }
   ];
   let weaponSet = startingWeaponSet;
+  // Keep transformation state locally to split rows; rendered rows need only their set and commands.
   let weaponLine: string | null = startingWeaponLine;
   rotation.forEach((entry, index) => {
     rows.at(-1)?.skills.push({ entry, index });
@@ -511,7 +510,7 @@ function timelineRows(
     if (changesWeaponLine) weaponLine = nextWeaponLine;
 
     if (index < rotation.length - 1) {
-      rows.push({ weaponSet, weaponLine, skills: [] });
+      rows.push({ weaponSet, skills: [] });
     }
   });
   return rows;

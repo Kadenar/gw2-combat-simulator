@@ -430,9 +430,7 @@ test('target health breakpoints use environment damage for timing but player dam
       at: 1,
       elapsed: 0.5,
       damage: 100,
-      dps: 200,
-      environmentDamage: 120,
-      targetDamage: 220
+      dps: 200
     }
   ]);
 });

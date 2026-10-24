@@ -537,10 +537,6 @@ test('Cyclone Bow transitions trigger swap sigils and dedicated weapon lines', (
   });
 
   assert.deepEqual(
-    rows.map((row) => row.weaponLine),
-    [null, 'Cyclone Bow', null]
-  );
-  assert.deepEqual(
     rows.map((row) => row.skills.map((skill) => skill.index)),
     [[0, 1], [2, 3], [4]]
   );

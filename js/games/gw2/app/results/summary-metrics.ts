@@ -23,8 +23,6 @@ export interface TargetHealthBreakpointSnapshot {
   readonly elapsed: number;
   readonly damage: number;
   readonly dps: number;
-  readonly environmentDamage: number;
-  readonly targetDamage: number;
 }
 
 export const TARGET_HEALTH_BANDS = [
@@ -187,9 +185,7 @@ export function targetHealthBreakpointSnapshots(
         at,
         elapsed,
         damage: playerDamage,
-        dps: elapsed > 0 ? playerDamage / elapsed : 0,
-        environmentDamage,
-        targetDamage
+        dps: elapsed > 0 ? playerDamage / elapsed : 0
       });
       milestoneIndex += 1;
     }

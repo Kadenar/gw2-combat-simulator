@@ -775,10 +775,6 @@ test('Celestial Avatar transitions trigger swap mechanics and weapon lines', () 
   });
 
   assert.deepEqual(
-    rows.map((row) => row.weaponLine),
-    [null, 'Celestial Avatar', null]
-  );
-  assert.deepEqual(
     rows.map((row) => row.skills.map((skill) => skill.index)),
     [[0, 1], [2, 3], [4]]
   );
