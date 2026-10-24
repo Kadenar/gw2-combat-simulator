@@ -88,25 +88,25 @@
         "build": "data/gw2/builds/thief/b-power-quick-deadeye-sword-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-sword-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-quickness-deadeye-sword-pistol",
-        "benchmarkDps": 34998,
+        "benchmarkDps": 34996,
         "upToDate": true,
         "benchmarkApm": 65.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35512, "phase": 35512 },
-          "80-60": { "cumulative": 33825, "phase": 32241 },
-          "60-40": { "cumulative": 33941, "phase": 34174 },
-          "40-20": { "cumulative": 34491, "phase": 36267 },
-          "20-0": { "cumulative": 34998, "phase": 37152 }
+          "100-80": { "cumulative": 35505, "phase": 35505 },
+          "80-60": { "cumulative": 33822, "phase": 32241 },
+          "60-40": { "cumulative": 33938, "phase": 34174 },
+          "40-20": { "cumulative": 34489, "phase": 36267 },
+          "20-0": { "cumulative": 34996, "phase": 37152 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 33485,
+          "benchmarkDps": 33483,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 33478, "phase": 33478 },
-            "80-60": { "cumulative": 32573, "phase": 31695 },
-            "60-40": { "cumulative": 32386, "phase": 32016 },
-            "40-20": { "cumulative": 33073, "phase": 35331 },
-            "20-0": { "cumulative": 33485, "phase": 33485 }
+            "100-80": { "cumulative": 33472, "phase": 33472 },
+            "80-60": { "cumulative": 32570, "phase": 31695 },
+            "60-40": { "cumulative": 32384, "phase": 32016 },
+            "40-20": { "cumulative": 33071, "phase": 35331 },
+            "20-0": { "cumulative": 33483, "phase": 33483 }
           }
         }
       },

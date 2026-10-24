@@ -5,9 +5,8 @@ import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
-/** Assassin's Signet opens its active window and suppresses its passive until the signet recharges. */
+/** Assassin's Signet owns only its active buff; the shared cooldown query controls passive eligibility. */
 export function activateAssassinsSignet(runtime: ThiefRuntime): void {
-  const core = runtime.profession.core;
   replaceThiefBuff(
     runtime,
     'assassins-signet',
@@ -16,5 +15,4 @@ export function activateAssassinsSignet(runtime: ThiefRuntime): void {
     "Assassin's Signet",
     'thief'
   );
-  core.assassinsSignetPassiveDisabledUntil = runtime.cooldownController.readyAt(ID.ASSASSINS_SIGNET) ?? runtime.time;
 }

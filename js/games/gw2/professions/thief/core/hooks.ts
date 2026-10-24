@@ -106,9 +106,9 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>,
 const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   /** Seed non-expiring Lead Attacks stacks for an isolated damage occurrence. */
   prepareDamageState(runtime, _skill, inputs) {
-    // Off and Active suppress the passive; the active bonus is supplied by the preview's native buff.
-    if ('assassinsSignet' in inputs)
-      runtime.profession.core.assassinsSignetPassiveDisabledUntil = inputs.assassinsSignet === 'passive' ? 0 : Infinity;
+    // Only this isolated damage runtime holds recharge to suppress the Off/Active preview's passive.
+    if ('assassinsSignet' in inputs && inputs.assassinsSignet !== 'passive')
+      runtime.cooldownController.setReadyAt(ID.ASSASSINS_SIGNET, Infinity);
 
     // These detached windows must be available even when Lead Attacks is not selected.
     runtime.profession.core.revealedUntil = inputs.revealed ? Infinity : 0;

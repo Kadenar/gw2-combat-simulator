@@ -46,7 +46,6 @@ export interface ThiefCoreState extends StealthState {
   outboundAxes: { id: string; skillId: SkillId }[];
   venomChargeBatches: ChargePool['grants'];
   activeThievesGuild: ThievesGuildState | null;
-  assassinsSignetPassiveDisabledUntil: number;
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   activationClaims: ActivationClaims;
@@ -104,7 +103,6 @@ export function createThiefCoreState(
     outboundAxes: [],
     venomChargeBatches: {},
     activeThievesGuild: null,
-    assassinsSignetPassiveDisabledUntil: 0,
     availableFlips: {},
     autoattackChains: {},
     activationClaims: {},
@@ -135,7 +133,6 @@ const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[] = Obje
   'outboundAxes',
   'venomChargeBatches',
   'activeThievesGuild',
-  'assassinsSignetPassiveDisabledUntil',
   'availableFlips',
   'autoattackChains'
 ]);

@@ -236,9 +236,9 @@ export const thiefCoreUi = Object.freeze({
   prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
     const core = readProfessionCoreState<ThiefCoreState>(context.professionState);
 
-    // Retain the equipped skill while suspending its passive in the Off and Active states.
-    if ('assassinsSignet' in context.values)
-      core.assassinsSignetPassiveDisabledUntil = context.values.assassinsSignet === 'passive' ? 0 : Infinity;
+    // Off and Active use the detached readiness policy without adding a second combat cooldown owner.
+    if ('assassinsSignet' in context.values && context.values.assassinsSignet !== 'passive')
+      context.setSkillOnCooldown(ID.ASSASSINS_SIGNET);
 
     if (context.values.assassinsSignet === 'active') context.addBuff('assassins-signet', 1, "Assassin's Signet");
 
