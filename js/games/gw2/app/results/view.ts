@@ -271,7 +271,7 @@ export const gw2SimulationPresentation = Object.freeze({
     const title = document.getElementById('analysis-view-title');
 
     if (title)
-      title.textContent = app.workspace?.scenario ? `${app.workspace.scenario.encounter} analysis` : 'Combat analysis';
+      title.textContent = app.workspace?.scenario ? `${app.workspace.scenario.encounter} analysis` : 'Golem analysis';
 
     renderSimulationViewModel(viewModel, {
       inputRevision: app.buildRevision,

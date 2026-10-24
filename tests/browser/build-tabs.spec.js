@@ -30,8 +30,11 @@ test('header profession selector preserves navigation and the landing page owns 
   // DPS now sits beneath this popover; dismiss through an unobscured editor heading.
   await page.getByRole('heading', { name: 'Gear loadout', exact: true }).click();
   await expect(professions).toBeHidden();
-  await navigation.getByRole('link', { name: 'Analysis', exact: true }).click();
-  await expect(navigation.getByRole('link', { name: 'Analysis', exact: true })).toHaveAttribute('aria-current', 'page');
+  await navigation.getByRole('link', { name: 'Golem Analysis', exact: true }).click();
+  await expect(navigation.getByRole('link', { name: 'Golem Analysis', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page'
+  );
   await page.goBack();
   await expect(navigation.getByRole('link', { name: 'Golem', exact: true })).toHaveAttribute('aria-current', 'page');
   await navigation.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
@@ -129,7 +132,7 @@ test('build tabs isolate edits and results and support duplication, rename, clos
   await page.locator('#btn-sim-undo').click();
   await settled(page);
   await expect(page.locator('#rotation-timeline')).not.toHaveClass(/is-empty/);
-  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  await page.getByRole('link', { name: 'Golem Analysis', exact: true }).click();
   await expect(page.locator('#rotation-results')).toContainText('Bladecall');
   await selectBuild(page, 'Build 1');
   await expect(page.locator('#rotation-results')).toContainText('No analysis yet');
@@ -495,7 +498,7 @@ test('section navigation fits five tools on mobile and desktop', async ({ page }
   await openWorkspace(page);
   const navigation = page.getByRole('navigation', { name: 'Simulator sections' });
   const links = navigation.locator('.simulator-view-tab');
-  await expect(links).toHaveText(['Golem', 'Bosses', 'Analysis', 'Gear Optimizer', 'Benchmarks']);
+  await expect(links).toHaveText(['Golem', 'Bosses', 'Golem Analysis', 'Gear Optimizer', 'Benchmarks']);
 
   for (const width of [320, 390, 600, 1100]) {
     await page.setViewportSize({ width, height: 844 });

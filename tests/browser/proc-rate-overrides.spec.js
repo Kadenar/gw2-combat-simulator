@@ -31,7 +31,7 @@ test('proc controls rerun the build, survive reload, clear to defaults, and foll
   await input.press('Tab');
   await settled();
   const high = await page.evaluate(() => window.professionApp.results.totalDamage);
-  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  await page.getByRole('link', { name: 'Golem Analysis', exact: true }).click();
   const procHits = page.locator(
     '[data-skill-key="Player|Barbed Precision"] [title="Proc activations, excluding condition ticks and stack counts."]'
   );

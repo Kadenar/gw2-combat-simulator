@@ -65,7 +65,7 @@ function mountAnalysisView(root: Document): void {
 
   const heading = root.createElement('div');
   heading.className = 'analysis-view-heading';
-  heading.innerHTML = `<h2 id="analysis-view-title">Combat analysis</h2>`;
+  heading.innerHTML = `<h2 id="analysis-view-title">Golem analysis</h2>`;
   results.before(heading);
 
   const summaryMirror = root.createElement('div');
@@ -105,6 +105,10 @@ function updateActiveView(root: Document, view: SimulatorView): void {
   }
 
   for (const link of root.querySelectorAll<HTMLAnchorElement>('.simulator-view-tab[data-simulator-view]')) {
+    // Name the owning workspace on every navigation update, including history restoration.
+    if (link.dataset.simulatorView === 'analysis')
+      link.textContent = root.body.dataset.analysisWorkspace === 'bosses' ? 'Boss Analysis' : 'Golem Analysis';
+
     const active = link.dataset.simulatorView === view;
     link.classList.toggle('simulator-view-tab-active', active);
 
@@ -272,7 +276,7 @@ export function mountSimulatorNavigation(root: Document = document): void {
         : view === 'bosses'
           ? 'Bosses'
           : view === 'analysis'
-            ? 'Analysis'
+            ? 'Golem Analysis'
             : view === 'benchmarks'
               ? 'Benchmarks'
               : 'Gear Optimizer',
