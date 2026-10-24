@@ -19,8 +19,6 @@ import { createScenarioEditor } from '#gw2/app/boss-scenarios/editor.js';
 
 const modeNames = { normal: 'Normal', challenge: 'Challenge', legendary: 'Legendary challenge' };
 const format = (value: number | null): string => (value === null ? 'Unavailable' : value.toLocaleString('en-US'));
-const button = (action: string, label: string, disabled = false): string =>
-  `<button type="button" class="btn btn-io" data-boss-action="${action}" ${disabled ? 'disabled' : ''}>${label}</button>`;
 
 /** Bosses opens directly into encounter inputs around the existing gear editor and continuous rotation builder. */
 export function mountBossScenarios(app: ProfessionAppState): void {
@@ -102,8 +100,13 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     <span class="build-switcher-text"><span class="build-switcher-name"></span><span class="build-switcher-count"></span></span>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </button><div id="boss-scenario-menu" class="build-toolbar-menu build-switcher-menu" popover="auto" role="group" aria-label="Open scenarios">
-    <div class="build-menu-heading">Open scenarios</div><div class="build-tab-list"></div></div>
-    ${button('new', 'New')}${button('duplicate', 'Duplicate')}<input type="file" id="boss-file" accept=".json,application/json" hidden>`;
+    <div class="build-menu-heading">Open scenarios</div><div class="build-tab-list"></div>
+    <hr>
+    <div class="build-switcher-actions">
+      <button type="button" data-boss-action="new"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>New</span></button>
+      <button type="button" data-boss-action="duplicate"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg><span>Duplicate</span></button>
+    </div></div>
+    <input type="file" id="boss-file" accept=".json,application/json" hidden>`;
   const selector = toolbar.querySelector<HTMLButtonElement>('#boss-scenario-select')!;
   const menu = toolbar.querySelector<HTMLElement>('#boss-scenario-menu')!;
   const fileInput = toolbar.querySelector<HTMLInputElement>('#boss-file')!;
@@ -369,6 +372,12 @@ export function mountBossScenarios(app: ProfessionAppState): void {
 
     // Keep the final encounter and its build intact, matching the Golem workspace's last-tab rule.
     if (!action || (action === 'close' && scenarios.length <= 1)) return;
+
+    // Creation actions live in the picker and return focus to it when opening the resulting scenario.
+    if (action === 'new' || action === 'duplicate') {
+      menu.hidePopover();
+      selector.focus();
+    }
 
     const rowIndex = scenarios.findIndex((entry) => entry.id === trigger?.dataset.scenarioId);
 
