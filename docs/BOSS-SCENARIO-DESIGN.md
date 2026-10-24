@@ -142,18 +142,18 @@ Analysis uses the active Bosses scenario and the existing Golem result layout: s
 charts, and modifier contributions. The scenario selector remains available. Empty scenarios link back to Bosses;
 results from another workspace or an outdated revision are not presented as current encounter analysis.
 
-An encounter table reports each observed phase and named split with elapsed bounds, duration, player damage and phase
-DPS, group damage and DPS excluding the player, and cumulative player DPS. Unfinished stages are marked in progress;
-repeated cycles get distinct entries. Separate target rows show each current health bar and armor without combining
-unrelated pools.
+An encounter table reports each observed damage phase with elapsed bounds, duration, player damage and phase DPS, group
+damage and DPS excluding the player, and cumulative player DPS. Unfinished stages are marked in progress; repeated
+cycles get distinct entries. Separate target rows show each current health bar and armor without combining unrelated
+pools.
 
 The existing chart range controls offer Full Fight and observed damage phases instead of Golem health bands. Full Fight
 includes split time, so cumulative DPS falls during invulnerability; selecting a phase restarts its damage clock and
-crops its effect timelines. Splits remain in the table and chart transition markers, without separate range buttons.
-Damage breakdown and modifier contributions cover the full simulated encounter. RNG and modifier comparison jobs inherit
-the same boss configuration as the baseline simulation.
+crops its effect timelines. Splits remain on the chart as transition markers, without separate range buttons or DPS
+breakdown rows. Damage breakdown and modifier contributions cover the full simulated encounter. RNG and modifier
+comparison jobs inherit the same boss configuration as the baseline simulation.
 
 Phase DPS is available from the DPS strip's existing disclosure style, replacing the result text beneath encounter
 inputs. The disclosure lists observed damage phases, including partial phases and repeated cycles. Chart transition
 labels use measured collision lanes and expand the canvas downward without shrinking the plot or moving transition
-times. Long labels are shortened only when wider than the plot; full names remain in the encounter table.
+times. Long labels are shortened only when wider than the plot; full split names remain in Boss configuration.

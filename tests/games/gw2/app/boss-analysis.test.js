@@ -122,6 +122,8 @@ test('boss analysis preserves separate target bars and links an empty scenario b
   assert.match(container.innerHTML, /40.00%/);
   assert.match(container.innerHTML, /75.00%/);
   assert.match(container.innerHTML, /in progress/);
+  assert.doesNotMatch(container.innerHTML, /Charged Souls|data-encounter-phase="encounter-1"/);
+  assert.match(container.innerHTML, /data-encounter-phase="encounter-2"/);
   const app = { build: { rotation: [] }, workspace: { scenario: {} } };
   assert.match(createGw2SimulationViewModel(app).analysisEmptyHtml, /href="#bosses"/);
   app.build.rotation = [{ type: 'wait', durationMs: 1000 }];

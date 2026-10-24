@@ -3,7 +3,7 @@ import { resultNumber as number } from '#gw2/app/results/formatting.js';
 import type { EncounterAnalysisPhase } from '#gw2/app/boss-scenarios/analysis-model.js';
 import type { EncounterResult } from '#gw2/platform/combat/state/encounter.js';
 
-/** Reuse analysis table styling for observed phases and individual health pools without inventing a combined boss. */
+/** Show DPS only for damage phases; split time still contributes to overall DPS and chart transitions. */
 export function mountEncounterAnalysis(
   container: HTMLElement,
   encounter: EncounterResult,
@@ -19,9 +19,10 @@ export function mountEncounterAnalysis(
         <table class="boss-analysis-table" aria-label="Encounter phase results">
           <thead><tr class="res-hdr"><th scope="col">Phase / split</th><th scope="col">Time</th><th scope="col">Duration</th><th scope="col">Your damage</th><th scope="col">Your phase DPS</th><th scope="col">Group damage</th><th scope="col">Group DPS</th><th scope="col">Overall DPS</th></tr></thead>
           <tbody>${phases
+            .filter((phase) => phase.kind === 'boss')
             .map(
               (phase) => `<tr class="res-row" data-encounter-phase="${h(phase.id)}">
-            <th scope="row">${h(phase.label)}<small>${phase.kind === 'boss' ? h(phase.detail) : ''}${phase.complete ? '' : ' (in progress)'}</small></th>
+            <th scope="row">${h(phase.label)}<small>${h(phase.detail)}${phase.complete ? '' : ' (in progress)'}</small></th>
             <td>${time(phase.startMs / 1000)} &ndash; ${time(phase.endMs / 1000)}</td>
             <td>${time(phase.duration)}</td><td>${number(phase.playerDamage)}</td><td>${number(phase.playerDps)}</td>
             <td>${number(phase.groupDamage)}</td><td>${number(phase.groupDps)}</td><td>${number(phase.overallDps)}</td>
