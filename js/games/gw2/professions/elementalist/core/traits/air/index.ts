@@ -460,26 +460,19 @@ export function aeromancersTrainingRecharge(
 
 /** Materializes Raging Storm after its registered critical-hit reaction succeeds. */
 function applyRagingStorm(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
-  const ragingStormProfile = requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM);
-  const fury = requireEffect(ragingStormProfile, 'boon', BOON.FURY);
-
-  if (fury) {
-    emitTraitProfile(context, TRAIT.RAGING_STORM, TRAIT.RAGING_STORM, undefined, {
-      at: event.at,
-      fullEnd: event.at,
-      effect: { type: 'boon', name: BOON.FURY },
-      durationContext: event,
-      attribution: {
-        source: 'Trait',
-        sourceId: TRAIT.RAGING_STORM,
-        actorType: ACTOR.PLAYER,
-        skillName: requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM).name,
-        triggeredBy: resolverSourceSkill(event),
-        priority: Number(event.priority || 0)
-      },
-      transform: (packet) => ({ ...packet, name: requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM).name })
-    });
-  }
+  // The shared emitter selects the patched boon and supplies the profile's packet name.
+  emitTraitProfile(context, TRAIT.RAGING_STORM, TRAIT.RAGING_STORM, undefined, {
+    at: event.at,
+    fullEnd: event.at,
+    effect: { type: 'boon', name: BOON.FURY },
+    durationContext: event,
+    attribution: {
+      actorType: ACTOR.PLAYER,
+      skillName: requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM).name,
+      triggeredBy: resolverSourceSkill(event),
+      priority: Number(event.priority || 0)
+    }
+  });
 }
 
 /** Only an accepted player critical hit can reset Air's actual recharge. */

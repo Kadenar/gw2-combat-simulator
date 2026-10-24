@@ -7,15 +7,15 @@ import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#browser/ga
 import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import type {
   ModifierContribution,
+  ModifierContributionBatchRequest,
+  ModifierContributionBatchResult,
   ModifierContributionRequest
 } from '#gw2/app/simulation/modifier-contributions/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 const MODIFIER_CONTRIBUTION_DEBOUNCE_MS = 750;
 
-interface ModifierContributionWorkerMessage extends GameWorkerResponseEnvelope {
-  readonly contributions?: ModifierContribution[];
-}
+type ModifierContributionWorkerMessage = GameWorkerResponseEnvelope & ModifierContributionBatchResult;
 
 export class ModifierContributionRunner {
   readonly app: ProfessionAppState;
@@ -130,8 +130,8 @@ export class ModifierContributionRunner {
           return;
         }
 
-        const completed: ModifierContribution[][] = [];
-        for (const comparisons of batches) {
+        const completed: ModifierContributionBatchResult[] = [];
+        for (const [index, comparisons] of batches.entries()) {
           if (!this.batch.isActive(requestId)) break;
 
           this.batch.spawn(
@@ -140,11 +140,16 @@ export class ModifierContributionRunner {
             requestId,
             {
               requestId,
-              request: { ...request, comparisons }
+              // Only this batch computes the deterministic baseline; all omissions can run concurrently.
+              request: {
+                ...request,
+                baseConfig: index === 0 ? request.baseConfig : null,
+                comparisons
+              } satisfies ModifierContributionBatchRequest
             },
             (data, worker) => {
               this.batch.finish(worker);
-              completed.push(data.contributions || []);
+              completed.push(data);
 
               if (completed.length === batches.length) {
                 applyContributions(mergeModifierContributions(completed));

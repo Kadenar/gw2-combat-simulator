@@ -1,3 +1,4 @@
+import { invokeLesserRangerSkill } from '#gw2/professions/ranger/core/traits/lesser-skill.js';
 import { ACTOR, WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
@@ -14,7 +15,7 @@ import { activePetFamily, rangerPetEvent } from '#gw2/professions/ranger/core/tr
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -39,7 +40,8 @@ export const childOfEarth = defineTrait({
   triggers: [
     onTriggerPoint(castCompleted, {
       when: (_runtime, input: TriggerPointInput<typeof castCompleted>) => input.skill.type === 'Heal',
-      run: (runtime, input: TriggerPointInput<typeof castCompleted>) => triggerChildOfEarth(runtime, input.skill)
+      run: (runtime, input: TriggerPointInput<typeof castCompleted>) =>
+        invokeLesserRangerSkill(runtime, input.skill, TRAIT.CHILD_OF_EARTH, ID.LESSER_MUDDY_TERRAIN)
     })
   ],
   id: TRAIT.CHILD_OF_EARTH,
@@ -230,29 +232,6 @@ export const survivalInstincts = defineTrait({
     }
   ]
 });
-
-/** Owns Core Ranger Wilderness Survival condition and control-triggered trait behavior. */
-
-// This trait owns Lesser Muddy Terrain's field delivery, including independently scheduled pulses.
-// On an eligible heal, claim Lesser Muddy Terrain's recharge and emit the initial
-// immobilize followed by the profile-defined Muddy Terrain condition pulses.
-function triggerChildOfEarth(context: RangerRuntime, skill: RangerSkill): void {
-  // A trait trigger invokes one independently patchable skill and shares that skill's recharge.
-  const proc = context.helpers.skillsById.get(ID.LESSER_MUDDY_TERRAIN)!;
-
-  if (!proc.effects?.length || context.cooldownController.isOnCooldown(proc.id, context.time)) return;
-
-  context.cooldownController.startRecharge(proc, context.time);
-  invokeTraitSkill(context, TRAIT.CHILD_OF_EARTH, proc.id, {
-    type: 'action',
-    source: 'Trait',
-    sourceId: proc.id,
-    at: context.time,
-    skillId: skill.id,
-    skillName: skill.name,
-    actorType: ACTOR.PLAYER
-  });
-}
 
 /** Pet activation captures its recipient; merged Beast skills retain their existing commitment boundary. */
 function applyPoisonMasterBeastSkill(context: RangerRuntime, skill: RangerSkill): void {

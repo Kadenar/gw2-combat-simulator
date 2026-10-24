@@ -15,6 +15,16 @@ export interface ModifierContributionRequest extends GameContentAddress {
   readonly comparisons: readonly ProfessionModifierComparison[];
 }
 
+/** Only one batch receives the deterministic baseline configuration; other workers simulate omissions only. */
+export interface ModifierContributionBatchRequest extends Omit<ModifierContributionRequest, 'baseConfig'> {
+  readonly baseConfig: Gw2Config | null;
+}
+
+export interface ModifierContributionBatchResult {
+  readonly baselineDps: number | null;
+  readonly scores: readonly { readonly id: string; readonly name: string; readonly dps: number }[];
+}
+
 export interface ModifierContribution {
   readonly id: string;
   readonly name: string;

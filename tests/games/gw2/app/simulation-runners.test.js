@@ -1,3 +1,4 @@
+import { calculateContributionBatch } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
 import { calculateRelicComparison } from '#gw2/app/optimizer/relic-comparison/calculate.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
@@ -716,9 +717,14 @@ test('modifier fallback clears stale state when calculation fails', (t) => {
 test('modifier worker batches ignore superseded responses and terminate on completion', (t) => {
   runTimersImmediately(t);
   const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
+  const navigatorDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { hardwareConcurrency: 8 } });
   t.after(() => {
     if (workerDescriptor) Object.defineProperty(globalThis, 'Worker', workerDescriptor);
     else delete globalThis.Worker;
+
+    if (navigatorDescriptor) Object.defineProperty(globalThis, 'navigator', navigatorDescriptor);
+    else delete globalThis.navigator;
   });
 
   const workers = [];
@@ -751,14 +757,21 @@ test('modifier worker batches ignore superseded responses and terminate on compl
     value: ControlledWorker
   });
 
-  const results = { contributions: [], modifierContributionsStale: true };
+  const results = { dps: 999, contributions: [], modifierContributionsStale: true };
   let renderCount = 0;
   const app = {
     build: { rotation: STRIKE_ROTATION },
     results,
     adapter: {
       modifierContributionRequest() {
-        return { comparisons: [{}] };
+        return {
+          rotation: STRIKE_ROTATION,
+          baseConfig: { dps: 100 },
+          comparisons: [80, 90, 100].map((dps) => ({
+            modifier: { id: String(dps), label: `Without ${dps}` },
+            config: { dps }
+          }))
+        };
       },
       presentation: testPresentation(() => {
         renderCount += 1;
@@ -771,23 +784,51 @@ test('modifier worker batches ignore superseded responses and terminate on compl
   runner.schedule();
   runner.cancel();
   runner.schedule();
-  assert.equal(workers[0].terminated, true);
-  workers[0].respond({
-    requestId: 1,
-    contributions: [{ id: 'old', name: 'Old', dpsIncrease: 1, pctIncrease: 1 }]
-  });
+  assert.equal(workers.length, 6);
+  assert.ok(workers.slice(0, 3).every((worker) => worker.terminated));
+  workers[0].respond({ requestId: 1, baselineDps: 1000, scores: [{ id: 'old', name: 'Old', dps: 1 }] });
   assert.deepEqual(results.contributions, []);
 
-  workers[1].respond({
-    requestId: workers[1].message.requestId,
-    contributions: [{ id: 'new', name: 'New', dpsIncrease: 2, pctIncrease: 2 }]
-  });
-  assert.deepEqual(
-    results.contributions.map(({ id }) => id),
-    ['new']
-  );
-  assert.equal(workers[1].terminated, true);
+  const current = workers.slice(3);
+  assert.equal(current.filter((worker) => worker.message.request.baseConfig !== null).length, 1);
+  let baselineRuns = 0;
+  let comparisonRuns = 0;
+  const finish = (worker) =>
+    worker.respond({
+      requestId: worker.message.requestId,
+      ...calculateContributionBatch(worker.message.request, (_rotation, config) => {
+        if (config === worker.message.request.baseConfig) baselineRuns++;
+        else comparisonRuns++;
+
+        return config;
+      })
+    });
+  // The shared baseline can arrive last; partial batches must not publish stale or incomplete values.
+  finish(current[2]);
+  finish(current[1]);
+  assert.deepEqual(results.contributions, []);
+  assert.equal(runner.isRunning, true);
+  finish(current[0]);
+  assert.equal(baselineRuns, 1);
+  assert.equal(comparisonRuns, 3);
+  assert.deepEqual(results.contributions, [
+    { id: '80', name: 'Without 80', dpsIncrease: 20, pctIncrease: 25 },
+    { id: '90', name: 'Without 90', dpsIncrease: 10, pctIncrease: (10 / 90) * 100 }
+  ]);
+  assert.ok(current.every((worker) => worker.terminated));
+  assert.equal(runner.isRunning, false);
   assert.equal(renderCount, 0, 'modifier completion does not rebuild the full view');
+
+  // A failed baseline invalidates every score from that request, including responses already in flight.
+  results.modifierContributionsStale = true;
+  runner.schedule();
+  const failed = workers.slice(6);
+  failed[0].respond({ requestId: failed[0].message.requestId, error: 'Baseline failed.' });
+  finish(failed[1]);
+  assert.ok(failed.every((worker) => worker.terminated));
+  assert.equal(results.contributions, undefined);
+  assert.equal(results.modifierContributionsError, 'Baseline failed.');
+  assert.equal(runner.isRunning, false);
 });
 
 test('RNG worker errors preserve the ErrorEvent cause', (t) => {

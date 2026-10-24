@@ -495,29 +495,19 @@ function applyArcanePrecision(context: ElementalistResolverContext, event: Gw2Re
 
 /** Materializes Renewing Stamina after its registered critical-hit reaction succeeds. */
 function applyRenewingStamina(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
-  const renewingStaminaProfile = requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA);
-  const vigor = requireEffect(renewingStaminaProfile, 'boon', BOON.VIGOR);
-
-  if (vigor) {
-    emitTraitProfile(context, TRAIT.RENEWING_STAMINA, TRAIT.RENEWING_STAMINA, undefined, {
-      at: event.at,
-      fullEnd: event.at,
-      effect: { type: 'boon', name: BOON.VIGOR },
-      durationContext: event,
-      attribution: {
-        source: 'Trait',
-        sourceId: TRAIT.RENEWING_STAMINA,
-        actorType: ACTOR.PLAYER,
-        skillName: requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA).name,
-        triggeredBy: resolverSourceSkill(event),
-        priority: Number(event.priority || 0)
-      },
-      transform: (packet) => ({
-        ...packet,
-        name: requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA).name
-      })
-    });
-  }
+  // The shared emitter selects the patched boon and supplies the profile's packet name.
+  emitTraitProfile(context, TRAIT.RENEWING_STAMINA, TRAIT.RENEWING_STAMINA, undefined, {
+    at: event.at,
+    fullEnd: event.at,
+    effect: { type: 'boon', name: BOON.VIGOR },
+    durationContext: event,
+    attribution: {
+      actorType: ACTOR.PLAYER,
+      skillName: requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA).name,
+      triggeredBy: resolverSourceSkill(event),
+      priority: Number(event.priority || 0)
+    }
+  });
 }
 
 /** Keep arcanePrecision's critical sampling and timer with its effect owner; the trigger point fixes cross-trait order. */

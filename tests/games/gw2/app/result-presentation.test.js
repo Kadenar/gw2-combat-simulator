@@ -16,6 +16,7 @@ import { mountSimulationSection } from '#ui/results/simulation-view.js';
 import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
 import { eventLogCsv, mountEventLog } from '#ui/results/event-log.js';
 import { baseResultSummaryMetrics, targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
+import { comparisonResult } from '#gw2/app/page/benchmark-comparison/model.js';
 import { mountResultSummary, dismissResultMetricDetails } from '#gw2/app/results/summary-view.js';
 import { mountRandomDistribution } from '#gw2/app/results/random-distribution-view.js';
 import { modifierContributionsHtml, mountModifierContributions } from '#gw2/app/results/modifier-contributions-view.js';
@@ -1452,4 +1453,33 @@ test('event log distinguishes phantasm summon, attack, and clone conversion', ()
     )
   );
   assert.match(eventLogCsv(log), /Phantasmal Duelist phantasm conversion/);
+});
+
+// Views may display aggregate-only events, but target health must follow actual condition payouts.
+test('damage reports share packet expansion while health milestones require recorded condition payouts', () => {
+  const result = {
+    dpsStartTime: 0,
+    combatEndTime: 4,
+    deathTime: null,
+    dps: 62.5,
+    warnings: [],
+    resolvedEvents: [
+      { type: 'condition', condition: 'Burning', at: 1, damage: 40 },
+      { type: 'condition', condition: 'Burning', at: 2, damage: 60, damageTicks: [] },
+      { type: 'condition', condition: 'Burning', at: 0, damage: 999, damageTicks: [{ at: 3, damage: 100 }] },
+      { type: 'damage', at: 3, damage: 50, didCrit: true, averagedCriticalDamage: true }
+    ]
+  };
+  const series = buildTimeSeries(result, 250, { includeEffects: false, skillKey: (event) => event.type });
+  assert.equal(series.cumulativeDamage.at(-1).v, 250);
+  assert.equal(comparisonResult(result).damage.at(-1).v, 250);
+  assert.equal(
+    series.skillDamage.condition.reduce((total, hit) => total + hit.v, 0),
+    200
+  );
+  assert.equal(series.skillDamage.damage[0].crit, true);
+  assert.equal(series.skillDamage.damage[0].averagedCriticalDamage, true);
+  assert.deepEqual(targetHealthBreakpointSnapshots(result, 500), [
+    { healthPercent: 80, at: 3, elapsed: 3, damage: 150, dps: 50 }
+  ]);
 });

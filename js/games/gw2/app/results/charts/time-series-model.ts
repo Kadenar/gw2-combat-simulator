@@ -1,3 +1,4 @@
+import { eventDamagePackets, recordedDamageTicks } from '#gw2/platform/results/damage-packets.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { effectStateAt, effectSummary, type EffectSource } from '#gw2/platform/results/effect-report.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -85,10 +86,6 @@ export interface BuildChartSeriesOptions {
   readonly skillKey?: (event: Gw2ResolverEvent) => string | null;
 }
 
-function eventDamageTicks(event: Gw2ResolverEvent): Array<{ at: number; damage: number; fraction?: number }> {
-  return Array.isArray(event.damageTicks) ? (event.damageTicks as Array<{ at: number; damage: number }>) : [];
-}
-
 export function chartValueAt(points: readonly ChartPoint[], time: number): number {
   if (!points.length) return 0;
 
@@ -125,13 +122,12 @@ export function buildTimeSeries(
   const damageEvents = resolved.filter(
     (event) =>
       (event.type === 'damage' || event.type === 'condition') &&
-      (Number(event.damage || 0) > 0 || eventDamageTicks(event).some((tick) => Number(tick.damage || 0) > 0))
+      (Number(event.damage || 0) > 0 || recordedDamageTicks(event).some((tick) => Number(tick.damage || 0) > 0))
   );
   // Walk hits once in time order; ticks replace their application's aggregate damage and the source stays untouched.
   const damageHits = damageEvents
     .flatMap((event) => {
-      const ticks = eventDamageTicks(event);
-      return (ticks.length ? ticks : [{ at: event.at, damage: Number(event.damage || 0) }]).map((hit) => ({
+      return eventDamagePackets(event).map((hit) => ({
         ...hit,
         kind: event.type === 'condition' ? ('condition' as const) : ('strike' as const)
       }));
@@ -191,28 +187,18 @@ export function buildTimeSeries(
       // Preserve cast ownership for multi-hit inspection; unowned condition ticks share only their application.
       const activationId = event.activationId || `event:${eventIndex}`;
       const triggeredBy = event.triggeredBy || undefined;
-      const damageTicks = eventDamageTicks(event);
-
-      if (damageTicks.length) {
-        // Condition ticks are neither critical nor non-critical strikes.
-        for (const tick of damageTicks) {
-          const value = Number(tick.damage || 0);
-          const time = Number(tick.at || 0) * 1000 - dpsStartMs;
-
-          if (value > 0 && time >= 0 && time <= durationMs) {
-            hits.push({ t: time, v: value, crit: null, activationId, damageType, conditionType, triggeredBy });
-          }
-        }
-      } else {
-        const value = Number(event.damage || 0);
-        const time = Number(event.at || 0) * 1000 - dpsStartMs;
+      const hasRecordedTicks = recordedDamageTicks(event).length > 0;
+      for (const packet of eventDamagePackets(event)) {
+        const value = Number(packet.damage || 0);
+        const time = Number(packet.at || 0) * 1000 - dpsStartMs;
 
         if (value > 0 && time >= 0 && time <= durationMs) {
           hits.push({
             t: time,
             v: value,
-            crit: damageType === 'condition' ? null : crit,
-            averagedCriticalDamage: event.averagedCriticalDamage,
+            // Payouts cannot inherit critical-strike metadata from their application.
+            crit: hasRecordedTicks || damageType === 'condition' ? null : crit,
+            ...(!hasRecordedTicks ? { averagedCriticalDamage: event.averagedCriticalDamage } : {}),
             activationId,
             damageType,
             conditionType,
@@ -236,9 +222,7 @@ export function buildTimeSeries(
 
     if (!conditionType) continue;
 
-    const recordedTicks = eventDamageTicks(event);
-    const ticks = recordedTicks.length ? recordedTicks : [{ at: event.at, damage: Number(event.damage || 0) }];
-    for (const tick of ticks) {
+    for (const tick of eventDamagePackets(event)) {
       const time = Math.round(Number(tick.at) * 1000 - dpsStartMs);
       const damage = Number(tick.damage || 0);
 

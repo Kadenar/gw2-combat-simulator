@@ -1,3 +1,4 @@
+import { emitShroudEntryTrait } from '#gw2/professions/necromancer/core/traits/shroud-entry.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -7,7 +8,6 @@ import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -31,8 +31,7 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
-  NecromancerRuntime,
-  NecromancerSkill
+  NecromancerRuntime
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -187,7 +186,7 @@ export const eternalLife = defineTrait({
     onTriggerPoint(necromancerPassivesStarting, { run: startEternalLife }),
     onTriggerPoint(shroudEntered, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
-        enterEternalLife(runtime, input.cast)
+        emitShroudEntryTrait(runtime, input.cast, TRAIT.ETERNAL_LIFE)
     })
   ],
   lifetime: {
@@ -231,7 +230,7 @@ export const speedOfShadows = defineTrait({
   triggers: [
     onTriggerPoint(shroudEntered, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
-        enterSpeedOfShadows(runtime, input.cast)
+        emitShroudEntryTrait(runtime, input.cast, TRAIT.SPEED_OF_SHADOWS)
     })
   ],
   id: TRAIT.SPEED_OF_SHADOWS,
@@ -309,28 +308,6 @@ function applySoulBarbs(
       stacks: 1,
       duration: balanceNumberFromContext(runtime, TRAIT.SOUL_BARBS, 'duration')
     }
-  });
-}
-
-/** Emits speed of shadows at the ordered post-entry boundary. */
-function enterSpeedOfShadows(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  emitTraitProfile(runtime, TRAIT.SPEED_OF_SHADOWS, TRAIT.SPEED_OF_SHADOWS, undefined, {
-    skillName: requireBalanceProfileFromContext(runtime, TRAIT.SPEED_OF_SHADOWS).name,
-    activationId: cast.id,
-    attribution: { triggeredBy: cast.skill.name },
-    skillWeaponFallback: 'Unequipped',
-    transform: (event) => ({ ...event, ...(event.type === 'buff' ? {} : { offTarget: cast.command.offTarget }) })
-  });
-}
-
-/** Emits eternal life at the ordered post-entry boundary. */
-function enterEternalLife(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  emitTraitProfile(runtime, TRAIT.ETERNAL_LIFE, TRAIT.ETERNAL_LIFE, undefined, {
-    skillName: requireBalanceProfileFromContext(runtime, TRAIT.ETERNAL_LIFE).name,
-    activationId: cast.id,
-    attribution: { triggeredBy: cast.skill.name },
-    skillWeaponFallback: 'Unequipped',
-    transform: (event) => ({ ...event, ...(event.type === 'buff' ? {} : { offTarget: cast.command.offTarget }) })
   });
 }
 

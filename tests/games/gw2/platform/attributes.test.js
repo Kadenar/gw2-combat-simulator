@@ -187,7 +187,10 @@ test('modifier comparisons partition across a capped worker pool', () => {
     ]
   );
   assert.deepEqual(
-    mergeModifierContributions([[{ id: 'low', dpsIncrease: 2 }], [{ id: 'high', dpsIncrease: 8 }]]).map(({ id }) => id),
+    mergeModifierContributions([
+      { baselineDps: null, scores: [{ id: 'low', name: 'Low', dps: 98 }] },
+      { baselineDps: 100, scores: [{ id: 'high', name: 'High', dps: 92 }] }
+    ]).map(({ id }) => id),
     ['high', 'low']
   );
 });

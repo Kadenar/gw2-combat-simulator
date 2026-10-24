@@ -1,3 +1,4 @@
+import { recordedDamageTicks } from '#gw2/platform/results/damage-packets.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverResult } from '#gw2/platform/results/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
@@ -141,12 +142,9 @@ export function targetHealthBreakpointSnapshots(
   };
 
   for (const event of result?.resolvedEvents || []) {
-    if (event.type === 'condition' && Array.isArray(event.damageTicks)) {
-      const ticks = event.damageTicks as Array<{
-        readonly at?: unknown;
-        readonly damage?: unknown;
-      }>;
-      for (const tick of ticks) addDamage(tick.at, tick.damage, ACTOR.PLAYER);
+    if (event.type === 'condition') {
+      // Health thresholds need recorded payouts, never an application's aggregate at its start time.
+      for (const tick of recordedDamageTicks(event)) addDamage(tick.at, tick.damage, ACTOR.PLAYER);
     } else if (event.type === 'damage') {
       addDamage(event.at, event.damage, ACTOR.PLAYER);
     }

@@ -1,5 +1,7 @@
 import type {
   ModifierContribution,
+  ModifierContributionBatchRequest,
+  ModifierContributionBatchResult,
   ModifierContributionRequest,
   ProfessionModifierComparison
 } from '#gw2/app/simulation/modifier-contributions/types.js';
@@ -34,11 +36,27 @@ export function partitionModifierComparisons(
   return batches;
 }
 
-export function mergeModifierContributions(
-  groups: readonly (readonly ModifierContribution[])[]
-): ModifierContribution[] {
-  const values: readonly (readonly ModifierContribution[])[] = Array.isArray(groups) ? groups : [];
-  return values.flat().sort((left, right) => right.dpsIncrease - left.dpsIncrease);
+/** All worker scores use the one deterministic baseline, regardless of completion order. */
+export function mergeModifierContributions(groups: readonly ModifierContributionBatchResult[]): ModifierContribution[] {
+  if (!groups.length) return [];
+
+  const baselineDps = groups.find((group) => group.baselineDps !== null)?.baselineDps;
+
+  if (baselineDps == null) throw new Error('Modifier comparisons are missing their baseline.');
+
+  const contributions: ModifierContribution[] = [];
+  for (const { scores } of groups) {
+    for (const { id, name, dps } of scores) {
+      const dpsIncrease = baselineDps - dps;
+
+      // Whole-DPS reports should not retain numerical noise that renders as 0 or -0.
+      if (Math.round(dpsIncrease) === 0) continue;
+
+      contributions.push({ id, name, dpsIncrease, pctIncrease: dps > 0 ? (dpsIncrease / dps) * 100 : 0 });
+    }
+  }
+
+  return contributions.sort((left, right) => right.dpsIncrease - left.dpsIncrease);
 }
 
 type SimulateForContribution = (rotation: readonly RotationCommand[], config: Gw2Config) => { readonly dps: number };
@@ -48,35 +66,25 @@ type SimulateForContribution = (rotation: readonly RotationCommand[], config: Gw
  * simulation with simulations that omit one modifier at a time.
  */
 export function calculateContributionComparisons(
-  { rotation, baseConfig, comparisons }: Omit<ModifierContributionRequest, 'gameId' | 'contentId'>,
+  request: Omit<ModifierContributionRequest, 'gameId' | 'contentId'>,
   simulateBuild: SimulateForContribution
 ): ModifierContribution[] {
-  if (typeof simulateBuild !== 'function') {
-    throw new TypeError('A simulation function is required.');
-  }
+  return mergeModifierContributions([calculateContributionBatch(request, simulateBuild)]);
+}
 
-  const baseline = simulateBuild(rotation, baseConfig);
-  const contributions: ModifierContribution[] = [];
-  for (const { modifier, config } of comparisons) {
-    // Unequipped skill casts disappear with their active effects, resource rewards, and time cost.
+/** Each worker simulates its omissions; the designated baseline batch also scores the unmodified build once. */
+export function calculateContributionBatch(
+  { rotation, baseConfig, comparisons }: Omit<ModifierContributionBatchRequest, 'gameId' | 'contentId'>,
+  simulateBuild: SimulateForContribution
+): ModifierContributionBatchResult {
+  const baselineDps = baseConfig === null ? null : simulateBuild(rotation, baseConfig).dps;
+  const scores = comparisons.map(({ modifier, config }) => {
+    // Unequipped casts disappear with their active effects, resource rewards, and time cost.
     const comparisonRotation =
       modifier.type === 'Skill'
         ? rotation.filter((command) => command.type !== 'cast' || command.skillId !== modifier.skillId)
         : rotation;
-    const without = simulateBuild(comparisonRotation, config);
-    const dpsIncrease = baseline.dps - without.dps;
-
-    // Contributions are displayed as whole DPS. Do not retain numerical noise
-    // that can only render as 0 or -0 in the report.
-    if (Math.round(dpsIncrease) === 0) continue;
-
-    contributions.push({
-      id: modifier.id,
-      name: modifier.label,
-      dpsIncrease,
-      pctIncrease: without.dps > 0 ? (dpsIncrease / without.dps) * 100 : 0
-    });
-  }
-
-  return contributions.sort((left, right) => right.dpsIncrease - left.dpsIncrease);
+    return { id: modifier.id, name: modifier.label, dps: simulateBuild(comparisonRotation, config).dps };
+  });
+  return { baselineDps, scores };
 }

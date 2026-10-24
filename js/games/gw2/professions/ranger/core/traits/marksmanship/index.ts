@@ -1,3 +1,4 @@
+import { invokeLesserRangerSkill } from '#gw2/professions/ranger/core/traits/lesser-skill.js';
 import { WEAPON, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
@@ -13,7 +14,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -93,7 +94,8 @@ export const wolfsong = defineTrait({
 export const clarionBond = defineTrait({
   triggers: [
     onTriggerPoint(petSwapped, {
-      run: (runtime, input: TriggerPointInput<typeof petSwapped>) => applyClarionBond(runtime, input.skill)
+      run: (runtime, input: TriggerPointInput<typeof petSwapped>) =>
+        invokeLesserRangerSkill(runtime, input.skill, TRAIT.CLARION_BOND, ID.LESSER_CALL_OF_THE_WILD)
     })
   ],
   id: TRAIT.CLARION_BOND,
@@ -292,25 +294,6 @@ export const predatorsOnslaught = defineTrait({
     }
   ]
 });
-
-/** Completes the lesser warhorn package after the pet swap. */
-function applyClarionBond(context: RangerRuntime, skill: RangerSkill): void {
-  // A trait trigger invokes one independently patchable skill and shares that skill's recharge.
-  const proc = context.helpers.skillsById.get(ID.LESSER_CALL_OF_THE_WILD)!;
-
-  if (!proc.effects?.length || context.cooldownController.isOnCooldown(proc.id, context.time)) return;
-
-  context.cooldownController.startRecharge(proc, context.time);
-  invokeTraitSkill(context, TRAIT.CLARION_BOND, proc.id, {
-    type: 'action',
-    source: 'Trait',
-    sourceId: proc.id,
-    at: context.time,
-    skillId: skill.id,
-    skillName: skill.name,
-    actorType: ACTOR.PLAYER
-  });
-}
 
 /** Applies the trait at the accepted Beast-skill boundary. */
 function applyWolfsong(context: RangerRuntime, skill: RangerSkill): void {

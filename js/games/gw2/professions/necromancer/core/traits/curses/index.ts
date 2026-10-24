@@ -1,3 +1,4 @@
+import { emitShroudEntryTrait } from '#gw2/professions/necromancer/core/traits/shroud-entry.js';
 import { ACTOR, WEAPON, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -6,7 +7,6 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -36,8 +36,7 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
-  NecromancerRuntime,
-  NecromancerSkill
+  NecromancerRuntime
 } from '#gw2/professions/necromancer/types.js';
 
 /** Owns Barbed Precision tuning and behavior at its existing execution boundaries. */
@@ -142,7 +141,7 @@ export const furiousDemise = defineTrait({
   triggers: [
     onTriggerPoint(shroudEntered, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
-        enterFuriousDemise(runtime, input.cast)
+        emitShroudEntryTrait(runtime, input.cast, TRAIT.FURIOUS_DEMISE)
     })
   ],
   id: TRAIT.FURIOUS_DEMISE,
@@ -238,7 +237,7 @@ export const weakeningShroud = defineTrait({
   triggers: [
     onTriggerPoint(shroudEntered, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
-        enterWeakeningShroud(runtime, input.cast)
+        emitShroudEntryTrait(runtime, input.cast, TRAIT.WEAKENING_SHROUD)
     })
   ],
   id: TRAIT.WEAKENING_SHROUD,
@@ -464,28 +463,6 @@ function applyInsidiousDisruption(context: NecromancerResolverContext, event: Ne
   context.effects.emit({
     kind: 'announcement',
     announcement: { type: 'trait', name: 'Insidious Disruption', at: event.at, sourceSkill: event.skillName }
-  });
-}
-
-/** Emits furious demise at the ordered post-entry boundary. */
-function enterFuriousDemise(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  emitTraitProfile(runtime, TRAIT.FURIOUS_DEMISE, TRAIT.FURIOUS_DEMISE, undefined, {
-    skillName: requireBalanceProfileFromContext(runtime, TRAIT.FURIOUS_DEMISE).name,
-    activationId: cast.id,
-    attribution: { triggeredBy: cast.skill.name },
-    skillWeaponFallback: 'Unequipped',
-    transform: (event) => ({ ...event, ...(event.type === 'buff' ? {} : { offTarget: cast.command.offTarget }) })
-  });
-}
-
-/** Emits weakening shroud at the ordered post-entry boundary. */
-function enterWeakeningShroud(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  emitTraitProfile(runtime, TRAIT.WEAKENING_SHROUD, TRAIT.WEAKENING_SHROUD, undefined, {
-    skillName: requireBalanceProfileFromContext(runtime, TRAIT.WEAKENING_SHROUD).name,
-    activationId: cast.id,
-    attribution: { triggeredBy: cast.skill.name },
-    skillWeaponFallback: 'Unequipped',
-    transform: (event) => ({ ...event, ...(event.type === 'buff' ? {} : { offTarget: cast.command.offTarget }) })
   });
 }
 

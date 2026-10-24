@@ -1,3 +1,4 @@
+import { eventDamagePackets } from '#gw2/platform/results/damage-packets.js';
 import type { Benchmark } from '#gw2/app/page/benchmarks.js';
 import type { ChartPoint } from '#gw2/app/results/charts/time-series-model.js';
 import type { Gw2ResolverResult } from '#gw2/platform/results/types.js';
@@ -49,8 +50,7 @@ export function comparisonResult(result: Gw2ResolverResult): ComparisonResult {
   const hits = result.resolvedEvents.flatMap((event) => {
     if (event.type !== 'damage' && event.type !== 'condition') return [];
 
-    const ticks = Array.isArray(event.damageTicks) ? (event.damageTicks as Array<{ at: number; damage: number }>) : [];
-    return (ticks.length ? ticks : [{ at: event.at, damage: Number(event.damage ?? 0) }])
+    return eventDamagePackets(event)
       .filter((hit) => hit.damage > 0 && hit.at >= result.dpsStartTime && hit.at <= result.combatEndTime)
       .map((hit) => ({ t: (hit.at - result.dpsStartTime) * 1000, v: hit.damage }));
   });

@@ -76,8 +76,9 @@ test('simulation workers load current and preview patches without UI dependencie
     });
   });
   expect(contributions.requestId).toBe(17);
-  expect(contributions.contributions.length).toBeGreaterThan(0);
-  expect(contributions.contributions[0].dpsIncrease).toBeGreaterThan(0);
+  expect(contributions.scores.length).toBeGreaterThan(0);
+  expect(contributions.baselineDps).toBeGreaterThan(0);
+  expect(contributions.scores.some(({ dps }) => dps < contributions.baselineDps)).toBe(true);
   expect(await uiImports(await modifierWorkerReady)).toEqual([]);
 
   const randomWorkerReady = page.waitForEvent('worker', (worker) =>

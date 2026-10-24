@@ -1,3 +1,4 @@
+import { emitShroudEntryTrait } from '#gw2/professions/necromancer/core/traits/shroud-entry.js';
 import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -5,7 +6,6 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetHealthBelow, activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -27,8 +27,7 @@ import { NECROMANCER_TRAIT_IDS as TRAIT, NECROMANCER_SKILL_IDS as ID } from '#gw
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
-  NecromancerRuntime,
-  NecromancerSkill
+  NecromancerRuntime
 } from '#gw2/professions/necromancer/types.js';
 
 /** Owns Reaper's Might tuning and behavior at its existing execution boundaries. */
@@ -127,7 +126,7 @@ export const awakenThePain = defineTrait({
   triggers: [
     onTriggerPoint(shroudEntered, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
-        enterAwakenThePain(runtime, input.cast)
+        emitShroudEntryTrait(runtime, input.cast, TRAIT.AWAKEN_THE_PAIN)
     })
   ],
   id: TRAIT.AWAKEN_THE_PAIN,
@@ -250,7 +249,7 @@ export const spitefulSpirit = defineTrait({
   triggers: [
     onTriggerPoint(shroudEntered, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
-        enterSpitefulSpirit(runtime, input.cast)
+        emitShroudEntryTrait(runtime, input.cast, TRAIT.SPITEFUL_SPIRIT)
     })
   ],
   id: TRAIT.SPITEFUL_SPIRIT,
@@ -432,28 +431,6 @@ function applyChillOfDeathCondition(context: NecromancerResolverContext, event: 
   if (event.actorType !== ACTOR.EFFECT || event.skillId !== ID.LESSER_SPINAL_SHIVERS) return;
 
   queueChillOfDeathCondition(context, event);
-}
-
-/** Emits awaken the pain at the ordered post-entry boundary. */
-function enterAwakenThePain(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  emitTraitProfile(runtime, TRAIT.AWAKEN_THE_PAIN, TRAIT.AWAKEN_THE_PAIN, undefined, {
-    skillName: requireBalanceProfileFromContext(runtime, TRAIT.AWAKEN_THE_PAIN).name,
-    activationId: cast.id,
-    attribution: { triggeredBy: cast.skill.name },
-    skillWeaponFallback: 'Unequipped',
-    transform: (event) => ({ ...event, ...(event.type === 'buff' ? {} : { offTarget: cast.command.offTarget }) })
-  });
-}
-
-/** Emits spiteful spirit at the ordered post-entry boundary. */
-function enterSpitefulSpirit(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  emitTraitProfile(runtime, TRAIT.SPITEFUL_SPIRIT, TRAIT.SPITEFUL_SPIRIT, undefined, {
-    skillName: requireBalanceProfileFromContext(runtime, TRAIT.SPITEFUL_SPIRIT).name,
-    activationId: cast.id,
-    attribution: { triggeredBy: cast.skill.name },
-    skillWeaponFallback: 'Unequipped',
-    transform: (event) => ({ ...event, ...(event.type === 'buff' ? {} : { offTarget: cast.command.offTarget }) })
-  });
 }
 
 function applyBitterChill(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {

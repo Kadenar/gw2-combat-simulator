@@ -1,3 +1,4 @@
+import { insertSorted } from '#kernel/core/collections.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { attributeContext, resolveAttributeContributions } from '#gw2/platform/attributes/evaluation.js';
 import { ATTRIBUTE_NAMES, attributeSeed, attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
@@ -47,8 +48,7 @@ export function grantCatalystElementalEmpowerment(
 
     if (expiresAt > at) {
       // Insert after equal deadlines so the next grant can evict the earliest stack without sorting again.
-      const next = active.findIndex((expiry) => expiry > expiresAt);
-      active.splice(next < 0 ? active.length : next, 0, expiresAt);
+      insertSorted(active, expiresAt, (left, right) => left - right);
     }
   }
 
