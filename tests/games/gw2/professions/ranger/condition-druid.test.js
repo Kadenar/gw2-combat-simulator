@@ -476,7 +476,7 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
       ['Eclipse', 1, 4]
     ]
   );
-  assert.equal(result.planningState.profession.celestialAvatarActive, false);
+  assert.equal(result.planningState.profession.celestialAvatarEndsAt, null);
   assert.equal(result.planningState.profession.astralClock.value > 0, true);
 
   const naturalMender = simulate([{ type: 'wait', durationMs: 6000 }], {
@@ -592,7 +592,7 @@ test('Seed of Life detonates with Eclipse after releasing Celestial Avatar', () 
     (event) => event.sourceId === TRAIT.ECLIPSE && event.condition === 'Poisoned'
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.celestialAvatarActive, false);
+  assert.equal(result.planningState.profession.celestialAvatarEndsAt, null);
   assert.ok(blind.at > release.end / 1000);
   assert.equal(
     poison.reduce((sum, event) => sum + event.stacks, 0),

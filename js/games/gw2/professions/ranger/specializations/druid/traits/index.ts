@@ -57,7 +57,7 @@ const naturalMender = defineTrait({
         const state = druidState.from(runtime);
         const profile = requireBalanceProfileFromContext(runtime, TRAIT.NATURAL_MENDER);
 
-        if (!state.celestialAvatarActive)
+        if (state.celestialAvatarEndsAt === null)
           runtime.resourceController.grant('astralForce', balanceProfileNumber(profile, 'resourceGain'));
 
         const interval = balanceProfileNumber(profile, 'pulseInterval');

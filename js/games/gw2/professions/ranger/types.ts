@@ -52,7 +52,7 @@ export interface RangerPetDefinition {
 /** Derive optional projection fields from their owners without exposing additional specialization internals. */
 export type RangerState = RangerCorePublicState &
   Partial<
-    Pick<DruidState, 'astralClock' | 'celestialAvatarActive' | 'celestialAvatarEndsAt'> &
+    Pick<DruidState, 'astralClock' | 'celestialAvatarEndsAt'> &
       Pick<SoulbeastState, 'beastmodeActive' | 'oneWolfPackUntil'> &
       Pick<UntamedState, 'rangerUnleashed' | 'ambushReadyUntil' | 'ferociousSymbiosisPlayer'> &
       Pick<

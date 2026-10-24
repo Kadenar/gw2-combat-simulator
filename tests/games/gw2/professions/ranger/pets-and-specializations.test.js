@@ -831,13 +831,13 @@ test('Druid gates, drains, and releases Celestial Avatar', () => {
 
   assert.deepEqual(entered.warnings, []);
   assert.equal(entered.planningState.profession.astralClock.value, 100);
-  assert.equal(entered.planningState.profession.celestialAvatarActive, true);
+  assert.equal(entered.planningState.profession.celestialAvatarEndsAt !== null, true);
   assert.equal(entered.planningState.profession.availableFlips[ID.RELEASE_CELESTIAL_AVATAR]?.expiresAt, 15);
 
   const draining = simulate('Druid', ['Celestial Avatar', { type: 'wait', durationMs: 5000 }]);
 
   assert.equal(draining.planningState.profession.astralClock.value, 100 * (10 / 15));
-  assert.equal(draining.planningState.profession.celestialAvatarActive, true);
+  assert.equal(draining.planningState.profession.celestialAvatarEndsAt !== null, true);
   assert.equal(draining.planningState.availability[ID.RELEASE_CELESTIAL_AVATAR].ready, true);
 
   const result = simulate('Druid', ['Celestial Avatar', 'Natural Convergence', 'Release Celestial Avatar']);
@@ -848,7 +848,7 @@ test('Druid gates, drains, and releases Celestial Avatar', () => {
     Math.abs(result.planningState.profession.astralClock.value - 100 * ((15 - naturalConvergenceDuration) / 15) * 0.5) <
       0.01
   );
-  assert.equal(result.planningState.profession.celestialAvatarActive, false);
+  assert.equal(result.planningState.profession.celestialAvatarEndsAt, null);
   assert.equal(Object.hasOwn(result.planningState.profession.availableFlips, ID.RELEASE_CELESTIAL_AVATAR), false);
   assert.equal(result.totalDamage > 0, true);
 });

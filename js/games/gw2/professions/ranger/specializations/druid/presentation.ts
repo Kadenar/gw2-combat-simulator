@@ -38,7 +38,7 @@ export function bindDruidUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): R
       if (skill.id === ID.CELESTIAL_AVATAR || skill.id === ID.RELEASE_CELESTIAL_AVATAR)
         return {
           tileActive:
-            (skill.id === ID.RELEASE_CELESTIAL_AVATAR) === Boolean(rangerUiState(context).celestialAvatarActive)
+            (skill.id === ID.RELEASE_CELESTIAL_AVATAR) === (rangerUiState(context).celestialAvatarEndsAt != null)
         };
     },
     paletteGroups: (context: RangerUiContext) => [
@@ -88,7 +88,7 @@ export function bindDruidUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): R
           step: 1,
           displayMode: 'bar',
           shortLabel: 'Astral Force',
-          statusLabel: state.celestialAvatarActive ? 'Celestial Avatar' : 'Current'
+          statusLabel: state.celestialAvatarEndsAt != null ? 'Celestial Avatar' : 'Current'
         }
       ];
     }

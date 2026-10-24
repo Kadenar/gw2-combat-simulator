@@ -6,6 +6,8 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { galeshotModule } from '#gw2/professions/ranger/specializations/galeshot/module.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 
 const simulate = createObservedProfessionSimulator(rangerProfession, {
   initialAstralForce: 100,
@@ -29,7 +31,7 @@ test('Celestial Avatar expires at its deadline and recovers force afterward', ()
       result.events.filter(({ type, kind }) => type === 'buff' && kind === 'natural-balance').map(({ at }) => at),
       [0, 15]
     );
-    assert.equal(result.planningState.profession.celestialAvatarActive, false);
+    assert.equal(result.planningState.profession.celestialAvatarEndsAt, null);
     assert.equal(result.planningState.profession.astralClock.value, expectedForce);
   }
 });
@@ -68,7 +70,36 @@ test('Avatar depletion schedules an earlier exit than the duration limit', () =>
     [0, 3]
   );
   assert.equal(result.planningState.profession.astralClock.value, 16);
-  assert.equal(result.planningState.profession.celestialAvatarActive, false);
+  assert.equal(result.planningState.profession.celestialAvatarEndsAt, null);
+});
+
+// A lifetime at time zero is still active until its queued exit commits; null alone means inactive.
+test('Avatar lifetime remains present at its exact deadline until exit cleanup completes', () => {
+  for (const duration of [0, 1]) {
+    const transitions = [];
+    const result = runRanger(
+      [ID.CELESTIAL_AVATAR, { type: 'wait', durationMs: 1000 }],
+      { specialization: 'Druid' },
+      {
+        catalog: (catalog) => withProfile(catalog, PROFILE.resources, { duration }),
+        extend: (native) => ({
+          tasks: {
+            ...native.tasks,
+            'ranger.avatar-exit'(runtime, data) {
+              const state = runtime.profession.specialization.state;
+              assert.equal(state.celestialAvatarEndsAt, runtime.time);
+              native.tasks['ranger.avatar-exit'](runtime, data);
+              transitions.push(state.celestialAvatarEndsAt);
+              assert.equal(state.astralClock.rate, 0);
+            }
+          }
+        })
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(transitions, [null]);
+    assert.equal(result.planningState.profession.celestialAvatarEndsAt, null);
+  }
 });
 
 // Check both boon sources and ownership at the actual start/expiry boundaries.

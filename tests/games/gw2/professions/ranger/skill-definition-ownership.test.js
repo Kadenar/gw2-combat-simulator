@@ -26,7 +26,7 @@ test('Ranger activation declarations are the sole owners of their grants and tra
     ['Core', ID.CRIPPLING_SHOT, [], (r) => r.profession.core.bloodThirst.charges, 0],
     ['Core', ID.WINTERS_BITE, [], (r) => r.profession.core.winterBiteReady, false],
     ['Core', ID.PET_SWAP, [], (r) => r.profession.core.activePetSlot, 1],
-    ['Druid', ID.CELESTIAL_AVATAR, [], (r) => r.profession.specialization.state.celestialAvatarActive, false],
+    ['Druid', ID.CELESTIAL_AVATAR, [], (r) => r.profession.specialization.state.celestialAvatarEndsAt, null],
     ['Soulbeast', ID.LEAVE_BEASTMODE, [], (r) => r.profession.specialization.state.beastmodeActive, true],
     ['Soulbeast', ID.ONE_WOLF_PACK, [], (r) => r.profession.specialization.state.oneWolfPackUntil, 0],
     ['Untamed', ID.UNLEASH_RANGER, [], (r) => r.profession.specialization.state.rangerUnleashed, false],
@@ -229,7 +229,7 @@ test('Avatar re-entry survives its previous depletion task', () => {
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(observedRuntime(result).profession.specialization.state.celestialAvatarActive, true);
+  assert.equal(observedRuntime(result).profession.specialization.state.celestialAvatarEndsAt !== null, true);
   assert.deepEqual(
     result.events.filter((event) => event.type === 'sigil_swap').map((event) => event.at),
     [0, 1, 2]

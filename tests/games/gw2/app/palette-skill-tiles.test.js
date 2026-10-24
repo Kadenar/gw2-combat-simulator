@@ -504,14 +504,14 @@ test('stateful transforms select one live tile across professions', async () => 
     [
       'ranger',
       'Druid',
-      { astralClock: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }, celestialAvatarActive: false },
+      { astralClock: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }, celestialAvatarEndsAt: null },
       ['Celestial Avatar'],
       'Celestial Avatar'
     ],
     [
       'ranger',
       'Druid',
-      { astralClock: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }, celestialAvatarActive: true },
+      { astralClock: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }, celestialAvatarEndsAt: 15 },
       ['Celestial Avatar'],
       'Release Celestial Avatar'
     ],

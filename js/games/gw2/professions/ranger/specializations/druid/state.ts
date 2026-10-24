@@ -10,15 +10,14 @@ export interface DruidState {
   pendingHitTimes: number[];
   naturalMenderAt: number;
   astralClock: ResourceClock;
-  celestialAvatarActive: boolean;
-  celestialAvatarEndsAt: number;
+  /** A non-null lifetime remains active until its exit task commits, including at the exact deadline. */
+  celestialAvatarEndsAt: number | null;
 }
 
 // Druid owns its public Celestial Avatar resource projection.
 export const DRUID_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   astralClock: undefined,
-  celestialAvatarActive: false,
-  celestialAvatarEndsAt: 0
+  celestialAvatarEndsAt: null
 } satisfies Partial<RangerState>);
 
 /** The resource clock exclusively owns force, capacity, and advancement time. */
@@ -32,8 +31,7 @@ export function createDruidState(config: RangerConfig = {}): DruidState {
       updatedAt: 0,
       rate: 0
     },
-    celestialAvatarActive: false,
-    celestialAvatarEndsAt: 0
+    celestialAvatarEndsAt: null
   };
 }
 
