@@ -63,19 +63,6 @@
       ]
     },
     {
-      "encounterId": "020104",
-      "difficulty": "normal",
-      "reports": [
-        {
-          "report": "https://gw2wingman.nevermindcreations.de/log/66a0c-20260914-200815_sprtrace_kill",
-          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/66a0c-20260914-200815_sprtrace_kill",
-          "format": "ei-html",
-          "triggerId": 15415,
-          "primaryTargetIndexes": [0, 1, 2, 3]
-        }
-      ]
-    },
-    {
       "encounterId": "020201",
       "difficulty": "normal",
       "reports": [

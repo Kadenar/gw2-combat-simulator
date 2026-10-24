@@ -2,7 +2,7 @@
 
 Collected 2026-10-23 from public reports hosted by [GW2 Wingman](https://gw2wingman.nevermindcreations.de).
 
-The catalog contains 65 encounter/mode observations covering 37 encounters in the supported roster. Numbers are exact EI
+The catalog contains 64 encounter/mode observations covering 36 encounters in the supported roster. Numbers are exact EI
 target health fields. Wingman's rounded encounter metadata is never used for health.
 
 ## Source and interpretation
@@ -28,8 +28,8 @@ the conflicting report remains recorded in the catalog. No guessed reconciliatio
 ## Scope and event handling
 
 - **Freezie and Cold War / Varinia Stormsounder:** excluded from the simulator at the user's request.
-- **Bandit Trio, Escort, Twisted Castle, River of Souls, Broken King, Eater of Souls, and Eyes of Fate and Judgment:**
-  excluded from the simulator at the user's request.
+- **Spirit Race, Bandit Trio, Escort, Twisted Castle, River of Souls, Broken King, Eater of Souls, and Eyes of Fate and
+  Judgment:** excluded from the simulator at the user's request.
 - Difficulty modes without evidence never inherit normal-mode health.
 
 ## Imported observations
@@ -42,7 +42,6 @@ corroborated.
 | 020101       | normal    | Vale Guardian: 22,021,440                                                                                                                                                                      | [EI report](https://gw2wingman.nevermindcreations.de/log/6e656-RoyalWabbit8359_20260827-212333_vg_kill)           | 2                        |
 | 020102       | normal    | Gorseval the Multifarious: 21,628,200                                                                                                                                                          | [EI report](https://gw2wingman.nevermindcreations.de/log/66ee1-20261004-125902_gors_kill)                         | 2                        |
 | 020103       | normal    | Sabetha the Saboteur: 34,015,256                                                                                                                                                               | [EI report](https://gw2wingman.nevermindcreations.de/log/54fa2-Quadesh1345_20261022-230404_sab_kill)              | 2                        |
-| 020104       | normal    | First Ethereal Barrier: 1,494,000<br>Second Ethereal Barrier: 1,494,000<br>Third Ethereal Barrier: 1,494,000<br>Fourth Ethereal Barrier: 1,494,000                                             | [EI report](https://gw2wingman.nevermindcreations.de/log/66a0c-20260914-200815_sprtrace_kill)                     | 1                        |
 | 020201       | normal    | Slothasor: 18,973,828                                                                                                                                                                          | [EI report](https://gw2wingman.nevermindcreations.de/log/5b66f-20260921-215108_sloth_kill)                        | 2                        |
 | 020203       | normal    | Matthias Gabrel: 25,953,840                                                                                                                                                                    | [EI report](https://gw2wingman.nevermindcreations.de/log/ef8f4-Quadesh1345_20261016-222604_matt_kill)             | 2                        |
 | 020302       | challenge | Keep Construct: 55,053,600                                                                                                                                                                     | [EI report](https://gw2wingman.nevermindcreations.de/log/2fc24-20260821-223753_kc_kill)                           | 2                        |

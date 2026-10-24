@@ -215,7 +215,7 @@ test('scenario execution compiles health gates and exposes unsupported encounter
 
 // Excluded encounters cannot be reintroduced through imports or a health-data refresh.
 test('excluded raid encounters are absent from authoring and health data', () => {
-  for (const id of ['020202', '020301', '020303', '020502', '020503', '020504', '020505']) {
+  for (const id of ['020104', '020202', '020301', '020303', '020502', '020503', '020504', '020505']) {
     assert.equal(
       ENCOUNTER_TEMPLATES.some((entry) => entry.id === id),
       false

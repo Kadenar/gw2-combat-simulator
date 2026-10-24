@@ -57,7 +57,6 @@ const plans: Readonly<Record<string, EncounterPhasePlan>> = {
   }),
   '020102': healthPlan([66, 33], wiki('Gorseval'), { '66': 'Charged Souls', '33': 'Charged Souls' }),
   '020103': healthPlan([75, 50, 25], wiki('Spirit_Vale'), { '75': 'Kernan', '50': 'Knuckles', '25': 'Karde' }),
-  '020104': mechanicPlan([['boss', 'Spirit Race']], ei('RaidWings/W1/Bosses/SpiritRace')),
   '020201': healthPlan([80, 60, 40, 20, 10], wiki('Slothasor'), {
     '80': 'Narcolepsy',
     '60': 'Narcolepsy',

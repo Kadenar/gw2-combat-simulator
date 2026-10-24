@@ -42,40 +42,6 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
     ]
   },
   {
-    encounterId: '020104',
-    difficulty: 'normal',
-    targets: [
-      {
-        index: 0,
-        name: 'First Ethereal Barrier',
-        health: 1494000,
-        primary: true,
-        healthBars: null
-      },
-      {
-        index: 1,
-        name: 'Second Ethereal Barrier',
-        health: 1494000,
-        primary: true,
-        healthBars: null
-      },
-      {
-        index: 2,
-        name: 'Third Ethereal Barrier',
-        health: 1494000,
-        primary: true,
-        healthBars: null
-      },
-      {
-        index: 3,
-        name: 'Fourth Ethereal Barrier',
-        health: 1494000,
-        primary: true,
-        healthBars: null
-      }
-    ]
-  },
-  {
     encounterId: '020201',
     difficulty: 'normal',
     targets: [

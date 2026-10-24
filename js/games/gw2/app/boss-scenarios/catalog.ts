@@ -18,8 +18,7 @@ const groups: readonly [string, readonly [string, string, EncounterTemplate['kin
     [
       ['020101', 'Vale Guardian'],
       ['020102', 'Gorseval'],
-      ['020103', 'Sabetha'],
-      ['020104', 'Spirit Race', 'event']
+      ['020103', 'Sabetha']
     ]
   ],
   [
