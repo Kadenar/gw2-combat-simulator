@@ -84,7 +84,7 @@ test('zero-duration splits remain ordered and defeat appears only after the obse
 });
 
 test('encounter phases render as separate full-width rows while keeping their commands editable', () => {
-  const result = fixture();
+  const result = { ...fixture(), rotationEndTime: 9 };
   const build = {
     rotation: result.steps.map((step) => ({ type: 'wait', durationMs: step.end - step.start })),
     startingWeaponSet: 1,
@@ -106,16 +106,18 @@ test('encounter phases render as separate full-width rows while keeping their co
     const rows = timelineRowsView(app, build, result, readOnly, new Set(), false).rows;
     const html = render(result);
     // A transition closes the preceding weapon row even when both sides use the same weapon set.
-    for (const [label, commandIndex] of [
-      ['Phase 1', 1],
-      ['Split 1: Charged Souls', 2],
-      ['Phase 2', 3]
+    for (const [label, commandIndex, duration] of [
+      ['Phase 1', 1, '2.000s'],
+      ['Split 1: Charged Souls', 2, '3.000s'],
+      ['Phase 2', 3, '2.000s']
     ]) {
       const headerIndex = rows.findIndex((row) => row.key === `encounter:${label}`);
       assert.ok(headerIndex >= 0);
       assert.match(rows[headerIndex].html, /^<div class="rot-encounter-marker"/);
       assert.doesNotMatch(rows[headerIndex].html, /data-idx=/);
       const commands = rows[headerIndex + 1].html;
+      // Each row owns only the portion of its weapon stay within this encounter phase.
+      assert.ok(commands.includes(`<span class="rot-row-duration">${duration}</span>`));
       assert.match(commands, new RegExp(`aria-label="${label}: Weapon set 1`));
       assert.match(commands, new RegExp(`data-idx="${commandIndex}"`));
       assert.doesNotMatch(commands, new RegExp(`data-idx="${commandIndex - 1}"`));

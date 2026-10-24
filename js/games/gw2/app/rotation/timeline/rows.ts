@@ -646,6 +646,11 @@ export function timelineRowsView(
   });
 
   // Wrap adjacent lines for one weapon-set stay in a keyed row with its own duration and accessible label.
+  // Reconstruct contiguous stay boundaries from canonical durations so phase rows can clip their own share.
+  let weaponSegmentEndMs = Math.min(
+    0,
+    ...resultSteps.filter((step) => !step.invalid && Number.isFinite(step.start)).map((step) => step.start)
+  );
   let timelineLineIndex = 0;
   let encounterSection: (typeof encounterMarkers)[number] | undefined;
   const timelineRows = timelineWeaponRowGroups(rows).flatMap((group, groupNumber) => {
@@ -657,6 +662,9 @@ export function timelineRowsView(
     }`;
     // Consecutive kit/transform lines share one group, while each real swap advances to the next active stay.
     const activeSegment = weaponDurationSegments[groupNumber];
+    const segmentStartMs = weaponSegmentEndMs;
+    weaponSegmentEndMs += activeSegment?.durationMs ?? 0;
+    const segmentEndMs = weaponSegmentEndMs;
     const parts = timelineLines.slice(timelineLineIndex, timelineLineIndex + group.rows.length).flat();
     timelineLineIndex += group.rows.length;
     const firstCommand = group.rows[0]?.skills[0]?.entry;
@@ -673,8 +681,8 @@ export function timelineRowsView(
         activeSegment?.weaponSet === group.weaponSet
           ? Math.max(
               0,
-              Math.min(activeSegment.endMs, boundaryMs ?? activeSegment.endMs) -
-                Math.max(activeSegment.startMs, encounterSection?.start ?? activeSegment.startMs)
+              Math.min(segmentEndMs, boundaryMs ?? segmentEndMs) -
+                Math.max(segmentStartMs, encounterSection?.start ?? segmentStartMs)
             )
           : undefined;
       const durationLabel = durationMs == null ? '' : formatTimelineTime(durationMs, 0, 3);
