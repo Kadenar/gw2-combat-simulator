@@ -1013,11 +1013,12 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
 test('Soul Shards expire after ten seconds and refresh together when another shard is gained', () => {
   const state = necromancerProfession.resolveProfession({}).createState({}).core;
 
-  assert.equal(addSoulShards(state, 2, 0, 6), 2);
+  addSoulShards(state, 2, 0, 6);
   assert.equal(state.soulShardGrant.expiresAt, 10);
   assert.equal(state.soulShardGrant.charges, 2);
 
-  assert.equal(addSoulShards(state, 1, 9, 6), 1);
+  addSoulShards(state, 1, 9, 6);
+  assert.equal(state.soulShardGrant.charges, 3);
   assert.equal(state.soulShardGrant.expiresAt, 19);
 
   purgeTimedState(state, 10);
@@ -1028,8 +1029,9 @@ test('Soul Shards expire after ten seconds and refresh together when another sha
 
 test('Soul Shards refresh at capacity and consume only live charges without reviving expired shards', () => {
   const state = necromancerProfession.resolveProfession({}).createState({}).core;
-  assert.equal(addSoulShards(state, 8, 0, 6), 6);
-  assert.equal(addSoulShards(state, 2, 9, 6), 0);
+  addSoulShards(state, 8, 0, 6);
+  assert.equal(state.soulShardGrant.charges, 6);
+  addSoulShards(state, 2, 9, 6);
   assert.equal(state.soulShardGrant.expiresAt, 19);
   assert.equal(state.soulShardGrant.charges, 6);
   assert.equal(consumeSoulShards(state, 1, 10), 1);
@@ -1037,7 +1039,7 @@ test('Soul Shards refresh at capacity and consume only live charges without revi
   assert.equal(state.soulShardGrant.expiresAt, 19, 'spending cannot refresh the window');
   assert.equal(consumeSoulShards(state, 1, 19), 0);
   assert.equal(state.soulShardGrant.charges, 0);
-  assert.equal(addSoulShards(state, 2, 19, 6), 2);
+  addSoulShards(state, 2, 19, 6);
   assert.equal(state.soulShardGrant.charges, 2);
   assert.equal(state.soulShardGrant.expiresAt, 29);
   assert.equal(consumeSoulShards(state, 10, 20), 2);

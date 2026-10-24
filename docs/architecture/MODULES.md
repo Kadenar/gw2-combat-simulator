@@ -8,23 +8,23 @@ For how the simulator works (layers, phases, profession contracts, events, timin
 
 ## Repository map
 
-| Path                                  | Purpose                                                                                                      |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `js/kernel/`                          | Game-neutral clock, collections, numeric helpers, randomness, event-stream, queue, and observation contracts |
-| `js/ui/`                              | Game-neutral simulation view models and reusable DOM/rotation primitives                                     |
-| `js/browser/`                         | Game-neutral page entry, game plug-in boundary (browser and worker), page/host integration, and shell        |
-| `js/games/gw2/platform/`              | Shared Guild Wars 2 formulas, resolver logic, data, gear, relics, and simulation engine                      |
-| `js/games/gw2/professions/`           | Profession-owned builds, skills, state, mechanics, traits, resolver behavior, and UI                         |
-| `js/games/gw2/app/`                   | GW2 build editor, rotation workspace, browser lifecycle, and presentation adapters                           |
-| `js/games/gw2/integrations/logs/`     | EVTC, dps.report, and gw2wingman parsing and rotation reconstruction                                         |
-| `js/games/gw2/integrations/keybinds/` | Optional GW2 keybind import                                                                                  |
-| `js/games/gw2/integrations/chat-code/` | GW2 build-template chat-code decoding and generated palette data |
-| `js/games/gw2/integrations/patches/`  | Patch-preview manifest, authoring model, and optional browser UI                                             |
-| `data/games.json`                     | Canonical runtime game-data roots                                                                            |
-| `data/gw2/builds/`                    | Saved GW2 build presets                                                                                      |
-| `data/gw2/rotations/`                 | Saved GW2 rotation presets                                                                                   |
-| `tests/`                              | Unit, integration, architecture, browser, and regression tests                                               |
-| `scripts/`                            | Build, data generation, analysis, audit, and authoring tools                                                 |
+| Path                                   | Purpose                                                                                                      |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `js/kernel/`                           | Game-neutral clock, collections, numeric helpers, randomness, event-stream, queue, and observation contracts |
+| `js/ui/`                               | Game-neutral simulation view models and reusable DOM/rotation primitives                                     |
+| `js/browser/`                          | Game-neutral page entry, game plug-in boundary (browser and worker), page/host integration, and shell        |
+| `js/games/gw2/platform/`               | Shared Guild Wars 2 formulas, resolver logic, data, gear, relics, and simulation engine                      |
+| `js/games/gw2/professions/`            | Profession-owned builds, skills, state, mechanics, traits, resolver behavior, and UI                         |
+| `js/games/gw2/app/`                    | GW2 build editor, rotation workspace, browser lifecycle, and presentation adapters                           |
+| `js/games/gw2/integrations/logs/`      | EVTC, dps.report, and gw2wingman parsing and rotation reconstruction                                         |
+| `js/games/gw2/integrations/keybinds/`  | Optional GW2 keybind import                                                                                  |
+| `js/games/gw2/integrations/chat-code/` | GW2 build-template chat-code decoding and generated palette data                                             |
+| `js/games/gw2/integrations/patches/`   | Patch-preview manifest, authoring model, and optional browser UI                                             |
+| `data/games.json`                      | Canonical runtime game-data roots                                                                            |
+| `data/gw2/builds/`                     | Saved GW2 build presets                                                                                      |
+| `data/gw2/rotations/`                  | Saved GW2 rotation presets                                                                                   |
+| `tests/`                               | Unit, integration, architecture, browser, and regression tests                                               |
+| `scripts/`                             | Build, data generation, analysis, audit, and authoring tools                                                 |
 
 ```text
 build + rotation
@@ -357,9 +357,10 @@ Code outside a profession folder imports only `profession.js`, `app/app-definiti
 chunks don't load the whole profession graph. Tests are exempt. The shared `professions/shared/` helpers are not a
 profession. `eslint.config.js` enforces these import boundaries.
 
-Each profession's `app/app-definition.ts` binds its catalog and trait selector through `shared/build-attributes.ts`'s
-`createProfessionBuildAttributeRules`; the shared evaluator owns attribute calculations. Concrete `GuardianRuntime` and
-`WarriorRuntime` types live in their profession's `types.ts`, while query-only and resolver contracts retain their
+The shared `build-context/create.ts` prepares equipment and selected traits, then uses `shared/build-attributes.ts`'s
+`createBuildAttributeContext` and `finalizeProfessionBuildAttributes` to evaluate and cache attribute previews. Focused
+attribute tests assemble these same primitives through `tests/helpers/build-attributes.js`. Concrete `GuardianRuntime`
+and `WarriorRuntime` types live in their profession's `types.ts`, while query-only and resolver contracts retain their
 narrower capabilities.
 
 ### Module manifest

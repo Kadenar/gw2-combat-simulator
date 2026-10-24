@@ -1,6 +1,7 @@
+import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { attributeSeedFromCommon } from '#gw2/platform/attributes/inputs.js';
 import {
@@ -17,7 +18,6 @@ import {
 import { createModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/request.js';
 import {
   calculateCommonAttributes,
-  createCalculateAttributes,
   finalizeBuildAttributes,
   resolveAttributeEffects
 } from '#gw2/platform/attributes/calculation.js';

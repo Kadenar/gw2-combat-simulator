@@ -1,5 +1,5 @@
+import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 import { timedBuffApplicationsAt, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
-import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 
 // Inputs are equipment attributes; baseline Might and its trait adjustment share one stage.
 function notorietyAttributes(context, attributes) {
@@ -22,7 +22,7 @@ import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { displayedSkillTiles, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
-import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
+
 import {
   createRevenantBuildDefaults,
   migrateRevenantBuild,

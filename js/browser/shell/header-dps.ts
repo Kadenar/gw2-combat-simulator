@@ -2,14 +2,14 @@
 const HEADER_DPS_PLACEHOLDER = '\u2014';
 
 /** Keep DPS beside the active build so the sticky toolbar associates the result with its build. */
-export function mountHeaderDps(root: Document = document): HTMLOutputElement | null {
+export function mountHeaderDps(root: Document = document): void {
   const existing = root.getElementById('header-dps');
 
-  if (existing) return existing as HTMLOutputElement;
+  if (existing) return;
 
   const host = root.querySelector('#build-switcher-menu');
 
-  if (!host) return null;
+  if (!host) return;
 
   const indicator = root.createElement('output');
   indicator.id = 'header-dps';
@@ -27,7 +27,6 @@ export function mountHeaderDps(root: Document = document): HTMLOutputElement | n
 
   indicator.append(label, value);
   host.after(indicator);
-  return indicator;
 }
 
 /** Keeps the header status synchronized with the latest formatted simulation result. */

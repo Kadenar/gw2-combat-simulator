@@ -1,8 +1,9 @@
+import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createDefaultBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
-import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
+
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { gw2StatsForWeaponSet } from '#gw2/platform/attributes/stats.js';
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';

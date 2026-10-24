@@ -59,9 +59,6 @@ export function buildCombatResult(
 ): Gw2ResolverResult {
   const effectiveEnd = score.combatEndTime;
   const damagePerSecond = (damage: number): number => (score.dpsWindow > 0 ? damage / score.dpsWindow : 0);
-  const environmentWindow = Math.max(0, effectiveEnd - (score.hasExplicitCombatStart ? score.combatStartTime || 0 : 0));
-  const environmentDamagePerSecond = (damage: number): number =>
-    environmentWindow > 0 ? damage / environmentWindow : 0;
   const { output, ...numeric } = score;
   const effectiveEvents = events.filter((event) => event.at <= effectiveEnd);
   // Editor-only runs retain combat facts but skip both live histories and expensive hypothetical party projection.
@@ -90,14 +87,12 @@ export function buildCombatResult(
         averageStacks: damagePerSecond(entry.stackSeconds)
       }))
       .sort((left, right) => right.damage - left.damage),
+    // External breakdowns retain damage attribution and ticks for target-health milestones.
     environmentConditionBreakdown: [...ctx.environmentConditions.values()]
       .filter((entry) => entry.damage > 0)
       .map((entry) => ({
         name: entry.name,
         damage: entry.damage,
-        dps: environmentDamagePerSecond(entry.damage),
-        averageStacks: environmentDamagePerSecond(entry.stackSeconds),
-        stacks: entry.stacks,
         damageTicks: entry.damageTicks.map((tick) => ({ ...tick }))
       }))
       .sort((left, right) => right.damage - left.damage),

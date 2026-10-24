@@ -32,15 +32,13 @@ export function normalizeTransitionDelays(value: unknown): TransitionDelays {
 /** Record actual bar-transition recovery separately from casts, recharge, and sigil-swap triggers. */
 function emitTransitionLockout(
   context: {
-    readonly config?: Gw2Config;
     readonly effects: EffectEmissionService;
   },
   kind: TransitionDelayKind,
   at: number,
+  duration: number,
   skill?: { readonly id: SkillId; readonly name: string }
 ): void {
-  const duration = normalizeTransitionDelays(context.config?.transitionDelays)[kind] / 1000;
-
   if (!duration) return;
 
   context.effects.emit({
@@ -70,7 +68,8 @@ export function lockTransitionInput(
   kind: TransitionDelayKind,
   skill?: { readonly id: SkillId; readonly name: string }
 ): void {
+  // Recovery and its observation share the same normalized duration.
   const delay = normalizeTransitionDelays(runtime.config?.transitionDelays)[kind] / 1000;
   runtime.castController.lockInputUntil(canonicalTime(runtime.time + delay));
-  emitTransitionLockout(runtime, kind, runtime.time, skill);
+  emitTransitionLockout(runtime, kind, runtime.time, delay, skill);
 }

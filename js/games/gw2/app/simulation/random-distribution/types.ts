@@ -45,7 +45,6 @@ export interface RandomDistributionOutcome {
 }
 
 export interface RandomDistributionDriver {
-  readonly id: string;
   readonly label: string;
   readonly category: RandomDistributionMetricCategory;
   readonly unit: RandomDistributionMetricUnit;

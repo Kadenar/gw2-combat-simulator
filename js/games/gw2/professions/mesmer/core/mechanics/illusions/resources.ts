@@ -65,7 +65,7 @@ export function schedulePhantasmConversions(
 ): void {
   const conversionGroups = new Map<number, MesmerPhantasmExecution[]>();
   for (const phantasm of phantasmExecutions) {
-    const conversionAt = phantasm.resourceAtOverride ?? phantasm.conversionAt;
+    const conversionAt = phantasm.conversionAt;
     const group = conversionGroups.get(conversionAt) || [];
     group.push(phantasm);
     conversionGroups.set(conversionAt, group);

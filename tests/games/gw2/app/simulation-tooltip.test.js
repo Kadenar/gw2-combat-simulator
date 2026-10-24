@@ -1,4 +1,5 @@
-import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
+
 import { necromancerAppAdapter } from '#gw2/professions/necromancer/app/app-definition.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
@@ -16,7 +17,7 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
+
 import { necromancerTooltips } from '#gw2/professions/necromancer/app/tooltips.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { createNecromancerBuildDefaults, toApplicationBuild } from '#gw2/professions/necromancer/build/build.js';

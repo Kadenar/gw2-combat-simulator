@@ -159,7 +159,7 @@ test('Mesmer public endurance and instrument observations remain detached', () =
     assert.equal(state.endurance.value, 100);
 
     if (specialization === 'Troubadour') {
-      assert.deepEqual(projected.activeInstruments, [{ name: 'Lute', expiresAt: 7000, remaining: 2000 }]);
+      assert.deepEqual(projected.activeInstruments, [{ name: 'Lute', remaining: 2000 }]);
       projected.activeInstruments[0].name = 'edited';
       assert.deepEqual(state.instruments, { Lute: 7, Flute: 5 });
     }

@@ -372,8 +372,8 @@ test('relic damage summaries separate direct damage from net DPS contribution', 
     1000
   );
   const targetDamage = relicDamageSummary({ dps: 1300, breakdown: [{ name: 'Weapon', damage: 13000 }] }, 1000);
-  assert.deepEqual(opponentDamage, { buildDps: 1200, directDamage: 2000, contributedDps: 200 });
-  assert.deepEqual(targetDamage, { buildDps: 1300, directDamage: 0, contributedDps: 300 });
+  assert.deepEqual(opponentDamage, { directDamage: 2000, contributedDps: 200 });
+  assert.deepEqual(targetDamage, { directDamage: 0, contributedDps: 300 });
   const model = buildRelicComparisonModel({
     opponentRelic: 'Fractal',
     targetRelic: 'Thorns',

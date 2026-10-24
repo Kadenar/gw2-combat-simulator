@@ -16,18 +16,15 @@ import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type {
-  Gw2ApplyBuildAttributeRules,
   Gw2AttributeBreakdown,
   Gw2AttributeEffect,
   Gw2AttributeConversionInputs,
   Gw2AttributeMap,
   Gw2AttributeSeed,
-  Gw2CalculateAttributes,
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
 } from '#gw2/platform/attributes/types.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Level-80 character baseline that gear and food attributes build on top of. */
 const BASE_STATS: Readonly<Gw2NumericAttributes> = {
@@ -523,39 +520,5 @@ export function finalizeBuildAttributes(
     attributeSeed,
     attributes,
     activeTraits
-  };
-}
-
-/**
- * Builds a profession attribute calculator that assembles the shared common
- * attributes and then applies the profession's own trait/skill rules.
- *
- * Standalone callers request a complete preview; build contexts instead reuse
- * common equipment preparation and invoke finalization only on demand.
- * Rules receive `weaponSet` so calculators that need it can use it; those that
- * do not simply ignore it.
- *
- */
-export function createCalculateAttributes(
-  applyBuildAttributeRules: Gw2ApplyBuildAttributeRules,
-  attributeContributions?: import('#gw2/platform/attributes/types.js').Gw2AttributeContributionCalculator
-): Gw2CalculateAttributes {
-  return function calculateAttributes(
-    build: Gw2Build,
-    selectedSkills: readonly Skill[] = [],
-    weaponSet = 1,
-    disabledTrait: string | null = null,
-    disabledSigil: string | null = null,
-    balanceContext?: import('#gw2/platform/profession-definition/balance-context.js').ProfessionBalanceContext
-  ) {
-    const common = calculateCommonAttributes(build, { weaponSet, disabledSigil });
-    return applyBuildAttributeRules(common, {
-      build,
-      selectedSkills,
-      weaponSet,
-      disabledTrait,
-      balanceContext,
-      attributeContributions
-    });
   };
 }

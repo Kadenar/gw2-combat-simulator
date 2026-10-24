@@ -1,5 +1,6 @@
+import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 import { BOON } from '#gw2/platform/constants.js';
-import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { renderSkills } from '#gw2/app/build/panels/skills.js';
 import { inertContainer } from '#tests/helpers/dom.js';
@@ -14,7 +15,7 @@ import {
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
+
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';

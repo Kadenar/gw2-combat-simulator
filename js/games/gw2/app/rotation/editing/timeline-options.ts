@@ -41,10 +41,10 @@ function timelineFullCastMs(
 
 // Wait edits use the GW2 action-tick grid for both typed values and native number stepping.
 // Each editor also checks command identity on Apply because an open popover can outlive its captured index.
-function editRotationDuration(app: ProfessionAppState, index: number, event?: Event): boolean {
+function editRotationDuration(app: ProfessionAppState, index: number, event?: Event): void {
   const entry = app.build.rotation[index];
 
-  if (entry === undefined) return false;
+  if (entry === undefined) return;
 
   const item = timelineItem(entry);
   const eventTarget = event?.currentTarget;
@@ -52,7 +52,7 @@ function editRotationDuration(app: ProfessionAppState, index: number, event?: Ev
     (eventTarget instanceof HTMLElement ? eventTarget : null) ||
     document.querySelector<HTMLElement>(`#rotation-timeline .rot-wait-badge[data-idx="${index}"]`);
 
-  if (!anchor) return false;
+  if (!anchor) return;
 
   openDurationEditor({
     anchor,
@@ -74,29 +74,28 @@ function editRotationDuration(app: ProfessionAppState, index: number, event?: Ev
       app.changed(false);
     }
   });
-  return false;
 }
 
 // Dragon Slash variants accumulate charges before releasing; this editor sets the
 // charge threshold at which the skill fires. releaseAtCharges == null means "wait
 // for maximum charges" (the default). insertionIndex lets the editor know where in
 // the rotation this cast falls so it can show available charge counts in context.
-function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Event): boolean {
+function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Event): void {
   const entry = app.build.rotation[index];
 
-  if (entry === undefined) return false;
+  if (entry === undefined) return;
 
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item.command);
 
-  if (!skill?.dragonSlash) return false;
+  if (!skill?.dragonSlash) return;
 
   const eventTarget = event?.currentTarget;
   const anchor =
     (eventTarget instanceof HTMLElement ? eventTarget : null) ||
     document.querySelector<HTMLElement>(`#rotation-timeline .rot-edit-activation[data-idx="${index}"]`);
 
-  if (!anchor) return false;
+  if (!anchor) return;
 
   openDragonSlashReleaseEditor({
     app,
@@ -117,17 +116,16 @@ function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Ev
       app.changed(false);
     }
   });
-  return false;
 }
 
 // "Activation" here means either interrupting a cast-bar skill or placing an
 // instant skill during the previous cast. The simulated duration selects the
 // appropriate editor, including runtime instant-cast conversions. The anchor is
 // the whole .rot-skill card so the popover positions correctly.
-function editRotationActivation(app: ProfessionAppState, index: number, event?: Event): boolean {
+function editRotationActivation(app: ProfessionAppState, index: number, event?: Event): void {
   const entry = app.build.rotation[index];
 
-  if (entry === undefined) return false;
+  if (entry === undefined) return;
 
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item.command);
@@ -140,7 +138,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
   const combatStartIndex = app.build.rotation.findIndex((command) => command.type === 'combat-start');
   const isPrecast = item.type === 'cast' && combatStartIndex > index;
 
-  if (!skill && !isCombatStart) return false;
+  if (!skill && !isCombatStart) return;
 
   const results = currentTimelineResults(app);
   const step = results?.steps?.find((candidate) => candidate.ri === index && !candidate.invalid);
@@ -177,7 +175,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     eventElement?.closest<HTMLElement>('.rot-skill') ||
     document.querySelector<HTMLElement>(`#rotation-timeline .rot-skill[data-idx="${index}"]`);
 
-  if (!anchor) return false;
+  if (!anchor) return;
 
   openActivationEditor({
     anchor,
@@ -237,28 +235,27 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
       app.changed(false);
     }
   });
-  return false;
 }
 
 // Antiquary Double Edge skills have a random success/backfire outcome in-game;
 // the sim lets users pin the outcome so benchmarks are deterministic. Defaults to
 // "success" for any value other than the explicit "backfire" string, including unset.
-function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: Event): boolean {
+function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: Event): void {
   const entry = app.build.rotation[index];
 
-  if (entry === undefined) return false;
+  if (entry === undefined) return;
 
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item.command);
 
-  if (!hasConfigurableDoubleEdgeOutcome(skill)) return false;
+  if (!hasConfigurableDoubleEdgeOutcome(skill)) return;
 
   const eventTarget = event?.currentTarget;
   const anchor =
     (eventTarget instanceof HTMLElement ? eventTarget : null) ||
     document.querySelector<HTMLElement>(`#rotation-timeline .rot-double-edge-badge[data-idx="${index}"]`);
 
-  if (!anchor) return false;
+  if (!anchor) return;
 
   openDoubleEdgeEditor({
     anchor,
@@ -276,7 +273,6 @@ function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: E
       app.changed(false);
     }
   });
-  return false;
 }
 
 /** Binds edits to the rendered build revision so retained cards cannot mutate shifted command indexes. */

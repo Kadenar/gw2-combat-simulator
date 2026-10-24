@@ -1375,7 +1375,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
       concurrentOffsetMs: 0
     }
   ]);
-  assert.equal(insertRotationItems(app, firstInsertion), true);
+  insertRotationItems(app, firstInsertion);
   assert.deepEqual(app.build.rotation, [
     {
       type: 'cast',
@@ -1393,7 +1393,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   app.rotationInsertionIndex = 0;
   const secondInsertion = resolvePaletteDropItem(app, VINDICATOR_DODGE_AUTO_ACTION);
 
-  assert.equal(insertRotationItems(app, secondInsertion), true);
+  insertRotationItems(app, secondInsertion);
   assert.deepEqual(app.build.rotation, [
     {
       type: 'cast',

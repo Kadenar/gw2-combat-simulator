@@ -60,7 +60,7 @@ export function activeTroubadourInstrumentsAt(
   );
 }
 
-/** Detach public clocks and build fresh instrument observations without copying private family state. */
+/** Detach public clocks and expose active instrument names and remaining time for the status display. */
 export function projectTroubadourPlanningState(input: Gw2PlanningStateInput) {
   const state = flattenProfessionState(input.profession) as unknown as MesmerTroubadourState;
   const publicState = projectPublicProfessionState(state, ['notes', 'endurance']);
@@ -71,7 +71,6 @@ export function projectTroubadourPlanningState(input: Gw2PlanningStateInput) {
       .filter(([, expiresAt]) => expiresAt > at)
       .map(([name, expiresAt]) => ({
         name,
-        expiresAt: Math.round(expiresAt * 1000),
         remaining: Math.max(0, Math.round((expiresAt - at) * 1000))
       }))
   };

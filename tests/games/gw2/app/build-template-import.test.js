@@ -40,7 +40,7 @@ test('in-game build import replaces selections without discarding gear or rotati
   assert.ok(Object.isFrozen(preview));
   assert.equal(app.build, current);
   assert.equal(changedCalls, 0);
-  const warnings = applyBuildTemplatePreview(app, preview);
+  applyBuildTemplatePreview(app, preview);
 
   assert.deepEqual(app.build.specializations, [
     { name: 'Fire', traits: '1-3-1' },
@@ -58,7 +58,7 @@ test('in-game build import replaces selections without discarding gear or rotati
   assert.deepEqual(app.build.weapons, ['Scepter', 'Warhorn']);
   assert.deepEqual(app.build.rotation, current.rotation);
   assert.equal(changedCalls, 1);
-  assert.equal(warnings.length, 1);
+  assert.equal(preview.warnings.length, 1);
 });
 
 test('Engineer build import equips the inferred primary spear', () => {
@@ -73,11 +73,11 @@ test('Engineer build import equips the inferred primary spear', () => {
   };
 
   const preview = previewBuildTemplateCode(app, ENGINEER_CODE);
-  const warnings = applyBuildTemplatePreview(app, preview);
+  applyBuildTemplatePreview(app, preview);
 
   assert.deepEqual(app.build.weapons, ['Spear', '']);
   assert.deepEqual(app.build.alternateWeapons, alternateWeapons);
-  assert.match(warnings[0], /Choose the intended weapon set/);
+  assert.match(preview.warnings[0], /Choose the intended weapon set/);
 
   applyBuildTemplatePreview(app, preview, preview.weaponOptions[1]);
   assert.deepEqual(app.build.weapons, ['Pistol', 'Pistol']);

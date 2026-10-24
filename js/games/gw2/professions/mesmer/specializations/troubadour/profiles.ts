@@ -84,7 +84,6 @@ export function mesmerProfiledInstrument(
     instrument: instrument.instrument,
     damageAtMs: instrument.damageAtMs,
     persistsAfterInterrupt: instrument.persistsAfterInterrupt,
-    balanceProfileId,
     ...strike,
     conditions
   };

@@ -1,8 +1,9 @@
-import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
+
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
+
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';

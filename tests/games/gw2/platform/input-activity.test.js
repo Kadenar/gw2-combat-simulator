@@ -25,7 +25,6 @@ function trace(entries, end = 60, start = 0) {
       at,
       order,
       skillId: order,
-      skillName: `Skill ${order}`,
       ...(control ? { control } : { control: null, unresolvedReason: 'Unknown live bar' })
     })),
     start,
@@ -343,8 +342,8 @@ test('input traces exclude precasts, autos, waits and invalid commands but retai
   assert.equal(result.inputTrace.start, result.combatStartTime);
   assert.equal(result.inputTrace.end, result.rotationEndTime);
   assert.deepEqual(
-    result.inputTrace.actions.map((a) => a.skillName),
-    ['Manual']
+    result.inputTrace.actions.map((a) => a.skillId),
+    [990001]
   );
   assert.equal(result.inputTrace.actions[0].rotationIndex, 3);
   const detached = projectInputTrace(
@@ -353,8 +352,8 @@ test('input traces exclude precasts, autos, waits and invalid commands but retai
     result.inputTrace.end
   );
   assert.equal(detached.actions.length, 1);
-  detached.actions[0].skillName = 'Edited observation';
-  assert.equal(result.inputTrace.actions[0].skillName, 'Manual');
+  detached.actions[0].skillId = 990002;
+  assert.equal(result.inputTrace.actions[0].skillId, 990001);
 });
 
 test('kit entry, kit weapon skills, toolbelt, swap-to-stow and dodge inputs retain distinct controls', () => {
@@ -386,8 +385,8 @@ test('movement-only profession commands execute without adding a key input', () 
   assert.equal(result.rotationApm.actionCount, 1);
   assert.equal(result.rotationApm.apm, 60 / (result.inputTrace.end - result.inputTrace.start));
   assert.deepEqual(
-    result.inputTrace.actions.map((action) => action.skillName),
-    ['Crystal Sands']
+    result.inputTrace.actions.map((action) => action.skillId),
+    [41065]
   );
 });
 

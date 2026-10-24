@@ -154,11 +154,9 @@ export function schedulePhantasmStrike(
 
   const initialHitTimes = initialEvents.map((event) => event.at);
 
-  if (execution.hasRepeat) {
-    const repeatPolicy = execution.policy.repeat;
+  const repeatPolicy = execution.policy.repeat;
 
-    if (!repeatPolicy) return;
-
+  if (repeatPolicy) {
     // Prefer dedicated repeat tick data; fall back to shifting the initial
     // hit pattern by the delta between repeatDamageAt and damageAt.
     const repeatMeasuredTicks =
@@ -313,8 +311,6 @@ export function schedulePhantasmStatuses(
 
   // Queue controls after initial conditions so on-disable consumers observe the attack's newly applied stacks.
   schedulePhantasmControls(state, execution, execution.damageAt);
-
-  if (!execution.hasRepeat) return;
 
   const repeatPolicy = execution.policy.repeat;
 

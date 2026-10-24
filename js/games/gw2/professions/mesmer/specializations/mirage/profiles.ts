@@ -127,7 +127,6 @@ export function mesmerProfiledAmbush(
   const vulnerability = attack.vulnerability ? requireEffect(profile, 'condition', CONDITION.VULNERABILITY) : undefined;
   return {
     ...attack,
-    balanceProfileId,
     player: {
       castTimeMs: attack.player.castTimeMs,
       damageAtMs: attack.player.damageAtMs,

@@ -180,17 +180,3 @@ export interface Gw2AttributeContributions {
 
 /** Active traits come from the profession's existing major/minor selection resolver. */
 export type Gw2AttributeContributionCalculator = (context: Gw2AttributeContext) => readonly Gw2AttributeContributions[];
-
-export type Gw2ApplyBuildAttributeRules = (
-  common: Gw2CommonAttributeResult,
-  context: Gw2BuildAttributeRuleContext
-) => Gw2FinalizedAttributeResult;
-
-export type Gw2CalculateAttributes = (
-  build: Gw2Build,
-  selectedSkills?: readonly Skill[],
-  weaponSet?: number,
-  disabledTrait?: string | null,
-  disabledSigil?: string | null,
-  balanceContext?: ProfessionBalanceContext
-) => Gw2FinalizedAttributeResult;

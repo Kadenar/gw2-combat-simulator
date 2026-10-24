@@ -54,7 +54,6 @@ export class ProcStepRecorder implements ProcStepObserver {
     const reducedBy = Number(cooldownReduction);
     const expiry = Math.round(gw2EffectExpiresAt(at, Number(expiresAt) - at) * 1000);
     this.steps.push({
-      ri: -1,
       type: `${type}_proc`,
       skill: name,
       sourceSkill,
@@ -64,8 +63,8 @@ export class ProcStepRecorder implements ProcStepObserver {
       ...(Number.isFinite(expiry) && expiry > start ? { expiresAt: expiry } : {}),
       // Copy the numeric state so summaries never need to parse display text or inspect mutable relic state.
       ...(effectState ? { effectState: { ...effectState } } : {}),
-      start,
-      end: start
+      // Announcements are point observations; the timeline derives their insertion position from this instant.
+      start
     });
   }
 }

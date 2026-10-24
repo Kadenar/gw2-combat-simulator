@@ -12,7 +12,6 @@ export interface MesmerClone {
   weapon: string;
   ownerId?: string;
   attackSequenceIndex?: number;
-  nextAttackAt?: number;
 }
 
 export interface MesmerPhantasmPolicy {
@@ -134,14 +133,10 @@ export interface MesmerPhantasmExecution {
   readonly spawnAt: number;
   // Timestamp for the optional repeat attack.
   readonly repeatDamageAt: number;
-  // When the phantasm converts to a blade/resource. Equals spawnAt normally;
-  // equals the specialization-authored re-spawn time when repeat is active.
+  // Final resource conversion time, including repeat and specialization blade-tick policies.
   readonly conversionAt: number;
   // When a specialization bonus strike fires; uses a post-spawn delay when supplied.
   readonly initialBladeAt: number;
-  readonly hasRepeat: boolean;
-  // Optional specialization policy override for the generic conversion timestamp.
-  readonly resourceAtOverride: number | null;
   readonly timing: MesmerPhantasmAttackTiming;
   // Converts a raw post-cast millisecond offset from timing metadata into a simulation
   // timestamp, accounting for cast duration and Phantasmal Haste speed scaling.

@@ -50,9 +50,7 @@ export interface MesmerEventExtra {
   readonly created?: readonly { readonly id: number; readonly weapon: string }[];
   readonly conversionTimes?: readonly number[];
   readonly repeat?: boolean;
-  readonly complete?: boolean;
   readonly summonOwner?: string;
-  readonly cooldowns?: Readonly<Record<string, number>>;
   readonly kind?: string;
   readonly duration?: number;
   readonly stacks?: number;

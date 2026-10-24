@@ -680,7 +680,6 @@ export function relicProcExpirationTimelineMarkers(
     expired.push({
       ...window.proc,
       start: window.expiresAt,
-      end: window.expiresAt,
       expiresAt: window.expiresAt,
       insertionIndex: procMarkerInsertionIndex(steps, window.expiresAt, rotationLength),
       activations: window.activations,

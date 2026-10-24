@@ -55,11 +55,12 @@ export class RotationCursor {
         at = this.previousCastStart + command.concurrentOffsetMs / 1000;
 
         if (instant || independent) at = Math.max(at, now);
-      } else if (independent) {
-        if (!skill.independentCastCanOverlap) at = Math.max(at, this.independentReadyAt);
-      } else if (instant) at = Math.max(at, this.instantReadyAt);
-      else at = Math.max(at, this.serialReadyAt, this.blockingEnd, skill.stunbreak ? 0 : this.selfStunUntil);
+      } else if (!independent) {
+        if (instant) at = Math.max(at, this.instantReadyAt);
+        else at = Math.max(at, this.serialReadyAt, this.blockingEnd, skill.stunbreak ? 0 : this.selfStunUntil);
+      }
 
+      // Independent commands share their own lane even when an authored offset requests overlap.
       if (independent && !skill.independentCastCanOverlap) at = Math.max(at, this.independentReadyAt);
     } else if (command?.type === 'combat-start' && command.concurrentOffsetMs != null && this.hasPreviousCast) {
       at = Math.max(at, this.previousCastStart + command.concurrentOffsetMs / 1000);

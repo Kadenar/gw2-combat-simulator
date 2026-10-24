@@ -203,14 +203,14 @@ export function saveBuildWorkspace(app: ProfessionAppState): void {
   }
 }
 
-/** New and duplicated tabs receive independent build values and fresh editing history. */
+/** Adds and activates a tab with independent build values and fresh editing history. */
 export function addBuildTab(
   app: ProfessionAppState,
   build = createDefaultBuild(app.adapter),
   name = 'New build',
   patchId = app.patch.id,
   templateBuild?: Gw2CanonicalBuild
-): BuildTab | undefined {
+): void {
   if (!app.workspace || !app.activateBuildTab) return;
 
   const tab = createBuildTab(structuredClone(build), name, patchId);
@@ -220,7 +220,6 @@ export function addBuildTab(
 
   app.workspace.tabs.push(tab);
   app.activateBuildTab(tab.id);
-  return tab;
 }
 
 /** Closing the active tab selects its neighbor; the final build always stays open. */

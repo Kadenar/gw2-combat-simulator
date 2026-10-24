@@ -99,19 +99,17 @@ export function createPhantasmEffectController({
         damageAt,
         spawnAt,
         repeatDamageAt,
-        // A repeat policy defers conversion until the specialization-authored re-spawn timestamp.
+        // Resolve conversion once so resource grouping and observation share the same instant.
+        // Repeat conversion takes precedence over specialization blade-tick timing.
         conversionAt: hasRepeat
           ? endpoint(timing.repeatSpawnAtMsByEntity?.[entityIndex] ?? timing.repeatSpawnAtMs)
-          : spawnAt,
+          : policy.conversionTiming === 'blade-tick' && conversionTick
+            ? endpoint(conversionTick.atMs)
+            : spawnAt,
         initialBladeAt:
           timing.phantasmalBladeDelayAfterSpawnMs != null
             ? spawnAt + timing.phantasmalBladeDelayAfterSpawnMs / 1000
             : damageAt,
-        hasRepeat,
-        resourceAtOverride:
-          policy.conversionTiming === 'blade-tick' && !hasRepeat && conversionTick
-            ? endpoint(conversionTick.atMs)
-            : null,
         timing,
         endpoint
       };
@@ -150,7 +148,7 @@ export function createPhantasmEffectController({
         name: skill.name,
         count,
         // Expose each scheduled resource deadline, including staggered Chronophantasma conversions, for cursor inspection.
-        conversionTimes: executions.map((item) => canonicalTime(item.resourceAtOverride ?? item.conversionAt))
+        conversionTimes: executions.map((item) => canonicalTime(item.conversionAt))
       });
       state.effects.emit({
         ...execution.delivery,
@@ -169,8 +167,8 @@ export function createPhantasmEffectController({
         at: damageAt,
         name: skill.name,
         count,
-        repeat: false,
-        complete: true
+        // The marker type identifies completion; repeat distinguishes the second attack in the event log.
+        repeat: false
       });
       state.effects.emit({
         ...execution.delivery,
@@ -202,7 +200,7 @@ export function createPhantasmEffectController({
       });
     }
 
-    if (!execution.hasRepeat || !policy.repeat) return;
+    if (!policy.repeat) return;
 
     // The active specialization repeat policy re-summons the phantasm for a second attack cycle.
     state.fireTrigger(mesmerIllusionsGained, {
@@ -239,8 +237,7 @@ export function createPhantasmEffectController({
         at: repeatDamageAt,
         name: skill.name,
         count,
-        repeat: true,
-        complete: true
+        repeat: true
       });
       state.effects.emit({
         ...execution.delivery,
@@ -288,22 +285,6 @@ export function createPhantasmEffectController({
 
   const queueConversion = (execution: MesmerPhantasmExecution, amount = 1): void => {
     // Resource tasks use their real conversion time; task priority keeps them after same-time illusion work.
-    if (execution.resourceAtOverride != null) {
-      // An active specialization may align conversion to a measured per-phantasm tick.
-      queueResources(
-        execution.resourceAtOverride,
-        amount,
-        null,
-        `${execution.skill.name} phantasm conversion`,
-        {
-          kind: 'phantasm-conversion',
-          sourceSkillId: execution.skill.id
-        },
-        execution.delivery
-      );
-      return;
-    }
-
     queueResources(
       execution.conversionAt,
       amount,

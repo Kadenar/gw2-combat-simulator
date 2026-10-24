@@ -58,15 +58,14 @@ export function purgeTimedState(state: NecromancerCoreState, at: number): void {
   expireCharges(state.soulShardGrant, at);
 }
 
-/** Refreshes existing Soul Shards up to the selected capacity and returns the amount added. */
-export function addSoulShards(state: NecromancerCoreState, stacks: number, at: number, maximum: number): number {
+/** Refreshes existing Soul Shards and admits new charges up to the selected capacity. */
+export function addSoulShards(state: NecromancerCoreState, stacks: number, at: number, maximum: number): void {
   purgeTimedState(state, at);
   state.soulShardGrant.charges = Math.min(state.soulShardGrant.charges, maximum);
   // Refresh the shared deadline even at the cap, adding only the newly admitted shards.
   const added = boundedInteger(stacks, 0, 0, maximum - state.soulShardGrant.charges);
   // The stored deadline must equal the queue's canonical timestamp so exact expiry cannot leave floating-point residue.
   state.soulShardGrant = grantCharges(added, canonicalTime(at + SOUL_SHARD_DURATION_SECONDS), state.soulShardGrant, at);
-  return added;
 }
 
 /** Removes active Soul Shards up to the requested amount and returns the amount consumed. */

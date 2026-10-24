@@ -42,8 +42,9 @@ export function createCloneAttackScheduler({
     clone.ownerId ||= `mesmer.clone:${clone.id}`;
     clone.attackSequenceIndex = 0;
     const step = sequenceStep(clone, attack);
-    clone.nextAttackAt = clone.createdAt + (attack.firstAttackDelay ?? step.interval);
-    scheduleTask(clone, clone.nextAttackAt);
+    // The scheduled task owns the next attack time; the clone retains only its sequence progress.
+    const nextAttackAt = clone.createdAt + (attack.firstAttackDelay ?? step.interval);
+    scheduleTask(clone, nextAttackAt);
     return clone;
   };
 
@@ -123,8 +124,7 @@ export function createCloneAttackScheduler({
 
     scheduleAttack(clone, at);
     const attack = attackFor(clone);
-    clone.nextAttackAt = at + sequenceStep(clone, attack).interval;
-    return clone.nextAttackAt;
+    return at + sequenceStep(clone, attack).interval;
   };
 
   return {

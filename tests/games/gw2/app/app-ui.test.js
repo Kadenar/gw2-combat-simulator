@@ -312,74 +312,60 @@ test('proc timeline markers follow their simulated activation times', () => {
     ],
     procSteps: [
       {
-        ri: -1,
         type: 'sigil_proc',
         skill: 'Sigil of Air',
         sourceSkill: 'Opening Strike',
         detail: '',
         icon: 'air.png',
-        start: 0,
-        end: 0
+        start: 0
       },
       {
-        ri: -1,
         type: 'sigil_proc',
         skill: 'Sigil of Air',
         sourceSkill: 'Opening Strike',
         detail: '',
         icon: 'air.png',
-        start: 0,
-        end: 0
+        start: 0
       },
       {
-        ri: -1,
         type: 'sigil_proc',
         skill: 'Sigil of Air',
         sourceSkill: 'Opening Strike',
         detail: '',
         icon: 'air.png',
-        start: 400,
-        end: 400
+        start: 400
       },
       {
-        ri: -1,
         type: 'trait_proc',
         skill: 'Trait Proc',
         sourceSkill: 'Follow-up',
         detail: '',
         icon: 'trait.png',
-        start: 800,
-        end: 800
+        start: 800
       },
       {
-        ri: -1,
         type: 'trait_proc',
         skill: 'Sovereign of Light',
         sourceSkill: 'Dazzling Hammer',
         detail: 'Light aura detonated',
         icon: 'sovereign.png',
-        start: 800,
-        end: 800
+        start: 800
       },
       {
-        ri: -1,
         type: 'relic_proc',
         skill: 'Relic of Fireworks',
         sourceSkill: 'Follow-up',
         detail: '',
         icon: 'fireworks.png',
-        start: 700,
-        end: 700
+        start: 700
       },
       {
-        ri: -1,
         type: 'sigil_proc',
         skill: 'Sigil of Earth',
         sourceSkill: 'Follow-up',
         detail: '',
         icon: 'earth.png',
-        start: 900,
-        end: 900
+        start: 900
       }
     ]
   };
@@ -448,7 +434,6 @@ test('timed relic expiration markers merge refreshes and stay within the rotatio
         skill: 'Relic of Fireworks',
         sourceSkill: 'Opening Strike',
         start: 1000,
-        end: 1000,
         expiresAt: 7000
       },
       {
@@ -456,7 +441,6 @@ test('timed relic expiration markers merge refreshes and stay within the rotatio
         skill: 'Relic of Fireworks',
         sourceSkill: 'Follow-up',
         start: 5000,
-        end: 5000,
         expiresAt: 11000
       },
       {
@@ -464,7 +448,6 @@ test('timed relic expiration markers merge refreshes and stay within the rotatio
         skill: 'Relic of the Claw',
         sourceSkill: 'Control',
         start: 2000,
-        end: 2000,
         expiresAt: 10000
       },
       {
@@ -472,7 +455,6 @@ test('timed relic expiration markers merge refreshes and stay within the rotatio
         skill: 'Relic of Peitha',
         sourceSkill: 'Shadowstep',
         start: 9000,
-        end: 9000,
         expiresAt: 13000
       }
     ]
@@ -511,7 +493,6 @@ test('relic consumption cancels stale timeouts and makes subsequent buildup a fr
     type: 'relic_proc',
     skill: 'Bloodstone Volatility',
     start,
-    end: start,
     ...(expiresAt === undefined ? {} : { expiresAt }),
     effectState: { stacks, maximumStacks: 3 }
   });
@@ -521,7 +502,7 @@ test('relic consumption cancels stale timeouts and makes subsequent buildup a fr
     procSteps: [
       volatility(1000, 3, 11000),
       volatility(1000, 0),
-      { type: 'relic_proc', skill: 'Relic of Bloodstone', start: 1000, end: 1000, expiresAt: 9000 },
+      { type: 'relic_proc', skill: 'Relic of Bloodstone', start: 1000, expiresAt: 9000 },
       volatility(9000, 1, 19000),
       volatility(20000, 3, 30000),
       volatility(21000, 0),
@@ -550,7 +531,6 @@ test('relic overlay markers flag activations that only refresh an active window'
     skill,
     sourceSkill: 'Strike',
     start,
-    end: start,
     expiresAt,
     ...(effectState ? { effectState } : {})
   });

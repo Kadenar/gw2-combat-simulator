@@ -69,7 +69,7 @@ export function applyBuildTemplatePreview(
   app: ProfessionAppState,
   preview: ResolvedGw2BuildTemplate,
   weapons: Gw2BuildTemplateWeaponSet | null = preview.weapons
-): readonly string[] {
+): void {
   const current = app.build;
   app.build = replaceBuildConfiguration(
     {
@@ -85,5 +85,4 @@ export function applyBuildTemplatePreview(
     app.adapter
   );
   app.changed();
-  return preview.warnings;
 }

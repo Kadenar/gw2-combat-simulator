@@ -19,9 +19,9 @@ export interface TimelineInteractionOptions {
   readonly onChanged?: () => void;
   readonly onRemove?: (index: number, event?: Event) => unknown;
   readonly onTruncate?: (index: number, event?: Event) => unknown;
-  readonly onEditActivation?: (index: number, event?: Event) => unknown;
-  readonly onEditDoubleEdgeOutcome?: (index: number, event?: Event) => unknown;
-  readonly onEditWait?: (index: number, event?: Event) => unknown;
+  readonly onEditActivation?: (index: number, event?: Event) => void;
+  readonly onEditDoubleEdgeOutcome?: (index: number, event?: Event) => void;
+  readonly onEditWait?: (index: number, event?: Event) => void;
 }
 
 export function clearTimelineDropIndicators(root: HTMLElement | null | undefined): void {
@@ -64,22 +64,22 @@ export function bindTimelineInteractions(
     options.onChanged?.();
   };
 
-  const applyDrop = (insertAt: number): boolean => {
+  const applyDrop = (insertAt: number): void => {
     const drag = getDragState();
 
-    if (!drag) return false;
+    if (!drag) return;
 
     setDragState(null);
 
-    if (!canInteract()) return false;
+    if (!canInteract()) return;
 
     if (drag.source === 'timeline') {
       const fromIndex = Number(drag.index);
 
-      if (!options.moveEntry(fromIndex, insertAt)) return false;
+      if (!options.moveEntry(fromIndex, insertAt)) return;
 
       changed();
-      return true;
+      return;
     }
 
     if (drag.source === 'palette') {
@@ -88,13 +88,10 @@ export function bindTimelineInteractions(
       // Palette macros may resolve to multiple adjacent entries.
       const entries = Array.isArray(resolved) ? resolved : resolved ? [resolved] : [];
 
-      if (!options.insertEntries(entries, insertAt)) return false;
+      if (!options.insertEntries(entries, insertAt)) return;
 
       changed();
-      return true;
     }
-
-    return false;
   };
 
   const cleanup = (element: HTMLElement | null | undefined): void => {
@@ -245,7 +242,7 @@ export function bindTimelineInteractions(
     applyDrop(index);
   };
 
-  const bindEdit = (selector: string, callback: ((index: number, event?: Event) => unknown) | undefined): void => {
+  const bindEdit = (selector: string, callback: ((index: number, event?: Event) => void) | undefined): void => {
     if (!callback) return;
 
     for (const badge of root.querySelectorAll<HTMLElement>(selector)) {
@@ -255,8 +252,8 @@ export function bindTimelineInteractions(
 
         if (!canInteract() || !Number.isInteger(index)) return;
 
-        // Returning false means the editor cancelled and no rerender is needed.
-        if (callback(index, event) !== false) changed();
+        // Opening an editor does not mutate the rotation; its Apply handler owns change notification.
+        callback(index, event);
       };
     }
   };

@@ -4,7 +4,6 @@ import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 export interface RelicDamageSummary {
-  readonly buildDps: number;
   readonly directDamage: number;
   readonly contributedDps: number;
 }
@@ -15,7 +14,6 @@ export function relicDamageSummary(
   withoutRelicDps: number
 ): RelicDamageSummary {
   return {
-    buildDps: result.dps,
     directDamage: result.breakdown
       .filter((entry) => entry.source === 'Relic' || entry.name.startsWith('Relic of '))
       .reduce((sum, entry) => sum + entry.damage, 0),

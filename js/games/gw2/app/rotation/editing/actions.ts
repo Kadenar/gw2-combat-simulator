@@ -103,10 +103,10 @@ export function createRotationItem(
 /**
  * Inserts authored commands at the armed insertion cursor (or appends when no
  * cursor is set), advances the cursor past them, and triggers a re-sim via
- * `changed`. Returns false for an empty batch.
+ * `changed`. Empty batches leave the rotation untouched.
  */
-export function insertRotationItems(app: ProfessionAppState, items: readonly RotationCommand[]): boolean {
-  if (!items.length) return false;
+export function insertRotationItems(app: ProfessionAppState, items: readonly RotationCommand[]): void {
+  if (!items.length) return;
 
   const insertionIndex = normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length);
 
@@ -122,8 +122,6 @@ export function insertRotationItems(app: ProfessionAppState, items: readonly Rot
   // repaint resolved markers, making both the document and timeline jump between geometries.
   if (insertionIndex === null) app.changed(false);
   else app.changed(false, false, { deferRotationRender: true });
-
-  return true;
 }
 
 /** Builds a single command from a palette identity and inserts it. */

@@ -494,7 +494,6 @@ export function summarizeRandomDistributionOutcomes(
       group: metric.group,
       score: Math.abs(correlation) + Math.min(4, effectSize) / 4,
       driver: {
-        id,
         label: metric.label,
         category: metric.category,
         unit: metric.unit,

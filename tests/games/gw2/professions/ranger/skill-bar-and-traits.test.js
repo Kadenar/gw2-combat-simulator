@@ -1,11 +1,12 @@
+import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
-import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
+
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';

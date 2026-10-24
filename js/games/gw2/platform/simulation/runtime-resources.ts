@@ -97,8 +97,10 @@ export function createRuntimeResources<T extends object>(
         discrete.nextAt = canonicalTime(runtime.time + discrete.interval);
     }
 
-    if (before.some((value, index) => value !== [state.maximum, state.value, state.rate, state.recoveryMaximum][index]))
-      anchorResourceClock(state);
+    // Compare one settled snapshot so unchanged policies keep the existing accrual anchor.
+    const after = [state.maximum, state.value, state.rate, state.recoveryMaximum];
+
+    if (before.some((value, index) => value !== after[index])) anchorResourceClock(state);
 
     changed(key);
   };

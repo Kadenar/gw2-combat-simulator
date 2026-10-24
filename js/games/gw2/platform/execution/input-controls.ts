@@ -19,7 +19,6 @@ export type InputAction = InputControl & {
   readonly at: number;
   readonly order: number;
   readonly skillId: SkillId;
-  readonly skillName: string;
 };
 
 /** Accepted weapon/replacement slots are authoritative; utility positions require the selected live bar. */

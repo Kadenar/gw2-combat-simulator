@@ -136,9 +136,6 @@ export interface Gw2ResolverResult {
   readonly environmentConditionBreakdown: Array<{
     name: string;
     damage: number;
-    dps: number;
-    averageStacks: number;
-    stacks: number;
     damageTicks: Gw2EnvironmentConditionBreakdownEntry['damageTicks'];
   }>;
   readonly events: readonly SimulationEvent[];
@@ -153,14 +150,12 @@ export interface Gw2ResolverResult {
 
 /** A detached timeline row for an executed announcement; rows never feed back into gameplay. */
 export interface Gw2ProcStep {
-  ri: number;
   type: string;
   skill: string;
   sourceSkill: string;
   detail: string;
   icon: string;
   start: number;
-  end: number;
   cooldownReduction?: number;
   /** Absolute effect-expiry time in milliseconds when the proc starts a timed state. */
   expiresAt?: number;

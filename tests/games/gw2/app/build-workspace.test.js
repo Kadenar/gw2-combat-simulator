@@ -189,7 +189,8 @@ test('legacy build migrates once and workspace round trips only durable inputs a
   app.workspace = loadBuildWorkspace(adapter);
   app.build = app.workspace.tabs[0].build;
   assert.equal(app.build.gear.Helm, 'legacy');
-  const other = addBuildTab(app, build('second'), 'Second', 'preview');
+  addBuildTab(app, build('second'), 'Second', 'preview');
+  const other = app.workspace.tabs.at(-1);
   app.results = { dps: 17 };
   // Experiments travel with in-memory tab sessions but never enter durable builds or workspace JSON.
   app.patch = app.profession.resolvePatch({ id: 'preview', values: { ashesStacks: 2 } });
@@ -428,7 +429,8 @@ test('switching tabs uses each patch catalog for skill lists and lookups', (t) =
     createBuildContext: () => ({ attributes: () => null, simulationConfig: () => ({ selectedTraitIds: [] }) })
   };
   app.patch = app.profession.resolvePatch({ id: 'current' });
-  const other = addBuildTab(app, build('preview'), 'Preview', 'preview');
+  addBuildTab(app, build('preview'), 'Preview', 'preview');
+  const other = app.workspace.tabs.at(-1);
   for (const [id, patch] of [
     [other.id, 'preview'],
     [tab.id, 'current'],
@@ -462,7 +464,8 @@ test('switching preserves independent rotations, history, templates, comparisons
   const originalFilters = app.procVisibility;
   const sharedOverlays = app.timelineOverlayVisibility;
   const originalResult = app.results;
-  const other = addBuildTab(app, build('other'), 'Other');
+  addBuildTab(app, build('other'), 'Other');
+  const other = app.workspace.tabs.at(-1);
   assert.equal(app.results, null);
   assert.equal(app.currentTemplate, null);
   assert.equal(app.rotationComparison, null);
@@ -503,7 +506,8 @@ test('switching tabs recaptures cached baselines when the session debug mode cha
   const { app, tab, scheduled } = appFixture();
   app.damageDiagnostics = false;
   app.results = { dps: 10 };
-  const other = addBuildTab(app, build('other'), 'Other');
+  addBuildTab(app, build('other'), 'Other');
+  const other = app.workspace.tabs.at(-1);
   app.damageDiagnostics = true;
   const before = scheduled.length;
   app.activateBuildTab(tab.id);
@@ -526,7 +530,8 @@ test('duplicated builds share no nested input objects or undo history', (t) => {
   app.build.rotation.push({ type: 'wait', durationMs: 10 });
   app.changed();
   tab.templateBuild = build('template');
-  const copy = addBuildTab(app, app.build, 'Copy', app.patch.id, tab.templateBuild);
+  addBuildTab(app, app.build, 'Copy', app.patch.id, tab.templateBuild);
+  const copy = app.workspace.tabs.at(-1);
   assert.deepEqual(copy.templateBuild, tab.templateBuild);
   copy.templateBuild.gear.Helm = 'copy-template';
   assert.equal(tab.templateBuild.gear.Helm, 'template');
@@ -542,10 +547,12 @@ test('duplicated builds share no nested input objects or undo history', (t) => {
 test('close selects a neighbor, retains no closed builds, and preserves the final tab', (t) => {
   storage(t);
   const { app, tab } = appFixture();
-  const other = addBuildTab(app, build('other'), 'Other');
+  addBuildTab(app, build('other'), 'Other');
+  const other = app.workspace.tabs.at(-1);
   closeBuildTab(app, tab.id);
   assert.equal(app.workspace.activeTabId, other.id, 'closing an inactive tab keeps the current editor');
-  const third = addBuildTab(app, build('third'), 'Third');
+  addBuildTab(app, build('third'), 'Third');
+  const third = app.workspace.tabs.at(-1);
   closeBuildTab(app, third.id);
   assert.equal(app.workspace.activeTabId, other.id);
   closeBuildTab(app, other.id);
@@ -599,7 +606,8 @@ test('template build loads rename only the active tab and persist its name', asy
   // Both build replacement actions adopt the template identity, while loading just a rotation keeps the tab name.
   for (const action of ['template', 'build', 'rotation']) {
     const { app, tab } = appFixture();
-    const active = addBuildTab(app, build('other'), 'Custom name');
+    addBuildTab(app, build('other'), 'Custom name');
+    const active = app.workspace.tabs.at(-1);
     await loadTemplateAction(app, preset, action, { innerHTML: 'Load' });
     const expectedName = action === 'rotation' ? 'Custom name' : 'Chronomancer · Power';
     assert.equal(active.name, expectedName);
@@ -631,7 +639,8 @@ test('template undo restores each tab reset target across tab switches and persi
       const { app, tab } = appFixture();
       tab.templateBuild = baseline;
       await loadTemplateAction(app, { label: 'Example', build: 'build.json', rotation: 'rotation.json' }, action, {});
-      const other = addBuildTab(app, build('other'), 'Other');
+      addBuildTab(app, build('other'), 'Other');
+      const other = app.workspace.tabs.at(-1);
       app.activateBuildTab(tab.id);
       undoTemplateLoad(app);
       assert.equal(app.build.gear.Helm, 'original');

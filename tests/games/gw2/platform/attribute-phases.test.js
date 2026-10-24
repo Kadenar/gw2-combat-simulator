@@ -1,6 +1,6 @@
+import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 import { equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
-import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
-import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
+
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import assert from 'node:assert/strict';

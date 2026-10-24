@@ -534,6 +534,7 @@ test('timeline binding inserts palette entries and drop positions use tile halve
 test('timeline binding routes the wait pencil to duration editing', () => {
   let editedIndex = null;
   let propagationStopped = false;
+  let changes = 0;
   const waitPencil = { dataset: { idx: '2' } };
   const root = {
     classList: { add() {}, remove() {} },
@@ -551,7 +552,9 @@ test('timeline binding routes the wait pencil to duration editing', () => {
     insertEntries: () => false,
     onEditWait(index) {
       editedIndex = index;
-      return false;
+    },
+    onChanged() {
+      changes += 1;
     }
   });
   waitPencil.onclick({
@@ -562,6 +565,7 @@ test('timeline binding routes the wait pencil to duration editing', () => {
 
   assert.equal(editedIndex, 2);
   assert.equal(propagationStopped, true);
+  assert.equal(changes, 0);
 });
 
 test('weapon swaps start new weapon-set rows in the rotation timeline', () => {

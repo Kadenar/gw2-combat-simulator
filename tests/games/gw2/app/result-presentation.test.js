@@ -957,7 +957,6 @@ test('shared results render summaries, totals, contributions, and icons', () => 
         highDpsMean: 1460,
         drivers: [
           {
-            id: 'critical:illusion',
             label: 'Illusion critical hits',
             category: 'critical',
             unit: 'count',

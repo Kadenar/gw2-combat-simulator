@@ -91,7 +91,8 @@ test('header DPS mounts once and tracks the latest result', () => {
     }
   };
 
-  const indicator = mountHeaderDps(root);
+  mountHeaderDps(root);
+  const indicator = root.getElementById('header-dps');
   mountHeaderDps(root);
   updateHeaderDps('12,345', root);
 

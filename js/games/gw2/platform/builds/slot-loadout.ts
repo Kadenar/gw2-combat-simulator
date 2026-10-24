@@ -76,7 +76,6 @@ export interface SlotLoadoutBar {
 }
 
 interface SlotLoadoutView {
-  id: string;
   label: string;
   selectionControl: string;
   selectors: SlotLoadoutSelector[];
@@ -154,18 +153,6 @@ function normalizeOptions(options: { entries?: readonly SlotLoadoutEntryInput[] 
   return Object.freeze(entries);
 }
 
-function loadoutContext(
-  context: SlotLoadoutContext,
-  entries: readonly SlotLoadoutEntry[]
-): SlotLoadoutContext & {
-  specialization: string;
-  legal: SlotLoadoutEntry[];
-} {
-  const specialization = context.specialization || context.config?.specialization || 'Core';
-  const legal = entries.filter((entry) => !entry.specialization || entry.specialization === specialization);
-  return { ...context, specialization, legal };
-}
-
 /**
  * Creates the shared fixed-bar loadout model used by professions whose slot
  * skills are selected as packages rather than five independent dropdowns.
@@ -202,7 +189,9 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
   }
 
   function legalEntries(context: SlotLoadoutContext = {}): SlotLoadoutEntry[] {
-    return loadoutContext(context, entries).legal;
+    // Only entries allowed by the selected specialization participate in selection and validation.
+    const specialization = context.specialization || context.config?.specialization || 'Core';
+    return entries.filter((entry) => !entry.specialization || entry.specialization === specialization);
   }
 
   function normalizedSelection(build: object | undefined, context: SlotLoadoutContext = {}): string[] {
@@ -318,7 +307,6 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
       };
     });
     return {
-      id,
       label,
       selectionControl,
       selectors,

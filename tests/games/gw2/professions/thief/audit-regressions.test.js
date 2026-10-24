@@ -1,4 +1,5 @@
-import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
+
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
@@ -8,7 +9,6 @@ import test from 'node:test';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
-import { createCalculateAttributes } from '#gw2/platform/attributes/calculation.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { beginThiefStealthAttack, grantThiefStealth } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';

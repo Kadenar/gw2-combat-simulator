@@ -117,7 +117,6 @@ export interface MesmerAmbushStrike extends Partial<StrikeEffect> {
 
 /** A catalog skill also supplies the player and clone variants used by the Mirage controller. */
 export interface MesmerAmbushAttack extends MesmerSkill {
-  readonly balanceProfileId?: SkillId;
   readonly player: MesmerAmbushStrike;
   readonly clone: MesmerAmbushStrike;
   readonly vulnerability?: {
@@ -131,7 +130,6 @@ export interface MesmerAmbushAttack extends MesmerSkill {
  * Inherited persistsAfterInterrupt lets launched performance packets outlive interruption after commitment.
  */
 export interface MesmerInstrument extends Partial<StrikeEffect> {
-  readonly balanceProfileId?: SkillId;
   readonly slot: number;
   readonly instrument: string;
   readonly damageAtMs?: number;

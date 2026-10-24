@@ -291,8 +291,7 @@ export function createCastExecution<T extends object>(
         rotationIndex: cursor.index,
         at: start,
         order: runtime.inputActions.length,
-        skillId: skill.id,
-        skillName: skill.name
+        skillId: skill.id
       });
 
     if (!inFlight.has(skill.id)) inFlight.set(skill.id, new Set());

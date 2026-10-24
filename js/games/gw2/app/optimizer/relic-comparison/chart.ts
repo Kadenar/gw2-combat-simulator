@@ -147,7 +147,7 @@ export function relicComparisonChartSvg(
   const opponentLabel = options.opponentLabel || relicLabel(model.opponentRelic);
   const targetLabel = relicLabel(model.targetRelic);
 
-  // Final values belong to each simulation's own endpoint, not the chart's shared duration.
+  // Use the model's final DPS for each simulation's own endpoint, independent of relic damage attribution.
   const damageSummary = `<div class="relic-cmp-table-wrap" role="region" aria-label="Relic comparison results" tabindex="0">
   <table class="relic-cmp-damage">
     <caption>Final simulation results</caption>
@@ -160,7 +160,7 @@ export function relicComparisonChartSvg(
     )
       .map(
         ([label, color, lineStyle, damage, finalDps]) =>
-          `<tr><th scope="row"><span class="relic-cmp-key"><span class="relic-cmp-swatch" aria-hidden="true" style="border-top-color:${color};border-top-style:${lineStyle}"></span>${escapeHtml(label)}</span></th><td>${formatDps(damage?.buildDps ?? finalDps)}</td><td>${damage ? formatDps(damage.directDamage) : '—'}</td><td>${damage ? formatDps(damage.contributedDps) : '—'}</td></tr>`
+          `<tr><th scope="row"><span class="relic-cmp-key"><span class="relic-cmp-swatch" aria-hidden="true" style="border-top-color:${color};border-top-style:${lineStyle}"></span>${escapeHtml(label)}</span></th><td>${formatDps(finalDps)}</td><td>${damage ? formatDps(damage.directDamage) : '—'}</td><td>${damage ? formatDps(damage.contributedDps) : '—'}</td></tr>`
       )
       .join('')}</tbody>
   </table></div><p class="relic-cmp-note">Direct damage includes relic strikes and conditions. DPS contribution is the full build DPS minus the same build with no relic, including buffs and interactions.</p>`;

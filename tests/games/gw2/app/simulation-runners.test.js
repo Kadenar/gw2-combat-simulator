@@ -1030,8 +1030,8 @@ test('relic comparison scopes assumptions and attributes damage against a no-rel
   assert.equal(comparison.targetRelic, 'Mirage');
   assert.equal(comparison.opponentFinalDps, results.dps);
   assert.equal(comparison.targetFinalDps, 1050);
-  assert.deepEqual(comparison.opponentDamage, { buildDps: 1000, directDamage: 0, contributedDps: 100 });
-  assert.deepEqual(comparison.targetDamage, { buildDps: 1050, directDamage: 0, contributedDps: 150 });
+  assert.deepEqual(comparison.opponentDamage, { directDamage: 0, contributedDps: 100 });
+  assert.deepEqual(comparison.targetDamage, { directDamage: 0, contributedDps: 150 });
 });
 
 /** A real profession exercises local calculation without worker transport or timer mocks. */
