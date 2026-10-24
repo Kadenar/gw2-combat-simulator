@@ -237,14 +237,14 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     // The committed tale grants defensive effects without performing any instrument attacks.
     effects: [
       {
-        type: 'custom',
+        type: 'aura',
         name: AURA.CHAOS,
-        eventType: 'aura',
         actorType: ACTOR.PLAYER,
         atMs: 0,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        event: { aura: AURA.CHAOS, duration: 6 }
+        aura: AURA.CHAOS,
+        duration: 6
       },
       {
         type: 'buff',

@@ -259,9 +259,9 @@ export function materializeSkillEffectApplications({
         }
       });
     }
-    // StatusEffect groups boon/buff discriminants, so TypeScript still needs this check to narrow the custom payload.
+    // Aura declarations share packet scheduling with custom effects while retaining their typed payload.
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  } else if (effect.type === 'custom') {
+  } else if (effect.type === 'aura' || effect.type === 'custom') {
     const interval = Math.max(0, effect.intervalMs || 0) / 1000;
     for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
       const at = firstAt + (applicationIndex - 1) * interval;
@@ -270,8 +270,14 @@ export function materializeSkillEffectApplications({
         event: {
           ...effectBaseEvent,
           at,
-          ...effect.event,
-          type: effect.eventType,
+          ...(effect.type === 'aura'
+            ? {
+                aura: effect.aura,
+                duration: effect.duration,
+                ...(effect.audience ? { audience: effect.audience } : {})
+              }
+            : effect.event),
+          type: effect.type === 'aura' ? 'aura' : effect.eventType,
           applicationIndex,
           totalApplications: count,
           ...nestedEffectMetadata(baseEvent.metadata, effect.metadata),

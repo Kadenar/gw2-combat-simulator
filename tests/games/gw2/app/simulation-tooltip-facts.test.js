@@ -25,15 +25,15 @@ const context = {
 // Aura facts must follow the selected payload while preserving the authored recipient and duration validation.
 test('aura facts expose selected durations and recipients', () => {
   const aura = {
-    type: 'custom',
+    type: 'aura',
     name: 'Chaos Aura',
-    eventType: 'aura',
     audience: { recipients: 'self' },
-    event: { aura: 'Chaos Aura', duration: 4 }
+    aura: 'Chaos Aura',
+    duration: 4
   };
 
   for (const duration of [4, 7]) {
-    const model = simulationEffectFacts([{ ...aura, event: { ...aura.event, duration } }]);
+    const model = simulationEffectFacts([{ ...aura, duration }]);
     assert.equal(model.incomplete, false);
     assert.equal(model.facts.length, 1);
     assert.equal(model.facts[0].name, 'Chaos Aura');
@@ -42,10 +42,7 @@ test('aura facts expose selected durations and recipients', () => {
   }
 
   for (const duration of [undefined, NaN, Infinity]) {
-    assert.throws(
-      () => simulationEffectFacts([{ ...aura, event: { ...aura.event, duration } }]),
-      /Invalid tooltip number: duration/
-    );
+    assert.throws(() => simulationEffectFacts([{ ...aura, duration }]), /Invalid tooltip number: duration/);
   }
 });
 

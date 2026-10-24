@@ -178,11 +178,11 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
     effects: [
       // The self aura must reach aura-gain traits independently of the offensive conditions.
       {
-        type: 'custom',
+        type: 'aura',
         name: AURA.CHAOS,
-        eventType: 'aura',
         actorType: ACTOR.PLAYER,
-        event: { aura: AURA.CHAOS, duration: 5 }
+        aura: AURA.CHAOS,
+        duration: 5
       },
       // The activation blinds once for five seconds, independently of its Confusion.
       {

@@ -219,7 +219,7 @@ export const illusionaryMembrane = defineTrait<MesmerSkill>({
       on: 'castCommit',
       when: (_runtime, cast) => cast.skill.id === ID.FLUSTERING_FLUTE,
       emit: TRAIT.ILLUSIONARY_MEMBRANE,
-      effects: (effect) => effect.type === 'custom' && effect.name === AURA.CHAOS,
+      effects: (effect) => effect.type === 'aura' && effect.name === AURA.CHAOS,
       attribution: { actorType: ACTOR.PLAYER }
     },
     {
@@ -237,7 +237,7 @@ export const illusionaryMembrane = defineTrait<MesmerSkill>({
     conditionDamageIncrease: 0.07,
     maximumDuration: 15,
     effects: [
-      { name: AURA.CHAOS, type: 'custom', eventType: 'aura', event: { aura: AURA.CHAOS, duration: 4 } },
+      { name: AURA.CHAOS, type: 'aura', aura: AURA.CHAOS, duration: 4 },
       { name: 'illusionary-membrane', type: 'buff', kind: 'illusionary-membrane', duration: 5, stacks: 1 }
     ]
   },
@@ -348,7 +348,7 @@ function grantShatterChaosAura(
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE);
 
-  if (!requireEffect(profile, 'custom', AURA.CHAOS)) return;
+  if (!requireEffect(profile, 'aura', AURA.CHAOS)) return;
 
   const traitSource = {
     source: 'Trait',
@@ -369,7 +369,7 @@ function grantShatterChaosAura(
   emitTraitProfile(context, TRAIT.ILLUSIONARY_MEMBRANE, TRAIT.ILLUSIONARY_MEMBRANE, proc, {
     ...delivery,
     at,
-    effect: { type: 'custom', name: AURA.CHAOS },
+    effect: { type: 'aura', name: AURA.CHAOS },
     attribution: traitSource,
     transform: (event) => ({
       ...event,

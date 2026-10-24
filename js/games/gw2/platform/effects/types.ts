@@ -127,7 +127,14 @@ export interface CustomEffect extends SkillEffectBase {
   readonly event: Readonly<Record<string, unknown>>;
 }
 
-export type SkillEffect = StrikeEffect | ConditionEffect | ControlEffect | StatusEffect | CustomEffect;
+/** Aura declarations emit the existing aura event without an untyped custom payload. */
+export interface AuraEffect extends SkillEffectBase {
+  readonly type: 'aura';
+  readonly aura: import('#gw2/platform/constants.js').AuraName;
+  readonly duration: number;
+}
+
+export type SkillEffect = StrikeEffect | ConditionEffect | ControlEffect | StatusEffect | AuraEffect | CustomEffect;
 
 export interface StatusEffect extends SkillEffectBase {
   readonly type: 'boon' | 'buff';

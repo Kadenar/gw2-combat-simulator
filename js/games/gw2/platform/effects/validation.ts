@@ -1,4 +1,4 @@
-import { ACTOR } from '#gw2/platform/constants.js';
+import { ACTOR, AURA } from '#gw2/platform/constants.js';
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
 import { snapshotEffectReactions } from '#gw2/platform/effects/action-declarations.js';
@@ -18,7 +18,7 @@ import { normalizeSkillDamageModifiers } from '#gw2/platform/skills/modifiers.js
 
 // Closed vocabulary sets used for fast membership checks during catalog validation.
 // Any value outside these sets is rejected as an authoring error.
-const EFFECT_TYPES = new Set(['strike', 'condition', 'control', 'boon', 'buff', 'custom']);
+const EFFECT_TYPES = new Set(['strike', 'condition', 'control', 'boon', 'buff', 'aura', 'custom']);
 
 const TIMING_ANCHORS = new Set(['castStart', 'castEnd']);
 
@@ -44,6 +44,7 @@ const EFFECT_FIELDS = new Set([
   'durationReductionPerAffinity',
   'damageIncreasePerStack',
   'damagePerCoefficient',
+  'aura',
   'boon',
   'kind',
   'name',
@@ -329,6 +330,13 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   // Validate explicit profiles before authored effects enter the runtime.
   if (candidate.weaponStrengthProfileId !== undefined) weaponStrengthProfile(candidate.weaponStrengthProfileId);
 
+  // Validate aura identity and duration at the same boundary as other supported effects.
+  if (
+    normalizedEffect.type === 'aura' &&
+    (!Object.values(AURA).includes(normalizedEffect.aura) || !(normalizedEffect.duration > 0))
+  )
+    throw new TypeError('Aura effects require a canonical aura and positive finite duration.');
+
   // Custom packets must declare their dispatch type and payload before they can enter the event queue.
   if (normalizedEffect.type === 'custom') {
     if (typeof normalizedEffect.eventType !== 'string' || !normalizedEffect.eventType.trim()) {
@@ -414,8 +422,13 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
 
   const audience = normalizeEffectAudience(normalizedEffect.audience);
 
-  if (audience && normalizedEffect.type !== 'boon' && normalizedEffect.type !== 'buff') {
-    throw new TypeError('Skill effect audience is only valid on boon and buff effects.');
+  if (
+    audience &&
+    normalizedEffect.type !== 'boon' &&
+    normalizedEffect.type !== 'buff' &&
+    normalizedEffect.type !== 'aura'
+  ) {
+    throw new TypeError('Skill effect audience is only valid on boon, buff, and aura effects.');
   }
 
   if (
@@ -455,6 +468,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
       normalizedEffect.type !== 'control' &&
       normalizedEffect.type !== 'boon' &&
       normalizedEffect.type !== 'buff' &&
+      normalizedEffect.type !== 'aura' &&
       normalizedEffect.type !== 'custom'
     ) {
       throw new TypeError(`Effect type ${normalizedEffect.type} does not support repeated applications.`);
