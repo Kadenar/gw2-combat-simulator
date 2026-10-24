@@ -250,7 +250,6 @@ function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonl
     operation,
     parameters: normalizeParameters({ ...rule, id }),
     when: rule.when || null,
-    staticForBuild: rule.staticForBuild ?? !rule.when,
     order,
     declarationIndex,
     conditionSampleInvariant: rule.conditionSampleInvariant === true
@@ -517,7 +516,6 @@ function createDamageHook(
           id: rule.id,
           label: modifierRuleLabel(rule),
           bucket: rule.operation === 'damage-additive' ? 'additive' : 'multiplier',
-          ...(rule.staticForBuild ? { unconditional: true } : {}),
           value
         });
     }
@@ -729,8 +727,6 @@ export interface Gw2ModifierContribution {
   readonly bucket: 'additive' | 'multiplier';
   /** A fraction such as 0.05 for additive entries, or a factor such as 1.25 for multipliers. */
   readonly value: number;
-  /** The declaration has no runtime predicate; previews may list this as an always-enabled contributor. */
-  readonly unconditional?: boolean;
 }
 
 type Gw2ModifierNumericResolver = (
@@ -749,8 +745,6 @@ export interface Gw2ModifierRule {
   /** Named patchable inputs for resolver-backed amounts or factors. */
   readonly parameters?: Readonly<Record<string, number>>;
   readonly when?: (context: Gw2ModifierContext) => boolean;
-  /** Set by trait composition before adding its selection gate; retains the authored absence of a combat predicate. */
-  readonly staticForBuild?: boolean;
   /** Condition-damage predicate/value depend only on shared runtime state, never the application or condition type. */
   readonly conditionSampleInvariant?: boolean;
   readonly order?: number;
@@ -765,7 +759,6 @@ interface Gw2NormalizedModifierRule {
   readonly factor?: number | Gw2ModifierNumericResolver;
   readonly parameters: Readonly<Record<string, number>>;
   readonly when: ((context: Gw2ModifierContext) => boolean) | null;
-  readonly staticForBuild: boolean;
   readonly order: number;
   readonly declarationIndex: number;
   readonly conditionSampleInvariant: boolean;

@@ -4,6 +4,7 @@ import {
   fromModifier,
   fromProfile,
   profileTooltip,
+  simulationEffectFacts,
   skillTooltip,
   tooltipFactorChange,
   tooltipSeconds,
@@ -20,6 +21,33 @@ const context = {
   },
   modifierRulesById: new Map([['bonus', { amount: 0.125, factor: 1.5, parameters: { perStack: 0.01 } }]])
 };
+
+// Aura facts must follow the selected payload while preserving the authored recipient and duration validation.
+test('aura facts expose selected durations and recipients', () => {
+  const aura = {
+    type: 'custom',
+    name: 'Chaos Aura',
+    eventType: 'aura',
+    audience: { recipients: 'self' },
+    event: { aura: 'Chaos Aura', duration: 4 }
+  };
+
+  for (const duration of [4, 7]) {
+    const model = simulationEffectFacts([{ ...aura, event: { ...aura.event, duration } }]);
+    assert.equal(model.incomplete, false);
+    assert.equal(model.facts.length, 1);
+    assert.equal(model.facts[0].name, 'Chaos Aura');
+    assert.equal(model.facts[0].detail, `${duration}s — on yourself`);
+    assert.equal(model.facts[0].stacks, undefined);
+  }
+
+  for (const duration of [undefined, NaN, Infinity]) {
+    assert.throws(
+      () => simulationEffectFacts([{ ...aura, event: { ...aura.event, duration } }]),
+      /Invalid tooltip number: duration/
+    );
+  }
+});
 
 // Declarative rows retain source-specific defaults and exact custom formatting in every selected context.
 test('fact specifications resolve selected profiles, modifier scalars, and parameters without rounding raw formats', () => {

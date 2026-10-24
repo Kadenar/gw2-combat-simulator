@@ -21,7 +21,6 @@ const METADATA_VALUE_KINDS = Object.freeze({
   recallSkillId: 'skillId',
   procCount: 'number',
   activeSpirits: 'number',
-  affinityOnHit: 'boolean',
   dhuumfireDuration: 'number',
   dhuumfireInterval: 'number',
   engineerMech: 'boolean',

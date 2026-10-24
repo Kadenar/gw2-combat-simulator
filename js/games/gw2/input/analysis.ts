@@ -29,7 +29,6 @@ export interface InputAnalysis {
   modifierActions: number;
   coverage: {
     actions: number;
-    mappedActions: number;
     missing: { control: InputControlId | null; reason: string; count: number }[];
   };
 }
@@ -112,7 +111,6 @@ export function analyzeInputTrace(trace: InputTrace, profile: InputProfile): Inp
     modifierActions,
     coverage: {
       actions: inputs.length,
-      mappedActions: inputs.length - reachCounts.unknown,
       missing: [...missing.values()]
     }
   };

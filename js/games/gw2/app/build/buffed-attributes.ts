@@ -11,7 +11,6 @@ import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js
 import type { AttributePreviewState } from '#gw2/app/build/types.js';
 import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2NumericStatKey } from '#gw2/platform/attributes/stats.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
@@ -75,15 +74,11 @@ export function calculateSkillDamageAttributes(
           1) *
           100
       );
-    // The strip reports generic player factors; occurrence diagnostics retain skill-specific modifiers.
-    const contributors: Gw2ModifierContribution[] = [];
-    set('Strike Multiplier', query.strikeMultiplier(event, at, runtime, contributors));
-    set('Condition Multiplier', query.conditionMultiplier('', at, event, runtime, undefined, contributors));
+    // The strip needs only generic player factors; occurrence diagnostics collect their own modifier details.
+    set('Strike Multiplier', query.strikeMultiplier(event, at, runtime));
+    set('Condition Multiplier', query.conditionMultiplier('', at, event, runtime));
     set('Target Armor', Number(config.target?.armor) || 2597);
-    return {
-      attributes,
-      alwaysApplied: [...new Set(contributors.filter((entry) => entry.unconditional).map((entry) => entry.label))]
-    };
+    return { attributes };
   });
 }
 

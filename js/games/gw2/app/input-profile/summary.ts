@@ -45,7 +45,6 @@ export interface InputKeyUsage {
 
 export interface InputAnalysisSummary {
   readonly duration: number;
-  readonly pace: number | null;
   readonly totalActions: number;
   readonly reachCounts: InputAnalysis['reachCounts'];
   readonly modifierActions: number;
@@ -170,7 +169,6 @@ export function summarizeInputAnalysis(trace: InputTrace, analysis: InputAnalysi
 
   return {
     duration,
-    pace: duration > 0 ? totalActions / duration : null,
     totalActions,
     reachCounts: analysis.reachCounts,
     modifierActions: analysis.modifierActions,

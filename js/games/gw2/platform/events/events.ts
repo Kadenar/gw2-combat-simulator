@@ -207,7 +207,6 @@ export interface EffectMetadata {
   readonly procCount?: number;
   /** Essence Blast retains the spirit count accepted at activation even if spirit lifetimes change before impact. */
   readonly activeSpirits?: number;
-  readonly affinityOnHit?: boolean;
   readonly dhuumfireDuration?: number;
   readonly dhuumfireInterval?: number;
   readonly engineerMech?: boolean;

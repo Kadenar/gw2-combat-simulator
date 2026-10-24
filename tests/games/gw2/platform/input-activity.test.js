@@ -60,7 +60,7 @@ test('binding shares count all actions, group shared bindings, and keep modifier
   const summary = summarizeInputAnalysis(input, analysis);
   assert.deepEqual(analysis.reachCounts, { near: 3, stretch: 1, far: 1, unknown: 1 });
   assert.equal(analysis.modifierActions, 2);
-  assert.equal(summary.pace, 0.6);
+  assert.equal(summary.totalActions, 6);
   const key = summary.keys[0];
   assert.equal(key.binding, 'KeyQ');
   assert.equal(key.count, 2);
@@ -70,7 +70,7 @@ test('binding shares count all actions, group shared bindings, and keep modifier
   assert.equal(summary.keyUsage.get('ShiftLeft').count, 2);
 });
 
-test('pace and busy sections remain unchanged when bindings move or become unbound', () => {
+test('activity samples and busy sections remain unchanged when bindings move or become unbound', () => {
   const input = trace(
     [
       [10, 'weapon-2'],
@@ -88,13 +88,12 @@ test('pace and busy sections remain unchanged when bindings move or become unbou
   const editedAnalysis = analyzeInputTrace(input, p);
   const edited = summarizeInputAnalysis(input, editedAnalysis);
   assert.equal(edited.totalActions, 5);
-  assert.equal(edited.pace, initial.pace);
   assert.deepEqual(edited.samples, initial.samples);
   assert.deepEqual(
     edited.sections.map(({ start, end, count, rate }) => ({ start, end, count, rate })),
     initial.sections.map(({ start, end, count, rate }) => ({ start, end, count, rate }))
   );
-  assert.equal(editedAnalysis.coverage.mappedActions, 2);
+  assert.equal(editedAnalysis.reachCounts.unknown, 3);
   assert.equal(editedAnalysis.coverage.missing.length, 2);
   assert.ok(edited.sections.some((section) => section.rotationIndices.includes(2)));
 });
@@ -208,14 +207,14 @@ test('busy sections use nonoverlapping five-second windows and preserve endpoint
 
 test('short, empty and zero-duration traces report activity without inventing busy sections', () => {
   const p = profile();
-  for (const [input, pace] of [
-    [trace([[0, 'weapon-2']], 4), 0.25],
+  for (const [input, totalActions] of [
+    [trace([[0, 'weapon-2']], 4), 1],
     [trace([], 10), 0],
-    [trace([], 0), null]
+    [trace([], 0), 0]
   ]) {
     const analysis = analyzeInputTrace(input, p);
     const result = summarizeInputAnalysis(input, analysis);
-    assert.equal(result.pace, pace);
+    assert.equal(result.totalActions, totalActions);
     assert.deepEqual(result.sections, []);
     assert.equal(result.samples.length > 0, input.end > input.start);
   }

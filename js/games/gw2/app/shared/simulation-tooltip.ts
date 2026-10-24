@@ -459,6 +459,9 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
     } else if (effect.type === 'control') {
       // Name the disable directly while retaining its application count and context.
       add(effect, effect.controlKind || 'Control', '');
+    } else if (effect.type === 'custom' && effect.eventType === 'aura') {
+      // Aura grants expose their authored duration and recipients just like other status effects.
+      add(effect, String(effect.event.aura), `${tooltipDecimal(tooltipNumber(effect.event, 'duration'))}s`);
     } else if (effect.type === 'custom' && effect.eventType === 'resource') {
       add(
         effect,
@@ -510,6 +513,9 @@ function ordinarySkillDescription(skill: Skill): string {
     sentences.push('Grant the listed boons to their indicated recipients.');
 
   if (effects.some((effect) => effect.type === 'buff')) sentences.push('Apply the listed combat effects.');
+
+  if (effects.some((effect) => effect.type === 'custom' && effect.eventType === 'aura'))
+    sentences.push('Grant the listed auras to their indicated recipients.');
 
   if (effects.some((effect) => effect.type === 'control'))
     sentences.push('Apply control to your target, triggering eligible control effects.');

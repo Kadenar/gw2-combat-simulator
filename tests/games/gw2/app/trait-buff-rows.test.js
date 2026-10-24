@@ -158,7 +158,6 @@ test('Master Fencer records its trait ID and owns both Fury grants while Critica
 // Each producer must keep its scheduled marker and attach the real grants to that activation.
 for (const [traitId, specialization, rotation, extra] of [
   [TRAIT.FENCERS_FINESSE, 'Core', ['Mind Slash'], { primaryWeapon: 'Sword' }],
-  [TRAIT.ILLUSIONARY_MEMBRANE, 'Core', ['Cry of Frustration']],
   [TRAIT.COMPOUNDING_POWER, 'Core', ['Illusionary Leap'], { primaryWeapon: 'Sword', initialResource: 0 }],
   [TRAIT.DEADLY_BLADES, 'Virtuoso', ['Bladesong Harmony']],
   [TRAIT.DANGER_TIME, 'Chronomancer', ['Time Sink']],
@@ -195,6 +194,34 @@ for (const [traitId, specialization, rotation, extra] of [
     assert.ok(grants.every((grant) => !rows.some((row) => row.id === `event:${grant.eventOrder}`)));
   });
 }
+
+// Aura-triggered rewards retain the intermediate cause instead of becoming direct announcement grants.
+test('Illusionary Membrane preserves announcement, aura, and buff provenance', () => {
+  const result = simulateMesmer(['Cry of Frustration', { type: 'wait', durationMs: 1000 }], {
+    specialization: 'Core',
+    selectedTraitIds: [TRAIT.ILLUSIONARY_MEMBRANE]
+  });
+  assert.deepEqual(result.warnings, []);
+  const trigger = result.events.find((event) => event.type === 'proc' && event.sourceId === TRAIT.ILLUSIONARY_MEMBRANE);
+  assert.ok(trigger);
+  const aura = result.resolvedEvents.find(
+    (event) => event.type === 'aura' && event.parentEventOrder === trigger.eventOrder
+  );
+  assert.ok(aura);
+  const grant = result.events.find((event) => event.type === 'buff' && event.parentEventOrder === aura.eventOrder);
+  assert.ok(grant);
+  assert.equal(grant.source, 'Trait');
+  assert.equal(grant.sourceId, TRAIT.ILLUSIONARY_MEMBRANE);
+  assert.ok(result.procSteps.some((step) => step.skill === trigger.name));
+
+  const rows = simulationEventLogRows(result, null, mesmerProfession);
+  const announcement = rows.find((row) => row.id === `event:${trigger.eventOrder}`);
+  const reward = rows.find((row) => row.id === `event:${grant.eventOrder}`);
+  assert.ok(announcement);
+  assert.ok(reward);
+  assert.match(reward.description, /^Illusionary Membrane/);
+  assert.equal(reward.parentId, announcement.id, 'hidden aura resolves to its visible ancestor');
+});
 
 // Consolidating a buff announcement must preserve damage and conditions from the same trait activation.
 test('trait summaries retain non-buff children and their ownership', () => {

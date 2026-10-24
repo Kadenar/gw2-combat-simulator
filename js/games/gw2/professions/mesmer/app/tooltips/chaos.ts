@@ -12,9 +12,13 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 /** Describe chaos tooltips from the selected balance data. */
 export const mesmerChaosTooltips = {
   [TRAIT.METAPHYSICAL_REJUVENATION]: outsideScopeTooltip,
+  // The aura owns the damage reward, including gains from sources other than profession skills.
   [TRAIT.ILLUSIONARY_MEMBRANE]: traitTooltip(
-    'Using your second shatter activates a temporary condition-damage bonus.',
-    [fromProfile(TRAIT.ILLUSIONARY_MEMBRANE, 'conditionDamageIncrease', 'Condition damage', tooltipPercent)]
+    'Using your second shatter or Flustering Flute grants Chaos Aura. Gaining Chaos Aura extends your temporary condition-damage bonus, up to the maximum remaining duration.',
+    [
+      fromProfile(TRAIT.ILLUSIONARY_MEMBRANE, 'conditionDamageIncrease', 'Condition damage', tooltipPercent),
+      ['maximumDuration', 'Maximum remaining duration', tooltipSeconds]
+    ]
   ),
   [TRAIT.CHAOTIC_PERSISTENCE]: traitTooltip('Gain expertise and concentration while regeneration is assumed active.', [
     ['expertiseBonus', 'Expertise'],
