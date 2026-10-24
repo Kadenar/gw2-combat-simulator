@@ -1,4 +1,5 @@
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import type { EncounterController } from '#gw2/platform/combat/state/encounter.js';
 /**
  * Hostile-target model: which packets face the target or establish combat, the condition vocabulary, and configured
  * and runtime condition stacks. Targets never carry boons.
@@ -150,7 +151,10 @@ export function conditionApplicationExpiry(application: Gw2RuntimeConditionAppli
   return Math.min(application.naturalExpiresAt, application.removedAt ?? Infinity);
 }
 
-function activeRuntimeStackWeight(application: Gw2RuntimeConditionApplication, at: number): number {
+function activeRuntimeStackWeight(application: Gw2RuntimeConditionApplication, at: number, targetKey?: string): number {
+  // Conditions belong to one encounter target and health bar, including when damage queries temporarily switch targets.
+  if (targetKey !== undefined && application.encounterTargetKey !== targetKey) return 0;
+
   return isTimeInWindow(at, application.at, conditionApplicationExpiry(application))
     ? Math.max(0, application.stacks)
     : 0;
@@ -174,7 +178,10 @@ export function runtimeTargetConditionStacks(
   const entry = runtime.conditionState.get(canonicalName);
   return Math.min(
     conditionStackLimit(name) ?? Infinity,
-    (entry?.stacks || []).reduce((sum, stack) => sum + activeRuntimeStackWeight(stack, at), 0)
+    (entry?.stacks || []).reduce(
+      (sum, stack) => sum + activeRuntimeStackWeight(stack, at, runtime.encounter?.activeTargetKey),
+      0
+    )
   );
 }
 
@@ -212,7 +219,7 @@ export function targetHasCondition(
   if (!stacks) return false;
 
   for (let index = stacks.length - 1; index >= 0; index -= 1)
-    if (activeRuntimeStackWeight(stacks[index]!, at || 0) > 0) return true;
+    if (activeRuntimeStackWeight(stacks[index]!, at || 0, runtime.encounter?.activeTargetKey) > 0) return true;
   return false;
 }
 
@@ -233,6 +240,7 @@ export interface Gw2TargetConfig {
 
 /** Query consumers read the accepted application directly, without a second copy of its lifetime or weight. */
 export interface Gw2RuntimeConditionApplication {
+  readonly encounterTargetKey?: string;
   readonly at: number;
   readonly naturalExpiresAt: number;
   readonly removedAt?: number;
@@ -244,6 +252,7 @@ export interface Gw2RuntimeConditionEntry {
 }
 
 export interface Gw2RuntimeStateLike {
+  readonly encounter?: Pick<EncounterController, 'activeTargetKey' | 'remainingHealthFraction'>;
   readonly conditionState?: Map<string, Gw2RuntimeConditionEntry>;
   readonly totals?: {
     readonly strike?: number;

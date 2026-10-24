@@ -28,10 +28,18 @@ export interface ResultBreakpoint {
   readonly damage?: number;
 }
 
+export interface ResultDpsSnapshot {
+  readonly label: string;
+  readonly detail: string;
+  readonly dps: number;
+  readonly elapsed: number;
+}
+
 export interface ResultSummaryModel {
   readonly metrics: readonly ResultMetric[];
   readonly summaryPlaceholder?: boolean;
   readonly breakpoints?: readonly ResultBreakpoint[];
+  readonly phaseSnapshots?: readonly ResultDpsSnapshot[];
 }
 
 function resultMetricDetailsHtml(metric: ResultMetric): string {
@@ -60,25 +68,25 @@ function resultMetricDetailsHtml(metric: ResultMetric): string {
   </details>`;
 }
 
-/** Anchors target-health DPS snapshots to the DPS metric so they do not consume a separate result row. */
+/** Health ranges and encounter phases share the existing DPS disclosure rather than adding result rows. */
 // Preserve milliseconds so breakpoint times can be compared with individual hits.
-function resultDpsSnapshotsHtml(metric: ResultMetric, breakpoints: readonly ResultBreakpoint[]): string {
+function resultDpsSnapshotsHtml(metric: ResultMetric, snapshots: readonly ResultDpsSnapshot[], title: string): string {
   return `<div class="res-label-row">
     <details class="res-dps-snapshots">
-      <summary aria-label="Show DPS snapshots" title="Show DPS snapshots">
+      <summary aria-label="Show ${escapeHtml(title)}" title="Show ${escapeHtml(title)}">
         <span class="res-label">${escapeHtml(metric.label)}</span>
         <svg class="res-dps-snapshots-info" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" x2="12" y1="11" y2="17"/><line x1="12" x2="12.01" y1="7" y2="7"/></svg>
         <span class="res-dps-snapshots-chevron" aria-hidden="true"></span>
       </summary>
       <div class="res-dps-snapshots-panel">
-        <div class="res-dps-snapshots-heading">${DPS_SNAPSHOTS_ICON}<strong>DPS snapshots</strong></div>
+        <div class="res-dps-snapshots-heading">${DPS_SNAPSHOTS_ICON}<strong>${escapeHtml(title)}</strong></div>
         <div class="res-dps-snapshots-list">
-          ${breakpoints
+          ${snapshots
             .map(
-              (breakpoint) => `<div class="res-dps-snapshot">
-            <span class="res-dps-snapshot-health"><b>${number(breakpoint.healthPercent)}%</b> target health</span>
-            <strong>${number(breakpoint.dps)} <small>DPS</small></strong>
-            <span class="res-dps-snapshot-time">at ${Number(breakpoint.elapsed || 0).toFixed(3)}s</span>
+              (snapshot) => `<div class="res-dps-snapshot">
+            <span class="res-dps-snapshot-health"><b>${escapeHtml(snapshot.label)}</b> ${escapeHtml(snapshot.detail)}</span>
+            <strong>${number(snapshot.dps)} <small>DPS</small></strong>
+            <span class="res-dps-snapshot-time">at ${Number(snapshot.elapsed || 0).toFixed(3)}s</span>
           </div>`
             )
             .join('')}
@@ -113,7 +121,15 @@ export function mountResultSummary(container: HTMLElement | null | undefined, mo
   if (!container) return;
 
   bindResultMetricDetailsDismissal(container);
-  const { metrics, summaryPlaceholder = false, breakpoints = [] } = model;
+  const { metrics, summaryPlaceholder = false, breakpoints = [], phaseSnapshots } = model;
+  const snapshots =
+    phaseSnapshots ??
+    breakpoints.map((breakpoint) => ({
+      label: `${number(breakpoint.healthPercent)}%`,
+      detail: 'target health',
+      dps: breakpoint.dps,
+      elapsed: breakpoint.elapsed
+    }));
   container.insertAdjacentHTML(
     'beforeend',
     `<div class="res-summary${summaryPlaceholder ? ' res-summary-placeholder' : ''}"${
@@ -124,7 +140,7 @@ export function mountResultSummary(container: HTMLElement | null | undefined, mo
         // The first target-owned metric creates a right-anchored group distinct from player attribution.
         const startsTargetGroup = metric.group === 'target' && metrics[index - 1]?.group !== 'target';
         return `<div class="res-stat${metric.group === 'target' ? ' res-stat-target' : ''}${startsTargetGroup ? ' res-stat-target-start' : ''}">
-      ${breakpoints.length && metric.className === 'dps' ? resultDpsSnapshotsHtml(metric, breakpoints) : `<div class="res-label-row"><span class="res-label">${escapeHtml(metric.label)}</span>${resultMetricDetailsHtml(metric)}</div>`}
+      ${snapshots.length && metric.className === 'dps' ? resultDpsSnapshotsHtml(metric, snapshots, phaseSnapshots ? 'Phase DPS' : 'DPS snapshots') : `<div class="res-label-row"><span class="res-label">${escapeHtml(metric.label)}</span>${resultMetricDetailsHtml(metric)}</div>`}
       <span class="res-val${metric.className ? ` ${escapeHtml(metric.className)}` : ''}"${metric.title ? ` title="${escapeHtml(metric.title)}" tabindex="0" aria-label="${escapeHtml(`${metric.value}: ${metric.title}`)}"` : ''}>${escapeHtml(metric.value)}</span>
     </div>`;
       })

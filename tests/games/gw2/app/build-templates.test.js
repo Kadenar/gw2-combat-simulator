@@ -347,3 +347,32 @@ test('a complete template without a rotation clears stale rotation state', async
   assert.equal(app.build.marker, 'build-only-template');
   assert.deepEqual(app.build.rotation, []);
 });
+
+// Boss loading starts an empty rotation without fetching repository rotations; Undo restores the prior work.
+test('boss manifest selections fetch only the build and clear the rotation with undo support', async (t) => {
+  const requested = [];
+  t.mock.method(globalThis, 'fetch', async (url) => {
+    requested.push(String(url).split('?')[0]);
+    return {
+      ok: true,
+      json: async () => ({ profession: 'mesmer', marker: 'downloaded', rotation: [{ type: 'wait', durationMs: 800 }] })
+    };
+  });
+  const preset = { label: 'Power', build: 'boss-build.json', rotation: 'repository-rotation.json' };
+  for (const rotation of [[], [{ type: 'wait', durationMs: 1200 }]]) {
+    for (const action of ['template', 'build', 'rotation', 'new-tab']) {
+      const app = createApp();
+      app.build.rotation = structuredClone(rotation);
+      app.workspace = { scenario: {}, tabs: [], persist() {} };
+      requested.length = 0;
+      await loadTemplateAction(app, preset, action, createButton());
+      assert.deepEqual(requested, [preset.build]);
+      assert.equal(app.build.marker, 'downloaded');
+      assert.deepEqual(app.build.rotation, []);
+      assert.equal(app.workspace.tabs.length, 0);
+      undoTemplateLoad(app);
+      assert.equal(app.build.marker, 'current');
+      assert.deepEqual(app.build.rotation, rotation);
+    }
+  }
+});

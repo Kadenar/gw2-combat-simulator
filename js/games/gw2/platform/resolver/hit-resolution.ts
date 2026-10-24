@@ -51,7 +51,8 @@ export function createGw2HitResolution({
   }
 
   function targetArmorFor(ctx: Gw2ResolverRuntime): number {
-    return Math.max(1, ctx.config.target?.armor || STANDARD_TARGET_ARMOR);
+    // Boss encounters own target armor; Golem retains its authored armor setting.
+    return ctx.encounter?.armor ?? Math.max(1, ctx.config.target?.armor || STANDARD_TARGET_ARMOR);
   }
 
   // Sample once for proc eligibility and reporting; rolled damage reuses this same outcome.
@@ -219,7 +220,7 @@ export function createGw2HitResolution({
     event: Gw2ResolverEvent,
     hitContext: Gw2HitResolutionContext
   ): void {
-    const damage = hitContext.damage;
+    let damage = hitContext.damage;
     // Copy already computed facts before health commits; diagnostics never query modifiers or consume RNG again.
     let damageCalculation: Gw2DamageCalculation | undefined;
 
@@ -242,6 +243,9 @@ export function createGw2HitResolution({
         rounding: event.damageKind === 'condition' ? 'half-even' : 'floor'
       };
     }
+
+    // Clamp the packet at a health gate before attribution so overkill cannot leak across a split.
+    damage = ctx.encounter?.damage(damage, 'player', event.at) ?? damage;
 
     const damageType = event.damageKind === 'condition' ? 'conditionDamage' : 'strikeDamage';
 

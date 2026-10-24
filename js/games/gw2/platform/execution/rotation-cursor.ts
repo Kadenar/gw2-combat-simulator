@@ -14,6 +14,7 @@ export class RotationCursor {
   // Overlappable companion commands run beside the player, so they extend the rotation without holding a Wait.
   private overlappingEnd = 0;
   private waitUntil = 0;
+  private deferredUntil = -Infinity;
   private requestedAt: number | null = null;
   selfStunUntil = 0;
 
@@ -37,11 +38,16 @@ export class RotationCursor {
     return Math.max(this.serialReadyAt, this.blockingEnd, this.independentReadyAt, this.overlappingEnd, this.waitUntil);
   }
 
+  /** A forced encounter pause defers commands and their overlaps without inserting a user-authored wait. */
+  deferUntil(at: number): void {
+    this.deferredUntil = Math.max(this.deferredUntil, at);
+  }
+
   /** Compute an authored request once, then let actual readiness delay it without backdating an overlap. */
   requestAt(now: number, skill?: Skill): number {
     if (now < this.waitUntil) return this.waitUntil;
 
-    if (this.requestedAt != null) return Math.max(now, this.requestedAt, this.waitUntil);
+    if (this.requestedAt != null) return Math.max(now, this.requestedAt, this.waitUntil, this.deferredUntil);
 
     const command = this.command;
     let at = Math.max(now, this.waitUntil);
@@ -73,7 +79,7 @@ export class RotationCursor {
       at = Math.max(at, this.serialReadyAt, this.blockingEnd, this.independentReadyAt);
     } else at = Math.max(at, this.endTime());
 
-    this.requestedAt = canonicalTime(at);
+    this.requestedAt = canonicalTime(Math.max(at, this.deferredUntil));
     return this.requestedAt;
   }
 

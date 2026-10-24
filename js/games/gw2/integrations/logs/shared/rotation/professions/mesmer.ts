@@ -19,7 +19,10 @@ export function reconstructMesmerDpsReportActions(
   const phaseRetreatOnly =
     selectedSkills != null &&
     !selectedSkills.includes(BLINK_ID) &&
-    [config?.primaryWeapon, config?.weaponSet2Primary].includes('Staff');
+    (context.recordedActions.some(
+      (action) => context.catalog?.skillsById.get(action.canonicalSkillId ?? action.rawSkillId)?.weapon === 'Staff'
+    ) ||
+      [config?.primaryWeapon, config?.weaponSet2Primary].includes('Staff'));
 
   return context.recordedActions.flatMap((action) => {
     if (action.rawSkillId === BLINK_OR_PHASE_RETREAT_ID && action.canonicalSkillId == null && phaseRetreatOnly) {

@@ -1,3 +1,4 @@
+import { ENCOUNTER_RESULT_EVENT } from '#gw2/app/boss-scenarios/simulation.js';
 import type { ResolvedPatch } from '#gw2/integrations/patches/selection.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import * as comparisonState from '#gw2/app/rotation/comparison-state.js';
@@ -9,12 +10,7 @@ import { bindSessionControls } from '#gw2/app/session-controls.js';
 import { bindWikiTooltips } from '#gw2/app/shared/tooltip-overlay.js';
 import { normalizeSelectedSkills, swapSelectedSkillsForPatch } from '#gw2/app/build/state/skill-selection.js';
 import { normalizeInfusions } from '#gw2/platform/builds/codec.js';
-import {
-  captureActiveBuildTab,
-  loadBuildWorkspace,
-  saveBuildWorkspace,
-  type BuildWorkspace
-} from '#gw2/app/build/state/workspace.js';
+import { loadBuildWorkspace, saveBuildWorkspace, type BuildWorkspace } from '#gw2/app/build/state/workspace.js';
 import { mountBuildTabs, renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
 import { addRotation } from '#gw2/app/rotation/editing/actions.js';
 import { recordRotationHistory } from '#gw2/app/rotation/editing/history.js';
@@ -38,6 +34,8 @@ import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 import { renderRotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/view.js';
 import { renderEventLog } from '#gw2/app/results/event-log.js';
 import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
+import { mountBossScenarios } from '#gw2/app/boss-scenarios/view.js';
+import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#browser/shell/rotation-workspace.js';
 
 import type { BuildTemplatePreset, BuildTemplateSelection } from '#gw2/app/build/types.js';
@@ -54,7 +52,7 @@ import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 
 export class ProfessionApp implements ProfessionAppState {
-  readonly workspace: BuildWorkspace;
+  workspace: BuildWorkspace;
   readonly gameId: string;
   readonly contentId: string;
   readonly adapter: Gw2AppAdapter;
@@ -165,7 +163,7 @@ export class ProfessionApp implements ProfessionAppState {
     bindWikiTooltips();
     document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => {
       // Analysis collects chart histories and modifiers on demand, retaining completed data across navigation.
-      if (document.body?.dataset.simulatorView === 'analysis') {
+      if (analysisViewIsActive()) {
         this.baselineSimulationRunner.ensureCharts();
         this.modifierContributionRunner.schedule();
       } else {
@@ -183,7 +181,7 @@ export class ProfessionApp implements ProfessionAppState {
 
       const results = document.getElementById('rotation-results');
 
-      if (document.body?.dataset.simulatorView === 'analysis' && results?.dataset.analysisStale === 'true') {
+      if (analysisViewIsActive() && results?.dataset.analysisStale === 'true') {
         this.adapter.presentation.render(this, this.adapter.presentation.createViewModel(this));
       }
     });
@@ -194,6 +192,7 @@ export class ProfessionApp implements ProfessionAppState {
     renderGearOptimizer(this);
     await templatesReady;
     mountBuildTabs(this);
+    mountBossScenarios(this);
     // Commit the asynchronously inserted templates under the loading overlay.
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
@@ -344,6 +343,8 @@ export class ProfessionApp implements ProfessionAppState {
     this.modifierContributionRunner.schedule();
     this.relicComparisonRunner.schedule();
 
+    if (this.results.encounter) document.dispatchEvent(new Event(ENCOUNTER_RESULT_EVENT));
+
     if (render) {
       if (renderDeferredRotation) this.adapter.renderRotationBuilder(this);
       else renderSimulationOutput(this);
@@ -396,14 +397,15 @@ export class ProfessionApp implements ProfessionAppState {
   }
 
   /** Switches the existing editor atomically; global revisions never rewind into an old worker job. */
-  activateBuildTab(id: string): void {
-    if (id === this.workspace.activeTabId) return;
+  activateBuildTab(id: string, workspace = this.workspace): void {
+    if (workspace === this.workspace && id === this.workspace.activeTabId) return;
 
-    const tab = this.workspace.tabs.find((entry) => entry.id === id);
+    const tab = workspace.tabs.find((entry) => entry.id === id);
 
     if (!tab) return;
 
-    captureActiveBuildTab(this);
+    // Capture and persist the outgoing document before the same editors receive another workspace.
+    saveBuildWorkspace(this);
     this.baselineSimulationRunner.cancel();
     this.gearOptimizerRunner?.reset();
     this.randomDistributionRunner.cancel?.();
@@ -411,6 +413,7 @@ export class ProfessionApp implements ProfessionAppState {
     this.initialRenderGeneration += 1;
     this.deferredRotationRenderRevision = null;
     this.buildRevision += 1;
+    this.workspace = workspace;
     this.workspace.activeTabId = id;
     this.build = tab.build;
     this.patch = this.profession.resolvePatch({ id: tab.patchId, values: tab.session.values });

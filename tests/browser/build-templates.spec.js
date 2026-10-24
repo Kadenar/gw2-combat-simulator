@@ -115,7 +115,7 @@ test('templates load from the optimizer and Analysis toolbars', async ({ page })
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   const originalArmor = await page.evaluate(() => window.professionApp.build.targetArmor);
   const dialog = page.getByRole('dialog', { name: 'Build library', exact: true });
-  for (const view of ['Gear Optimizer', 'Analysis']) {
+  for (const view of ['Gear Optimizer', 'Golem Analysis']) {
     const tab = page.getByRole('link', { name: view, exact: true });
     await tab.click();
     await page.locator('#build-switcher').click();
@@ -178,18 +178,22 @@ test('standalone templates open only in a dialog at every viewport width', async
 });
 
 // Cross-origin, auto-height hosts must keep the picker in the visible browser area as the host scrolls and resizes.
-test('template dialog follows the visible viewport inside a tall cross-origin iframe', async ({ page }) => {
+test('template dialog follows the visible viewport inside a tall cross-origin iframe', async ({ page, baseURL }) => {
   await page.setViewportSize({ width: 1200, height: 800 });
-  // The intercepted host has no network address; allow this test page to reach the local simulator server.
-  await page.context().grantPermissions(['local-network-access'], { origin: 'http://localhost:4173' });
-  await page.route('http://localhost:4173/embed-host', (route) =>
+  // Use the configured simulator port while keeping the host cross-origin for the embed contract.
+  const simulatorOrigin = new URL(baseURL).origin;
+  const host = new URL(simulatorOrigin);
+  host.hostname = host.hostname === 'localhost' ? '127.0.0.1' : 'localhost';
+  const hostUrl = `${host.origin}/embed-host`;
+  await page.context().grantPermissions(['local-network-access'], { origin: host.origin });
+  await page.route(hostUrl, (route) =>
     route.fulfill({
       contentType: 'text/html',
       body: `<style>body { margin: 0; padding-top: 60px; } iframe { width: 90%; height: 3000px; border: 0; }</style>
-      <iframe title="Simulator" src="http://127.0.0.1:4173/mesmer.html?embed=1"></iframe>`
+      <iframe title="Simulator" src="${simulatorOrigin}/mesmer.html?embed=1"></iframe>`
     })
   );
-  await page.goto('http://localhost:4173/embed-host');
+  await page.goto(hostUrl);
   const frame = page.frameLocator('iframe');
   await expect(frame.locator('#loading-overlay')).toHaveClass(/hidden/);
   const browse = frame.getByRole('button', { name: /Browse templates/ });

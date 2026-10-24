@@ -159,7 +159,7 @@ header h1 {
 /* The profession control leads a flat tool strip; the accent underline marks the current view. */
 .simulator-view-tabs {
   display: grid;
-  grid-template-columns: auto repeat(4, auto);
+  grid-template-columns: auto repeat(5, auto);
   align-items: center;
   gap: 0 4px;
   max-width: 100%;
@@ -302,7 +302,7 @@ a.simulator-view-tab:focus-visible {
 }
 
 @media (max-width: 600px) {
-  /* Four tools, including Benchmarks, stay fully visible in two rows below the profession picker. */
+  /* Five workspace/tool links stay readable in paired rows below the profession picker. */
   .simulator-view-tabs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;

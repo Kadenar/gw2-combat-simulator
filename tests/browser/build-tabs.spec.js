@@ -30,13 +30,13 @@ test('header profession selector preserves navigation and the landing page owns 
   // DPS now sits beneath this popover; dismiss through an unobscured editor heading.
   await page.getByRole('heading', { name: 'Gear loadout', exact: true }).click();
   await expect(professions).toBeHidden();
-  await navigation.getByRole('link', { name: 'Analysis', exact: true }).click();
-  await expect(navigation.getByRole('link', { name: 'Analysis', exact: true })).toHaveAttribute('aria-current', 'page');
-  await page.goBack();
-  await expect(navigation.getByRole('link', { name: 'Workspace', exact: true })).toHaveAttribute(
+  await navigation.getByRole('link', { name: 'Golem Analysis', exact: true }).click();
+  await expect(navigation.getByRole('link', { name: 'Golem Analysis', exact: true })).toHaveAttribute(
     'aria-current',
     'page'
   );
+  await page.goBack();
+  await expect(navigation.getByRole('link', { name: 'Golem', exact: true })).toHaveAttribute('aria-current', 'page');
   await navigation.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
   await selector.click();
   for (const width of [320, 1440]) {
@@ -132,7 +132,7 @@ test('build tabs isolate edits and results and support duplication, rename, clos
   await page.locator('#btn-sim-undo').click();
   await settled(page);
   await expect(page.locator('#rotation-timeline')).not.toHaveClass(/is-empty/);
-  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  await page.getByRole('link', { name: 'Golem Analysis', exact: true }).click();
   await expect(page.locator('#rotation-results')).toContainText('Bladecall');
   await selectBuild(page, 'Build 1');
   await expect(page.locator('#rotation-results')).toContainText('No analysis yet');
@@ -386,7 +386,7 @@ test('switcher menu exposes builds and actions and supports keyboard dismissal',
   await expect(switcher).toBeFocused();
   await tabAction(page, 'Duplicate');
   await expect(page.locator('.build-tab')).toHaveCount(3);
-  await expect(page.locator('.build-switcher-name')).toHaveText('Build 1 copy');
+  await expect(page.locator('#build-switcher .build-switcher-name')).toHaveText('Build 1 copy');
   await expect(switcher).toBeFocused();
 });
 
@@ -436,7 +436,7 @@ test('Load build replaces the current build and Reset restores only that build',
   await expect(page.locator('.build-tab')).toHaveCount(2);
   await expect(switcher).toBeFocused();
   // The label already names its weapons, so the loaded build must not repeat them.
-  await expect(page.locator('.build-switcher-name')).toHaveText('Mirage · Power (Spear)');
+  await expect(page.locator('#build-switcher .build-switcher-name')).toHaveText('Mirage · Power (Spear)');
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
   // Reset restores this build's loaded template after edits, leaving the blank build independent.
   await page.evaluate(() => {
@@ -493,12 +493,12 @@ test('failed template loading clears progress and re-enables the picker', async 
   await expect(page.locator('.build-tab')).toHaveCount(1);
 });
 
-// Four section links stay readable in a mobile grid and retain keyboard access to the benchmark view.
-test('section navigation fits four tools on mobile and desktop', async ({ page }) => {
+// Five section links stay readable in a mobile grid and retain keyboard access to the benchmark view.
+test('section navigation fits five tools on mobile and desktop', async ({ page }) => {
   await openWorkspace(page);
   const navigation = page.getByRole('navigation', { name: 'Simulator sections' });
   const links = navigation.locator('.simulator-view-tab');
-  await expect(links).toHaveText(['Workspace', 'Analysis', 'Gear Optimizer', 'Benchmarks']);
+  await expect(links).toHaveText(['Golem', 'Bosses', 'Golem Analysis', 'Gear Optimizer', 'Benchmarks']);
 
   for (const width of [320, 390, 600, 1100]) {
     await page.setViewportSize({ width, height: 844 });
@@ -512,7 +512,7 @@ test('section navigation fits four tools on mobile and desktop', async ({ page }
         })
       );
       const context = `${width}px ${font}: ${JSON.stringify(tabs)}`;
-      expect(new Set(tabs.map(({ top }) => top)).size, context).toBe(width <= 600 ? 2 : 1);
+      expect(new Set(tabs.map(({ top }) => top)).size, context).toBe(width <= 600 ? 3 : 1);
       expect(tabs[0].top, context).toBe(tabs[1].top);
       expect(tabs[2].top, context).toBe(tabs[3].top);
       expect(
@@ -532,7 +532,7 @@ test('section navigation fits four tools on mobile and desktop', async ({ page }
   await expect(benchmarks).toHaveAttribute('aria-current', 'page');
   await expect(page.locator('#benchmarks-view')).toBeVisible();
   await expect(page.locator('#header-dps')).toBeHidden();
-  const workspace = navigation.getByRole('link', { name: 'Workspace', exact: true });
+  const workspace = navigation.getByRole('link', { name: 'Golem', exact: true });
   await workspace.focus();
   await page.keyboard.press('Enter');
   await expect(workspace).toHaveAttribute('aria-current', 'page');

@@ -1187,7 +1187,7 @@ test('benchmark navigation preserves the workspace, filters, browser history, an
     window.benchmarkTestBuild = window.professionApp.build;
   });
   await page.getByRole('searchbox', { name: 'Search benchmarks' }).fill('Chronomancer');
-  await navigation.getByRole('link', { name: 'Workspace', exact: true }).click();
+  await navigation.getByRole('link', { name: 'Golem', exact: true }).click();
   await expect(page.locator('#benchmarks-view')).toBeHidden();
   await page.goBack();
   await expect(page.locator('#benchmarks-view')).toBeVisible();

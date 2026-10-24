@@ -90,6 +90,9 @@ export async function loadTemplateAction(
 
   if (loading && !loading.hidden) return;
 
+  // Boss templates supply gear and skills only; encounter rotations belong to local drafts and imported files.
+  if (app.workspace?.scenario) action = 'build';
+
   const previousBuild = structuredClone(app.build);
   const validateDestination = captureBuildDestination(app);
   const patchId = app.patch.id;
@@ -133,6 +136,10 @@ export async function loadTemplateAction(
       validateDestination();
       // The codec rejects a build saved for another profession.
       app.build = replaceBuildConfiguration(buildData, app.build, app.adapter);
+
+      // A new boss build starts with an empty rotation; Undo still retains the previous encounter work.
+      if (app.workspace?.scenario) app.build.rotation = [];
+
       app.currentTemplate = null;
       app.changed(true, true, { deferRotationRender: true });
     } else {

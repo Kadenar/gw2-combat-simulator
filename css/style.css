@@ -1,4 +1,4 @@
-/* Loads responsibility-owned styles in cascade order through the site's stable stylesheet URL. */
+/* Loads shared simulator and boss-authoring styles in cascade order through the site's stable stylesheet URL. */
 @import url('./rotation-activation-editor.css');
 @import url('./charge-release-editor.css');
 @import url('./rotation-insertion-cursor.css');
@@ -21,3 +21,4 @@
 @import url('./page-layouts.css');
 @import url('./benchmarks.css');
 @import url('./benchmark-comparison.css');
+@import url('./boss-scenarios.css');

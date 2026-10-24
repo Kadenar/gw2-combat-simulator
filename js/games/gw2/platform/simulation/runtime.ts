@@ -1,3 +1,4 @@
+import { createEncounter, initialEncounterTarget } from '#gw2/platform/combat/state/encounter.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
@@ -98,7 +99,19 @@ export function runRuntime<T extends object>(
     execution,
     onPhase
   } = { observation: undefined, ...options };
-  let config = inputConfig;
+  // Encounter health overrides the golem's finite-target assumptions for this run only.
+  let config = inputConfig.encounter
+    ? {
+        ...inputConfig,
+        target: {
+          ...inputConfig.target,
+          health: initialEncounterTarget(inputConfig.encounter).maximumHealth,
+          armor: initialEncounterTarget(inputConfig.encounter).armor,
+          startingHealthFraction: 1,
+          fixedHealthFraction: undefined
+        }
+      }
+    : inputConfig;
   const ownsEffect = options.output === 'damage' ? options.ownsEffect : undefined;
   let effectsCapturePending = false;
   const started = onPhase ? performance.now() : 0;
@@ -399,6 +412,18 @@ export function runRuntime<T extends object>(
     if (work.type === 'runtime.complete') casts.complete(work.payload.reservationId);
   });
 
+  if (config.encounter) {
+    runtime.encounter = createEncounter(config.encounter, (at, generation) =>
+      enqueueWork(makeWork({ type: 'runtime.encounter', at, priority: -150, payload: { generation } }), true)
+    );
+    internal.register('runtime.encounter', (_context, work) => {
+      if (work.type !== 'runtime.encounter') return;
+
+      runtime.environmentDamage += runtime.encounter!.wake(runtime.time, work.payload.generation);
+      runtime.deathTime = runtime.encounter!.deathTime;
+    });
+  }
+
   const deliveryOwner = createEffectDelivery(runtime, profession, execution, conditions, reactions, {
     makeWork,
     enqueueWork,
@@ -418,7 +443,7 @@ export function runRuntime<T extends object>(
 
   const targetHealth = Number(config.target?.health) > 0 ? Number(config.target?.health) : Infinity;
 
-  if (targetHealthLoss(config, runtime) >= targetHealth) runtime.deathTime = 0;
+  if (!runtime.encounter && targetHealthLoss(config, runtime) >= targetHealth) runtime.deathTime = 0;
 
   if (combatStartTime != null) {
     const marker = assertSimulationEvent({
@@ -432,6 +457,19 @@ export function runRuntime<T extends object>(
     for (const relic of [runtime.relic, ...precastRelics]) relic.state.combatMarker = marker;
     // An inherited marker is also an executed boundary, so timed profession producers see the same start as rotation markers.
     runtime.effects.emit({ kind: 'packet', event: marker });
+  }
+
+  if (!markers.length && combatStartTime == null && config.encounter) {
+    runtime.effects.emit({
+      kind: 'packet',
+      event: assertSimulationEvent({
+        type: 'combat_start',
+        at: 0,
+        source: 'Encounter',
+        sourceId: 'encounter-start',
+        actorType: ACTOR.ENVIRONMENT
+      })
+    });
   }
 
   conditions.initializeEnvironment(runtime);

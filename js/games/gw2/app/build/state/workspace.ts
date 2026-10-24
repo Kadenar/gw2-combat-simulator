@@ -41,9 +41,15 @@ export interface BuildTab {
 }
 
 export interface BuildWorkspace {
+  /** Encounter inputs travel with the shared editor but are never saved as Golem build assumptions. */
+  scenario?: import('#gw2/app/boss-scenarios/model.js').BossScenarioDraft;
   tabs: BuildTab[];
   activeTabId: string;
   storageError?: string;
+  /** Encounter workspaces persist phase edits to their scenario instead of the golem library. */
+  persist?: () => void;
+  /** Shared header transfers use the complete encounter document when this workspace owns one. */
+  fileActions?: { export: () => void; import: () => void };
 }
 
 export function createBuildTab(build: Gw2CanonicalBuild, name = 'New build', patchId = 'current'): BuildTab {
@@ -181,6 +187,12 @@ export function saveBuildWorkspace(app: ProfessionAppState): void {
   if (!workspace) return;
 
   captureActiveBuildTab(app);
+
+  if (workspace.persist) {
+    workspace.persist();
+    return;
+  }
+
   try {
     localStorage.setItem(
       workspaceStorageKey(app.adapter),

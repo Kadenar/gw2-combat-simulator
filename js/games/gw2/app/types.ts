@@ -62,7 +62,7 @@ export interface ProfessionAppState
   skillDamageRunner: import('#gw2/app/simulation/skill-damage/runner.js').SkillDamageRunner;
   gearOptimizerRunner?: import('#gw2/app/optimizer/gear/runner.js').GearOptimizerRunner;
   workspace?: import('#gw2/app/build/state/workspace.js').BuildWorkspace;
-  activateBuildTab?(id: string): void;
+  activateBuildTab?(id: string, workspace?: import('#gw2/app/build/state/workspace.js').BuildWorkspace): void;
   readonly gameId: string;
   readonly contentId: string;
   adapter: Gw2AppAdapter;

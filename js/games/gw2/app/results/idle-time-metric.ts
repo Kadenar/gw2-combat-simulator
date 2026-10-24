@@ -55,7 +55,8 @@ export function timelineIdleTimeMetric(result: Gw2SimulationResult): ResultSumma
   // Pre-combat waits are setup time, so keep them on the timeline without charging them to the combat idle metric.
   const deadTimeMarkers = timelineDeadTimeMarkers(
     timelineStepsWithChargeFills(result.steps || [], mechanicResourceSpends(result)),
-    result.resolvedEvents || []
+    result.resolvedEvents || [],
+    { encounterPhases: result.encounter?.phases }
   ).filter((marker) => marker.reason !== 'explicit-wait' || marker.start >= combatStartMs);
   const deadTimeMs = deadTimeMarkers.reduce((total, marker) => total + marker.durationMs, 0);
   return {

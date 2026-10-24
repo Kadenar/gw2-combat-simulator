@@ -134,7 +134,7 @@ test('gear optimizer tab owns relic comparison and restores through browser hist
   await expect(page.locator('#optimizer-relic-comparison')).toBeEmpty();
   await page
     .getByRole('navigation', { name: 'Simulator sections' })
-    .getByRole('link', { name: 'Workspace', exact: true })
+    .getByRole('link', { name: 'Golem', exact: true })
     .click();
   for (let index = 0; index < 3; index++) {
     await page.locator('.pal-skill[data-skill="Bladecall"]').click();
@@ -147,7 +147,7 @@ test('gear optimizer tab owns relic comparison and restores through browser hist
   await expect(comparison.getByRole('combobox', { name: 'Comparison relic' })).toBeVisible();
   await comparison.getByRole('button', { name: 'Run comparison', exact: true }).click();
   await expect(comparison.locator('[data-role="relic-comparison-chart"]')).toBeVisible();
-  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  await page.getByRole('link', { name: 'Golem Analysis', exact: true }).click();
   await expect(page.locator('#gear-optimizer-view')).toBeHidden();
   await expect(page.locator('#rotation-results .relic-cmp')).toHaveCount(0);
   await page.goBack();

@@ -298,6 +298,7 @@ export function createEffectDelivery<T extends object>(
     if (
       ('offTarget' in event && event.offTarget === true) ||
       runtime.deathTime != null ||
+      runtime.encounter?.damageable === false ||
       !runtime.engagement.hostileEffectsAllowed(runtime.time)
     )
       return [];
@@ -403,8 +404,14 @@ export function createEffectDelivery<T extends object>(
       !precombat &&
       isCombatEntryEvent(event) &&
       runtime.engagementController.acceptEntry(event.at, event.type === 'combat_start')
-    )
+    ) {
+      runtime.encounter?.begin(event.at);
       execution.combatStart?.(runtime);
+    }
+
+    // Invulnerability rejects hostile applications, while condition clocks still expire and self effects continue.
+    if (runtime.encounter?.damageable === false && isHostileTargetEvent(event) && event.type !== 'condition_tick')
+      return;
 
     event = bindRuntimeCombo(runtime, event);
 
@@ -446,7 +453,10 @@ export function createEffectDelivery<T extends object>(
     if (runtime.reporting && !['condition_buffer', 'condition_tick', 'action_update'].includes(event.type))
       executed.push(event);
 
-    if (runtime.deathTime == null && targetHealthLoss(config, runtime) >= targetHealth) {
+    if (
+      runtime.deathTime == null &&
+      (runtime.encounter ? runtime.encounter.deathTime !== null : targetHealthLoss(config, runtime) >= targetHealth)
+    ) {
       runtime.deathTime = event.at;
       lethalActivation = event.activationId;
     }

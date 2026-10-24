@@ -72,6 +72,7 @@ export interface Gw2SimulationPlanningState {
 }
 
 export interface Gw2SimulationResult extends Gw2ResolverResult {
+  readonly encounter?: import('#gw2/platform/combat/state/encounter.js').EncounterResult;
   readonly inputTrace: import('#gw2/platform/results/input-trace.js').InputTrace;
   readonly rotationApm: RotationApm;
   readonly steps: readonly SimulationStep[];

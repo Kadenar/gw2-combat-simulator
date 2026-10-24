@@ -151,15 +151,10 @@ function renderPart(checkbox: HTMLInputElement, detail: HTMLElement, content: No
   detail.replaceChildren(content ?? 'Not in this file');
 }
 
-/** Replaces the plain file picker with a review step that lets the user apply the build, its rotation, or both. */
-export function bindBuildFileImportDialog(
-  app: ProfessionAppState,
-  button: HTMLElement,
-  fileInput: HTMLInputElement
-): void {
+/** Binds build-file review and returns its opener so the shared header can route by workspace. */
+export function bindBuildFileImportDialog(app: ProfessionAppState, fileInput: HTMLInputElement): () => void {
   fileInput.accept = BUILD_FILE_IMPORT_ACCEPT;
-  button.setAttribute('aria-haspopup', 'dialog');
-  const document = button.ownerDocument;
+  const document = fileInput.ownerDocument;
   const elements = createDialog(document);
   let preview: BuildFileImportPreview | null = null;
   let loading = false;
@@ -238,10 +233,6 @@ export function bindBuildFileImportDialog(
     );
   };
 
-  button.addEventListener('click', () => {
-    reset();
-    showDialog(elements.dialog);
-  });
   bindImportFileSources(elements.dropZone, elements.browseButton, fileInput, selectFile);
   elements.buildCheckbox.addEventListener('change', syncApply);
   elements.rotationCheckbox.addEventListener('change', syncApply);
@@ -262,4 +253,8 @@ export function bindBuildFileImportDialog(
     preview = null;
     importer.cancel();
   });
+  return () => {
+    reset();
+    showDialog(elements.dialog);
+  };
 }

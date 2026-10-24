@@ -89,6 +89,9 @@ export function createGw2ConditionResolution({
    * ticks without inserting duplicate stacks into player condition state.
    */
   function initializeEnvironment(ctx: Gw2ResolverRuntime): void {
+    // Authored squad DPS already includes all non-player damage, including their conditions.
+    if (ctx.encounter) return;
+
     for (const condition of GW2_DAMAGING_CONDITIONS) {
       const stacks = permanentTargetConditionStacks(condition);
 
@@ -345,15 +348,24 @@ export function createGw2ConditionResolution({
 
     ctx.conditionBufferedAt = at;
     const onGrid = (timeKey(at) - timeKey(ctx.firstHitTime ?? 0)) % 1_000_000 === 0;
-    // Each pass observes one target state; discard these facts before processing another event or timestamp.
-    const sample = {
-      vulnerabilityStacks: ctx.query.vulnerabilityStacksAt(at, ctx),
-      modifierValues: new Map<object, number | null>()
+    // Each target needs its own vulnerability and modifier sample within this observation pass.
+    const samples = new Map<string, { vulnerabilityStacks: number; modifierValues: Map<object, number | null> }>();
+    const sampleForTarget = () => {
+      const key = ctx.encounter?.activeTargetKey ?? '';
+      let sample = samples.get(key);
+
+      if (!sample) {
+        sample = { vulnerabilityStacks: ctx.query.vulnerabilityStacksAt(at, ctx), modifierValues: new Map() };
+        samples.set(key, sample);
+      }
+
+      return sample;
     };
+
     // Reuse only within this observation pass; later state changes always get a fresh attribute sample.
     let conditionDamageByBatch: Map<object, number> | undefined;
     /** Settle one application through this pass, buffering its damage for its owner's whole-second payout. */
-    const settle = (application: Gw2ResolvedConditionApplication): void => {
+    const settleOnTarget = (application: Gw2ResolvedConditionApplication): void => {
       if (isRemoved(application, at)) return;
 
       // An application always carries its owner group's canonical condition name.
@@ -362,7 +374,12 @@ export function createGw2ConditionResolution({
       const formula = application.conditionDamageFormula;
       const dealsDamage = formula != null || Object.hasOwn(CONDITION_FORMULAS, condition);
       const through = Math.min(at, application.naturalExpiresAt);
-      const elapsedUs = timeKey(through) - timeKey(application.settledThrough);
+      const elapsedUs = ctx.encounter
+        ? Math.round(
+            ctx.encounter.damageableDuration(application.settledThrough, through, application.encounterTargetKey) *
+              1_000_000
+          )
+        : timeKey(through) - timeKey(application.settledThrough);
 
       // Expiry remainders sampled before Combat Start cannot fund a later in-combat payout.
       if (elapsedUs > 0 && ctx.engagement.hostileEffectsAllowed(at)) {
@@ -387,7 +404,14 @@ export function createGw2ConditionResolution({
           const rate = formula
             ? formula.base + formula.scaling * conditionDamage
             : conditionRate(ctx, condition, conditionDamage);
-          const multiplier = ctx.query.conditionMultiplier(condition, at, application, ctx, sample, damageContributors);
+          const multiplier = ctx.query.conditionMultiplier(
+            condition,
+            at,
+            application,
+            ctx,
+            sampleForTarget(),
+            damageContributors
+          );
 
           if (calculation && damageContributors) {
             calculation.conditionDamage = conditionDamage;
@@ -405,6 +429,13 @@ export function createGw2ConditionResolution({
       }
 
       application.settledThrough = through;
+    };
+
+    const settle = (application: Gw2ResolvedConditionApplication): void => {
+      const key = application.encounterTargetKey;
+
+      if (ctx.encounter && key !== undefined) ctx.encounter.withTarget(key, () => settleOnTarget(application));
+      else settleOnTarget(application);
     };
 
     if (onGrid) {
@@ -427,7 +458,7 @@ export function createGw2ConditionResolution({
         continue;
       }
 
-      const vulnerability = 1 + (sample.vulnerabilityStacks || 0) / 100;
+      const vulnerability = 1 + (sampleForTarget().vulnerabilityStacks || 0) / 100;
       entry.bufferedRate = (entry.bufferedRate ?? 0) + conditionTickDamage(entry.name, 0) * vulnerability;
     }
   }
@@ -482,6 +513,7 @@ export function createGw2ConditionResolution({
         condition: name,
         stacks: Math.min(1, stacks - index),
         effectiveDuration: duration,
+        ...(ctx.encounter ? { encounterTargetKey: ctx.encounter.activeTargetKey } : {}),
         // Keep the natural lifetime while executing; result finalization clips only the presentation fields.
         activeDuration: duration,
         expiresAt,
@@ -513,7 +545,11 @@ export function createGw2ConditionResolution({
       // Accepted applications invalidate report windows without involving later damage settlement.
       reviseEffectState(state);
       const groups = (state.groups ??= new Map());
-      const owner = damageOwner(application);
+      const baseOwner = damageOwner(application);
+      const owner =
+        ctx.encounter && typeof baseOwner === 'string'
+          ? JSON.stringify([baseOwner, ctx.encounter.activeTargetKey])
+          : baseOwner;
       let group = groups.get(owner);
 
       if (group) {
@@ -579,7 +615,18 @@ export function createGw2ConditionResolution({
       contributions.push({ application, fraction, stackSeconds, rawDamage, damage: Math.floor(rawDamage) });
     }
 
-    const damage = roundHalfToEven(contributions.reduce((total, contribution) => total + contribution.rawDamage, 0));
+    const rawTotal = contributions.reduce((total, contribution) => total + contribution.rawDamage, 0);
+    const rounded = roundHalfToEven(rawTotal);
+    const damage =
+      ctx.encounter?.damage(rounded, 'player', event.at, group.applications[0]?.encounterTargetKey) ?? rounded;
+
+    // Attribute only accepted damage, preserving the existing largest-remainder rounding contract.
+    if (damage < rounded && rawTotal > 0)
+      for (const contribution of contributions) {
+        contribution.rawDamage *= damage / rawTotal;
+        contribution.damage = Math.floor(contribution.rawDamage);
+      }
+
     const remainder = damage - contributions.reduce((total, contribution) => total + contribution.damage, 0);
     // Largest fractional remainders receive the remaining points; stable application order resolves ties.
     const ranked = [...contributions].sort((a, b) => b.rawDamage - b.damage - (a.rawDamage - a.damage));
@@ -658,6 +705,7 @@ export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
   readonly condition: string;
   readonly stacks: number;
   readonly effectiveDuration: number;
+  readonly encounterTargetKey?: string;
   activeDuration: number;
   expiresAt: number;
   readonly naturalExpiresAt: number;

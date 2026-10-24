@@ -16,6 +16,7 @@ export function analysisViewIsActive(): boolean {
 
   const mountedView = body.dataset.simulatorView;
 
+  // The active workspace owns the result; both Golem and Bosses use the same analysis shell.
   if (mountedView) return mountedView === 'analysis';
 
   return document.defaultView?.location.hash === '#analysis';

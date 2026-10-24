@@ -32,6 +32,7 @@ import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
+import { withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
@@ -87,7 +88,7 @@ export function createProfessionRuntime({
       transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
     }).simulationConfig();
     const baseConfig = {
-      ...config,
+      ...withScenarioConfig(config, app.workspace?.scenario),
       randomness: {
         ...config.randomness,
         mode: SIMULATION_RANDOMNESS_MODES.STOCHASTIC
@@ -130,13 +131,14 @@ export function createProfessionRuntime({
   }
 
   function baselineSimulationConfig(app: ProfessionAppState, patchId = app.patch.id): Gw2Config {
-    return deterministicSimulationConfig(
+    const config = deterministicSimulationConfig(
       createBuildContext({
         build: app.build,
         patch: profession.resolvePatch({ id: patchId, values: app.patch.values }),
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
       }).simulationConfig()
     );
+    return withScenarioConfig(config, app.workspace?.scenario);
   }
 
   function rotationPlanningStateAt(

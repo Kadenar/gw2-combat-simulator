@@ -12,12 +12,13 @@ import { navigationRoute } from '#browser/page/embed.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { clamp } from '#kernel/core/numeric.js';
 
-export type SimulatorView = 'workspace' | 'analysis' | 'gear-optimizer' | 'benchmarks';
+export type SimulatorView = 'workspace' | 'bosses' | 'analysis' | 'gear-optimizer' | 'benchmarks';
 
 type ScrollPosition = Readonly<{ left: number; top: number }>;
 
 const VIEW_HASHES: Readonly<Record<SimulatorView, string>> = {
   workspace: '#workspace',
+  bosses: '#bosses',
   analysis: '#analysis',
   'gear-optimizer': '#gear-optimizer',
   benchmarks: '#benchmarks'
@@ -26,6 +27,8 @@ const VIEW_HASHES: Readonly<Record<SimulatorView, string>> = {
 /** Maps a URL hash to a view, defaulting to `workspace` when unrecognized. */
 export function simulatorViewFromHash(hash: string): SimulatorView {
   const normalized = hash.toLowerCase();
+
+  if (normalized === VIEW_HASHES.bosses) return 'bosses';
 
   if (normalized === VIEW_HASHES.analysis) return 'analysis';
 
@@ -62,7 +65,7 @@ function mountAnalysisView(root: Document): void {
 
   const heading = root.createElement('div');
   heading.className = 'analysis-view-heading';
-  heading.innerHTML = `<h2 id="analysis-view-title">Combat analysis</h2>`;
+  heading.innerHTML = `<h2 id="analysis-view-title">Golem analysis</h2>`;
   results.before(heading);
 
   const summaryMirror = root.createElement('div');
@@ -82,7 +85,11 @@ function updateActiveView(root: Document, view: SimulatorView): void {
 
   root.body.dataset.simulatorView = view;
 
-  if (view !== 'workspace') resetRotationWorkspace(root);
+  // Analysis belongs to the last authoring workspace, including browser Back/Forward restoration.
+  if (view === 'workspace' || view === 'bosses') root.body.dataset.analysisWorkspace = view;
+  else root.body.dataset.analysisWorkspace ??= 'workspace';
+
+  if (view !== 'workspace' && view !== 'bosses') resetRotationWorkspace(root);
 
   // Load cross-profession comparisons only when their tool tab is opened; the current build stays mounted.
   if (view === 'benchmarks') {
@@ -98,6 +105,10 @@ function updateActiveView(root: Document, view: SimulatorView): void {
   }
 
   for (const link of root.querySelectorAll<HTMLAnchorElement>('.simulator-view-tab[data-simulator-view]')) {
+    // Name the owning workspace on every navigation update, including history restoration.
+    if (link.dataset.simulatorView === 'analysis')
+      link.textContent = root.body.dataset.analysisWorkspace === 'bosses' ? 'Boss Analysis' : 'Golem Analysis';
+
     const active = link.dataset.simulatorView === view;
     link.classList.toggle('simulator-view-tab-active', active);
 
@@ -255,18 +266,20 @@ export function mountSimulatorNavigation(root: Document = document): void {
     restoreScrollPosition(view, position);
   };
 
-  for (const view of ['workspace', 'analysis', 'gear-optimizer', 'benchmarks'] as const) {
+  for (const view of ['workspace', 'bosses', 'analysis', 'gear-optimizer', 'benchmarks'] as const) {
     const route = simulatorViewHref(pathname, view);
     const link = createNavigationLink(
       root,
       view,
       view === 'workspace'
-        ? 'Workspace'
-        : view === 'analysis'
-          ? 'Analysis'
-          : view === 'benchmarks'
-            ? 'Benchmarks'
-            : 'Gear Optimizer',
+        ? 'Golem'
+        : view === 'bosses'
+          ? 'Bosses'
+          : view === 'analysis'
+            ? 'Golem Analysis'
+            : view === 'benchmarks'
+              ? 'Benchmarks'
+              : 'Gear Optimizer',
       navigationRoute(route)
     );
     navigation.append(link);
@@ -279,7 +292,11 @@ export function mountSimulatorNavigation(root: Document = document): void {
       const window = root.defaultView;
 
       if (window?.location.hash !== VIEW_HASHES[view]) {
-        window?.history.pushState(null, '', VIEW_HASHES[view]);
+        window?.history.pushState(
+          { analysisWorkspace: view === 'bosses' || view === 'workspace' ? view : body.dataset.analysisWorkspace },
+          '',
+          VIEW_HASHES[view]
+        );
       }
 
       showView(view);
@@ -288,11 +305,16 @@ export function mountSimulatorNavigation(root: Document = document): void {
 
   header.prepend(navigation);
   mountAnalysisView(root);
+
+  if (root.defaultView?.history.state?.analysisWorkspace === 'bosses') body.dataset.analysisWorkspace = 'bosses';
+
   updateActiveView(root, activeView);
   root.defaultView?.addEventListener('hashchange', () => {
     showView(simulatorViewFromHash(root.defaultView?.location.hash || ''));
   });
   root.defaultView?.addEventListener('popstate', () => {
+    body.dataset.analysisWorkspace =
+      root.defaultView?.history.state?.analysisWorkspace === 'bosses' ? 'bosses' : 'workspace';
     showView(simulatorViewFromHash(root.defaultView?.location.hash || ''));
   });
 }
