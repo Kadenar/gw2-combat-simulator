@@ -201,10 +201,13 @@ function fightPhases(series: ChartSeries, markers: readonly ChartMarker[], optio
       startDamage: 0,
       endDamage: Number.isFinite(finalDamage) ? finalDamage : 0
     },
-    ...(options.encounterPhases?.map((phase) => ({
-      ...phase,
-      enabled: phase.endMs > phase.startMs
-    })) ??
+    // Range buttons select damage phases; splits remain on the full-fight clock and transition markers.
+    ...(options.encounterPhases
+      ?.filter((phase) => phase.kind === 'boss')
+      .map((phase) => ({
+        ...phase,
+        enabled: phase.endMs > phase.startMs
+      })) ??
       TARGET_HEALTH_BANDS.map((range) => {
         const start = boundaries.get(range.startHealth);
         const end = boundaries.get(range.endHealth);

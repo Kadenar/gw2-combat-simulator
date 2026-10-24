@@ -102,8 +102,10 @@ test('full-fight charts decline during splits while phase curves restart their d
 
   const container = inertContainer();
   mountTimeSeriesCharts(container, series, { encounterPhases: phases });
-  assert.match(container.innerHTML, /Split 1: Charged Souls/);
-  assert.match(container.innerHTML, /data-chart-phase="encounter-2"/);
+  assert.deepEqual(
+    [...container.innerHTML.matchAll(/data-chart-phase="([^"]+)"/g)].map((match) => match[1]),
+    ['full', 'encounter-0', 'encounter-2']
+  );
   assert.doesNotMatch(container.innerHTML, /data-chart-phase="100-80"/);
 });
 

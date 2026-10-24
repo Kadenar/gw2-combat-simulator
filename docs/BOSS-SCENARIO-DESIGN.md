@@ -147,13 +147,13 @@ DPS, group damage and DPS excluding the player, and cumulative player DPS. Unfin
 repeated cycles get distinct entries. Separate target rows show each current health bar and armor without combining
 unrelated pools.
 
-The existing chart phase controls use observed encounter intervals instead of Golem health bands. Full Fight includes
-split time, so cumulative DPS falls during invulnerability; selecting a phase restarts its damage clock and crops its
-effect timelines. Zero-duration splits remain in the table with disabled chart controls. Damage breakdown and modifier
-contributions cover the full simulated encounter. RNG and modifier comparison jobs inherit the same boss configuration
-as the baseline simulation.
+The existing chart range controls offer Full Fight and observed damage phases instead of Golem health bands. Full Fight
+includes split time, so cumulative DPS falls during invulnerability; selecting a phase restarts its damage clock and
+crops its effect timelines. Splits remain in the table and chart transition markers, without separate range buttons.
+Damage breakdown and modifier contributions cover the full simulated encounter. RNG and modifier comparison jobs inherit
+the same boss configuration as the baseline simulation.
 
 Phase DPS is available from the DPS strip's existing disclosure style, replacing the result text beneath encounter
 inputs. The disclosure lists observed damage phases, including partial phases and repeated cycles. Chart transition
 labels use measured collision lanes and expand the canvas downward without shrinking the plot or moving transition
-times. Long labels are shortened only when wider than the plot; full names remain in phase controls and the table.
+times. Long labels are shortened only when wider than the plot; full names remain in the encounter table.
