@@ -103,9 +103,7 @@ test('combo and aura handlers skip score report rows while preserving state and 
       ['combo.resolved', combo],
       ['aura.applied', aura]
     ]);
-    assert.deepEqual(context.profession.core.activeAuras, [
-      { type: 'Fire Aura', appliedAt: 1, expiresAt: 5, skillName: 'Fixture Aura' }
-    ]);
+    assert.deepEqual(context.profession.core.activeAuras, [{ type: 'Fire Aura', expiresAt: 5 }]);
   }
 });
 

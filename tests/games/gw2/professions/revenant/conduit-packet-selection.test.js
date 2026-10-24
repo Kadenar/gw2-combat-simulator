@@ -148,7 +148,7 @@ test('Mesmer Release keeps impact-time conditions independent of its ordinary st
 
     if (mode !== 'cancelled') {
       assert.ok(Math.abs(torment[0].duration - 3 * 1.2) < 1e-9);
-      assert.ok(Math.abs(self[0].expiresAt - self[0].at - 8 * 0.7) < 1e-9);
+      assert.ok(Math.abs(self[0].expiresAt - torment[0].at - 8 * 0.7) < 1e-9);
     }
   }
 });

@@ -13,7 +13,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import {
   mesmerPhantasmPreparing,
-  type MesmerPhantasmAdmission
+  type MesmerPhantasmTraitEffects
 } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 import { mesmerShatterCompleted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
@@ -79,8 +79,8 @@ const chronophantasma = defineTrait<MesmerSkill>({
   // Admit repeat work once for this batch; the illusion owner retains its conversion and delivery lifetime.
   triggers: [
     onTriggerPoint(mesmerPhantasmPreparing, {
-      run(runtime, admission: MesmerPhantasmAdmission) {
-        admission.repeat = {
+      run(runtime, traitEffects: MesmerPhantasmTraitEffects) {
+        traitEffects.repeat = {
           label: 'Chronophantasma',
           traitId: TRAIT.CHRONOPHANTASMA,
           traitName: 'Chronophantasma',

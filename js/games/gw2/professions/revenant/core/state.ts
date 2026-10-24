@@ -24,13 +24,9 @@ export interface RevenantUpkeepState {
   empoweredNextPulse: boolean;
 }
 
+/** Each application keeps its identity and expiry so delayed cleanses remove only their selected conditions. */
 interface RevenantSelfCondition {
-  readonly condition: string;
-  readonly stacks: number;
-  readonly at: number;
   readonly expiresAt: number;
-  readonly sourceId: SkillId;
-  readonly skillName: string;
 }
 
 export interface RevenantCoreState {

@@ -13,8 +13,8 @@ import type { Skill } from '#gw2/platform/skills/types.js';
  *
  * Overloads are `overload: true` profession skills bound to one attunement, recharge from cast end,
  * and take their tick effects from TEMPEST_OVERLOAD_EFFECTS; the gating, aura, and trait behavior
- * lives in hooks.ts. Shouts use the native completion owner
- * and declare their self-aura as `element|seconds`, which the core cast pipeline applies for them.
+ * lives in hooks.ts. Shouts declare standard aura effects before their hostile packets so
+ * aura-triggered rewards can affect the granting skill.
  * The engine dispatches castCommit only after the skill's commit cutoff, so overload rewards need no second check.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
@@ -168,6 +168,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
 
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'aura', aura: AURA.FIRE, duration: 4 },
       { type: 'strike', coefficient: 2.5 },
       {
         type: 'condition',
@@ -204,7 +205,6 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
 
     effects: [
       { type: 'aura', aura: AURA.MAGNETIC, duration: 4 },
-      { type: 'aura', aura: AURA.FIRE, duration: 4 },
       ...impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.75 },
         { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 6 },

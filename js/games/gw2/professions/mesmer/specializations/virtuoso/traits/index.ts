@@ -19,7 +19,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import {
   mesmerPhantasmPreparing,
-  type MesmerPhantasmAdmission
+  type MesmerPhantasmTraitEffects
 } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { mesmerShatterCompleted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
@@ -157,11 +157,11 @@ const phantasmalBlades = defineTrait<MesmerSkill>({
   // Capture the surviving bonus payload per summon batch without changing intrinsic blade conversion.
   triggers: [
     onTriggerPoint(mesmerPhantasmPreparing, {
-      run(runtime, admission: MesmerPhantasmAdmission) {
+      run(runtime, traitEffects: MesmerPhantasmTraitEffects) {
         const damage = mesmerProfiledTraitDamage(runtime, TRAIT.PHANTASMAL_BLADES);
 
         if (damage.type === 'strike')
-          admission.bonusStrike = {
+          traitEffects.bonusStrike = {
             name: 'Phantasmal Blade',
             traitId: TRAIT.PHANTASMAL_BLADES,
             traitName: 'Phantasmal Blades',

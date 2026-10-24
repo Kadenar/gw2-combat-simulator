@@ -56,11 +56,11 @@ test('aura consumption and Arcane Echo arming belong to successful skill commitm
             [id, { castTimeMs: 1000, interruptCommitMs: 200, ...(mode === 'removed' ? { sideEffects: [] } : {}) }]
           ]),
           initialize(runtime) {
-            // Both skill- and trait-origin auras must be consumed; unrelated auras survive.
+            // Consume every application of the matching aura; unrelated auras survive.
             if (aura)
               runtime.profession.core.activeAuras = [
-                { type: aura, expiresAt: 10, sourceId: 'skill' },
-                { type: aura, expiresAt: 12, sourceId: 'trait' },
+                { type: aura, expiresAt: 10 },
+                { type: aura, expiresAt: 12 },
                 { type: 'unrelated', expiresAt: 15 }
               ];
           }

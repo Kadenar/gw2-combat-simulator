@@ -19,23 +19,13 @@ const config = {
   selectedTraitIds: [TRAIT.SHARED_WISDOM]
 };
 const wait = { type: 'wait', durationMs: 1500 };
-const selfCondition = (name, expiresAt = 10) => ({
-  condition: 'Torment',
-  stacks: 1,
-  at: 0,
-  expiresAt,
-  sourceId: 'fixture',
-  skillName: name
-});
+const selfCondition = (expiresAt = 10) => ({ expiresAt });
 
 test('Hex-Eater cleanses its acceptance selection only when the cast commits', () => {
   // Configured conditions consume capacity first; later arrivals and unselected conditions must survive.
   for (const cancelled of [false, true]) {
-    const initial = [
-      selfCondition('expiring', 0.1),
-      ...Array.from({ length: 6 }, (_, i) => selfCondition(`initial-${i}`))
-    ];
-    const arriving = selfCondition('arriving');
+    const initial = [selfCondition(0.1), ...Array.from({ length: 6 }, () => selfCondition())];
+    const arriving = selfCondition();
     const result = runRevenant(
       [{ skillId: ID.HEX_EATER_VORTEX, ...(cancelled ? { interruptMs: 0 } : {}) }, wait],
       { ...config, selfConditionCount: 2 },
@@ -59,7 +49,10 @@ test('Hex-Eater cleanses its acceptance selection only when the cast commits', (
     assert.deepEqual(result.warnings, []);
     const core = observedRuntime(result).profession.core;
     assert.equal(core.selfConditionCount, cancelled ? 2 : 0);
-    assert.deepEqual(core.selfConditions, cancelled ? [...initial, arriving] : [...initial.slice(5), arriving]);
+    // Equal expiry values must not make later applications interchangeable with the selected objects.
+    const expected = cancelled ? [...initial, arriving] : [...initial.slice(5), arriving];
+    assert.equal(core.selfConditions.length, expected.length);
+    expected.forEach((condition, index) => assert.equal(core.selfConditions[index], condition));
     const packets = result.events.filter((event) => event.skillId === ID.HEX_EATER_VORTEX);
     assert.equal(
       packets.some((event) => event.type === 'damage'),

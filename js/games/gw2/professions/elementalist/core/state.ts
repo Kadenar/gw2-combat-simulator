@@ -17,12 +17,10 @@ export type ElementalistAttunement = (typeof ELEMENTALIST_ATTUNEMENTS)[number];
 // while preserving time zero as a real attunement-entry timestamp.
 const PRE_DWELLED_ATTUNEMENT_ENTERED_AT = -999999;
 
-/** One live aura application: what it is, when it landed, and which skill produced it. */
+/** Live aura type and expiry support aura effects and consumption; attribution stays on the event. */
 export interface ElementalistAuraState {
   type: string;
-  appliedAt: number;
   expiresAt: number;
-  skillName: string;
 }
 
 /**

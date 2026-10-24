@@ -214,28 +214,28 @@ test('Core aura consequences precede Tempest and combo auras are never republish
 });
 
 test('precombat auras retain state without publishing trait rewards and later applications survive older expiry', () => {
-  // Auras are live before combat; each expiry removes only its own elapsed window.
+  // Off-grid grants stay live until the shared expiry tick; older cleanup preserves newer auras.
   const result = runElementalist(
     wait(9000),
     { specialization: 'Tempest', selectedTraitIds: [TRAIT.INVIGORATING_TORRENTS] },
     {
       combatStartTime: 3,
       timeline: [
-        { at: 1, run: (runtime) => applyElementalistAura(runtime.mechanics, aura(1, 4)) },
-        { at: 4, run: (runtime) => applyElementalistAura(runtime.mechanics, aura(4, 4)) }
+        { at: 1.001, run: (runtime) => applyElementalistAura(runtime.mechanics, aura(1.001, 4)) },
+        { at: 4.001, run: (runtime) => applyElementalistAura(runtime.mechanics, aura(4.001, 4)) }
       ],
       probes: [
         [2, (runtime) => assert.equal(runtime.profession.core.activeAuras.length, 1)],
-        [4, (runtime) => assert.equal(runtime.profession.core.activeAuras.length, 2)],
+        [5.02, (runtime) => assert.equal(runtime.profession.core.activeAuras.length, 2)],
         [
-          5,
+          5.04,
           (runtime) =>
             assert.deepEqual(
               runtime.profession.core.activeAuras.map((entry) => entry.expiresAt),
-              [8]
+              [8.04]
             )
         ],
-        [8, (runtime) => assert.equal(runtime.profession.core.activeAuras.length, 0)]
+        [8.04, (runtime) => assert.equal(runtime.profession.core.activeAuras.length, 0)]
       ]
     }
   );
@@ -244,8 +244,8 @@ test('precombat auras retain state without publishing trait rewards and later ap
   assert.deepEqual(
     rewards.map((event) => [event.kind, event.at]),
     [
-      ['vigor', 4],
-      ['regeneration', 4]
+      ['vigor', 4.001],
+      ['regeneration', 4.001]
     ]
   );
 });

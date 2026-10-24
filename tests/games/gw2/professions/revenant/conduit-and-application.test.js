@@ -892,10 +892,10 @@ test('Mesmer release reads enemy and self Torment affinity at impact after a leg
       (event) => event.type === 'condition' && event.skillId === SKILL.RELEASE_POTENTIAL_MESMER
     );
     assert.ok(Math.abs(torment.duration - 3 * (1 + expectedAffinity * 0.1)) < 1e-9);
-    const self = result.planningState.profession.selfConditions.find(
-      (entry) => entry.sourceId === SKILL.RELEASE_POTENTIAL_MESMER
-    );
-    assert.ok(Math.abs(self.expiresAt - self.at - 8 * (1 - expectedAffinity * 0.15)) < 1e-9);
+    const [self] = result.planningState.profession.selfConditions;
+    assert.equal(result.planningState.profession.selfConditions.length, 1);
+    // Both Torment applications share the impact; self expiry uses affinity at that impact.
+    assert.ok(Math.abs(self.expiresAt - torment.at - 8 * (1 - expectedAffinity * 0.15)) < 1e-9);
     assert.equal(
       torment.activationId,
       result.steps.find((step) => step.skillId === SKILL.RELEASE_POTENTIAL_MESMER).activationId
@@ -916,13 +916,7 @@ test('Release Potential variants use affinity and equipped-legend effects', () =
 
   assert.ok(Math.abs(enemyTorment.duration - 3.9) < 1e-9);
   assert.equal(mesmer.planningState.profession.selfConditions.length, 1);
-  assert.ok(
-    Math.abs(
-      mesmer.planningState.profession.selfConditions[0].expiresAt -
-        mesmer.planningState.profession.selfConditions[0].at -
-        4.4
-    ) < 1e-9
-  );
+  assert.ok(Math.abs(mesmer.planningState.profession.selfConditions[0].expiresAt - enemyTorment.at - 4.4) < 1e-9);
   assert.ok(mesmer.events.some((event) => event.type === 'control' && event.controlKind === 'daze'));
 
   const dervishDemon = simulate('Conduit', ["Gladiator's Defense", 'Release Potential: Dervish'], {

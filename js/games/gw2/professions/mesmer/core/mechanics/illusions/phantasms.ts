@@ -22,13 +22,12 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Each accepted summon batch captures its trait work before timing and conversion are committed. */
-export interface MesmerPhantasmAdmission {
-  readonly skill: MesmerSkill;
+export interface MesmerPhantasmTraitEffects {
   repeat?: MesmerPhantasmPolicy['repeat'];
   bonusStrike?: MesmerPhantasmPolicy['bonusStrike'];
 }
 
-export const mesmerPhantasmPreparing = defineTriggerPoint<MesmerPhantasmAdmission>('mesmer.phantasm-preparing', [
+export const mesmerPhantasmPreparing = defineTriggerPoint<MesmerPhantasmTraitEffects>('mesmer.phantasm-preparing', [
   TRAIT.CHRONOPHANTASMA,
   TRAIT.PHANTASMAL_BLADES
 ]);
@@ -57,9 +56,9 @@ export function createPhantasmEffectController({
     if (skill.resource?.mode !== 'phantasm') return [];
 
     // Skill-owned summon counts use the accepted Clarity snapshot before trait spawn policies.
-    const admission: MesmerPhantasmAdmission = { skill };
-    state.fireTrigger(mesmerPhantasmPreparing, admission);
-    const policy = { ...phantasmPolicy(), repeat: admission.repeat, bonusStrike: admission.bonusStrike };
+    const traitEffects: MesmerPhantasmTraitEffects = {};
+    state.fireTrigger(mesmerPhantasmPreparing, traitEffects);
+    const policy = { ...phantasmPolicy(), repeat: traitEffects.repeat, bonusStrike: traitEffects.bonusStrike };
     const spawnModifier = policy.spawnModifiers[skill.id];
     const count =
       (clarityConsumed ? (skill.resource.clarityCount ?? skill.resource.count ?? 1) : (skill.resource.count ?? 1)) *

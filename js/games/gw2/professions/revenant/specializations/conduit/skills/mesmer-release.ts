@@ -48,12 +48,7 @@ export function mesmerRelease(runtime: RevenantRuntime, data: unknown): void {
   if (event.target === RECIPIENT.SELF) {
     const duration = Number(event.duration) * Math.max(0, 1 - affinity * durationReductionPerAffinity);
     runtime.profession.core.selfConditions.push({
-      condition: String(event.condition),
-      stacks: Number(event.stacks),
-      at: event.at,
-      expiresAt: event.at + duration,
-      sourceId: event.sourceId,
-      skillName: String(event.skillName)
+      expiresAt: event.at + duration
     });
     return;
   }

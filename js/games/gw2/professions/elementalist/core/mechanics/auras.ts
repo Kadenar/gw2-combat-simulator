@@ -1,8 +1,8 @@
 import { ACTOR, type AuraName } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -33,16 +33,14 @@ export function applyElementalistAura(context: MechanicCombatContext, applicatio
   });
 }
 
-/** State and expiry share the accepted aura's clock, including applications before combat. */
+/** Aura state and cleanup use the shared action-tick expiry, including applications before combat. */
 function insertAura(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
-  const duration = Math.max(0, event.duration || 0);
+  const expiresAt = gw2EffectExpiresAt(event.at, event.duration || 0);
   context.profession.core.activeAuras.push({
     type: String(event.aura || ''),
-    appliedAt: event.at,
-    expiresAt: event.at + duration,
-    skillName: resolverSourceSkill(event)
+    expiresAt
   });
-  context.schedule('elementalist.expire-state', event.at + duration, null);
+  context.schedule('elementalist.expire-state', expiresAt, null);
 }
 
 /** Standard aura acceptance records profession state once without republishing the shared reaction. */

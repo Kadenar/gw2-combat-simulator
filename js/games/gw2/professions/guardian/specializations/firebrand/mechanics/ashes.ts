@@ -39,7 +39,6 @@ const ASHES = 'guardian.firebrand.ashes';
 export const FIREBRAND_ASHES_EXPIRE = 'guardian.firebrand.ashes-expiry';
 
 interface AshesGrantAdmission {
-  readonly profile: BalanceProfile;
   readonly buff: SkillEffect;
   readonly triggerIntervalSeconds: number;
 }
@@ -59,7 +58,7 @@ export function resolveAshesGrantData(
 ): AshesGrantAdmission | undefined {
   const buff = requireEffect(profile, 'buff', 'ashes-of-the-just');
   const ashes = resolveAshes(selection);
-  return buff && ashes ? { profile, buff, triggerIntervalSeconds: ashes.triggerIntervalSeconds } : undefined;
+  return buff && ashes ? { buff, triggerIntervalSeconds: ashes.triggerIntervalSeconds } : undefined;
 }
 
 /** Install existing charge stores with source-specific overlap, recipient, and deadline semantics. */
