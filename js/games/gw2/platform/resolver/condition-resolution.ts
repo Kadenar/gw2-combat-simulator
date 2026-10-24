@@ -8,16 +8,17 @@ import {
   conditionApplicationDuration,
   type Gw2ConditionDurationTrace
 } from '#gw2/platform/combat-calculation/combat-query.js';
-import type { Gw2RuntimeConditionEntry, Gw2RuntimeConditionStack } from '#gw2/platform/combat/state/targets.js';
+import type { Gw2RuntimeConditionEntry } from '#gw2/platform/combat/state/targets.js';
 import {
   conditionStackLimit,
   createPermanentTargetConditionStacks,
+  runtimeTargetConditionStacks,
   GW2_DAMAGING_CONDITIONS
 } from '#gw2/platform/combat/state/targets.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ConditionWorkEvent, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { canonicalTime, isTimeInWindow, timeKey } from '#kernel/core/clock.js';
+import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { canonicalEvent } from '#kernel/events/queue.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
 
@@ -52,22 +53,12 @@ export function createGw2ConditionResolution({
     return (origin + (Math.floor((timeKey(after) - origin) / 1_000_000) + 1) * 1_000_000) / 1_000_000;
   }
 
-  function activeStacks(ctx: Gw2ResolverRuntime, name: string, at: number): Gw2ResolverConditionStack[] {
-    const state = ctx.conditionState.get(name);
-
-    if (!state) return [];
-
-    // Expiry is half-open: a stack is active before expiresAt, not at it.
-    return state.stacks.filter((stack) => isTimeInWindow(at, stack.appliedAt, stack.expiresAt) && stack.weight > 0);
-  }
-
   function activeConditionStackCount(ctx: Gw2ResolverRuntime, name: string, at: number): number {
     // Target configuration represents ambient stacks that have no application
     // event, so it is added separately from player-created stack state.
     return Math.min(
       conditionStackLimit(name) ?? Infinity,
-      permanentTargetConditionStacks(name) +
-        activeStacks(ctx, name, at).reduce((total, stack) => total + stack.weight, 0)
+      permanentTargetConditionStacks(name) + runtimeTargetConditionStacks(ctx, name, at)
     );
   }
 
@@ -516,16 +507,9 @@ export function createGw2ConditionResolution({
 
       if (ctx.reporting) ctx.resolved.push(application);
 
-      // Canonical stacks retain applications for live queries and queued-tick cancellation in both output modes.
+      // Queries and queued damage share the accepted application, including its natural expiry and retirement.
       const state = ensureConditionState(ctx, name);
-      state.stacks.push({
-        appliedAt: event.at,
-        // Stack queries use natural expiry. The resolver horizon only limits
-        // scheduled damage, not the semantic duration of the application.
-        expiresAt,
-        weight: application.stacks,
-        application
-      });
+      state.stacks.push(application);
       // Accepted applications invalidate report windows without involving later damage settlement.
       reviseEffectState(state);
       const groups = (state.groups ??= new Map());
@@ -691,15 +675,8 @@ export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
   }>;
 };
 
-interface Gw2ResolverConditionStack extends Gw2RuntimeConditionStack {
-  appliedAt: number;
-  expiresAt: number;
-  weight: number;
-  application: Gw2ResolvedConditionApplication;
-}
-
 export interface Gw2ResolverConditionState extends Gw2RuntimeConditionEntry {
-  stacks: Gw2ResolverConditionStack[];
+  stacks: Gw2ResolvedConditionApplication[];
   groups?: Map<string | Gw2ResolvedConditionApplication, Gw2ResolverConditionGroup>;
 }
 

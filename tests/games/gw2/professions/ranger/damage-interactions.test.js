@@ -104,12 +104,12 @@ test('Core damage reactions preserve trait and skill ordering without spending c
 
 test('Ranger condition-count bonuses use canonical active conditions and query precedence', () => {
   // Both formulas must count condition variety at the observation time, not raw names or inactive stacks.
-  const stack = { appliedAt: 5, expiresAt: 10, weight: 2 };
+  const stack = { at: 5, naturalExpiresAt: 10, stacks: 2 };
   const runtime = { conditionState: new Map([['Burning', { stacks: [stack] }]]) };
   const config = { target: { conditions: { Burning: true } } };
   const cases = [
     [{ config, runtime }, 1],
-    ...[{ appliedAt: 6 }, { expiresAt: 5 }, { weight: 0 }].map((patch) => [
+    ...[{ at: 6 }, { removedAt: 5 }, { stacks: 0 }].map((patch) => [
       { runtime: { conditionState: new Map([['Burning', { stacks: [{ ...stack, ...patch }] }]]) } },
       0
     ]),

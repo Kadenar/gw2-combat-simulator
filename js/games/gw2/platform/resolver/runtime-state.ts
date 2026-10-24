@@ -133,7 +133,7 @@ export function createGw2ResolverRuntimeState({
       // Named summons keep separate contributions even when both pets use the same skill.
       const entityName = source?.actorType === ACTOR.SUMMON ? source.entityName || '' : '';
       const key = source ? `${String(identityId)}|${actorIdentity}|${parentSkill}|${name}|${entityName}` : name;
-      const current: Gw2DamageBreakdownEntry = this.breakdown.get(key) || {
+      const current: Omit<Gw2DamageBreakdownEntry, 'damage'> = this.breakdown.get(key) || {
         name,
         sourceSkill,
         parentSkill,
@@ -145,7 +145,6 @@ export function createGw2ResolverRuntimeState({
         summonKind: source?.summonKind,
         entityName,
         source: source?.source,
-        damage: 0,
         strikeDamage: 0,
         conditionDamage: 0,
         hits: 0,
@@ -173,7 +172,7 @@ export function createGw2ResolverRuntimeState({
         current.source = source.source;
       }
 
-      current.damage += damage;
+      // Retain only the independent damage components; result projection derives their combined total.
       current[type] += damage;
       current.hits += hits;
 
@@ -220,7 +219,7 @@ export interface Gw2ResolverRuntime {
   queue: Gw2EventQueue;
   readonly effects: EffectEmissionService;
   warnings: Gw2SimulationDiagnostic[];
-  breakdown: Map<string, Gw2DamageBreakdownEntry>;
+  breakdown: Map<string, Omit<Gw2DamageBreakdownEntry, 'damage'>>;
   conditions: Map<string, Gw2ConditionBreakdownEntry>;
   environmentDamage: number;
   environmentConditions: Map<string, Gw2EnvironmentConditionBreakdownEntry>;

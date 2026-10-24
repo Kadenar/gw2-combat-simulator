@@ -145,10 +145,15 @@ export function permanentTargetConditionStacks(config: Gw2Config, name: string):
   return Math.min(conditionStackLimit(name) ?? Infinity, Math.max(0, Number(value) || 0));
 }
 
-function activeRuntimeStackWeight(stack: Gw2RuntimeConditionStack, at: number): number {
-  const appliedAt = stack.appliedAt ?? -Infinity;
-  const expiresAt = stack.expiresAt ?? Infinity;
-  return isTimeInWindow(at, appliedAt, expiresAt) ? Math.max(0, stack.weight ?? stack.stacks ?? 0) : 0;
+/** Live conditions end at natural expiry or retirement, independently of clipped presentation fields. */
+export function conditionApplicationExpiry(application: Gw2RuntimeConditionApplication): number {
+  return Math.min(application.naturalExpiresAt, application.removedAt ?? Infinity);
+}
+
+function activeRuntimeStackWeight(application: Gw2RuntimeConditionApplication, at: number): number {
+  return isTimeInWindow(at, application.at, conditionApplicationExpiry(application))
+    ? Math.max(0, application.stacks)
+    : 0;
 }
 
 /**
@@ -226,15 +231,16 @@ export interface Gw2TargetConfig {
   readonly confusionActivationsPerSecond?: number;
 }
 
-export interface Gw2RuntimeConditionStack {
-  readonly appliedAt?: number;
-  readonly expiresAt?: number;
-  readonly weight?: number;
-  readonly stacks?: number;
+/** Query consumers read the accepted application directly, without a second copy of its lifetime or weight. */
+export interface Gw2RuntimeConditionApplication {
+  readonly at: number;
+  readonly naturalExpiresAt: number;
+  readonly removedAt?: number;
+  readonly stacks: number;
 }
 
 export interface Gw2RuntimeConditionEntry {
-  readonly stacks: Gw2RuntimeConditionStack[];
+  readonly stacks: Gw2RuntimeConditionApplication[];
 }
 
 export interface Gw2RuntimeStateLike {

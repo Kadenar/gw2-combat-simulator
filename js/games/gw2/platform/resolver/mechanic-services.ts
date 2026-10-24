@@ -1,6 +1,7 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
+import { conditionApplicationExpiry } from '#gw2/platform/combat/state/targets.js';
 import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -126,9 +127,7 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
       runtime.companions.delete(companionId);
       // End future payouts and live stacks without rolling back damage already settled.
       for (const condition of runtime.conditionState.values())
-        for (const stack of condition.stacks) {
-          const application = stack.application;
-
+        for (const application of condition.stacks) {
           if (
             !application.independentConditionOwner ||
             application.actorType !== ACTOR.SUMMON ||
@@ -137,12 +136,11 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
             continue;
 
           // Even naturally expired stacks can have unpaid buffered damage, which removal cancels.
+          const shortened = conditionApplicationExpiry(application) > removedAt;
           application.removedAt = Math.min(application.removedAt ?? Infinity, removedAt);
 
-          if (stack.expiresAt > removedAt) {
-            stack.expiresAt = removedAt;
-            reviseEffectState(condition);
-          }
+          // Invalidate cached windows only when retirement shortens the accepted lifetime.
+          if (shortened) reviseEffectState(condition);
         }
     },
     fieldFor: (skillId: SkillId, at: number | undefined): Readonly<ComboFieldEvent> | undefined =>

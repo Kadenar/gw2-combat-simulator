@@ -76,8 +76,9 @@ export function buildCombatResult(
     boonGeneration: generation
       ? { alliedPlayerCount: generation.alliedPlayerCount, boons: Object.fromEntries(generation.boons) }
       : null,
+    // Derive display totals once, while detaching rows from the live component accumulators.
     breakdown: [...ctx.breakdown.values()]
-      .map((entry) => ({ ...entry }))
+      .map((entry) => ({ ...entry, damage: entry.strikeDamage + entry.conditionDamage }))
       .sort((left, right) => right.damage - left.damage),
     conditionBreakdown: [...ctx.conditions.values()]
       .map((entry) => ({

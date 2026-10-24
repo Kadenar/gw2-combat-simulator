@@ -94,21 +94,21 @@ test('target-condition queries combine assumptions and chronological runtime sta
         'Poisoned',
         {
           stacks: [
-            { appliedAt: 0, expiresAt: 2, weight: 2 },
-            { appliedAt: 1, expiresAt: 2.5, weight: 3 }
+            { at: 0, naturalExpiresAt: 2, stacks: 2 },
+            { at: 1, naturalExpiresAt: 2.5, stacks: 3 }
           ]
         }
       ],
       [
         'Chilled',
         {
-          stacks: [{ appliedAt: 0.5, expiresAt: 1.5, weight: 1 }]
+          stacks: [{ at: 0.5, naturalExpiresAt: 1.5, stacks: 1 }]
         }
       ],
       [
         'Vulnerability',
         {
-          stacks: [{ appliedAt: 0, expiresAt: 2, weight: 3 }]
+          stacks: [{ at: 0, naturalExpiresAt: 2, stacks: 3 }]
         }
       ]
     ]),
@@ -144,7 +144,7 @@ test('combat queries honor canonical caps on combined permanent and live target 
   for (const [name, permanent, live, expected] of cases) {
     const config = { target: { conditions: { [` ${name.toLowerCase()} `]: permanent } } };
     const query = createGw2CombatQuery({ profession: queryProfession, config });
-    const stack = { appliedAt: 1, expiresAt: 3, weight: live };
+    const stack = { at: 1, naturalExpiresAt: 3, stacks: live };
     const runtime = { conditionState: new Map([[name, { stacks: [stack] }]]) };
     assert.equal(targetConditionStacks(config, name, 1, runtime), expected, name);
     assert.equal(query.targetConditionStacks(name, 1, runtime), expected, name);
@@ -154,7 +154,7 @@ test('combat queries honor canonical caps on combined permanent and live target 
       assert.equal(query.targetConditionStacks(name, at, runtime), Number(permanent), `${name} at ${at}`);
     }
 
-    stack.expiresAt = 2;
+    stack.removedAt = 2;
     assert.equal(query.targetConditionStacks(name, 2, runtime), Number(permanent), `${name} removed`);
   }
 });
@@ -190,7 +190,7 @@ test('same-time target-condition visibility follows runtime insertion order', ()
 
   assert.equal(query.targetHasCondition('Weakness', 1, runtime), false);
   runtime.conditionState.set('Weakness', {
-    stacks: [{ appliedAt: 1, expiresAt: 3, weight: 1 }]
+    stacks: [{ at: 1, naturalExpiresAt: 3, stacks: 1 }]
   });
   assert.equal(query.targetHasCondition('Weakness', 1, runtime), true);
   assert.equal(query.targetHasCondition('Weakness', 3, runtime), false);
@@ -330,7 +330,7 @@ test('effective boon and Vulnerability queries use their canonical runtime state
   runtime.boons.set('might', [{ at: 1, expiresAt: 6, stacks: 5, resolvedAudience: resolvedAudience() }]);
   runtime.boons.set('fury', [{ at: 1, expiresAt: 6, stacks: 1, resolvedAudience: resolvedAudience() }]);
   runtime.conditionState.set('Vulnerability', {
-    stacks: [{ appliedAt: 1, expiresAt: 6, weight: 3 }]
+    stacks: [{ at: 1, naturalExpiresAt: 6, stacks: 3 }]
   });
 
   assert.equal(query.mightStacksAt(1, runtime, event), 7);
@@ -401,7 +401,7 @@ test('permanent Vulnerability at the cap skips history while uncapped queries ob
       config: { target: { conditions: { vulnerability: configured } } }
     });
     const conditionState = new Map();
-    const stack = { appliedAt: 1, expiresAt: 3, weight: 10 };
+    const stack = { at: 1, naturalExpiresAt: 3, stacks: 10 };
     conditionState.set('Vulnerability', { stacks: [stack] });
     let reads = 0;
     const runtime = {
@@ -413,7 +413,7 @@ test('permanent Vulnerability at the cap skips history while uncapped queries ob
     assert.equal(query.vulnerabilityStacksAt(0, runtime), Math.min(25, configured));
     assert.equal(query.vulnerabilityStacksAt(1, runtime), Math.min(25, configured + 10));
     assert.equal(query.vulnerabilityStacksAt(3, runtime), Math.min(25, configured));
-    stack.expiresAt = 1;
+    stack.removedAt = 1;
     assert.equal(query.targetConditionStacks('vulnerability', 1, runtime), Math.min(25, configured));
 
     if (configured >= 25) assert.equal(reads, 0);

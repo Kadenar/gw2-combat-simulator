@@ -487,7 +487,7 @@ test('Blindness and Fear dispatch their reactions once per accepted condition st
         assert.equal(event.condition, name);
         assert.equal(event.sourceId, 'source-skill');
         assert.equal(event.effectiveDuration, 2);
-        assert.equal(ctx.conditionState.get(name).stacks.at(-1).application.eventOrder, event.eventOrder);
+        assert.equal(ctx.conditionState.get(name).stacks.at(-1).eventOrder, event.eventOrder);
         assert.equal(event.controlKind, undefined);
         seen.push(name);
       };

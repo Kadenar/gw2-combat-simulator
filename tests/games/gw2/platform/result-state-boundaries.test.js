@@ -118,16 +118,42 @@ test('result events, damage rows, and command steps are detached from live store
   const result = observeGw2Runtime({ profession: profession.runtimeFor({}), rotation: ['Opening'], config: {} });
   const runtime = observedRuntime(result);
   const liveStepEnd = runtime.steps[0].end;
-  const liveDamage = [...runtime.breakdown.values()][0].damage;
+  const liveRow = [...runtime.breakdown.values()][0];
+  const liveDamage = liveRow.strikeDamage + liveRow.conditionDamage;
   const liveAction = runtime.facts.ofType('action')[0];
   const liveActionAt = liveAction.at;
   result.steps[0].end = -1;
   result.breakdown[0].damage = -1;
+  result.breakdown[0].strikeDamage = -1;
+  result.breakdown[0].conditionDamage = -1;
   result.events.find((event) => event.type === 'action').at = -1;
   assert.equal(runtime.steps[0].end, liveStepEnd);
-  assert.equal([...runtime.breakdown.values()][0].damage, liveDamage);
+  assert.equal(liveRow.strikeDamage + liveRow.conditionDamage, liveDamage);
   assert.equal(liveAction.at, liveActionAt);
   assert.equal(Object.hasOwn([...runtime.breakdown.values()][0], 'casts'), false);
+});
+
+// Mixed contributions share one attribution row; projection derives totals before sorting and detaches the components.
+test('damage breakdown totals combine strike and condition components before ranking', () => {
+  const observed = observeGw2Runtime({ profession: profession.runtimeFor({}), rotation: [], config: {} });
+  const runtime = observedRuntime(observed);
+  runtime.addBreakdown('Mixed', 20, 'strikeDamage');
+  runtime.addBreakdown('Strike only', 40, 'strikeDamage');
+  runtime.addBreakdown('Mixed', 15, 'conditionDamage');
+  runtime.addBreakdown('Mixed', 10, 'strikeDamage');
+  const result = buildCombatResult(runtime, buildSimulationScore(runtime, 0), []);
+  assert.deepEqual(
+    result.breakdown.map(({ name, damage, strikeDamage, conditionDamage }) => ({
+      name,
+      damage,
+      strikeDamage,
+      conditionDamage
+    })),
+    [
+      { name: 'Mixed', damage: 45, strikeDamage: 30, conditionDamage: 15 },
+      { name: 'Strike only', damage: 40, strikeDamage: 40, conditionDamage: 0 }
+    ]
+  );
 });
 
 // Selective output copying must retain nested detachment and leave natural application lifetimes untouched.

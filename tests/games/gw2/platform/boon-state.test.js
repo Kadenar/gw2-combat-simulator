@@ -139,7 +139,7 @@ test('status queries retain the last microsecond and exclude canonical expiry', 
     boons: new Map(
       ['might', 'fury'].map((kind) => [kind, [{ at: 0.2, expiresAt: 0.56 + 0.04, stacks: 1, resolvedAudience }]])
     ),
-    conditionState: new Map([['Bleeding', { stacks: [{ appliedAt: 0.2, expiresAt: 0.56 + 0.04, weight: 1 }] }]])
+    conditionState: new Map([['Bleeding', { stacks: [{ at: 0.2, naturalExpiresAt: 0.56 + 0.04, stacks: 1 }] }]])
   };
   for (const [time, active] of [
     [0.199999, 0],
@@ -161,16 +161,16 @@ test('status queries retain the last microsecond and exclude canonical expiry', 
 
 // Presence respects each accepted lifetime, including historical reads after newer stacks expire or are removed.
 test('condition presence preserves history, removals, same-time edits, and permanent assumptions', () => {
-  const older = { appliedAt: 0, expiresAt: 8, weight: 1 };
-  const newer = { appliedAt: 2, expiresAt: 4, weight: 2 };
+  const older = { at: 0, naturalExpiresAt: 8, stacks: 1 };
+  const newer = { at: 2, naturalExpiresAt: 4, stacks: 2 };
   const state = { conditionState: new Map([['Bleeding', { stacks: [older, newer] }]]) };
   assert.equal(targetHasCondition({}, 'Bleeding', -1, state), false);
   assert.equal(targetHasCondition({}, 'Bleeding', 1, state), true);
   assert.equal(targetHasCondition({}, 'Bleeding', 4, state), true);
-  older.weight = 0;
+  older.stacks = 0;
   assert.equal(targetHasCondition({}, 'Bleeding', 4, state), false);
   assert.equal(targetHasCondition({}, 'Bleeding', 3, state), true);
-  newer.expiresAt = 3;
+  newer.removedAt = 3;
   assert.equal(targetHasCondition({}, 'Bleeding', 3, state), false);
   assert.equal(targetHasCondition({ target: { conditions: { Bleeding: true } } }, 'Bleeding', 8, state), true);
   assert.equal(targetHasCondition({}, 'Burning', 0, state), false);

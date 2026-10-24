@@ -77,7 +77,7 @@ test('condition duration preserves phase context, fixed durations, and natural e
     assert.equal(application.expiresAt, 4 + expectedDuration);
     assert.equal(application.naturalExpiresAt, 4 + expectedDuration);
     for (const runtime of [resolver]) {
-      assert.equal(runtime.conditionState.get('Bleeding').stacks[0].expiresAt, 4 + expectedDuration);
+      assert.equal(runtime.conditionState.get('Bleeding').stacks[0].naturalExpiresAt, 4 + expectedDuration);
     }
 
     // Process real buffer events before inspecting the scheduled owner payout.

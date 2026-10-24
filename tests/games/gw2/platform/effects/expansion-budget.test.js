@@ -247,7 +247,7 @@ test('conditions share the packet budget and reject a whole stack batch without 
   const event = { ...attribution, type: 'condition', at: 0, condition: 'Bleeding', duration: 1, stacks: 1.5 };
   effects.emit({ kind: 'packet', event });
   assert.deepEqual(
-    runtime.conditionState.get('Bleeding').stacks.map((stack) => stack.weight),
+    runtime.conditionState.get('Bleeding').stacks.map((application) => application.stacks),
     [1, 0.5]
   );
   const beforeReactions = reactions.length;

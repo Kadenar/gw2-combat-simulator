@@ -7,6 +7,7 @@ import {
   type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
 import {
+  conditionApplicationExpiry,
   conditionStackLimit,
   permanentTargetConditionStacks,
   canonicalTargetConditionName
@@ -268,11 +269,14 @@ function observeCondition(kind: string, state: Gw2ResolverConditionState, at: nu
 
   const windows: Array<{ stacks: number; expiresAt: number }> = [];
   let until = Infinity;
-  for (const stack of state.stacks) {
-    if (stack.appliedAt > at) until = Math.min(until, stack.appliedAt);
-    else if (stack.expiresAt > at) {
-      windows.push({ stacks: stack.weight, expiresAt: stack.expiresAt });
-      until = Math.min(until, stack.expiresAt);
+  // Observe the canonical lifetime; presentation clipping must never shorten a live condition.
+  for (const application of state.stacks) {
+    const expiresAt = conditionApplicationExpiry(application);
+
+    if (application.at > at) until = Math.min(until, application.at);
+    else if (expiresAt > at) {
+      windows.push({ stacks: application.stacks, expiresAt });
+      until = Math.min(until, expiresAt);
     }
   }
 

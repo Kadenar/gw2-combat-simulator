@@ -153,9 +153,7 @@ test('condition stage runs once per stack after insertion, including profession 
     'condition.applied': (context, application, details) => {
       assert.equal(details.applyCondition, undefined);
       // Reactions observe the application through canonical state before producing nested conditions.
-      assert.ok(
-        context.conditionState.get(application.condition).stacks.some((stack) => stack.application === application)
-      );
+      assert.ok(context.conditionState.get(application.condition).stacks.includes(application));
       trace.push({
         condition: application.condition,
         queued: context.queue.length,

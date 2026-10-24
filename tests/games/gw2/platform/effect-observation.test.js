@@ -351,13 +351,13 @@ test('an empty profession-owned scope never revives its generic grant receipts',
   assert.equal(effectStateAt(report, report.tracks[0], 1).count, 0);
 });
 
-// Revisions cover in-place removal; future visibility and backward inspection still use the owner's windows.
+// Revisions cover removal; live windows use natural expiry even when presentation fields are clipped.
 test('condition observations retain exact windows across revisions and time boundaries', () => {
   const state = runtime();
   const condition = {
     stacks: [
-      { appliedAt: 0, expiresAt: 8, weight: 2 },
-      { appliedAt: 4, expiresAt: 10, weight: 3 }
+      { at: 0, naturalExpiresAt: 8, expiresAt: 1, stacks: 2 },
+      { at: 4, naturalExpiresAt: 10, stacks: 3 }
     ]
   };
   state.conditionState.set('Bleeding', condition);
@@ -365,7 +365,7 @@ test('condition observations retain exact windows across revisions and time boun
   assert.equal(effectStateValue(read(), 0).count, 2);
   state.time = 1;
   assert.equal(effectStateValue(read(), 1).count, 2);
-  condition.stacks[0].expiresAt = 3;
+  condition.stacks[0].removedAt = 3;
   reviseEffectState(condition);
   assert.equal(effectStateValue(read(), 1).expiresAt, 3);
   state.time = 3;

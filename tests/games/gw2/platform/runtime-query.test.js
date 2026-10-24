@@ -558,7 +558,7 @@ test('target condition activity prefers the query adapter and falls back to cano
   const configured = context({ config: { target: { conditions: { Burning: true } } } });
   const runtime = context({
     runtime: {
-      conditionState: new Map([['Weakness', { stacks: [{ appliedAt: 0, expiresAt: 10, weight: 1 }] }]])
+      conditionState: new Map([['Weakness', { stacks: [{ at: 0, naturalExpiresAt: 10, stacks: 1 }] }]])
     }
   });
 
