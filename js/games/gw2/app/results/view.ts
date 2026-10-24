@@ -1,3 +1,6 @@
+import { encounterAnalysisPhases, encounterDpsSnapshots } from '#gw2/app/boss-scenarios/analysis-model.js';
+import { mountEncounterAnalysis } from '#gw2/app/boss-scenarios/analysis-view.js';
+import { encounterPhasePlan } from '#gw2/app/boss-scenarios/phases.js';
 import { mountInputActivity } from '#gw2/app/input-profile/results.js';
 import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
 import { mountResultSummary } from '#gw2/app/results/summary-view.js';
@@ -100,8 +103,11 @@ export function renderModifierContributions(app: ProfessionAppState): void {
 /** Converts a GW2 resolver result into the neutral result-view contract. */
 export function createGw2SimulationViewModel(app: ProfessionAppState): SimulationViewModel {
   const result = app.results;
+  const scenario = app.workspace?.scenario;
+  // A pending scenario must not borrow a previous encounter's results or golem health snapshots.
+  const bossPending = Boolean(scenario && (!result?.encounter || app.resultRevision !== app.buildRevision));
 
-  if (!app.build.rotation.length || !result) {
+  if (!app.build.rotation.length || !result || bossPending) {
     return {
       summary: resultSection((container) =>
         mountResultSummary(container, { metrics: EMPTY_RESULT_METRICS, summaryPlaceholder: true })
@@ -120,24 +126,37 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
         </div>`
         : `<div class="analysis-empty-state">
         <strong>No analysis yet</strong>
-        <span>Add skills to the rotation in the <a href="#workspace">Workspace</a> to generate results.</span>
+        <span>Add skills to the rotation in <a href="${scenario ? '#bosses' : '#workspace'}">${scenario ? 'Bosses' : 'the Workspace'}</a> to generate results.</span>
       </div>`
     };
   }
 
   const metrics = resultSummaryMetrics(result).map((metric) =>
-    result.randomDistributionRequested && metric.label === 'Player DPS'
-      ? { ...metric, label: 'Baseline Player DPS' }
-      : metric
+    scenario && metric.label === 'Environment Damage'
+      ? {
+          ...metric,
+          label: 'Group Damage',
+          details: [{ label: 'Group DPS', value: Math.round(result.environmentDps).toLocaleString() }]
+        }
+      : scenario && metric.label === 'Target Damage'
+        ? { ...metric, label: 'Encounter Damage' }
+        : result.randomDistributionRequested && metric.label === 'Player DPS'
+          ? { ...metric, label: 'Baseline Player DPS' }
+          : metric
   );
-  const breakpoints = targetHealthBreakpointSnapshots(
-    result,
-    app.build.targetHealth,
-    undefined,
-    app.build.targetStartingHealthPercent
-  );
+  const breakpoints = scenario
+    ? []
+    : targetHealthBreakpointSnapshots(result, app.build.targetHealth, undefined, app.build.targetStartingHealthPercent);
 
-  const summary = { metrics, breakpoints };
+  const encounterPhases =
+    scenario && result.encounter
+      ? encounterAnalysisPhases(result, encounterPhasePlan(scenario.encounterId, scenario.difficulty).phases)
+      : null;
+  const summary = {
+    metrics,
+    breakpoints,
+    phaseSnapshots: encounterPhases ? encounterDpsSnapshots(encounterPhases) : undefined
+  };
   const rng = randomDistributionModel(result);
   const rngOptions = { onRunRandomDistribution: () => app.runRandomDistribution() };
   const sharedView: SimulationViewModel = {
@@ -223,12 +242,16 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
     colors: effectColors(effectPresentations),
     defaultVisibleEffectLimit: 8,
     emptyEffectsText: 'No timed effects in this rotation',
-    healthBreakpoints: breakpoints
+    healthBreakpoints: breakpoints,
+    encounterPhases
   };
 
   return {
     ...sharedView,
     analysis: resultSection(
+      (container) => {
+        if (result.encounter && encounterPhases) mountEncounterAnalysis(container, result.encounter, encounterPhases);
+      },
       (container) => mountRandomDistribution(container, rng, rngOptions),
       (container) => mountDamageBreakdown(container, breakdown, breakdownOptions),
       (container) => mountResultCharts(container, charts, chartOptions),
@@ -236,7 +259,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
     ),
     afterAnalysisRender(container) {
       // Mount the comparison in the same paint as the tables so patch switches cannot briefly collapse its space.
-      if (app.profession?.preview) renderPatchComparison(container, app);
+      if (!scenario && app.profession?.preview) renderPatchComparison(container, app);
     }
   };
 }
@@ -245,6 +268,11 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
 export const gw2SimulationPresentation = Object.freeze({
   createViewModel: createGw2SimulationViewModel,
   render(app: ProfessionAppState, viewModel: SimulationViewModel) {
+    const title = document.getElementById('analysis-view-title');
+
+    if (title)
+      title.textContent = app.workspace?.scenario ? `${app.workspace.scenario.encounter} analysis` : 'Combat analysis';
+
     renderSimulationViewModel(viewModel, {
       inputRevision: app.buildRevision,
       outputRevision: app.resultRevision

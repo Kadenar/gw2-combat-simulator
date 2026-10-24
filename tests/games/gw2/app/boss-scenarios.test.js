@@ -409,3 +409,32 @@ test('boss and difficulty selection supplies armor for every target without chan
   assert.equal(encounterHealth('020102', 'normal').targets[0].armor, 2597);
   assert.equal(encounterHealth('020601', 'normal').targets[0].armor, 1223);
 });
+
+// Analysis jobs must never silently replace a boss with the build's saved golem target.
+test('baseline, RNG, and modifier requests share the encounter configuration', () => {
+  const draft = makeDraft();
+  draft.build.targetArmor = 5346;
+  draft.build.assumptions.might = 25;
+  draft.phases[0].groupDps = 200000;
+  draft.phases[1].durationSeconds = 12;
+  const app = {
+    build: draft.build,
+    workspace: { scenario: draft },
+    patch: adapter.profession.resolvePatch({ id: 'current' }),
+    attributeData: { activeTraits: [] }
+  };
+  const baseline = adapter.baselineSimulationRequest(app).baseConfig;
+  const random = adapter.randomDistributionRequest(app).baseConfig;
+  const modifier = adapter.modifierContributionRequest(app);
+  assert.ok(modifier.comparisons.length > 0);
+  for (const config of [random, modifier.baseConfig, ...modifier.comparisons.map((entry) => entry.config)]) {
+    assert.deepEqual(config.encounter, baseline.encounter);
+    assert.equal(config.target.health, baseline.target.health);
+    assert.equal(config.target.armor, baseline.target.armor);
+  }
+
+  assert.equal(draft.build.targetArmor, 5346);
+  app.workspace = undefined;
+  assert.equal(adapter.baselineSimulationRequest(app).baseConfig.encounter, undefined);
+  assert.equal(adapter.modifierContributionRequest(app).baseConfig.target.armor, 5346);
+});

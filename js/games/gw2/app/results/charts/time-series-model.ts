@@ -12,6 +12,17 @@ export interface ChartPoint {
   readonly v: number;
 }
 
+/** Observed encounter intervals use actual phase boundaries, including splits and repeated cycles. */
+export interface ChartEncounterPhase {
+  readonly id: string;
+  readonly label: string;
+  readonly kind: 'boss' | 'split';
+  readonly startMs: number;
+  readonly endMs: number;
+  readonly startDamage: number;
+  readonly endDamage: number;
+}
+
 export type ChartEffectType = 'boon' | 'condition' | 'buff';
 
 /** Fit the visible series to readable axis bounds, including shared scales for overlaid DPS curves. */

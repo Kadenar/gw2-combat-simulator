@@ -1,3 +1,5 @@
+import { initialEncounterTarget } from '#gw2/platform/combat/state/encounter.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { BossScenarioDraft } from '#gw2/app/boss-scenarios/model.js';
 import { encounterHealth } from '#gw2/app/boss-scenarios/catalog.js';
 import { encounterPhasePlan } from '#gw2/app/boss-scenarios/phases.js';
@@ -62,4 +64,26 @@ export function scenarioSimulation(draft: BossScenarioDraft): { config: Encounte
     };
   });
   return { config: { phases, repeatFrom: plan.repeats ? phases[0]!.id : null }, reason: '' };
+}
+
+/** All analysis jobs inherit the same encounter health, armor, phases, and squad rates as the rotation baseline. */
+export function withScenarioConfig(config: Gw2Config, draft: BossScenarioDraft | undefined): Gw2Config {
+  if (!draft) return config;
+
+  const { config: encounter, reason } = scenarioSimulation(draft);
+
+  if (!encounter) throw new Error(reason);
+
+  const target = initialEncounterTarget(encounter);
+  return {
+    ...config,
+    encounter,
+    target: {
+      ...config.target,
+      health: target.maximumHealth,
+      armor: target.armor,
+      fixedHealthFraction: undefined,
+      startingHealthFraction: 1
+    }
+  };
 }

@@ -1,13 +1,11 @@
 /* Bosses adds encounter controls around the same mounted build editor used by Golem. */
 #boss-encounter-summary,
 #boss-workspace,
-#boss-analysis,
 #boss-scenario-toolbar {
   display: none;
 }
 body[data-simulator-view='bosses'][data-boss-editor-ready='true'] #boss-encounter-summary,
-body[data-simulator-view='bosses'] #boss-workspace,
-body[data-simulator-view='analysis'][data-analysis-workspace='bosses'] #boss-analysis {
+body[data-simulator-view='bosses'] #boss-workspace {
   display: block;
 }
 body[data-simulator-view='bosses'] #boss-scenario-toolbar,
@@ -15,10 +13,11 @@ body[data-simulator-view='analysis'][data-analysis-workspace='bosses'] #boss-sce
   display: flex;
 }
 body[data-simulator-view='bosses'][data-boss-editor-ready='false'] .build-editor,
-body[data-analysis-workspace='bosses'] :is(#header-dps, #rotation-dps-summary, #rotation-results),
+body[data-analysis-workspace='bosses'] :is(#header-dps, #rotation-dps-summary),
+body[data-simulator-view='bosses'] #rotation-results,
 body[data-analysis-workspace='bosses'] [data-template-action='new-tab'],
 body[data-simulator-view='analysis'][data-analysis-workspace='bosses']
-  :is(.profession-layout, .build-editor, .patch-preview-picker, #build-workspace-tabs) {
+  :is(.patch-preview-picker, #build-workspace-tabs) {
   display: none;
 }
 .boss-workspace {
@@ -181,4 +180,33 @@ body[data-simulator-view='bosses'][data-rotation-focus]:not([data-rotation-compa
   .rotation-panel-shell
   > .rotation-panel {
   height: auto;
+}
+
+/* Encounter tables keep the existing analysis typography and row treatments, scrolling within narrow screens. */
+.boss-analysis-scroll {
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+.boss-analysis-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.boss-analysis-table :is(.res-hdr, .res-row) {
+  display: table-row;
+}
+.boss-analysis-table :is(th, td) {
+  padding: 8px 10px;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.boss-analysis-table th:first-child {
+  text-align: left;
+  font-weight: 500;
+}
+.boss-analysis-table small {
+  display: block;
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 400;
 }

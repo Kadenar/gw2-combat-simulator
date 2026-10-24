@@ -1,3 +1,4 @@
+import { encounterAnalysisPhases, encounterDpsSnapshots } from '#gw2/app/boss-scenarios/analysis-model.js';
 import { loadScenarioLibrary, saveScenarioLibrary } from '#gw2/app/boss-scenarios/storage.js';
 import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
 import { scenarioSimulation, ENCOUNTER_RESULT_EVENT } from '#gw2/app/boss-scenarios/simulation.js';
@@ -40,12 +41,6 @@ export function mountBossScenarios(app: ProfessionAppState): void {
   toolbar.id = 'boss-scenario-toolbar';
   toolbar.className = 'boss-toolbar';
   host.querySelector('header')!.append(toolbar);
-  const analysis = document.createElement('section');
-  analysis.id = 'boss-analysis';
-  analysis.className = 'boss-workspace';
-  analysis.innerHTML =
-    '<h2>Boss analysis</h2><p>Detailed boss analysis is not implemented yet. Encounter totals are shown in the rotation builder.</p><a href="#bosses">Return to Bosses</a>';
-  host.append(analysis);
   const metrics = document.createElement('div');
   metrics.id = 'boss-encounter-summary';
   metrics.className = 'rotation-dps-summary';
@@ -234,13 +229,15 @@ export function mountBossScenarios(app: ProfessionAppState): void {
         },
         {
           label: 'Your phase DPS / overall DPS',
+          className: 'dps',
           value: result
             ? `${number(result.phaseDps)} / ${number(result.overallDps)}`
             : execution.config
               ? 'Calculating'
               : 'Unavailable'
         }
-      ]
+      ],
+      phaseSnapshots: result ? encounterDpsSnapshots(encounterAnalysisPhases(app.results!, plan.phases)) : []
     });
 
     const targetHealthMarkup = () =>
@@ -250,23 +247,14 @@ export function mountBossScenarios(app: ProfessionAppState): void {
             `<small class="boss-muted">${h(target.name)}: ${number(target.remainingHealth)} / ${number(target.maximumHealth)}</small>`
         )
         .join(' &middot; ') ?? '';
-    const refreshPhaseResults = () => {
+    const refreshTargetHealth = () => {
       const targetHealth = workspace.querySelector('[data-encounter-targets]');
 
       if (targetHealth) targetHealth.innerHTML = targetHealthMarkup();
-
-      for (const node of workspace.querySelectorAll<HTMLElement>('[data-phase-result]')) {
-        const row = result?.phases.filter((phase) => phase.id === node.dataset.phaseResult).at(-1);
-        node.textContent = row
-          ? row.kind === 'boss'
-            ? `Your DPS: ${number(row.dps)}`
-            : `Elapsed: ${seconds(Math.max(0, (row.end ?? app.results!.combatEndTime) - row.start))}`
-          : '';
-      }
     };
 
     if (preserveControls) {
-      refreshPhaseResults();
+      refreshTargetHealth();
       workspace.querySelector('.boss-message')!.textContent = message || execution.reason;
       return;
     }
@@ -295,7 +283,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
           const definition = plan.phases[index]!;
 
           if (phase.kind === 'split')
-            return `<label class="boss-phase-input boss-split-input"><span>Split ${++splitIndex} (seconds)</span><small>${h(definition.label)}</small><input type="number" data-phase-input="${h(phase.id)}" aria-label="Split ${splitIndex}: ${h(definition.label)} duration in seconds" min="0" max="86400" step="0.1" placeholder="0" value="${phase.durationSeconds ?? ''}"><small data-phase-result="${h(phase.id)}"></small></label>`;
+            return `<label class="boss-phase-input boss-split-input"><span>Split ${++splitIndex} (seconds)</span><small>${h(definition.label)}</small><input type="number" data-phase-input="${h(phase.id)}" aria-label="Split ${splitIndex}: ${h(definition.label)} duration in seconds" min="0" max="86400" step="0.1" placeholder="0" value="${phase.durationSeconds ?? ''}"></label>`;
 
           bossIndex += 1;
           // Parallel encounters author independent rates; single-target phases keep the existing compact control.
@@ -315,8 +303,8 @@ export function mountBossScenarios(app: ProfessionAppState): void {
             playerTarget +
             rates
               .map(
-                (rate, rateIndex) =>
-                  `<label class="boss-phase-input"><span>Phase ${bossIndex}${rate.name ? `: ${h(rate.name)}` : ''} DPS</span><small>${h(definition.label)}</small><input type="number" data-phase-input="${h(phase.id)}" data-target-dps="${h(rate.key)}" aria-label="Phase ${bossIndex}${rate.name ? ` ${h(rate.name)}` : ''} group DPS excluding you" min="0" max="1000000000" step="1000" value="${rate.value}">${rateIndex === 0 ? `<small data-phase-result="${h(phase.id)}"></small>` : ''}</label>`
+                (rate) =>
+                  `<label class="boss-phase-input"><span>Phase ${bossIndex}${rate.name ? `: ${h(rate.name)}` : ''} DPS</span><small>${h(definition.label)}</small><input type="number" data-phase-input="${h(phase.id)}" data-target-dps="${h(rate.key)}" aria-label="Phase ${bossIndex}${rate.name ? ` ${h(rate.name)}` : ''} group DPS excluding you" min="0" max="1000000000" step="1000" value="${rate.value}"></label>`
               )
               .join('') +
             (definition.damageWindow
@@ -327,7 +315,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
         .join('')}</div>${plan.repeats ? '<small class="boss-muted">Repeating mechanic cycle</small>' : ''}
       <small class="boss-muted">Group DPS excludes you${draft.phases.some((phase) => phase.kind === 'boss' && typeof phase.groupDps === 'object') ? '; each target uses its own DPS input' : ''}.</small>
       ${(healthState?.targets.length ?? 0) > 1 ? `<div data-encounter-targets>${targetHealthMarkup()}</div>` : ''}</div>`;
-    refreshPhaseResults();
+    refreshTargetHealth();
   }
 
   const handle = (operation: () => void, preserveControls = false): void => {
