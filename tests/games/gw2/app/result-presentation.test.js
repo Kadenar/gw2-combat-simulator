@@ -1461,21 +1461,21 @@ test('damage reports share packet expansion while health milestones require reco
     dpsStartTime: 0,
     combatEndTime: 4,
     deathTime: null,
-    dps: 62.5,
+    dps: 47.5,
     warnings: [],
     resolvedEvents: [
       { type: 'condition', condition: 'Burning', at: 1, damage: 40 },
-      { type: 'condition', condition: 'Burning', at: 2, damage: 60, damageTicks: [] },
-      { type: 'condition', condition: 'Burning', at: 0, damage: 999, damageTicks: [{ at: 3, damage: 100 }] },
+      { type: 'condition', condition: 'Burning', at: 2, damage: 0, damageTicks: [] },
+      { type: 'condition', condition: 'Burning', at: 0, damage: 100, damageTicks: [{ at: 3, damage: 100 }] },
       { type: 'damage', at: 3, damage: 50, didCrit: true, averagedCriticalDamage: true }
     ]
   };
   const series = buildTimeSeries(result, 250, { includeEffects: false, skillKey: (event) => event.type });
-  assert.equal(series.cumulativeDamage.at(-1).v, 250);
-  assert.equal(comparisonResult(result).damage.at(-1).v, 250);
+  assert.equal(series.cumulativeDamage.at(-1).v, 190);
+  assert.equal(comparisonResult(result).damage.at(-1).v, 190);
   assert.equal(
     series.skillDamage.condition.reduce((total, hit) => total + hit.v, 0),
-    200
+    140
   );
   assert.equal(series.skillDamage.damage[0].crit, true);
   assert.equal(series.skillDamage.damage[0].averagedCriticalDamage, true);

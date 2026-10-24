@@ -38,6 +38,7 @@ import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/pro
 /** Owns Child of Earth's live tuning and trait behavior. */
 export const childOfEarth = defineTrait({
   triggers: [
+    // An eligible heal invokes Lesser Muddy Terrain's field delivery, including its separately scheduled pulses.
     onTriggerPoint(castCompleted, {
       when: (_runtime, input: TriggerPointInput<typeof castCompleted>) => input.skill.type === 'Heal',
       run: (runtime, input: TriggerPointInput<typeof castCompleted>) =>

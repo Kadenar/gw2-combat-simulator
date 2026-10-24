@@ -10,6 +10,7 @@ import {
 } from '#gw2/app/build/state/persistence.js';
 import { bindBuildContext } from '#gw2/build-context/create.js';
 import {
+  calculateContributionBatch,
   calculateContributionComparisons,
   mergeModifierContributions,
   modifierContributionWorkerCount,
@@ -188,11 +189,35 @@ test('modifier comparisons partition across a capped worker pool', () => {
   );
   assert.deepEqual(
     mergeModifierContributions([
-      { baselineDps: null, scores: [{ id: 'low', name: 'Low', dps: 98 }] },
-      { baselineDps: 100, scores: [{ id: 'high', name: 'High', dps: 92 }] }
+      { baselineDps: 100, scores: [{ id: 'low', name: 'Low', dps: 98 }] },
+      { baselineDps: null, scores: [{ id: 'high', name: 'High', dps: 92 }] }
     ]).map(({ id }) => id),
     ['high', 'low']
   );
+});
+
+// Equal contributions keep the same display order when worker partitioning changes.
+test('tied modifier contributions match main-thread order across worker counts', () => {
+  const request = {
+    rotation: [],
+    baseConfig: { dps: 100 },
+    comparisons: ['z', 'a', 'm', 'b'].map((id) => ({ modifier: { id, label: id }, config: { dps: 80 } }))
+  };
+  const simulate = (_rotation, config) => config;
+  const expected = calculateContributionComparisons(request, simulate);
+  assert.deepEqual(
+    expected.map(({ id }) => id),
+    ['a', 'b', 'm', 'z']
+  );
+  for (const count of [1, 2, 3]) {
+    const batches = partitionModifierComparisons(request.comparisons, count).map((comparisons, index) =>
+      calculateContributionBatch(
+        { ...request, comparisons, baseConfig: index === 0 ? request.baseConfig : null },
+        simulate
+      )
+    );
+    assert.deepEqual(mergeModifierContributions(batches), expected);
+  }
 });
 
 test('shared contribution comparisons omit deltas that render as zero', () => {

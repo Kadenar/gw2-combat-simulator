@@ -131,6 +131,7 @@ export class ModifierContributionRunner {
         }
 
         const completed: ModifierContributionBatchResult[] = [];
+        let completedCount = 0;
         for (const [index, comparisons] of batches.entries()) {
           if (!this.batch.isActive(requestId)) break;
 
@@ -149,9 +150,11 @@ export class ModifierContributionRunner {
             },
             (data, worker) => {
               this.batch.finish(worker);
-              completed.push(data);
+              // Preserve batch ownership even when later workers finish before the baseline batch.
+              completed[index] = data;
+              completedCount += 1;
 
-              if (completed.length === batches.length) {
+              if (completedCount === batches.length) {
                 applyContributions(mergeModifierContributions(completed));
               }
             }

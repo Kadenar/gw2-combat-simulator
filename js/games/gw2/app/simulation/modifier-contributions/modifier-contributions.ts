@@ -36,11 +36,11 @@ export function partitionModifierComparisons(
   return batches;
 }
 
-/** All worker scores use the one deterministic baseline, regardless of completion order. */
+/** Batches arrive in partition order, with the shared deterministic baseline owned by the first batch. */
 export function mergeModifierContributions(groups: readonly ModifierContributionBatchResult[]): ModifierContribution[] {
   if (!groups.length) return [];
 
-  const baselineDps = groups.find((group) => group.baselineDps !== null)?.baselineDps;
+  const baselineDps = groups[0]!.baselineDps;
 
   if (baselineDps == null) throw new Error('Modifier comparisons are missing their baseline.');
 
@@ -56,7 +56,8 @@ export function mergeModifierContributions(groups: readonly ModifierContribution
     }
   }
 
-  return contributions.sort((left, right) => right.dpsIncrease - left.dpsIncrease);
+  // Modifier identity breaks ties consistently across worker counts and main-thread execution.
+  return contributions.sort((left, right) => right.dpsIncrease - left.dpsIncrease || left.id.localeCompare(right.id));
 }
 
 type SimulateForContribution = (rotation: readonly RotationCommand[], config: Gw2Config) => { readonly dps: number };
