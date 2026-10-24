@@ -17,7 +17,7 @@ export type ScenarioPhaseDraft =
     }
   | { id: string; kind: 'split'; durationSeconds: number | null; intermissionSeconds?: number };
 
-/** One continuous rotation belongs to the build; phases contain squad assumptions only. */
+/** One continuous rotation belongs to the build; target selection belongs to each damage phase. */
 export interface BossScenarioDraft {
   version: typeof BOSS_SCENARIO_VERSION;
   id: string;
@@ -30,7 +30,6 @@ export interface BossScenarioDraft {
   encounterId: string;
   difficulty: EncounterDifficulty;
   health: number | null;
-  targetIndex: number | null;
   phases: ScenarioPhaseDraft[];
 }
 
@@ -53,7 +52,6 @@ export function selectScenarioEncounter(
   draft.encounter = encounter.name;
   draft.difficulty = difficulty;
   draft.health = target?.health ?? null;
-  draft.targetIndex = target?.index ?? null;
   draft.phases = encounterPhasePlan(encounterId, difficulty).phases.map((phase) => {
     if (phase.kind === 'split') return { id: phase.id, kind: 'split', durationSeconds: null };
 
@@ -76,8 +74,7 @@ export function createBossScenario(
   encounterId: string,
   build: Gw2CanonicalBuild,
   buildName: string,
-  patchId: string,
-  copyRotation: boolean
+  patchId: string
 ): BossScenarioDraft {
   const draft: BossScenarioDraft = {
     version: BOSS_SCENARIO_VERSION,
@@ -91,11 +88,8 @@ export function createBossScenario(
     encounterId,
     difficulty: 'normal',
     health: null,
-    targetIndex: null,
     phases: []
   };
-
-  if (!copyRotation) draft.build.rotation = [];
 
   selectScenarioEncounter(draft, encounterId, 'normal');
   draft.name = `${draft.encounter} scenario`;
@@ -134,8 +128,7 @@ export function parseBossScenario(
   const evidence = encounterHealth(record.encounterId!, record.difficulty!);
   const target = evidence?.targets.find((entry) => entry.primary && entry.health > 0);
 
-  if (record.health !== (target?.health ?? null) || record.targetIndex !== (target?.index ?? null))
-    throw new Error('Scenario health must match Elite Insights.');
+  if (record.health !== (target?.health ?? null)) throw new Error('Scenario health must match Elite Insights.');
 
   const definitions = encounterPhasePlan(record.encounterId!, record.difficulty!).phases;
 
@@ -202,7 +195,6 @@ export function parseBossScenario(
     encounterId: record.encounterId!,
     difficulty: record.difficulty!,
     health: record.health!,
-    targetIndex: record.targetIndex!,
     phases: record.phases.map((phase) =>
       phase.kind === 'boss'
         ? {

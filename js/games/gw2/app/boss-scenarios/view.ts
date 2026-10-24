@@ -141,8 +141,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
       active()?.encounterId ?? ENCOUNTER_TEMPLATES[0]!.id,
       source.build,
       source.name,
-      source.patchId,
-      true
+      source.patchId
     );
     scenarios.push(draft);
     activeId = draft.id;

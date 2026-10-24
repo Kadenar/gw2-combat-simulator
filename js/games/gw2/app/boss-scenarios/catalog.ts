@@ -1,18 +1,13 @@
 import { ENCOUNTER_HEALTH } from '#gw2/app/boss-scenarios/health-data.js';
 
-/** The roster and report observations are separate so events are never assigned invented boss health. */
+/** The selectable roster contains display identity; phase plans and EI evidence own encounter behavior. */
 export interface EncounterTemplate {
   id: string;
   name: string;
   group: string;
-  source: string;
-  kind: 'boss' | 'multiple' | 'event';
 }
 
-export const ENCOUNTER_ROSTER_SOURCE =
-  'https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/235aa084f2450f6aae8022b06ee9b5380e421589/LogIDs.md';
-
-const groups: readonly [string, readonly [string, string, EncounterTemplate['kind']?][]][] = [
+const groups: readonly [string, readonly [string, string][]][] = [
   [
     'Wing 1 · Spirit Vale',
     [
@@ -55,7 +50,7 @@ const groups: readonly [string, readonly [string, string, EncounterTemplate['kin
     'Wing 6 · Mythwright Gambit',
     [
       ['020601', 'Conjured Amalgamate'],
-      ['020602', 'Twin Largos', 'multiple'],
+      ['020602', 'Twin Largos'],
       ['020603', 'Qadim']
     ]
   ],
@@ -80,7 +75,7 @@ const groups: readonly [string, readonly [string, string, EncounterTemplate['kin
     [
       ['040201', 'Icebrood Construct'],
       ['040202', 'Fraenir of Jormag'],
-      ['040203', 'Voice and Claw of the Fallen', 'multiple'],
+      ['040203', 'Voice and Claw of the Fallen'],
       ['040204', 'Boneskinner'],
       ['040205', 'Whisper of Jormag']
     ]
@@ -91,8 +86,8 @@ const groups: readonly [string, readonly [string, string, EncounterTemplate['kin
       ['040301', 'Aetherblade Hideout'],
       ['040302', 'Xunlai Jade Junkyard'],
       ['040303', 'Kaineng Overlook'],
-      ['040304', 'Harvest Temple', 'multiple'],
-      ['040305', "Old Lion's Court", 'multiple']
+      ['040304', 'Harvest Temple'],
+      ['040305', "Old Lion's Court"]
     ]
   ],
   [
@@ -113,12 +108,10 @@ const groups: readonly [string, readonly [string, string, EncounterTemplate['kin
 
 // Only encounters in the supported authoring roster are selectable; health availability is checked separately.
 export const ENCOUNTER_TEMPLATES: readonly EncounterTemplate[] = groups.flatMap(([group, encounters]) =>
-  encounters.map(([id, name, kind = 'boss']) => ({
+  encounters.map(([id, name]) => ({
     id,
     name,
-    group,
-    kind,
-    source: ENCOUNTER_ROSTER_SOURCE
+    group
   }))
 );
 

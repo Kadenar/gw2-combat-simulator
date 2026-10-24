@@ -44,7 +44,6 @@ export interface EncounterTargetResult {
   readonly maximumHealth: number;
   readonly armor: number;
   readonly remainingHealth: number;
-  readonly active: boolean;
 }
 
 export interface EncounterResult {
@@ -61,7 +60,6 @@ export interface EncounterResult {
   readonly damageToTransition: number;
   readonly timeToTransition: number | null;
   readonly windowRemaining: number | null;
-  readonly phaseDps: number;
   readonly overallDps: number;
   readonly phases: readonly EncounterPhaseResult[];
 }
@@ -224,7 +222,6 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
             );
         }
 
-        chooseTarget();
         for (const target of available()) targetWindows.push({ key: targetKey(target.id), start: at, end: null });
 
         if (available().length) {
@@ -297,7 +294,6 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
 
     let accepted = 0;
     while (accepted < amount && !defeated() && phase().kind === 'boss') {
-      chooseTarget();
       const target = available().find((entry) =>
         key === undefined ? entry.id === selected : targetKey(entry.id) === key
       );
@@ -424,10 +420,8 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
         remainingHealth: target.remainingHealth,
         targetName: target.name,
         armor: target.armor,
-        targets: [...targets.values()].map(({ revision: _revision, ...entry }) => ({
-          ...entry,
-          active: active.some((definition) => definition.id === entry.id)
-        })),
+        // Target revisions are internal condition ownership; results expose only target health and identity.
+        targets: [...targets.values()].map(({ revision: _revision, ...entry }) => entry),
         phaseId: current.id,
         phaseKind: current.kind,
         defeated: death !== null,
@@ -439,7 +433,6 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
         windowRemaining: deadline === null ? null : Math.max(0, deadline - end),
         damageToTransition: needed,
         timeToTransition: death !== null ? 0 : Number.isFinite(estimate) ? estimate : null,
-        phaseDps,
         overallDps: elapsed > 0 ? rows.reduce((sum, row) => sum + row.playerDamage, 0) / elapsed : 0,
         phases: rows
       };

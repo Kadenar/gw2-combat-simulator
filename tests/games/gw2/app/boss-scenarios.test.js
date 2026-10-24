@@ -22,15 +22,14 @@ const makeDraft = () =>
     '020102',
     { ...createDefaultBuild(adapter), rotation: [{ type: 'wait', durationMs: 1000 }] },
     'My build',
-    'current',
-    true
+    'current'
   );
 const parse = (value) => parseBossScenario(value, 'engineer', adapter.toApplicationBuild);
 
 // Boss mechanics own the sequence; authors supply only squad damage, split time, and a continuous rotation.
 test('automatic splits and one continuous rotation round-trip independently of Golem', () => {
   const build = { ...createDefaultBuild(adapter), rotation: [{ type: 'wait', durationMs: 1000 }] };
-  const draft = createBossScenario('020102', build, 'My build', 'current', true);
+  const draft = createBossScenario('020102', build, 'My build', 'current');
   assert.deepEqual(
     draft.phases.map((phase) => phase.kind),
     ['boss', 'split', 'boss', 'split', 'boss']
@@ -116,7 +115,6 @@ test('every selectable boss and recorded difficulty has an automatic authoring p
       const draft = makeDraft();
       selectScenarioEncounter(draft, encounter.id, mode);
       const plan = encounterPhasePlan(encounter.id, mode);
-      assert.ok(plan.source.startsWith('https://'));
       assert.ok(plan.phases.some((phase) => phase.kind === 'boss'));
       assert.equal(new Set(plan.phases.map((phase) => phase.id)).size, plan.phases.length);
       assert.deepEqual(parse(draft), draft);
@@ -131,7 +129,7 @@ test('every selectable raid-wing boss has exact EI evidence and each published o
   );
   const ids = ENCOUNTER_TEMPLATES.map((entry) => entry.id);
   assert.equal(new Set(ids).size, ids.length);
-  for (const entry of ENCOUNTER_TEMPLATES.filter((entry) => entry.id.startsWith('02') && entry.kind !== 'event')) {
+  for (const entry of ENCOUNTER_TEMPLATES.filter((entry) => entry.id.startsWith('02'))) {
     assert.ok(
       encounterHealth(entry.id, 'normal')?.targets.some((target) => target.health > 0),
       entry.name

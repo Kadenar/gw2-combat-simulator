@@ -127,3 +127,43 @@ values of 2,597.
 The runtime catalog contains the derived armor number, with no report links or account information. The importer rejects
 missing/invalid toughness and includes armor when comparing observations. Boss selection and player-target changes use
 the appropriate target value; Golem armor preferences remain independent.
+
+## Roster and phase references
+
+These references document the authored roster and phase rules; they are not runtime fields.
+
+- [Elite Insights encounter roster](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/235aa084f2450f6aae8022b06ee9b5380e421589/LogIDs.md)
+- [Spirit Vale](https://wiki.guildwars2.com/wiki/Spirit_Vale)
+- [Gorseval](https://wiki.guildwars2.com/wiki/Gorseval)
+- [Slothasor](https://wiki.guildwars2.com/wiki/Slothasor)
+- [Salvation Pass](https://wiki.guildwars2.com/wiki/Salvation_Pass)
+- [Stronghold of the Faithful](https://wiki.guildwars2.com/wiki/Stronghold_of_the_Faithful)
+- [RaidWings/W3/Bosses/Xera](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidWings/W3/Bosses/Xera.cs)
+- [RaidWings/W4/Bosses/Cairn](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidWings/W4/Bosses/Cairn.cs)
+- [RaidWings/W4/Bosses/MursaatOverseer](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidWings/W4/Bosses/MursaatOverseer.cs)
+- [Samarog](https://wiki.guildwars2.com/wiki/Samarog)
+- [RaidWings/W4/Bosses/Deimos](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidWings/W4/Bosses/Deimos.cs)
+- [RaidWings/W5/Bosses/SoullessHorror](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidWings/W5/Bosses/SoullessHorror.cs)
+- [RaidWings/W5/Bosses/Dhuum](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidWings/W5/Bosses/Dhuum.cs)
+- [RaidWings/W6/Bosses/ConjuredAmalgamate](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidWings/W6/Bosses/ConjuredAmalgamate.cs)
+- [Mythwright Gambit](https://wiki.guildwars2.com/wiki/Mythwright_Gambit)
+- [The Key of Ahdashim](https://wiki.guildwars2.com/wiki/The_Key_of_Ahdashim)
+- [Cardinal Sabir](https://wiki.guildwars2.com/wiki/Cardinal_Sabir)
+- [RaidWings/W7/Bosses/QadimThePeerless](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidWings/W7/Bosses/QadimThePeerless.cs)
+- [RaidWings/W8/Bosses/GreerTheBlightbringer](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidWings/W8/Bosses/GreerTheBlightbringer.cs)
+- [Mount Balrior](https://wiki.guildwars2.com/wiki/Mount_Balrior)
+- [RaidWings/W8/Bosses/UraTheSteamshrieker](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidWings/W8/Bosses/UraTheSteamshrieker.cs)
+- [Shiverpeaks Pass](https://wiki.guildwars2.com/wiki/Shiverpeaks_Pass)
+- [RaidEncounters/IcebroodSaga/Bjora/Bosses/FraenirOfJormag](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidEncounters/IcebroodSaga/Bjora/Bosses/FraenirOfJormag.cs)
+- [RaidEncounters/IcebroodSaga/Bjora/Bosses/SuperKodanBrothers](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidEncounters/IcebroodSaga/Bjora/Bosses/SuperKodanBrothers.cs)
+- [RaidEncounters/IcebroodSaga/Bjora/Bosses/Boneskinner](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidEncounters/IcebroodSaga/Bjora/Bosses/Boneskinner.cs)
+- [RaidEncounters/IcebroodSaga/Bjora/Bosses/WhisperOfJormag](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidEncounters/IcebroodSaga/Bjora/Bosses/WhisperOfJormag.cs)
+- [RaidEncounters/EndOfDragons/Bosses/AetherbladeHideout](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidEncounters/EndOfDragons/Bosses/AetherbladeHideout.cs)
+- [RaidEncounters/EndOfDragons/Bosses/XunlaiJadeJunkyard](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidEncounters/EndOfDragons/Bosses/XunlaiJadeJunkyard.cs)
+- [RaidEncounters/EndOfDragons/Bosses/KainengOverlook](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidEncounters/EndOfDragons/Bosses/KainengOverlook.cs)
+- [RaidEncounters/EndOfDragons/Bosses/HarvestTemple](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidEncounters/EndOfDragons/Bosses/HarvestTemple.cs)
+- [RaidEncounters/EndOfDragons/Bosses/OldLionsCourt](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidEncounters/EndOfDragons/Bosses/OldLionsCourt.cs)
+- [RaidEncounters/SotO/Bosses/CosmicObservatory](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidEncounters/SotO/Bosses/CosmicObservatory.cs)
+- [RaidEncounters/SotO/Bosses/TempleOfFebe](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidEncounters/SotO/Bosses/TempleOfFebe.cs)
+- [RaidEncounters/VisionsOfEternity/Bosses/GuardiansGlade](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidEncounters/VisionsOfEternity/Bosses/GuardiansGlade.cs)
+- [RaidEncounters/VisionsOfEternity/Bosses/NexusOfEternity](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/120c88a2612dee1d7efb0b3c030c8c14affa9c05/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Raids/RaidEncounters/VisionsOfEternity/Bosses/NexusOfEternity.cs)

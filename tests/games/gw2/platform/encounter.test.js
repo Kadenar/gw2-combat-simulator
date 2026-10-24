@@ -76,7 +76,7 @@ test('overall player DPS includes split time while completed phase DPS remains f
   const earlier = run(1, events).encounter;
   const later = run(2, events).encounter;
   assert.equal(earlier.phases[0].dps, later.phases[0].dps);
-  assert.equal(later.phaseDps, 0);
+  assert.equal(later.phases.at(-1).playerDamage, 0);
   assert.ok(later.overallDps < earlier.overallDps);
 });
 
