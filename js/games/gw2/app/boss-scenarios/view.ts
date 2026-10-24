@@ -271,44 +271,58 @@ export function mountBossScenarios(app: ProfessionAppState): void {
       .join('');
     const modes = encounterDifficulties(draft.encounterId);
     let bossIndex = 0;
-    let splitIndex = 0;
+    const splitNumbers = new Map(
+      draft.phases.filter((phase) => phase.kind === 'split').map((phase, index) => [phase.id, index + 1])
+    );
+    // Keep each split and its no-damage intermission beside the phase that leads into it.
+    const splitCells = (index: number): string => {
+      const split = draft.phases[index];
+
+      if (split?.kind !== 'split') return '<td>&mdash;</td><td>&mdash;</td>';
+
+      const name = plan.phases[index]!.label;
+      const splitNumber = splitNumbers.get(split.id)!;
+      return `<td><span class="boss-duration-input"><input type="number" data-phase-input="${h(split.id)}" aria-label="Split ${splitNumber}: ${h(name)} duration in seconds" min="0" max="86400" step="0.1" placeholder="0" value="${split.durationSeconds ?? ''}"><span aria-hidden="true">s</span></span><small>${h(name)}</small></td>
+        <td><span class="boss-duration-input"><input type="number" data-phase-input="${h(split.id)}" data-intermission aria-label="Intermission after split ${splitNumber} in seconds" min="0" max="86400" step="0.1" value="${split.intermissionSeconds ?? 0}"><span aria-hidden="true">s</span></span></td>`;
+    };
+
     controls.innerHTML = `<p class="boss-message" role="status">${h(message || execution.reason)}</p><div class="boss-setup">
       <div class="boss-fields"><label>Boss<select id="boss-encounter">${encounterOptions(draft.encounterId)}</select></label>${modes.length > 1 ? `<label>Difficulty<select id="boss-mode">${modes.map((mode) => `<option value="${mode}" ${mode === draft.difficulty ? 'selected' : ''}>${modeNames[mode]}</option>`).join('')}</select></label>` : ''}</div>
-      <div class="boss-phase-inputs" aria-label="Encounter phases">${draft.phases
-        .map((phase, index) => {
-          const definition = plan.phases[index]!;
+      <div class="boss-phase-scroll"><table class="boss-phase-table" aria-label="Encounter phases">
+        <thead><tr><th scope="col">Boss phase</th><th scope="col">Group DPS</th><th scope="col">Split after phase</th><th scope="col">After split<small>No damage</small></th></tr></thead>
+        <tbody>${draft.phases
+          .map((phase, index) => {
+            const definition = plan.phases[index]!;
 
-          if (phase.kind === 'split')
-            return `<label class="boss-phase-input boss-split-input"><span>Split ${++splitIndex} (seconds)</span><small>${h(definition.label)}</small><input type="number" data-phase-input="${h(phase.id)}" aria-label="Split ${splitIndex}: ${h(definition.label)} duration in seconds" min="0" max="86400" step="0.1" placeholder="0" value="${phase.durationSeconds ?? ''}"></label><label class="boss-phase-input boss-intermission-input"><span>Intermission ${splitIndex} (seconds)</span><small>After split ${splitIndex} &middot; no damage</small><input type="number" data-phase-input="${h(phase.id)}" data-intermission aria-label="Intermission after split ${splitIndex} in seconds" min="0" max="86400" step="0.1" value="${phase.intermissionSeconds ?? 0}"></label>`;
+            // Opening mechanics have no preceding boss phase, so retain their own row and editable durations.
+            if (phase.kind === 'split')
+              return draft.phases[index - 1]?.kind === 'boss'
+                ? ''
+                : `<tr><th scope="row">${index === 0 ? 'Opening split' : `Split ${splitNumbers.get(phase.id)}`}</th><td>&mdash;</td>${splitCells(index)}</tr>`;
 
-          bossIndex += 1;
-          // Parallel encounters author independent rates; single-target phases keep the existing compact control.
-          const rates =
-            typeof phase.groupDps === 'number'
-              ? [{ key: '', name: '', value: phase.groupDps }]
-              : Object.entries(phase.groupDps).map(([key, value]) => ({
-                  key,
-                  value,
-                  name: targetDefinitions.find((target) => String(target.index) === key)!.name
-                }));
-          const playerTarget =
-            rates.length > 1
-              ? `<label class="boss-phase-input"><span>Phase ${bossIndex}: your target</span><small>${h(definition.label)}</small><select data-phase-input="${h(phase.id)}" data-player-target aria-label="Phase ${bossIndex} your target">${rates.map((rate) => `<option value="${h(rate.key)}" ${Number(rate.key) === phase.playerTargetIndex ? 'selected' : ''}>${h(rate.name)}</option>`).join('')}</select></label>`
+            bossIndex += 1;
+            const rates =
+              typeof phase.groupDps === 'number'
+                ? [{ key: '', name: '', value: phase.groupDps }]
+                : Object.entries(phase.groupDps).map(([key, value]) => ({
+                    key,
+                    value,
+                    name: targetDefinitions.find((target) => String(target.index) === key)!.name
+                  }));
+            const playerTarget =
+              rates.length > 1
+                ? `<label class="boss-phase-option"><small>Your target</small><select data-phase-input="${h(phase.id)}" data-player-target aria-label="Phase ${bossIndex} your target">${rates.map((rate) => `<option value="${h(rate.key)}" ${Number(rate.key) === phase.playerTargetIndex ? 'selected' : ''}>${h(rate.name)}</option>`).join('')}</select></label>`
+                : '';
+            const damageWindow = definition.damageWindow
+              ? `<label class="boss-phase-option"><small>${h(definition.damageWindow.label)}</small><span class="boss-duration-input"><input type="number" data-phase-input="${h(phase.id)}" data-damage-window aria-label="Phase ${bossIndex} damage window in seconds" min="0.1" max="86400" step="0.1" value="${phase.windowSeconds ?? definition.damageWindow.defaultSeconds}"><span aria-hidden="true">s</span></span></label>`
               : '';
-          return (
-            playerTarget +
-            rates
-              .map(
-                (rate) =>
-                  `<label class="boss-phase-input"><span>Phase ${bossIndex}${rate.name ? `: ${h(rate.name)}` : ''} DPS</span><small>${h(definition.label)}</small><input type="number" data-phase-input="${h(phase.id)}" data-target-dps="${h(rate.key)}" aria-label="Phase ${bossIndex}${rate.name ? ` ${h(rate.name)}` : ''} group DPS excluding you" min="0" max="1000000000" step="1000" value="${rate.value}"></label>`
-              )
-              .join('') +
-            (definition.damageWindow
-              ? `<label class="boss-phase-input"><span>${h(definition.damageWindow.label)} (seconds)</span><small>Phase ${bossIndex}</small><input type="number" data-phase-input="${h(phase.id)}" data-damage-window aria-label="Phase ${bossIndex} damage window in seconds" min="0.1" max="86400" step="0.1" value="${phase.windowSeconds ?? definition.damageWindow.defaultSeconds}"></label>`
-              : '')
-          );
-        })
-        .join('')}</div>${plan.repeats ? '<small class="boss-muted">Repeating mechanic cycle</small>' : ''}
+            return `<tr><th scope="row"><span class="boss-phase-heading">Phase ${bossIndex}<small>${h(definition.label)}</small></span>${playerTarget}${damageWindow}</th>
+            <td>${rates.map((rate) => `<label class="boss-rate-input">${rate.name ? `<small>${h(rate.name)}</small>` : ''}<input type="number" data-phase-input="${h(phase.id)}" data-target-dps="${h(rate.key)}" aria-label="Phase ${bossIndex}${rate.name ? ` ${h(rate.name)}` : ''} group DPS excluding you" min="0" max="1000000000" step="1000" value="${rate.value}"></label>`).join('')}</td>
+            ${splitCells(index + 1)}</tr>`;
+          })
+          .join(
+            ''
+          )}</tbody></table></div>${plan.repeats ? '<small class="boss-muted">Repeating mechanic cycle</small>' : ''}
       <small class="boss-muted">Group DPS excludes you${draft.phases.some((phase) => phase.kind === 'boss' && typeof phase.groupDps === 'object') ? '; each target uses its own DPS input' : ''}.</small>
       ${(healthState?.targets.length ?? 0) > 1 ? `<div data-encounter-targets>${targetHealthMarkup()}</div>` : ''}</div>`;
     refreshTargetHealth();

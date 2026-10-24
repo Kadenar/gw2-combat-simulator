@@ -89,27 +89,96 @@ body[data-simulator-view='analysis'][data-analysis-workspace='bosses']
   flex: 0 1 300px;
   min-width: 0;
 }
-.boss-phase-inputs {
+/* Aligned phase rows pair group damage with the following split and intermission; narrow views scroll locally. */
+.boss-phase-scroll {
+  max-width: 1000px;
+  overflow-x: auto;
+}
+.boss-phase-table {
+  width: 100%;
+  min-width: 640px;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.boss-phase-table th,
+.boss-phase-table td {
+  padding: 14px 18px 14px 0;
+  text-align: left;
+  vertical-align: top;
+  font-weight: 400;
+}
+.boss-phase-table thead th {
+  color: var(--text-dim);
+  font-size: 11px;
+}
+.boss-phase-table th:first-child {
+  width: 22%;
+}
+.boss-phase-table th:nth-child(2) {
+  width: 24%;
+}
+.boss-phase-table th:nth-child(3) {
+  width: 32%;
+}
+.boss-phase-table tbody tr {
+  border-top: 1px solid var(--border-light);
+}
+.boss-phase-table tbody th {
+  color: var(--text-bright);
+}
+.boss-phase-table small {
+  display: block;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.boss-phase-heading {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  align-items: baseline;
+  gap: 4px 8px;
+  padding-top: 8px;
+  font-weight: 600;
 }
-.boss-phase-input {
-  flex: 0 1 160px;
-  min-width: 0;
+.boss-phase-option,
+.boss-rate-input + .boss-rate-input {
+  margin-top: 12px;
 }
-.boss-phase-input small {
+.boss-rate-input {
+  max-width: 130px;
+}
+.boss-duration-input {
+  display: inline-grid;
+  grid-template-columns: minmax(0, 1fr) 20px;
+  align-items: center;
+  width: 88px;
+  max-width: 100%;
+}
+.boss-workspace .boss-duration-input input {
+  grid-area: 1 / 1 / 2 / 3;
+  padding-right: 24px;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.boss-duration-input input::-webkit-inner-spin-button,
+.boss-duration-input input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.boss-duration-input > span {
+  grid-area: 1 / 2;
   color: var(--text-dim);
+  pointer-events: none;
+}
+.boss-duration-input + small,
+.boss-phase-table thead small {
+  margin-top: 12px;
 }
 .boss-muted {
   display: inline-block;
   color: var(--text-dim);
   margin: 8px 12px 0 0;
-}
-@media (max-width: 600px) {
-  .boss-phase-input {
-    flex: 1 1 130px;
-  }
 }
 
 /* Keep existing build actions; the scenario selector owns encounter document selection. */
