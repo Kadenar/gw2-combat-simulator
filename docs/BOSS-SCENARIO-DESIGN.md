@@ -131,6 +131,7 @@ not assume that idle DPS from a phased target moves to another target. Repeated 
 
 Boss and difficulty selection supplies each target's armor from the EI evidence catalog. Runtime hits use the current
 phase's selected target, so sequential targets and player-target selections do not keep the first boss's armor. Armor
-appears in the encounter DPS strip, and the existing Target armor control displays the starting target's automatic value
-while in Bosses. The saved Golem armor preference is unchanged. Authored group DPS is already damage dealt and is not
-scaled by armor a second time. Conditions and armor-ignoring packets keep their existing formulas.
+appears in the encounter DPS strip. Bosses omits the simulation settings' Target section, including health, starting
+health, armor, movement, skill activation rate, and target-specific profession assumptions. Golem retains those controls
+and its saved preferences. Authored group DPS is already damage dealt and is not scaled by armor a second time.
+Conditions and armor-ignoring packets keep their existing formulas.

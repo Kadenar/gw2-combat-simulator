@@ -1,5 +1,3 @@
-import { scenarioSimulation } from '#gw2/app/boss-scenarios/simulation.js';
-import { initialEncounterTarget } from '#gw2/platform/combat/state/encounter.js';
 import { RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { optionHtml } from '#ui/shared/select-options.js';
@@ -43,16 +41,14 @@ interface EffectItemOptions {
 
 export function renderAssumptions(app: ProfessionAppState): void {
   const a = app.build.assumptions as ProfessionBuildAssumptions;
-  // Encounter armor is derived, so the shared Golem build preference is never overwritten by boss selection.
-  const encounter = app.workspace?.scenario ? scenarioSimulation(app.workspace.scenario).config : null;
-  const targetArmorValue = encounter
-    ? initialEncounterTarget(encounter).armor
-    : normalizeTargetArmor(app.build.targetArmor);
+  // Boss encounters own target setup; only the Golem workspace renders and binds target overrides.
+  const isBoss = Boolean(app.workspace?.scenario);
+  const targetArmorValue = normalizeTargetArmor(app.build.targetArmor);
   const targetArmorPreset = TARGET_ARMOR_OPTIONS.some((option) => option.value === targetArmorValue)
     ? String(targetArmorValue)
     : 'custom';
 
-  if (!encounter) app.build.targetArmor = targetArmorValue;
+  if (!isBoss) app.build.targetArmor = targetArmorValue;
 
   const container = document.getElementById('perma-boons');
 
@@ -249,34 +245,30 @@ export function renderAssumptions(app: ProfessionAppState): void {
   container.innerHTML = `
             ${section('boons', 'Effects', `<div class="perma-boon-label">Boons</div><div class="perma-effect-grid">${boonItems}</div>${fixedBoonItems}`)}
             ${conditionGroups}
-            ${section(
-              'target',
-              'Target',
-              `
+            ${
+              isBoss
+                ? ''
+                : section(
+                    'target',
+                    'Target',
+                    `
                 <label class="boon-control">Maximum HP <input id="target-hp" type="number" min="0" step="100000" value="${Number(app.build.targetHealth)}"></label>
                 <label class="boon-control">Starting health % <input id="target-starting-health-percent" type="number" min="0" max="100" step="1" value="${Number(app.build.targetStartingHealthPercent ?? 100)}"></label>
                 <label class="boon-control">Target armor
-                    <select class="gear-select" id="target-armor-preset"${encounter ? ' disabled title="Armor is set by the encounter target"' : ''}>
-                        ${
-                          encounter
-                            ? optionHtml(
-                                String(targetArmorValue),
-                                String(targetArmorValue),
-                                `Boss (${targetArmorValue})`
-                              )
-                            : TARGET_ARMOR_OPTIONS.map(({ value, label }) =>
-                                optionHtml(String(value), targetArmorPreset, `${label} (${value})`)
-                              ).join('')
-                        }
-                        ${encounter ? '' : optionHtml('custom', targetArmorPreset, 'Custom…')}
+                    <select class="gear-select" id="target-armor-preset">
+                        ${TARGET_ARMOR_OPTIONS.map(({ value, label }) =>
+                          optionHtml(String(value), targetArmorPreset, `${label} (${value})`)
+                        ).join('')}
+                        ${optionHtml('custom', targetArmorPreset, 'Custom…')}
                     </select>
-                    <input id="target-armor" type="number" min="1" value="${targetArmorValue}" aria-label="Custom target armor"${targetArmorPreset === 'custom' && !encounter ? '' : ' hidden'}>
+                    <input id="target-armor" type="number" min="1" value="${targetArmorValue}" aria-label="Custom target armor"${targetArmorPreset === 'custom' ? '' : ' hidden'}>
                 </label>
                 <label class="boon-control">Skill activations/s <input id="target-skill-activations" type="number" min="0" max="10" step="0.1" value="${a.targetSkillActivationsPerSecond}"></label>
                 <label class="boon-control"><input id="target-moving" type="checkbox"${a.targetMoving ? ' checked' : ''}> Moving</label>
                 ${professionAssumptionItems}
             `
-            )}
+                  )
+            }
             ${customAssumptionGroups}
             ${section(
               RECIPIENT.PARTY,
@@ -388,16 +380,20 @@ export function renderAssumptions(app: ProfessionAppState): void {
       app.changed();
     });
   });
-  const targetSkillActivations = requiredInput('target-skill-activations');
-  targetSkillActivations.addEventListener('change', () => {
-    a.targetSkillActivationsPerSecond = clamp(Number(targetSkillActivations.value) || 0, 0, 10);
-    app.changed();
-  });
-  const targetMoving = requiredInput('target-moving');
-  targetMoving.addEventListener('change', () => {
-    a.targetMoving = targetMoving.checked;
-    app.changed();
-  });
+
+  if (!isBoss) {
+    const targetSkillActivations = requiredInput('target-skill-activations');
+    targetSkillActivations.addEventListener('change', () => {
+      a.targetSkillActivationsPerSecond = clamp(Number(targetSkillActivations.value) || 0, 0, 10);
+      app.changed();
+    });
+    const targetMoving = requiredInput('target-moving');
+    targetMoving.addEventListener('change', () => {
+      a.targetMoving = targetMoving.checked;
+      app.changed();
+    });
+  }
+
   const alliedPlayerCount = requiredInput('allied-player-count');
   alliedPlayerCount.addEventListener('change', () => {
     a.alliedPlayerCount = clamp(Math.trunc(Number(alliedPlayerCount.value) || 0), 0, 4);
@@ -455,36 +451,39 @@ export function renderAssumptions(app: ProfessionAppState): void {
       app.changed();
     });
   });
-  const targetHealth = requiredInput('target-hp');
-  targetHealth.addEventListener('change', () => {
-    app.build.targetHealth = Math.max(0, Number(targetHealth.value) || 0);
-    targetHealth.value = String(app.build.targetHealth);
-    app.changed();
-  });
-  const targetStartingHealthPercent = requiredInput('target-starting-health-percent');
-  targetStartingHealthPercent.addEventListener('change', () => {
-    app.build.targetStartingHealthPercent = clamp(Number(targetStartingHealthPercent.value) || 0, 0, 100);
-    targetStartingHealthPercent.value = String(app.build.targetStartingHealthPercent);
-    app.changed();
-  });
-  const targetArmorPresetSelect = requiredSelect('target-armor-preset');
-  const targetArmor = requiredInput('target-armor');
-  targetArmorPresetSelect.addEventListener('change', () => {
-    const customSelected = targetArmorPresetSelect.value === 'custom';
-    targetArmor.hidden = !customSelected;
 
-    if (customSelected) {
-      targetArmor.focus();
-      return;
-    }
+  if (!isBoss) {
+    const targetHealth = requiredInput('target-hp');
+    targetHealth.addEventListener('change', () => {
+      app.build.targetHealth = Math.max(0, Number(targetHealth.value) || 0);
+      targetHealth.value = String(app.build.targetHealth);
+      app.changed();
+    });
+    const targetStartingHealthPercent = requiredInput('target-starting-health-percent');
+    targetStartingHealthPercent.addEventListener('change', () => {
+      app.build.targetStartingHealthPercent = clamp(Number(targetStartingHealthPercent.value) || 0, 0, 100);
+      targetStartingHealthPercent.value = String(app.build.targetStartingHealthPercent);
+      app.changed();
+    });
+    const targetArmorPresetSelect = requiredSelect('target-armor-preset');
+    const targetArmor = requiredInput('target-armor');
+    targetArmorPresetSelect.addEventListener('change', () => {
+      const customSelected = targetArmorPresetSelect.value === 'custom';
+      targetArmor.hidden = !customSelected;
 
-    app.build.targetArmor = normalizeTargetArmor(targetArmorPresetSelect.value);
-    targetArmor.value = String(app.build.targetArmor);
-    app.changed();
-  });
-  targetArmor.addEventListener('change', () => {
-    app.build.targetArmor = normalizeTargetArmor(targetArmor.value);
-    targetArmor.value = String(app.build.targetArmor);
-    app.changed();
-  });
+      if (customSelected) {
+        targetArmor.focus();
+        return;
+      }
+
+      app.build.targetArmor = normalizeTargetArmor(targetArmorPresetSelect.value);
+      targetArmor.value = String(app.build.targetArmor);
+      app.changed();
+    });
+    targetArmor.addEventListener('change', () => {
+      app.build.targetArmor = normalizeTargetArmor(targetArmor.value);
+      targetArmor.value = String(app.build.targetArmor);
+      app.changed();
+    });
+  }
 }
