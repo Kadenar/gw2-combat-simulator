@@ -18,13 +18,6 @@ import type {
 } from '#gw2/platform/profession-presentation/types.js';
 import type { MesmerResolverEvent, MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
 
-interface TroubadourUiState {
-  readonly activeInstruments?: readonly {
-    readonly name: string;
-    readonly remaining: number;
-  }[];
-}
-
 const TROUBADOUR_MECHANIC_SKILLS = Object.freeze([
   ID.LIVELY_LUTE,
   ID.FLUSTERING_FLUTE,
@@ -92,7 +85,7 @@ export const troubadourUi: MesmerUiSlice = Object.freeze({
   paletteGroups: (context: MesmerUiContext) =>
     mesmerMechanicPaletteGroups(context, TROUBADOUR_MECHANIC_SKILLS, 'notes'),
   resourceViews: (context: MesmerUiContext) => {
-    const activeInstruments = (context.professionState as TroubadourUiState | undefined)?.activeInstruments || [];
+    const activeInstruments = context.professionState?.activeInstruments || [];
     const resources = [
       ...mesmerResourceViews(context, {
         id: 'notes',
