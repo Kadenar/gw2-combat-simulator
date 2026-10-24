@@ -1,5 +1,5 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { extractEncounterHealth, combineEncounterHealth } from './boss-health-evidence.mjs';
+import { extractEncounterHealth, combineEncounterHealth, runtimeEncounterHealth } from './boss-health-evidence.mjs';
 
 // Refresh the reviewed EI report manifest atomically; a missing or changed source leaves the shipped catalog intact.
 const manifest = JSON.parse(
@@ -30,9 +30,9 @@ for (const entry of manifest.encounters) {
     );
   }
 
-  encounters.push(combineEncounterHealth(observations));
+  encounters.push(runtimeEncounterHealth(combineEncounterHealth(observations)));
   console.log(`${entry.encounterId} ${entry.difficulty}: ${encounters.at(-1).targets.length} primary targets`);
 }
 
-const contents = `import type { EncounterHealthReport } from '#gw2/app/boss-scenarios/health-types.js';\n\n/** Generated from reviewed EI reports by scripts/data/update-boss-health.mjs; do not substitute rounded metadata. */\nexport const ENCOUNTER_HEALTH: readonly EncounterHealthReport[] = ${JSON.stringify(encounters, null, 2)};\n`;
+const contents = `import type { EncounterHealth } from '#gw2/app/boss-scenarios/health-types.js';\n\n/** Generated from reviewed EI reports by scripts/data/update-boss-health.mjs; do not substitute rounded metadata. */\nexport const ENCOUNTER_HEALTH: readonly EncounterHealth[] = ${JSON.stringify(encounters, null, 2)};\n`;
 await writeFile(new URL('../../js/games/gw2/app/boss-scenarios/health-data.ts', import.meta.url), contents);

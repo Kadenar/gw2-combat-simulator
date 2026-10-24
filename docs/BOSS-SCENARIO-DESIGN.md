@@ -52,8 +52,9 @@ limitation.
 Encounter metrics use the existing DPS-strip styling: total target health, next transition, damage required, current
 health, estimated time to threshold, phase DPS, and overall DPS. Supported encounters update these values at the end of
 the authored rotation. Each visited phase also shows its player DPS beneath its group-DPS input. Unsupported encounter
-results display Unavailable; Golem preview results are not presented as boss simulation results. Source attribution
-stays in a compact EI link; explanatory provenance belongs in documentation.
+results display Unavailable; Golem preview results are not presented as boss simulation results. Report provenance stays
+in offline maintenance documentation and the source manifest; the UI, runtime health catalog, and scenario exports
+contain no report URLs.
 
 The existing rotation timeline starts a full-width section for each observed phase and split. Its label occupies its own
 row, followed by that phase's existing weapon rows and skill tiles; transitions never share a skill row with the

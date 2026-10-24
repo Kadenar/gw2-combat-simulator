@@ -8,7 +8,11 @@ import { ENCOUNTER_HEALTH } from '#gw2/app/boss-scenarios/health-data.js';
 import { createBossScenario, selectScenarioEncounter, parseBossScenario } from '#gw2/app/boss-scenarios/model.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
-import { combineEncounterHealth, extractEncounterHealth } from '../../../../scripts/data/boss-health-evidence.mjs';
+import {
+  combineEncounterHealth,
+  extractEncounterHealth,
+  runtimeEncounterHealth
+} from '../../../../scripts/data/boss-health-evidence.mjs';
 
 const adapter = await loadProfessionAppAdapter('engineer');
 const makeDraft = () =>
@@ -40,6 +44,7 @@ test('automatic splits and one continuous rotation round-trip independently of G
   draft.build.rotation.push({ type: 'wait', durationMs: 2000 });
   const restored = parse(JSON.parse(JSON.stringify(draft)));
   assert.deepEqual(restored, draft);
+  assert.doesNotMatch(JSON.stringify(restored), /https?:\/\//);
   assert.deepEqual(build.rotation, [{ type: 'wait', durationMs: 1000 }]);
   assert.equal(restored.health, encounterHealth('020102', 'normal').targets[0].health);
 });
@@ -52,7 +57,7 @@ test('difficulty installs its phase plan and health without changing the authore
   selectScenarioEncounter(draft, '040305', 'challenge');
   assert.equal(draft.phases.length, normal - 2);
   assert.deepEqual(draft.build.rotation, rotation);
-  assert.equal(draft.healthSource, encounterHealth('040305', 'challenge').report);
+  assert.equal(draft.health, encounterHealth('040305', 'challenge').targets[0].health);
   assert.deepEqual(parse(draft), draft);
 });
 
@@ -90,9 +95,6 @@ test('invalid imports cannot invent health, layouts, durations, or phase rotatio
     },
     (draft) => {
       draft.build.rotation = [{ type: 'wait', durationMs: -1 }];
-    },
-    (draft) => {
-      draft.healthSource = 'https://example.com';
     },
     (draft) => {
       draft.difficulty = 'challenge';
@@ -139,8 +141,12 @@ test('every raid-wing boss has exact EI evidence and each published observation 
     const source = manifest.encounters.find(
       (entry) => entry.encounterId === evidence.encounterId && entry.difficulty === evidence.difficulty
     );
-    assert.equal(source.reports[0].report, evidence.report);
-    assert.ok(evidence.parser.startsWith('Elite Insights '));
+    assert.ok(source, 'Each runtime encounter must have an offline source.');
+    assert.deepEqual(Object.keys(evidence).sort(), ['difficulty', 'encounterId', 'targets']);
+    assert.deepEqual(
+      evidence.targets.map((target) => target.index),
+      source.reports[0].primaryTargetIndexes
+    );
     for (const target of evidence.targets)
       assert.ok(Number.isInteger(target.health) && (target.health > 0 || target.health === -1));
   }
@@ -181,6 +187,11 @@ test('EI importer rejects wrong modes and preserves conflicting observations wit
   assert.equal(combined.targets[0].health, 12345);
   assert.deepEqual(combined.corroboratingReports, []);
   assert.deepEqual(combined.differingReports, ['report-b']);
+  assert.deepEqual(runtimeEncounterHealth(combined), {
+    encounterId: source.encounterId,
+    difficulty: source.difficulty,
+    targets: first.targets
+  });
 });
 
 // Executable inputs must use verified health gates, never invent totals for multi-target or mechanic-driven fights.

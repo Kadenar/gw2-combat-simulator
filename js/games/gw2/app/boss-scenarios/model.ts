@@ -21,7 +21,6 @@ export interface BossScenarioDraft {
   difficulty: EncounterDifficulty;
   health: number | null;
   targetIndex: number | null;
-  healthSource: string | null;
   phases: ScenarioPhaseDraft[];
 }
 
@@ -44,7 +43,6 @@ export function selectScenarioEncounter(
   draft.difficulty = difficulty;
   draft.health = target?.health ?? null;
   draft.targetIndex = target?.index ?? null;
-  draft.healthSource = evidence?.report ?? null;
   draft.phases = encounterPhasePlan(encounterId, difficulty).phases.map((phase) =>
     phase.kind === 'boss'
       ? { id: phase.id, kind: 'boss', groupDps }
@@ -73,7 +71,6 @@ export function createBossScenario(
     difficulty: 'normal',
     health: null,
     targetIndex: null,
-    healthSource: null,
     phases: []
   };
 
@@ -116,11 +113,7 @@ export function parseBossScenario(
   const evidence = encounterHealth(record.encounterId!, record.difficulty!);
   const target = evidence?.targets.find((entry) => entry.primary && entry.health > 0);
 
-  if (
-    record.health !== (target?.health ?? null) ||
-    record.targetIndex !== (target?.index ?? null) ||
-    record.healthSource !== (evidence?.report ?? null)
-  )
+  if (record.health !== (target?.health ?? null) || record.targetIndex !== (target?.index ?? null))
     throw new Error('Scenario health must match Elite Insights.');
 
   const definitions = encounterPhasePlan(record.encounterId!, record.difficulty!).phases;
@@ -169,7 +162,6 @@ export function parseBossScenario(
     difficulty: record.difficulty!,
     health: record.health!,
     targetIndex: record.targetIndex!,
-    healthSource: record.healthSource!,
     phases: record.phases.map((phase) =>
       phase.kind === 'boss'
         ? { id: phase.id, kind: 'boss', groupDps: phase.groupDps }

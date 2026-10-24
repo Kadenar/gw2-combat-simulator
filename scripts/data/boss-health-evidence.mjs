@@ -84,3 +84,8 @@ export function combineEncounterHealth(reports) {
 
   return { ...selected, corroboratingReports, differingReports };
 }
+
+/** Ship only encounter mechanics data so report URLs and collection metadata never enter the simulator. */
+export function runtimeEncounterHealth({ encounterId, difficulty, targets }) {
+  return { encounterId, difficulty, targets };
+}

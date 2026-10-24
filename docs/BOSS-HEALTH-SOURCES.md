@@ -10,8 +10,9 @@ exact EI target health fields. Wingman's rounded encounter metadata is never use
 EI normally derives health from EVTC max-health events. The report's primary targets, difficulty, successful outcome, EI
 encounter ID, and trigger ID are checked before importing. Sources are recorded in
 [the manifest](../data/gw2/encounters/health-sources.json); generated data lives in
-[health-data.ts](../js/games/gw2/app/boss-scenarios/health-data.ts). Each value retains the parser version and game
-build.
+[health-data.ts](../js/games/gw2/app/boss-scenarios/health-data.ts). The runtime catalog contains only encounter IDs,
+difficulties, and target health data. Report URLs and collection metadata stay in these offline maintenance sources;
+they are not displayed in the simulator or saved in scenarios.
 
 Run `node scripts/data/update-boss-health.mjs` to re-read the reviewed reports, followed by Prettier on the generated
 file. The updater aborts before writing if a source fails validation. Updating the source selection is a separate

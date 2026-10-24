@@ -250,17 +250,6 @@ export function mountBossScenarios(app: ProfessionAppState): void {
       ]
     });
 
-    if (evidence) {
-      const link = document.createElement('a');
-      link.href = evidence.report;
-      link.textContent = 'EI';
-      link.className = 'res-label';
-      link.setAttribute('aria-label', 'Elite Insights health source');
-      link.target = '_blank';
-      link.rel = 'noreferrer';
-      metrics.querySelector('.res-label-row')!.append(link);
-    }
-
     const refreshPhaseResults = () => {
       for (const node of workspace.querySelectorAll<HTMLElement>('[data-phase-result]')) {
         const row = result?.phases.find((phase) => phase.id === node.dataset.phaseResult);
