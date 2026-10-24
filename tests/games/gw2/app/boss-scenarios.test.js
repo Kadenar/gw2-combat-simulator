@@ -123,7 +123,7 @@ test('every selectable boss and recorded difficulty has an automatic authoring p
 });
 
 // Coverage checks concern provenance and encounter identity, never a hard-coded copy of the numerical health table.
-test('every raid-wing boss has exact EI evidence and each published observation has a manifest source', async () => {
+test('every selectable raid-wing boss has exact EI evidence and each published observation has a manifest source', async () => {
   const manifest = JSON.parse(
     await readFile(new URL('../../../../data/gw2/encounters/health-sources.json', import.meta.url), 'utf8')
   );
@@ -211,4 +211,33 @@ test('scenario execution compiles health gates and exposes unsupported encounter
     assert.equal(unsupported.config, null);
     assert.ok(unsupported.reason);
   }
+});
+
+// Excluded encounters cannot be reintroduced through imports or a health-data refresh.
+test('excluded raid encounters are absent from authoring and health data', () => {
+  for (const id of ['020202', '020301', '020303', '020502', '020503', '020504', '020505']) {
+    assert.equal(
+      ENCOUNTER_TEMPLATES.some((entry) => entry.id === id),
+      false
+    );
+    assert.equal(encounterHealth(id, 'normal'), undefined);
+    assert.throws(() => selectScenarioEncounter(makeDraft(), id, 'normal'), /supported boss/);
+    assert.throws(() => encounterPhasePlan(id, 'normal'), /No encounter/);
+  }
+});
+
+// Names follow boss and difficulty while stable IDs continue to own authored durations.
+test('split names follow the selected boss and difficulty', () => {
+  const splits = (id, mode) => encounterPhasePlan(id, mode).phases.filter((phase) => phase.kind === 'split');
+  assert.deepEqual(
+    splits('020103', 'normal').map((phase) => phase.label),
+    ['Kernan', 'Knuckles', 'Karde']
+  );
+  assert.deepEqual(
+    splits('020102', 'normal').map((phase) => phase.label),
+    ['Charged Souls', 'Charged Souls']
+  );
+  assert.equal(splits('020801', 'normal')[0].label, 'Gree and Reeg');
+  assert.equal(splits('020801', 'challenge')[0].label, 'Gree, Reeg and Ereg');
+  assert.equal(splits('020801', 'challenge').at(-1).label, 'Proto-Greerlings');
 });

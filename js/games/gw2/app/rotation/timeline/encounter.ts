@@ -1,3 +1,4 @@
+import type { EncounterPhaseDefinition } from '#gw2/app/boss-scenarios/phases.js';
 import type { Gw2SimulationResult, SimulationStep } from '#gw2/platform/results/types.js';
 
 export interface EncounterTimelineMarker {
@@ -12,7 +13,8 @@ export interface EncounterTimelineMarker {
 /** Project observed encounter transitions onto command boundaries without changing the authored rotation. */
 export function encounterTimelineMarkers(
   result: Gw2SimulationResult | null | undefined,
-  rotationLength: number
+  rotationLength: number,
+  definitions: readonly EncounterPhaseDefinition[]
 ): EncounterTimelineMarker[] {
   if (!result?.encounter) return [];
 
@@ -28,7 +30,11 @@ export function encounterTimelineMarkers(
   const markers: EncounterTimelineMarker[] = result.encounter.phases.map((phase) => {
     const start = Math.round(phase.start * 1000);
     return {
-      label: phase.kind === 'boss' ? `Phase ${++boss}` : `Split ${++split}`,
+      // Resolve names by stable phase ID so repeated mechanics keep their correct observed boundary.
+      label:
+        phase.kind === 'boss'
+          ? `Phase ${++boss}`
+          : `Split ${++split}: ${definitions.find((entry) => entry.id === phase.id)!.label}`,
       kind: phase.kind,
       start,
       end: phase.end === null ? null : Math.round(phase.end * 1000),

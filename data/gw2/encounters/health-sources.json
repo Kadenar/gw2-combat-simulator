@@ -96,26 +96,6 @@
       ]
     },
     {
-      "encounterId": "020202",
-      "difficulty": "normal",
-      "reports": [
-        {
-          "report": "https://gw2wingman.nevermindcreations.de/log/62972-NOTME1347_20260906-210901_trio_kill",
-          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/62972-NOTME1347_20260906-210901_trio_kill",
-          "format": "ei-html",
-          "triggerId": 16088,
-          "primaryTargetIndexes": [0, 1, 2]
-        },
-        {
-          "report": "https://gw2wingman.nevermindcreations.de/log/4a912-20260831-212829_trio_kill",
-          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/4a912-20260831-212829_trio_kill",
-          "format": "ei-html",
-          "triggerId": 16088,
-          "primaryTargetIndexes": [0, 1, 2]
-        }
-      ]
-    },
-    {
       "encounterId": "020203",
       "difficulty": "normal",
       "reports": [
@@ -131,19 +111,6 @@
           "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/efdef-Quadesh1345_20261016-220714_matt_kill",
           "format": "ei-html",
           "triggerId": 16115,
-          "primaryTargetIndexes": [0]
-        }
-      ]
-    },
-    {
-      "encounterId": "020301",
-      "difficulty": "normal",
-      "reports": [
-        {
-          "report": "https://gw2wingman.nevermindcreations.de/log/e8ec8-20260901-195823_escort_kill",
-          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/e8ec8-20260901-195823_escort_kill",
-          "format": "ei-html",
-          "triggerId": 16253,
           "primaryTargetIndexes": [0]
         }
       ]
@@ -184,19 +151,6 @@
           "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/97io-20260906-230047_kc",
           "format": "ei-html",
           "triggerId": 16235,
-          "primaryTargetIndexes": [0]
-        }
-      ]
-    },
-    {
-      "encounterId": "020303",
-      "difficulty": "normal",
-      "reports": [
-        {
-          "report": "https://gw2wingman.nevermindcreations.de/log/732ea-Xerexia3064_20260802-175649_twstcstl_kill",
-          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/732ea-Xerexia3064_20260802-175649_twstcstl_kill",
-          "format": "ei-html",
-          "triggerId": 16247,
           "primaryTargetIndexes": [0]
         }
       ]
@@ -418,52 +372,6 @@
           "format": "ei-html",
           "triggerId": 19767,
           "primaryTargetIndexes": [0]
-        }
-      ]
-    },
-    {
-      "encounterId": "020503",
-      "difficulty": "normal",
-      "reports": [
-        {
-          "report": "https://gw2wingman.nevermindcreations.de/log/jPDy-20240126-235534_bk",
-          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getFullJson/jPDy-20240126-235534_bk",
-          "format": "ei-json",
-          "triggerId": 19691,
-          "primaryTargetIndexes": [0]
-        }
-      ]
-    },
-    {
-      "encounterId": "020504",
-      "difficulty": "normal",
-      "reports": [
-        {
-          "report": "https://gw2wingman.nevermindcreations.de/log/d8b68-ArmageddonLPT6307_20260817-205017_souleater_kill",
-          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getFullJson/d8b68-ArmageddonLPT6307_20260817-205017_souleater_kill",
-          "format": "ei-json",
-          "triggerId": 19536,
-          "primaryTargetIndexes": [0]
-        }
-      ]
-    },
-    {
-      "encounterId": "020505",
-      "difficulty": "normal",
-      "reports": [
-        {
-          "report": "https://gw2wingman.nevermindcreations.de/log/7cbc8-borer3648_20260914-204828_eyes_kill",
-          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/7cbc8-borer3648_20260914-204828_eyes_kill",
-          "format": "ei-html",
-          "triggerId": 19844,
-          "primaryTargetIndexes": [0, 1]
-        },
-        {
-          "report": "https://gw2wingman.nevermindcreations.de/log/31a82-Flippoo3976_20260716-204012_eyes_kill",
-          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/31a82-Flippoo3976_20260716-204012_eyes_kill",
-          "format": "ei-html",
-          "triggerId": 19844,
-          "primaryTargetIndexes": [0, 1]
         }
       ]
     },

@@ -89,33 +89,6 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
     ]
   },
   {
-    encounterId: '020202',
-    difficulty: 'normal',
-    targets: [
-      {
-        index: 0,
-        name: 'Berg',
-        health: 6881700,
-        primary: true,
-        healthBars: null
-      },
-      {
-        index: 1,
-        name: 'Zane',
-        health: 5898600,
-        primary: true,
-        healthBars: null
-      },
-      {
-        index: 2,
-        name: 'Narella',
-        health: 4915500,
-        primary: true,
-        healthBars: null
-      }
-    ]
-  },
-  {
     encounterId: '020203',
     difficulty: 'normal',
     targets: [
@@ -123,19 +96,6 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         index: 0,
         name: 'Matthias Gabrel',
         health: 25953840,
-        primary: true,
-        healthBars: null
-      }
-    ]
-  },
-  {
-    encounterId: '020301',
-    difficulty: 'normal',
-    targets: [
-      {
-        index: 0,
-        name: 'McLeod the Silent',
-        health: 768930,
         primary: true,
         healthBars: null
       }
@@ -162,19 +122,6 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         index: 0,
         name: 'Keep Construct',
         health: 55053600,
-        primary: true,
-        healthBars: null
-      }
-    ]
-  },
-  {
-    encounterId: '020303',
-    difficulty: 'normal',
-    targets: [
-      {
-        index: 0,
-        name: 'Twisted Castle',
-        health: -1,
         primary: true,
         healthBars: null
       }
@@ -327,52 +274,6 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         index: 0,
         name: 'Soulless Horror',
         health: 35391600,
-        primary: true,
-        healthBars: null
-      }
-    ]
-  },
-  {
-    encounterId: '020503',
-    difficulty: 'normal',
-    targets: [
-      {
-        index: 0,
-        name: 'Broken King',
-        health: 9831000,
-        primary: true,
-        healthBars: null
-      }
-    ]
-  },
-  {
-    encounterId: '020504',
-    difficulty: 'normal',
-    targets: [
-      {
-        index: 0,
-        name: 'Eater of Souls',
-        health: 1720425,
-        primary: true,
-        healthBars: null
-      }
-    ]
-  },
-  {
-    encounterId: '020505',
-    difficulty: 'normal',
-    targets: [
-      {
-        index: 0,
-        name: 'Eye of Fate',
-        health: 2457750,
-        primary: true,
-        healthBars: null
-      },
-      {
-        index: 1,
-        name: 'Eye of Judgment',
-        health: 2457750,
         primary: true,
         healthBars: null
       }

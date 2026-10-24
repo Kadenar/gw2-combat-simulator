@@ -1,8 +1,11 @@
+import { encounterPhasePlan } from '#gw2/app/boss-scenarios/phases.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { encounterTimelineMarkers, encounterStepContext } from '#gw2/app/rotation/timeline/encounter.js';
 import { timelineRowsView } from '#gw2/app/rotation/timeline/rows.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
+
+const definitions = encounterPhasePlan('020102', 'normal').phases;
 
 // Synthetic action spans protect phase attribution and transition placement, independent of skill packet timing.
 function fixture() {
@@ -17,9 +20,9 @@ function fixture() {
     encounter: {
       defeated: false,
       phases: [
-        { id: 'boss-1', kind: 'boss', start: 2, end: 4 },
-        { id: 'split-1', kind: 'split', start: 4, end: 7 },
-        { id: 'boss-2', kind: 'boss', start: 7, end: null }
+        { id: 'boss-0', kind: 'boss', start: 2, end: 4 },
+        { id: 'split-0', kind: 'split', start: 4, end: 7 },
+        { id: 'boss-1', kind: 'boss', start: 7, end: null }
       ]
     }
   };
@@ -28,12 +31,12 @@ function fixture() {
 test('encounter boundaries use observed times and the next authored command without mutating results', () => {
   const result = fixture();
   const before = structuredClone(result);
-  const markers = encounterTimelineMarkers(result, 4);
+  const markers = encounterTimelineMarkers(result, 4, definitions);
   assert.deepEqual(
     markers.map(({ label, start, insertionIndex }) => [label, start, insertionIndex]),
     [
       ['Phase 1', 2000, 1],
-      ['Split 1', 4000, 2],
+      ['Split 1: Charged Souls', 4000, 2],
       ['Phase 2', 7000, 3]
     ]
   );
@@ -42,18 +45,18 @@ test('encounter boundaries use observed times and the next authored command with
     [true, true, false]
   );
   assert.deepEqual(result, before);
-  assert.deepEqual(encounterTimelineMarkers(null, 4), []);
-  assert.deepEqual(encounterTimelineMarkers({ steps: result.steps }, 4), []);
+  assert.deepEqual(encounterTimelineMarkers(null, 4, definitions), []);
+  assert.deepEqual(encounterTimelineMarkers({ steps: result.steps }, 4, definitions), []);
 });
 
 test('action context distinguishes precombat, split starts, and transitions inside an action', () => {
   const result = fixture();
-  const markers = encounterTimelineMarkers(result, 4);
+  const markers = encounterTimelineMarkers(result, 4, definitions);
   const contexts = result.steps.map((step) => encounterStepContext(step, markers));
   assert.equal(contexts[0].phase, undefined);
   assert.equal(contexts[0].crossings[0].label, 'Phase 1');
   assert.equal(contexts[1].phase.label, 'Phase 1');
-  assert.equal(contexts[1].crossings[0].label, 'Split 1');
+  assert.equal(contexts[1].crossings[0].label, 'Split 1: Charged Souls');
   assert.equal(contexts[2].phase.kind, 'split');
   assert.deepEqual(contexts[2].crossings, []);
   assert.equal(contexts[3].phase.label, 'Phase 2');
@@ -66,11 +69,11 @@ test('zero-duration splits remain ordered and defeat appears only after the obse
   result.encounter.phases[2].start = 4;
   result.encounter.phases[2].end = 8;
   result.encounter.defeated = true;
-  const markers = encounterTimelineMarkers(result, 4);
+  const markers = encounterTimelineMarkers(result, 4, definitions);
   assert.deepEqual(
     markers.slice(1).map(({ label, start }) => [label, start]),
     [
-      ['Split 1', 4000],
+      ['Split 1: Charged Souls', 4000],
       ['Phase 2', 4000],
       ['Boss defeated', 8000]
     ]
@@ -90,6 +93,7 @@ test('encounter phases render as separate full-width rows while keeping their co
   };
   const app = {
     build,
+    workspace: { scenario: { encounterId: '020102', difficulty: 'normal' } },
     activeCatalog: { skills: [], skillsById: new Map() },
     adapter: { eliteSpecialization: () => '' },
     profession: { ui: normalizeProfessionUi('fixture', {}) }
@@ -104,7 +108,7 @@ test('encounter phases render as separate full-width rows while keeping their co
     // A transition closes the preceding weapon row even when both sides use the same weapon set.
     for (const [label, commandIndex] of [
       ['Phase 1', 1],
-      ['Split 1', 2],
+      ['Split 1: Charged Souls', 2],
       ['Phase 2', 3]
     ]) {
       const headerIndex = rows.findIndex((row) => row.key === `encounter:${label}`);
@@ -121,7 +125,7 @@ test('encounter phases render as separate full-width rows while keeping their co
     assert.equal((html.match(/class="rot-encounter-marker"/g) ?? []).length, 3);
     assert.match(html, /Phase 1: Damageable[\s\S]*Starts at 0.000s/);
     assert.match(html, /data-idx="2"[^>]*data-encounter-kind="split"/);
-    assert.match(html, /Split 1 starts during this action at 2.000s/);
+    assert.match(html, /Split 1: Charged Souls starts during this action at 2.000s/);
     assert.equal((html.match(/class="rot-skill"/g) ?? []).length, build.rotation.length);
     assert.equal(html.includes('rot-edit-wait'), !readOnly);
     assert.doesNotMatch(render(null), /rot-encounter-marker|data-encounter-kind/);

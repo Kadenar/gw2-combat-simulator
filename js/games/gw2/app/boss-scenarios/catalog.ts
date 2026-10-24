@@ -26,16 +26,13 @@ const groups: readonly [string, readonly [string, string, EncounterTemplate['kin
     'Wing 2 · Salvation Pass',
     [
       ['020201', 'Slothasor'],
-      ['020202', 'Bandit Trio', 'multiple'],
       ['020203', 'Matthias Gabrel']
     ]
   ],
   [
     'Wing 3 · Stronghold of the Faithful',
     [
-      ['020301', 'Escort', 'event'],
       ['020302', 'Keep Construct'],
-      ['020303', 'Twisted Castle', 'event'],
       ['020304', 'Xera']
     ]
   ],
@@ -52,10 +49,6 @@ const groups: readonly [string, readonly [string, string, EncounterTemplate['kin
     'Wing 5 · Hall of Chains',
     [
       ['020501', 'Soulless Horror'],
-      ['020502', 'River of Souls', 'event'],
-      ['020503', 'Broken King'],
-      ['020504', 'Eater of Souls'],
-      ['020505', 'Eyes of Fate and Judgment', 'multiple'],
       ['020506', 'Dhuum']
     ]
   ],
@@ -119,7 +112,7 @@ const groups: readonly [string, readonly [string, string, EncounterTemplate['kin
   ]
 ];
 
-// Roster completeness is independent of data completeness; events and multiple-target encounters stay selectable.
+// Only encounters in the supported authoring roster are selectable; health availability is checked separately.
 export const ENCOUNTER_TEMPLATES: readonly EncounterTemplate[] = groups.flatMap(([group, encounters]) =>
   encounters.map(([id, name, kind = 'boss']) => ({
     id,

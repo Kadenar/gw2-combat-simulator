@@ -91,3 +91,8 @@ finite inputs, and rotation commands. Local persistence is separate from Golem.
 Old version 1 prototype drafts are left untouched in their previous storage key and are not loaded or migrated. They
 used per-phase rotations, which the current document format does not support. Invalid saved data is preserved rather
 than overwritten; the UI reports when new work must be exported instead of saved.
+
+Split controls and timeline sections use the selected boss and difficulty's mechanic names from the shared phase plan.
+Repeated mechanics retain their split numbers. Names describe the existing authored intervals and do not add or retime
+transitions. Examples include Charged Souls for Gorseval, Kernan / Knuckles / Karde for Sabetha, and Rigom and Guldhem
+for Samarog. Where no distinct mechanic name is established, descriptive transition labels are used.

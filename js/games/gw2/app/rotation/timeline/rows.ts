@@ -1,3 +1,4 @@
+import { encounterPhasePlan } from '#gw2/app/boss-scenarios/phases.js';
 /**
  * Projects authored commands and simulation events into timeline rows and the proc panel.
  * The view reconciles this HTML into the DOM, so imported text must be escaped at each HTML boundary.
@@ -261,7 +262,9 @@ export function timelineRowsView(
     healthMarkersByIndex.set(marker.insertionIndex, markers);
   }
 
-  const encounterMarkers = encounterTimelineMarkers(results, rotation.length);
+  const scenario = app.workspace?.scenario;
+  const phaseDefinitions = scenario ? encounterPhasePlan(scenario.encounterId, scenario.difficulty).phases : [];
+  const encounterMarkers = encounterTimelineMarkers(results, rotation.length, phaseDefinitions);
   const encounterMarkersByIndex = new Map<number, typeof encounterMarkers>();
   for (const marker of encounterMarkers) {
     const markers = encounterMarkersByIndex.get(marker.insertionIndex) ?? [];

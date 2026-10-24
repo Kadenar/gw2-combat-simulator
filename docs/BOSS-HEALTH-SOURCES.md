@@ -2,8 +2,8 @@
 
 Collected 2026-10-23 from public reports hosted by [GW2 Wingman](https://gw2wingman.nevermindcreations.de).
 
-The catalog contains 71 encounter/mode observations covering 43 encounters, including every raid-wing boss. Numbers are
-exact EI target health fields. Wingman's rounded encounter metadata is never used for health.
+The catalog contains 65 encounter/mode observations covering 37 encounters in the supported roster. Numbers are exact EI
+target health fields. Wingman's rounded encounter metadata is never used for health.
 
 ## Source and interpretation
 
@@ -28,9 +28,8 @@ the conflicting report remains recorded in the catalog. No guessed reconciliatio
 ## Scope and event handling
 
 - **Freezie and Cold War / Varinia Stormsounder:** excluded from the simulator at the user's request.
-- **River of Souls:** event without a single boss health pool; no fabricated total is assigned.
-- **Twisted Castle:** EI reports target health as -1 (not recorded). The UI has no selectable positive-health target.
-- Some archived event reports are unavailable. Broken King and Eater of Souls use the full EI JSON endpoint.
+- **Bandit Trio, Escort, Twisted Castle, River of Souls, Broken King, Eater of Souls, and Eyes of Fate and Judgment:**
+  excluded from the simulator at the user's request.
 - Difficulty modes without evidence never inherit normal-mode health.
 
 ## Imported observations
@@ -45,12 +44,9 @@ corroborated.
 | 020103       | normal    | Sabetha the Saboteur: 34,015,256                                                                                                                                                               | [EI report](https://gw2wingman.nevermindcreations.de/log/54fa2-Quadesh1345_20261022-230404_sab_kill)              | 2                        |
 | 020104       | normal    | First Ethereal Barrier: 1,494,000<br>Second Ethereal Barrier: 1,494,000<br>Third Ethereal Barrier: 1,494,000<br>Fourth Ethereal Barrier: 1,494,000                                             | [EI report](https://gw2wingman.nevermindcreations.de/log/66a0c-20260914-200815_sprtrace_kill)                     | 1                        |
 | 020201       | normal    | Slothasor: 18,973,828                                                                                                                                                                          | [EI report](https://gw2wingman.nevermindcreations.de/log/5b66f-20260921-215108_sloth_kill)                        | 2                        |
-| 020202       | normal    | Berg: 6,881,700<br>Zane: 5,898,600<br>Narella: 4,915,500                                                                                                                                       | [EI report](https://gw2wingman.nevermindcreations.de/log/62972-NOTME1347_20260906-210901_trio_kill)               | 2                        |
 | 020203       | normal    | Matthias Gabrel: 25,953,840                                                                                                                                                                    | [EI report](https://gw2wingman.nevermindcreations.de/log/ef8f4-Quadesh1345_20261016-222604_matt_kill)             | 2                        |
-| 020301       | normal    | McLeod the Silent: 768,930                                                                                                                                                                     | [EI report](https://gw2wingman.nevermindcreations.de/log/e8ec8-20260901-195823_escort_kill)                       | 1                        |
 | 020302       | challenge | Keep Construct: 55,053,600                                                                                                                                                                     | [EI report](https://gw2wingman.nevermindcreations.de/log/2fc24-20260821-223753_kc_kill)                           | 2                        |
 | 020302       | normal    | Keep Construct: 55,053,600                                                                                                                                                                     | [EI report](https://gw2wingman.nevermindcreations.de/log/2f487-20260921-212257_kc_kill)                           | 2                        |
-| 020303       | normal    | Twisted Castle: not recorded                                                                                                                                                                   | [EI report](https://gw2wingman.nevermindcreations.de/log/732ea-Xerexia3064_20260802-175649_twstcstl_kill)         | 1                        |
 | 020304       | normal    | Xera: 24,085,950 (segmented)                                                                                                                                                                   | [EI report](https://gw2wingman.nevermindcreations.de/log/c7207-Xcal2785_20261010-192601_xera_kill)                | 2                        |
 | 020401       | challenge | Cairn the Indomitable: 19,999,998                                                                                                                                                              | [EI report](https://gw2wingman.nevermindcreations.de/log/6ef02-20261016-195626_cairn_kill)                        | 2                        |
 | 020401       | normal    | Cairn the Indomitable: 19,999,998                                                                                                                                                              | [EI report](https://gw2wingman.nevermindcreations.de/log/56340-Shiina4673_20260901-212551_cairn_kill)             | 2                        |
@@ -62,9 +58,6 @@ corroborated.
 | 020404       | normal    | Deimos: 37,388,210 (segmented)                                                                                                                                                                 | [EI report](https://gw2wingman.nevermindcreations.de/log/c39ae-beeowulf9026_20260901-152032_dei_kill)             | 2                        |
 | 020501       | challenge | Soulless Horror: 35,391,600                                                                                                                                                                    | [EI report](https://gw2wingman.nevermindcreations.de/log/3c92f-20261016-192248_sh_kill)                           | 2                        |
 | 020501       | normal    | Soulless Horror: 35,391,600                                                                                                                                                                    | [EI report](https://gw2wingman.nevermindcreations.de/log/e4600-20260901-225807_sh_kill)                           | 2                        |
-| 020503       | normal    | Broken King: 9,831,000                                                                                                                                                                         | [EI report](https://gw2wingman.nevermindcreations.de/log/jPDy-20240126-235534_bk)                                 | 1                        |
-| 020504       | normal    | Eater of Souls: 1,720,425                                                                                                                                                                      | [EI report](https://gw2wingman.nevermindcreations.de/log/d8b68-ArmageddonLPT6307_20260817-205017_souleater_kill)  | 1                        |
-| 020505       | normal    | Eye of Fate: 2,457,750<br>Eye of Judgment: 2,457,750                                                                                                                                           | [EI report](https://gw2wingman.nevermindcreations.de/log/7cbc8-borer3648_20260914-204828_eyes_kill)               | 2                        |
 | 020506       | challenge | Dhuum: 40,000,000                                                                                                                                                                              | [EI report](https://gw2wingman.nevermindcreations.de/log/728ce-Ciottolo9608_20261019-214306_dhuum_kill)           | 2                        |
 | 020506       | normal    | Dhuum: 32,000,000                                                                                                                                                                              | [EI report](https://gw2wingman.nevermindcreations.de/log/f923a-Quadesh1345_20260828-202457_dhuum_kill)            | 2                        |
 | 020601       | challenge | Conjured Amalgamate: 52,290,000                                                                                                                                                                | [EI report](https://gw2wingman.nevermindcreations.de/log/c97cc-Quadesh1345_20260825-230823_ca_kill)               | 2                        |

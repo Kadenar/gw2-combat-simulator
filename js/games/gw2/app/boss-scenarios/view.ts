@@ -81,7 +81,17 @@ export function mountBossScenarios(app: ProfessionAppState): void {
       if (saved?.version !== 2 || !Array.isArray(saved.scenarios) || saved.scenarios.length > 100)
         throw new Error('Invalid scenario library.');
 
-      scenarios = saved.scenarios.map(parse);
+      // Retiring encounters removes only their saved scenarios; other authored builds remain available.
+      const retained = saved.scenarios.filter((value: unknown) => {
+        const id = (value as Partial<BossScenarioDraft> | null)?.encounterId;
+        return typeof id !== 'string' || ENCOUNTER_TEMPLATES.some((entry) => entry.id === id);
+      });
+      scenarios = retained.map(parse);
+      const selectedWasRemoved = saved.scenarios.some(
+        (value: Partial<BossScenarioDraft> | null) => value?.id === saved.activeId && !retained.includes(value)
+      );
+
+      if (selectedWasRemoved) saved.activeId = scenarios[0]?.id ?? '';
 
       if (
         new Set(scenarios.map((draft) => draft.id)).size !== scenarios.length ||
@@ -291,7 +301,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
           const definition = plan.phases[index]!;
           return phase.kind === 'boss'
             ? `<label class="boss-phase-input"><span>Phase ${++bossIndex} DPS</span><small>${h(definition.label)}</small><input type="number" data-phase-input="${h(phase.id)}" aria-label="Phase ${bossIndex} group DPS excluding you" min="0" max="1000000000" step="1000" value="${phase.groupDps}"><small data-phase-result="${h(phase.id)}"></small></label>`
-            : `<label class="boss-phase-input boss-split-input"><span>Split ${++splitIndex} (seconds)</span><small>${h(definition.label)}</small><input type="number" data-phase-input="${h(phase.id)}" aria-label="Split ${splitIndex} duration in seconds" min="0" max="86400" step="0.1" placeholder="0" value="${phase.durationSeconds ?? ''}"><small data-phase-result="${h(phase.id)}"></small></label>`;
+            : `<label class="boss-phase-input boss-split-input"><span>Split ${++splitIndex} (seconds)</span><small>${h(definition.label)}</small><input type="number" data-phase-input="${h(phase.id)}" aria-label="Split ${splitIndex}: ${h(definition.label)} duration in seconds" min="0" max="86400" step="0.1" placeholder="0" value="${phase.durationSeconds ?? ''}"><small data-phase-result="${h(phase.id)}"></small></label>`;
         })
         .join('')}</div>${plan.repeats ? '<small class="boss-muted">Repeating mechanic cycle</small>' : ''}
       <small class="boss-muted">Group DPS excludes you.</small></div>`;
