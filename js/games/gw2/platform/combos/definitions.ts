@@ -35,12 +35,9 @@ const COMBO_COMBAT_METADATA_FIELDS = Object.freeze([
   'summonUsesProfessionModifiers',
   'summonBasePower',
   'summonBasePrecision',
-  'summonBaseToughness',
-  'summonBaseVitality',
   'summonBaseFerocity',
   'summonBaseConditionDamage',
   'summonBaseExpertise',
-  'summonBaseHealingPower',
   'summonCriticalChance',
   'summonCriticalDamage',
   'summonDamagePerCoefficient'

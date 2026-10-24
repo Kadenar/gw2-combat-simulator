@@ -209,6 +209,8 @@ export default defineConfig(({ command, mode }) => ({
     format: 'es',
     // Feature folders identify worker chunks now that each source entry is named worker.ts.
     rolldownOptions: {
+      // Worker builds repeat overlapping hook timings; keep routine logs focused on actionable warnings.
+      checks: { pluginTimings: false },
       output: {
         entryFileNames: (chunk) => `assets/${path.basename(path.dirname(chunk.facadeModuleId))}-worker-[hash].js`
       }
@@ -220,6 +222,8 @@ export default defineConfig(({ command, mode }) => ({
     minify: mode !== 'development',
     sourcemap: mode === 'development',
     rolldownOptions: {
+      // Worker bundling is awaited inside client hooks, so timing diagnostics need a dedicated CPU profile.
+      checks: { pluginTimings: false },
       input: [...pageEntries, ...(mode === 'development' ? ['patch-preview.html'] : [])].map((page) =>
         path.resolve(page)
       )

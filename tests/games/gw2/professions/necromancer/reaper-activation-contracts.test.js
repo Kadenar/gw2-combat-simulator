@@ -136,10 +136,7 @@ test('Reaper damage producers gate cooldown claims, life force and shroud rechar
         runtime.cooldownController.readyAt(ID.WELL_OF_SUFFERING),
         startingDeadlines.get(ID.WELL_OF_SUFFERING)
       );
-      assert.deepEqual(
-        Object.keys(runtime.procs.snapshot()).sort(),
-        active ? [novaDeadline, victoryDeadline].sort() : []
-      );
+      for (const key of [novaDeadline, victoryDeadline]) assert.equal(runtime.procs.deadline(key) > 0, active);
     }
   }
 });
@@ -172,7 +169,7 @@ test('Nova uses the resolved critical outcome in both damage modes and only elig
     false
   );
   assert.equal(lifeForcePercent(runtime.profession.core.lifeForce, runtime.resourceController.value('lifeForce')), 10);
-  assert.deepEqual(runtime.procs.snapshot(), {});
+  for (const key of [novaDeadline, victoryDeadline]) assert.equal(runtime.procs.deadline(key), 0);
 });
 
 test('Nova and Chilling Victory retain patched cooldowns with an exclusive deadline', () => {

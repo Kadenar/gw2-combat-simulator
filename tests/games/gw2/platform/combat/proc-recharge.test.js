@@ -22,9 +22,7 @@ for (const rate of [1, 1.25, 1.5]) {
     assert.equal(procs.deadline(1), 11);
     assert.equal(procs.claim(1, 1, 11), false);
     assert.equal(procs.claim(1, 1, 11.001), true);
-    const snapshot = procs.snapshot();
-    snapshot[1] = 999;
-    assert.notEqual(procs.deadline(1), 999);
+    assert.equal(procs.deadline(1), 11.001 + 10);
   });
 }
 
@@ -55,20 +53,20 @@ test('summon recharge integrates later grants and expiry for the captured compan
   assert.equal(procs.deadline('first'), 20.001);
 });
 
-test('scoped recharges, reset, and explicit deadlines do not leak across proc owners', () => {
+test('scoped recharges and replacement deadlines do not leak across proc owners', () => {
   const { procs } = fixture();
   assert.equal(procs.claim(3, 'fire', 1, 'pet-a'), true);
   assert.equal(procs.claim(3, 'water', 2, 'pet-a'), true);
   assert.equal(procs.deadline('fire'), 11);
   assert.equal(procs.deadline('water'), 12);
-  procs.reset('fire');
+  procs.setDeadline('fire', 0);
   assert.equal(procs.deadline('fire'), 0);
   assert.equal(procs.claim(3, 'fire', 2, 'pet-a'), true);
   procs.setDeadline('fire', 50);
   assert.equal(procs.deadline('fire'), 50);
   assert.equal(procs.deadline('water'), 12);
   procs.claim(3, 3, 1, 'pet-a');
-  procs.reset('3');
+  procs.setDeadline('3', 0);
   assert.equal(procs.deadline(3), 0);
 });
 

@@ -98,7 +98,6 @@ export function createGw2SimulationConfig({
     weaponSet2Primary: build.alternateWeapons[0],
     weaponSet2Secondary: build.alternateWeapons[1],
     startingWeaponSet: build.startingWeaponSet === 2 ? 2 : 1,
-    initialResource: 0,
     randomness: { ...simulationRandomnessFromAssumptions(assumptions) },
     criticalDamageMode: normalizeCriticalDamageMode(assumptions.criticalDamageMode),
     professionAssumptions: structuredClone(

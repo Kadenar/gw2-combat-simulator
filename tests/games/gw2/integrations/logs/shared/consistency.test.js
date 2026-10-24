@@ -343,7 +343,6 @@ test('EVTC and dps.report produce the same replay timing for equivalent cast evi
     catalog
   );
 
-  assert.equal(evtc.timelineOriginMs, report.timelineOriginMs);
   assert.equal(evtc.combatStartTimestampMs, report.combatStartTimestampMs);
   assert.deepEqual(evtc.rotation, report.rotation);
 });

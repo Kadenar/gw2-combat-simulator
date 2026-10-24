@@ -36,10 +36,6 @@ export class SkillDamageRunner {
     });
   }
 
-  get isRunning(): boolean {
-    return this.queue.isRunning;
-  }
-
   schedule(plan: SkillDamagePlan): void {
     if ((this.queue.pending ?? this.queue.inFlight)?.signature === plan.signature) return;
 

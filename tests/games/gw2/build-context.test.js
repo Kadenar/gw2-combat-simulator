@@ -214,9 +214,9 @@ test('profession starting resources and selections survive headless composition'
     const build = module.toApplicationBuild(module.profession.createBuildDefaults());
     const config = module.createBuildContext(input(module.profession, build)).simulationConfig();
     for (const name of names) assert.deepEqual(config[name], build[name], `${id}.${name}`);
-    const resource = { engineer: 'initialHeat', revenant: 'initialEnergy', thief: 'initialInitiative' }[id];
 
-    if (resource) assert.equal(config.initialResource, build[resource]);
+    // Only professions whose resource policy consumes the generic field should publish it.
+    if (['engineer', 'revenant', 'thief'].includes(id)) assert.equal(Object.hasOwn(config, 'initialResource'), false);
   }
 
   const mesmer = await loadBuildContext('mesmer');

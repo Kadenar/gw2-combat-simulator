@@ -59,7 +59,7 @@ for (const [key, trait, trigger, literalDuration] of [
             const enqueue = runtime.queue.enqueue.bind(runtime.queue);
             runtime.queue.enqueue = (event) => {
               if (event.sourceId === trait) {
-                assert.equal(runtime.procs.snapshot()[trait], canonicalTime(event.at + elapsed));
+                assert.equal(runtime.procs.deadline(trait), canonicalTime(event.at + elapsed));
                 emitted += 1;
               }
 
@@ -92,10 +92,10 @@ for (const [key, trait, trigger, literalDuration] of [
         const runtime = observedRuntime(result);
         assert.equal(emitted > 0, expected);
         assert.equal(
-          runtime.procs.snapshot()[trait],
+          runtime.procs.deadline(trait),
           expected ? canonicalTime((trigger === 'swap' ? Math.ceil(canonicalTime(at) / 0.04) * 0.04 : at) + elapsed) : 1
         );
-        assert.equal(runtime.procs.snapshot()['unrelated'], 99);
+        assert.equal(runtime.procs.deadline('unrelated'), 99);
       }
     }
   });
@@ -125,7 +125,7 @@ test('Opportunist ignores summons, effect immobilization, and unrelated player c
     }
   });
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual({ ...observedRuntime(result).procs.snapshot() }, {});
+  assert.equal(observedRuntime(result).procs.deadline(TRAIT.OPPORTUNIST), 0);
   assert.equal(observedRuntime(result).profession.core.adrenaline.value, 0);
 });
 

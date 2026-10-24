@@ -62,7 +62,7 @@ function rangerPetAttributes(context: RangerRuntime | RangerResolverContext) {
   return attributes;
 }
 
-/** Pet combat packets always retain the active companion's identity and trait-derived attributes. */
+/** Pet combat packets retain companion identity and only the trait-derived attributes consumed by damage rules. */
 export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverContext) {
   const attributes = rangerPetAttributes(context);
   // New families may declare a different pet weapon without changing established damage baselines.
@@ -76,12 +76,9 @@ export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverC
     summonUsesProfessionModifiers: true,
     summonBasePower: attributes.power,
     summonBasePrecision: attributes.precision,
-    summonBaseToughness: attributes.toughness,
-    summonBaseVitality: attributes.vitality,
     summonBaseFerocity: attributes.ferocity,
     summonBaseConditionDamage: attributes.conditionDamage,
     summonBaseExpertise: attributes.expertise,
-    summonBaseHealingPower: attributes.healingPower,
     summonOwner: rangerPetCompanionId(context),
     entityName: rangerPetForState(professionCoreState(context)).name,
     // Pets crit like players: the level-80 base chance plus Precision above the baseline, matching the pet panel.

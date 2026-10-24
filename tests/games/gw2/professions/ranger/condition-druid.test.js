@@ -208,16 +208,8 @@ test('Carrion Devourer packets use its level-80 attributes', () => {
   const packet = result.resolvedEvents.find(({ type, actorType }) => type === 'damage' && actorType === 'summon');
 
   assert.deepEqual(
-    [
-      packet.summonBasePower,
-      packet.summonBasePrecision,
-      packet.summonBaseToughness,
-      packet.summonBaseVitality,
-      packet.summonBaseConditionDamage,
-      packet.summonBaseFerocity,
-      packet.summonBaseHealingPower
-    ],
-    [1524, 1524, 2898, 2211, 1000, 0, 0]
+    [packet.summonBasePower, packet.summonBasePrecision, packet.summonBaseConditionDamage, packet.summonBaseFerocity],
+    [1524, 1524, 1000, 0]
   );
 });
 

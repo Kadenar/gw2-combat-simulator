@@ -17,16 +17,14 @@ export interface ProcRegistryContext {
   };
 }
 
-/** Per-run proc deadlines shared by traits, sigils, relics, and food; observations receive detached copies. */
+/** Per-run proc deadlines shared by traits, sigils, relics, and food; callers query only their owned keys. */
 export interface ProcRegistry {
   setDeadline(key: SkillId, at: number): void;
-  snapshot(): Readonly<Record<string, number>>;
   /** Unarmed owners are ready at zero. */
   deadline(key: SkillId): number;
   /** Claims the profile's cooldown policy; summon recharges require their actual companion incarnation. */
   claim(profileId: SkillId, key?: SkillId, at?: number, companionId?: string): boolean;
   claimCooldown(key: SkillId, at: number, duration: number): boolean;
-  reset(key: SkillId): void;
 }
 
 /** One registry per simulation owns proc deadlines; profile IDs and equipment namespaces isolate unrelated claims. */
@@ -51,16 +49,12 @@ export function createProcRegistry(context: () => ProcRegistryContext): ProcRegi
   };
 
   return {
-    /** Sampled proc commits use the same owner; observations receive a detached deadline record. */
+    /** Explicit deadlines replace any recharge work previously owned by the same key. */
     setDeadline(key: SkillId, at: number): void {
       if (typeof at !== 'number' || Number.isNaN(at)) throw new TypeError('Proc cooldown readyAt must be a number.');
 
       recharges.delete(String(key));
       readyAt[key] = at;
-    },
-    snapshot: (): Readonly<Record<string, number>> => {
-      for (const key of recharges.keys()) deadline(key);
-      return { ...readyAt };
     },
     /** Unarmed owners are ready at zero; callers with mechanic-specific boundary rules can inspect the deadline. */
     deadline,
@@ -117,10 +111,6 @@ export function createProcRegistry(context: () => ProcRegistryContext): ProcRegi
       if (claimed) recharges.delete(String(key));
 
       return claimed;
-    },
-    reset(key: SkillId): void {
-      recharges.delete(String(key));
-      delete readyAt[key];
     }
   };
 }

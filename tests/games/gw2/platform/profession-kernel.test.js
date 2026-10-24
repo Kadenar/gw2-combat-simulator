@@ -476,7 +476,7 @@ test('recharge rules compose with hooks and trait triggers claim before emitting
         }
       ],
       onCastCommit(runtime, activation) {
-        observations.push([activation.rechargeWork, runtime.procs.snapshot()['test.proc']]);
+        observations.push([activation.rechargeWork, runtime.procs.deadline('test.proc')]);
       }
     },
     [cast(991009), wait(1000)]

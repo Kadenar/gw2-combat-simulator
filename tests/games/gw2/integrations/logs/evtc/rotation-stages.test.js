@@ -138,5 +138,4 @@ test('player selection recognizes stop-only evidence and validates explicit addr
   assert.throws(() => selectPlayerAgent([]), { code: 'NO_PLAYER' });
   const reconstructed = reconstructEvtcRotation(fixture, null, { playerEvidence: evidence });
   assert.equal(reconstructed.player, selected.player);
-  assert.equal(reconstructed.timelineOriginMs, -600);
 });

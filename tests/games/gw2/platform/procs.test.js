@@ -59,7 +59,7 @@ test('proc cooldowns preserve infinite sentinels and zero-duration behavior', ()
 });
 
 // Resolver callers supply event time explicitly; scoped claims retain independent recipient deadlines.
-test('resolver proc registries read live profiles and isolate scopes and resets', () => {
+test('resolver proc registries read live profiles and isolate scopes and explicit deadlines', () => {
   const profile = { id: 'trait', internalCooldown: 2 };
   const context = { helpers: { balanceProfilesById: new Map([['trait', profile]]) } };
   const procs = createProcRegistry(() => context);
@@ -70,7 +70,7 @@ test('resolver proc registries read live profiles and isolate scopes and resets'
   profile.internalCooldown = 4;
   assert.equal(procs.claim('trait', 'ally:1', 3.000001), true);
   assert.equal(procs.deadline('ally:1'), 7.000001);
-  procs.reset('ally:1');
+  procs.setDeadline('ally:1', 0);
   assert.equal(procs.deadline('ally:1'), 0);
   assert.equal(procs.deadline('ally:2'), 3);
   assert.equal(createProcRegistry(() => context).deadline('ally:2'), 0);

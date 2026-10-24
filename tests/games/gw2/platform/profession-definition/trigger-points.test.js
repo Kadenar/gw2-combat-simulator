@@ -249,7 +249,7 @@ for (const stage of ['point', 'castStart', 'castCommit', 'damage.resolved']) {
         const active = selected && traitTriggers;
         assert.deepEqual(result.warnings, []);
         assert.deepEqual(calls, active ? ['eligible', 'activated'] : []);
-        assert.deepEqual(Object.keys(observedRuntime(result).procs.snapshot()), active ? ['109'] : []);
+        assert.equal(observedRuntime(result).procs.deadline(109) > 0, active);
       }
     }
   });

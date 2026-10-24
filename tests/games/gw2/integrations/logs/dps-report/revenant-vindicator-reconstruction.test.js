@@ -55,8 +55,6 @@ test('dps.report Vindicator reconstruction includes takeoff and recognizes Energ
   const other = simulate(reconstruction.rotation, 'Air');
 
   assert.deepEqual(actionNames, ['Dodge', 'Swap Legends', 'Dodge']);
-  // The source landing at 100 ms belongs to the jump beginning 600 ms earlier.
-  assert.equal(reconstruction.timelineOriginMs, -500);
   assert.equal(energyProcs(energy), 1);
   assert.equal(energyProcs(other), 0);
 });

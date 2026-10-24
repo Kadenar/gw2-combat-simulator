@@ -45,11 +45,14 @@ test('critical sigil decisions use sampled outcomes and strict deadlines without
   assert.deepEqual(decide({ ...hit, at: 4 }, 0), { procs: [] });
   assert.deepEqual(decide({ ...hit, at: 4 }, 0.5, false), { procs: [] });
   assert.equal(decide({ ...hit, at: 4, actorType: 'effect', canTriggerCriticalSigils: true }).procs.length, 2);
-  assert.deepEqual(Object.entries(procs.snapshot()), [
-    [`sigil.${SIGIL_IDS.EARTH}`, 2],
-    [`sigil.${SIGIL_IDS.AIR}`, 3],
-    [`sigil.${SIGIL_IDS.DOOM}`, 9]
-  ]);
+  assert.deepEqual(
+    [SIGIL_IDS.EARTH, SIGIL_IDS.AIR, SIGIL_IDS.DOOM].map((id) => [`sigil.${id}`, procs.deadline(`sigil.${id}`)]),
+    [
+      [`sigil.${SIGIL_IDS.EARTH}`, 2],
+      [`sigil.${SIGIL_IDS.AIR}`, 3],
+      [`sigil.${SIGIL_IDS.DOOM}`, 9]
+    ]
+  );
   assert.throws(
     () => createCriticalSigilEvent(999999, { effect: 'unsupported' }, ''),
     /Unsupported critical sigil effect/

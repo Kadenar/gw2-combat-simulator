@@ -15,7 +15,6 @@ export const createBuildContext = bindBuildContext<RevenantCanonicalBuild>(
   profession,
   { attributeContributions: profession.attributeContributions },
   (build) => ({
-    initialResource: build.initialEnergy,
     initialEnergy: build.initialEnergy,
     selectedLegends: build.selectedLegends,
     startingLegend: build.startingLegend

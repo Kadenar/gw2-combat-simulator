@@ -409,7 +409,6 @@ function reconstructWithProfile(
       eiRule: action.eiRule,
       castOrigin: action.castOrigin
     })),
-    timelineOriginMs: origin,
     combatStartTimestampMs: combatStart == null ? null : Math.max(0, combatStart - origin),
     actions,
     rotation: buildRotation(resolved, origin, combatStart),

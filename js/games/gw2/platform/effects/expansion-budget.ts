@@ -40,15 +40,15 @@ export interface EffectExpansionBudget {
 
 /**
  * One runtime shares this cumulative budget across emitted packets and expanded condition-stack records.
- * Tests lower the limit to verify atomic rejection and cumulative accounting with small batches.
+ * Every caller uses the production limit, keeping allocation safety independent of execution options.
  */
-export function createEffectExpansionBudget(limit = MAX_EFFECT_EXPANSION): EffectExpansionBudget {
-  let remaining = requireEffectExpansionCount(limit, 'Effect expansion budget');
+export function createEffectExpansionBudget(): EffectExpansionBudget {
+  let remaining = MAX_EFFECT_EXPANSION;
   return {
     reserve(count, label) {
       if (!Number.isSafeInteger(count) || count < 0 || count > remaining) {
         throw new RangeError(
-          `Effect expansion budget (${limit}) exceeded by ${label}: requested ${count}, remaining ${remaining}.`
+          `Effect expansion budget (${MAX_EFFECT_EXPANSION}) exceeded by ${label}: requested ${count}, remaining ${remaining}.`
         );
       }
 

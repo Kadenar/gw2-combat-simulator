@@ -112,7 +112,6 @@ test('EVTC preserves a stop-only pre-log cast and distinguishes recording, comba
   });
   const out = reconstructEvtcRotation(fixture, catalog);
   assert.equal(out.sourceActions[0].startMs, -600);
-  assert.equal(out.timelineOriginMs, -600);
   assert.equal(out.combatStartTimestampMs, 700);
   assert.equal(out.warnings.filter((w) => w === LOG_OPENER_WARNING).length, 1);
 });

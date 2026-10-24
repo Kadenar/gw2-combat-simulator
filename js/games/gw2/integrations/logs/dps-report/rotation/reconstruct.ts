@@ -425,7 +425,6 @@ function reconstructDpsReportWithProfile(
       status: action.status,
       metadataAccurate: action.metadataAccurate
     })),
-    timelineOriginMs: origin,
     combatStartTimestampMs: combatStart - origin,
     actions,
     rotation: buildRotation(resolved, origin, combatStart, profile.specializationId === 'troubadour'),

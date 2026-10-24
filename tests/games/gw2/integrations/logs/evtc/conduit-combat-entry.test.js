@@ -55,15 +55,16 @@ test('clipped Conduit openers preserve combat entry and the following Haze charg
   }
 
   assert.equal(imported.sourceActions[0].startMs, 1000);
-  assert.equal(imported.timelineOriginMs + imported.combatStartTimestampMs, 1203);
 });
 
 test('complete Haze launches and uncorroborated teleports do not receive an inferred opener', () => {
   // Other-player hits and teleports after combat entry cannot establish this player's missing opening launch.
   for (const options of [{ launch: true }, { hitSource: 0x3000n }, { combatAt: 900 }]) {
     const imported = reconstructEvtcRotation(hazeOpener(options), revenantCatalog);
-    assert.equal(imported.timelineOriginMs, Math.min(imported.sourceActions[0].startMs, options.combatAt ?? 1203));
-    assert.equal(imported.timelineOriginMs + imported.combatStartTimestampMs, options.combatAt ?? 1203);
+    assert.equal(
+      imported.combatStartTimestampMs,
+      Math.max(0, (options.combatAt ?? 1203) - imported.sourceActions[0].startMs)
+    );
   }
 });
 

@@ -130,10 +130,7 @@ for (const [type, name] of [
       result.events.some((event) => event.type === 'condition' && event.skillId === TRAIT.DARK_SENTRY),
       false
     );
-    assert.equal(
-      Object.keys(observedRuntime(result).procs.snapshot()).some((key) => key.startsWith('thief.specter.darkSentry:')),
-      type !== 'buff'
-    );
+    assert.equal(observedRuntime(result).procs.deadline('thief.specter.darkSentry:1') > 0, type !== 'buff');
   });
 }
 
@@ -225,7 +222,7 @@ test('removed critical Fury leaves its cooldown unclaimed', () => {
     selectedTraitIds: [TRAIT.UNRELENTING_STRIKES]
   });
   assert.equal(packet(result, 'buff', TRAIT.UNRELENTING_STRIKES).length, 0);
-  assert.equal(observedRuntime(result).procs.snapshot()[TRAIT.UNRELENTING_STRIKES], undefined);
+  assert.equal(observedRuntime(result).procs.deadline(TRAIT.UNRELENTING_STRIKES), 0);
 });
 
 test('Malicious Sneak Attack removal preserves Bleeding and malice spending', () => {

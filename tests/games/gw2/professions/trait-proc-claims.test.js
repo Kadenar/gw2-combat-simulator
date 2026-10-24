@@ -124,7 +124,7 @@ function fixture(
   assert.deepEqual(result.warnings, []);
   const runtime = observedRuntime(result);
   // Guardian's initial Aegis may proc Stalwart Speed; isolate the opportunities exercised below.
-  runtime.procs.reset(key);
+  runtime.procs.setDeadline(key, 0);
   runtime.time = 1;
   return runtime;
 }
@@ -169,7 +169,6 @@ for (const entry of cases) {
     entry.invoke(runtime);
     assert.equal(runtime.procs.deadline(entry.key), 5.000001);
     assert.ok(capture.events.length > count);
-    assert.deepEqual(Object.keys(runtime.procs.snapshot()), [entry.key]);
   });
 
   test(`${entry.key} preserves cooldown eligibility when its effect is removed`, () => {

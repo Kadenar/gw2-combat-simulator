@@ -36,7 +36,7 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
       };
       context.state.effects = captureEffectEmissions({
         submit: (event) => {
-          assert.equal(context.state.procs.snapshot()[TRAIT.MASTER_FENCER], event.at + duration);
+          assert.equal(context.state.procs.deadline(TRAIT.MASTER_FENCER), event.at + duration);
           events.push(event);
           return event;
         }
@@ -55,12 +55,12 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
     opportunity(1);
     assert.equal(events.length, 0);
     opportunity(2);
-    assert.equal(context.state.procs.snapshot()[TRAIT.MASTER_FENCER], 2);
+    assert.equal(context.state.procs.deadline(TRAIT.MASTER_FENCER), 2);
     opportunity(2.000001, false);
     assert.equal(events.length, 0);
     opportunity(2.000001);
     assert.equal(events.length, 2);
-    assert.equal(context.state.procs.snapshot()[TRAIT.MASTER_FENCER], 2.000001 + duration);
+    assert.equal(context.state.procs.deadline(TRAIT.MASTER_FENCER), 2.000001 + duration);
     opportunity(2.000001 + duration);
     assert.equal(events.length, 2);
     opportunity(2.000002 + duration);

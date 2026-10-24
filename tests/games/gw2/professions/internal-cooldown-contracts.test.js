@@ -85,7 +85,7 @@ test('Revenant Brutality claims at swap completion and honors the exclusive ICD 
             )
         }
       );
-    assert.deepEqual({ ...observedRuntime(run([])).procs.snapshot() }, {});
+    assert.equal(observedRuntime(run([])).procs.deadline('brutality'), 0);
     const result = run([REVENANT_TRAIT_IDS.BRUTALITY]);
     assert.deepEqual(result.warnings, []);
     // The swap at the exact deadline is blocked; the next action tick claims again from its own completion.
@@ -95,7 +95,7 @@ test('Revenant Brutality claims at swap completion and honors the exclusive ICD 
         .map((event) => event.at),
       [1, 1 + duration + 0.04]
     );
-    closeTo(observedRuntime(result).procs.snapshot()['brutality'], 1 + duration + 0.04 + duration);
+    closeTo(observedRuntime(result).procs.deadline('brutality'), 1 + duration + 0.04 + duration);
   }
 });
 
@@ -121,7 +121,7 @@ test('Revenant Vicious Reprisal claims only eligible strikes and honors the excl
       );
     const might = (result) =>
       result.events.filter((event) => event.type === 'buff' && event.sourceId === REVENANT_TRAIT_IDS.VICIOUS_REPRISAL);
-    assert.deepEqual({ ...observedRuntime(run([])).procs.snapshot() }, {});
+    assert.equal(observedRuntime(run([])).procs.deadline('viciousReprisal'), 0);
     assert.deepEqual(might(run([REVENANT_TRAIT_IDS.VICIOUS_REPRISAL], {})), []);
     const result = run([REVENANT_TRAIT_IDS.VICIOUS_REPRISAL]);
     assert.deepEqual(result.warnings, []);
@@ -129,7 +129,7 @@ test('Revenant Vicious Reprisal claims only eligible strikes and honors the excl
       might(result).map((event) => event.at),
       [1, 1 + duration + 0.001]
     );
-    closeTo(observedRuntime(result).procs.snapshot()['viciousReprisal'], 1 + duration + 0.001 + duration);
+    closeTo(observedRuntime(result).procs.deadline('viciousReprisal'), 1 + duration + 0.001 + duration);
   }
 });
 
@@ -194,7 +194,7 @@ for (const [key, trait, invoke, literalDuration] of [
         const observed = { effects: 0 };
         context.effects = captureEffectEmissions({
           submit(event) {
-            assert.equal(context.procs.snapshot()[key], bypass ? undefined : event.at + elapsed);
+            assert.equal(context.procs.deadline(key), bypass ? 0 : event.at + elapsed);
             observed.effects += 1;
             return event;
           }
@@ -216,7 +216,7 @@ for (const [key, trait, invoke, literalDuration] of [
 
       const unselected = scenario([]);
       unselected.opportunity(1);
-      assert.deepEqual({ ...unselected.context.procs.snapshot() }, {});
+      assert.equal(unselected.context.procs.deadline(key), 0);
       const { observed, opportunity } = scenario([trait]);
       opportunity(1);
       assert.ok(observed.effects > 0);
@@ -316,11 +316,11 @@ test('Engineer condition traits stay blocked at the exact ICD boundary', () => {
     traitTriggers: hematicFocus.triggers.map((rule) => ({ ...rule, trait: hematicFocus.id }))
   }).reactions['condition.applied'];
   reaction(context, event);
-  assert.equal(context.procs.snapshot()['hematicFocus'], READY_AT);
+  assert.equal(context.procs.deadline('hematicFocus'), READY_AT);
   assert.equal(context.queue.length, 0);
 
   reaction(context, { ...event, at: AFTER_READY_AT });
-  assert.ok(context.procs.snapshot()['hematicFocus'] > AFTER_READY_AT);
+  assert.ok(context.procs.deadline('hematicFocus') > AFTER_READY_AT);
   assert.equal(context.queue.length, 1);
 });
 
@@ -358,15 +358,15 @@ test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and in
       react(context, { ...event, at: triggerAt });
       assert.ok(context.queue.length > 0);
       const deadline = ally
-        ? context.procs.snapshot()[`ranger.soulbeast.alliedStance:${kind}:1`]
-        : context.procs.snapshot()[field];
+        ? context.procs.deadline(`ranger.soulbeast.alliedStance:${kind}:1`)
+        : context.procs.deadline(field);
       assert.equal(deadline, triggerAt + (kind === 'one-wolf-pack' ? 1 : 0.25));
 
       if (ally) {
         const queued = context.queue.length;
         react(context, { ...event, at: 1.04, metadata: { triggeredByAlly: 2 } });
         assert.ok(context.queue.length > queued);
-        assert.equal(context.procs.snapshot()[field], READY_AT);
+        assert.equal(context.procs.deadline(field), READY_AT);
       }
     }
   }
@@ -463,7 +463,7 @@ test('Thief boon traits stay blocked at the exact ICD boundary', () => {
     result.events.filter((event) => event.sourceId === THIEF_TRAIT_IDS.ASSASSINS_FURY).map((event) => event.at),
     [AFTER_READY_AT]
   );
-  assert.ok(observedRuntime(result).procs.snapshot()[THIEF_TRAIT_IDS.ASSASSINS_FURY] > AFTER_READY_AT);
+  assert.ok(observedRuntime(result).procs.deadline(THIEF_TRAIT_IDS.ASSASSINS_FURY) > AFTER_READY_AT);
 });
 
 // Burst impacts use native invoked-skill recharge, which admits the exact ready action tick.
@@ -589,13 +589,13 @@ test('Ineptitude claims only surviving effects on defiant targets at the event t
         removedEffectKeys: [JSON.stringify(['condition', 'Confusion'])]
       });
       mesmerControlOpportunity(context, event);
-      assert.deepEqual({ ...context.procs.snapshot() }, {});
+      assert.equal(context.procs.deadline(key), 0);
       assert.equal(conditions.length, 0);
       context.catalog = catalog;
       context.effects = captureEffectEmissions({
         submit(condition) {
           conditions.push(condition);
-          assert.equal(context.procs.snapshot()[key], defiant ? condition.at + duration : undefined);
+          assert.equal(context.procs.deadline(key), defiant ? condition.at + duration : 0);
 
           if (defiant && conditions.length === 1) mesmerControlOpportunity(context, event);
 
@@ -630,7 +630,7 @@ test('Demonic Lore claims its cooldown field only for a surviving Burning packet
     removedEffectKeys: [JSON.stringify(['condition', 'Burning'])]
   });
   scourgeConditionOpportunity(context, event);
-  assert.deepEqual({ ...context.procs.snapshot() }, {});
+  assert.equal(context.procs.deadline(key), 0);
   context.catalog = catalog;
   context.effects = captureEffectEmissions({
     submit(condition) {
@@ -675,14 +675,12 @@ test('Vampiric Presence preserves player and companion cooldown scopes', () => {
   }
 
   assert.equal(context.queue.length, 3);
-  assert.deepEqual(
-    { ...context.procs.snapshot() },
-    {
-      'necromancer.core.vampiricPresence': 7,
-      'vampiricPresence:minion:fixture:0': 7,
-      'vampiricPresence:minion:fixture:1': 7
-    }
-  );
+  for (const key of [
+    'necromancer.core.vampiricPresence',
+    'vampiricPresence:minion:fixture:0',
+    'vampiricPresence:minion:fixture:1'
+  ])
+    assert.equal(context.procs.deadline(key), 7);
 });
 
 // In-game logs: no siphon before the first Vampiric Aura pulse, and the ICD bracket (498, 500] ms admits a
@@ -701,7 +699,7 @@ test('Vampiric Presence waits for its first aura pulse and accepts a hit on its 
   const event = { type: 'damage', actorType: 'player', coefficient: 1, at: firstPulse - 0.001 };
   strikeOpportunity(context, event);
   assert.equal(context.queue.length, 0, 'no siphon before the first aura pulse');
-  assert.deepEqual({ ...context.procs.snapshot() }, {}, 'a gated hit spends no cooldown');
+  assert.equal(context.procs.deadline('necromancer.core.vampiricPresence'), 0, 'a gated hit spends no cooldown');
   strikeOpportunity(context, { ...event, at: firstPulse });
   strikeOpportunity(context, { ...event, at: firstPulse + cooldown - 0.001 });
   assert.equal(context.queue.length, 1, 'a hit before the deadline stays on cooldown');
@@ -768,10 +766,7 @@ test('Dark Sentry claims each eligible ally once and retains strict recipient de
   assert.equal(runtime.procs.deadline('thief.specter.darkSentry:1'), 1);
   const secondDeadline = runtime.procs.deadline('thief.specter.darkSentry:2');
   assert.ok(secondDeadline > 1);
-  assert.deepEqual(Object.keys(runtime.procs.snapshot()).sort(), [
-    'thief.specter.darkSentry:1',
-    'thief.specter.darkSentry:2'
-  ]);
+  for (const index of [0, 3, 1.5]) assert.equal(runtime.procs.deadline(`thief.specter.darkSentry:${index}`), 0);
   runtime.time = 1.000001;
   invoke(runtime.mechanics, { allyIndices: [1, 2] });
   assert.ok(runtime.procs.deadline('thief.specter.darkSentry:1') > 1.000001);

@@ -15,7 +15,6 @@ export const createBuildContext = bindBuildContext<EngineerCanonicalBuild>(
   profession,
   { attributeContributions: profession.attributeContributions },
   (build) => ({
-    initialResource: build.initialHeat,
     initialHeat: build.initialHeat,
     selectedMorphSkillIds: build.selectedMorphSkillIds
   }),

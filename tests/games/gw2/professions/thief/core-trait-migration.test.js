@@ -79,7 +79,11 @@ function internalCooldownClaims(traitId, action, duration, catalog) {
       },
       probes: [1.0005, 1 + duration + 0.0005, 1 + duration + 0.0405].map((at) => [
         at,
-        (runtime) => readyAt.push({ ...runtime.procs.snapshot() })
+        (runtime) =>
+          readyAt.push({
+            unrelated: runtime.procs.deadline('unrelated'),
+            ...(traitId == null ? {} : { [traitId]: runtime.procs.deadline(traitId) })
+          })
       ])
     }
   );
@@ -226,7 +230,8 @@ for (const [name, traitId, invoke, output] of [
 
       const unselected = prepare([]);
       invoke(unselected);
-      assert.deepEqual({ ...unselected.procs.snapshot() }, { unrelated: 99 });
+      assert.equal(unselected.procs.deadline('unrelated'), 99);
+      assert.equal(unselected.procs.deadline(traitId), 0);
       const context = prepare([traitId]);
       const owner = output === 'queue' ? context.queue : context;
       const method = output === 'queue' ? 'enqueue' : output;
@@ -234,7 +239,7 @@ for (const [name, traitId, invoke, output] of [
       let emissions = 0;
       let reenter = true;
       owner[method] = (event) => {
-        assert.equal(context.procs.snapshot()[traitId], context.effectiveEnd + duration);
+        assert.equal(context.procs.deadline(traitId), context.effectiveEnd + duration);
         emissions += 1;
 
         if (reenter) {
@@ -259,8 +264,8 @@ for (const [name, traitId, invoke, output] of [
       context.effectiveEnd = 1 + duration + 0.000001;
       invoke(context);
       assert.ok(emissions > firstEmissions);
-      assert.equal(context.procs.snapshot()['unrelated'], 99);
-      assert.deepEqual({ ...traitContext([traitId]).context.procs.snapshot() }, {});
+      assert.equal(context.procs.deadline('unrelated'), 99);
+      assert.equal(traitContext([traitId]).context.procs.deadline(traitId), 0);
     }
   });
 }
@@ -273,7 +278,7 @@ test('Lotus Poison grants self Might and target Weakness only for the player poi
     context.fireTrigger(thiefConditionApplied, { cause: { ...poison, ...overrides } });
   }
 
-  assert.deepEqual({ ...context.procs.snapshot() }, {});
+  assert.equal(context.procs.deadline(TRAIT.LOTUS_POISON), 0);
   assert.equal(context.queue.length, 0);
   context.fireTrigger(thiefConditionApplied, { cause: poison });
   const might = context.queue.dequeue();
@@ -285,7 +290,7 @@ test('Lotus Poison grants self Might and target Weakness only for the player poi
   assert.equal(weakness.condition, 'Weakness');
   assert.equal(weakness.duration, 4);
   assert.equal(weakness.sourceId, TRAIT.LOTUS_POISON);
-  assert.equal(context.procs.snapshot()[TRAIT.LOTUS_POISON], 11);
+  assert.equal(context.procs.deadline(TRAIT.LOTUS_POISON), 11);
   for (const at of [1, 10.999, 11]) context.fireTrigger(thiefConditionApplied, { cause: { ...poison, at } });
   assert.equal(context.queue.length, 0);
   context.fireTrigger(thiefConditionApplied, { cause: { ...poison, at: 11.001 } });
@@ -826,10 +831,10 @@ test("Assassin's Fury preserves recipient gating, removed effects, and patched I
           selected && !removed ? [1, 1 + duration + 0.001] : []
         );
         const runtime = observedRuntime(result);
-        assert.equal(runtime.procs.snapshot()['unrelated'], 99);
+        assert.equal(runtime.procs.deadline('unrelated'), 99);
         assert.equal(
-          runtime.procs.snapshot()[TRAIT.ASSASSINS_FURY],
-          selected && !removed ? 1 + duration + 0.001 + duration : undefined
+          runtime.procs.deadline(TRAIT.ASSASSINS_FURY),
+          selected && !removed ? 1 + duration + 0.001 + duration : 0
         );
         assert.deepEqual(result.warnings, []);
       }

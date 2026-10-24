@@ -78,7 +78,6 @@ export interface RotationReconstructionBase<
 > {
   readonly parserId: string;
   readonly player: Player;
-  readonly timelineOriginMs: number;
   readonly combatStartTimestampMs: number | null;
   readonly actions: readonly Action[];
   readonly sourceActions?: readonly RotationSourceAction[];

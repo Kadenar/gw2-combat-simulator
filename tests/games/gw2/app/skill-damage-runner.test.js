@@ -51,7 +51,6 @@ test('damage preview coalesces edits and publishes only the latest worker respon
   worker.reply({ requestId: worker.messages[1].requestId, evaluation: { occurrences: [] } });
   assert.equal(published.length, 1);
   assert.equal(published[0][0], 'latest');
-  assert.equal(runner.isRunning, false);
 });
 
 test('closing the preview terminates in-flight work and ignores its late response', (t) => {
@@ -63,7 +62,6 @@ test('closing the preview terminates in-flight work and ignores its late respons
   worker.reply({ requestId: worker.messages[0].requestId, evaluation: { occurrences: [] } });
   assert.equal(worker.terminated, true);
   assert.equal(published.length, 0);
-  assert.equal(runner.isRunning, false);
   runner.schedule(plan('reopened'));
   t.mock.timers.tick(150);
   assert.equal(workers.length, 2);
@@ -75,7 +73,6 @@ test('worker errors publish once and a later request can recover', (t) => {
   t.mock.timers.tick(150);
   workers[0].listeners.get('error')({ message: 'Calculation failed' });
   assert.equal(published[0][2], 'Calculation failed');
-  assert.equal(runner.isRunning, false);
   runner.schedule(plan('retry'));
   t.mock.timers.tick(150);
   const worker = workers[1];
@@ -100,5 +97,4 @@ test('discarding a queued edit lets the in-flight request satisfy a repeated sch
     published.map(([signature]) => signature),
     ['measuring']
   );
-  assert.equal(runner.isRunning, false);
 });

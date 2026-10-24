@@ -73,21 +73,14 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   private current: { at: number; phase: number } | null = null;
   private sameTimeCount = 0;
   private readonly phaseFor?: (event: T, current: Readonly<{ at: number; phase: number }> | null) => number;
-  private readonly safetyLimit: number;
 
-  /** Start empty so every event receives canonical ordering keys through enqueue. */
+  /** Start empty with the shared execution limit so commands and packets cannot bypass the same-time budget. */
   constructor(
     options: {
       phaseFor?: (event: T, current: Readonly<{ at: number; phase: number }> | null) => number;
-      safetyLimit?: number;
     } = {}
   ) {
     this.phaseFor = options.phaseFor;
-    this.safetyLimit = options.safetyLimit ?? DEFAULT_EXECUTION_ITERATION_LIMIT;
-
-    if (!Number.isSafeInteger(this.safetyLimit) || this.safetyLimit < 1) {
-      throw new RangeError('Event safety limit must be a positive safe integer.');
-    }
   }
 
   get length(): number {
@@ -207,8 +200,10 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     this.current = { at, phase };
     this.currentCausalOrder = null;
 
-    if (this.sameTimeCount > this.safetyLimit) {
-      throw new Error(`Same-time event safety limit (${this.safetyLimit}) exceeded at ${at}s from ${source}.`);
+    if (this.sameTimeCount > DEFAULT_EXECUTION_ITERATION_LIMIT) {
+      throw new Error(
+        `Same-time event safety limit (${DEFAULT_EXECUTION_ITERATION_LIMIT}) exceeded at ${at}s from ${source}.`
+      );
     }
   }
 

@@ -194,7 +194,6 @@ test('phase selection preserves crossing inputs and excludes casts wholly outsid
     selected.sourceActions.map((action) => action.startMs),
     [800]
   );
-  assert.equal(selected.timelineOriginMs, 800);
   assert.equal(selected.combatStartTimestampMs, 200);
 });
 

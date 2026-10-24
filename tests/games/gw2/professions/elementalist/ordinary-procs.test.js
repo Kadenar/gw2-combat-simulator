@@ -103,13 +103,13 @@ for (const [trait, traitId, key, profile, invoke] of [
 
       const unselected = prepare([]).context;
       invoke(unselected);
-      assert.deepEqual({ ...unselected.procs.snapshot() }, {});
+      assert.equal(unselected.procs.deadline(key), 0);
       const { context, events } = prepare([traitId]);
       const emit = context.effects.emit.bind(context.effects);
       context.effects = {
         emit(request) {
           const event = request.event ?? request.announcement ?? { at: request.at };
-          assert.equal(context.procs.snapshot()[key], event.at + elapsed);
+          assert.equal(context.procs.deadline(key), event.at + elapsed);
           return emit(request);
         }
       };
@@ -123,7 +123,7 @@ for (const [trait, traitId, key, profile, invoke] of [
       context.effectiveEnd += 0.000001;
       invoke(context);
       assert.ok(events.length > count);
-      assert.deepEqual({ ...contextFor().context.procs.snapshot() }, {});
+      assert.equal(contextFor().context.procs.deadline(key), 0);
     }
   });
 }
@@ -153,19 +153,20 @@ test('Catalyst combo claims stay per element, and per trait, including Water', (
       const combo = { type: 'combo', at: 1, sourceId: 1 };
       const unselected = prepare([]).context;
       invoke(unselected, combo);
-      assert.deepEqual({ ...unselected.procs.snapshot() }, {});
+      for (const trait of ['elementalEpitome', 'elementalSynergy'])
+        assert.equal(unselected.procs.deadline(`elementalist.catalyst.${trait}:Fire`), 0);
       const { context, core, events } = prepare([TRAIT.ELEMENTAL_EPITOME, TRAIT.ELEMENTAL_SYNERGY]);
       for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
         core.primaryAttunement = element;
         invoke(context, { ...combo, attunement: element });
-        assert.equal(context.procs.snapshot()[`elementalist.catalyst.elementalEpitome:${element}`], 1 + duration);
-        assert.equal(context.procs.snapshot()[`elementalist.catalyst.elementalSynergy:${element}`], 1 + duration);
+        assert.equal(context.procs.deadline(`elementalist.catalyst.elementalEpitome:${element}`), 1 + duration);
+        assert.equal(context.procs.deadline(`elementalist.catalyst.elementalSynergy:${element}`), 1 + duration);
         const count = events.length;
         invoke(context, { ...combo, attunement: element, at: 1 + duration });
         assert.equal(events.length, count);
         invoke(context, { ...combo, attunement: element, at: 1 + duration + 0.000001 });
         assert.equal(
-          context.procs.snapshot()[`elementalist.catalyst.elementalSynergy:${element}`],
+          context.procs.deadline(`elementalist.catalyst.elementalSynergy:${element}`),
           1 + duration + 0.000001 + duration
         );
       }
@@ -187,20 +188,20 @@ test('Evoker real and synthetic entry share selected profile timers', () => {
   // A real entry on an unselected build claims nothing.
   const unselected = prepare([]).context;
   completeEvokerAttunement(unselected, castFor(unselected, earth), earth);
-  assert.deepEqual({ ...unselected.procs.snapshot() }, {});
+  for (const trait of [TRAIT.EARTHEN_BLAST, TRAIT.ROCK_SOLID]) assert.equal(unselected.procs.deadline(trait), 0);
   const { context, core } = prepare([TRAIT.EARTHEN_BLAST, TRAIT.ROCK_SOLID]);
   completeEvokerAttunement(context, castFor(context, earth), earth);
-  assert.equal(context.procs.snapshot()[TRAIT.EARTHEN_BLAST], 6);
-  assert.equal(context.procs.snapshot()[TRAIT.ROCK_SOLID], 6);
+  assert.equal(context.procs.deadline(TRAIT.EARTHEN_BLAST), 6);
+  assert.equal(context.procs.deadline(TRAIT.ROCK_SOLID), 6);
   core.primaryAttunement = 'Earth';
   context.effectiveEnd = 6;
   reenterEvokerAttunement(context, castFor(context, skill), skill, 'Earth');
-  assert.equal(context.procs.snapshot()[TRAIT.ROCK_SOLID], 6);
+  assert.equal(context.procs.deadline(TRAIT.ROCK_SOLID), 6);
   context.effectiveEnd += 0.000001;
   reenterEvokerAttunement(context, castFor(context, skill), skill, 'Earth');
-  assert.equal(context.procs.snapshot()[TRAIT.ROCK_SOLID], context.effectiveEnd + 5);
-  assert.equal(context.procs.snapshot()[TRAIT.EARTHEN_BLAST], context.effectiveEnd + 5);
+  assert.equal(context.procs.deadline(TRAIT.ROCK_SOLID), context.effectiveEnd + 5);
+  assert.equal(context.procs.deadline(TRAIT.EARTHEN_BLAST), context.effectiveEnd + 5);
   const other = contextFor('Evoker', evokerState.create());
   reenterEvokerAttunement(other.context, castFor(other.context, skill), skill, 'Earth');
-  assert.deepEqual({ ...other.context.procs.snapshot() }, {});
+  for (const trait of [TRAIT.EARTHEN_BLAST, TRAIT.ROCK_SOLID]) assert.equal(other.context.procs.deadline(trait), 0);
 });

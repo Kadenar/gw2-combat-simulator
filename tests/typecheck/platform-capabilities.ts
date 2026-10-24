@@ -26,6 +26,6 @@ const modifierContext: Gw2ModifierContext = {
 // @ts-expect-error Modifier state exposes no command cursor.
 modifierContext.state?.cursor;
 // @ts-expect-error Modifier state exposes no proc mutation service.
-modifierContext.state?.procs.reset('trait');
+modifierContext.state?.procs.setDeadline('trait', 0);
 // @ts-expect-error Modifier observations cannot clear the live boon store.
 modifierContext.state?.boons?.clear();

@@ -133,19 +133,21 @@ test('standalone materialization rejects excessive counts before constructing pa
 
 // Reserving a rejected batch does not consume capacity; each simulation owns its own independent counter.
 test('expansion reservations are atomic and cumulative', () => {
-  const budget = createEffectExpansionBudget(4);
-  budget.reserve(3, 'first effect');
+  const budget = createEffectExpansionBudget();
+  budget.reserve(MAX_EFFECT_EXPANSION - 1, 'first effect');
   assert.throws(() => budget.reserve(2, 'second effect'), /second effect.*requested 2, remaining 1/);
   budget.reserve(1, 'last effect');
   assert.throws(() => budget.reserve(1, 'exhausted'), /remaining 0/);
   for (const count of [-1, 0.5, Infinity, 1e20]) assert.throws(() => budget.reserve(count, 'invalid'), RangeError);
-  createEffectExpansionBudget(4).reserve(4, 'separate simulation');
+  createEffectExpansionBudget().reserve(MAX_EFFECT_EXPANSION, 'separate simulation');
 });
 
 // A multi-effect profile is preflighted as one batch before callbacks can produce state or packets.
 test('profile budget rejection precedes attribution, registration, transforms and submission', () => {
+  const budget = createEffectExpansionBudget();
+  budget.reserve(MAX_EFFECT_EXPANSION - 3, 'earlier accepted work');
   const effects = createEffectEmissionService({
-    expansionBudget: createEffectExpansionBudget(3),
+    expansionBudget: budget,
     now: () => 0,
     registerReaction() {
       assert.fail('reaction registered');
@@ -176,7 +178,8 @@ test('profile budget rejection precedes attribution, registration, transforms an
 // Profile packets are charged once, including discarded transforms; scalar packets and announcements share the counter.
 test('emission counts each packet once and preserves coefficient splitting and attribution', () => {
   const submitted = [];
-  const budget = createEffectExpansionBudget(5);
+  const budget = createEffectExpansionBudget();
+  budget.reserve(MAX_EFFECT_EXPANSION - 5, 'earlier accepted work');
   const effects = createEffectEmissionService({
     expansionBudget: budget,
     now: () => 0,
@@ -211,7 +214,8 @@ test('emission counts each packet once and preserves coefficient splitting and a
 
 // A condition application reserves all of its stack records before reactions or state insertion, including fractional weight.
 test('conditions share the packet budget and reject a whole stack batch without partial application', () => {
-  const budget = createEffectExpansionBudget(5);
+  const budget = createEffectExpansionBudget();
+  budget.reserve(MAX_EFFECT_EXPANSION - 5, 'earlier accepted work');
   const reactions = [];
   const conditions = createGw2ConditionResolution({
     expansionBudget: budget,

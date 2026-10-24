@@ -167,7 +167,7 @@ test('accepted control shares Opportunist cooldown while independent control tra
   assert.equal(from(TRAIT.BODY_BLOW).filter((event) => event.condition === 'Weakness').length, 2);
   const missed = run([{ name: 'Kick', offTarget: true }], config);
   assert.equal(missed.planningState.profession.adrenaline.value, 0);
-  assert.deepEqual({ ...observedRuntime(missed).procs.snapshot() }, {});
+  for (const trait of config.selectedTraitIds) assert.equal(observedRuntime(missed).procs.deadline(trait), 0);
 });
 
 test('Leg Specialist derives accepted immobilization without turning an effect into a player trigger', () => {

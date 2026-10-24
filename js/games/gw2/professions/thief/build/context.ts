@@ -15,7 +15,6 @@ export const createBuildContext = bindBuildContext<ThiefCanonicalBuild>(
   profession,
   { attributeContributions: profession.attributeContributions },
   (build) => ({
-    initialResource: build.initialInitiative,
     initialInitiative: build.initialInitiative,
     initialSpinningAxes: build.initialSpinningAxes,
     initialPreSteal: build.initialPreSteal,

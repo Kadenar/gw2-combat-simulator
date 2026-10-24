@@ -3,6 +3,7 @@ import test from 'node:test';
 import { compareQueuedEvents } from '#tests/helpers/event-order.js';
 import { canonicalEvent, StableEventQueue } from '#kernel/events/queue.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { DEFAULT_EXECUTION_ITERATION_LIMIT } from '#kernel/execution/limits.js';
 
 // Every insertion needs a finite canonical at; rejected input cannot invent work at zero or disturb accepted ties.
 test('event normalization and queue insertion reject missing or invalid timestamps', () => {
@@ -103,20 +104,23 @@ test('command frontiers canonicalize time, reject rewinds, and start independent
 
 // Neither commands nor events can reset the other's same-time safety budget, including phase-free consumers.
 test('alternating commands and events share one same-time safety limit', () => {
-  const queue = new StableEventQueue({ safetyLimit: 3 });
-  queue.advanceFrontier(1);
-  queue.enqueue({ at: 1 });
-  queue.dequeue();
-  queue.advanceFrontier(1);
+  const queue = new StableEventQueue();
+  // Exhaust the actual production ceiling with alternating commands and events.
+  for (let index = 0; index < DEFAULT_EXECUTION_ITERATION_LIMIT; index++) {
+    if (index % 2 === 0) queue.advanceFrontier(1);
+    else {
+      queue.enqueue({ at: 1 });
+      queue.dequeue();
+    }
+  }
+
   queue.enqueue({ at: 1, sourceId: 'alternating-loop' });
   assert.throws(() => queue.dequeue(), /safety limit.*alternating-loop/);
-  const commands = new StableEventQueue({ safetyLimit: 1 });
-  commands.advanceFrontier(0);
+  const commands = new StableEventQueue();
+  for (let index = 0; index < DEFAULT_EXECUTION_ITERATION_LIMIT; index++) commands.advanceFrontier(0);
   commands.advanceFrontier(1);
+  for (let index = 1; index < DEFAULT_EXECUTION_ITERATION_LIMIT; index++) commands.advanceFrontier(1);
   assert.throws(() => commands.advanceFrontier(1), /safety limit/);
-  for (const safetyLimit of [0, -1, 1.5, Infinity, NaN]) {
-    assert.throws(() => new StableEventQueue({ safetyLimit }), /positive safe integer/);
-  }
 });
 
 // Captured keys keep the heap stable; malformed edits fail instead of silently changing execution order.
@@ -146,9 +150,9 @@ test('pending ordering keys require cancel-and-enqueue replacement', () => {
 });
 
 // Resolver owners supply phases without putting game event names or author-controlled phase fields in the kernel.
-test('private phases outrank priority and prevent backward time, phase rewinds and unbounded chains', () => {
+test('private phases outrank priority and prevent backward time and phase rewinds', () => {
   const phaseFor = (event) => (event.type === 'early' ? 0 : 1);
-  const queue = new StableEventQueue({ phaseFor, safetyLimit: 3 });
+  const queue = new StableEventQueue({ phaseFor });
   queue.enqueue({ at: 1, type: 'late', priority: -100, phase: -999 });
   queue.enqueue({ at: 0.96 + 0.04, type: 'early' });
   assert.equal(queue.dequeue().type, 'early');
@@ -156,10 +160,6 @@ test('private phases outrank priority and prevent backward time, phase rewinds a
   assert.equal(queue.dequeue().type, 'late');
   assert.throws(() => queue.enqueue({ at: 1, type: 'early', sourceId: 'rewind' }), /past time or phase.*rewind/);
   assert.throws(() => queue.enqueue({ at: 0.999999, type: 'late', sourceId: 'past' }), /past time or phase.*past/);
-  queue.enqueue({ at: 1, type: 'late' });
-  queue.dequeue();
-  queue.enqueue({ at: 1, type: 'late', sourceId: 'loop' });
-  assert.throws(() => queue.dequeue(), /safety limit.*1s.*loop/);
   const future = new StableEventQueue({ phaseFor });
   future.enqueue({ at: 1, type: 'late' });
   future.dequeue();
