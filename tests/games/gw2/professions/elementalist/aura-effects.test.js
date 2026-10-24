@@ -175,7 +175,9 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
   state.empoweringAuras = { stacks: 1, expiresAt: 3 };
   const context = {
     engagement: enteredCombat(),
-    profession: { core: {}, specialization: { kind: 'Catalyst', state } },
+    profession: { core: { activeAuras: [] }, specialization: { kind: 'Catalyst', state } },
+    schedule() {},
+    observations: { record() {} },
     traits: new Set([TRAIT.EMPOWERING_AURAS, TRAIT.ELEMENTAL_EPITOME]),
     boons: new Map(),
     buffs: new Map(),
@@ -193,7 +195,7 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
   // Bind real owner operations for this focused mechanic fixture.
   context.combat = createMechanicCombatServices(Object.assign(context, { companions: new Map() }));
   bindTriggerPoints(context, elementalistProfession, { specialization: 'Catalyst' });
-  const event = { type: 'aura', at: 1, skillName: 'Fixture Aura', sourceId: 1 };
+  const event = { type: 'aura', aura: 'Fire Aura', duration: 4, at: 1, skillName: 'Fixture Aura', sourceId: 1 };
   catalystRuntime.reactions['aura.applied'](context, event);
   assert.equal(state.empoweringAuras.expiresAt, 9);
   assert.deepEqual(
@@ -215,13 +217,22 @@ test('Empowering Auras keeps queued grants, tick-aligned refreshes, exclusive ex
   const { effects, events } = captureEffectEmissions();
   const context = {
     engagement: enteredCombat(),
-    profession: { core: {}, specialization: { kind: 'Catalyst', state } },
+    profession: { core: { activeAuras: [] }, specialization: { kind: 'Catalyst', state } },
+    schedule() {},
+    observations: { record() {} },
     traits: new Set([TRAIT.EMPOWERING_AURAS]),
     catalog: withProfile(elementalistCatalog, TRAIT.EMPOWERING_AURAS, { maximumStacks: 2 }),
     effects
   };
   bindTriggerPoints(context, elementalistProfession, { specialization: 'Catalyst' });
-  const aura = (at) => catalystRuntime.reactions['aura.applied'](context, { at, skillName: 'Fixture Aura' });
+  const aura = (at) =>
+    catalystRuntime.reactions['aura.applied'](context, {
+      type: 'aura',
+      aura: 'Fire Aura',
+      duration: 4,
+      at,
+      skillName: 'Fixture Aura'
+    });
   const apply = (event, includesSelf = true) =>
     applyEmpoweringAurasBuff(context, { ...event, resolvedAudience: { includesSelf } });
   aura(0.001);

@@ -21,7 +21,6 @@ export function elementalistWeaponGroups(
   return [...groups]
     .sort(([a], [b]) => order(a) - order(b))
     .map(([label, skills]) => ({
-      id: label.toLowerCase().replace(/[^a-z]+/g, '-'),
       label,
       skills
     }));

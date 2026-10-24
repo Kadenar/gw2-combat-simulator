@@ -460,7 +460,7 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
       // Name the disable directly while retaining its application count and context.
       add(effect, effect.controlKind || 'Control', '');
     } else if (effect.type === 'aura') {
-      // Aura grants expose their authored duration and recipients just like other status effects.
+      // Aura grants expose their authored duration; recipients are not authored because only the owner receives them.
       add(effect, effect.aura, `${tooltipDecimal(tooltipNumber(effect, 'duration'))}s`);
     } else if (effect.type === 'custom' && effect.eventType === 'resource') {
       add(

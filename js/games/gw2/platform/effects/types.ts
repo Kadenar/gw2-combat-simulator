@@ -1,4 +1,4 @@
-import type { SimulationActorType } from '#gw2/platform/constants.js';
+import type { AuraName, SimulationActorType } from '#gw2/platform/constants.js';
 import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import type { EffectReaction } from '#gw2/platform/effects/reactions.js';
 import type { DamageEvent, EffectAudience, EffectMetadata } from '#gw2/platform/events/events.js';
@@ -130,7 +130,7 @@ export interface CustomEffect extends SkillEffectBase {
 /** Aura declarations emit the existing aura event without an untyped custom payload. */
 export interface AuraEffect extends SkillEffectBase {
   readonly type: 'aura';
-  readonly aura: import('#gw2/platform/constants.js').AuraName;
+  readonly aura: AuraName;
   readonly duration: number;
 }
 

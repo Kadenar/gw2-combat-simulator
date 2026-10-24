@@ -11,11 +11,7 @@ import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
-import {
-  normalizeWeaponSigils,
-  stackingSigilForBuild,
-  weaponSigilsForSet
-} from '#gw2/platform/equipment/sigils/loadout.js';
+import { stackingSigilForBuild, weaponSigilsForSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
@@ -455,19 +451,6 @@ export function calculateCommonAttributes(
   });
   return {
     attributes,
-    gear: { ...(build.gear || {}) },
-    alternateWeaponPrefixes: [
-      ...(build.alternateWeaponPrefixes || [build.gear?.Weapon1 || '', build.gear?.Weapon2 || ''])
-    ],
-    weapons: [...(build.weapons || [])],
-    alternateWeapons: [...(build.alternateWeapons || [])],
-    runes: build.rune || '',
-    weaponSigils: normalizeWeaponSigils(build.weaponSigils),
-    relic: build.relic || '',
-    food: build.food || '',
-    utility: build.utility || '',
-    jadeBotCore: Boolean(build.jadeBotCore),
-    specializations: [...(build.specializations || [])],
     commonContext: {
       // Pass eligible conversion inputs and duration bonuses to profession finalization.
       conversionPool,
@@ -535,10 +518,8 @@ export function finalizeBuildAttributes(
     pruneZeros: true
   });
 
-  const { commonContext, ...result } = common;
-  // commonContext is an implementation handoff, not part of the public build.
+  // Return calculated attributes and their trait context; equipment selections belong to the build.
   return {
-    ...result,
     attributeSeed,
     attributes,
     activeTraits

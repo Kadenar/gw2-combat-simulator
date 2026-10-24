@@ -422,13 +422,9 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
 
   const audience = normalizeEffectAudience(normalizedEffect.audience);
 
-  if (
-    audience &&
-    normalizedEffect.type !== 'boon' &&
-    normalizedEffect.type !== 'buff' &&
-    normalizedEffect.type !== 'aura'
-  ) {
-    throw new TypeError('Skill effect audience is only valid on boon, buff, and aura effects.');
+  // Only timed buffs resolve recipients; aura grants stay with their owner until aura sharing is simulated.
+  if (audience && normalizedEffect.type !== 'boon' && normalizedEffect.type !== 'buff') {
+    throw new TypeError('Skill effect audience is only valid on boon and buff effects.');
   }
 
   if (

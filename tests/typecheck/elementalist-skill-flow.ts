@@ -6,7 +6,8 @@ import { elementalistCoreModule } from '#gw2/professions/elementalist/core/modul
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
-import type { ElementalistAuraGrant, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+import type { AuraEffect } from '#gw2/platform/effects/types.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
@@ -33,7 +34,9 @@ export type ElementalistSkillFlowAssertions = [
 // Casts and ID/name/list lookups expose the same typed mechanics to runtime helpers.
 export function elementalistHookSkillReads(runtime: ElementalistRuntime, cast: Parameters<EliteCast>[1]): void {
   const cost: string | undefined = cast.skill.attunement;
-  const flag: ElementalistAuraGrant | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.aura;
+  const flag: AuraEffect | undefined = runtime.helpers.skillsById
+    .get(cast.skill.id)
+    ?.effects?.find((effect) => effect.type === 'aura');
   const named: string | undefined = runtime.helpers.skillsByName.get(cast.skill.name)?.attunement;
   const listed: boolean | undefined = runtime.helpers.skills[0]?.overload;
   // @ts-expect-error Attunement must retain its string type at runtime.
@@ -48,8 +51,10 @@ createElementalistModuleData('Core', {
       attunement: 5
     },
     2: {
-      // @ts-expect-error Aura grants are typed declarations, not encoded strings.
-      aura: 'Fire|4'
+      effects: [
+        // @ts-expect-error Aura effects require a canonical aura name.
+        { type: 'aura', aura: 'Fire|4', duration: 4 }
+      ]
     }
   }
 });

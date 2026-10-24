@@ -4,14 +4,9 @@ import { AURA } from '#gw2/platform/constants.js';
 import { normalizeEffect } from '#gw2/platform/effects/validation.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 
-// Supported aura declarations retain the granting activation, audience, and parent when becoming runtime events.
+// Supported aura declarations retain the granting activation and parent when becoming runtime events.
 test('aura effects materialize with their payload and causal ownership', () => {
-  const effect = normalizeEffect({
-    type: 'aura',
-    aura: AURA.CHAOS,
-    duration: 4,
-    audience: { recipients: 'self' }
-  });
+  const effect = normalizeEffect({ type: 'aura', aura: AURA.CHAOS, duration: 4 });
   const source = {
     source: 'Trait',
     sourceId: 667,
@@ -29,7 +24,6 @@ test('aura effects materialize with their payload and causal ownership', () => {
   assert.equal(event.type, 'aura');
   assert.equal(event.aura, AURA.CHAOS);
   assert.equal(event.duration, 4);
-  assert.deepEqual(event.audience, effect.audience);
   for (const [key, value] of Object.entries(source)) assert.equal(event[key], value);
 });
 
@@ -42,4 +36,10 @@ test('aura effects require a canonical name and positive finite duration', () =>
 
   for (const duration of [undefined, 0, -1, NaN, Infinity, '4'])
     assert.throws(() => normalizeEffect({ type: 'aura', aura: AURA.CHAOS, duration }), /duration/);
+
+  // Recipients are not simulated for auras, so an authored audience must not imply party sharing.
+  assert.throws(
+    () => normalizeEffect({ type: 'aura', aura: AURA.CHAOS, duration: 4, audience: { recipients: 'party' } }),
+    /audience is only valid on boon and buff/
+  );
 });

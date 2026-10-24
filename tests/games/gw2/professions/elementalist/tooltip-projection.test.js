@@ -52,6 +52,7 @@ test('Depth of Elements tooltip shares the selected Catalyst energy capacity', (
 // One aura declaration drives the granted aura, its tooltip fact, and the transmute that consumes it.
 test('skill aura grants share one declaration between combat and tooltip facts', () => {
   let declared;
+  let selectedCatalog;
   const run = (rotation) => {
     const result = runElementalist(
       [{ type: 'cast', skillId: ID.FIRE_SHIELD }, { type: 'wait', durationMs: 1000 }, ...rotation],
@@ -67,6 +68,7 @@ test('skill aura grants share one declaration between combat and tooltip facts',
           const edited = withSkill(catalog, ID.FIRE_SHIELD, {
             effects: [{ type: 'aura', aura: AURA.FIRE, duration: 7 }]
           });
+          selectedCatalog = edited;
           declared = edited.skillsById.get(ID.FIRE_SHIELD);
           return edited;
         }
@@ -92,7 +94,7 @@ test('skill aura grants share one declaration between combat and tooltip facts',
     []
   );
   const model = describeSimulationSkill(
-    preview().resolvePatch({ id: 'current' }).balanceContext,
+    { ...preview().resolvePatch({ id: 'current' }).balanceContext, catalog: selectedCatalog },
     declared,
     elementalistTooltips
   );

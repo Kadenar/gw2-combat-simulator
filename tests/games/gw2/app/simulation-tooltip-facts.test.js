@@ -22,12 +22,11 @@ const context = {
   modifierRulesById: new Map([['bonus', { amount: 0.125, factor: 1.5, parameters: { perStack: 0.01 } }]])
 };
 
-// Aura facts must follow the selected payload while preserving the authored recipient and duration validation.
-test('aura facts expose selected durations and recipients', () => {
+// Aura facts must follow the selected payload while preserving duration validation.
+test('aura facts expose selected durations', () => {
   const aura = {
     type: 'aura',
     name: 'Chaos Aura',
-    audience: { recipients: 'self' },
     aura: 'Chaos Aura',
     duration: 4
   };
@@ -37,7 +36,7 @@ test('aura facts expose selected durations and recipients', () => {
     assert.equal(model.incomplete, false);
     assert.equal(model.facts.length, 1);
     assert.equal(model.facts[0].name, 'Chaos Aura');
-    assert.equal(model.facts[0].detail, `${duration}s — on yourself`);
+    assert.equal(model.facts[0].detail, `${duration}s`);
     assert.equal(model.facts[0].stacks, undefined);
   }
 

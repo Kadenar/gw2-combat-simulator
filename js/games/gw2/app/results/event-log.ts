@@ -275,6 +275,10 @@ export function simulationEventLogRows(
       case 'control':
         push(event, 'trigger', `CONTROL ${event.skillName}`, 'trigger');
         break;
+      case 'aura':
+        // Standard aura events retain the owning profession's aura presentation.
+        pushProfessionRow(event, () => {});
+        break;
       case 'buff':
         // Let professions hide automatic bookkeeping grants without removing them from the simulation.
         pushProfessionRow(event, () =>

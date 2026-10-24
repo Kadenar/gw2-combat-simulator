@@ -41,6 +41,8 @@ interface ChartLine {
   readonly points: readonly ChartPoint[];
   readonly dash?: readonly number[];
   readonly stepped?: boolean;
+  /** Tooltip values retain their display unit when passed to shared interactions; empty for unitless values. */
+  readonly unit: string;
 }
 
 interface ChartMarker {
@@ -827,6 +829,7 @@ export function mountTimeSeriesCharts(
                   {
                     name: name('Average so far'),
                     color: source.color,
+                    unit: '',
                     points:
                       source.label !== 'Total'
                         ? source.damage.map(({ t, v }) => ({ t, v: t > 0 ? v / (t / 1000) : 0 }))
@@ -839,6 +842,7 @@ export function mountTimeSeriesCharts(
                   {
                     name: name('Last 1s'),
                     color: source.color,
+                    unit: '',
                     dash: [2, 3],
                     points: buildRollingDpsSeries(source.damage, 1000)
                   }
@@ -849,6 +853,7 @@ export function mountTimeSeriesCharts(
                   {
                     name: name('Last 5s'),
                     color: source.color,
+                    unit: '',
                     dash: [6, 4],
                     points: buildRollingDpsSeries(source.damage, 5000)
                   }
@@ -876,13 +881,13 @@ export function mountTimeSeriesCharts(
           .flatMap((name) => {
             const boon = resolvedSeries.effectTypes?.[name] === 'boon';
             const color = resolvedOptions.colors[name] || fallbackColor(effectNames.indexOf(name));
-            const unit = resolvedSeries.effectUnits?.[name];
+            const unit = resolvedSeries.effectUnits?.[name] ?? '';
             const stepped = unit !== 's';
             const lines: ChartLine[] = [];
             const own = effectsView.effects[name];
 
             if (own && (!boon || boonAudience !== 'allies'))
-              lines.push({ name: boon ? `${name} (Self)` : name, effectName: name, points: own, color, stepped });
+              lines.push({ name: boon ? `${name} (Self)` : name, effectName: name, points: own, color, unit, stepped });
 
             const allied = alliedView.effects[name];
 
@@ -892,6 +897,7 @@ export function mountTimeSeriesCharts(
                 effectName: name,
                 points: allied,
                 color,
+                unit,
                 stepped,
                 dash: [6, 4]
               });

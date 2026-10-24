@@ -121,34 +121,12 @@ interface Gw2AttributeCommonContext {
 
 export interface Gw2CommonAttributeResult {
   attributes: Gw2AttributeMap;
-  gear: Record<string, string>;
-  alternateWeaponPrefixes: string[];
-  weapons: string[];
-  alternateWeapons: string[];
-  runes: string;
-  weaponSigils: string[][];
-  relic: string;
-  food: string;
-  utility: string;
-  jadeBotCore: boolean;
-  specializations: unknown[];
   commonContext: Gw2AttributeCommonContext;
 }
 
 export interface Gw2FinalizedAttributeResult {
   readonly attributeSeed: Gw2AttributeSeed;
   attributes: Gw2AttributeMap;
-  gear: Record<string, string>;
-  alternateWeaponPrefixes: string[];
-  weapons: string[];
-  alternateWeapons: string[];
-  runes: string;
-  weaponSigils: string[][];
-  relic: string;
-  food: string;
-  utility: string;
-  jadeBotCore: boolean;
-  specializations: unknown[];
   activeTraits: unknown;
 }
 

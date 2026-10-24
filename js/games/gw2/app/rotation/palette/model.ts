@@ -186,7 +186,6 @@ export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
 }
 
 interface WeaponPaletteRow {
-  readonly id: string;
   readonly label: string;
   readonly weaponSet: number;
   readonly active: boolean;
@@ -615,7 +614,6 @@ export function weaponPaletteRows(
   const rows = [1, 2]
     .filter((set) => !planning?.combatActive || canSwap || set === activeWeaponSet)
     .map((weaponSet) => ({
-      id: `weapon-set-${weaponSet}`,
       label: `W${weaponSet}`,
       weaponSet,
       active: weaponSet === activeWeaponSet,
@@ -632,7 +630,6 @@ export function weaponPaletteRows(
       ? [row]
       : groups.map((group) => ({
           ...row,
-          id: `${row.id}-${group.id}`,
           label: group.label,
           skills: [...group.skills]
         }));

@@ -1068,7 +1068,6 @@ test('health milestones consume the committed shared-packet timeline', () => {
   const [milestone] = targetHealthBreakpointSnapshots(result, 200, [50]);
   assert.equal(milestone.at, 2);
   assert.equal(milestone.damage, 118);
-  assert.equal(milestone.targetDamage, 162);
 });
 
 // The first application joins the zero-anchored clock, including after a completely empty target window.

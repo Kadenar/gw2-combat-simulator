@@ -14,7 +14,8 @@ export interface InteractiveChartPanel {
   readonly lines: readonly {
     readonly name: string;
     readonly points: readonly ChartPoint[];
-    readonly unit?: string;
+    /** Every line declares its readout suffix so a dropped unit fails type checking instead of rendering bare values. */
+    readonly unit: string;
   }[];
 }
 
@@ -75,7 +76,7 @@ export function bindTimeSeriesInteractions(
       const entries = panel.lines.map((line) => {
         const value = chartValueAt(line.points, time);
         const display = panel.kind === 'dps' ? Math.round(value).toLocaleString() : String(Number(value.toFixed(2)));
-        return `<div>${escapeHtml(line.name)}: ${escapeHtml(display + (line.unit || ''))}</div>`;
+        return `<div>${escapeHtml(line.name)}: ${escapeHtml(display + line.unit)}</div>`;
       });
       tooltip.innerHTML = `<div><b>${((offset + time) / 1000).toFixed(3)}s</b></div>${entries.join('') || '<div>No visible effects</div>'}`;
       tooltip.style.left = '0px';

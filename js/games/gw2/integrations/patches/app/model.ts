@@ -1,4 +1,4 @@
-import { BOON, CONDITION } from '#gw2/platform/constants.js';
+import { AURA, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { NativePatchAuthoringSkill } from '#gw2/integrations/patches/authoring/module-types.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
@@ -172,6 +172,8 @@ export function createEffectTemplate(type: string): SkillEffect {
       return { type, kind: 'buff', stacks: 1, duration: 1 };
     case 'control':
       return { type };
+    case 'aura':
+      return { type, aura: AURA.FIRE, duration: 1 };
     case 'custom':
       return { type, eventType: 'custom', event: {} };
     default:
@@ -182,7 +184,7 @@ export function createEffectTemplate(type: string): SkillEffect {
 /** Shows both an effect's context label and payload without requiring raw metadata inspection. */
 export function effectDetail(effect: Readonly<SkillEffect>): string {
   const firstTick = Array.isArray(effect.ticks) ? effect.ticks[0] : undefined;
-  const details = [effect.name, effect.condition, effect.boon, effect.kind, firstTick?.condition].filter(
+  const details = [effect.name, effect.condition, effect.boon, effect.aura, effect.kind, firstTick?.condition].filter(
     (detail): detail is string => typeof detail === 'string' && detail.length > 0
   );
   return [...new Set(details)].join(' · ');

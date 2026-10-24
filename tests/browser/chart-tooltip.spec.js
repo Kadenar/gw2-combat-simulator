@@ -27,8 +27,14 @@ test('graph tooltips stay inside the chart at desktop and mobile widths', async 
           Might: [
             { t: 0, v: 25 },
             { t: 10000, v: 25 }
+          ],
+          Swiftness: [
+            { t: 0, v: 12 },
+            { t: 10000, v: 12 }
           ]
-        }
+        },
+        effectTypes: { Swiftness: 'boon' },
+        effectUnits: { Swiftness: 's' }
       },
       { dpsLabel: 'Average DPS' }
     );
@@ -69,6 +75,10 @@ test('graph tooltips stay inside the chart at desktop and mobile widths', async 
       for (const x of [right, left, right]) {
         await chart.hover({ position: { x, y: bounds.height / 2 } });
         await expect(tooltip).toBeVisible();
+
+        // Duration values must keep their unit through the chart-to-interaction handoff.
+        if (chartRole === 'effects-canvas') await expect(tooltip).toContainText('Swiftness (Self): 12s');
+
         const boundsCheck = await tooltip.evaluate((element) => {
           const tip = element.getBoundingClientRect();
           const parent = element.parentElement.getBoundingClientRect();

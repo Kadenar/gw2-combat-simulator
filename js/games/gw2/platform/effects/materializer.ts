@@ -260,6 +260,7 @@ export function materializeSkillEffectApplications({
       });
     }
     // Aura declarations share packet scheduling with custom effects while retaining their typed payload.
+    // Only aura and custom remain here, but the explicit check keeps a future effect type from falling into this branch.
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   } else if (effect.type === 'aura' || effect.type === 'custom') {
     const interval = Math.max(0, effect.intervalMs || 0) / 1000;
@@ -270,13 +271,7 @@ export function materializeSkillEffectApplications({
         event: {
           ...effectBaseEvent,
           at,
-          ...(effect.type === 'aura'
-            ? {
-                aura: effect.aura,
-                duration: effect.duration,
-                ...(effect.audience ? { audience: effect.audience } : {})
-              }
-            : effect.event),
+          ...(effect.type === 'aura' ? { aura: effect.aura, duration: effect.duration } : effect.event),
           type: effect.type === 'aura' ? 'aura' : effect.eventType,
           applicationIndex,
           totalApplications: count,

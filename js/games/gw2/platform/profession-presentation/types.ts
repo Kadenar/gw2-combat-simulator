@@ -75,7 +75,6 @@ export interface ProfessionTimelineAnnotation {
 
 /** Groups weapon variants without exposing profession-specific grouping rules to the palette. */
 export interface ProfessionWeaponSkillGroup {
-  readonly id: string;
   readonly label: string;
   readonly skills: readonly Skill[];
 }
