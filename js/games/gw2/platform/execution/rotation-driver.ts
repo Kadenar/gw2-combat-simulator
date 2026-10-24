@@ -26,6 +26,14 @@ export function createRotationDriver<T extends object>(
       let nextCommandAt = Infinity;
 
       if (command) {
+        const resumeAt = runtime.encounter?.rotationResumeAt;
+
+        // Keep all authored inputs queued while encounter work, cooldowns, and resources advance normally.
+        if (resumeAt != null && resumeAt > runtime.time) {
+          cursor.deferUntil(resumeAt);
+          return resumeAt;
+        }
+
         // Reevaluate transformed actions after every actual boundary, before accepting their reservation.
         let skill =
           command.type === 'cast'

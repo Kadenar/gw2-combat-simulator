@@ -433,3 +433,102 @@ test('conditions continue aging through an intermission without dealing deferred
   });
   assert.equal(expired.encounter.phases.at(-1).playerDamage, 0);
 });
+
+// Intermissions pause command admission, not the runtime clock or its cooldown and effect lifetimes.
+test('intermissions defer the rotation while split preparation skills and cooldown recovery remain live', () => {
+  const profession = defineTestProfession({
+    id: 'encounter-pause',
+    name: 'Encounter pause',
+    catalog: createCanonicalCatalog({
+      generated: [
+        {
+          id: 990201,
+          name: 'Preparation',
+          castTimeMs: 0,
+          cooldown: 6,
+          effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 6 }]
+        },
+        { id: 990202, name: 'Split action', castTimeMs: 0, effects: [] }
+      ]
+    })
+  });
+  const rotation = [
+    { type: 'cast', skillId: 990201 },
+    { type: 'wait', durationMs: 3500 },
+    { type: 'cast', skillId: 990202 },
+    { type: 'wait', durationMs: 2000 },
+    { type: 'cast', skillId: 990201 }
+  ];
+  const authored = structuredClone(rotation);
+  const result = simulateGw2({
+    profession,
+    config: {
+      encounter: {
+        ...encounter,
+        phases: [
+          encounter.phases[0],
+          encounter.phases[1],
+          { id: 'intermission', kind: 'intermission', durationSeconds: 3 },
+          encounter.phases[2]
+        ]
+      },
+      target: {},
+      sigilSets: [{ names: [] }]
+    },
+    rotation
+  });
+  const split = result.encounter.phases.find((phase) => phase.kind === 'split');
+  const pause = result.encounter.phases.find((phase) => phase.kind === 'intermission');
+  const splitAction = result.steps.find((step) => step.skillId === 990202);
+  assert.ok(splitAction.start >= split.start * 1000 && splitAction.start < split.end * 1000);
+  const resumed = result.steps.findLast((step) => step.skillId === 990201);
+  assert.equal(resumed.start, pause.end * 1000);
+  assert.ok(
+    result.steps.every((step) => !step.invalid && (step.start < pause.start * 1000 || step.start >= pause.end * 1000))
+  );
+  assert.deepEqual(rotation, authored);
+  assert.equal(result.steps.length, rotation.length);
+  assert.equal(pause.playerDamage, 0);
+  assert.equal(pause.groupDamage, 0);
+  assert.ok(result.planningState.cooldowns['990201'].remaining > 0);
+});
+
+test('intermissions hold waits, reset controls, and concurrent skills without consuming or backdating them', () => {
+  const profession = defineTestProfession({
+    id: 'encounter-pause-inputs',
+    name: 'Encounter pause inputs',
+    catalog: createCanonicalCatalog({
+      generated: [
+        { id: 990203, name: 'Anchor', castTimeMs: 0, effects: [] },
+        { id: 990204, name: 'Queued action', castTimeMs: 400, effects: [] }
+      ]
+    })
+  });
+  for (const pending of [
+    { type: 'wait', durationMs: 500 },
+    { type: 'cooldown-reset' },
+    { type: 'cast', skillId: 990204, concurrentOffsetMs: 0 }
+  ]) {
+    const result = simulateGw2({
+      profession,
+      config: {
+        encounter: {
+          repeatFrom: null,
+          phases: [
+            { id: 'split', kind: 'split', durationSeconds: 1 },
+            { id: 'pause', kind: 'intermission', durationSeconds: 2 },
+            bossPhase('boss', 0, 0)
+          ]
+        },
+        target: {},
+        sigilSets: [{ names: [] }]
+      },
+      rotation: [{ type: 'cast', skillId: 990203 }, { type: 'wait', durationMs: 1500 }, pending]
+    });
+    const pause = result.encounter.phases.find((phase) => phase.kind === 'intermission');
+    const step = result.steps.at(-1);
+    assert.ok(!step.invalid, pending.type);
+    assert.equal(step.start, pause.end * 1000, pending.type);
+    assert.ok(result.steps.every((step) => step.start < pause.start * 1000 || step.start >= pause.end * 1000));
+  }
+});

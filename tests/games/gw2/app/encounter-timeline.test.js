@@ -1,3 +1,4 @@
+import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
 import { encounterPhasePlan } from '#gw2/app/boss-scenarios/phases.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -145,4 +146,21 @@ test('post-split intermissions appear as distinct timeline sections', () => {
   assert.equal(markers[2].kind, 'intermission');
   assert.equal(markers[3].label, 'Phase 2');
   assert.equal(encounterStepContext({ start: 7500, end: 7800 }, markers).phase.kind, 'intermission');
+});
+
+// Forced intermissions are occupied time; genuine gaps on either side still belong to the idle-time metric.
+test('intermissions do not create idle tiles while ordinary splits remain available rotation time', () => {
+  const steps = [
+    { ri: 0, skillId: 1, skill: 'Before', start: 0, end: 1000 },
+    { ri: 1, skillId: 2, skill: 'After', start: 4000, end: 5000 }
+  ];
+  const pause = { kind: 'intermission', start: 1, end: 4 };
+  assert.deepEqual(timelineDeadTimeMarkers(steps, [], { encounterPhases: [pause] }), []);
+  const delayed = [steps[0], { ...steps[1], start: 6000, end: 7000 }];
+  const gaps = timelineDeadTimeMarkers(delayed, [], { encounterPhases: [pause] });
+  assert.equal(gaps.length, 1);
+  assert.equal(gaps[0].start, 4000);
+  assert.equal(gaps[0].durationMs, 2000);
+  const split = timelineDeadTimeMarkers(steps, [], { encounterPhases: [{ ...pause, kind: 'split' }] });
+  assert.equal(split[0].durationMs, 3000);
 });

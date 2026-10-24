@@ -349,6 +349,10 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
     get damageable() {
       return death === null && phase().kind === 'boss' && available().some((target) => target.id === selected);
     },
+    // Only intermissions hold authored commands; ordinary splits remain available for preparation skills.
+    get rotationResumeAt() {
+      return start !== null && death === null && phase().kind === 'intermission' ? deadline : null;
+    },
     get deathTime() {
       return death;
     },

@@ -186,7 +186,7 @@ export function timelineRowsView(
     results?.resolvedEvents || [],
     // The authored Wait tile already represents its own duration. Overlay only
     // idle time beyond that shape so the timeline does not render it twice.
-    { includeExplicitWaits: false }
+    { includeExplicitWaits: false, encounterPhases: results?.encounter?.phases }
   );
   const deadTimesByIndex = new Map<number, typeof deadTimes>();
   const transitionDelays = timelineTransitionDelayMarkers(

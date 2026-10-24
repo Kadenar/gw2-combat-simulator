@@ -1,3 +1,4 @@
+import type { EncounterPhaseResult } from '#gw2/platform/combat/state/encounter.js';
 import type { MechanicResourceSpend, ProfessionTimelineMarker } from '#gw2/platform/profession-presentation/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
@@ -36,6 +37,7 @@ export interface TimelineDeadTimeMarker {
 
 export interface TimelineDeadTimeOptions {
   readonly includeExplicitWaits?: boolean;
+  readonly encounterPhases?: readonly Pick<EncounterPhaseResult, 'kind' | 'start' | 'end'>[];
 }
 
 interface TimelineDeadTimeStep extends SimulationStep {
@@ -215,7 +217,7 @@ export function timelineSkillCastOrdinals(steps: readonly SimulationStep[] = [])
 export function timelineDeadTimeMarkers(
   steps: readonly TimelineDeadTimeStep[] = [],
   resolvedEvents: readonly SimulationEvent[] = [],
-  { includeExplicitWaits = true }: TimelineDeadTimeOptions = {}
+  { includeExplicitWaits = true, encounterPhases = [] }: TimelineDeadTimeOptions = {}
 ): TimelineDeadTimeMarker[] {
   const explicitWaitMarkers: TimelineDeadTimeMarker[] = [];
   const intervals: Array<{
@@ -274,6 +276,16 @@ export function timelineDeadTimeMarkers(
     const start = Math.round(event.at * 1000);
     const end = Math.round((event.at + Number(event.duration || 0)) * 1000);
     const following = steps.find((step) => Number(step.start) >= end && isTimelineSkillStep(step));
+    intervals.push({ start, end, insertionIndex: following?.ri ?? 0, containsSkill: false });
+  }
+
+  // Intermissions force the rotation to wait; their timeline sections already explain that time.
+  for (const phase of encounterPhases) {
+    if (phase.kind !== 'intermission' || phase.end === null) continue;
+
+    const start = Math.round(phase.start * 1000);
+    const end = Math.round(phase.end * 1000);
+    const following = steps.find((step) => step.start >= end && isTimelineSkillStep(step));
     intervals.push({ start, end, insertionIndex: following?.ri ?? 0, containsSkill: false });
   }
 
