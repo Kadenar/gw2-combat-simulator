@@ -408,11 +408,27 @@ export function timelineRowsView(
         </div>`;
   };
 
-  // Emit boundary markers before each authored tile, then close the line with any automatic exits.
+  // Encounter boundaries end the current weapon line, so every phase starts below a full-width heading.
+  type TimelineLinePart = { html: string; marker?: (typeof encounterMarkers)[number] };
   const timelineLines = rows.map((row, rowNumber) => {
+    const parts: TimelineLinePart[] = [];
     const rowItems: string[] = [];
+    const flushLine = (): void => {
+      if (!rowItems.length) return;
+
+      parts.push({ html: `<div class="rot-row-line"><div class="rot-row-skills">${rowItems.join('')}</div></div>` });
+      rowItems.length = 0;
+    };
+
+    const beginEncounterRows = (index: number): void => {
+      for (const marker of encounterMarkersByIndex.get(index) ?? []) {
+        flushLine();
+        parts.push({ html: renderEncounterMarker(marker), marker });
+      }
+    };
+
     row.skills.forEach(({ entry, index }) => {
-      for (const marker of encounterMarkersByIndex.get(index) ?? []) rowItems.push(renderEncounterMarker(marker));
+      beginEncounterRows(index);
 
       for (const marker of overlayProcMarkersByIndex.get(index) || []) {
         rowItems.push(renderOverlayProcMarker(marker));
@@ -600,8 +616,7 @@ export function timelineRowsView(
 
     // Trailing markers (insertionIndex === rotation.length) belong after the last skill in the last row.
     if (rowNumber === rows.length - 1) {
-      for (const marker of encounterMarkersByIndex.get(rotation.length) ?? [])
-        rowItems.push(renderEncounterMarker(marker));
+      beginEncounterRows(rotation.length);
 
       rowItems.push(
         ...transitionDelays.filter((marker) => marker.insertionIndex === rotation.length).map(renderTransitionDelay)
@@ -623,16 +638,14 @@ export function timelineRowsView(
       }
     }
 
-    const skills = rowItems.join('');
-    // Preserve state boundaries as separate lines without adding labels beside their skill icons.
-    return `<div class="rot-row-line">
-            <div class="rot-row-skills">${skills}</div>
-        </div>`;
+    flushLine();
+    return parts;
   });
 
   // Wrap adjacent lines for one weapon-set stay in a keyed row with its own duration and accessible label.
   let timelineLineIndex = 0;
-  const timelineRows = timelineWeaponRowGroups(rows).map((group, groupNumber) => {
+  let encounterSection: (typeof encounterMarkers)[number] | undefined;
+  const timelineRows = timelineWeaponRowGroups(rows).flatMap((group, groupNumber) => {
     const weapons = group.weaponSet === 1 ? build.weapons : build.alternateWeapons;
     const weaponLabel = weapons.filter(Boolean).join('/') || 'Unequipped';
     const totalDurationMs = weaponDurationTotals?.get(group.weaponSet);
@@ -641,26 +654,52 @@ export function timelineRowsView(
     }`;
     // Consecutive kit/transform lines share one group, while each real swap advances to the next active stay.
     const activeSegment = weaponDurationSegments[groupNumber];
-    const activeDurationMs = activeSegment?.weaponSet === group.weaponSet ? activeSegment.durationMs : undefined;
-    const durationLabel = activeDurationMs == null ? '' : formatTimelineTime(activeDurationMs, 0, 3);
-    const groupLines = timelineLines.slice(timelineLineIndex, timelineLineIndex + group.rows.length).join('');
+    const parts = timelineLines.slice(timelineLineIndex, timelineLineIndex + group.rows.length).flat();
     timelineLineIndex += group.rows.length;
     const firstCommand = group.rows[0]?.skills[0]?.entry;
     const groupKey = firstCommand
       ? `${group.weaponSet}:${timelineCommandKey(firstCommand)}`
       : `${group.weaponSet}:empty:${groupNumber}`;
-    return {
-      key: groupKey,
-      html: `<div class="rot-row" role="group" aria-label="${esc(groupTitle)}" style="--row-color:#9d7bd0">
+    const rendered: TimelineRowRender[] = [];
+    const lines: string[] = [];
+    const flushGroup = (boundaryMs?: number): void => {
+      if (!lines.length) return;
+
+      // A weapon stay spanning phases reports only its time in this section, not its full duration on every row.
+      const durationMs =
+        activeSegment?.weaponSet === group.weaponSet
+          ? Math.max(
+              0,
+              Math.min(activeSegment.endMs, boundaryMs ?? activeSegment.endMs) -
+                Math.max(activeSegment.startMs, encounterSection?.start ?? activeSegment.startMs)
+            )
+          : undefined;
+      const durationLabel = durationMs == null ? '' : formatTimelineTime(durationMs, 0, 3);
+      rendered.push({
+        key: encounterSection ? `${groupKey}:${encounterSection.label}` : groupKey,
+        html: `<div class="rot-row" role="group" aria-label="${esc(encounterSection ? `${encounterSection.label}: ${groupTitle}` : groupTitle)}" style="--row-color:#9d7bd0">
             <div class="rot-row-label" title="${esc(groupTitle)}">
               <span class="rot-row-label-content">
                 <span class="rot-row-label-text">W${group.weaponSet}</span>
                 ${durationLabel ? `<span class="rot-row-duration">${durationLabel}</span>` : ''}
               </span>
             </div>
-            <div class="rot-row-lines">${groupLines}</div>
+            <div class="rot-row-lines">${lines.join('')}</div>
         </div>`
+      });
+      lines.length = 0;
     };
+
+    for (const part of parts) {
+      if (part.marker) {
+        flushGroup(part.marker.start);
+        encounterSection = part.marker;
+        rendered.push({ key: `encounter:${part.marker.label}`, html: part.html });
+      } else lines.push(part.html);
+    }
+
+    flushGroup();
+    return rendered;
   });
 
   // The separate proc panel groups consecutive activations and shares filter keys with timeline overlays.

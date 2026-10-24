@@ -80,7 +80,7 @@ test('zero-duration splits remain ordered and defeat appears only after the obse
   assert.equal(encounterStepContext({ start: 8500, end: 9000 }, markers).phase.kind, 'defeated');
 });
 
-test('shared timeline renders read-only phase markers and split context while keeping commands editable', () => {
+test('encounter phases render as separate full-width rows while keeping their commands editable', () => {
   const result = fixture();
   const build = {
     rotation: result.steps.map((step) => ({ type: 'wait', durationMs: step.end - step.start })),
@@ -99,7 +99,25 @@ test('shared timeline renders read-only phase markers and split context while ke
       timelineRowsView(app, build, results, readOnly, new Set(), false)
         .rows.map((row) => row.html)
         .join('');
+    const rows = timelineRowsView(app, build, result, readOnly, new Set(), false).rows;
     const html = render(result);
+    // A transition closes the preceding weapon row even when both sides use the same weapon set.
+    for (const [label, commandIndex] of [
+      ['Phase 1', 1],
+      ['Split 1', 2],
+      ['Phase 2', 3]
+    ]) {
+      const headerIndex = rows.findIndex((row) => row.key === `encounter:${label}`);
+      assert.ok(headerIndex >= 0);
+      assert.match(rows[headerIndex].html, /^<div class="rot-encounter-marker"/);
+      assert.doesNotMatch(rows[headerIndex].html, /data-idx=/);
+      const commands = rows[headerIndex + 1].html;
+      assert.match(commands, new RegExp(`aria-label="${label}: Weapon set 1`));
+      assert.match(commands, new RegExp(`data-idx="${commandIndex}"`));
+      assert.doesNotMatch(commands, new RegExp(`data-idx="${commandIndex - 1}"`));
+    }
+
+    assert.equal(new Set(rows.map((row) => row.key)).size, rows.length);
     assert.equal((html.match(/class="rot-encounter-marker"/g) ?? []).length, 3);
     assert.match(html, /Phase 1: Damageable[\s\S]*Starts at 0.000s/);
     assert.match(html, /data-idx="2"[^>]*data-encounter-kind="split"/);

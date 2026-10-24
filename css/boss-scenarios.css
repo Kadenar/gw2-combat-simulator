@@ -129,14 +129,16 @@ body[data-analysis-workspace='bosses']
   display: none;
 }
 
-/* Observed encounter boundaries stay inline with skills and scale with the existing timeline controls. */
+/* Each encounter phase owns a full-width heading; its weapon rows and skills begin underneath. */
 .rot-encounter-marker {
   display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 68px;
-  padding: 5px 8px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 6px 0;
+  padding: 8px 10px;
   border-radius: 3px;
   background: color-mix(in srgb, var(--accent) 10%, var(--bg-panel));
   color: var(--text-bright);
