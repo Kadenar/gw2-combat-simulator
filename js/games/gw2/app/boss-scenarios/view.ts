@@ -25,9 +25,14 @@ export function mountBossScenarios(app: ProfessionAppState): void {
 
   if (!host || document.getElementById('boss-workspace')) return;
 
-  const workspace = document.createElement('section');
+  // Keep the disclosure mounted so edits and simulation results preserve the user's expanded/collapsed choice.
+  const workspace = document.createElement('details');
   workspace.id = 'boss-workspace';
-  workspace.className = 'boss-workspace';
+  workspace.className = 'boss-workspace rotation-procs-wrap';
+  workspace.open = true;
+  workspace.innerHTML = '<summary>Boss configuration</summary>';
+  const controls = document.createElement('div');
+  workspace.append(controls);
   workspace.setAttribute('aria-label', 'Boss encounter setup');
   const toolbar = document.createElement('div');
   toolbar.id = 'boss-scenario-toolbar';
@@ -290,7 +295,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     const modes = encounterDifficulties(draft.encounterId);
     let bossIndex = 0;
     let splitIndex = 0;
-    workspace.innerHTML = `<p class="boss-message" role="status">${h(message || execution.reason)}</p><div class="boss-setup">
+    controls.innerHTML = `<p class="boss-message" role="status">${h(message || execution.reason)}</p><div class="boss-setup">
       <div class="boss-fields"><label>Boss<select id="boss-encounter">${encounterOptions(draft.encounterId)}</select></label>${modes.length > 1 ? `<label>Difficulty<select id="boss-mode">${modes.map((mode) => `<option value="${mode}" ${mode === draft.difficulty ? 'selected' : ''}>${modeNames[mode]}</option>`).join('')}</select></label>` : ''}</div>
       <div class="boss-phase-inputs" aria-label="Encounter phases">${draft.phases
         .map((phase, index) => {
@@ -432,7 +437,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
   });
   document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => render());
   document.addEventListener(ENCOUNTER_RESULT_EVENT, () => {
-    if (workspace.childElementCount && document.body.dataset.analysisWorkspace === 'bosses') render(true);
+    if (controls.childElementCount && document.body.dataset.analysisWorkspace === 'bosses') render(true);
   });
   render();
 }

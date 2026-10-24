@@ -78,9 +78,7 @@ body[data-simulator-view='analysis'][data-analysis-workspace='bosses']
 }
 /* Phase inputs follow the predefined sequence without a second navigation or rotation editor. */
 .boss-setup {
-  padding: 12px;
-  border: 1px solid var(--border);
-  background: var(--bg-panel);
+  padding: 8px 10px 10px;
 }
 .boss-fields {
   display: flex;
@@ -139,7 +137,6 @@ body[data-analysis-workspace='bosses']
   gap: 3px;
   min-width: 68px;
   padding: 5px 8px;
-  border-left: 3px solid var(--accent);
   border-radius: 3px;
   background: color-mix(in srgb, var(--accent) 10%, var(--bg-panel));
   color: var(--text-bright);
@@ -154,14 +151,32 @@ body[data-analysis-workspace='bosses']
   font-variant-numeric: tabular-nums;
 }
 .rot-encounter-marker[data-encounter-kind='split'] {
-  border-left-color: #d9ad58;
   background: color-mix(in srgb, #d9ad58 12%, var(--bg-panel));
 }
 .rot-encounter-marker[data-encounter-kind='defeated'] {
-  border-left-color: #85bf88;
+  background: color-mix(in srgb, #85bf88 10%, var(--bg-panel));
 }
 /* An amber outline identifies actions started while the boss is invulnerable, including wrapped lines. */
 .rot-skill[data-encounter-kind='split'] {
   outline: 1px dashed #d9ad58;
   outline-offset: 2px;
+}
+
+/* Encounter controls grow below the reserved timeline instead of competing for a capped panel height. */
+body[data-simulator-view='bosses']:not([data-rotation-comparison]) .rotation-panel {
+  max-height: none;
+  overflow: visible;
+}
+body[data-simulator-view='bosses']:not([data-rotation-comparison]) #rotation-timeline {
+  flex: 0 0 auto;
+}
+/* Focus mode scrolls downward with the expanded configuration, just like its existing phone layout. */
+body[data-simulator-view='bosses'][data-rotation-focus]:not([data-rotation-comparison]) .rotation-section {
+  display: block;
+  overflow-y: auto;
+}
+body[data-simulator-view='bosses'][data-rotation-focus]:not([data-rotation-comparison])
+  .rotation-panel-shell
+  > .rotation-panel {
+  height: auto;
 }

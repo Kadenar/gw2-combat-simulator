@@ -11,7 +11,12 @@ current Golem build and rotation. There is no Create Scenario step.
 Bosses uses the existing Golem gear editor, skill palette, rotation timeline, and editing controls. The encounter owns
 one continuous rotation with one undo history. Returning to Golem restores its independent build and rotation.
 
-Encounter settings sit **directly below the DPS strip inside the rotation builder**, before the proc and event logs:
+Encounter settings sit **directly below the DPS strip inside the rotation builder**, before the proc and event logs.
+Boss configuration is a borderless disclosure, expanded on first load and styled like Procs. Its open state survives
+scenario edits and result updates. Expanding it grows the page downward without reducing the timeline height; focus mode
+scrolls the builder vertically to retain that space.
+
+The configuration controls are:
 
 1. Choose a boss and difficulty, when applicable.
 2. Enter the other squad members' DPS for each damage phase, excluding the simulated player.
