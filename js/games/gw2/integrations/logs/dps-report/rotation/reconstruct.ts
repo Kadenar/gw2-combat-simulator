@@ -320,6 +320,12 @@ function warningList(actions: readonly DpsReportRotationAction[]): string[] {
   );
   const interrupted = actions.filter((action) => action.status === 'interrupted');
 
+  // Build-resolved ambiguous source rows stay reviewable instead of claiming the report named the skill exactly.
+  if (actions.some((action) => action.rawSkillId === -27 && action.skillId === 10310))
+    warnings.push(
+      'Resolved "Blink or Phase Retreat" as Phase Retreat using Staff evidence and your build without Blink. Check that your build matches the log.'
+    );
+
   if (unsupported.length) {
     warnings.push(
       `Needs review: ${unsupported.length} report action${unsupported.length === 1 ? '' : 's'} could not be matched and ${unsupported.length === 1 ? 'was' : 'were'} preserved as timing waits.`
