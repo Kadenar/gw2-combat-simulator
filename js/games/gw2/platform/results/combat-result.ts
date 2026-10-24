@@ -7,27 +7,6 @@ import type { Gw2ResolverResult, Gw2SimulationScore } from '#gw2/platform/result
 import { cloneData } from '#kernel/core/clone.js';
 import { uniqueDiagnostics } from '#gw2/platform/results/diagnostics.js';
 
-interface CastCount {
-  readonly name: string;
-  count: number;
-}
-
-// Build the public named cast summary from the same combat-bounded actions exposed in the result.
-function countCasts(events: readonly Gw2ResolverEvent[]): Map<string, CastCount> {
-  const output = new Map<string, CastCount>();
-  for (const event of events) {
-    if (event.type !== 'action') continue;
-
-    const name = event.name || event.skillName || String(event.sourceId);
-    const row = output.get(name);
-
-    if (row) row.count += 1;
-    else output.set(name, { name, count: 1 });
-  }
-
-  return output;
-}
-
 /** Derives numeric windows and totals directly from completed combat state in either execution path. */
 export function buildSimulationScore(ctx: Gw2ResolverRuntime, rotationEndTime: number): Gw2SimulationScore {
   if (ctx.horizon == null) throw new TypeError('Results require a known observation end.');
@@ -85,7 +64,6 @@ export function buildCombatResult(
     environmentWindow > 0 ? damage / environmentWindow : 0;
   const { output, ...numeric } = score;
   const effectiveEvents = events.filter((event) => event.at <= effectiveEnd);
-  const casts = countCasts(effectiveEvents);
   // Editor-only runs retain combat facts but skip both live histories and expensive hypothetical party projection.
   const generation = ctx.effectRecorder
     ? buildBoonGeneration(ctx.resolved, score.combatStartTime ?? score.dpsStartTime, effectiveEnd)
@@ -133,7 +111,6 @@ export function buildCombatResult(
         .filter((step) => step.start <= Math.round(effectiveEnd * 1000 + 0.1))
         .sort((left, right) => left.start - right.start)
     ),
-    casts: [...casts.values()].sort((left, right) => right.count - left.count),
     randomness: {
       mode: ctx.random.mode,
       seed: ctx.random.seed

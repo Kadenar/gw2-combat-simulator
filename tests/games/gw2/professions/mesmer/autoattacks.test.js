@@ -476,7 +476,6 @@ test('sword, scepter, axe, and spear auto chains cast as separate attacks', () =
     result.steps.map((step) => step.skill),
     chain
   );
-  assert.equal(result.casts.length, chain.length);
 });
 
 test('clone attack selection returns the next cadence and ignores destroyed clones', () => {

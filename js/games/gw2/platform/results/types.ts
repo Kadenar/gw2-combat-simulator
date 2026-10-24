@@ -145,7 +145,6 @@ export interface Gw2ResolverResult {
   readonly resolvedEvents: Gw2ResolverEvent[];
   readonly procSteps: Gw2ProcStep[];
   readonly warnings: Gw2SimulationDiagnostic[];
-  readonly casts: Array<{ name: string; count: number }>;
   readonly randomness: {
     mode: SimulationRandom['mode'];
     seed: number;

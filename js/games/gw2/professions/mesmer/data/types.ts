@@ -17,7 +17,6 @@ interface MesmerSkillResource {
 }
 
 export interface MesmerStrikeEffect extends StrikeEffect {
-  readonly castProgress?: number;
   readonly summonKind?: MesmerSummonKind;
 }
 
@@ -118,7 +117,6 @@ export interface MesmerSkill extends Skill {
   readonly trackedHitDamage?: MesmerTrackedHitDamage;
   // Authored packets use shared effect forms, including conditions whose values live on individual ticks.
   readonly effects?: readonly (SkillEffect & {
-    readonly castProgress?: number;
     readonly phantasmEntityIndex?: number;
     readonly packetLabel?: string;
   })[];

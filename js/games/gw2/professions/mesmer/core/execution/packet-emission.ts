@@ -98,17 +98,6 @@ export function createSkillDamageController({
       });
     }
 
-    if (group.castProgress != null) {
-      const hitAt = castStart + (at - castStart) * group.castProgress;
-      return emitStrikes(hitAt, {
-        ...damageGroup,
-        atMs: undefined,
-        intervalMs: undefined,
-        timingAnchor: undefined,
-        timingScale: undefined
-      });
-    }
-
     const timingAnchorAt = damageGroup.timingAnchor === 'castStart' ? castStart : at;
     return emitStrikes(timingAnchorAt, damageGroup);
   };
@@ -165,10 +154,8 @@ export function createSkillDamageController({
       const firstPacketScale =
         group.timingScale === 'cast' ? castRelativeEffectTimingScale(skill, Math.max(0, at - castStart) * 1000) : 1;
       const timingOrigin = group.timingAnchor === 'castStart' ? castStart : at;
-      const hitAt =
-        group.castProgress != null
-          ? castStart + (at - castStart) * group.castProgress
-          : timingOrigin + (firstPacketMs * firstPacketScale) / 1000;
+      // Use the authored packet offset and anchor for both admission and emission.
+      const hitAt = timingOrigin + (firstPacketMs * firstPacketScale) / 1000;
 
       // Uninterrupted actor work has no cutoff; interrupted player packets end at the canonical deadline.
       if (playerEffectEnd !== Infinity && canonicalTime(hitAt) > canonicalTime(playerEffectEnd)) continue;
