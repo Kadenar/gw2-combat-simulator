@@ -31,7 +31,7 @@ import { overclockPassive } from '#gw2/professions/engineer/specializations/mech
 import type { EngineerResolverEvent, EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-const BARRIER_ENGINE_TASK = 'engineer.barrier-engine';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
 /** Owns Jade Cannons command selection and existing trait behavior. */
 const jadeCannons = defineTrait({
@@ -153,6 +153,16 @@ const jDrive = defineTrait({
   ]
 });
 
+/** The admitted barrier cadence is independent of commands and uses shared cancellation and stale-wake checks. */
+export const barrierEnginePassive = definePeriodicTask<EngineerRuntime>({
+  name: 'engineer.barrier-engine',
+  background: true,
+  priority: 0,
+  state: (runtime) => mechanistState.from(runtime).barrierEngine,
+  nextAt: (runtime) => runtime.time + balanceNumberFromContext(runtime, TRAIT.MECH_CORE_BARRIER_ENGINE, 'interval'),
+  run: pulseBarrierEngine
+});
+
 /** Barrier Engine supplies its command and a combat-only passive barrier independent of mech attacks. */
 const barrierEngine = defineTrait({
   id: TRAIT.MECH_CORE_BARRIER_ENGINE,
@@ -172,10 +182,7 @@ const barrierEngine = defineTrait({
   },
   // Startup is a selected producer; accepted renewal remains a background lifetime task.
   triggers: [onTriggerPoint(mechanistCombatReady, { run: startBarrierEngine })],
-  lifetime: {
-    backgroundTasks: [BARRIER_ENGINE_TASK],
-    tasks: { [BARRIER_ENGINE_TASK]: pulseBarrierEngine }
-  }
+  lifetime: barrierEnginePassive.hooks
 });
 
 /** Owns Mech Frame: Conductive Alloys command selection and existing trait behavior. */
@@ -405,23 +412,20 @@ function triggerMechFighter(context: EngineerRuntime, { skill, at }: MechanistCa
 function startBarrierEngine(runtime: EngineerRuntime): void {
   const state = mechanistState.from(runtime);
 
-  if (state.barrierEngineStarted || !state.mech.active) return;
+  if (state.barrierEngine.generation > 0 || !state.mech.active) return;
 
-  state.barrierEngineStarted = true;
-  scheduleBarrierEngine(runtime);
-}
-
-/** Recurrence schedules its next grant without attempting to admit a new loop. */
-function scheduleBarrierEngine(runtime: EngineerRuntime): void {
-  runtime.schedule(
-    BARRIER_ENGINE_TASK,
+  barrierEnginePassive.restart(
+    runtime,
     runtime.time + balanceNumberFromContext(runtime, TRAIT.MECH_CORE_BARRIER_ENGINE, 'interval')
   );
 }
 
 /** Each passive grant selects up to five recipients, with the mech behind players in recipient priority. */
 function pulseBarrierEngine(runtime: EngineerRuntime): void {
-  if (!hasTrait(runtime, TRAIT.MECH_CORE_BARRIER_ENGINE) || !mechanistState.from(runtime).mech.active) return;
+  if (!hasTrait(runtime, TRAIT.MECH_CORE_BARRIER_ENGINE) || !mechanistState.from(runtime).mech.active) {
+    barrierEnginePassive.stop(runtime);
+    return;
+  }
 
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.MECH_CORE_BARRIER_ENGINE);
   emitTraitProfile(runtime, profile.id, profile.id, undefined, {
@@ -434,7 +438,6 @@ function pulseBarrierEngine(runtime: EngineerRuntime): void {
     },
     preserveName: true
   });
-  scheduleBarrierEngine(runtime);
 }
 
 /** Barrier sources share a per-recipient cooldown; only recipients of the accepted barrier gain alacrity. */

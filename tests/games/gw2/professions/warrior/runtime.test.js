@@ -453,7 +453,7 @@ test('signet readiness rechecks successive actual pulses and recharge suppressio
   });
   assert.deepEqual(suppressed.warnings, []);
   assert.equal(suppressed.planningState.profession.adrenaline.value, 0);
-  assert.equal(observedRuntime(suppressed).profession.core.nextSignetPulseAt, 9);
+  assert.equal(observedRuntime(suppressed).profession.core.signetOfRagePassive.nextAt, 9);
 });
 
 test('Rifle Butt completion restores ammo and clears burst recharge while cancellation preserves both', () => {

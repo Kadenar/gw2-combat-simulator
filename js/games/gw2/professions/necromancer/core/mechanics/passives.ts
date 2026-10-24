@@ -18,29 +18,29 @@ import type {
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
-const PASSIVE = 'necromancer.resource-passive';
-
-type Passive = 'undeath' | 'vampirism';
-interface PassivePulse {
-  passive: Passive;
-  interval: number;
-  deadline: number;
+/** Each signet owns an independent cadence; suppression never advances resources or shifts the anchor. */
+function defineSignetPassive(passive: 'undeath' | 'vampirism') {
+  return definePeriodicTask<NecromancerRuntime>({
+    name: `necromancer.signet-of-${passive}`,
+    background: true,
+    priority: -10,
+    state: (runtime) => runtime.profession.core.signetPassives[passive],
+    rearmBeforeRun: true,
+    nextAt(runtime) {
+      const state = runtime.profession.core.signetPassives[passive];
+      state.deadline = canonicalTime(state.deadline + state.interval);
+      return gw2CooldownReadyAt(state.deadline);
+    },
+    run(runtime) {
+      const policy = NECROMANCER_SIGNET_PASSIVES.find((policy) => policy.passive === passive)!;
+      applyNecromancerSignetPassive(runtime, policy);
+    }
+  });
 }
 
-function schedulePassive(runtime: NecromancerRuntime, pulse: PassivePulse): void {
-  const at = gw2CooldownReadyAt(pulse.deadline);
-  runtime.profession.core.passiveNextAt[pulse.passive] = at;
-  runtime.schedule(PASSIVE, at, pulse, undefined, -10);
-}
-
-/** Only actual pulses grant resources; suppression and overflow preserve the authored cadence. */
-function passivePulse(runtime: NecromancerRuntime, data: unknown): void {
-  const pulse = data as PassivePulse;
-  schedulePassive(runtime, { ...pulse, deadline: canonicalTime(pulse.deadline + pulse.interval) });
-  const policy = NECROMANCER_SIGNET_PASSIVES.find((policy) => policy.passive === pulse.passive)!;
-  applyNecromancerSignetPassive(runtime, policy);
-}
+const signetPassives = { undeath: defineSignetPassive('undeath'), vampirism: defineSignetPassive('vampirism') };
 
 /** A readiness boundary names scheduled work, never a predicted amount or a replayed gain. */
 export function nextNecromancerPassiveGain(runtime: NecromancerRuntime, cost: number): number {
@@ -48,7 +48,7 @@ export function nextNecromancerPassiveGain(runtime: NecromancerRuntime, cost: nu
 
   if (cost > state.lifeForce.maximum) return Infinity;
 
-  return Math.min(eternalLifeReadyAt(runtime, cost), state.passiveNextAt.undeath ?? Infinity);
+  return Math.min(eternalLifeReadyAt(runtime, cost), state.signetPassives.undeath.nextAt);
 }
 
 /** Selected passive producers each begin with one bounded wake, including out-of-combat resource pulses. */
@@ -64,18 +64,21 @@ export function initializeNecromancerPassives(runtime: NecromancerRuntime): void
     // A removed resource grant cannot advertise an endless sequence of unaffordable retries.
     if (passive !== 'vampirism' && balanceProfileNumber(profile, 'lifeForceGain') === 0) continue;
 
-    if (interval > 0) schedulePassive(runtime, { passive, interval, deadline: interval });
+    if (interval > 0) {
+      const state = runtime.profession.core.signetPassives[passive];
+      state.interval = interval;
+      state.deadline = interval;
+      signetPassives[passive].restart(runtime, gw2CooldownReadyAt(state.deadline));
+    }
   }
 
   runtime.fireTrigger(necromancerPassivesInitialized);
 }
 
-const necromancerPassiveTasks = { [PASSIVE]: passivePulse };
-
 /** Passive resource and allied loops remain ambient while an isolated cast settles. */
 export const necromancerPassiveLifecycle = {
-  backgroundTasks: Object.keys(necromancerPassiveTasks),
-  tasks: necromancerPassiveTasks
+  backgroundTasks: [...signetPassives.undeath.hooks.backgroundTasks, ...signetPassives.vampirism.hooks.backgroundTasks],
+  tasks: { ...signetPassives.undeath.hooks.tasks, ...signetPassives.vampirism.hooks.tasks }
 } satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;
 
 /** Keep the original reward order at the passives-initialized boundary. */
@@ -92,8 +95,9 @@ export const necromancerPassivesStarting = defineTriggerPoint<Record<string, nev
 /** Readiness advertises only the actual next pulse when its threshold can cover the cost. */
 function eternalLifeReadyAt(runtime: NecromancerRuntime, cost: number): number {
   const state = runtime.profession.core;
-  const eternal = state.passiveNextAt['eternal-life'];
-  const threshold =
-    eternal == null ? 0 : state.lifeForce.maximum * balanceNumberFromContext(runtime, TRAIT.ETERNAL_LIFE, 'threshold');
-  return !state.activeShroud && cost <= threshold ? (eternal ?? Infinity) : Infinity;
+  const eternal = state.eternalLife.nextAt;
+  const threshold = Number.isFinite(eternal)
+    ? state.lifeForce.maximum * balanceNumberFromContext(runtime, TRAIT.ETERNAL_LIFE, 'threshold')
+    : 0;
+  return !state.activeShroud && cost <= threshold ? eternal : Infinity;
 }

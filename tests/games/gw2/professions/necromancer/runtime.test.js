@@ -1294,6 +1294,25 @@ test('selected resource passives can fund shroud entry without a predicted gain'
   }
 });
 
+test('rounded passive delivery preserves resource affordability on the original cadence', () => {
+  for (const [options, profileId, gain] of [
+    [{ selectedTraitIds: [TRAIT.ETERNAL_LIFE] }, TRAIT.ETERNAL_LIFE, 3],
+    [{ selectedSkillIds: [ID.SIGNET_OF_UNDEATH] }, PROFILE.signetOfUndeathPassive, 3]
+  ]) {
+    const config = { ...base, ...options };
+    const native = necromancerProfession.runtimeFor(config);
+    const profession = {
+      ...native,
+      catalog: withProfile(native.catalog, profileId, { pulseInterval: 0.25, lifeForceGain: gain })
+    };
+    // Four grants afford entry at one second; rounding each delivered wake into the next anchor would delay it.
+    const result = simulate([cast(ID.REAPERS_SHROUD)], config, { profession });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.steps[0].start, 1000);
+    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 12);
+  }
+});
+
 test('Eternal Life keeps its cadence through overflow and caps its grants at the configured threshold', () => {
   const config = { ...base, initialResource: 65, selectedTraitIds: [TRAIT.ETERNAL_LIFE, TRAIT.GLUTTONY] };
   const native = necromancerProfession.runtimeFor(config);
@@ -1318,7 +1337,7 @@ test('Eternal Life keeps its cadence through overflow and caps its grants at the
   };
   const result = simulate([wait(4000)], config, { profession });
   assert.deepEqual(values, [66, 66]);
-  assert.equal(observedRuntime(result).profession.core.passiveNextAt['eternal-life'], 5);
+  assert.equal(observedRuntime(result).profession.core.eternalLife.nextAt, 5);
 });
 
 test('signet passives sample current recharge and only real shrouds enable Signets of Suffering', () => {
@@ -1358,7 +1377,7 @@ test('signet passives sample current recharge and only real shrouds enable Signe
 test('Eternal Life resumes at its original boundary after a shroud interval', () => {
   const config = { ...base, initialResource: 10, selectedTraitIds: [TRAIT.ETERNAL_LIFE] };
   const during = simulate([cast(ID.REAPERS_SHROUD), wait(1520)], config);
-  assert.equal(observedRuntime(during).profession.core.passiveNextAt['eternal-life'], 2);
+  assert.equal(observedRuntime(during).profession.core.eternalLife.nextAt, 2);
   const rotation = [cast(ID.REAPERS_SHROUD), wait(1520), cast(ID.EXIT_REAPERS_SHROUD), wait(480)];
   const result = simulate(rotation, config);
   assert.equal(result.planningState.profession.activeShroud, '');
@@ -1424,7 +1443,9 @@ test('zero passive grants cannot advertise an endless affordability retry', () =
   };
   const result = simulate([cast(ID.REAPERS_SHROUD)], config, { profession });
   assert.equal(result.rotationEndTime, 0);
-  assert.deepEqual(observedRuntime(result).profession.core.passiveNextAt, {});
+  const state = observedRuntime(result).profession.core;
+  assert.equal(state.eternalLife.nextAt, Infinity);
+  assert.ok(Object.values(state.signetPassives).every((passive) => passive.nextAt === Infinity));
   assert.ok(result.warnings.some(({ message: warning }) => warning.includes('life force')));
 });
 

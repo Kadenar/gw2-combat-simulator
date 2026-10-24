@@ -83,7 +83,7 @@ export const celestialAvatarLifecycle: RuntimeHooks<RangerRuntimeState, RangerSk
       nextChange(runtime) {
         const state = druidState.from(runtime);
         state.pendingHitTimes = state.pendingHitTimes.filter((at) => at > runtime.time);
-        return Math.min(state.naturalMenderAt, ...state.pendingHitTimes);
+        return Math.min(state.naturalMender.nextAt, ...state.pendingHitTimes);
       },
       depletion: {
         task: 'ranger.avatar-exit',

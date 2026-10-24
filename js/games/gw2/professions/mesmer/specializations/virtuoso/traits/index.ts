@@ -34,6 +34,7 @@ import {
 } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/trigger-points.js';
 import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
 /** Deadly Blades shares patched tuning with its existing packet and resource boundaries. */
 const deadlyBlades = defineTrait<MesmerSkill>({
@@ -239,6 +240,27 @@ const sharpeningSorrow = defineTrait<MesmerSkill>({
   })
 });
 
+/** Infinite Forge shares queue ownership while Mesmer's resource owner handles the actual blade grant. */
+export const infiniteForgePassive = definePeriodicTask<MesmerRuntime>({
+  name: 'mesmer.infinite-forge',
+  background: true,
+  priority: -20,
+  state: (runtime) => virtuosoState.from(runtime).infiniteForge,
+  nextAt(runtime) {
+    const interval = balanceNumberFromContext(runtime, TRAIT.INFINITE_FORGE, 'pulseInterval');
+    return interval > 0 ? runtime.time + interval : Infinity;
+  },
+  run(runtime) {
+    createMesmerIllusionRewards(runtime).gainResources(
+      runtime.time,
+      balanceNumberFromContext(runtime, TRAIT.INFINITE_FORGE, 'playerStacks'),
+      mesmerActivePrimaryWeapon(runtime),
+      'Infinite Forge',
+      { traitId: TRAIT.INFINITE_FORGE, traitName: 'Infinite Forge' }
+    );
+  }
+});
+
 /** Infinite Forge shares patched tuning with its existing packet and resource boundaries. */
 const infiniteForge = defineTrait<MesmerSkill>({
   triggers: [
@@ -267,23 +289,7 @@ const infiniteForge = defineTrait<MesmerSkill>({
       when: (context) => Boolean(context.event?.metadata?.blade)
     }
   ],
-  lifetime: {
-    tasks: {
-      'mesmer.infinite-forge'(runtime) {
-        const profile = requireBalanceProfileFromContext(runtime, TRAIT.INFINITE_FORGE);
-        createMesmerIllusionRewards(runtime).gainResources(
-          runtime.time,
-          balanceProfileNumber(profile, 'playerStacks'),
-          mesmerActivePrimaryWeapon(runtime),
-          'Infinite Forge',
-          { traitId: TRAIT.INFINITE_FORGE, traitName: 'Infinite Forge' }
-        );
-        const interval = balanceProfileNumber(profile, 'pulseInterval');
-
-        if (interval > 0) runtime.schedule('mesmer.infinite-forge', runtime.time + interval, undefined, undefined, -20);
-      }
-    }
-  }
+  lifetime: infiniteForgePassive.hooks
 });
 
 /** Collect the eight implemented Virtuoso trait owners. */
@@ -368,7 +374,7 @@ function resolveInfiniteForgeRefund(context: MesmerRuntime, resolution: MesmerSh
 function startInfiniteForge(context: MesmerRuntime): void {
   const interval = balanceNumberFromContext(context, TRAIT.INFINITE_FORGE, 'pulseInterval');
 
-  if (interval > 0) context.schedule('mesmer.infinite-forge', interval, undefined, undefined, -20);
+  if (interval > 0) infiniteForgePassive.restart(context, interval);
 }
 
 /** Blade critical rewards preserve Deadly Blades before Jagged Mind and each packet's original actor ownership. */

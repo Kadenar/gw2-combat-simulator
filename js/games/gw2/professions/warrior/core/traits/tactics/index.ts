@@ -25,9 +25,7 @@ import {
 import { warriorActiveBoonCount } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-
-const EMPOWER_PULSE = 'warrior.empower-allies-pulse';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
 /** Convert Power to Healing Power once, preserving the build's existing conversion pool. */
 export const vigorousShouts = defineTrait({
@@ -128,6 +126,16 @@ export const martialCadence = defineTrait({
   }
 });
 
+/** Missing Might or disabled cadence ends the loop; an admitted pulse keeps its original priority. */
+const empowerAlliesPassive = definePeriodicTask<WarriorRuntime>({
+  name: 'warrior.empower-allies-pulse',
+  background: true,
+  priority: -210,
+  state: (runtime) => runtime.profession.core.empowerAllies,
+  nextAt: (runtime) => runtime.time + balanceNumberFromContext(runtime, TRAIT.EMPOWER_ALLIES, 'pulseInterval'),
+  run: empowerPulse
+});
+
 /** Owns this trait's tuning and selected contributions. */
 export const empowerAllies = defineTrait({
   triggers: [onTriggerPoint(coreInitialized, { run: (runtime) => initializeEmpowerAllies(runtime) })],
@@ -137,7 +145,7 @@ export const empowerAllies = defineTrait({
     pulseInterval: 10,
     effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 10 }]
   },
-  lifetime: { tasks: { [EMPOWER_PULSE]: empowerPulse } }
+  lifetime: empowerAlliesPassive.hooks
 });
 
 /** Owns this trait's tuning and selected contributions. */
@@ -208,7 +216,10 @@ function empowerPulse(runtime: WarriorRuntime): void {
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   const might = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
-  if (!hasTrait(runtime, TRAIT.EMPOWER_ALLIES) || interval <= 0 || !might) return;
+  if (!hasTrait(runtime, TRAIT.EMPOWER_ALLIES) || interval <= 0 || !might) {
+    empowerAlliesPassive.stop(runtime);
+    return;
+  }
 
   {
     const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWER_ALLIES);
@@ -230,8 +241,6 @@ function empowerPulse(runtime: WarriorRuntime): void {
       }
     );
   }
-
-  runtime.schedule(EMPOWER_PULSE, canonicalTime(runtime.time + interval), null, undefined, -210);
 }
 
 /** Apply line-owned rewards at the shared reaction boundary. */
@@ -251,7 +260,7 @@ function resetSoldierFocus(runtime: WarriorRuntime): void {
 
 /** Arm the first selected pulse after the Core pool is initialized. */
 function initializeEmpowerAllies(runtime: WarriorRuntime): void {
-  runtime.schedule(EMPOWER_PULSE, 0, null, undefined, -210);
+  empowerAlliesPassive.restart(runtime, 0);
 }
 
 /** Focus rewards share party delivery after the proc claim while each trait retains its own tuning and identity. */

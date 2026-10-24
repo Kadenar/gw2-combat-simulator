@@ -23,9 +23,6 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
 import type { CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { ElementalistModifierContext, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-
-export const CATALYST_BASE_EMPOWERMENT_TASK = 'elementalist.catalyst-base-empowerment';
 
 /**
  * Adds timed Elemental Empowerment stacks: expired stacks are dropped first, and
@@ -73,14 +70,10 @@ export function applyCatalystEmpowerment(context: MechanicCombatContext, event: 
   );
 }
 
-/** Baseline stacks are granted by actual buff application; one task renews their profile window. */
-export function renewBaseEmpowerment(runtime: ElementalistRuntime): void {
+/** Baseline stacks enter through actual buff application so normal lifetime and recipient rules apply. */
+export function grantBaseEmpowerment(runtime: ElementalistRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.ELEMENTAL_EMPOWERMENT);
   const duration = balanceProfileNumber(profile, 'duration');
-  // Recurring work must advance the canonical clock, including sub-microsecond profile overrides.
-  const renewAt = canonicalTime(runtime.time + duration);
-
-  if (renewAt <= runtime.time) throw new RangeError('Elemental Empowerment renewal must advance the simulation clock.');
 
   runtime.effects.emit(
     elementalistBuffRequest(
@@ -97,7 +90,6 @@ export function renewBaseEmpowerment(runtime: ElementalistRuntime): void {
       undefined
     )
   );
-  runtime.schedule(CATALYST_BASE_EMPOWERMENT_TASK, renewAt, null);
 }
 
 function catalystModifierState(context: ElementalistModifierContext): CatalystStateLike {

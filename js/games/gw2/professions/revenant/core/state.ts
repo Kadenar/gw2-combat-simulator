@@ -15,6 +15,7 @@ import {
 } from '#gw2/professions/revenant/core/resource-values.js';
 import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 
 export interface RevenantUpkeepState {
   skillId: SkillId;
@@ -47,8 +48,8 @@ export interface RevenantCoreState {
   selfConditions: RevenantSelfCondition[];
   selfConditionCount: number;
 
-  /** Passive generations let a combat anchor replace pending work without replaying state. */
-  assassinsPresenceGeneration: number;
+  /** Combat anchors replace pending passive work through the shared lifecycle. */
+  assassinsPresence: PeriodicTaskState;
 }
 
 /** Revenant endurance capacity; live recovery and endurance-conditioned traits share this bound. */
@@ -94,7 +95,7 @@ export function createRevenantCoreState(
     selfConditions: [],
     selfConditionCount: Math.max(0, Math.trunc(config.selfConditionCount || 0)),
 
-    assassinsPresenceGeneration: 0
+    assassinsPresence: createPeriodicTaskState()
   };
 }
 

@@ -5,6 +5,7 @@ import type { ProfessionBalanceContext } from '#gw2/platform/profession-definiti
 import { necromancerLifeForceCapacity, type NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import { clamp } from '#kernel/core/numeric.js';
+import { createPeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 
 /** Creates fresh Core Necromancer resources, transforms, summons, and trait proc state from a build config. */
 export function createNecromancerCoreState(
@@ -26,7 +27,11 @@ export function createNecromancerCoreState(
       rate: 0,
       updatedAt: 0
     },
-    passiveNextAt: {},
+    signetPassives: {
+      undeath: { ...createPeriodicTaskState(), deadline: Infinity, interval: 0 },
+      vampirism: { ...createPeriodicTaskState(), deadline: Infinity, interval: 0 }
+    },
+    eternalLife: { ...createPeriodicTaskState(), deadline: Infinity, interval: 0 },
     activeShroud: '',
     activeShroudEntryId: null,
     activeShroudExitId: null,

@@ -7,7 +7,7 @@ import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
 // The prepared field's five packets begin after the activation-to-damage delay observed in EVTC.
 const THOUSAND_NEEDLES_INITIAL_DELAY_MS = 280;
@@ -470,44 +470,37 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
 
 const THIEF_INFILTRATORS_SIGNET_PULSE = 'thief.infiltrators-signet';
 
-/**
- * Infiltrator's Signet pulses ten seconds after it last became ready. Each restart owns the next pulse instant, so an
- * earlier pulse still in the queue retires itself instead of being cancelled.
- */
-function restartThiefInfiltratorsSignet(runtime: ThiefRuntime): void {
-  const core = runtime.profession.core;
-
-  if (!selectedSkillIdSet(runtime.config.selectedSkillIds).has(ID.INFILTRATORS_SIGNET)) return;
-
-  const at = canonicalTime(
-    Math.max(runtime.time, runtime.cooldownController.readyAt(ID.INFILTRATORS_SIGNET) || 0) + 10
-  );
-  core.infiltratorsSignetPulseAt = at;
-  runtime.schedule(THIEF_INFILTRATORS_SIGNET_PULSE, at, { at });
+/** Activation and resets start a full interval after readiness; suppression does not credit future initiative. */
+function nextInfiltratorsSignetPulse(runtime: ThiefRuntime): number {
+  return selectedSkillIdSet(runtime.config.selectedSkillIds).has(ID.INFILTRATORS_SIGNET)
+    ? Math.max(runtime.time, runtime.cooldownController.readyAt(ID.INFILTRATORS_SIGNET) ?? 0) + 10
+    : Infinity;
 }
 
-/** Grants one initiative while the signet is off cooldown, then schedules the next pulse. */
-function thiefInfiltratorsSignetPulse(runtime: ThiefRuntime, data: unknown): void {
-  const core = runtime.profession.core;
+const infiltratorsSignetPassive = definePeriodicTask<ThiefRuntime>({
+  name: THIEF_INFILTRATORS_SIGNET_PULSE,
+  background: true,
+  priority: 0,
+  state: (runtime) => runtime.profession.core.infiltratorsSignetPassive,
+  nextAt: nextInfiltratorsSignetPulse,
+  run(runtime) {
+    if ((runtime.cooldownController.readyAt(ID.INFILTRATORS_SIGNET) ?? 0) <= runtime.time)
+      runtime.resourceController.grant('initiative', 1);
+  }
+});
 
-  if ((data as { at: number }).at !== core.infiltratorsSignetPulseAt) return;
-
-  if ((runtime.cooldownController.readyAt(ID.INFILTRATORS_SIGNET) || 0) <= runtime.time)
-    runtime.resourceController.grant('initiative', 1);
-
-  restartThiefInfiltratorsSignet(runtime);
+function restartThiefInfiltratorsSignet(runtime: ThiefRuntime): void {
+  infiltratorsSignetPassive.restart(runtime, nextInfiltratorsSignetPulse(runtime));
 }
 
 /** The signet owns its passive cadence across activation, cancellation, and cooldown resets. */
 export const infiltratorsSignetLifecycle = {
+  ...infiltratorsSignetPassive.hooks,
   initialize: restartThiefInfiltratorsSignet,
   sideEffectHandlers: { 'thief.restart-signet': restartThiefInfiltratorsSignet },
   onCastCancel(runtime, cast) {
     // Restart only after the cancelled signet's recharge has settled.
     if (cast.skill.id === ID.INFILTRATORS_SIGNET) restartThiefInfiltratorsSignet(runtime);
   },
-  onCooldownReset: restartThiefInfiltratorsSignet,
-  // Passive regeneration must not prolong an isolated active-skill preview.
-  backgroundTasks: [THIEF_INFILTRATORS_SIGNET_PULSE],
-  tasks: { [THIEF_INFILTRATORS_SIGNET_PULSE]: thiefInfiltratorsSignetPulse }
+  onCooldownReset: restartThiefInfiltratorsSignet
 } satisfies RuntimeHooks<ThiefRuntimeState, ThiefSkill>;

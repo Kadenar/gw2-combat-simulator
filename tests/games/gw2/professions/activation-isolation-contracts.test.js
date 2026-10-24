@@ -1,3 +1,6 @@
+import { infiniteForgePassive } from '#gw2/professions/mesmer/specializations/virtuoso/traits/index.js';
+import { naturalMenderPassive } from '#gw2/professions/ranger/specializations/druid/traits/index.js';
+import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
@@ -184,7 +187,7 @@ test('Infinite Forge admits its loop through initialization and keeps explicitly
         { traitTriggers, selectedTraitIds: [MT.INFINITE_FORGE] },
         {
           initialize(runtime) {
-            if (admitted) runtime.schedule('mesmer.infinite-forge', 1);
+            if (admitted) infiniteForgePassive.restart(runtime, 1);
           }
         }
       );
@@ -232,7 +235,10 @@ test('Natural Mender isolates startup and retains admitted astral renewal', () =
         },
         {
           initialize(runtime) {
-            if (admitted) runtime.schedule('ranger.natural-mender', 1, 1);
+            if (admitted) {
+              druidState.from(runtime).naturalMender.deadline = 1;
+              naturalMenderPassive.restart(runtime, 1);
+            }
           }
         }
       );

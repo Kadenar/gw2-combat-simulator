@@ -40,9 +40,9 @@ export const coreAdrenalinePolicy: ResourcePolicy<WarriorRuntime> = {
   nextChange(runtime, cost) {
     const state = runtime.profession.core;
     return cost <= state.adrenaline.maximum &&
-      state.nextSignetPulseAt > runtime.time &&
-      Number.isFinite(state.nextSignetPulseAt)
-      ? state.nextSignetPulseAt
+      state.signetOfRagePassive.nextAt > runtime.time &&
+      Number.isFinite(state.signetOfRagePassive.nextAt)
+      ? state.signetOfRagePassive.nextAt
       : Infinity;
   }
 };

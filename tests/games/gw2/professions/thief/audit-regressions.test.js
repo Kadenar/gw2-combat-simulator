@@ -52,7 +52,7 @@ test('Basilisk Venom contributes control and retains its 40-second recharge', ()
 test("Infiltrator's Signet pulses discrete initiative only while ready and restarts after activation or reset", () => {
   const selectedSkillIds = [13064];
   const initiative = (result) => observedRuntime(result).resourceController.value('initiative');
-  const nextPulse = (result) => observedRuntime(result).profession.core.infiltratorsSignetPulseAt;
+  const nextPulse = (result) => observedRuntime(result).profession.core.infiltratorsSignetPassive.nextAt;
   // Splitting waits cannot change the pulse, and the normal resource cap still applies.
   for (const rotation of [[wait(10000)], [wait(9999), wait(1)]]) {
     const result = live('Core', rotation, { selectedSkillIds, initialInitiative: 0 });

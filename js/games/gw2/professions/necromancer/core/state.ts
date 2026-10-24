@@ -8,6 +8,7 @@ import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { soulBatteryCapacity } from '#gw2/professions/necromancer/core/traits/soul-reaping/resource-queries.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
+import type { PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 
 export interface NecromancerSelfCondition {
   readonly condition: string;
@@ -20,12 +21,20 @@ export interface TasteForBloodGrant extends ChargeGrant {
   readonly at: number;
 }
 
+/** Preserve accepted cadence independently of action-tick-rounded queue deadlines. */
+export interface NecromancerPassiveState extends PeriodicTaskState {
+  deadline: number;
+  interval: number;
+}
+
 export interface NecromancerCoreState {
   endurance: ResourceClock;
   /** Current and maximum life force are points; percentage mechanics convert against this capacity. */
   lifeForce: ResourceClock;
   /** Readiness reads the next actual passive wake without crediting a future grant. */
-  passiveNextAt: Record<string, number>;
+  signetPassives: Record<'undeath' | 'vampirism', NecromancerPassiveState>;
+  /** Retain the admitted interval and unrounded anchor independently of action-tick delivery. */
+  eternalLife: NecromancerPassiveState;
   activeShroud: string;
   activeShroudEntryId?: SkillId | null;
   activeShroudExitId?: SkillId | null;

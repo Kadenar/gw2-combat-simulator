@@ -7,7 +7,10 @@ import { runThief } from '#tests/helpers/thief-simulation.js';
 test('Infiltrator signet rearm replaces the pending resource pulse and follows cooldown resets', () => {
   const observed = [];
   const observe = (runtime) =>
-    observed.push([runtime.resourceController.value('initiative'), runtime.profession.core.infiltratorsSignetPulseAt]);
+    observed.push([
+      runtime.resourceController.value('initiative'),
+      runtime.profession.core.infiltratorsSignetPassive.nextAt
+    ]);
   const result = runThief(
     [
       "Infiltrator's Signet",

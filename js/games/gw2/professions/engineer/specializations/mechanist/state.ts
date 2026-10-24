@@ -8,6 +8,7 @@ import { mechArmsCommand } from '#gw2/professions/engineer/specializations/mecha
 import { mechCoreCommand } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
 import { mechFrameCommand } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
+import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 
 interface EngineerMechState {
   enabled: boolean;
@@ -20,7 +21,7 @@ interface EngineerMechState {
 
 export interface MechanistState {
   /** Trait startup admits one barrier loop; its task owns recurrence independently of the attack lane. */
-  barrierEngineStarted: boolean;
+  barrierEngine: PeriodicTaskState;
   mech: EngineerMechState;
 }
 
@@ -44,7 +45,7 @@ export function selectedMechCommands(traits: EngineerConfig | ReadonlySet<SkillI
 export function createMechanistState(config: EngineerConfig = {}): MechanistState {
   const traits = selectedEngineerTraits(config);
   return {
-    barrierEngineStarted: false,
+    barrierEngine: createPeriodicTaskState(),
     mech: {
       enabled: true,
       active: true,

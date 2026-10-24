@@ -5,10 +5,12 @@ import {
 } from '#gw2/platform/profession-definition/state.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
+import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 
 export interface DruidState {
   pendingHitTimes: number[];
-  naturalMenderAt: number;
+  /** The authored cadence stays separate from its action-tick-rounded delivery. */
+  naturalMender: PeriodicTaskState & { deadline: number };
   astralClock: ResourceClock;
   /** A non-null lifetime remains active until its exit task commits, including at the exact deadline. */
   celestialAvatarEndsAt: number | null;
@@ -24,7 +26,7 @@ export const DRUID_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 export function createDruidState(config: RangerConfig = {}): DruidState {
   return {
     pendingHitTimes: [],
-    naturalMenderAt: Infinity,
+    naturalMender: { ...createPeriodicTaskState(), deadline: Infinity },
     astralClock: {
       value: boundedNumber(config.initialAstralForce ?? 100, 100, 0, 100),
       maximum: 100,

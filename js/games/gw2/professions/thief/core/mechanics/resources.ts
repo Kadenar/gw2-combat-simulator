@@ -45,12 +45,9 @@ export const thiefInitiative: ResourcePolicy<ThiefRuntime> = {
   nextChange(runtime, cost) {
     if (cost > runtime.profession.core.initiative.maximum) return Infinity;
 
-    const pulse = runtime.profession.core.infiltratorsSignetPulseAt;
+    const pulse = runtime.profession.core.infiltratorsSignetPassive.nextAt;
     const completion = runtime.castController.currentLaneEnd();
-    return Math.min(
-      pulse != null && pulse > runtime.time ? pulse : Infinity,
-      completion > runtime.time ? completion : Infinity
-    );
+    return Math.min(pulse > runtime.time ? pulse : Infinity, completion > runtime.time ? completion : Infinity);
   }
 };
 

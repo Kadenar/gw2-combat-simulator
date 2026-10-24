@@ -85,11 +85,11 @@ test('adrenaline readiness offers only finite future signet pulses within the se
   const runtime = observedRuntime(result);
   const resource = runtime.mechanics.resourceController;
   for (const boundary of [0, -1, Infinity, NaN]) {
-    runtime.profession.core.nextSignetPulseAt = boundary;
+    runtime.profession.core.signetOfRagePassive.nextAt = boundary;
     assert.equal(resource.readyAt('adrenaline', 10), null);
   }
 
-  runtime.profession.core.nextSignetPulseAt = 3;
+  runtime.profession.core.signetOfRagePassive.nextAt = 3;
   assert.equal(resource.readyAt('adrenaline', 10), 3);
   assert.equal(resource.readyAt('adrenaline', 21), null);
   assert.equal(resource.value('adrenaline'), 0, 'a retry boundary does not credit future rewards');

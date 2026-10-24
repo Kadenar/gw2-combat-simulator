@@ -1,4 +1,5 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { type ActionContext } from '#gw2/platform/effects/actions.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -63,42 +64,48 @@ function equippedSignetOfIllusions(context: MesmerRuntime): MesmerSkill | null {
   return equipped ? skill : null;
 }
 
-/** Replace the passive deadline when a cast or explicit combat boundary restarts its interval. */
-export function restartSignetIllusionsPassive(context: MesmerRuntime, activeAt: number): void {
+/** A full interval follows the later activation/combat anchor or current signet recharge. */
+function nextSignetIllusionsPulse(context: MesmerRuntime, activeAt: number): number {
   const skill = equippedSignetOfIllusions(context);
 
-  if (!skill) return;
+  if (!skill) return Infinity;
 
   const interval = balanceNumberFromContext(context, PROFILE.signetOfIllusions, 'pulseInterval');
 
-  if (!(interval > 0)) return;
+  if (!(interval > 0)) return Infinity;
 
-  const at = Math.max(context.time, Math.max(activeAt, context.cooldownController.readyAt(skill.id) ?? 0) + interval);
-  context.profession.core.signetIllusionsAt = at;
-  context.schedule(SIGNET_ILLUSIONS_OWNER, at, at, undefined, -20);
+  return Math.max(context.time, Math.max(activeAt, context.cooldownController.readyAt(skill.id) ?? 0) + interval);
 }
 
-/** A due pulse reads current cooldown and resources; it never grants a predicted future clone. */
-export function signetIllusionsPulse(context: MesmerRuntime, data: unknown): void {
-  if (context.profession.core.signetIllusionsAt !== data) return;
+/** Only a live ready pulse creates resources; explicit precombat pauses the loop until its combat restart. */
+export const signetIllusionsPassive = definePeriodicTask<MesmerRuntime>({
+  name: SIGNET_ILLUSIONS_OWNER,
+  background: true,
+  priority: -20,
+  state: (context) => context.profession.core.signetIllusionsPassive,
+  nextAt: (context) =>
+    context.engagement.boundaryPending ? Infinity : nextSignetIllusionsPulse(context, context.time),
+  run(context) {
+    const skill = equippedSignetOfIllusions(context);
 
-  const skill = equippedSignetOfIllusions(context);
+    if (
+      !skill ||
+      context.engagement.boundaryPending ||
+      (context.cooldownController.readyAt(skill.id) ?? 0) > context.time
+    )
+      return;
 
-  if (!skill || context.engagement.boundaryPending) return;
-
-  const ready = context.cooldownController.readyAt(skill.id) ?? 0;
-
-  if (ready > context.time) {
-    restartSignetIllusionsPassive(context, ready);
-    return;
+    createMesmerIllusionRewards(context).gainResources(
+      context.time,
+      balanceNumberFromContext(context, PROFILE.signetOfIllusions, 'resourceGain'),
+      mesmerActivePrimaryWeapon(context),
+      skill.name,
+      { sourceSkillId: skill.id }
+    );
   }
+});
 
-  createMesmerIllusionRewards(context).gainResources(
-    context.time,
-    balanceNumberFromContext(context, PROFILE.signetOfIllusions, 'resourceGain'),
-    mesmerActivePrimaryWeapon(context),
-    skill.name,
-    { sourceSkillId: skill.id }
-  );
-  restartSignetIllusionsPassive(context, context.time);
+/** Cast and combat boundaries retain their own anchors while shared ownership replaces the old occurrence. */
+export function restartSignetIllusionsPassive(context: MesmerRuntime, activeAt: number): void {
+  signetIllusionsPassive.restart(context, nextSignetIllusionsPulse(context, activeAt));
 }

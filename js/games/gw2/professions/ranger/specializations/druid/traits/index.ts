@@ -11,7 +11,6 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
   balanceNumberFromContext,
-  balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -21,6 +20,7 @@ import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { avatarExited } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar.js';
 import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
 function naturalBalanceActive(context: Gw2ModifierContext): boolean {
   // Registration gates selection; only the Druid's own packets receive the active buff bonus.
@@ -29,6 +29,30 @@ function naturalBalanceActive(context: Gw2ModifierContext): boolean {
   // Scheduler path uses a timeline; resolver path reads from the runtime boon list
   return buffActive(context, 'natural-balance');
 }
+
+/** Avatar suppresses grants while the unrounded Natural Mender cadence continues. */
+export const naturalMenderPassive = definePeriodicTask<RangerRuntime>({
+  name: 'ranger.natural-mender',
+  background: true,
+  priority: -1,
+  state: (runtime) => druidState.from(runtime).naturalMender,
+  nextAt(runtime) {
+    const state = druidState.from(runtime).naturalMender;
+    const interval = balanceNumberFromContext(runtime, TRAIT.NATURAL_MENDER, 'pulseInterval');
+
+    if (interval <= 0) return Infinity;
+
+    state.deadline += interval;
+    return gw2CooldownReadyAt(state.deadline);
+  },
+  run(runtime) {
+    if (druidState.from(runtime).celestialAvatarEndsAt === null)
+      runtime.resourceController.grant(
+        'astralForce',
+        balanceNumberFromContext(runtime, TRAIT.NATURAL_MENDER, 'resourceGain')
+      );
+  }
+});
 
 /** Owns Natural Mender's live tuning and trait behavior. */
 const naturalMender = defineTrait({
@@ -44,30 +68,13 @@ const naturalMender = defineTrait({
         const interval = balanceNumberFromContext(runtime, TRAIT.NATURAL_MENDER, 'pulseInterval');
 
         if (interval > 0) {
-          druidState.from(runtime).naturalMenderAt = gw2CooldownReadyAt(interval);
-          runtime.schedule('ranger.natural-mender', druidState.from(runtime).naturalMenderAt, interval, undefined, -1);
+          druidState.from(runtime).naturalMender.deadline = interval;
+          naturalMenderPassive.restart(runtime, gw2CooldownReadyAt(interval));
         }
       }
     })
   ],
-  lifetime: {
-    tasks: {
-      'ranger.natural-mender'(runtime, data) {
-        const deadline = Number(data);
-        const state = druidState.from(runtime);
-        const profile = requireBalanceProfileFromContext(runtime, TRAIT.NATURAL_MENDER);
-
-        if (state.celestialAvatarEndsAt === null)
-          runtime.resourceController.grant('astralForce', balanceProfileNumber(profile, 'resourceGain'));
-
-        const interval = balanceProfileNumber(profile, 'pulseInterval');
-        state.naturalMenderAt = interval > 0 ? gw2CooldownReadyAt(deadline + interval) : Infinity;
-
-        if (interval > 0)
-          runtime.schedule('ranger.natural-mender', state.naturalMenderAt, deadline + interval, undefined, -1);
-      }
-    }
-  }
+  lifetime: naturalMenderPassive.hooks
 });
 
 /** Owns Natural Balance's live tuning and trait behavior. */

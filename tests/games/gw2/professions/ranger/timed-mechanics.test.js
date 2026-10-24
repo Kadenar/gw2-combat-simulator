@@ -15,6 +15,22 @@ const simulate = createObservedProfessionSimulator(rangerProfession, {
   selectedTraitIds: [TRAIT.NATURAL_MENDER, TRAIT.NATURAL_BALANCE]
 });
 
+test('Natural Mender preserves Avatar affordability without accumulating action-tick rounding', () => {
+  const result = runRanger(
+    [ID.CELESTIAL_AVATAR],
+    { specialization: 'Druid', initialAstralForce: 76, selectedTraitIds: [TRAIT.NATURAL_MENDER] },
+    {
+      extend: (native) => ({
+        catalog: withProfile(native.catalog, TRAIT.NATURAL_MENDER, { pulseInterval: 0.25, resourceGain: 8 })
+      })
+    }
+  );
+  // Three actual grants fill the bar; the third authored boundary rounds once to the action grid.
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.steps[0].start, 760);
+  assert.equal(result.planningState.profession.astralClock.value, 100);
+});
+
 // Long waits must process the exit before subsequent Natural Mender recovery.
 test('Celestial Avatar expires at its deadline and recovers force afterward', () => {
   for (const [waitMs, expectedForce] of [

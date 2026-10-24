@@ -1,4 +1,5 @@
 import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
+import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
@@ -13,7 +14,8 @@ export interface WarriorCoreState {
 
   activationClaims: ActivationClaims;
   /** Readiness waits for the next actual signet pulse instead of crediting future adrenaline. */
-  nextSignetPulseAt: number;
+  signetOfRagePassive: PeriodicTaskState;
+  empowerAllies: PeriodicTaskState;
 }
 
 /** Declares the Core fields exposed by every Warrior end-state projection. */
@@ -43,6 +45,7 @@ export function createWarriorCoreState(): WarriorCoreState {
     availableFlips: {},
 
     activationClaims: {},
-    nextSignetPulseAt: Infinity
+    signetOfRagePassive: createPeriodicTaskState(),
+    empowerAllies: createPeriodicTaskState()
   };
 }

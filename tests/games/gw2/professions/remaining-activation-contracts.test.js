@@ -1,3 +1,4 @@
+import { eternalLifePassive } from '#gw2/professions/necromancer/core/traits/soul-reaping/index.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
@@ -252,7 +253,7 @@ test('Eternal Life admits no isolated loop or readiness while native signets sti
         traitTriggers,
         selectedTraitIds: selected ? [NT.ETERNAL_LIFE] : []
       });
-      assert.equal(runtime.profession.core.passiveNextAt['eternal-life'] != null, selected && traitTriggers);
+      assert.equal(Number.isFinite(runtime.profession.core.eternalLife.nextAt), selected && traitTriggers);
       assert.equal(lifeForcePercent(runtime.profession.core.lifeForce) > 0, selected && traitTriggers);
 
       if (!selected || !traitTriggers) assert.equal(runtime.resourceController.readyAt('lifeForce', 3), null);
@@ -279,14 +280,15 @@ test('Eternal Life retained tasks deliver admitted work and keep the threshold c
         {
           at: 0.5,
           run(runtime) {
-            runtime.schedule('necromancer.eternal-life', 1, { interval: 1, deadline: 1 });
+            Object.assign(runtime.profession.core.eternalLife, { interval: 1, deadline: 1 });
+            eternalLifePassive.restart(runtime, 1);
           }
         }
       ]
     }
   );
   assert.equal(lifeForcePercent(runtime.profession.core.lifeForce), 66);
-  assert.equal(runtime.profession.core.passiveNextAt['eternal-life'], 2);
+  assert.equal(runtime.profession.core.eternalLife.nextAt, 2);
 });
 
 test('Taste for Blood retains finite independent self and ally charges under isolation', () => {

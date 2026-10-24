@@ -5,6 +5,7 @@ import {
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
+import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 
 /**
  * Catalyst combat bookkeeping: Jade Sphere energy, the per-attunement sphere
@@ -15,7 +16,7 @@ export interface CatalystState {
   catalystEnergy: ResourceClock;
   elementalEmpowermentExpiries: number[];
   empoweringAuras: RefreshedStacks;
-  elementalEmpowermentRefreshStarted: boolean;
+  baseEmpowerment: PeriodicTaskState;
   sphereActiveUntil: number;
   sphereExpiry: Record<string, number>;
   shatteringIceUntil: number;
@@ -28,7 +29,7 @@ export const catalystState = defineProfessionSpecializationState('Catalyst', ():
   catalystEnergy: createResourceClock(),
   elementalEmpowermentExpiries: [],
   empoweringAuras: { stacks: 0, expiresAt: 0 },
-  elementalEmpowermentRefreshStarted: false,
+  baseEmpowerment: createPeriodicTaskState(),
   sphereActiveUntil: 0,
   sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
   shatteringIceUntil: 0

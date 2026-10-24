@@ -1,3 +1,4 @@
+import { barrierEnginePassive } from '#gw2/professions/engineer/specializations/mechanist/traits/index.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -204,7 +205,7 @@ test('Barrier Engine admits one selected loop at implicit or deferred explicit c
         );
         const active = selected && traitTriggers;
         const barriers = rewards(result, TRAIT.MECH_CORE_BARRIER_ENGINE);
-        assert.equal(mechanistState.from(runtime).barrierEngineStarted, active);
+        assert.equal(mechanistState.from(runtime).barrierEngine.generation > 0, active);
         assert.equal(barriers.length > 0, active);
 
         if (active) {
@@ -236,7 +237,7 @@ test('An admitted barrier task runs under isolation and stops when the mech beco
       selectedTraitIds: [TRAIT.MECH_CORE_BARRIER_ENGINE, TRAIT.MECH_FRAME_CHANNELING_CONDUITS]
     },
     {
-      initialize: (runtime) => runtime.schedule('engineer.barrier-engine', 1),
+      initialize: (runtime) => barrierEnginePassive.restart(runtime, 1),
       timeline: [
         {
           at: 3.5,
@@ -247,7 +248,7 @@ test('An admitted barrier task runs under isolation and stops when the mech beco
       ]
     }
   );
-  assert.equal(mechanistState.from(runtime).barrierEngineStarted, false);
+  assert.equal(mechanistState.from(runtime).barrierEngine.nextAt, Infinity);
   assert.deepEqual(
     rewards(result, TRAIT.MECH_CORE_BARRIER_ENGINE).map((event) => event.at),
     [1]

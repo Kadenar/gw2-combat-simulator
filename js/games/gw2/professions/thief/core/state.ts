@@ -1,4 +1,5 @@
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
+import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import { createStealthState, type StealthState } from '#gw2/platform/combat/stealth.js';
 import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
 import type { ChargePool } from '#gw2/platform/combat/resources/charges.js';
@@ -53,7 +54,7 @@ export interface ThiefCoreState extends StealthState {
   revealedTrainingHitActivations: Record<string, true>;
 
   /** The pending Infiltrator's Signet pulse instant; earlier queued pulses retire themselves. */
-  infiltratorsSignetPulseAt: number | null;
+  infiltratorsSignetPassive: PeriodicTaskState;
   /** The instant a landed strike last broke stealth, claimable by one same-instant stealth attack. */
   strikeBrokeStealthAt: number | null;
   /** The pending scepter continuation expiry; a newer chain step replaces it. */
@@ -108,7 +109,7 @@ export function createThiefCoreState(
     activationClaims: {},
     revealedTrainingHitActivations: {},
 
-    infiltratorsSignetPulseAt: null,
+    infiltratorsSignetPassive: createPeriodicTaskState(),
     strikeBrokeStealthAt: null,
     scepterChainExpiresAt: null
   };

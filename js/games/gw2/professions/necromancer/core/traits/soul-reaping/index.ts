@@ -34,6 +34,7 @@ import type {
   NecromancerRuntime
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
 /** Owns Dhuumfire tuning and behavior at its existing execution boundaries. */
 export const dhuumfire = defineTrait({
@@ -180,6 +181,23 @@ export const soulBarbs = defineTrait({
   ]
 });
 
+/** Publish the next rounded opportunity before granting, without drifting the admitted cadence. */
+export const eternalLifePassive = definePeriodicTask<NecromancerRuntime>({
+  name: 'necromancer.eternal-life',
+  background: true,
+  priority: -10,
+  state: (runtime) => runtime.profession.core.eternalLife,
+  rearmBeforeRun: true,
+  nextAt(runtime) {
+    const state = runtime.profession.core.eternalLife;
+    state.deadline = canonicalTime(state.deadline + state.interval);
+    return gw2CooldownReadyAt(state.deadline);
+  },
+  run(runtime) {
+    if (hasTrait(runtime, TRAIT.ETERNAL_LIFE)) applyEternalLifePulse(runtime);
+  }
+});
+
 /** Owns Eternal Life tuning and behavior at its existing execution boundaries. */
 export const eternalLife = defineTrait({
   triggers: [
@@ -189,10 +207,7 @@ export const eternalLife = defineTrait({
         emitShroudEntryTrait(runtime, input.cast, TRAIT.ETERNAL_LIFE)
     })
   ],
-  lifetime: {
-    backgroundTasks: ['necromancer.eternal-life'],
-    tasks: { 'necromancer.eternal-life': renewEternalLife }
-  },
+  lifetime: eternalLifePassive.hooks,
   id: TRAIT.ETERNAL_LIFE,
   name: 'Eternal Life',
   balance: {
@@ -421,20 +436,10 @@ function startEternalLife(runtime: NecromancerRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.ETERNAL_LIFE);
   const interval = balanceProfileNumber(profile, 'pulseInterval');
 
-  if (interval > 0 && balanceProfileNumber(profile, 'lifeForceGain') !== 0)
-    scheduleEternalLife(runtime, { interval, deadline: interval });
-}
-
-/** Retain accepted cadence and live selection/shroud checks even when new producers are omitted. */
-function renewEternalLife(runtime: NecromancerRuntime, data: unknown): void {
-  const pulse = data as { interval: number; deadline: number };
-  scheduleEternalLife(runtime, { ...pulse, deadline: canonicalTime(pulse.deadline + pulse.interval) });
-
-  if (hasTrait(runtime, TRAIT.ETERNAL_LIFE)) applyEternalLifePulse(runtime);
-}
-
-function scheduleEternalLife(runtime: NecromancerRuntime, pulse: { interval: number; deadline: number }): void {
-  const at = gw2CooldownReadyAt(pulse.deadline);
-  runtime.profession.core.passiveNextAt['eternal-life'] = at;
-  runtime.schedule('necromancer.eternal-life', at, pulse, undefined, -10);
+  if (interval > 0 && balanceProfileNumber(profile, 'lifeForceGain') !== 0) {
+    const state = runtime.profession.core.eternalLife;
+    state.interval = interval;
+    state.deadline = interval;
+    eternalLifePassive.restart(runtime, gw2CooldownReadyAt(state.deadline));
+  }
 }

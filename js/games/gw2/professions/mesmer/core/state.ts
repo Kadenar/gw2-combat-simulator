@@ -1,4 +1,5 @@
 import type { MesmerCastDetails } from '#gw2/professions/mesmer/core/execution/effect-types.js';
+import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -23,7 +24,7 @@ export interface MesmerCoreState {
   autoattackChains: Record<string, SkillId>;
   scepterChainExpiresAt: number | null;
   clarity: ChargeGrant;
-  signetIllusionsAt: number;
+  signetIllusionsPassive: PeriodicTaskState;
 }
 
 /** Creates state owned by every Mesmer build, excluding active-specialization fields. */
@@ -39,7 +40,7 @@ export function createMesmerCoreState(): MesmerCoreState {
     autoattackChains: {},
     scepterChainExpiresAt: null,
     clarity: { charges: 0, expiresAt: 0 },
-    signetIllusionsAt: Infinity
+    signetIllusionsPassive: createPeriodicTaskState()
   };
 }
 

@@ -36,12 +36,13 @@ import {
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/trigger-points.js';
 import { catalystState, type CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import {
-  CATALYST_BASE_EMPOWERMENT_TASK,
   applyCatalystEmpowerment,
-  renewBaseEmpowerment
+  grantBaseEmpowerment
 } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { sphereSpecialistDuration } from '#gw2/professions/elementalist/specializations/catalyst/traits/spheres.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns Empowering Auras tuning and its existing execution behavior. */
 const empoweringAuras = defineTrait({
@@ -124,6 +125,26 @@ const elementalSynergy = defineTrait({
 });
 /** Shares the existing Elemental Empowerment profile's scaling fields without duplicating patch targets. */
 const empoweredEmpowerment = defineTrait({ id: TRAIT.EMPOWERED_EMPOWERMENT, name: 'Empowered Empowerment' });
+
+/** Validate each renewal before granting; baseline stacks remain ambient and start immediately at combat entry. */
+export const baseEmpowermentPassive = definePeriodicTask<ElementalistRuntime>({
+  name: 'elementalist.catalyst-base-empowerment',
+  background: true,
+  priority: 0,
+  state: (runtime) => catalystState.from(runtime).baseEmpowerment,
+  rearmBeforeRun: true,
+  nextAt: nextBaseEmpowermentAt,
+  run: grantBaseEmpowerment
+});
+
+function nextBaseEmpowermentAt(runtime: ElementalistRuntime): number {
+  const next = canonicalTime(runtime.time + balanceNumberFromContext(runtime, TRAIT.ELEMENTAL_EMPOWERMENT, 'duration'));
+
+  if (next <= runtime.time) throw new RangeError('Elemental Empowerment renewal must advance the simulation clock.');
+
+  return next;
+}
+
 /** Owns Elemental Empowerment tuning and its existing execution behavior. */
 const elementalEmpowerment = defineTrait({
   attributes: elementalEmpowermentAttributes,
@@ -143,18 +164,17 @@ const elementalEmpowerment = defineTrait({
       run(runtime: ElementalistRuntime) {
         const state = catalystState.from(runtime);
 
-        if (state.elementalEmpowermentRefreshStarted) return;
+        if (state.baseEmpowerment.generation > 0) return;
 
-        state.elementalEmpowermentRefreshStarted = true;
-        renewBaseEmpowerment(runtime);
+        baseEmpowermentPassive.restart(runtime, nextBaseEmpowermentAt(runtime));
+        grantBaseEmpowerment(runtime);
       }
     })
   ],
   lifetime: {
     reactions: { 'buff.applied': applyCatalystEmpowerment },
     // Permanent base stacks renew in the background, without extending an isolated damage observation.
-    backgroundTasks: [CATALYST_BASE_EMPOWERMENT_TASK],
-    tasks: { [CATALYST_BASE_EMPOWERMENT_TASK]: renewBaseEmpowerment }
+    ...baseEmpowermentPassive.hooks
   }
 });
 

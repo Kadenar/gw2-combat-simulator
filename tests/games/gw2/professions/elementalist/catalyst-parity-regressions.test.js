@@ -13,6 +13,7 @@ import { applyCatalystResolvedDamage } from '#gw2/professions/elementalist/speci
 import { relentlessFireModifiers } from '#gw2/professions/elementalist/specializations/catalyst/skills/augment-skills.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
+import { baseEmpowermentPassive } from '#gw2/professions/elementalist/specializations/catalyst/traits/index.js';
 import { applyCatalystEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
@@ -33,16 +34,24 @@ test('Catalyst baseline renewal rejects intervals that cannot advance the clock 
       scheduled = [];
     const runtime = {
       time: 7,
+      profession: { specialization: { kind: 'Catalyst', state: catalystState.create() } },
       helpers: withProfile(elementalistCatalog, TRAIT.ELEMENTAL_EMPOWERMENT, { duration: duration }),
       effects: captureEffectEmissions({ submit: (event) => emitted.push(event) }).effects,
+      cancelOwner() {},
       schedule: (...args) => scheduled.push(args)
     };
-    const renew = () => catalystModule.hooks.tasks['elementalist.catalyst-base-empowerment'](runtime);
+    // Admit the current occurrence through its owner before testing invalid successor tuning.
+    baseEmpowermentPassive.restart(runtime, runtime.time);
+    const generation = catalystState.from(runtime).baseEmpowerment.generation;
+    scheduled.length = 0;
+    const renew = () => catalystModule.hooks.tasks['elementalist.catalyst-base-empowerment'](runtime, generation);
 
     if (duration === 2) {
       renew();
       assert.equal(emitted[0].duration, 2);
-      assert.deepEqual(scheduled, [['elementalist.catalyst-base-empowerment', 9, null]]);
+      assert.equal(scheduled.length, 1);
+      assert.equal(scheduled[0][1], 9);
+      assert.equal(catalystState.from(runtime).baseEmpowerment.nextAt, 9);
     } else {
       assert.throws(renew, /Elemental Empowerment renewal must advance the simulation clock/);
       assert.deepEqual(emitted, []);

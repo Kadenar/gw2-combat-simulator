@@ -8,11 +8,11 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { catalystCombatStarted } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/trigger-points.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import { empoweringAuraStacks } from '#gw2/professions/elementalist/specializations/catalyst/traits/index.js';
 import {
-  elementalEmpowermentAttributes,
-  CATALYST_BASE_EMPOWERMENT_TASK
-} from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
+  empoweringAuraStacks,
+  baseEmpowermentPassive
+} from '#gw2/professions/elementalist/specializations/catalyst/traits/index.js';
+import { elementalEmpowermentAttributes } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -182,7 +182,7 @@ test('Elemental Empowerment starts only one selected and enabled renewal loop', 
         { timeline: [{ at: 1, run: (runtime) => runtime.fireTrigger(catalystCombatStarted) }] }
       );
       const active = selected && traitTriggers;
-      assert.equal(catalystState.from(runtime).elementalEmpowermentRefreshStarted, active);
+      assert.equal(catalystState.from(runtime).baseEmpowerment.generation > 0, active);
       assert.deepEqual(
         buffs(result, TRAIT.ELEMENTAL_EMPOWERMENT).map((event) => event.at),
         active ? [0, 15, 30] : []
@@ -196,9 +196,9 @@ test('An explicitly admitted renewal task survives disabled or unselected produc
   for (const selectedTraitIds of [[], [TRAIT.ELEMENTAL_EMPOWERMENT]]) {
     const { result, runtime } = run(
       { traitTriggers: false, selectedTraitIds, duration: 17 },
-      { initialize: (runtime) => runtime.schedule(CATALYST_BASE_EMPOWERMENT_TASK, 1, null) }
+      { initialize: (runtime) => baseEmpowermentPassive.restart(runtime, 1) }
     );
-    assert.equal(catalystState.from(runtime).elementalEmpowermentRefreshStarted, false);
+    assert.ok(catalystState.from(runtime).baseEmpowerment.nextAt > runtime.time);
     assert.deepEqual(
       buffs(result, TRAIT.ELEMENTAL_EMPOWERMENT).map((event) => event.at),
       [1, 16]

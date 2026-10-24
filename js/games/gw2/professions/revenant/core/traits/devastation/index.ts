@@ -39,13 +39,26 @@ import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/r
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalInterval, canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
-const REVENANT_ASSASSINS_PRESENCE = 'revenant.assassins-presence';
+/** Combat suppression skips the boon while the combat-anchored cadence keeps advancing. */
+const assassinsPresencePassive = definePeriodicTask<RevenantRuntime>({
+  name: 'revenant.assassins-presence',
+  background: true,
+  priority: 0,
+  state: (runtime) => runtime.profession.core.assassinsPresence,
+  rearmBeforeRun: true,
+  nextAt: (runtime) =>
+    canonicalTime(
+      runtime.time + canonicalInterval(balanceNumberFromContext(runtime, TRAIT.ASSASSINS_PRESENCE, 'cooldown'))
+    ),
+  run: revenantAssassinsPresencePulse
+});
 
 /** Owns Assassin's Presence tuning and behavior at its established execution boundaries. */
 export const assassinsPresence = defineTrait({
   triggers: [onTriggerPoint(revenantLifecycleAnchored, { run: startRevenantAssassinsPresence })],
-  lifetime: { tasks: { [REVENANT_ASSASSINS_PRESENCE]: revenantAssassinsPresencePulse } },
+  lifetime: assassinsPresencePassive.hooks,
   id: TRAIT.ASSASSINS_PRESENCE,
   name: "Assassin's Presence",
   balance: {
@@ -282,13 +295,6 @@ export const unsuspectingStrikes = defineTrait({
 
 function revenantAssassinsPresencePulse(runtime: RevenantRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.ASSASSINS_PRESENCE);
-  const core = runtime.profession.core;
-  runtime.schedule(
-    REVENANT_ASSASSINS_PRESENCE,
-    canonicalTime(runtime.time + canonicalInterval(balanceProfileNumber(profile, 'cooldown'))),
-    null,
-    { id: REVENANT_ASSASSINS_PRESENCE, generation: core.assassinsPresenceGeneration }
-  );
 
   if (!runtime.engagement.combatMechanicsAllowed()) return;
 
@@ -319,13 +325,7 @@ function revenantAssassinsPresencePulse(runtime: RevenantRuntime): void {
 
 /** Assassin's Presence pulses on its own combat-anchored cadence; attacks neither trigger nor delay it. */
 function startRevenantAssassinsPresence(runtime: RevenantRuntime, { at: anchor }: { readonly at: number }): void {
-  const core = runtime.profession.core;
-  runtime.cancelOwner({ id: REVENANT_ASSASSINS_PRESENCE, generation: core.assassinsPresenceGeneration });
-  core.assassinsPresenceGeneration++;
-  runtime.schedule(REVENANT_ASSASSINS_PRESENCE, anchor, null, {
-    id: REVENANT_ASSASSINS_PRESENCE,
-    generation: core.assassinsPresenceGeneration
-  });
+  assassinsPresencePassive.restart(runtime, anchor);
 }
 
 function activeOffhand(context: Gw2ModifierContext): boolean {

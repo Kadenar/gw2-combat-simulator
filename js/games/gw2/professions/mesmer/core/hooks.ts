@@ -33,7 +33,7 @@ import { mesmerScepterChainLifecycle } from '#gw2/professions/mesmer/core/mechan
 import {
   applyMesmerSignetReset,
   restartSignetIllusionsPassive,
-  signetIllusionsPulse
+  signetIllusionsPassive
 } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import { completeAxesConfusion, scheduleAxesClones } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
@@ -127,10 +127,9 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
     onCastCancel: complete,
     // Successful non-channel completion is commitment; animation tails carry only their authored packets.
     onCastCommit: complete,
-    // Clone attacks and the signet's passive continue indefinitely after their enabling cast.
-    backgroundTasks: ['mesmer.signet-illusions-passive'],
+    backgroundTasks: signetIllusionsPassive.hooks.backgroundTasks,
     tasks: {
-      'mesmer.signet-illusions-passive': signetIllusionsPulse,
+      ...signetIllusionsPassive.hooks.tasks,
       'mesmer.core.imagery-expire': (runtime, data) =>
         expireInspiringImagery(runtime, (data as { cast: RuntimeCast<MesmerSkill> }).cast),
       'mesmer.core.restart-signet-illusions-passive': (runtime) => restartSignetIllusionsPassive(runtime, runtime.time),

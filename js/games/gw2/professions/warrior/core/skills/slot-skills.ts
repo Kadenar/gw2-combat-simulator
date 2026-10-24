@@ -13,7 +13,7 @@ import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/mo
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
 import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
 const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
 
@@ -332,18 +332,21 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
   }
 });
 
-/** Each pulse checks current recharge and then schedules only its next occurrence, preserving cadence while suppressed. */
-function signetPulse(runtime: WarriorRuntime): void {
-  if ((runtime.cooldownController.readyAt(ID.SIGNET_OF_RAGE) ?? 0) <= runtime.time) grantWarriorResource(runtime, 2);
-
-  runtime.profession.core.nextSignetPulseAt = canonicalTime(runtime.time + 3);
-  runtime.schedule(SIGNET_PULSE, runtime.profession.core.nextSignetPulseAt, null, undefined, -220);
-}
+/** Suppressed rewards keep the combat-anchored cadence; only ready pulses grant resources. */
+const signetOfRagePassive = definePeriodicTask<WarriorRuntime>({
+  name: SIGNET_PULSE,
+  background: true,
+  priority: -220,
+  state: (runtime) => runtime.profession.core.signetOfRagePassive,
+  nextAt: (runtime) => runtime.time + 3,
+  run(runtime) {
+    if ((runtime.cooldownController.readyAt(ID.SIGNET_OF_RAGE) ?? 0) <= runtime.time) grantWarriorResource(runtime, 2);
+  }
+});
 
 /** Selected Signet of Rage starts its passive at accepted combat and preserves suppressed pulse cadence. */
 export const signetOfRageLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
-  // Passive resource pulses are ambient work, not delayed damage from the signet's active cast.
-  backgroundTasks: [SIGNET_PULSE],
+  ...signetOfRagePassive.hooks,
   sideEffectHandlers: {
     'warrior.signet-of-rage-active'(runtime, context) {
       // Reset catalog weapon bursts only: Full Counter and Dragon Trigger retain their recharges.
@@ -357,10 +360,8 @@ export const signetOfRageLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSki
   onCombatStart(runtime) {
     if (!selectedSkillIdSet(runtime.config.selectedSkillIds).has(ID.SIGNET_OF_RAGE)) return;
 
-    runtime.profession.core.nextSignetPulseAt = canonicalTime(runtime.time + 3);
-    runtime.schedule(SIGNET_PULSE, runtime.profession.core.nextSignetPulseAt, null, undefined, -220);
-  },
-  tasks: { [SIGNET_PULSE]: signetPulse }
+    signetOfRagePassive.restart(runtime, runtime.time + 3);
+  }
 };
 
 // One passive descriptor feeds build and live queries.
