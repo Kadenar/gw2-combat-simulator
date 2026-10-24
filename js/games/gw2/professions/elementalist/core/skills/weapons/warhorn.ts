@@ -250,7 +250,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     categories: ['Weapon skill'],
     castTimeMs: 840,
     cooldown: 30,
-    aura: { kind: AURA.MAGNETIC, duration: 4 },
     skillFamily: 'Weapon skill',
     comboFinishers: [
       {
@@ -259,6 +258,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ],
     effects: [
+      { type: 'aura', aura: AURA.MAGNETIC, duration: 4 },
       {
         type: 'boon',
         boon: BOON.PROTECTION,

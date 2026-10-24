@@ -178,31 +178,27 @@ const unstableConduit = defineTrait({
     // attunement name, so the effect `name` is the lookup key rather than the aura's name.
     effects: [
       {
-        type: 'buff',
+        type: 'aura',
         name: 'Fire',
-        kind: AURA.FIRE,
-        stacks: 1,
+        aura: AURA.FIRE,
         duration: 4
       },
       {
-        type: 'buff',
+        type: 'aura',
         name: 'Water',
-        kind: AURA.FROST,
-        stacks: 1,
+        aura: AURA.FROST,
         duration: 4
       },
       {
-        type: 'buff',
+        type: 'aura',
         name: 'Air',
-        kind: AURA.SHOCKING,
-        stacks: 1,
+        aura: AURA.SHOCKING,
         duration: 4
       },
       {
-        type: 'buff',
+        type: 'aura',
         name: 'Earth',
-        kind: AURA.MAGNETIC,
-        stacks: 1,
+        aura: AURA.MAGNETIC,
         duration: 4
       }
     ]
@@ -591,21 +587,13 @@ function applyLucidSingularity(context: ElementalistRuntime, cast: RuntimeCast<E
 function applyUnstableConduit(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const attunement = String(skill.attunement);
   {
-    const aura =
-      attunement === 'Fire'
-        ? AURA.FIRE
-        : attunement === 'Water'
-          ? AURA.FROST
-          : attunement === 'Air'
-            ? AURA.SHOCKING
-            : AURA.MAGNETIC;
     const unstableConduitProfile = requireBalanceProfileFromContext(context, TRAIT.UNSTABLE_CONDUIT);
-    const unstableConduitAttunement = requireEffect(unstableConduitProfile, 'buff', attunement);
+    const unstableConduitAttunement = requireEffect(unstableConduitProfile, 'aura', attunement);
 
     if (unstableConduitAttunement) {
       applyElementalistAura(context, {
         at: cast.effectiveEnd,
-        aura,
+        aura: unstableConduitAttunement.aura,
         duration: unstableConduitAttunement.duration,
         skillName: 'Unstable Conduit',
         sourceId: skill.id,

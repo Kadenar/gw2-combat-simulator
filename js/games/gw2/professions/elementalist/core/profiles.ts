@@ -1,3 +1,4 @@
+import type { AuraName } from '#gw2/platform/constants.js';
 import { AURA } from '#gw2/platform/constants.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/core/profile-ids.js';
 /**
@@ -14,11 +15,10 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
-const aura = (name: string, auraName: string, duration: number): SkillEffect => ({
-  type: 'buff',
+const aura = (name: string, auraName: AuraName, duration: number): SkillEffect => ({
+  type: 'aura',
   name,
-  kind: auraName,
-  stacks: 1,
+  aura: auraName,
   duration
 });
 

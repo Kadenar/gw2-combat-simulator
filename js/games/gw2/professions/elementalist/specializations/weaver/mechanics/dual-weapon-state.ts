@@ -122,12 +122,12 @@ const weaverPistolSideEffects: RuntimeProfession<ElementalistRuntimeState, Eleme
     const at = cast.effectiveEnd;
     {
       const frostfireFlurryProfile = requireBalanceProfileFromContext(context, PROFILE.frostfireFlurry);
-      const aura = requireEffect(frostfireFlurryProfile, 'buff', 'Fire');
+      const aura = requireEffect(frostfireFlurryProfile, 'aura', 'Fire');
 
       if (aura) {
         applyElementalistAura(context, {
           at,
-          aura: String(aura.kind),
+          aura: aura.aura,
           duration: aura.duration,
           skillName: skill.name,
           sourceId: skill.id
@@ -199,12 +199,12 @@ const weaverPistolSideEffects: RuntimeProfession<ElementalistRuntimeState, Eleme
     const at = cast.effectiveEnd;
     {
       const flowingFinesseProfile = requireBalanceProfileFromContext(context, PROFILE.flowingFinesse);
-      const aura = requireEffect(flowingFinesseProfile, 'buff', 'Water');
+      const aura = requireEffect(flowingFinesseProfile, 'aura', 'Water');
 
       if (aura) {
         applyElementalistAura(context, {
           at,
-          aura: String(aura.kind),
+          aura: aura.aura,
           duration: aura.duration,
           skillName: skill.name,
           sourceId: skill.id

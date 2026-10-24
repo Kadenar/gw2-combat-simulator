@@ -127,7 +127,7 @@ export const conjurer = defineTrait({
   triggers: [onTriggerPoint(conjureEquipped, { run: applyConjurerAura })],
   name: 'Conjurer',
   balance: {
-    effects: [{ type: 'buff', name: 'Conjurer', kind: AURA.FIRE, stacks: 1, duration: 4 }]
+    effects: [{ type: 'aura', name: 'Conjurer', aura: AURA.FIRE, duration: 4 }]
   }
 });
 
@@ -147,7 +147,7 @@ export const sunspot = defineTrait({
   name: 'Sunspot',
   balance: {
     effects: [
-      { type: 'buff', name: 'Sunspot Aura', kind: AURA.FIRE, stacks: 1, duration: 3 },
+      { type: 'aura', name: 'Sunspot Aura', aura: AURA.FIRE, duration: 3 },
       { type: 'strike', name: 'Sunspot', coefficient: 0.6, hits: 1, canCrit: false }
     ]
   }
@@ -329,12 +329,12 @@ function applyConjurerAura(context: ElementalistRuntime, { cast }: ElementalistC
   const at = cast.effectiveEnd;
   {
     const conjurerProfile = requireBalanceProfileFromContext(context, TRAIT.CONJURER);
-    const conjurerBuff = requireEffect(conjurerProfile, 'buff', 'Conjurer');
+    const conjurerBuff = requireEffect(conjurerProfile, 'aura', 'Conjurer');
 
     if (conjurerBuff) {
       applyElementalistAura(context, {
         at,
-        aura: String(conjurerBuff.kind),
+        aura: conjurerBuff.aura,
         duration: conjurerBuff.duration,
         skillName: 'Conjurer',
         sourceId: skill.id

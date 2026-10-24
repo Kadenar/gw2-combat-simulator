@@ -8,7 +8,6 @@ import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profe
  * Elementalist-flavored context/event types every module's handlers are written against.
  */
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { AuraName } from '#gw2/platform/constants.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -65,16 +64,9 @@ export interface ElementalistUiContext extends Omit<
 /** UI slice whose callbacks read Elementalist end-state projections. */
 export type ElementalistUiSlice = Partial<ProfessionUiContract<Partial<ElementalistState>>>;
 
-/** A skill's intrinsic aura grant; `duration` is authored seconds before Smothering Auras scaling. */
-export interface ElementalistAuraGrant {
-  readonly kind: AuraName;
-  readonly duration: number;
-}
-
 /** A catalog skill carrying the Elementalist-specific identity fields the modules read. */
 export interface ElementalistSkill extends Skill {
   readonly attunement?: string;
-  readonly aura?: ElementalistAuraGrant;
   readonly chainRoot?: SkillId;
   readonly overload?: boolean;
   readonly skillFamily?: string;

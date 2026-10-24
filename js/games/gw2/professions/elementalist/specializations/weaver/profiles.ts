@@ -1,3 +1,4 @@
+import type { AuraName } from '#gw2/platform/constants.js';
 import { AURA, STATUS, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 /** Mechanic and skill-variant tuning for Weaver; traits own their profiles under traits/. */
@@ -43,11 +44,10 @@ const condition = (name: string, conditionName: string, stacks: number, duration
   duration
 });
 
-const aura = (name: string, auraName: string, duration: number): SkillEffect => ({
-  type: 'buff',
+const aura = (name: string, auraName: AuraName, duration: number): SkillEffect => ({
+  type: 'aura',
   name,
-  kind: auraName,
-  stacks: 1,
+  aura: auraName,
   duration
 });
 

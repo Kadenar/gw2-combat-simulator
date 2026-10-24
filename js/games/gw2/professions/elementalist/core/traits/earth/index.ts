@@ -179,9 +179,9 @@ export const writtenInStone = defineTrait({
   name: 'Written in Stone',
   balance: {
     effects: [
-      { type: 'buff', name: 'Restoration', kind: AURA.FROST, stacks: 1, duration: 4 },
-      { type: 'buff', name: 'Fire', kind: AURA.FIRE, stacks: 1, duration: 4 },
-      { type: 'buff', name: 'Earth', kind: AURA.MAGNETIC, stacks: 1, duration: 3 }
+      { type: 'aura', name: 'Restoration', aura: AURA.FROST, duration: 4 },
+      { type: 'aura', name: 'Fire', aura: AURA.FIRE, duration: 4 },
+      { type: 'aura', name: 'Earth', aura: AURA.MAGNETIC, duration: 3 }
     ]
   }
 });
@@ -239,12 +239,12 @@ function applyWrittenInStone(context: ElementalistRuntime, { cast }: Elementalis
   if (!signet) return;
 
   const writtenInStoneProfile = requireBalanceProfileFromContext(context, TRAIT.WRITTEN_IN_STONE);
-  const effect = requireEffect(writtenInStoneProfile, 'buff', signet);
+  const effect = requireEffect(writtenInStoneProfile, 'aura', signet);
 
   if (effect) {
     applyElementalistAura(context, {
       at: cast.effectiveEnd,
-      aura: String(effect.kind),
+      aura: effect.aura,
       duration: effect.duration,
       skillName: 'Written in Stone',
       sourceId: skill.id

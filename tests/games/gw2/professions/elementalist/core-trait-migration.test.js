@@ -235,9 +235,7 @@ const traitCases = [
     rotation: ['Signet of Earth'],
     selectedSkillIds: { Utility1: 5571 },
     verify: (result) =>
-      assert.ok(
-        result.events.some((event) => event.type === 'elementalist.aura' && event.source === 'Written in Stone')
-      )
+      assert.ok(result.events.some((event) => event.type === 'aura' && event.source === 'Written in Stone'))
   },
   {
     name: 'Strength of Stone',
@@ -306,17 +304,14 @@ const traitCases = [
     rotation: ['Fire Attunement'],
     startAttunement: 'Air',
     verify: (result) =>
-      assert.equal(
-        result.events.find((event) => event.type === 'elementalist.aura' && event.source === 'Sunspot').duration,
-        3.99
-      )
+      assert.equal(result.events.find((event) => event.type === 'aura' && event.source === 'Sunspot').duration, 3.99)
   },
   {
     name: 'Soothing Ice',
     traits: [TRAIT.SOOTHING_ICE],
     rotation: ['Glyph of Elemental Harmony'],
     verify: (result) => {
-      assert.ok(result.events.some((event) => event.type === 'elementalist.aura' && event.source === 'Soothing Ice'));
+      assert.ok(result.events.some((event) => event.type === 'aura' && event.source === 'Soothing Ice'));
       assert.ok(result.events.some((event) => event.type === 'buff' && event.sourceId === TRAIT.SOOTHING_ICE));
     }
   }

@@ -67,7 +67,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
       }
     ])
   },
-  // Instant Fire Aura grant that flips the slot to Transmute Fire; the cast hook applies the declared aura.
+  // Instant Fire Aura grant that flips the slot to Transmute Fire; the declared effect grants the aura.
   [ID.FIRE_SHIELD]: {
     name: 'Fire Shield',
     type: 'Weapon',
@@ -78,9 +78,8 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     castTimeMs: 0,
     cooldown: 25,
     nextChainId: ID.TRANSMUTE_FIRE,
-    aura: { kind: AURA.FIRE, duration: 4 },
     skillFamily: 'Weapon skill',
-    effects: []
+    effects: [{ type: 'aura', aura: AURA.FIRE, duration: 4 }]
   },
   // Consumes the Fire Aura for a strike, Burning, and five Might, then flips back to Fire Shield.
   [ID.TRANSMUTE_FIRE]: {

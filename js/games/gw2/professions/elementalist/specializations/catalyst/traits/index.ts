@@ -1,3 +1,4 @@
+import type { AuraName } from '#gw2/platform/constants.js';
 import { AURA, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -505,11 +506,11 @@ function applySynergyCombo(context: ElementalistRuntime, event: Gw2ResolverEvent
 /** Resolves the shared aura defaults; the resolver retains its canonical attunement identity. */
 function elementalEpitomeAura(context: unknown, attunement: ElementalistAttunement) {
   const elementalEpitomeProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_EPITOME);
-  const effect = requireEffect(elementalEpitomeProfile, 'buff', attunement);
+  const effect = requireEffect(elementalEpitomeProfile, 'aura', attunement);
 
   if (!effect) return undefined;
 
-  return { aura: String(effect.kind), duration: effect.duration };
+  return { aura: effect.aura, duration: effect.duration };
 }
 
 /**
@@ -594,6 +595,6 @@ function boon(name: string, boonName: string, stacks: number, duration: number):
 }
 
 /** Builds a single aura grant for trait-owned effect declarations. */
-function aura(name: string, auraName: string, duration: number): SkillEffect {
-  return { type: 'buff', name, kind: auraName, stacks: 1, duration };
+function aura(name: string, auraName: AuraName, duration: number): SkillEffect {
+  return { type: 'aura', name, aura: auraName, duration };
 }

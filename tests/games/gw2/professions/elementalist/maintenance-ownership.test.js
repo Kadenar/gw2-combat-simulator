@@ -149,7 +149,7 @@ test('profession aura sources adjust duration once and record one accepted appli
             (runtime) => {
               assert.equal(runtime.profession.core.activeAuras.length, 1);
               assert.equal(runtime.profession.core.activeAuras[0].expiresAt, 1 + expectedDuration);
-              assert.equal(runtime.facts.ofType('elementalist.aura').length, 1);
+              assert.equal(runtime.facts.ofType('aura').length, 1);
             }
           ],
           [1 + expectedDuration, (runtime) => assert.equal(runtime.profession.core.activeAuras.length, 0)]
@@ -157,7 +157,7 @@ test('profession aura sources adjust duration once and record one accepted appli
       }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.events.filter((event) => event.type === 'elementalist.aura').length, 1);
+    assert.equal(result.events.filter((event) => event.type === 'aura').length, 1);
   }
 });
 
@@ -196,11 +196,11 @@ test('Core aura consequences precede Tempest and combo auras are never republish
             1,
             (runtime) => {
               assert.equal(runtime.profession.core.activeAuras.length, 1);
-              // The combo resolver supplies its materialized duration; profession requests apply their own adjustment.
-              assert.equal(runtime.profession.core.activeAuras[0].expiresAt, combo ? 3 : 5);
+              // Standard delivery applies the same duration adjustment to native and combo grants.
+              assert.equal(runtime.profession.core.activeAuras[0].expiresAt, 5);
             }
           ],
-          [combo ? 3 : 5, (runtime) => assert.equal(runtime.profession.core.activeAuras.length, 0)]
+          [5, (runtime) => assert.equal(runtime.profession.core.activeAuras.length, 0)]
         ]
       }
     );
@@ -209,7 +209,7 @@ test('Core aura consequences precede Tempest and combo auras are never republish
       result.resolvedEvents.filter((event) => event.type === 'buff').map((event) => event.kind),
       ['fury', 'swiftness', 'protection', 'vigor', 'regeneration', 'alacrity']
     );
-    assert.equal(result.events.filter((event) => event.type === (combo ? 'aura' : 'elementalist.aura')).length, 1);
+    assert.equal(result.events.filter((event) => event.type === 'aura').length, 1);
   }
 });
 

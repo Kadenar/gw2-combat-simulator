@@ -34,12 +34,12 @@ export function emitSunspot(
   // Keep strike and Burning attribution aligned with the actual attunement or overload that triggered Sunspot.
   const sourceSkill = context.helpers.skillsById.get(sourceId)?.name || '';
   const sunspotProfile = requireBalanceProfileFromContext(context, TRAIT.SUNSPOT);
-  const sunspotAura = requireEffect(sunspotProfile, 'buff', 'Sunspot Aura');
+  const sunspotAura = requireEffect(sunspotProfile, 'aura', 'Sunspot Aura');
 
   if (sunspotAura) {
     applyAura(context, {
       at,
-      aura: String(sunspotAura.kind),
+      aura: sunspotAura.aura,
       duration: sunspotAura.duration,
       skillName: 'Sunspot',
       sourceId

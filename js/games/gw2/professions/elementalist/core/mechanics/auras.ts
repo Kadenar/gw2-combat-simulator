@@ -1,16 +1,17 @@
-import { ACTOR } from '#gw2/platform/constants.js';
+import { ACTOR, type AuraName } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 export interface ElementalistAuraApplication {
   readonly at: number;
-  readonly aura: string;
+  readonly aura: AuraName;
   readonly duration: number;
   readonly skillName: string;
   readonly sourceId: Skill['id'];
@@ -19,16 +20,15 @@ export interface ElementalistAuraApplication {
 
 export type ElementalistAuraApplier = (context: ElementalistRuntime, application: ElementalistAuraApplication) => void;
 
-/** All profession producers submit authored durations here; Smothering Auras is applied exactly once. */
+/** Procedural grants submit the same standard aura packet as declared skills and combo outcomes. */
 export function applyElementalistAura(context: MechanicCombatContext, application: ElementalistAuraApplication): void {
   context.effects.emit({
     kind: 'packet',
     event: {
       ...application,
-      type: 'elementalist.aura',
+      type: 'aura',
       source: application.skillName,
-      actorType: ACTOR.EFFECT,
-      duration: smotheringAurasDuration(context, application.duration)
+      actorType: ACTOR.PLAYER
     }
   });
 }
@@ -45,26 +45,21 @@ function insertAura(context: ElementalistRuntime, event: Gw2ResolverEvent): void
   context.schedule('elementalist.expire-state', event.at + duration, null);
 }
 
-/** Profession packets own their observation and publication; reactions never re-enter this handler. */
-export function resolveElementalistAura(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
+/** Standard aura acceptance records profession state once without republishing the shared reaction. */
+export function acceptElementalistAuraReaction(context: ElementalistRuntime, event: Gw2ResolverEvent): boolean {
   insertAura(context, event);
   context.observations.record(event);
-
-  if (context.engagement.startTime != null && event.at < context.engagement.startTime) return;
-
-  context.combat.react('aura.applied', event);
-}
-
-/** Combo auras arrive already observed and published by the resolver, with their materialized duration. */
-export function acceptElementalistAuraReaction(context: ElementalistRuntime, event: Gw2ResolverEvent): boolean {
-  if (event.type === 'aura') insertAura(context, event);
 
   return context.engagement.startTime == null || event.at >= context.engagement.startTime;
 }
 
-/** Applies Smothering Auras' profile-driven duration multiplier once. */
-function smotheringAurasDuration(context: unknown, duration: number): number {
-  return hasTrait(context, TRAIT.SMOTHERING_AURAS)
-    ? duration * balanceNumberFromContext(context, TRAIT.SMOTHERING_AURAS, 'durationMultiplier')
-    : duration;
+/** Event preparation runs once per grant, so all aura sources share the trait's duration adjustment. */
+export function prepareElementalistAura(context: unknown, event: SimulationEventBase): SimulationEventBase {
+  return event.type === 'aura' && hasTrait(context, TRAIT.SMOTHERING_AURAS)
+    ? {
+        ...event,
+        duration:
+          Number(event.duration) * balanceNumberFromContext(context, TRAIT.SMOTHERING_AURAS, 'durationMultiplier')
+      }
+    : event;
 }

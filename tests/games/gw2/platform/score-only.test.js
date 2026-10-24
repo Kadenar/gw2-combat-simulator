@@ -7,7 +7,7 @@ import { loadProfession } from '#gw2/profession-registry.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
-import { resolveElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
+import { acceptElementalistAuraReaction } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
@@ -76,32 +76,35 @@ test('combo and aura handlers skip score report rows while preserving state and 
     // Bind real owner operations for this focused mechanic fixture.
     context.combat = createMechanicCombatServices(context);
     const handlers = createGw2ComboResolution({
-      reactions: { dispatch: (name, ctx, event) => ctx.combat.react(name, event) }
+      reactions: {
+        dispatch(name, ctx, event) {
+          if (name === 'aura.applied') acceptElementalistAuraReaction(ctx, event);
+
+          ctx.combat.react(name, event);
+        }
+      }
     });
     const combo = { type: 'combo', at: 1 };
-    const aura = { type: 'aura', at: 1 };
-    const generatedAura = {
-      type: 'elementalist.aura',
+    const aura = {
+      type: 'aura',
       at: 1,
-      aura: 'Fire',
+      aura: 'Fire Aura',
       duration: 4,
       skillName: 'Fixture Aura'
     };
 
     handlers.combo(context, combo);
     handlers.aura(context, aura);
-    resolveElementalistAura(context, generatedAura);
 
-    // Profession auras record one gameplay fact in both modes, without an origin-specific report copy.
-    assert.deepEqual(facts.reader.read(), [generatedAura]);
+    // Standard aura delivery records one gameplay fact and one profession state entry in either output mode.
+    assert.deepEqual(facts.reader.read(), [aura]);
     assert.deepEqual(context.resolved, reporting ? [combo, aura] : []);
     assert.deepEqual(dispatched, [
       ['combo.resolved', combo],
-      ['aura.applied', aura],
-      ['aura.applied', generatedAura]
+      ['aura.applied', aura]
     ]);
     assert.deepEqual(context.profession.core.activeAuras, [
-      { type: 'Fire', appliedAt: 1, expiresAt: 5, skillName: 'Fixture Aura' }
+      { type: 'Fire Aura', appliedAt: 1, expiresAt: 5, skillName: 'Fixture Aura' }
     ]);
   }
 });

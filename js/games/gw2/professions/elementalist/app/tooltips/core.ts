@@ -34,14 +34,6 @@ import { elementalistEarthTooltips } from '#gw2/professions/elementalist/app/too
 import { elementalistFireTooltips } from '#gw2/professions/elementalist/app/tooltips/fire.js';
 import { elementalistArcaneTooltips } from '#gw2/professions/elementalist/app/tooltips/arcane.js';
 import { elementalistAirTooltips } from '#gw2/professions/elementalist/app/tooltips/air.js';
-import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-
-/** Describes the same selected aura declaration that the cast hook grants. */
-function auraGrantFacts({ aura }: ElementalistSkill) {
-  return aura
-    ? simulationEffectFacts([{ type: 'buff', kind: aura.kind, duration: tooltipNumber(aura, 'duration') }]).facts
-    : [];
-}
 
 /** Compose core skills and trait-line tooltips from the selected balance data. */
 export const elementalistCoreTooltips = {
@@ -49,7 +41,6 @@ export const elementalistCoreTooltips = {
     ...(entity.resourceGain == null
       ? []
       : [{ name: 'Endurance gained', detail: tooltipDecimal(tooltipNumber(entity, 'resourceGain')) }]),
-    ...auraGrantFacts(entity),
     // Orb and conjure bonuses belong to their equipped state, including when created by a dual attack or pickup.
     ...(HAMMER_ORB_SKILLS[Number(entity.id)] === 'Fire' ||
     (String(entity.skillWeapon || entity.weapon) === WEAPON.HAMMER &&

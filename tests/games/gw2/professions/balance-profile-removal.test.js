@@ -40,7 +40,7 @@ function run(profession, balanceProfiles, specialization, rotation, config = {},
 
 for (const [type, name] of [
   ['strike', 'Sunspot'],
-  ['buff', 'Sunspot Aura'],
+  ['aura', 'Sunspot Aura'],
   ['condition', 'Sunspot Burning']
 ]) {
   test(`Sunspot independently removes its ${type} and preserves siblings`, () => {
@@ -58,8 +58,8 @@ for (const [type, name] of [
       type !== 'strike'
     );
     assert.equal(
-      events.some((event) => event.type === 'elementalist.aura'),
-      type !== 'buff'
+      events.some((event) => event.type === 'aura'),
+      type !== 'aura'
     );
     assert.equal(
       events.some((event) => event.type === 'condition'),

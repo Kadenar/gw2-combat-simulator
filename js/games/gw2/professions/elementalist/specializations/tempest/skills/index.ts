@@ -164,7 +164,6 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     categories: ['Shout'],
     castTimeMs: 0,
     cooldown: 25,
-    aura: { kind: AURA.FIRE, duration: 4 },
     skillFamily: 'Shout',
     // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
 
@@ -200,11 +199,12 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     categories: ['Shout'],
     castTimeMs: 0,
     cooldown: 30,
-    aura: { kind: AURA.MAGNETIC, duration: 4 },
     skillFamily: 'Shout',
     // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
 
     effects: [
+      { type: 'aura', aura: AURA.MAGNETIC, duration: 4 },
+      { type: 'aura', aura: AURA.FIRE, duration: 4 },
       ...impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.75 },
         { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 6 },

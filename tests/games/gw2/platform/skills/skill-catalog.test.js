@@ -212,27 +212,30 @@ test('skill costs validate authored field selectors and reject competing amount 
   );
 });
 
-// Aura grants must name one canonical aura and a positive duration before any cast can apply them.
-test('skill aura grants accept only a canonical kind with a positive finite duration', () => {
-  const load = (aura) => createCanonicalCatalog({ generated: [{ id: 1, name: 'Aura', aura }] });
-  for (const aura of [undefined, { kind: 'Fire Aura', duration: 4 }, { kind: 'Shocking Aura', duration: 0.5 }])
+// Aura declarations validate their name and duration as supported effects before any cast can apply them.
+test('skill aura effects accept only a canonical aura with a positive finite duration', () => {
+  const load = (aura) => createCanonicalCatalog({ generated: [{ id: 1, name: 'Aura', effects: aura ? [aura] : [] }] });
+  for (const aura of [
+    undefined,
+    { type: 'aura', aura: 'Fire Aura', duration: 4 },
+    { type: 'aura', aura: 'Shocking Aura', duration: 0.5 }
+  ])
     assert.doesNotThrow(() => load(aura));
   for (const aura of [
     'Fire|4',
     ['Fire Aura', 4],
-    { kind: 'Fire', duration: 4 },
-    { kind: 'Fire Aura' },
-    { kind: 'Fire Aura', duration: '4' },
-    ...[0, -1, NaN, Infinity].map((duration) => ({ kind: 'Fire Aura', duration })),
-    { kind: 'Fire Aura', duration: 4, stacks: 1 }
+    { type: 'aura', aura: 'Fire', duration: 4 },
+    { type: 'aura', aura: 'Fire Aura' },
+    { type: 'aura', aura: 'Fire Aura', duration: '4' },
+    ...[0, -1, NaN, Infinity].map((duration) => ({ type: 'aura', aura: 'Fire Aura', duration }))
   ])
-    assert.throws(() => load(aura), /invalid aura grant/);
+    assert.throws(() => load(aura), /aura|effect|duration/);
 });
 
 // Unknown and retired keys must fail in every authoring layer instead of accepting fields with no runtime behavior.
 test('catalogs reject unsupported skill fields in every authoring layer', () => {
   const skill = { id: 1, name: 'Validation' };
-  for (const field of ['retiredField', 'createsClone', 'flipDelay']) {
+  for (const field of ['retiredField', 'createsClone', 'flipDelay', 'aura']) {
     for (const options of [
       { generated: [{ ...skill, [field]: true }] },
       { generated: [skill], mechanics: { 1: { [field]: true } } },

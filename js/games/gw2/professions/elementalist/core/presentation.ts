@@ -336,7 +336,7 @@ function eventLogRow(
     };
   }
 
-  if (event.type === 'elementalist.aura') {
+  if (event.type === 'aura') {
     return {
       type: event.type,
       description: `${String(event.aura)} from ${String(event.skillName)}`,

@@ -9,7 +9,6 @@ import {
   completeElementalistAttunement,
   targetAttunement
 } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import {
   captureConjurePickup,
   dropConjure,
@@ -42,23 +41,8 @@ import type {
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 
-// Grant the skill's declared aura; catalog validation already guarantees a known kind and positive duration.
-function applySkillAura(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
-  const { aura, name, id } = cast.skill;
-
-  if (!aura) return;
-
-  applyElementalistAura(context, {
-    at: cast.effectiveEnd,
-    aura: aura.kind,
-    duration: aura.duration,
-    skillName: name,
-    sourceId: id
-  });
-}
-
 /**
- * Shared cast-start observers grant declared auras, ensure the automatic companion,
+ * Shared cast-start observers ensure the automatic companion,
  * and capture armed spear empowerments for this activation.
  */
 export function elementalistOnCastStart(
@@ -66,9 +50,6 @@ export function elementalistOnCastStart(
   cast: RuntimeCast<ElementalistSkill>,
   skill: Skill
 ): void {
-  // Aura-bearing skills grant their aura before same-time strike/condition
-  // packets, so aura-triggered modifiers can affect the skill that granted it.
-  applySkillAura(context, cast);
   ensureElementalistElemental(context, skill);
   beginElementalistSpearCast(context, cast, skill);
 }

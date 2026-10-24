@@ -548,12 +548,12 @@ export const pistolSideEffectHandlers: RuntimeProfession<
     const at = cast.effectiveEnd;
     {
       const searingSalvoProfile = requireBalanceProfileFromContext(context, PROFILE.searingSalvo);
-      const aura = requireEffect(searingSalvoProfile, 'buff', 'Fire');
+      const aura = requireEffect(searingSalvoProfile, 'aura', 'Fire');
 
       if (aura) {
         applyElementalistAura(context, {
           at,
-          aura: String(aura.kind),
+          aura: aura.aura,
           duration: aura.duration,
           skillName: skill.name,
           sourceId: skill.id
@@ -685,7 +685,7 @@ export const pistolBalanceProfiles: readonly BalanceProfile[] = Object.freeze([
     effects: [{ type: 'boon', name: 'Fire', boon: BOON.MIGHT, stacks: 1, duration: 10 }]
   }),
   variant(PROFILE.searingSalvo, ID.SEARING_SALVO, 'Searing Salvo - Fire Bullet', {
-    effects: [{ type: 'buff', name: 'Fire', kind: AURA.FIRE, stacks: 1, duration: 4 }]
+    effects: [{ type: 'aura', name: 'Fire', aura: AURA.FIRE, duration: 4 }]
   }),
   variant(PROFILE.frozenFusillade, ID.FROZEN_FUSILLADE, 'Frozen Fusillade - Water Bullet', {
     initialDelay: 4,
@@ -794,14 +794,14 @@ export const elementalistPistolLifecycle = {
       const { cast } = data as SkillTaskData<ElementalistSkill>;
       const effect = requireEffect(
         requireBalanceProfileFromContext(runtime, PROFILE.elementalExplosion),
-        'buff',
+        'aura',
         runtime.profession.core.primaryAttunement
       );
 
       if (effect)
         applyElementalistAura(runtime, {
           at: runtime.time,
-          aura: String(effect.kind),
+          aura: effect.aura,
           duration: effect.duration,
           skillName: cast.skill.name,
           sourceId: cast.skill.id

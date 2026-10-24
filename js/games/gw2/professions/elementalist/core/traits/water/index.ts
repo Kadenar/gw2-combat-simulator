@@ -31,7 +31,7 @@ export const soothingIce = defineTrait({
   balance: {
     internalCooldown: 15,
     effects: [
-      { type: 'buff', name: AURA.FROST, kind: AURA.FROST, stacks: 1, duration: 4 },
+      { type: 'aura', name: AURA.FROST, aura: AURA.FROST, duration: 4 },
       { type: 'boon', name: BOON.REGENERATION, boon: BOON.REGENERATION, stacks: 1, duration: 4 }
     ]
   }
@@ -108,12 +108,12 @@ function applySoothingIce(context: ElementalistRuntime, { cast }: ElementalistCa
   if (!context.procs.claimCooldown('soothingIce', at, balanceProfileNumber(soothingIceProfile, 'internalCooldown')))
     return;
 
-  const soothingIceFrostAura = requireEffect(soothingIceProfile, 'buff', AURA.FROST);
+  const soothingIceFrostAura = requireEffect(soothingIceProfile, 'aura', AURA.FROST);
 
   if (soothingIceFrostAura) {
     applyElementalistAura(context, {
       at,
-      aura: String(soothingIceFrostAura.kind),
+      aura: soothingIceFrostAura.aura,
       duration: soothingIceFrostAura.duration,
       skillName: 'Soothing Ice',
       sourceId: skill.id

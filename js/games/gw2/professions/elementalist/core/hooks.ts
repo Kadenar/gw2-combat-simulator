@@ -14,7 +14,7 @@ import { elementalistBuffPolicies, elementalistEffectStates } from '#gw2/profess
 import { resetElementalistAttunementCooldowns } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
 import {
   acceptElementalistAuraReaction,
-  resolveElementalistAura
+  prepareElementalistAura
 } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import { elementalistElementalCompanionId } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
@@ -100,6 +100,8 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
       return undefined;
     },
     prepareEvent(runtime, event) {
+      // Native and combo aura grants share the same one-time preparation before acceptance.
+      event = prepareElementalistAura(runtime, event);
       const elemental = runtime.profession.core.summonedElemental;
 
       if (event.type === 'damage' && CONJURED_WEAPONS.has(String(event.skillWeapon)))
@@ -143,7 +145,6 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
     eventHandlers: {
       'elementalist.conjure': OBSERVABLE_EVENT_HANDLER,
       'elementalist.attunement': observeElementalistTransition,
-      'elementalist.aura': resolveElementalistAura,
       'elementalist.attunement-enter': observeElementalistTransition
     },
     reactions: {

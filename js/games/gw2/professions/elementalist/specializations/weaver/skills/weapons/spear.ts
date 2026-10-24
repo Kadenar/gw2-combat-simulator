@@ -33,8 +33,8 @@ export const WEAVER_SPEAR_FOLLOWUPS: Readonly<Record<number, string>> = Object.f
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
 const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  // Fire+Water. The only spear dual that grants an aura: the core cast hook
-  // applies its declared three-second Fire Aura on cast end.
+  // Fire+Water. The only spear dual that grants an aura: its declared effect
+  // grants the three-second Fire Aura on cast end.
   [ID.FROSTFIRE_WARD]: {
     name: 'Frostfire Ward',
     type: 'Weapon',
@@ -44,11 +44,11 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     categories: ['Weapon skill'],
     castTimeMs: 0,
     cooldown: 15,
-    aura: { kind: AURA.FIRE, duration: 3 },
     skillFamily: 'Weapon skill',
     // Different live hand elements make the current primary immediately re-attunable on commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
     effects: [
+      { type: 'aura', aura: AURA.FIRE, duration: 3 },
       {
         type: 'strike',
         ticks: [

@@ -64,7 +64,9 @@ test('skill aura grants share one declaration between combat and tooltip facts',
       },
       {
         catalog(catalog) {
-          const edited = withSkill(catalog, ID.FIRE_SHIELD, { aura: { kind: AURA.FIRE, duration: 7 } });
+          const edited = withSkill(catalog, ID.FIRE_SHIELD, {
+            effects: [{ type: 'aura', aura: AURA.FIRE, duration: 7 }]
+          });
           declared = edited.skillsById.get(ID.FIRE_SHIELD);
           return edited;
         }
@@ -77,7 +79,7 @@ test('skill aura grants share one declaration between combat and tooltip facts',
   const granted = run([]);
   assert.deepEqual(
     granted.events
-      .filter((event) => event.type === 'elementalist.aura')
+      .filter((event) => event.type === 'aura')
       .map((event) => [event.sourceId, event.aura, event.duration]),
     [[ID.FIRE_SHIELD, AURA.FIRE, 7]]
   );

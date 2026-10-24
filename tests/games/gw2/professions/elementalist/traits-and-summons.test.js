@@ -244,7 +244,7 @@ test('core attunement and aura traits emit named boon and damage payloads', () =
     startAttunement: 'Air',
     selectedSkillIds: { Heal: 34743, Utility1: 5567, Utility2: 5542, Utility3: 5638, Elite: 25488 }
   });
-  const fireAura = fire.events.find((event) => event.type === 'elementalist.aura' && event.source === 'Conjurer');
+  const fireAura = fire.events.find((event) => event.type === 'aura' && event.source === 'Conjurer');
 
   assert.equal(fireAura.aura, 'Fire Aura');
   assert.ok(Math.abs(fireAura.duration - 5.32) < 0.001);
@@ -545,9 +545,7 @@ test('Catalyst traits enforce energy, empowerment, aura, and sphere rules', () =
     true
   );
   assert.equal(
-    resolvedAndScheduledEvents(sphere).some(
-      (event) => event.type === 'elementalist.aura' && event.source === 'Elemental Epitome'
-    ),
+    resolvedAndScheduledEvents(sphere).some((event) => event.type === 'aura' && event.source === 'Elemental Epitome'),
     true
   );
   assert.equal(

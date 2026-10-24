@@ -529,9 +529,8 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     castTimeMs: 0,
     cooldown: 30,
     nextChainId: ID.TRANSMUTE_EARTH,
-    aura: { kind: AURA.MAGNETIC, duration: 4 },
     skillFamily: 'Weapon skill',
-    effects: []
+    effects: [{ type: 'aura', aura: AURA.MAGNETIC, duration: 4 }]
   },
   [ID.TRANSMUTE_EARTH]: {
     // Consume all live matching auras on commitment, regardless of which skill or trait granted them.

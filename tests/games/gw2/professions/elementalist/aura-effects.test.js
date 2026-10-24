@@ -110,7 +110,7 @@ test('Core and Tempest aura boons submit patched authored effects', () => {
     // Live attribute and cooldown queries use the aura's actual application clock.
     context.time = 4;
     context.fireTrigger(auraAccepted, {
-      cause: { type: 'elementalist.aura', at: 4, sourceId: 1, skillName: 'Fixture Aura', actorType: 'player' }
+      cause: { type: 'aura', at: 4, sourceId: 1, skillName: 'Fixture Aura', actorType: 'player' }
     });
     assert.deepEqual(
       events.map(({ kind, stacks, duration }) => ({ kind, stacks, duration })),
@@ -140,7 +140,7 @@ test('one Tempest aura resolves each trait boon exactly once', () => {
 
 test('Tempest preserves aura damage windows and grants boons for every actual aura', () => {
   // Every accepted aura refreshes Aria and grants each selected trait once.
-  for (const origin of [{}, { type: 'aura' }]) {
+  for (const origin of [{ source: 'Fixture Skill' }, { source: 'Fixture Combo', comboId: 'combo:1' }]) {
     const queued = [];
     const context = {
       engagement: enteredCombat(),
@@ -158,7 +158,7 @@ test('Tempest preserves aura damage windows and grants boons for every actual au
     context.combat = createMechanicCombatServices(Object.assign(context, { companions: new Map() }));
     bindTriggerPoints(context, elementalistProfession, { specialization: 'Tempest' });
     context.fireTrigger(auraAccepted, {
-      cause: { type: 'elementalist.aura', at: 1, skillName: 'Fixture Aura', ...origin }
+      cause: { type: 'aura', at: 1, skillName: 'Fixture Aura', ...origin }
     });
     assert.equal(context.buffs.get('tempestuous aria')[0].expiresAt, 8);
     assert.deepEqual(
@@ -193,7 +193,7 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
   // Bind real owner operations for this focused mechanic fixture.
   context.combat = createMechanicCombatServices(Object.assign(context, { companions: new Map() }));
   bindTriggerPoints(context, elementalistProfession, { specialization: 'Catalyst' });
-  const event = { type: 'elementalist.aura', at: 1, skillName: 'Fixture Aura', sourceId: 1 };
+  const event = { type: 'aura', at: 1, skillName: 'Fixture Aura', sourceId: 1 };
   catalystRuntime.reactions['aura.applied'](context, event);
   assert.equal(state.empoweringAuras.expiresAt, 9);
   assert.deepEqual(
@@ -258,7 +258,7 @@ test('Catalyst snapshots retain capped aura refreshes without adding or reviving
         at,
         run: (runtime) =>
           catalystRuntime.reactions['aura.applied'](runtime, {
-            type: 'elementalist.aura',
+            type: 'aura',
             at,
             skillName: 'Fixture Aura',
             sourceId: 1,
