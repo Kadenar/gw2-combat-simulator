@@ -1,4 +1,4 @@
-import { ACTOR, CONTROL } from '#gw2/platform/constants.js';
+import { ACTOR, CONTROL, AURA } from '#gw2/platform/constants.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -31,21 +31,29 @@ export const EFFULGENT = 'guardian.luminary.effulgent';
 
 export const STANCE = 'guardian.luminary.stance';
 
-/** Actual combo outcomes refresh the single aura; only Luminary sources can detonate an existing one on grant. */
+/** Native grants use the standard aura packet, after old-aura detonation and before same-time impacts. */
 export function grantLuminaryAura(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
-  let duration = event.duration;
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.lightAura);
+  const aura = requireEffect(profile, 'aura', AURA.LIGHT);
 
-  if (duration === undefined) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.lightAura);
-    const aura = requireEffect(profile, 'buff', 'light-aura');
+  if (!aura) return;
 
-    if (!aura) return;
+  runtime.effects.emit({
+    kind: 'profile',
+    profile,
+    effects: [aura],
+    at: runtime.time,
+    fullEnd: runtime.time,
+    cause: event,
+    attribution: event,
+    priority: -10
+  });
+}
 
-    duration = effectNumber(profile, aura, 'duration');
-  }
-
+/** Native and combo grants share acceptance; detonation sees the old aura before its replacement is stored. */
+export function acceptLuminaryAura(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
   runtime.fireTrigger(lightAuraGranting, { cause: event });
-  luminaryState.from(runtime).lightAuraUntil = gw2EffectExpiresAt(runtime.time, duration);
+  luminaryState.from(runtime).lightAuraUntil = gw2EffectExpiresAt(runtime.time, event.duration ?? 0);
 }
 
 /** Schedule finite activation effects; all state mutations happen when their boundary executes. */

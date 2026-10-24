@@ -470,7 +470,7 @@ test('Quickfire window removal leaves its cooldown and charge reactions inactive
 
 test('Light Aura removal prevents its window and Sovereign detonation', () => {
   const result = run(
-    { 'guardian.luminary.light-aura': remove('buff', 'light-aura') },
+    { 'guardian.luminary.light-aura': remove('aura', 'Light Aura') },
     'Luminary',
     ['Enter Radiant Forge', 'Radiant Resolve'],
     [TRAIT.SOVEREIGN_OF_LIGHT]

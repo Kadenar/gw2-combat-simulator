@@ -185,7 +185,7 @@ test('combo Fire Aura can detonate during the critical-aura cooldown and an unus
 
 test('removing King of Fires strike preserves Burning while removing its aura prevents detonation', () => {
   const config = { patchId: 'king-live', selectedSkillIds: [29941], selectedTraitIds: [TRAIT.KING_OF_FIRES] };
-  for (const type of ['strike', 'buff']) {
+  for (const type of ['strike', 'aura']) {
     const patched = withPatchPreview(warriorProfession, {
       id: 'king-live',
       label: 'King live',

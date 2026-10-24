@@ -85,8 +85,10 @@ test('trait and combo fire auras detonate once before their exclusive rounded ex
         });
       });
 
-      if (source === 'trait')
-        assert.equal(timedBuffApplicationsAt(result.events, 'fire-aura', 0.001)[0].expiresAt, 5.04);
+      // Both sources resolve one standard aura; the boundary checks below protect its rounded expiry.
+      const auras = result.resolvedEvents.filter((event) => event.type === 'aura' && event.aura === 'Fire Aura');
+      assert.equal(auras.length, 1);
+      assert.equal(auras[0].duration, 5);
 
       assert.equal(result.procSteps.filter((proc) => proc.skill === 'King of Fires').length, at < 5040 ? 1 : 0);
 

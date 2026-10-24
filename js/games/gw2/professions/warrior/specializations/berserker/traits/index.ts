@@ -12,7 +12,6 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import {
   balanceNumberFromContext,
-  effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -164,16 +163,15 @@ const kingOfFires = defineTrait({
 
         const profile = requireBalanceProfileFromContext(runtime, TRAIT.KING_OF_FIRES);
         // The qualifying critical hit owns the interval even when its optional aura packet is removed.
-        const aura = requireEffect(profile, 'buff', 'fire-aura');
+        const aura = requireEffect(profile, 'aura', AURA.FIRE);
 
         if (!aura) return;
 
-        const duration = effectNumber(profile, aura, 'duration');
-        armAura(runtime, gw2EffectExpiresAt(runtime.time, duration));
+        // Native grants arm the same profession-owned state as combos through aura.applied.
         emitTraitProfile(runtime, TRAIT.KING_OF_FIRES, TRAIT.KING_OF_FIRES, event, {
           at: runtime.time,
           fullEnd: runtime.time,
-          effect: { type: 'buff', name: 'fire-aura' },
+          effect: { type: 'aura', name: AURA.FIRE },
           attribution: {
             source: 'Trait',
             sourceId: TRAIT.KING_OF_FIRES,
@@ -181,8 +179,7 @@ const kingOfFires = defineTrait({
             skillId: event.skillId,
             skillName: event.skillName,
             name: 'King of Fires — Fire Aura'
-          },
-          transform: (packet) => ({ ...packet, duration: duration })
+          }
         });
         runtime.effects.emit({
           kind: 'announcement',
@@ -217,7 +214,7 @@ const kingOfFires = defineTrait({
     durationMultiplier: 0.33,
     internalCooldown: 15,
     effects: [
-      { name: 'fire-aura', type: 'buff', kind: 'fire-aura', stacks: 1, duration: 5 },
+      { name: AURA.FIRE, type: 'aura', aura: AURA.FIRE, duration: 5 },
       { name: 'Strike', type: 'strike', coefficient: 0.7, hits: 1 },
       { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 3, duration: 3 }
     ]

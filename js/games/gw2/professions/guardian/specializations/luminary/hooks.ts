@@ -21,6 +21,7 @@ import {
   radiantWeaponDrawn
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
 import {
+  acceptLuminaryAura,
   countEffulgentHit,
   grantLuminaryAura,
   luminaryEffectLifecycle,
@@ -83,8 +84,7 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
 
     sideEffectHandlers: {
       'guardian.hammer-aura'(runtime, context) {
-        if (context.kind === 'effect')
-          grantLuminaryAura(runtime, { ...context.trigger.event, type: 'combo', duration: undefined });
+        if (context.kind === 'effect') grantLuminaryAura(runtime, context.trigger.event);
       }
     },
     castDurationMs(runtime, skill, duration) {
@@ -133,7 +133,7 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
         });
       },
       'aura.applied'(runtime, event) {
-        if (event.aura === AURA.LIGHT) grantLuminaryAura(runtime, event);
+        if (event.aura === AURA.LIGHT) acceptLuminaryAura(runtime, event);
       }
     },
     tasks: {

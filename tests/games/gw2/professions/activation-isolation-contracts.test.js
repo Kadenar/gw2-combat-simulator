@@ -315,8 +315,8 @@ test('King of Fires separates new critical auras from admitted aura observation 
               ? withProfile(catalog, WT.KING_OF_FIRES, {
                   effects: catalog.balanceProfilesById
                     .get(WT.KING_OF_FIRES)
-                    .effects.filter((effect) => effect.name !== 'fire-aura'),
-                  removedEffectKeys: [skillEffectKey('buff', 'fire-aura')]
+                    .effects.filter((effect) => effect.name !== 'Fire Aura'),
+                  removedEffectKeys: [skillEffectKey('aura', 'Fire Aura')]
                 })
               : catalog
         }

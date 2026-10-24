@@ -1,4 +1,4 @@
-import { RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { RECIPIENT, BOON, CONDITION, AURA } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
@@ -139,6 +139,6 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     id: LUMINARY_BALANCE_PROFILE_IDS.lightAura,
     name: 'Luminary Light Aura',
     profileKind: 'mechanic',
-    effects: [{ type: 'buff', name: 'light-aura', kind: 'light-aura', stacks: 1, duration: 4 }]
+    effects: [{ type: 'aura', name: AURA.LIGHT, aura: AURA.LIGHT, duration: 4 }]
   }
 ]);

@@ -279,7 +279,7 @@ test('Luminary selected component removal preserves independent effects and neve
       guardian: {
         balanceProfiles: {
           [LUM_PROFILE.forge]: { removeEffects: [{ type: 'buff', all: true }] },
-          [LUM_PROFILE.lightAura]: { removeEffects: [{ type: 'buff', all: true }] },
+          [LUM_PROFILE.lightAura]: { removeEffects: [{ type: 'aura', all: true }] },
           [LUM_PROFILE.effulgentStance]: { removeEffects: [{ type: 'strike', all: true }] }
         }
       }
