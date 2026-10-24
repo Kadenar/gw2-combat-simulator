@@ -48,8 +48,8 @@ export function publishBlight(runtime: NecromancerRuntime): void {
       actorType: ACTOR.PLAYER,
       skillName: 'Blight',
       kind: 'harbinger-blight',
-      stacks: state.blight,
-      duration: state.blight ? Math.max(...state.blightExpiries) - runtime.time : 0
+      stacks: state.blightExpiries.length,
+      duration: state.blightExpiries.length ? Math.max(...state.blightExpiries) - runtime.time : 0
     }
   });
   refreshBlight(runtime);
@@ -63,7 +63,7 @@ export function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast<Necro
     HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)],
     'blightCost'
   );
-  const empowered = state.blight >= cost;
+  const empowered = state.blightExpiries.length >= cost;
   const consumed = empowered ? consumeBlight(state, cost, runtime.time, harbingerBlightMaximum(runtime)) : 0;
   runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed });
 

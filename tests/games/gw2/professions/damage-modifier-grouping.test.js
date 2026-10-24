@@ -125,7 +125,7 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
     active: [...shared.active, 'meltdown'],
     traits: [NECROMANCER.WICKED_CORRUPTION, NECROMANCER.SEPTIC_CORRUPTION, NECROMANCER.CASCADING_CORRUPTION],
     config: { ...shared.config, specialization: 'Harbinger' },
-    runtime: runtime('Harbinger', {}, { blight: 10 })
+    runtime: runtime('Harbinger', {}, { blightExpiries: Array(10).fill(25) })
   });
 
   assertClose(necromancerRules('Harbinger').modifyStrikeDamage(harbinger, 1), 1.28);

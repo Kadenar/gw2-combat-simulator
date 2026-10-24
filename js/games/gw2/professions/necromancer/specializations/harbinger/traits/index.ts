@@ -391,7 +391,9 @@ function activeBlight(context: Gw2ModifierContext): number {
   // not the current (post-impact) blight count which may already be lower due to subsequent consumption.
   return Math.max(
     0,
-    event?.metadata?.necromancerBlight ?? necromancerRuntimeSpecializationState(context, 'Harbinger').blight ?? 0
+    event?.metadata?.necromancerBlight ??
+      necromancerRuntimeSpecializationState(context, 'Harbinger').blightExpiries?.length ??
+      0
   );
 }
 

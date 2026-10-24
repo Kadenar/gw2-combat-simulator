@@ -58,14 +58,14 @@ test('elixir state commits chronologically and cancelled throws leave it untouch
           ...native.tasks,
           'test.observe'(runtime) {
             const state = runtime.profession.specialization.state;
-            observations.push([state.blight, state.cascadingCorruptionStacks, state.meltdownUntil]);
+            observations.push([state.blightExpiries.length, state.cascadingCorruptionStacks, state.meltdownUntil]);
           }
         }
       }
     });
     assert.deepEqual(observations, [[20, 15, 0]]);
     const state = observedRuntime(result).profession.specialization.state;
-    assert.equal(state.blight, cancelled ? 20 : 25);
+    assert.equal(state.blightExpiries.length, cancelled ? 20 : 25);
     assert.equal(state.cascadingCorruptionStacks, cancelled ? 15 : 0);
     assert.equal(state.meltdownUntil > 0, !cancelled);
     assert.equal(result.totalDamage > 0, !cancelled);
@@ -187,7 +187,7 @@ test('Blight cap refreshes survive spending from the end of the stack array', ()
   assert.equal(addBlight(state, 2, 10, 25), 0);
   assert.equal(consumeBlight(state, 5, 11, 25), 5);
   purgeHarbingerTimedState(state, 26, 25);
-  assert.equal(state.blight, 12);
+  assert.equal(state.blightExpiries.length, 12);
   consumeBlight(state, 10, 26, 25);
   assert.deepEqual(state.blightExpiries, [35, 35]);
 });

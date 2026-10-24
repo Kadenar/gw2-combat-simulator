@@ -18,7 +18,6 @@ test('shared autoattack helpers derive and index ID-based chains', () => {
   assert.deepEqual(indexAutoattackChains(chains).get(2), {
     root: 1,
     index: 1,
-    step: 2,
     next: 3
   });
 });
@@ -72,7 +71,6 @@ test('canonical catalogs own derived and exceptional autoattack chains', () => {
   assert.deepEqual(catalog.autoattackChainPositions.get(2), {
     root: 1,
     index: 1,
-    step: 2,
     next: 3
   });
   assert.equal(catalog.skillsById.get(2).chainRoot, 1);

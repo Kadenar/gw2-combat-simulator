@@ -440,7 +440,7 @@ test('Shattering Ice is proc-only and accepts player-owned effect and field atta
     coefficient: 0.6
   });
 
-  const queued = Array.from({ length: context.queue.length }, () => context.queue.dequeue());
+  const queued = Array.from({ length: context.queue.pending().length }, () => context.queue.dequeue());
   assert.deepEqual(
     queued.filter((event) => event.type === 'damage').map((event) => event.triggeredBy),
     ['Electric Discharge', 'Deploy Jade Sphere (Air)']

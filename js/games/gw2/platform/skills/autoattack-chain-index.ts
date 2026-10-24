@@ -77,7 +77,6 @@ export function indexAutoattackChains(chains: readonly (readonly SkillId[])[]): 
         Object.freeze({
           root: chain[0],
           index,
-          step: index + 1,
           next: chain[index + 1] ?? null
         })
       );

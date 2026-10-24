@@ -47,7 +47,7 @@ for (const [shards, blight] of [
     assert.deepEqual(result.warnings, []);
     const owner = observedRuntime(result);
     assert.equal(owner.profession.core.soulShardGrant.charges, shards);
-    assert.equal(owner.profession.specialization.state.blight, blight);
+    assert.equal(owner.profession.specialization.state.blightExpiries.length, blight);
     assert.equal(harbingerHooks.observeEffects(owner.mechanics)[0].countLimit, blight);
 
     // Reconciliation repairs over-cap projections without rewriting the retained combat state.
@@ -90,7 +90,7 @@ for (const [shards, blight] of [
     );
     assert.deepEqual(baseline.warnings, []);
     assert.equal(observedRuntime(baseline).profession.core.soulShardGrant.charges, 6);
-    assert.equal(observedRuntime(baseline).profession.specialization.state.blight, 25);
+    assert.equal(observedRuntime(baseline).profession.specialization.state.blightExpiries.length, 25);
   });
 
   test(`selected capacities ${shards}/${blight} apply to weapon, elixir, and shroud gains`, () => {
@@ -102,7 +102,7 @@ for (const [shards, blight] of [
     assert.equal(observedRuntime(spear).profession.core.soulShardGrant.charges, Math.min(shards, 2));
     const elixir = run(['Elixir of Risk'], { ...config, initialBlight: blight });
     assert.deepEqual(elixir.warnings, []);
-    assert.equal(observedRuntime(elixir).profession.specialization.state.blight, blight);
+    assert.equal(observedRuntime(elixir).profession.specialization.state.blightExpiries.length, blight);
     for (const selectedTraitIds of [[], [TRAIT.DOOM_APPROACHES]]) {
       const shroud = run(['Harbinger Shroud', wait(2000)], {
         ...config,
@@ -110,7 +110,7 @@ for (const [shards, blight] of [
         selectedTraitIds
       });
       assert.deepEqual(shroud.warnings, []);
-      assert.equal(observedRuntime(shroud).profession.specialization.state.blight, blight);
+      assert.equal(observedRuntime(shroud).profession.specialization.state.blightExpiries.length, blight);
     }
   });
 }

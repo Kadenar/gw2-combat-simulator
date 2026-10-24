@@ -61,7 +61,7 @@ for (const reporting of [true, false]) {
       observeRuntimeEffects(observationRuntime, {}).find((effect) => effect.kind === 'Bleeding');
     assert.equal(effectStateValue(observeBleeding(), swappedAt).count, 3);
     const paidAfterSwap = new Set();
-    while (context.queue.length) {
+    while (context.queue.peek()) {
       const event = context.queue.dequeue();
 
       if (event.type === 'test.swap-pets') {

@@ -150,7 +150,8 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
     return Object.freeze({
       ...skill,
       chainRoot: position?.root ?? null,
-      chainStep: position?.step ?? null
+      // Public chain steps are one-based; the chain index owns the underlying position.
+      chainStep: position ? position.index + 1 : null
     });
   });
   // skillsByName is used for name-based lookups (e.g. from trait/effect references).

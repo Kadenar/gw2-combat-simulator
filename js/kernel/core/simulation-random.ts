@@ -15,7 +15,6 @@ export interface SimulationRandomnessConfig {
 export interface SimulationRandom {
   readonly mode: 'deterministic' | 'stochastic';
   readonly seed: number;
-  readonly stochastic: boolean;
   next(stream?: string): number;
   roll(probability: number, stream?: string): boolean;
 }
@@ -108,7 +107,6 @@ export function createSimulationRandom(value: SimulationRandomnessConfig = {}): 
 
   return Object.freeze({
     ...config,
-    stochastic: config.mode === SIMULATION_RANDOMNESS_MODES.STOCHASTIC,
     next,
     roll
   });

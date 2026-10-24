@@ -303,7 +303,7 @@ test('resolved critical-hit helper shares sampled outcomes and strict ICDs acros
   const state = { readyAt: 0, procs: 0, rolls: 0 };
   const context = {
     random: {
-      stochastic: false,
+      mode: 'deterministic',
       roll: (chance, stream) => {
         state.rolls += 1;
         assert.equal(chance, 0.5);
@@ -341,7 +341,7 @@ test('resolved critical-hit helper shares sampled outcomes and strict ICDs acros
   assert.equal(state.procs, 2);
   assert.equal(state.rolls, 2);
 
-  context.random.stochastic = true;
+  context.random.mode = 'stochastic';
   reaction(
     context,
     { ...event, at: 3 },

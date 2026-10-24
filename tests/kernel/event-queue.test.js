@@ -12,7 +12,7 @@ test('event normalization and queue insertion reject missing or invalid timestam
   for (const event of [{}, { time: 1 }, ...[undefined, null, NaN, Infinity, -Infinity, '1'].map((at) => ({ at }))]) {
     assert.throws(() => canonicalEvent(event), /Timestamp must be finite/);
     assert.throws(() => queue.enqueue(event), /Timestamp must be finite/);
-    assert.equal(queue.length, 1);
+    assert.equal(queue.pending().length, 1);
     assert.equal(queue.peek(), first);
   }
 
@@ -31,7 +31,7 @@ test('event normalization and queue insertion reject missing or invalid timestam
 // Canonical insertion returns the actual queued identity without mutating the caller's event.
 test('queues start empty and return canonical handles for every enqueued event', () => {
   const queue = new StableEventQueue();
-  assert.equal(queue.length, 0);
+  assert.equal(queue.pending().length, 0);
   assert.equal(queue.peek(), undefined);
   const first = Object.freeze({ at: 0.56 + 0.04, name: 'first' });
   const firstHandle = queue.enqueue(first);
@@ -61,7 +61,7 @@ test('live peeking skips canceled entries and leaves endpoint descendants availa
   queue.cancel(queue.peek());
   assert.equal(queue.peek(), undefined);
   assert.equal(queue.dequeue(), undefined);
-  assert.equal(queue.length, 0);
+  assert.equal(queue.pending().length, 0);
 });
 
 // Cancellation belongs to the chosen lifetime, not every packet attributed to the originating activation.
@@ -229,7 +229,7 @@ test('same-time queued events retain stable insertion order', () => {
   });
 
   assert.deepEqual(
-    Array.from({ length: queue.length }, () => queue.dequeue().name),
+    Array.from({ length: queue.pending().length }, () => queue.dequeue().name),
     ['priority', 'first', 'second']
   );
 });
@@ -250,7 +250,7 @@ test('heap event queues preserve priority and stable insertion order', () => {
 
   const names = [];
 
-  while (queue.length) names.push(queue.dequeue().name);
+  while (queue.peek()) names.push(queue.dequeue().name);
   assert.deepEqual(names, ['priority', 'first', 'second', 'third', 'later']);
 });
 
@@ -270,7 +270,7 @@ test('mixed causal tags retain stable ties in the heap', () => {
   queue.enqueue({ at: 1, name: 'invalid-tag', causalOrder: Number.NaN });
 
   const names = [];
-  while (queue.length) names.push(queue.dequeue().name);
+  while (queue.peek()) names.push(queue.dequeue().name);
   assert.deepEqual(
     names,
     [

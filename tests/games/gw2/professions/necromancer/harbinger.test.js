@@ -26,14 +26,14 @@ test('Harbinger entry grants precede depletion and its passive clock stops on ev
   const entered = run([cast(ID.HARBINGER_SHROUD), wait(1000)], config);
   assert.equal(entered.planningState.profession.activeShroud, 'harbinger');
   assert.equal(lifeForcePercent(entered.planningState.profession.lifeForce), 10);
-  assert.equal(state(entered).blight, 2);
+  assert.equal(state(entered).blightExpiries.length, 2);
   assert.deepEqual(entered.warnings, []);
   const depleted = run([cast(ID.HARBINGER_SHROUD), wait(2000)], { ...base, initialResource: 5 });
   assert.equal(depleted.planningState.profession.activeShroud, '');
   assert.equal(state(depleted).nextBlightAt, Infinity);
-  assert.equal(state(depleted).blight, 0);
+  assert.equal(state(depleted).blightExpiries.length, 0);
   const exited = run([cast(ID.HARBINGER_SHROUD), wait(1500), cast(ID.EXIT_HARBINGER_SHROUD), wait(2000)]);
-  assert.equal(state(exited).blight, 2);
+  assert.equal(state(exited).blightExpiries.length, 2);
   assert.equal(state(exited).nextBlightAt, Infinity);
   const partitioned = run([cast(ID.HARBINGER_SHROUD), wait(1000), wait(1000), wait(1000)]);
   assert.deepEqual(state(partitioned), state(run([cast(ID.HARBINGER_SHROUD), wait(3000)])));
@@ -47,31 +47,31 @@ test('Blight expiry runs before same-time spending and records no replay state',
     necromancerProfession.catalog.skillsById.get(ID.ELIXIR_OF_BLISS).effects.find((effect) => effect.type === 'strike')
       .coefficient
   );
-  assert.equal(state(result).blight, 10);
+  assert.equal(state(result).blightExpiries.length, 10);
   assert.deepEqual(state(result).blightExpiries, Array(10).fill(50));
   assert.equal(
     result.events.some((event) => event.type === 'necromancer.blight' || event.type === 'necromancer.state'),
     false
   );
-  assert.equal(state(run([wait(25000)], { ...base, initialBlight: 5 })).blight, 0);
+  assert.equal(state(run([wait(25000)], { ...base, initialBlight: 5 })).blightExpiries.length, 0);
 });
 
 test('elixir launch spends once and delayed hostile impact preserves the selected empowerment', () => {
   const config = { ...base, initialBlight: 5 };
   const rotation = [{ ...cast(ID.ELIXIR_OF_RISK), impactDelayMs: 1000 }];
   const pending = run(rotation, config);
-  assert.equal(state(pending).blight, 10);
+  assert.equal(state(pending).blightExpiries.length, 10);
   assert.equal(pending.totalDamage, 0);
   const arrived = run([...rotation, wait(1200)], config);
   const strike = arrived.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.ELIXIR_OF_RISK);
   assert.equal(strike.metadata.necromancerBlight, 0);
   assert.deepEqual(arrived.warnings, []);
   const interrupted = run([{ ...cast(ID.ELIXIR_OF_RISK), interruptAfterMs: 100 }, wait(1000)], config);
-  assert.equal(state(interrupted).blight, 5);
+  assert.equal(state(interrupted).blightExpiries.length, 5);
   assert.equal(interrupted.totalDamage, 0);
   const missed = run([{ ...cast(ID.ELIXIR_OF_RISK), offTarget: true }], config);
   assert.equal(missed.totalDamage, 0);
-  assert.equal(state(missed).blight, 10);
+  assert.equal(state(missed).blightExpiries.length, 10);
 });
 
 test('Cascading Corruption commits one delayed Meltdown and expires its live window', () => {
@@ -174,9 +174,9 @@ test('shroud attacks spend the Blight present at their actual attack boundary', 
   const result = run([cast(ID.HARBINGER_SHROUD), wait(700), cast(ID.DEVOURING_CUT)], config);
   const strike = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.DEVOURING_CUT);
   assert.equal(strike.metadata.necromancerBlight, 1);
-  assert.equal(state(result).blight, 1);
+  assert.equal(state(result).blightExpiries.length, 1);
   const cancelled = run([cast(ID.HARBINGER_SHROUD), { ...cast(ID.VORACIOUS_ARC), interruptAfterMs: 100 }], config);
-  assert.equal(state(cancelled).blight, 4);
+  assert.equal(state(cancelled).blightExpiries.length, 4);
   assert.equal(cancelled.totalDamage, 0);
   const delayed = run([cast(ID.HARBINGER_SHROUD), { ...cast(ID.VORACIOUS_ARC), impactDelayMs: 2000 }], config);
   assert.equal(

@@ -20,7 +20,7 @@ const MOVEMENT = 'harbinger.movement-impact';
 /** Movement launch carries the post-spend snapshot; its authored control receives the trait replacement. */
 function launchMovement(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const empowered = spendBlight(runtime, cast);
-  const blight = harbingerState.from(runtime).blight;
+  const blight = harbingerState.from(runtime).blightExpiries.length;
   const profile = empowered
     ? requireBalanceProfileFromContext(runtime, HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)])
     : cast.skill;

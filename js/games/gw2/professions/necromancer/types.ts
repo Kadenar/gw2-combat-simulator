@@ -81,10 +81,15 @@ export type NecromancerResolverContext = MechanicCombatContext & {
   profession: NecromancerRuntimeState;
 };
 
-export interface NecromancerUiContext extends Omit<ProfessionUiCallbackContext<Partial<NecromancerState>>, 'build'> {
+/** Presentation includes the projected Blight count; live mechanics own only its expiry array. */
+export interface NecromancerUiState extends Partial<NecromancerState> {
+  readonly blight?: number;
+}
+
+export interface NecromancerUiContext extends Omit<ProfessionUiCallbackContext<NecromancerUiState>, 'build'> {
   readonly config?: NecromancerConfig;
   readonly build?: NecromancerBuild | null;
 }
 
 /** UI slice whose callbacks read Necromancer end-state projections. */
-export type NecromancerUiSlice = Partial<ProfessionUiContract<Partial<NecromancerState>>>;
+export type NecromancerUiSlice = Partial<ProfessionUiContract<NecromancerUiState>>;

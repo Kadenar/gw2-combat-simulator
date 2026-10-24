@@ -29,7 +29,6 @@ export const MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS = 19;
 export interface HarbingerState {
   blightGeneration: number;
   nextBlightAt?: number;
-  blight: number;
   blightExpiries: number[];
   cascadingCorruptionStacks: number;
   meltdownUntil: number;
@@ -37,7 +36,6 @@ export interface HarbingerState {
 
 /** Declares Harbinger's public fields and missing-state defaults, used only when Harbinger is selected. */
 const HARBINGER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  blight: 0,
   blightExpiries: [],
   cascadingCorruptionStacks: 0,
   meltdownUntil: 0
@@ -65,7 +63,6 @@ function createHarbingerState(
     blightGeneration: 0,
     // POSITIVE_INFINITY means "not yet in shroud"; the cursor is set to a real value when Harbinger Shroud is entered.
     nextBlightAt: Number.POSITIVE_INFINITY,
-    blight: initialBlight,
     // Pre-existing Blight stacks are given an expiry of 25 s from t=0 so they last through a typical opener.
     blightExpiries: Array.from({ length: initialBlight }, () => BLIGHT_DURATION_SECONDS),
     cascadingCorruptionStacks: initialCascadingCorruptionStacks,
@@ -73,17 +70,17 @@ function createHarbingerState(
   };
 }
 
-/** Keeps Harbinger's capped, expiry-backed Blight representation internally consistent. */
-function syncHarbingerState(state: Pick<HarbingerState, 'blight' | 'blightExpiries'>, maximum: number): void {
+/** Cap the authoritative stack array only when needed, without copying already valid live state. */
+function capHarbingerBlight(state: Pick<HarbingerState, 'blightExpiries'>, maximum: number): void {
   // Cap refreshes retain their consumption position; sorting by expiry would spend different stacks.
-  state.blightExpiries = maximum > 0 ? state.blightExpiries.slice(-maximum) : [];
-  state.blight = state.blightExpiries.length;
+  if (state.blightExpiries.length > maximum)
+    state.blightExpiries = maximum > 0 ? state.blightExpiries.slice(-maximum) : [];
 }
 
-/** Removes expired Blight applications and reconciles the public stack count. */
+/** Remove expired applications and enforce the selected capacity on the remaining stacks. */
 export function purgeHarbingerTimedState(state: HarbingerState, at: number, maximum: number): void {
   state.blightExpiries = purgeExpiredStacks(state.blightExpiries, at);
-  syncHarbingerState(state, maximum);
+  capHarbingerBlight(state, maximum);
 }
 
 /**
@@ -104,7 +101,6 @@ export function addBlight(state: HarbingerState, stacks: number, at: number, max
     else expiries[expiries.indexOf(Math.min(...expiries))] = expiresAt;
   }
 
-  syncHarbingerState(state, maximum);
   return state.blightExpiries.length - before;
 }
 
@@ -116,7 +112,6 @@ export function consumeBlight(state: HarbingerState, stacks: number, at: number,
   purgeHarbingerTimedState(state, at, maximum);
   const consumption = consumeNewestStacks(state.blightExpiries, stacks, at);
   state.blightExpiries = consumption.expiries;
-  syncHarbingerState(state, maximum);
   return consumption.consumed;
 }
 
@@ -129,6 +124,7 @@ export function projectHarbingerPlanningState(input: Gw2PlanningStateInput) {
     HARBINGER_PUBLIC_STATE_PROJECTION.keys,
     HARBINGER_PUBLIC_STATE_PROJECTION.defaults
   );
-  syncHarbingerState(state, harbingerBlightMaximum(input));
-  return state;
+  capHarbingerBlight(state, harbingerBlightMaximum(input));
+  // Public consumers receive a count derived from the detached, capped applications.
+  return { ...state, blight: state.blightExpiries.length };
 }

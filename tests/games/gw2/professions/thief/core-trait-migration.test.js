@@ -279,7 +279,7 @@ test('Lotus Poison grants self Might and target Weakness only for the player poi
   }
 
   assert.equal(context.procs.deadline(TRAIT.LOTUS_POISON), 0);
-  assert.equal(context.queue.length, 0);
+  assert.equal(context.queue.pending().length, 0);
   context.fireTrigger(thiefConditionApplied, { cause: poison });
   const might = context.queue.dequeue();
   const weakness = context.queue.dequeue();
@@ -292,9 +292,9 @@ test('Lotus Poison grants self Might and target Weakness only for the player poi
   assert.equal(weakness.sourceId, TRAIT.LOTUS_POISON);
   assert.equal(context.procs.deadline(TRAIT.LOTUS_POISON), 11);
   for (const at of [1, 10.999, 11]) context.fireTrigger(thiefConditionApplied, { cause: { ...poison, at } });
-  assert.equal(context.queue.length, 0);
+  assert.equal(context.queue.pending().length, 0);
   context.fireTrigger(thiefConditionApplied, { cause: { ...poison, at: 11.001 } });
-  assert.equal(context.queue.length, 2);
+  assert.equal(context.queue.pending().length, 2);
 });
 
 /** A lone committed Steal's trait packets; the steal itself authors none. */
@@ -540,7 +540,7 @@ test('Thief critical proc batches reread patched effects and leave duration samp
       else assert.ok(packets.every((packet) => packet.name === 'No Quarter - Fury Extension'));
 
       assert.equal(statReads, 0);
-      assert.equal(context.queue.length, 0);
+      assert.equal(context.queue.pending().length, 0);
 
       if (id === TRAIT.NO_QUARTER) {
         assert.equal(
@@ -577,7 +577,7 @@ test("No Quarter follows Fury's exact half-open expiration boundary", () => {
       at < 1
     );
     assert.equal(context.boons.get('fury')[0].expiresAt, 1);
-    assert.equal(context.queue.length, expectedProcs);
+    assert.equal(context.queue.pending().length, expectedProcs);
   }
 });
 
@@ -618,7 +618,7 @@ test('Spider Venom remains a base effect and Leeching Venoms stays nested after 
   withoutTrait.core.venomChargeBatches[ID.SPIDER_VENOM] = [{ charges: 1, expiresAt: 10 }];
   reactThiefCoreDamage(withoutTrait.context, strike, {});
   assert.equal(withoutTrait.conditions[0].skillId, ID.SPIDER_VENOM);
-  assert.equal(withoutTrait.context.queue.length, 0);
+  assert.equal(withoutTrait.context.queue.pending().length, 0);
 
   const withTrait = traitContext([TRAIT.LEECHING_VENOMS]);
   withTrait.core.venomChargeBatches[ID.SPIDER_VENOM] = [{ charges: 1, expiresAt: 10 }];

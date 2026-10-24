@@ -251,14 +251,14 @@ test('conditions share the packet budget and reject a whole stack batch without 
     [1, 0.5]
   );
   const beforeReactions = reactions.length;
-  const beforeQueue = runtime.queue.length;
+  const beforeQueue = runtime.queue.pending().length;
   assert.throws(
     () => effects.emit({ kind: 'packet', event }),
     /condition=Bleeding source=42.*requested 2, remaining 1/
   );
   assert.equal(runtime.conditionState.get('Bleeding').stacks.length, 2);
   assert.equal(reactions.length, beforeReactions);
-  assert.equal(runtime.queue.length, beforeQueue);
+  assert.equal(runtime.queue.pending().length, beforeQueue);
 });
 
 // Public runtime ingress cannot bypass the per-stack bound through computed packets in either output mode.

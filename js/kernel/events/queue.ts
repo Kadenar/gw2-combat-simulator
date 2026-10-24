@@ -83,11 +83,6 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     this.phaseFor = options.phaseFor;
   }
 
-  get length(): number {
-    this.discardCancelledHead();
-    return this.heap.length;
-  }
-
   get currentPhase(): number {
     return this.current?.phase ?? 0;
   }

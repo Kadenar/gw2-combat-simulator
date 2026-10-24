@@ -120,7 +120,7 @@ test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic 
   const proc = context.queue.dequeue();
   // Disabling the cooldown isolates recursion prevention from timing gates.
   amalgamResolverEventReactions.damage(context, proc);
-  assert.equal(context.queue.length, 0);
+  assert.equal(context.queue.pending().length, 0);
   assert.ok(conditions.some((condition) => condition.triggeredBy === 'Rapacious Strain'));
 });
 

@@ -3,7 +3,12 @@ import test from 'node:test';
 
 import { createGameWorkerEndpoint, ManagedWorkerBatch } from '#browser/game/worker-harness.js';
 
-test('game worker endpoints route by game and content and serialize errors', async () => {
+test('game worker endpoints route by game and content and serialize errors', async (t) => {
+  const selfDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'self');
+  t.after(() => {
+    if (selfDescriptor) Object.defineProperty(globalThis, 'self', selfDescriptor);
+    else delete globalThis.self;
+  });
   let listener = null;
   const posted = [];
   const scope = {
@@ -14,16 +19,12 @@ test('game worker endpoints route by game and content and serialize errors', asy
       posted.push(message);
     }
   };
+  // Mock the native worker boundary while exercising the same driver loading path as deployed endpoints.
+  Object.defineProperty(globalThis, 'self', { configurable: true, value: scope });
   createGameWorkerEndpoint({
-    scope,
-    async loadDriver({ contentId }) {
-      if (contentId === 'missing') return null;
+    calculate(driver, { request }, postUpdate) {
+      assert.ok(driver);
 
-      if (contentId === 'load-failure') throw new Error('Adapter import failed.');
-
-      return {};
-    },
-    calculate(_adapter, { request }, postUpdate) {
       if (request.fail) throw new Error('Simulation failed.');
 
       postUpdate({ progress: 0.5 });
@@ -31,18 +32,16 @@ test('game worker endpoints route by game and content and serialize errors', asy
     }
   });
 
-  await listener({ data: { requestId: 17, request: { gameId: 'fake', contentId: 'engineer' } } });
+  await listener({ data: { requestId: 17, request: { gameId: 'gw2', contentId: 'engineer' } } });
   await listener({ data: { requestId: 18, request: { gameId: 'fake', contentId: 'missing' } } });
-  await listener({ data: { requestId: 19, request: { gameId: 'fake', contentId: 'load-failure' } } });
   await listener({
-    data: { requestId: 20, request: { gameId: 'fake', contentId: 'engineer', fail: true } }
+    data: { requestId: 20, request: { gameId: 'gw2', contentId: 'engineer', fail: true } }
   });
 
   assert.deepEqual(posted, [
     { requestId: 17, progress: 0.5 },
     { requestId: 17, output: 'complete' },
     { requestId: 18, error: 'No worker driver for fake/missing.' },
-    { requestId: 19, error: 'Adapter import failed.' },
     { requestId: 20, error: 'Simulation failed.' }
   ]);
 });
@@ -133,4 +132,16 @@ test('managed worker batches terminate completed and failed workers and reject s
   assert.equal(failedWorker.terminated, true);
   assert.equal(peerWorker.terminated, true);
   assert.equal(batch.isRunning, false);
+  assert.equal(batch.isActive(2), false);
+  batch.spawn(
+    () => assert.fail('failed requests cannot create workers'),
+    2,
+    {},
+    () => {}
+  );
+
+  // A new request recovers from failure while the previous request remains inactive.
+  batch.begin(3, (error) => failures.push(error));
+  assert.equal(batch.isActive(2), false);
+  assert.equal(batch.isActive(3), true);
 });

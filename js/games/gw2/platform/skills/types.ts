@@ -245,7 +245,6 @@ export interface SkillTask {
 export interface AutoattackChainPosition {
   readonly root: number;
   readonly index: number;
-  readonly step: number;
   readonly next: number | null;
 }
 

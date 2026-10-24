@@ -24,7 +24,7 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import type {
   NecromancerSkill,
-  NecromancerState,
+  NecromancerUiState,
   NecromancerUiContext,
   NecromancerUiSlice
 } from '#gw2/professions/necromancer/types.js';
@@ -44,7 +44,7 @@ const NECROMANCER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] 
   }
 ]);
 
-export function necromancerUiState(context: NecromancerUiContext = {}): Partial<NecromancerState> {
+export function necromancerUiState(context: NecromancerUiContext = {}): NecromancerUiState {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }

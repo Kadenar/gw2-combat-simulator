@@ -22,8 +22,6 @@ interface GameWorkerEndpointOptions<TDriver, TMessage extends GameWorkerRequestE
     message: TMessage,
     postUpdate: (payload: object) => void
   ) => object | Promise<object>;
-  readonly loadDriver?: (address: GameContentAddress) => Promise<TDriver | null>;
-  readonly scope?: DedicatedWorkerScope<TMessage>;
 }
 
 /** Loads only the selected game's worker driver so endpoints stay game and content neutral. */
@@ -33,10 +31,10 @@ async function loadWorkerDriver<TDriver>({ gameId, contentId }: GameContentAddre
 
 /** Installs the shared worker protocol with stable job identity and serialized errors. */
 export function createGameWorkerEndpoint<TDriver, TMessage extends GameWorkerRequestEnvelope<GameContentAddress>>({
-  calculate,
-  loadDriver = loadWorkerDriver<TDriver>,
-  scope = self as unknown as DedicatedWorkerScope<TMessage>
+  calculate
 }: GameWorkerEndpointOptions<TDriver, TMessage>): void {
+  // Endpoints use the worker global and shared loader so every job follows the production loading path.
+  const scope = self as unknown as DedicatedWorkerScope<TMessage>;
   scope.addEventListener('message', async ({ data }) => {
     const post = (payload: object): void => {
       // Progress, results, and errors share the submitted job identity.
@@ -45,7 +43,7 @@ export function createGameWorkerEndpoint<TDriver, TMessage extends GameWorkerReq
 
     try {
       const { gameId, contentId } = data.request;
-      const driver = await loadDriver({ gameId, contentId });
+      const driver = await loadWorkerDriver<TDriver>({ gameId, contentId });
 
       if (!driver) throw new Error(`No worker driver for ${gameId}/${contentId}.`);
 
@@ -63,7 +61,6 @@ type ManagedWorkerFactory = () => Worker;
 export class ManagedWorkerBatch<TMessage extends GameWorkerResponseEnvelope> {
   private readonly workers = new Set<Worker>();
   private activeRequestId: number | null = null;
-  private failed = false;
   private onError: (error: unknown) => void = () => {};
 
   get isRunning(): boolean {
@@ -73,12 +70,11 @@ export class ManagedWorkerBatch<TMessage extends GameWorkerResponseEnvelope> {
   begin(requestId: number, onError: (error: unknown) => void): void {
     this.terminateAll();
     this.activeRequestId = requestId;
-    this.failed = false;
     this.onError = onError;
   }
 
   isActive(requestId: number): boolean {
-    return !this.failed && this.activeRequestId === requestId;
+    return this.activeRequestId === requestId;
   }
 
   /** Starts an active request's worker and passes its handle to the response callback for follow-up or cleanup. */
@@ -148,7 +144,8 @@ export class ManagedWorkerBatch<TMessage extends GameWorkerResponseEnvelope> {
   private fail(requestId: number, error: unknown): void {
     if (!this.isActive(requestId)) return;
 
-    this.failed = true;
+    // Clear the request identity before cleanup so failed jobs cannot accept further work or responses.
+    this.activeRequestId = null;
     this.terminateAll();
     this.onError(error);
   }

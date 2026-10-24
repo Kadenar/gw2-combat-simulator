@@ -5,13 +5,12 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 /** Owns authored progression and lanes only; combat outcomes never live in a predicted cursor state. */
 export class RotationCursor {
   index = 0;
-  private previousCastStart = 0;
-  private hasPreviousCast = false;
+  // Null marks the absence of a player cast; time zero remains a valid authored origin.
+  private previousCastStart: number | null = null;
   private serialReadyAt = 0;
   private instantReadyAt = 0;
   private independentReadyAt = 0;
   private blockingEnd = 0;
-  private reservedEnd = 0;
   // Overlappable companion commands run beside the player, so they extend the rotation without holding a Wait.
   private overlappingEnd = 0;
   private waitUntil = 0;
@@ -35,7 +34,7 @@ export class RotationCursor {
 
   /** Lane completion remains a wake after the final command; recurring combat work cannot extend it. */
   endTime(): number {
-    return Math.max(this.serialReadyAt, this.reservedEnd, this.overlappingEnd, this.waitUntil);
+    return Math.max(this.serialReadyAt, this.blockingEnd, this.independentReadyAt, this.overlappingEnd, this.waitUntil);
   }
 
   /** Compute an authored request once, then let actual readiness delay it without backdating an overlap. */
@@ -52,7 +51,7 @@ export class RotationCursor {
       const instant = Number(skill.castTimeMs) === 0;
 
       if (command.concurrentOffsetMs != null) {
-        at = this.previousCastStart + command.concurrentOffsetMs / 1000;
+        at = (this.previousCastStart ?? 0) + command.concurrentOffsetMs / 1000;
 
         if (instant || independent) at = Math.max(at, now);
       } else if (!independent) {
@@ -62,12 +61,16 @@ export class RotationCursor {
 
       // Independent commands share their own lane even when an authored offset requests overlap.
       if (independent && !skill.independentCastCanOverlap) at = Math.max(at, this.independentReadyAt);
-    } else if (command?.type === 'combat-start' && command.concurrentOffsetMs != null && this.hasPreviousCast) {
+    } else if (
+      command?.type === 'combat-start' &&
+      command.concurrentOffsetMs != null &&
+      this.previousCastStart != null
+    ) {
       at = Math.max(at, this.previousCastStart + command.concurrentOffsetMs / 1000);
     } else if (command?.type === 'wait') {
       // A Wait idles the player: it follows the player's lanes and any companion cast that cannot overlap, but never
       // an overlappable companion command still animating beside the player.
-      at = Math.max(at, this.serialReadyAt, this.reservedEnd);
+      at = Math.max(at, this.serialReadyAt, this.blockingEnd, this.independentReadyAt);
     } else at = Math.max(at, this.endTime());
 
     this.requestedAt = canonicalTime(at);
@@ -78,13 +81,11 @@ export class RotationCursor {
   acceptCast(skill: Skill, command: CastCommand, start: number, effectiveEnd: number, laneEnd: number): void {
     if (skill.independentCast && skill.independentCastCanOverlap)
       this.overlappingEnd = Math.max(this.overlappingEnd, laneEnd);
-    else this.reservedEnd = Math.max(this.reservedEnd, laneEnd);
 
     if (skill.independentCast) {
       if (!skill.independentCastCanOverlap) this.independentReadyAt = Math.max(this.independentReadyAt, laneEnd);
     } else {
       this.previousCastStart = start;
-      this.hasPreviousCast = true;
       this.instantReadyAt = Math.max(this.instantReadyAt, effectiveEnd);
       this.blockingEnd = Math.max(this.blockingEnd, laneEnd);
 

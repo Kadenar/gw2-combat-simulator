@@ -28,7 +28,7 @@ const IMPACT = 'harbinger.elixir-impact';
 /** Elixir launch spends live Blight before queuing its independent local and hostile impact. */
 function launchElixir(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>, impactAt: number): void {
   const empowered = spendBlight(runtime, cast);
-  const blight = harbingerState.from(runtime).blight;
+  const blight = harbingerState.from(runtime).blightExpiries.length;
   runtime.fireTrigger(harbingerElixirLaunched, { cast });
 
   runtime.scheduleForCast(IMPACT, impactAt, cast, { empowered, blight });

@@ -156,7 +156,7 @@ test('condition stage runs once per stack after insertion, including profession 
       assert.ok(context.conditionState.get(application.condition).stacks.includes(application));
       trace.push({
         condition: application.condition,
-        queued: context.queue.length,
+        queued: context.queue.pending().length,
         active: details.activeConditionStackCount(context, application.condition, application.at)
       });
 

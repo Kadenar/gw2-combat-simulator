@@ -123,7 +123,12 @@ test('form, creature, shade, Blight, and weapon-spell producers are selected by 
     ['Core', ID.LICH_FORM, [], (runtime) => runtime.profession.core.activeShroud === 'lich'],
     ['Core', ID.SUMMON_BONE_MINIONS, [], (runtime) => runtime.profession.core.activeMinions['bone-minion'] === 2],
     ['Scourge', ID.MANIFEST_SAND_SHADE, [], (runtime) => runtime.profession.specialization.state.shades.length > 0],
-    ['Harbinger', ID.ELIXIR_OF_RISK, [], (runtime) => runtime.profession.specialization.state.blight > 0],
+    [
+      'Harbinger',
+      ID.ELIXIR_OF_RISK,
+      [],
+      (runtime) => runtime.profession.specialization.state.blightExpiries.length > 0
+    ],
     [
       'Ritualist',
       ID.ANGUISH,

@@ -1,4 +1,5 @@
 import { ACTOR } from '#gw2/platform/constants.js';
+import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import {
   sampleWeaponStrength,
   weaponStrengthMidpoint,
@@ -127,7 +128,8 @@ export function resolvedWeaponStrength(
 
   const profile = weaponStrengthProfile(profileId);
 
-  if (!context.random.stochastic) {
+  // Read the canonical mode so sampling cannot disagree with the simulation's randomness configuration.
+  if (context.random.mode !== SIMULATION_RANDOMNESS_MODES.STOCHASTIC) {
     return {
       activationId: typeof event.activationId === 'string' ? event.activationId : null,
       profileId: profile.id,

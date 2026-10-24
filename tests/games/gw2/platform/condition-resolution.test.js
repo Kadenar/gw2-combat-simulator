@@ -615,7 +615,7 @@ test('environment scheduling preserves permanent status counts without duplicati
   assert.equal(context.conditionState.size, 0);
   assert.equal(context.environmentConditions.get('Bleeding').stacks, 2);
   // Unknown observation ends retain one sampler and one successor, never a precomputed horizon of payouts.
-  assert.equal(context.queue.length, 2);
+  assert.equal(context.queue.pending().length, 2);
   assert.equal(context.queue.dequeue().type, 'condition_buffer');
 });
 

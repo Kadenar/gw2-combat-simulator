@@ -317,11 +317,11 @@ test('Engineer condition traits stay blocked at the exact ICD boundary', () => {
   }).reactions['condition.applied'];
   reaction(context, event);
   assert.equal(context.procs.deadline('hematicFocus'), READY_AT);
-  assert.equal(context.queue.length, 0);
+  assert.equal(context.queue.pending().length, 0);
 
   reaction(context, { ...event, at: AFTER_READY_AT });
   assert.ok(context.procs.deadline('hematicFocus') > AFTER_READY_AT);
-  assert.equal(context.queue.length, 1);
+  assert.equal(context.queue.pending().length, 1);
 });
 
 test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and independent recipients', () => {
@@ -353,19 +353,19 @@ test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and in
       const inclusive = !ally && kind === 'one-wolf-pack';
       const blockedTimes = inclusive ? [0.96, READY_AT - 0.000001] : [0.96, READY_AT, READY_AT + 0.0000004];
       for (const at of blockedTimes) react(context, { ...event, at });
-      assert.equal(context.queue.length, 0);
+      assert.equal(context.queue.pending().length, 0);
       const triggerAt = inclusive ? READY_AT : 1.04;
       react(context, { ...event, at: triggerAt });
-      assert.ok(context.queue.length > 0);
+      assert.ok(context.queue.pending().length > 0);
       const deadline = ally
         ? context.procs.deadline(`ranger.soulbeast.alliedStance:${kind}:1`)
         : context.procs.deadline(field);
       assert.equal(deadline, triggerAt + (kind === 'one-wolf-pack' ? 1 : 0.25));
 
       if (ally) {
-        const queued = context.queue.length;
+        const queued = context.queue.pending().length;
         react(context, { ...event, at: 1.04, metadata: { triggeredByAlly: 2 } });
-        assert.ok(context.queue.length > queued);
+        assert.ok(context.queue.pending().length > queued);
         assert.equal(context.procs.deadline(field), READY_AT);
       }
     }
@@ -388,11 +388,11 @@ test('Ranger boon traits stay blocked at the exact ICD boundary', () => {
 
   reactToSoulbeastBuff(context, event);
   assert.equal(context.procs.deadline('ranger.soulbeast.essenceOfSpeed'), READY_AT);
-  assert.equal(context.queue.length, 0);
+  assert.equal(context.queue.pending().length, 0);
 
   reactToSoulbeastBuff(context, { ...event, at: AFTER_READY_AT });
   assert.ok(context.procs.deadline('ranger.soulbeast.essenceOfSpeed') > AFTER_READY_AT);
-  assert.equal(context.queue.length, 1);
+  assert.equal(context.queue.pending().length, 1);
 });
 
 test('Revenant boon traits stay blocked at the exact ICD boundary', () => {
@@ -669,12 +669,12 @@ test('Vampiric Presence preserves player and companion cooldown scopes', () => {
   const event = { type: 'damage', actorType: 'player', coefficient: 1, at: 5 };
   strikeOpportunity(context, event);
   strikeOpportunity(context, { ...event, actorType: 'summon', summonKind: 'spirit' });
-  assert.equal(context.queue.length, 1);
+  assert.equal(context.queue.pending().length, 1);
   for (const index of [0, 1, 0]) {
     strikeOpportunity(context, { ...event, actorType: 'summon', summonOwner: `minion:fixture:${index}` });
   }
 
-  assert.equal(context.queue.length, 3);
+  assert.equal(context.queue.pending().length, 3);
   for (const key of [
     'necromancer.core.vampiricPresence',
     'vampiricPresence:minion:fixture:0',
@@ -698,13 +698,13 @@ test('Vampiric Presence waits for its first aura pulse and accepts a hit on its 
   const firstPulse = balanceProfileNumber(profile, 'auraPulseInterval') / 2;
   const event = { type: 'damage', actorType: 'player', coefficient: 1, at: firstPulse - 0.001 };
   strikeOpportunity(context, event);
-  assert.equal(context.queue.length, 0, 'no siphon before the first aura pulse');
+  assert.equal(context.queue.pending().length, 0, 'no siphon before the first aura pulse');
   assert.equal(context.procs.deadline('necromancer.core.vampiricPresence'), 0, 'a gated hit spends no cooldown');
   strikeOpportunity(context, { ...event, at: firstPulse });
   strikeOpportunity(context, { ...event, at: firstPulse + cooldown - 0.001 });
-  assert.equal(context.queue.length, 1, 'a hit before the deadline stays on cooldown');
+  assert.equal(context.queue.pending().length, 1, 'a hit before the deadline stays on cooldown');
   strikeOpportunity(context, { ...event, at: firstPulse + cooldown });
-  assert.equal(context.queue.length, 2, 'a hit on the deadline procs');
+  assert.equal(context.queue.pending().length, 2, 'a hit on the deadline procs');
 });
 
 // In-game chat shows the in-shroud siphon at about twice the base (221 vs 112) for every aura recipient.
@@ -746,12 +746,12 @@ test('Vampiric Aura pulses relative to an explicit combat start', () => {
   const engagement = createCombatEngagement({ authoredMarkers: 1 });
   context.engagement = engagement.query;
   strikeOpportunity(context, event);
-  assert.equal(context.queue.length, 0, 'pending setup has no aura');
+  assert.equal(context.queue.pending().length, 0, 'pending setup has no aura');
   engagement.discoverBoundary(10);
   strikeOpportunity(context, { ...event, at: firstPulse - 0.001 });
-  assert.equal(context.queue.length, 0, 'the first pulse follows the explicit start');
+  assert.equal(context.queue.pending().length, 0, 'the first pulse follows the explicit start');
   strikeOpportunity(context, event);
-  assert.equal(context.queue.length, 1);
+  assert.equal(context.queue.pending().length, 1);
 });
 
 // Repeated and invalid recipient IDs cannot consume another ally's independent interval.
