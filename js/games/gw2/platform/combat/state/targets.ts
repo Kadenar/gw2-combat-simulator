@@ -1,4 +1,5 @@
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import type { EncounterController } from '#gw2/platform/combat/state/encounter.js';
 /**
  * Hostile-target model: which packets face the target or establish combat, the condition vocabulary, and configured
  * and runtime condition stacks. Targets never carry boons.
@@ -218,7 +219,7 @@ export function targetHasCondition(
   if (!stacks) return false;
 
   for (let index = stacks.length - 1; index >= 0; index -= 1)
-    if (activeRuntimeStackWeight(stacks[index]!, at || 0, runtime?.encounter?.activeTargetKey) > 0) return true;
+    if (activeRuntimeStackWeight(stacks[index]!, at || 0, runtime.encounter?.activeTargetKey) > 0) return true;
   return false;
 }
 
@@ -251,7 +252,7 @@ export interface Gw2RuntimeConditionEntry {
 }
 
 export interface Gw2RuntimeStateLike {
-  readonly encounter?: { readonly activeTargetKey: string };
+  readonly encounter?: Pick<EncounterController, 'activeTargetKey' | 'remainingHealthFraction'>;
   readonly conditionState?: Map<string, Gw2RuntimeConditionEntry>;
   readonly totals?: {
     readonly strike?: number;

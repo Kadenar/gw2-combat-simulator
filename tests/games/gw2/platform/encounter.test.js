@@ -2,6 +2,7 @@
 import test from 'node:test';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
+import { runtimeTargetConditionStacks, targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
@@ -531,4 +532,28 @@ test('intermissions hold waits, reset controls, and concurrent skills without co
     assert.equal(step.start, pause.end * 1000, pending.type);
     assert.ok(result.steps.every((step) => step.start < pause.start * 1000 || step.start >= pause.end * 1000));
   }
+});
+
+// Shared application records must keep condition queries isolated across simultaneous targets and replacement bars.
+test('condition queries follow target ownership while preserving application expiry and retirement', () => {
+  const application = { at: 0, naturalExpiresAt: 10, stacks: 3, encounterTargetKey: 'first:0' };
+  const runtime = {
+    encounter: { activeTargetKey: 'first:0', remainingHealthFraction: 1 },
+    conditionState: new Map([['Bleeding', { stacks: [application] }]])
+  };
+  const read = (at) => [
+    runtimeTargetConditionStacks(runtime, 'Bleeding', at),
+    targetHasCondition({}, 'Bleeding', at, runtime)
+  ];
+  assert.deepEqual(read(1), [3, true]);
+  for (const key of ['second:0', 'first:1']) {
+    runtime.encounter.activeTargetKey = key;
+    assert.deepEqual(read(1), [0, false]);
+  }
+
+  runtime.encounter.activeTargetKey = 'first:0';
+  assert.deepEqual(read(1), [3, true]);
+  assert.deepEqual(read(10), [0, false]);
+  application.removedAt = 2;
+  assert.deepEqual(read(2), [0, false]);
 });

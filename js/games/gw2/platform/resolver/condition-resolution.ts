@@ -618,7 +618,7 @@ export function createGw2ConditionResolution({
     const rawTotal = contributions.reduce((total, contribution) => total + contribution.rawDamage, 0);
     const rounded = roundHalfToEven(rawTotal);
     const damage =
-      ctx.encounter?.damage(rounded, 'player', event.at, group.applications[0]!.encounterTargetKey) ?? rounded;
+      ctx.encounter?.damage(rounded, 'player', event.at, group.applications[0]?.encounterTargetKey) ?? rounded;
 
     // Attribute only accepted damage, preserving the existing largest-remainder rounding contract.
     if (damage < rounded && rawTotal > 0)
