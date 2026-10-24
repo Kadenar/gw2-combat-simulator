@@ -42,7 +42,6 @@ test('skill details distinguish normal and empowered applications', async ({ pag
       skillApplications: {
         'Embrace the Darkness': [0, 1000, 2000, 3000, 6000].map((t) => ({
           t,
-          label: 'Embrace the Darkness',
           empowered: t === 1000 || t === 6000
         }))
       }

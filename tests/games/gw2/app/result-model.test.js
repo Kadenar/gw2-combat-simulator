@@ -58,8 +58,8 @@ test('Embrace application markers preserve pulse identity within the observation
   const applications = revenantProfession.ui.chartApplications({ result, specialization: 'Core' });
   const series = buildChartSeries(result, 250, [], applications);
   assert.deepEqual(series.skillApplications['Embrace the Darkness'], [
-    { t: 0, label: 'Embrace the Darkness — Torment', empowered: false },
-    { t: 1000, label: 'Empowered application', empowered: true }
+    { t: 0, empowered: false },
+    { t: 1000, empowered: true }
   ]);
 });
 

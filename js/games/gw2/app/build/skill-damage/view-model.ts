@@ -1,9 +1,5 @@
 import { CONDITION } from '#gw2/platform/constants.js';
-import type {
-  SkillDamageGroupKind,
-  SkillDamagePlan,
-  SkillDamageRowDefinition
-} from '#gw2/app/build/skill-damage/plan.js';
+import type { SkillDamagePlan, SkillDamageRowDefinition } from '#gw2/app/build/skill-damage/plan.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import type {
   SkillDamageConditionRow,
@@ -21,7 +17,6 @@ export interface SkillDamageViewState {
 }
 
 export interface SkillDamageVariantView {
-  readonly id: string;
   readonly label: string;
   readonly total: number;
   readonly heightPercent: number;
@@ -48,7 +43,6 @@ export interface SkillDamageRowView {
 export interface SkillDamageGroupView {
   readonly id: string;
   readonly title: string;
-  readonly kind: SkillDamageGroupKind | 'proc';
   readonly open: boolean;
   readonly rows: readonly SkillDamageRowView[];
 }
@@ -131,14 +125,12 @@ export function createSkillDamageViewModel(
     ...plan.groups.map((group) => ({
       id: group.id,
       title: group.title,
-      kind: group.kind,
       open: !state.closedGroups.has(group.id),
       rows: shown.filter((entry) => entry.group?.id === group.id).map(({ row }) => row)
     })),
     {
       id: PROC_GROUP_ID,
       title: 'Procs',
-      kind: 'proc' as const,
       open: !state.closedGroups.has(PROC_GROUP_ID),
       rows: shown.filter((entry) => entry.group === null).map(({ row }) => row)
     }
@@ -190,7 +182,6 @@ function skillRow(
     castSeconds: measurement.castSeconds,
     perCastSecond: measurement.castSeconds > 0 ? measurement.total / measurement.castSeconds : null,
     variants: measured.map((variant) => ({
-      id: variant.id,
       label: variant.label,
       total: variant.measurement!.total,
       heightPercent: (variant.measurement!.total / highest) * 100,

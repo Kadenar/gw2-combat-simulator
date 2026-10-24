@@ -27,7 +27,6 @@ import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/type
 export interface ProfessionChartApplication {
   readonly series: string;
   readonly at: number;
-  readonly label: string;
   readonly empowered: boolean;
 }
 

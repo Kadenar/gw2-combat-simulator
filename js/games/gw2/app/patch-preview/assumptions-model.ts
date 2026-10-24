@@ -11,9 +11,7 @@ export interface PreviewAssumptionValue {
 }
 
 export interface PreviewAssumptionGroup {
-  readonly traitId: string;
   readonly name: string;
-  readonly specialization: string;
   readonly selected: boolean;
   readonly values: PreviewAssumptionValue[];
 }
@@ -46,9 +44,7 @@ export function previewAssumptionGroups(app: ProfessionAppState): PreviewAssumpt
 
     if (!group) {
       group = {
-        traitId: parameter.traitId,
         name: catalog.traits.find((trait) => String(trait.id) === parameter.traitId)!.name,
-        specialization: parameter.specialization,
         selected: selected.has(parameter.traitId),
         values: []
       };

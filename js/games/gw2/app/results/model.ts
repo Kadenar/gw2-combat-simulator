@@ -132,9 +132,9 @@ export function buildChartSeries(
         })
       ) ?? null
   });
-  // Align profession-projected applications to the same observation window as damage series.
+  // Align applications to the damage window so the inspector can identify empowered strikes.
   const startMs = Number(result.dpsStartTime ?? result.firstHitTime ?? 0) * 1000;
-  const skillApplications: Record<string, { t: number; label: string; empowered: boolean }[]> = {};
+  const skillApplications: Record<string, { t: number; empowered: boolean }[]> = {};
   for (const application of applications) {
     const t = application.at * 1000 - startMs;
 
@@ -142,7 +142,6 @@ export function buildChartSeries(
 
     (skillApplications[application.series] ||= []).push({
       t,
-      label: application.label,
       empowered: application.empowered
     });
   }

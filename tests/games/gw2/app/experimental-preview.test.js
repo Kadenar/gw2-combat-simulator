@@ -174,7 +174,7 @@ for (const [testAdapter, contentId, equipped, unrelated] of [
     app.build.specializations[0] = { name: equipped, traits: '0-0-0', disabledMinorTraits: [0, 1, 2] };
     const groups = previewAssumptionGroups(app);
     assert.ok(groups.length > 0);
-    assert.ok(groups.every(({ specialization }) => specialization === equipped));
+    assert.ok(groups.every(({ values }) => values.every(({ parameter }) => parameter.specialization === equipped)));
     assert.ok(groups.every(({ selected }) => !selected));
 
     app.build.specializations[0] = { name: unrelated[0], traits: '1-1-1' };

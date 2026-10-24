@@ -170,7 +170,6 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
       .map((event) => ({
         series: 'Embrace the Darkness',
         at: event.at,
-        label: event.name || 'Embrace the Darkness — Torment',
         empowered: event.metadata?.trigger === 'empowered-upkeep-pulse'
       })),
   // Refresh the weapon row at this profession's transformation boundary.

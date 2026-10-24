@@ -27,8 +27,6 @@ import type { SkillDamageOccurrence, SkillDamageRequest } from '#gw2/platform/sk
 
 export type SkillDamageRowStatus = 'equipped' | 'unslotted';
 
-export type SkillDamageGroupKind = 'weapon' | 'mechanic' | 'slot' | 'action';
-
 /** One table row before measurement; the occurrence with the same id produces its numbers. */
 export interface SkillDamageRowDefinition {
   readonly id: string;
@@ -43,7 +41,6 @@ export interface SkillDamageRowDefinition {
 export interface SkillDamageGroupDefinition {
   readonly id: string;
   readonly title: string;
-  readonly kind: SkillDamageGroupKind;
   readonly rowIds: readonly string[];
 }
 
@@ -475,8 +472,7 @@ export function createSkillDamagePlan(
   for (const weaponGroup of weaponGroups) {
     const group = {
       id: `weapon-${weaponGroup.set}-${weaponGroup.weapon}`,
-      title: repeated.has(weaponGroup.weapon) ? `${weaponGroup.weapon} (set ${weaponGroup.set})` : weaponGroup.weapon,
-      kind: 'weapon' as const
+      title: repeated.has(weaponGroup.weapon) ? `${weaponGroup.weapon} (set ${weaponGroup.set})` : weaponGroup.weapon
     };
     const rowIds = weaponGroup.skills.map((skill) => {
       const slot = slotBadge(skill);
@@ -494,7 +490,7 @@ export function createSkillDamagePlan(
     [...weaponGroups.flatMap((group) => group.skills), ...slots.map(({ skill }) => skill)].map((skill) => skill.id)
   );
   for (const mechanic of mechanicGroups(app, claimed)) {
-    const group = { id: `mechanic-${mechanic.id}`, title: mechanic.title, kind: 'mechanic' as const };
+    const group = { id: `mechanic-${mechanic.id}`, title: mechanic.title };
     const rowIds = mechanic.skills.flatMap((skill) => {
       const weaponSet = (app.build.alternateWeapons?.[0] ? [1, 2] : [1]).find((set) =>
         isGw2WeaponSkillEquipped(
@@ -514,7 +510,7 @@ export function createSkillDamagePlan(
   }
 
   if (slots.length) {
-    const group = { id: 'slot', title: 'Heal, utility and elite', kind: 'slot' as const };
+    const group = { id: 'slot', title: 'Heal, utility and elite' };
     const rowIds = slots.map(({ skill, status }) =>
       addRow(group, skill, status, {
         context: `${skill.type} · ${status === 'equipped' ? 'slotted' : 'not slotted'}`
@@ -527,7 +523,7 @@ export function createSkillDamagePlan(
   const actions = paletteActionSkills(buildStart(app)).filter((skill) =>
     app.activeCatalog.skillsById.has(Number(skill.id))
   );
-  const actionGroup = { id: 'action', title: 'Actions', kind: 'action' as const };
+  const actionGroup = { id: 'action', title: 'Actions' };
   const actionIds = actions
     .filter((skill) => ![...rows.values()].some((row) => row.skillId === skill.id))
     .map((skill) => addRow(actionGroup, skill, 'equipped', { context: skill.name }));

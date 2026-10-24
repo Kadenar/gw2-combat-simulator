@@ -41,7 +41,6 @@ interface ChartLine {
   readonly points: readonly ChartPoint[];
   readonly dash?: readonly number[];
   readonly stepped?: boolean;
-  readonly unit?: string;
 }
 
 interface ChartMarker {
@@ -63,14 +62,12 @@ interface ChartFightPhase {
 }
 
 interface ChartDpsView {
-  readonly label: string;
   readonly durationMs: number;
   readonly dps: readonly ChartPoint[];
   readonly markers: readonly ChartMarker[];
 }
 
 interface ChartEffectsView {
-  readonly durationMs: number;
   readonly effects: Readonly<Record<string, readonly ChartPoint[]>>;
 }
 
@@ -218,7 +215,6 @@ function fightPhases(series: ChartSeries, markers: readonly ChartMarker[], optio
 function dpsViewForPhase(series: ChartSeries, markers: readonly ChartMarker[], phase: ChartFightPhase): ChartDpsView {
   if (phase.id === 'full') {
     return {
-      label: phase.label,
       durationMs: series.durationMs,
       dps: series.dps,
       markers
@@ -226,7 +222,6 @@ function dpsViewForPhase(series: ChartSeries, markers: readonly ChartMarker[], p
   }
 
   return {
-    label: phase.label,
     durationMs: phase.endMs - phase.startMs,
     dps: buildPhaseDpsSeries(
       series.cumulativeDamage || [],
@@ -247,13 +242,11 @@ function dpsViewForPhase(series: ChartSeries, markers: readonly ChartMarker[], p
 function effectsViewForPhase(series: ChartSeries, phase: ChartFightPhase): ChartEffectsView {
   if (phase.id === 'full') {
     return {
-      durationMs: series.durationMs,
       effects: series.effects
     };
   }
 
   return {
-    durationMs: phase.endMs - phase.startMs,
     effects: Object.fromEntries(
       Object.entries(series.effects).map(([name, points]) => [
         name,
@@ -889,7 +882,7 @@ export function mountTimeSeriesCharts(
             const own = effectsView.effects[name];
 
             if (own && (!boon || boonAudience !== 'allies'))
-              lines.push({ name: boon ? `${name} (Self)` : name, effectName: name, points: own, color, unit, stepped });
+              lines.push({ name: boon ? `${name} (Self)` : name, effectName: name, points: own, color, stepped });
 
             const allied = alliedView.effects[name];
 
@@ -899,7 +892,6 @@ export function mountTimeSeriesCharts(
                 effectName: name,
                 points: allied,
                 color,
-                unit,
                 stepped,
                 dash: [6, 4]
               });

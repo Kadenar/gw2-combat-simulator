@@ -35,7 +35,6 @@ export function chartAxisMaximum(values: readonly number[], tight = false): numb
 /** Presentation-only application markers, independent of subsequent condition payouts. */
 export interface SkillApplication {
   readonly t: number;
-  readonly label: string;
   readonly empowered: boolean;
 }
 

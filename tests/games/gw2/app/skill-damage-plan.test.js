@@ -280,7 +280,7 @@ test('damage preview weapon scope is independent of Attribute Preview selection'
     }
 
     assert.equal(plans[0].signature, plans[1].signature);
-    assert.ok(plans[0].groups.some((group) => group.kind === 'weapon' && group.title === 'Axe'));
+    assert.ok(plans[0].groups.some((group) => group.id.startsWith('weapon-') && group.title === 'Axe'));
   }
 });
 
@@ -414,7 +414,7 @@ test('unslotted effects preserve the build loadout instead of manufacturing lega
 test('zero-damage calculations remain visible while calculation failures have a separate explanation', async () => {
   const app = await headlessApp('warrior', BLADESWORN);
   const plan = createSkillDamagePlan(app, [], {});
-  const [first, second] = plan.groups.find((group) => group.kind === 'weapon').rowIds;
+  const [first, second] = plan.groups.find((group) => group.id.startsWith('weapon-')).rowIds;
   const measurement = {
     castSeconds: 1,
     hits: 0,
@@ -539,7 +539,7 @@ for (const [professionId, buildPath] of [
         .map((group) => `mechanic-${group.id}`)
     );
     for (const group of plan.groups) {
-      if (group.kind !== 'weapon' && !declared.has(group.id)) continue;
+      if (!group.id.startsWith('weapon-') && !declared.has(group.id)) continue;
 
       assert.ok(
         group.rowIds.some((rowId) => measured.has(rowId)),
