@@ -49,6 +49,12 @@ Recorded casts and repeated markers within 50 ms suppress duplicates. This inten
 loadout; logs without the effect or the two condition bursts remain incomplete. Inference notices distinguish this
 empirical rule from EI finders, and dps.report rotations remain unchanged.
 
+The Phase Retreat finder accepts the selected player's `MissileCreate` record for skill `10310` across all Mesmer
+specializations, in addition to EI's teleport-plus-clone evidence. This skill-specific evidence does not require a clone
+and therefore also works for Troubadour's notes. Existing casts and repeated markers within 50 ms suppress duplicates
+across both evidence sources; launch/remove records, damage, and other actors do not qualify as missile evidence.
+Missile-based inference is reported as local evidence rather than attributed to EI's pinned finder.
+
 Pet-command rules preserve the pinned EI registrations, including multiple skills for some species. EI's generic
 command-buff finder does not distinguish those competing registrations. Player detection retains decoded animations so
 the app/CLI picker and reconstruction reuse the same evidence.

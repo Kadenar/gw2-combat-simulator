@@ -1,4 +1,4 @@
-import { WEAPON, ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
+import { WEAPON, ACTOR, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -27,6 +27,10 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Parti
         hits: 1,
         name: 'Mesmer attack',
         actorType: ACTOR.PLAYER,
+        // The player's opening burst lands at commitment, before the phantasm cast's recovery finishes.
+        atMs: 560,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         weapon: WEAPON.TORCH.toLowerCase()
       },
       {
@@ -44,7 +48,11 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Parti
         condition: CONDITION.BURNING,
         duration: 6,
         stacks: 1,
-        actorType: ACTOR.PLAYER
+        actorType: ACTOR.PLAYER,
+        // Keep the initial burning on the same impact as the player's strike.
+        atMs: 560,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
@@ -61,12 +69,22 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Parti
         stacks: 3,
         actorType: ACTOR.SUMMON,
         summonKind: 'phantasm'
+      },
+      {
+        // Backfire's daze follows its conditions and can activate disable reactions such as Akeem.
+        type: 'control',
+        controlKind: CONTROL.DAZE,
+        actorType: ACTOR.SUMMON,
+        summonKind: 'phantasm'
       }
     ],
     castTimeMs: 760
   },
   [ID.THE_PRESTIGE]: {
-    castTimeMs: 40,
+    // Prestige commits before its recovery ends; newly added casts stop at commitment.
+    castTimeMs: 160,
+    interruptCommitMs: 40,
+    defaultInterruptMs: 40,
     rechargeAnchor: 'castStart',
     effects: [
       // Blind on activation; the later burning explosion performs the blast finisher.
@@ -75,6 +93,9 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Parti
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
+        atMs: 40,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         source: 'Player',
         actorType: ACTOR.PLAYER
       },
@@ -83,12 +104,14 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Parti
           type: 'strike',
           coefficient: 1,
           hits: 1,
+          // The committed explosion and its burning survive cancellation of the recovery animation.
+          persistsAfterInterrupt: true,
           comboFinishers: [{ ownerId: 'mesmer', finisherType: COMBO_FINISHER.BLAST }],
           name: 'Damage',
           actorType: ACTOR.PLAYER,
           weapon: WEAPON.TORCH.toLowerCase()
         },
-        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 9 }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 9, persistsAfterInterrupt: true }
       ])
     ]
   }

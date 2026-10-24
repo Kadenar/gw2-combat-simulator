@@ -151,8 +151,7 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'strike',
         ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 1480 + index * 1000, coefficient: 0.75 / 3 })),
         name: 'Pulsing Strikes',
-        actorType: ACTOR.PLAYER,
-        metadata: {}
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',

@@ -1,4 +1,5 @@
-import { WEAPON, ACTOR, AURA, RECIPIENT } from '#gw2/platform/constants.js';
+import { WEAPON, ACTOR, AURA, BOON, RECIPIENT } from '#gw2/platform/constants.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
@@ -15,12 +16,135 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { mesmerControlAccepted, mesmerHealCompleted } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
-import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
+import {
+  mesmerProfessionActionCommitted,
+  mesmerShatterResolved
+} from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+
+/** Successful F2 actions grant party Protection from the captured spend, excluding afterimage replays. */
+export const illusionaryDefense = defineTrait<MesmerSkill>({
+  id: TRAIT.ILLUSIONARY_DEFENSE,
+  name: 'Illusionary Defense',
+  triggers: [
+    onTriggerPoint(mesmerProfessionActionCommitted, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerProfessionActionCommitted>) => {
+        if (input.slot === 2) grantIllusionaryDefense(runtime, input.skill, input.at, input.spent, input.delivery);
+      }
+    })
+  ],
+  balance: {
+    durationPerTier: 2,
+    maximumStacks: 3,
+    effects: [
+      {
+        type: 'boon',
+        name: boonKey(BOON.PROTECTION),
+        boon: BOON.PROTECTION,
+        duration: 4,
+        stacks: 1,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      }
+    ]
+  }
+});
+
+/** Scale the authored boon before duration bonuses; Virtuoso shares the live game's three-resource duration cap. */
+function grantIllusionaryDefense(
+  runtime: MesmerRuntime,
+  skill: MesmerSkill,
+  at: number,
+  spent: number,
+  delivery: EffectDelivery
+): void {
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.ILLUSIONARY_DEFENSE);
+  emitTraitProfile(runtime, TRAIT.ILLUSIONARY_DEFENSE, TRAIT.ILLUSIONARY_DEFENSE, undefined, {
+    ...delivery,
+    at,
+    skillId: skill.id,
+    skillName: skill.name,
+    effect: { type: 'boon', name: boonKey(BOON.PROTECTION) },
+    attribution: { actorType: ACTOR.PLAYER },
+    transform: (event) => ({
+      ...event,
+      duration:
+        Number(event.duration) +
+        Math.min(spent, balanceProfileNumber(profile, 'maximumStacks')) *
+          balanceProfileNumber(profile, 'durationPerTier')
+    })
+  });
+}
+
+/** Each committed shatter or instrument grants personal Stability and its slot's party boon once, regardless of hits. */
+export const bountifulDisillusionment = defineTrait<MesmerSkill>({
+  id: TRAIT.BOUNTIFUL_DISILLUSIONMENT,
+  name: 'Bountiful Disillusionment',
+  triggers: [
+    {
+      on: 'castCommit',
+      when: (_runtime, cast) => Boolean(cast.skill.shatter || cast.skill.instrument),
+      run(runtime, cast) {
+        const slot = cast.skill.shatter?.slot ?? cast.skill.instrument?.slot;
+        const boon = [BOON.MIGHT, BOON.VIGOR, BOON.FURY, BOON.REGENERATION][(slot ?? 0) - 1];
+        emitTraitProfile(runtime, TRAIT.BOUNTIFUL_DISILLUSIONMENT, TRAIT.BOUNTIFUL_DISILLUSIONMENT, undefined, {
+          skillId: cast.skill.id,
+          skillName: cast.skill.name,
+          activationId: cast.id,
+          attribution: { actorType: ACTOR.PLAYER },
+          effects: (effect) => effect.type === 'boon' && (effect.boon === BOON.STABILITY || effect.boon === boon)
+        });
+      }
+    }
+  ],
+  balance: {
+    effects: [
+      {
+        type: 'boon',
+        name: boonKey(BOON.STABILITY),
+        boon: BOON.STABILITY,
+        duration: 1,
+        stacks: 1,
+        audience: { recipients: RECIPIENT.SELF }
+      },
+      {
+        type: 'boon',
+        name: boonKey(BOON.MIGHT),
+        boon: BOON.MIGHT,
+        duration: 6,
+        stacks: 3,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      },
+      {
+        type: 'boon',
+        name: boonKey(BOON.VIGOR),
+        boon: BOON.VIGOR,
+        duration: 5,
+        stacks: 1,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      },
+      {
+        type: 'boon',
+        name: boonKey(BOON.FURY),
+        boon: BOON.FURY,
+        duration: 6,
+        stacks: 1,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      },
+      {
+        type: 'boon',
+        name: boonKey(BOON.REGENERATION),
+        boon: BOON.REGENERATION,
+        duration: 10,
+        stacks: 1,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      }
+    ]
+  }
+});
 
 /** Own Chaotic Persistence tuning alongside its runtime behavior. */
 export const chaoticPersistence = defineTrait<MesmerSkill>({
@@ -51,6 +175,35 @@ export const chaoticPersistence = defineTrait<MesmerSkill>({
         }
       ]
     };
+  }
+});
+
+/** Each self Chaos Aura gain grants party Regeneration; other auras and summon-owned gains do not trigger it. */
+export const chaoticTransference = defineTrait<MesmerSkill>({
+  id: TRAIT.CHAOTIC_TRANSFERENCE,
+  name: 'Chaotic Transference',
+  triggers: [
+    {
+      on: 'aura.applied',
+      when: (_runtime, event) =>
+        event.aura === AURA.CHAOS &&
+        event.actorType === ACTOR.PLAYER &&
+        (event.recipient == null || event.recipient === RECIPIENT.SELF),
+      emit: TRAIT.CHAOTIC_TRANSFERENCE,
+      attribution: { actorType: ACTOR.PLAYER }
+    }
+  ],
+  balance: {
+    effects: [
+      {
+        type: 'boon',
+        name: boonKey(BOON.REGENERATION),
+        boon: BOON.REGENERATION,
+        duration: 4,
+        stacks: 1,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      }
+    ]
   }
 });
 

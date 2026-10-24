@@ -82,6 +82,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Explosive Temper': 'https://render.guildwars2.com/file/273E26303F072C3EEEF0DA25D5ACC1E59AECACF6/2261504.png',
   // Thermal Vision's temporary effect uses its granting trait's icon.
   'Thermal Vision': 'https://render.guildwars2.com/file/F806ACB6130CED2DACC9DD804E4303327073385A/1012358.png',
+  // Illusionary Membrane's buff duration uses its granting trait's artwork.
+  'Illusionary Membrane': 'https://render.guildwars2.com/file/0DF6A27A24B01D069DCD7609ADD305C7C557A82A/1012472.png',
   'Twice as Vicious': 'https://render.guildwars2.com/file/42AE5234142F3045D5B665EC60D6E3FF7C564D62/1769986.png',
   'Relentless Fire': 'https://render.guildwars2.com/file/31372EE16EAB80BDB213EB99D1BF4C6C3B67B6AF/2491601.png',
   'Shattering Ice': 'https://render.guildwars2.com/file/A1C20E2CE05D80B5A9DDF47ED0780301FC2C7477/2491603.png',

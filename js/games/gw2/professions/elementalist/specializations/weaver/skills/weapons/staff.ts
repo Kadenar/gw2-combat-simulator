@@ -41,7 +41,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         duration: 4,
         applications: 1
       },
-      { type: 'boon', boon: BOON.REGENERATION, stacks: 1, duration: 4, metadata: {} }
+      { type: 'boon', boon: BOON.REGENERATION, stacks: 1, duration: 4 }
     ]),
     specialization: 'Weaver'
   },
@@ -96,7 +96,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       ...impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.8 },
-        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3 }
       ]),
       {
         type: 'strike',
@@ -117,8 +117,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         applications: 4,
         intervalMs: 1000,
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
+        timingScale: 'cast'
       }
     ],
     specialization: 'Weaver'
@@ -139,8 +138,8 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       ...impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.25, canCrit: true },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 8, duration: 8, metadata: {} },
-        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 4, metadata: {} },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 8, duration: 8 },
+        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 4 },
         { type: 'control', applications: 1, controlKind: CONTROL.KNOCKBACK }
       ]),
       {
@@ -193,8 +192,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           condition: CONDITION.CRIPPLED,
           stacks: 1,
           duration: 2
-        })),
-        metadata: {}
+        }))
       },
       {
         type: 'condition',
@@ -203,8 +201,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           condition: CONDITION.IMMOBILIZED,
           stacks: 1,
           duration: 2
-        })),
-        metadata: {}
+        }))
       }
     ]),
     specialization: 'Weaver'
@@ -230,7 +227,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
             finisherType: COMBO_FINISHER.PROJECTILE
           }
         ],
-        metadata: {},
+
         canCrit: true
       },
       { type: 'control', applications: 1, controlKind: CONTROL.DAZE }

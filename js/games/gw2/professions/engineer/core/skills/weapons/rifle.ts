@@ -104,8 +104,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
               finisherType: COMBO_FINISHER.LEAP,
               fieldSelectionAnchor: 'castStart'
             }
-          ],
-          metadata: {}
+          ]
         },
         {
           type: 'condition',

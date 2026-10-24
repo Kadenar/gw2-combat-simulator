@@ -26,8 +26,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
             ownerId: 'thief',
             finisherType: COMBO_FINISHER.PROJECTILE
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -72,8 +71,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
               ownerId: 'thief',
               finisherType: COMBO_FINISHER.PROJECTILE
             }
-          ],
-          metadata: {}
+          ]
         },
         {
           type: 'condition',
@@ -132,8 +130,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
             finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'boon',
@@ -162,8 +159,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
             ownerId: 'thief',
             finisherType: COMBO_FINISHER.PROJECTILE
           }
-        ],
-        metadata: {}
+        ]
       }
     ]
   },
@@ -185,8 +181,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
             finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -215,8 +210,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
             finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -246,8 +240,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
             ownerId: 'thief',
             finisherType: COMBO_FINISHER.PROJECTILE
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -280,8 +273,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
             ownerId: 'thief',
             finisherType: COMBO_FINISHER.PROJECTILE
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -314,8 +306,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
             finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',

@@ -241,33 +241,6 @@ export function schedulePhantasmStatuses(
   execution: MesmerPhantasmExecution,
   conditions: readonly MesmerConditionEffect[]
 ): void {
-  // Summon controls follow each actual attack cycle, including a committed Chronophantasma repeat.
-  for (const effect of execution.skill.effects || []) {
-    if (effect.type !== 'control' || effect.summonKind !== 'phantasm') continue;
-
-    for (const impactAt of execution.hasRepeat
-      ? [execution.damageAt, execution.repeatDamageAt]
-      : [execution.damageAt]) {
-      for (const application of materializeSkillEffectApplications({
-        skill: execution.skill,
-        effect,
-        start: impactAt,
-        fullEnd: impactAt,
-        baseEvent: {
-          source: 'Phantasm',
-          sourceId: execution.skill.id,
-          skillId: execution.skill.id,
-          skillName: execution.skill.name,
-          actorType: ACTOR.SUMMON,
-          summonKind: 'phantasm'
-        }
-      })) {
-        const packet = buildMesmerPacket({ ...application.event, summonKind: 'phantasm' });
-        emitAttackPacket(state, execution, packet);
-      }
-    }
-  }
-
   // Conditions with a phantasmEntityIndex only apply to that specific entity
   // (e.g. only the first Berserker applies vulnerability on its leap).
   const entityConditions = conditions.filter(
@@ -338,7 +311,10 @@ export function schedulePhantasmStatuses(
     }
   }
 
-  if (!execution.hasRepeat || entityConditions.length === 0) return;
+  // Queue controls after initial conditions so on-disable consumers observe the attack's newly applied stacks.
+  schedulePhantasmControls(state, execution, execution.damageAt);
+
+  if (!execution.hasRepeat) return;
 
   const repeatPolicy = execution.policy.repeat;
 
@@ -403,6 +379,33 @@ export function schedulePhantasmStatuses(
       ).forEach((packet) => {
         emitAttackPacket(state, execution, packet);
       });
+    }
+  }
+
+  schedulePhantasmControls(state, execution, execution.repeatDamageAt);
+}
+
+/** Each attack cycle disables after its conditions, retaining the phantasm's ownership and committed delivery. */
+function schedulePhantasmControls(state: MesmerRuntime, execution: MesmerPhantasmExecution, impactAt: number): void {
+  for (const effect of execution.skill.effects || []) {
+    if (effect.type !== 'control' || effect.summonKind !== 'phantasm') continue;
+
+    for (const application of materializeSkillEffectApplications({
+      skill: execution.skill,
+      effect,
+      start: impactAt,
+      fullEnd: impactAt,
+      baseEvent: {
+        source: 'Phantasm',
+        sourceId: execution.skill.id,
+        skillId: execution.skill.id,
+        skillName: execution.skill.name,
+        actorType: ACTOR.SUMMON,
+        summonKind: 'phantasm'
+      }
+    })) {
+      const packet = buildMesmerPacket({ ...application.event, summonKind: 'phantasm' });
+      emitAttackPacket(state, execution, packet);
     }
   }
 }

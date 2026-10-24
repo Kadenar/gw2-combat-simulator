@@ -207,6 +207,7 @@ const FOOD_CATALOG = {
       }
     }
   },
+  // All-attribute food grants healing power alongside the eight other attributes.
   'All Stats': {
     "Dragon's Revelry Starcake": {
       isConverted: false,
@@ -218,7 +219,8 @@ const FOOD_CATALOG = {
         Expertise: 45,
         Vitality: 45,
         Toughness: 45,
-        Concentration: 45
+        Concentration: 45,
+        'Healing Power': 45
       },
       durations: {}
     },
@@ -232,7 +234,8 @@ const FOOD_CATALOG = {
         Expertise: 45,
         Vitality: 45,
         Toughness: 45,
-        Concentration: 45
+        Concentration: 45,
+        'Healing Power': 45
       },
       durations: {},
       proc: {

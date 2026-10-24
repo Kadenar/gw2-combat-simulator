@@ -176,8 +176,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
               ownerId: 'thief',
               finisherType: COMBO_FINISHER.BLAST
             }
-          ],
-          metadata: {}
+          ]
         },
         {
           type: 'condition',

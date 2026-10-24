@@ -56,6 +56,9 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
     buffPolicies: mesmerBuffPolicies,
     observeEffects: mesmerEffectStates,
     sideEffectHandlers: {
+      'mesmer.core.chaos-storm-poison'(runtime, context) {
+        if (context.kind === 'cast') scheduleChaosStormPoison(runtime, context.cast);
+      },
       'mesmer.arm-flip'(runtime, context) {
         if (context.kind === 'cast') armMesmerSkillFlip(runtime, context.cast);
       },
@@ -130,8 +133,6 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
       'mesmer.signet-illusions-passive': signetIllusionsPulse,
       'mesmer.core.imagery-expire': (runtime, data) =>
         expireInspiringImagery(runtime, (data as { cast: RuntimeCast<MesmerSkill> }).cast),
-      'mesmer.core.chaos-storm-poison': (runtime, data) =>
-        scheduleChaosStormPoison(runtime, (data as { cast: RuntimeCast<MesmerSkill> }).cast),
       'mesmer.core.restart-signet-illusions-passive': (runtime) => restartSignetIllusionsPassive(runtime, runtime.time),
       'mesmer.core.relock-signet-ether'(runtime, data) {
         const cast = (data as { cast: RuntimeCast<MesmerSkill> }).cast;

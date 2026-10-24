@@ -45,7 +45,7 @@
   "specializations": [
     {
       "name": "Domination",
-      "traits": "2-2-1"
+      "traits": "1-2-1"
     },
     {
       "name": "Dueling",

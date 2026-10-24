@@ -16,24 +16,23 @@ import { MESMER_SKILL_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js'
 import { professionTimelineMarkers } from '#gw2/app/rotation/timeline/model.js';
 
 // Presentation owners share the composer's precedence, including its fallback after trimming the selected name.
-test('presentation selection resolves direct, config, and build inputs consistently', () => {
+test('presentation selection resolves direct and config inputs consistently', () => {
   for (const [context, expected] of [
     [undefined, 'Core'],
     [null, 'Core'],
     [{}, 'Core'],
     [{ specialization: ' Core ', config: { specialization: 'First' } }, 'Core'],
     [{ specialization: ' First ', config: { specialization: 'Second' } }, 'First'],
-    [{ config: { specialization: ' First ' }, build: { specialization: 'Second' } }, 'First'],
-    [{ build: { specialization: ' First ' } }, 'First'],
-    [{ specialization: '', config: { specialization: '' }, build: { specialization: 'First' } }, 'First'],
+    [{ config: { specialization: ' First ' } }, 'First'],
+    [{ specialization: '', config: { specialization: '' } }, 'Core'],
     [{ specialization: ' ', config: { specialization: 'First' } }, 'Core'],
-    [{ config: { specialization: ' ' }, build: { specialization: 'First' } }, 'Core']
+    [{ config: { specialization: ' ' } }, 'Core']
   ]) {
     assert.equal(uiSpecialization(context), expected);
   }
 });
 
-// A build-only elite must not accidentally expose Core's profession controls alongside its own bar.
+// Derived elite selections must not expose Core's profession controls alongside the elite's own bar.
 test('profession presentation slices honor normalized elite selection from every supported source', () => {
   const catalog = { skills: [], skillsById: new Map(), skillsByName: new Map() };
   for (const [ui, elite] of [
@@ -43,19 +42,11 @@ test('profession presentation slices honor normalized elite selection from every
     [bindNecromancerCoreUi(catalog), 'Reaper'],
     [bindRangerCoreUi(catalog), 'Soulbeast']
   ]) {
-    for (const context of [
-      { specialization: ` ${elite} ` },
-      { config: { specialization: ` ${elite} ` } },
-      { build: { specialization: ` ${elite} ` } }
-    ])
+    for (const context of [{ specialization: ` ${elite} ` }, { config: { specialization: ` ${elite} ` } }])
       assert.deepEqual(ui.paletteGroups(context), [], elite);
   }
 
-  for (const context of [
-    { specialization: ' Catalyst ' },
-    { config: { specialization: ' Catalyst ' } },
-    { build: { specialization: ' Catalyst ' } }
-  ])
+  for (const context of [{ specialization: ' Catalyst ' }, { config: { specialization: ' Catalyst ' } }])
     assert.equal(elementalistAttunementResourceAnchor(context), false);
 });
 

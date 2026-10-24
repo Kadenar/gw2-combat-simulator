@@ -17,7 +17,7 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
-/** Instruments commit notes on completion; delayed waves and accepted disables retain their own timing. */
+/** Instruments commit notes when playing begins; delayed waves and accepted disables retain their own timing. */
 export const troubadourHooks = composeRuntimeHooks<MesmerRuntimeState, MesmerSkill>([
   troubadourTaleLifecycle,
   {
@@ -61,6 +61,12 @@ export const troubadourHooks = composeRuntimeHooks<MesmerRuntimeState, MesmerSki
       'mesmer.troubadour.commit-instrument'(runtime, context) {
         if (context.kind === 'cast') completeTroubadourPerformance(runtime, context.cast, context.skill);
       },
+      'mesmer.troubadour.schedule-lute-playing'(runtime, context) {
+        if (context.kind !== 'cast' || context.cast.cancelled) return;
+
+        // The power benchmark applies Lute Playing at wave launch (~360 ms), before the first impact.
+        runtime.scheduleForCast('mesmer.troubadour.lute-playing', context.cast.start + 0.36, context.cast);
+      },
       'mesmer.troubadour.schedule-crescendo'(runtime, context) {
         if (context.kind !== 'cast' || context.cast.cancelled) return;
 
@@ -72,6 +78,10 @@ export const troubadourHooks = composeRuntimeHooks<MesmerRuntimeState, MesmerSki
       }
     },
     tasks: {
+      'mesmer.troubadour.lute-playing'(runtime, data) {
+        const { cast } = data as { cast: RuntimeCast<MesmerSkill> };
+        completeTroubadourPerformance(runtime, cast, cast.skill);
+      },
       'mesmer.troubadour.dodge'(runtime, data) {
         runtime.fireTrigger(troubadourDodgeCompleted, data as { cast: RuntimeCast<MesmerSkill> });
       },

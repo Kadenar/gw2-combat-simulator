@@ -84,15 +84,21 @@ const INSTRUMENT_ACTIONS: NonNullable<MesmerSkill['sideEffects']> = [
   { on: 'castCommit', do: { type: 'mesmer.troubadour.commit-instrument' } }
 ];
 
+// Lute starts playing when its waves launch, so its first hit already benefits from the playing bonuses.
+const LUTE_ACTIONS: NonNullable<MesmerSkill['sideEffects']> = [
+  { on: 'castStart', do: { type: 'mesmer.troubadour.performance-traits' } },
+  { on: 'castStart', do: { type: 'mesmer.troubadour.schedule-lute-playing' } }
+];
+
 export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   Record<SkillId, Partial<MesmerSkill> & { readonly instrument?: MesmerInstrument }>
 > = Object.freeze({
   [ID.LIVELY_LUTE]: {
-    sideEffects: INSTRUMENT_ACTIONS,
+    sideEffects: LUTE_ACTIONS,
     effectVariants: instrumentEffects('mesmer.troubadour.lively-lute'),
     castTimeMs: 560,
-    // Preserve the performance when interruption only skips the remaining recovery.
-    interruptCommitMs: 520,
+    // The performance launches before recovery ends; later cancellation preserves its notes and waves.
+    interruptCommitMs: 360,
     instrument: {
       slot: 1,
       instrument: 'Lute',
@@ -356,11 +362,11 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     effects: []
   },
   [ID.LIVELY_LUTE_ALTERNATE]: {
-    sideEffects: INSTRUMENT_ACTIONS,
+    sideEffects: LUTE_ACTIONS,
     effectVariants: instrumentEffects('mesmer.troubadour.lively-lute-alternate'),
     castTimeMs: 560,
     // Both Lute variants share the same performance commit point.
-    interruptCommitMs: 520,
+    interruptCommitMs: 360,
     instrument: {
       slot: 1,
       instrument: 'Lute',

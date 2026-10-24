@@ -384,7 +384,7 @@ test('family UI uses active slices, Core-first event precedence, and family veto
   assert.equal(family.ui.eventLogRow({ config: { specialization: 'Elite' } }, shared).description, 'core');
   assert.equal(family.ui.eventLogRow({ specialization: 'Elite' }, shared).description, 'core');
   assert.equal(family.ui.eventLogRow({ specialization: 'Core' }, eliteOnly), undefined);
-  assert.equal(family.ui.eventLogRow({ build: { specialization: 'Elite' } }, eliteOnly).description, 'elite');
+  assert.equal(family.ui.eventLogRow({ config: { specialization: 'Elite' } }, eliteOnly).description, 'elite');
   assert.deepEqual(
     family.ui.effectPresentations({ specialization: 'Elite' }).map((effect) => effect.id),
     ['core-effect', 'elite-effect']

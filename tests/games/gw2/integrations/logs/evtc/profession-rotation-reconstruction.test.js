@@ -125,7 +125,7 @@ test('Cry of Frustration and Diversion reject same-caster clone visuals and unav
   }
 });
 
-test('Phase Retreat loading requires a matching teleport and newly owned staff clone', () => {
+test('Phase Retreat teleport evidence requires an owned staff clone and merges with missile evidence', () => {
   const guid = Buffer.from('C34E250B01FF534292EE6AB36D768337', 'hex');
   const clone = { ...log().agents[0], address: 0x2000n, profession: 8111, elite: 0xffffffff };
   const base = [
@@ -137,6 +137,10 @@ test('Phase Retreat loading requires a matching teleport and newly owned staff c
   const find = (extra) =>
     eiMesmerPhaseRetreat(context('mesmer', 'mirage', [...base, ...extra], [...log().agents, clone]));
   assert.equal(find([spawn])[0]?.rawSkillId, 10310);
+  // Both evidence sources describe the same input; a skill-specific missile also works without a clone.
+  const missile = event({ time: 100, stateChange: 57, skillId: 10310 });
+  assert.equal(find([spawn, missile]).length, 1);
+  assert.equal(find([missile])[0]?.rawSkillId, 10310);
   assert.deepEqual(find([]), []);
   assert.deepEqual(find([{ ...spawn, time: 130 }]), []);
   assert.deepEqual(find([{ ...spawn, sourceMasterInstance: 0 }]), []);

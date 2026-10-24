@@ -143,6 +143,10 @@ export function createEffectDelivery<T extends object>(
       canonicalTime(event.at) > canonicalTime(delivery.cast.effectiveEnd) &&
       event.persistsAfterInterrupt !== true;
 
+    // Apply travel after cast eligibility, once at admission, so custom packets land before their derived reactions.
+    if (delivery.cast?.impactDelayMs && isHostileTargetEvent(event))
+      event = { ...event, at: canonicalTime(event.at + delivery.cast.impactDelayMs / 1000) };
+
     if (cause)
       event = {
         activationId:

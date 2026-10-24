@@ -40,8 +40,7 @@ function jadeSphereEffects(boon: string, duration: number): readonly SkillEffect
       stacks: 1,
       duration,
       atMs,
-      audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-      metadata: {}
+      audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
     }))
   ]);
 }

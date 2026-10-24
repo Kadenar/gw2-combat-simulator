@@ -95,8 +95,6 @@ export interface Gw2BuildResources {
 export interface Gw2Build extends Gw2BuildResources {
   schemaVersion?: number;
   profession?: string;
-  /** Legacy explicit specialization used by presentation fallbacks. */
-  specialization?: string;
   assumptions?: ProfessionBuildAssumptions;
   startAttunement?: string;
   secondaryAttunement?: string;

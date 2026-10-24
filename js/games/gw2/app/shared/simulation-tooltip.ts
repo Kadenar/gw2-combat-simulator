@@ -147,6 +147,8 @@ effectNames.set('nightmare-weapon', 'Nightmare Weapon');
 effectNames.set('splinter-weapon', 'Splinter Weapon');
 effectNames.set('burst-of-strength', 'Burst of Strength');
 effectNames.set('explosive-temper', 'Explosive Temper');
+// Resolve the authored buff ID to its display name and matching icon.
+effectNames.set('illusionary-membrane', 'Illusionary Membrane');
 effectNames.set('twice-as-vicious', 'Twice as Vicious');
 effectNames.set('vow-of-the-untamed', 'Vow of the Untamed');
 effectNames.set('relentless-fire', 'Relentless Fire');

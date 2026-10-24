@@ -42,8 +42,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
             ownerId: 'warrior',
             finisherType: COMBO_FINISHER.BLAST
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -100,8 +99,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
             finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 1
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',

@@ -99,8 +99,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
           { atMs: 1040, coefficient: 0.4 }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        metadata: {}
+        timingScale: 'fixed'
       },
       // Share one impact timing while preserving independent payloads and declaration order.
       ...impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -163,8 +162,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        metadata: {}
+        persistsAfterInterrupt: true
       }
     ]
   },
@@ -211,8 +209,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         ticks: [{ atMs: 480, coefficient: 1.6 }],
         name: 'Isolated Damage',
         actorType: ACTOR.PLAYER,
-        persistsAfterInterrupt: true,
-        metadata: {}
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',

@@ -415,7 +415,6 @@ test('Reaper greatsword chain is ordered and Chilling Scythe recharges Gravedigg
     adapter,
     activeCatalog: necromancerCatalog,
     build: {
-      specialization: 'Reaper',
       weapons: ['Greatsword', ''],
       alternateWeapons: ['Axe', 'Focus'],
       specializations: [{ name: 'Reaper', traits: '1-1-1' }]

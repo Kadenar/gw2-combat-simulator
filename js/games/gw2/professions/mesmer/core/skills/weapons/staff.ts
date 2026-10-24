@@ -8,7 +8,7 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 // The opening strike is followed by five field pulses.
 const CHAOS_STORM_PULSES_MS = [280, 1280, 2280, 3280, 4280, 5280];
 
-// Runtime selection and tooltip facts share the patchable payload; the owner alternates whole applications per cast.
+// Every impact can select Poison; runtime rolls retain whole applications and the patchable payload.
 export const CHAOS_STORM_POISON_PROFILE = defineSkillVariantProfile(
   'mesmer.core.chaos-storm-poison',
   ID.CHAOS_STORM,
@@ -18,7 +18,7 @@ export const CHAOS_STORM_POISON_PROFILE = defineSkillVariantProfile(
       {
         name: 'Poison',
         type: 'condition',
-        ticks: CHAOS_STORM_PULSES_MS.slice(1).map((atMs) => ({
+        ticks: CHAOS_STORM_PULSES_MS.map((atMs) => ({
           atMs,
           condition: CONDITION.POISONED,
           duration: 4,
@@ -35,13 +35,15 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
   [ID.CHAOS_STORM]: {
     // Once the field's opening impact lands, cancelling the aftercast preserves its remaining pulses.
     interruptCommitMs: CHAOS_STORM_PULSES_MS[0],
-    tasks: [{ type: 'mesmer.core.chaos-storm-poison', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }],
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.core.chaos-storm-poison' } }],
     comboFields: [
       {
         ownerId: 'mesmer',
         fieldType: COMBO_FIELD.ETHEREAL,
         duration: 5,
-        startAnchor: 'castEnd'
+        // The field exists on its opening impact, allowing an instant Phase Retreat during the aftercast to combo.
+        startAnchor: 'castStart',
+        startMs: CHAOS_STORM_PULSES_MS[0]
       }
     ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -109,6 +111,8 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
         condition: CONDITION.TORMENT,
         duration: 4,
         stacks: 6,
+        // Each Warlock hit applies its share immediately, including each entity's staggered attacks.
+        packetLabel: 'One warlock',
         actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         persistsAfterInterrupt: true

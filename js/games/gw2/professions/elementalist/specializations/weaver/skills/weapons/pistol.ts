@@ -51,15 +51,15 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       ...impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 2.5, metadata: {} }
+        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 2.5 }
       ]),
       ...impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5 }
       ]),
       ...impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5 }
       ])
     ],
     specialization: 'Weaver'
@@ -95,8 +95,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
             ownerId: 'elementalist',
             finisherType: COMBO_FINISHER.PROJECTILE
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -105,7 +104,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         duration: 2,
         applications: 1
       },
-      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 5, metadata: {} }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 5 }
     ]),
     specialization: 'Weaver'
   },
@@ -130,8 +129,8 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5 },
-      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8, metadata: {} },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 8, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8 },
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 8 }
     ]),
     specialization: 'Weaver'
   },
@@ -162,8 +161,8 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     cooldown: 12,
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'boon', boon: BOON.REGENERATION, stacks: 1, duration: 5, metadata: {} },
-      { type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5, metadata: {} }
+      { type: 'boon', boon: BOON.REGENERATION, stacks: 1, duration: 5 },
+      { type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5 }
     ]),
     specialization: 'Weaver'
   },
@@ -183,11 +182,11 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       ...impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 8, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 8 }
       ]),
       ...impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
-        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 8, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 8 }
       ])
     ],
     specialization: 'Weaver'
@@ -227,11 +226,10 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
             ownerId: 'elementalist',
             finisherType: COMBO_FINISHER.PROJECTILE
           }
-        ],
-        metadata: {}
+        ]
       },
-      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3, metadata: {} },
-      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 4, metadata: {} }
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 },
+      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 4 }
     ]),
     specialization: 'Weaver'
   }

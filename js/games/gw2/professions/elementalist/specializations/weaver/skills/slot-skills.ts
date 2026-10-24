@@ -66,8 +66,7 @@ function primordialStance(attunement: ElementalistAttunement): Partial<Skill> {
         when: () => false,
         ticks: offsets.map((atMs) => ({ atMs, condition, stacks, duration })),
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
+        timingScale: 'cast'
       }
     ]
   };
@@ -167,9 +166,9 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
       }
     ],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 6, metadata: {} },
-      { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 6, metadata: {} },
-      { type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 6, metadata: {} }
+      { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 6 },
+      { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 6 },
+      { type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 6 }
     ])
   }
 });

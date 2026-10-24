@@ -23,6 +23,8 @@ export interface EffectDelivery {
     readonly independentSourceStrike?: boolean;
     readonly effectiveEnd?: number;
     readonly offTarget?: boolean;
+    /** Travel delay moves hostile applications without moving the cast's self effects or lifecycle. */
+    readonly impactDelayMs?: number;
   };
   readonly cause?: Pick<
     Gw2ResolverEvent,

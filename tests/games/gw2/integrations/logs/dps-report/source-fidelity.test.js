@@ -7,6 +7,7 @@ import {
   readDpsReportRotationUrl
 } from '#gw2/app/import-export/logs/dps-report-rotation-import.js';
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
 import { previewRotationFile } from '#gw2/app/import-export/rotation-import-dialog.js';
@@ -21,6 +22,61 @@ function report(rotation, skillMap, profession = 'Luminary') {
     ]
   };
 }
+
+// EI's combined teleport identity must survive both import entry points with its source evidence intact.
+test('Mesmer report imports resolve combined teleports from a staff loadout without Blink', async () => {
+  for (const profession of ['Mesmer', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']) {
+    const input = report(
+      [{ id: -27, skills: [{ castTime: 1000, duration: 0 }] }],
+      { 's-27': { name: 'Blink or Phase Retreat', isInstantCast: true, isNotAccurate: true } },
+      profession
+    );
+    const config = { primaryWeapon: 'Scepter', weaponSet2Primary: 'Staff', selectedSkillIds: [10232] };
+    const out = reconstructDpsReportRotation(input, mesmerCatalog, { professionConfig: config });
+    const action = out.actions.find((action) => action.rawSkillId === -27);
+    assert.equal(action.skillId, 10310);
+    assert.equal(action.metadataAccurate, false);
+    assert.equal(out.sourceActions.find((action) => action.rawSkillId === -27).startMs, 1000);
+    const app = {
+      profession: { id: 'mesmer', name: 'Mesmer' },
+      adapter: {
+        eliteSpecialization: () => (profession === 'Mesmer' ? 'Core' : profession),
+        createBuildContext: () => ({ simulationConfig: () => config })
+      },
+      build: {},
+      activeCatalog: mesmerCatalog
+    };
+    for (const imported of [
+      await readDpsReportRotationData(input, app),
+      await readDpsReportRotationUrl('https://dps.report/fixture_golem', app, async () => ({
+        ok: true,
+        json: async () => input
+      }))
+    ]) {
+      assert.ok(imported.rotation.some((command) => command.type === 'cast' && command.skillId === 10310));
+      assert.ok(!imported.warnings.some((warning) => warning.includes('could not be matched')));
+    }
+  }
+});
+
+// A combined teleport must not grant Phase Retreat's resource when the build does not identify its source.
+test('Mesmer combined teleports remain unresolved with Blink or insufficient loadout evidence', () => {
+  const input = report(
+    [{ id: -27, skills: [{ castTime: 1000, duration: 0 }] }],
+    { 's-27': { name: 'Blink or Phase Retreat', isNotAccurate: true } },
+    'Chronomancer'
+  );
+  for (const professionConfig of [
+    undefined,
+    { primaryWeapon: 'Staff' },
+    { primaryWeapon: 'Staff', selectedSkillIds: [10200] },
+    { primaryWeapon: 'Scepter', selectedSkillIds: [] }
+  ]) {
+    const out = reconstructDpsReportRotation(input, mesmerCatalog, { professionConfig });
+    assert.ok(!out.rotation.some((command) => command.skillId === 10310));
+    assert.ok(out.warnings.some((warning) => warning.includes('could not be matched')));
+  }
+});
 
 test('native saved rotations keep their manual preparation without receiving the log opener notice', async (t) => {
   const previousReader = globalThis.FileReader;

@@ -305,6 +305,7 @@ export const anguishConditionModifier: Gw2ModifierRule = {
     damagePerCondition: 0.02
   },
   amount: (context, _target, parameters) => targetConditionCount(context) * parameters.damagePerCondition,
-  // Every non-Innervate Anguish attack carries the flag, including Summon Spirits.
-  when: (context) => Boolean(context.event?.metadata?.anguishConditionalDamage)
+  // Existing spirit ownership and attack type identify every non-Innervate Anguish attack, including Summon Spirits.
+  when: (context) =>
+    context.event?.summonOwner === 'spirit:anguish' && context.event.metadata?.spiritAttackType !== 'innervate'
 };

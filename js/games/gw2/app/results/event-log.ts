@@ -126,10 +126,8 @@ export function simulationEventLogRows(
       .filter((specialization) => specialization.elite)
       .map((specialization) => specialization.name)
   );
-  const specialization =
-    String(build?.specialization || '').trim() ||
-    build?.specializations?.find((selection) => eliteNames.has(selection.name))?.name ||
-    'Core';
+  // Select the elite from canonical trait-line selections for profession-specific event labels.
+  const specialization = build?.specializations?.find((selection) => eliteNames.has(selection.name))?.name || 'Core';
   // Reuse the active profession's effect labels in the event log instead of maintaining a second name table.
   const effectPresentations =
     professionUi?.effectPresentations?.({

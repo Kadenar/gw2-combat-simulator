@@ -64,8 +64,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
               ownerId: 'elementalist',
               finisherType: COMBO_FINISHER.PROJECTILE
             }
-          ],
-          metadata: {}
+          ]
         }))
       },
       {
@@ -75,8 +74,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
           condition: CONDITION.VULNERABILITY,
           stacks: 1,
           duration: 15
-        })),
-        metadata: {}
+        }))
       }
     ])
   },
@@ -101,8 +99,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
       {
         type: 'condition',
         // Each projectile applies Chilled separately; author the shared payload once without merging applications.
-        ticks: Array.from({ length: 7 }, () => ({ atMs: 240, condition: CONDITION.CHILLED, stacks: 1, duration: 1 })),
-        metadata: {}
+        ticks: Array.from({ length: 7 }, () => ({ atMs: 240, condition: CONDITION.CHILLED, stacks: 1, duration: 1 }))
       }
     ])
   },
@@ -172,7 +169,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 1120, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.8, canCrit: true },
-      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 5, metadata: {} },
+      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 5 },
       { type: 'control', applications: 1, controlKind: CONTROL.STUN }
     ])
   },
@@ -247,8 +244,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
             ownerId: 'elementalist',
             finisherType: COMBO_FINISHER.BLAST
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -278,10 +274,9 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
             ownerId: 'elementalist',
             finisherType: COMBO_FINISHER.LEAP
           }
-        ],
-        metadata: {}
+        ]
       },
-      { type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 3, metadata: {} }
+      { type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 3 }
     ])
   },
   [ID.WIND_BLAST]: {
@@ -295,7 +290,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 680, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.33, canCrit: true },
-      { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3, metadata: {} },
+      { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3 },
       { type: 'control', applications: 1, controlKind: CONTROL.LAUNCH }
     ])
   },
@@ -475,8 +470,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
+        timingScale: 'cast'
       }
     ]
   },

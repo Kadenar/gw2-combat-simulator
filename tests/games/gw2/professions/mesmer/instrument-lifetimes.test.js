@@ -1,4 +1,5 @@
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { troubadourCrescendoResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -24,7 +25,12 @@ import test from 'node:test';
 
 // Keep real profiles and instrument handlers while isolating windows from cast speed, random damage, and cooldowns.
 function instrumentContext(traits = [TRAIT.FORTISSIMO]) {
-  const config = { specialization: 'Troubadour', selectedTraitIds: traits };
+  // Match the conversion seed to the fixture's starting Power when testing bonus expiry.
+  const config = {
+    specialization: 'Troubadour',
+    selectedTraitIds: traits,
+    attributeInputs: baseAttributeInputs({ power: 100 })
+  };
   const profession = mesmerProfession.resolveProfession(config);
   const events = [];
   const state = {

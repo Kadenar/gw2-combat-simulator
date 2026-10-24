@@ -101,7 +101,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
 
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.4 },
-      { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 10, metadata: {} }
+      { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 10 }
     ])
   },
   [ID.TOADS_FORTITUDE]: {
@@ -125,7 +125,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
 
     effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.5 },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 4, duration: 10, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 4, duration: 10 }
     ])
   },
   [ID.ELEMENTAL_PROCESSION]: {

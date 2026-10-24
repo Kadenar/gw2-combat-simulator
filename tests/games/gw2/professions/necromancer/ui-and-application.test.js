@@ -437,7 +437,6 @@ test('Harbinger can equip torch skills through Weaponmaster Training', async () 
     adapter,
     activeCatalog: necromancerCatalog,
     build: {
-      specialization: 'Harbinger',
       weapons: ['Pistol', 'Torch'],
       alternateWeapons: ['Scepter', 'Dagger'],
       specializations: [
@@ -467,10 +466,12 @@ test('Harbinger can equip torch skills through Weaponmaster Training', async () 
       adapter,
       activeCatalog: necromancerCatalog,
       build: {
-        specialization: 'Harbinger',
         weapons: ['Pistol', 'Torch'],
         alternateWeapons: ['Scepter', 'Dagger'],
-        specializations: [{ name: 'Curses', traits: '1-1-3' }]
+        specializations: [
+          { name: 'Curses', traits: '1-1-3' },
+          { name: 'Harbinger', traits: '3-3-1' }
+        ]
       },
       weaponData: {
         Pistol: { wielding: '1h' },

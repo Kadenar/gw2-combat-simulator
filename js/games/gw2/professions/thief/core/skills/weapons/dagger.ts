@@ -114,8 +114,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
             ownerId: 'thief',
             finisherType: COMBO_FINISHER.PROJECTILE
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -152,8 +151,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
             ownerId: 'thief',
             finisherType: COMBO_FINISHER.PROJECTILE
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',

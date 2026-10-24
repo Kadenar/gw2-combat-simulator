@@ -17,6 +17,10 @@ Mirage Cloak gains coincident with recorded shatters or cloak-granting Deception
 adding a dodge. Other cloak gains use the ordinary unsupported-action handling. Importing EVTC provides raw buff,
 teleport and mirror damage evidence to identify their source inputs.
 
+EI's `Blink or Phase Retreat` rows (`-27`) resolve to Phase Retreat for any Mesmer specialization when the imported
+build equips staff and does not select Blink. Their original timestamps and accuracy flags remain intact. Without that
+build evidence, the combined identity stays unresolved and receives the ordinary unsupported-action warning.
+
 Untamed uses supported commandable skills from the selected player's owned pet rotations, including F2. When pet
 animations exist for a skill, they replace its player-side markers, preserving pet timestamps on the independent pet
 lane. Otherwise the player rotation remains the source. Basic attacks remain automatic; pet records cannot distinguish

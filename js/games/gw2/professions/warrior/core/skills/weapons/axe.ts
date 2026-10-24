@@ -114,8 +114,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
             ownerId: 'warrior',
             finisherType: COMBO_FINISHER.WHIRL
           }
-        ],
-        metadata: {}
+        ]
       }
     ]
   },
@@ -156,8 +155,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
             ownerId: 'warrior',
             finisherType: COMBO_FINISHER.WHIRL
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'boon',

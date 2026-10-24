@@ -20,6 +20,7 @@
     },
     "parser": "mesmer:troubadour",
     "timingSource": "Elite Insights cast summaries from dps.report",
+    "openerAdjustment": "Add the omitted opening Unstable Bladestorm and start combat on its first pulse, 720 ms into Phantasmal Swordsman, so all opening storm hits can land.",
     "combatStartTimestampMs": 768,
     "warnings": [
       "The log may omit opening casts or pre-combat setup. Review and complete the opener before simulating.",
@@ -29,11 +30,15 @@
   "rotation": [
     {
       "type": "cast",
+      "skillId": 62607
+    },
+    {
+      "type": "cast",
       "skillId": 10174
     },
     {
       "type": "combat-start",
-      "concurrentOffsetMs": 760
+      "concurrentOffsetMs": 720
     },
     {
       "type": "cast",

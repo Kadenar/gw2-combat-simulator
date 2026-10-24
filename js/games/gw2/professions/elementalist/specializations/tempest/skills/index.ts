@@ -174,24 +174,21 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         type: 'condition',
         condition: CONDITION.BURNING,
         stacks: 2,
-        duration: 4,
-        metadata: {}
+        duration: 4
       },
       {
         type: 'boon',
         boon: BOON.FURY,
         stacks: 1,
         duration: 10,
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        metadata: {}
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       },
       {
         type: 'boon',
         boon: BOON.MIGHT,
         stacks: 8,
         duration: 15,
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        metadata: {}
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ])
   },
@@ -210,15 +207,14 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: [
       ...impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.75 },
-        { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 6, metadata: {} },
+        { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 6 },
         {
           type: 'boon',
           boon: BOON.PROTECTION,
           // Share this support boon with affected allies within its recipient cap.
           audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
           stacks: 1,
-          duration: 5,
-          metadata: {}
+          duration: 5
         },
         {
           type: 'boon',
@@ -226,8 +222,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
           // Share this support boon with affected allies within its recipient cap.
           audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
           stacks: 1,
-          duration: 5,
-          metadata: {}
+          duration: 5
         }
       ]),
       ...impactEffects({ atMs: 1200, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -240,10 +235,9 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
               ownerId: 'elementalist',
               finisherType: COMBO_FINISHER.BLAST
             }
-          ],
-          metadata: {}
+          ]
         },
-        { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2, metadata: {} }
+        { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }
       ])
     ]
   }

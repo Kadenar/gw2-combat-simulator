@@ -84,8 +84,8 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 30,
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 10, metadata: {} },
-      { type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 10, metadata: {} }
+      { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 10 },
+      { type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 10 }
     ])
   },
   // Lays an 8s fire field and burns through seven packets, plus two packets on large targets.
@@ -120,8 +120,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         duration: 3,
         atMs: 1560,
         applications: 7,
-        intervalMs: 1000,
-        metadata: {}
+        intervalMs: 1000
       },
       strikeTimeline(
         WILDFIRE_OVERLAP_TICKS.map((tick) => ({
@@ -137,7 +136,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
           stacks: 1,
           duration: 3
         })),
-        { metadata: {} }
+        {}
       )
     ])
   },
@@ -162,7 +161,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
             finisherType: COMBO_FINISHER.BLAST
           }
         ],
-        metadata: {},
+
         canCrit: true
       },
       { type: 'control', applications: 1, controlKind: CONTROL.KNOCKBACK }
@@ -207,10 +206,9 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 3 },
         stacks: 1,
-        duration: 10,
-        metadata: {}
+        duration: 10
       },
-      { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 2.5, metadata: {} },
+      { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 2.5 },
       { type: 'control', applications: 1, controlKind: CONTROL.PULL }
     ])
   },
@@ -270,8 +268,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         duration: 2,
         atMs: 560,
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
+        timingScale: 'cast'
       }
     ]
   },
@@ -302,7 +299,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
             stacks: 2,
             duration: 10
           })),
-          { metadata: {} }
+          {}
         ),
         ...DUST_STORM_TICK_OFFSETS_MS.map((atMs) => ({
           type: 'condition' as const,
@@ -319,8 +316,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
           audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
           stacks: 1,
           duration: 4,
-          atMs: 1560,
-          metadata: {}
+          atMs: 1560
         }
       ])
     },

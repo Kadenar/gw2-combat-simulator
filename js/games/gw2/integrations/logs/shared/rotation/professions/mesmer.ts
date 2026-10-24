@@ -2,14 +2,30 @@ import type {
   LogActionNormalizationContext,
   RecordedLogAction
 } from '#gw2/integrations/logs/shared/rotation/normalization.js';
+import type { Gw2SelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
+import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
 
 const POWER_SPIKE_ID = 10212;
+const BLINK_ID = 10200;
+const BLINK_OR_PHASE_RETREAT_ID = -27;
 
-/** Replays cloak-granting inputs once so their observed cloak gains do not spend dodge endurance. */
+/** Resolves represented Mesmer inputs and avoids replaying cloak gains as additional dodges. */
 export function reconstructMesmerDpsReportActions(
   context: LogActionNormalizationContext
 ): readonly RecordedLogAction[] {
+  const config = context.professionConfig;
+  const selectedSkills = config?.selectedSkillIds as Gw2SelectedSkillLoadout | undefined;
+  // EI combines these teleports. A staff build without Blink makes the represented input unambiguous.
+  const phaseRetreatOnly =
+    selectedSkills != null &&
+    !selectedSkills.includes(BLINK_ID) &&
+    [config?.primaryWeapon, config?.weaponSet2Primary].includes('Staff');
+
   return context.recordedActions.flatMap((action) => {
+    if (action.rawSkillId === BLINK_OR_PHASE_RETREAT_ID && action.canonicalSkillId == null && phaseRetreatOnly) {
+      return [{ ...action, canonicalSkillId: MESMER_SKILL_IDS.PHASE_RETREAT, canonicalName: 'Phase Retreat' }];
+    }
+
     if (action.rawSkillId === POWER_SPIKE_ID) return [{ ...action, independentTimeline: true }];
 
     if (context.profile.specializationId !== 'mirage' || action.rawSkillId !== -17) return [action];

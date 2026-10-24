@@ -20,6 +20,7 @@
     },
     "parser": "mesmer:troubadour",
     "timingSource": "Elite Insights cast summaries from dps.report",
+    "openerAdjustment": "Add the omitted opening Phantasmal Berserker with a 40 ms impact delay so its projectile lands at Combat Start.",
     "combatStartTimestampMs": 34,
     "warnings": [
       "The log may omit opening casts or pre-combat setup. Review and complete the opener before simulating.",
@@ -27,6 +28,11 @@
     ]
   },
   "rotation": [
+    {
+      "type": "cast",
+      "skillId": 10221,
+      "impactDelayMs": 40
+    },
     {
       "type": "cast",
       "skillId": 77077,

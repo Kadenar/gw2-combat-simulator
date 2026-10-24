@@ -52,9 +52,9 @@ export function engineerUiState(context: EngineerUiContext = {}): Partial<Engine
   return context.professionState ?? {};
 }
 
-/** Resolves the active Engineer specialization name from UI, config, or build context. */
+/** Uses the active specialization already derived by the UI or simulation configuration. */
 export function engineerUiSpecialization(context: EngineerUiContext = {}): string {
-  return context.specialization || context.config?.specialization || context.build?.specialization || 'Core';
+  return context.specialization || context.config?.specialization || 'Core';
 }
 
 /** Normalizes the selected slot-skill loadout into a membership set. */

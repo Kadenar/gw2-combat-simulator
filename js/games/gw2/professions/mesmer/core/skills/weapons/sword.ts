@@ -149,7 +149,9 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
         name: 'Mesmer strike',
         actorType: ACTOR.PLAYER,
         weapon: WEAPON.SWORD.toLowerCase(),
-        castProgress: 0.8625
+        atMs: 760,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
         type: 'strike',

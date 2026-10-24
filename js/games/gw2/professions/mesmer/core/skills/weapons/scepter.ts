@@ -8,9 +8,12 @@ import type { MechanicQueryContext } from '#gw2/platform/profession-definition/m
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 
-/** Sample the clone cap at the landed hit; blades and imagery still gain their own resource. */
-function atCloneLimit(runtime: MechanicQueryContext<MesmerRuntimeState>): boolean {
+/** At impact, full clones or notes replace the resource reward with torment; blades keep their own reward. */
+function atEtherCloneLimit(runtime: MechanicQueryContext<MesmerRuntimeState>): boolean {
   const definition = mesmerResourceDefinition(runtime.profession.specialization.kind, runtime);
+
+  if (definition.singular === 'note') return runtime.resourceController.value('notes') >= definition.maximum;
+
   return definition.singular === 'clone' && runtime.profession.core.clones.length >= definition.maximum;
 }
 
@@ -154,7 +157,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Par
             on: 'damage.resolved',
             actor: ACTOR.PLAYER,
             packets: 'first',
-            when: (runtime, { event }) => Number(event.coefficient) > 0 && atCloneLimit(runtime),
+            when: (runtime, { event }) => Number(event.coefficient) > 0 && atEtherCloneLimit(runtime),
             do: {
               type: 'emitProfile',
               profileId: PROFILE.etherClone,
@@ -165,7 +168,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Par
             on: 'damage.resolved',
             actor: ACTOR.PLAYER,
             packets: 'first',
-            when: (runtime, { event }) => Number(event.coefficient) > 0 && !atCloneLimit(runtime),
+            when: (runtime, { event }) => Number(event.coefficient) > 0 && !atEtherCloneLimit(runtime),
             do: { type: 'mesmer.illusion-gain', amount: 1 }
           }
         ],

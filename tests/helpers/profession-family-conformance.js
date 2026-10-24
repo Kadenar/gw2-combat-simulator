@@ -167,7 +167,7 @@ export function assertProfessionFamilyConformance({ family, core, specialization
         ? { endurance: { maximum: previewEndurance.maximum({ catalog: family.catalog, config }) } }
         : {},
       config,
-      build: { ...family.createBuildDefaults(), specialization: name },
+      build: family.createBuildDefaults(),
       professionState: flattenProfessionState(state),
       time: 0
     };

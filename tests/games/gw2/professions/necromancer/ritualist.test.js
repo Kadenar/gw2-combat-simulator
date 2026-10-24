@@ -8,6 +8,7 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { anguishConditionModifier } from '#gw2/professions/necromancer/specializations/ritualist/skills/index.js';
 
 const base = {
   specialization: 'Ritualist',
@@ -18,6 +19,20 @@ const base = {
 const cast = (skillId) => ({ type: 'cast', skillId });
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const state = (result) => observedRuntime(result).profession.specialization.state;
+
+// Ownership selects Anguish even when Summon Spirits supplies the skill identity; Innervate remains excluded.
+test('Anguish condition bonus follows spirit ownership and attack type', () => {
+  for (const skillId of [ID.ANGUISH, ID.SUMMON_SPIRITS]) {
+    for (const spiritAttackType of ['initial', 'autoattack', 'innervate']) {
+      for (const summonOwner of ['spirit:anguish', 'spirit:wanderlust', undefined]) {
+        assert.equal(
+          anguishConditionModifier.when({ event: { skillId, summonOwner, metadata: { spiritAttackType } } }),
+          summonOwner === 'spirit:anguish' && spiritAttackType !== 'innervate'
+        );
+      }
+    }
+  }
+});
 
 // Editing a delayed condition cannot remove a sibling condition or stop the spirit's autonomous lifetime.
 test('Ritualist opening conditions use selected profiles independently of their sibling attacks', () => {

@@ -1,4 +1,5 @@
 import { ACTOR, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -194,17 +195,21 @@ const lifeOfTheParty = defineTrait<MesmerSkill>({
 
 /** Fortissimo owns its existing profile and ordered performance consequences. */
 export const fortissimo = defineTrait<MesmerSkill>({
-  // Scaling follows all additive grants, including boons and accepted buffs.
-  attributes: (context) => ({
-    transforms: [
-      {
-        kind: 'scale',
-        factor:
-          1 +
-          activeInstrumentCount(context) * balanceNumberFromContext(context, TRAIT.FORTISSIMO, 'attributeConversion')
-      }
-    ]
-  }),
+  // Convert eligible attributes once, excluding Might, signet passives, and other conversion results.
+  attributes: (context) => {
+    const multiplier =
+      activeInstrumentCount(context) * balanceNumberFromContext(context, TRAIT.FORTISSIMO, 'attributeConversion');
+    return {
+      attributeEffects: PRIMARY_ATTRIBUTES.map((attribute) => ({
+        kind: 'conversion' as const,
+        from: attribute,
+        to: attribute,
+        multiplier,
+        rounding: 'round' as const,
+        input: 'eligible' as const
+      }))
+    };
+  },
   triggers: [
     onTriggerPoint(troubadourCrescendoResolved, {
       run: (runtime, input: TriggerPointInput<typeof troubadourCrescendoResolved>) =>

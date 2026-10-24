@@ -261,7 +261,9 @@ function warningList(actions: readonly EvtcRotationAction[]): string[] {
   const inferred = actions.filter(
     (action) => (action.evidence === 'effect' || action.evidence === 'missile') && action.eiRule
   );
-  const localInferred = actions.filter((action) => action.evidence === 'effect' && !action.eiRule);
+  const localInferred = actions.filter(
+    (action) => (action.evidence === 'effect' || action.evidence === 'missile') && !action.eiRule
+  );
   const unsupported = actions.filter(
     (action) => !action.supportedByCatalog && !isMushroomKingsBlessing(action) && !isWeaponStow(action)
   );

@@ -23,7 +23,7 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
 
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', weaponStrengthProfileId: 'nonweapon.unequipped', coefficient: 1 },
-      { type: 'condition', actorType: ACTOR.PLAYER, condition: CONDITION.BURNING, stacks: 3, duration: 6, metadata: {} }
+      { type: 'condition', actorType: ACTOR.PLAYER, condition: CONDITION.BURNING, stacks: 3, duration: 6 }
     ])
   },
   [ID.CLEANSING_WAVE_TRAIT]: {
@@ -85,24 +85,21 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
             ownerId: 'elementalist',
             finisherType: COMBO_FINISHER.BLAST
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
         actorType: ACTOR.PLAYER,
         condition: CONDITION.BLEEDING,
         stacks: 1,
-        duration: 20,
-        metadata: {}
+        duration: 20
       },
       {
         type: 'condition',
         actorType: ACTOR.PLAYER,
         condition: CONDITION.CRIPPLED,
         stacks: 1,
-        duration: 2,
-        metadata: {}
+        duration: 2
       }
     ])
   }

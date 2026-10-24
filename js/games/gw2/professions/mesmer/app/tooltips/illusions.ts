@@ -85,5 +85,8 @@ export const mesmerIllusionsTooltips = {
       )
     ]
   }),
-  [TRAIT.MALICIOUS_SORCERY]: traitTooltip('Confusion lasts longer.', [['durationMultiplier', 'Confusion duration']])
+  // Display the fractional duration bonus as a percentage for the trait tooltip.
+  [TRAIT.MALICIOUS_SORCERY]: traitTooltip('Confusion lasts longer.', [
+    ['durationMultiplier', 'Confusion duration', tooltipPercent]
+  ])
 } satisfies NonNullable<ProfessionTooltips['traits']>;

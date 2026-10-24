@@ -176,7 +176,6 @@ export type Gw2PrimaryAttribute =
 
 // Ordered policies describe operands; the shared evaluator owns their application boundary.
 export type Gw2AttributeTransform =
-  | { readonly kind: 'scale'; readonly factor: number }
   | {
       readonly kind: 'convert-current';
       readonly from: Gw2PrimaryAttribute;

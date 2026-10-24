@@ -23,8 +23,7 @@ function condition(name: string, stacks: number, duration: number): SkillEffect 
     type: 'condition',
     condition: name,
     stacks,
-    duration,
-    metadata: {}
+    duration
   };
 }
 
@@ -34,8 +33,7 @@ function boon(name: string, stacks: number, duration: number): SkillEffect {
     boon: name,
     stacks,
     duration,
-    audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-    metadata: {}
+    audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
   };
 }
 
@@ -63,8 +61,7 @@ function overloadFireEffects(): readonly SkillEffect[] {
                 attemptGroup: `effect:${index * 3 + 1}:tick:1`,
                 ...(index < 3 ? { applications: 2 } : {})
               }
-            ],
-            metadata: {}
+            ]
           }
         : {};
     return impactEffects({ atMs, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -102,8 +99,7 @@ function overloadEarthEffects(): readonly SkillEffect[] {
                   // Four effects per earlier pulse, plus the opening Stability, precede this strike.
                   attemptGroup: `effect:${index * 4 + 2}:tick:1`
                 }
-              ],
-              metadata: {}
+              ]
             }
           : {}
       ),

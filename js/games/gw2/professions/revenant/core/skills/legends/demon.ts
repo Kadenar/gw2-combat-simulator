@@ -61,8 +61,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         type: 'strike',
         ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 400 + index * 120, coefficient: 1.2 / 3 })),
         name: 'Banish Enchantment',
-        actorType: ACTOR.PLAYER,
-        metadata: {}
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
@@ -72,7 +71,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
           stacks: 1,
           duration: 1
         })),
-        metadata: {},
+
         actorType: ACTOR.PLAYER
       },
       {
@@ -83,7 +82,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
           stacks: 1,
           duration: 3
         })),
-        metadata: {},
+
         actorType: ACTOR.PLAYER
       }
     ]),
@@ -106,16 +105,14 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
           coefficient: 1.2,
           hits: 1,
           name: 'Call to Anguish',
-          actorType: ACTOR.PLAYER,
-          metadata: {}
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
           condition: CONDITION.CHILLED,
           stacks: 1,
           duration: 2,
-          actorType: ACTOR.PLAYER,
-          metadata: {}
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'control',

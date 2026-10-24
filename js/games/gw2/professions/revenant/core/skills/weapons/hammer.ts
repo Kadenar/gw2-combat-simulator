@@ -29,7 +29,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {},
+
         comboFinishers: [
           {
             ownerId: 'revenant',
@@ -97,7 +97,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         hits: 1,
         name: 'Drop the Hammer',
         actorType: ACTOR.PLAYER,
-        metadata: {},
+
         comboFinishers: [
           {
             ownerId: 'revenant',
@@ -127,8 +127,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        metadata: {}
+        persistsAfterInterrupt: true
       },
       {
         // Large targets intersect a second cascade region about 0.96 seconds after the first impact.

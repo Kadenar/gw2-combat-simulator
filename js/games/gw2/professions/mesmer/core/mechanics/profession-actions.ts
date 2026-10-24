@@ -183,6 +183,7 @@ export function createProfessionActionController({
     };
     // The resolved profile is already available for this transaction; share it with post-shatter traits.
     state.fireTrigger(mesmerShatterResolved, { shatter, resolution });
+    state.fireTrigger(mesmerProfessionActionCommitted, { slot: shatter.slot, skill, at, spent, delivery });
     {
       const packet = buildMesmerPacket({
         type: 'marker',
@@ -217,6 +218,15 @@ export const mesmerShatterResolved = defineTriggerPoint<{
   readonly shatter: MesmerShatter | undefined;
   readonly resolution: MesmerShatterResolution;
 }>('mesmer.shatter-resolved', [TRAIT.MAIM_THE_DISILLUSIONED, TRAIT.RENDING_SHATTER, TRAIT.ILLUSIONARY_MEMBRANE]);
+
+/** Shared on-use rewards consume the captured shatter or instrument spend, never a summon replay. */
+export const mesmerProfessionActionCommitted = defineTriggerPoint<{
+  readonly slot: number;
+  readonly skill: MesmerSkill;
+  readonly at: number;
+  readonly spent: number;
+  readonly delivery: EffectDelivery;
+}>('mesmer.profession-action-committed', [TRAIT.ILLUSIONARY_DEFENSE]);
 
 /** Specialization rewards follow Core shatter materialization and its marker, using the captured committed spend. */
 export const mesmerShatterCompleted = defineTriggerPoint<{

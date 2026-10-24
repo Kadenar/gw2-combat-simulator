@@ -14,8 +14,6 @@ import { weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.
  * controller; events do not duplicate its recharge bookkeeping.
  */
 
-const EVENT_SCHEMA_VERSION = 1 as const;
-
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
@@ -110,10 +108,6 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
     throw new Error('Event sourceId is required.');
   }
 
-  if (event.schemaVersion !== undefined && event.schemaVersion !== EVENT_SCHEMA_VERSION) {
-    throw new Error('Event schemaVersion is invalid.');
-  }
-
   // Every producer must declare ownership before an event enters the live queue.
   if (!ACTOR_TYPES.has(event.actorType as SimulationActorType)) {
     throw new Error('Event actorType is invalid. A valid actorType is required.');
@@ -201,7 +195,9 @@ export interface ResolvedEffectAudience {
 export interface EffectMetadata {
   // Combat annotations stay nested so profession reactions do not expand emitter controls.
   readonly cloneId?: number;
+  /** Includes procedural blade attacks whose event identity has no canonical skill classification. */
   readonly blade?: boolean;
+  /** Packet-specific eligibility excludes repeated shatter strikes and unrelated triggered damage. */
   readonly shatterTraitEligible?: boolean;
   readonly triggeredByAlly?: number;
   readonly venomProcEffectIndex?: number;
@@ -209,10 +205,9 @@ export interface EffectMetadata {
   readonly recallSkillId?: SkillId;
   /** Proc activations represented by this one primary effect, independent of stacks and damage ticks. */
   readonly procCount?: number;
-  /** Selected damage owner when the packet's source identity belongs to a distinct triggered skill. */
+  /** Essence Blast retains the spirit count accepted at activation even if spirit lifetimes change before impact. */
   readonly activeSpirits?: number;
   readonly affinityOnHit?: boolean;
-  readonly anguishConditionalDamage?: boolean;
   readonly dhuumfireDuration?: number;
   readonly dhuumfireInterval?: number;
   readonly engineerMech?: boolean;
@@ -233,7 +228,6 @@ export interface EffectMetadata {
   readonly packetKind?: string;
   readonly radiantWeapon?: string;
   readonly smallHitboxCap?: number;
-  readonly spirit?: string;
   readonly spiritAttackType?: string;
   readonly trigger?: string;
 }
@@ -246,7 +240,6 @@ type CustomSimulationEventType = `${string}.${string}`;
 export interface SimulationEventBase<TType extends string = string> {
   /** Internal authored-effect provenance; never inferred from display skill attribution. */
   readonly effectReaction?: EffectReactionRef;
-  readonly schemaVersion?: 1;
   readonly type: TType;
   readonly at: number;
   readonly source: string;

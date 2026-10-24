@@ -79,10 +79,9 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
             ownerId: 'elementalist',
             finisherType: COMBO_FINISHER.BLAST
           }
-        ],
-        metadata: {}
+        ]
       },
-      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 6, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 6 }
     ]),
     specialization: 'Weaver'
   },
@@ -111,7 +110,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       ]),
       ...impactEffects({ atMs: 920, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1.4 },
-        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8 }
       ])
     ],
     specialization: 'Weaver'
@@ -142,11 +141,11 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
               finisherType: COMBO_FINISHER.BLAST
             }
           ],
-          metadata: {},
+
           canCrit: true
         },
-        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3, metadata: {} },
-        { type: 'boon', boon: BOON.REGENERATION, stacks: 1, duration: 4, metadata: {} },
+        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3 },
+        { type: 'boon', boon: BOON.REGENERATION, stacks: 1, duration: 4 },
         { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
       ]),
       ...impactEffects({ atMs: 1520, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -190,28 +189,28 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       ...impactEffects({ atMs: 920, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.275 },
-        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6, metadata: {} },
-        { type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6 },
+        { type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5 }
       ]),
       ...impactEffects({ atMs: 1440, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.275 },
-        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6 }
       ]),
       ...impactEffects({ atMs: 1960, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.275 },
-        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6 }
       ]),
       ...impactEffects({ atMs: 2480, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.275 },
-        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6 }
       ]),
       ...impactEffects({ atMs: 3000, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.275 },
-        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6 }
       ]),
       ...impactEffects({ atMs: 3520, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.275 },
-        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6 }
       ])
     ],
     specialization: 'Weaver'

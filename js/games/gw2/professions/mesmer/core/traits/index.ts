@@ -1,6 +1,9 @@
 import {
+  bountifulDisillusionment,
   chaoticInterruption,
   chaoticPersistence,
+  chaoticTransference,
+  illusionaryDefense,
   illusionaryMembrane,
   methodOfMadness
 } from '#gw2/professions/mesmer/core/traits/chaos/index.js';
@@ -59,8 +62,11 @@ export const mesmerCoreTraits = [
   blindingDissipation,
   deceptiveEvasion,
   chaoticPersistence,
+  bountifulDisillusionment,
   illusionaryMembrane,
+  illusionaryDefense,
   chaoticInterruption,
+  chaoticTransference,
   methodOfMadness,
   compoundingPower,
   cryOfPain,

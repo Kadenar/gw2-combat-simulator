@@ -82,7 +82,6 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
     shadowstepSkill: true,
     peithaImpactDelayMs: 800,
     castTimeMs: 640,
-    // Preserve the impact when interruption only skips the remaining recovery.
     interruptCommitMs: 600,
     effects: [
       {
@@ -99,7 +98,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'strike',
-        // The initial impact precedes recovery; the two follow-up hits resolve afterward.
+        // Once committed, all three impacts survive interruption of the remaining recovery.
+        persistsAfterInterrupt: true,
         ticks: [
           { atMs: 560, coefficient: 1 },
           { atMs: 840, coefficient: 1 },
@@ -115,8 +115,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
             ownerId: 'mesmer',
             finisherType: COMBO_FINISHER.BLAST
           }
-        ],
-        metadata: {}
+        ]
       }
     ]
   },

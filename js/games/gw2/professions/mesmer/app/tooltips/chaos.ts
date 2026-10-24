@@ -24,10 +24,15 @@ export const mesmerChaosTooltips = {
     [ID.LESSER_CHAOS_STORM],
     'Completing a healing skill invokes Lesser Chaos Storm, repeatedly striking the target.'
   ),
-  [TRAIT.ILLUSIONARY_DEFENSE]: outsideScopeTooltip,
+  [TRAIT.ILLUSIONARY_DEFENSE]: traitTooltip(
+    'Using your second shatter or Flustering Flute grants Protection to yourself and nearby allies. Duration increases per clone, blade, or note spent, up to three resources, and scales with boon duration.',
+    [['durationPerTier', 'Additional Protection per resource', tooltipSeconds]]
+  ),
   [TRAIT.MASTER_OF_MANIPULATION]: outsideScopeTooltip,
   [TRAIT.AUSPICIOUS_ANGUISH]: outsideScopeTooltip,
-  [TRAIT.CHAOTIC_TRANSFERENCE]: outsideScopeTooltip,
+  [TRAIT.CHAOTIC_TRANSFERENCE]: traitTooltip(
+    'Gaining Chaos Aura grants Regeneration to yourself and nearby allies. Regeneration scales with boon duration.'
+  ),
   [TRAIT.CHAOTIC_INTERRUPTION]: traitTooltip(
     "Interrupting a target that is activating a skill reduces the active weapon set's phantasm recharge. Repeated triggers against a defiant target are cooldown-limited.",
     // Use the same patchable recharge and proc interval as the interrupt handler.
@@ -38,5 +43,7 @@ export const mesmerChaosTooltips = {
   ),
   [TRAIT.SHAPER_OF_CHAOS]: outsideScopeTooltip,
   [TRAIT.PRISMATIC_UNDERSTANDING]: outsideScopeTooltip,
-  [TRAIT.BOUNTIFUL_DISILLUSIONMENT]: outsideScopeTooltip
+  [TRAIT.BOUNTIFUL_DISILLUSIONMENT]: traitTooltip(
+    'Using a shatter or instrument grants Stability to yourself. Its profession slot grants an additional boon to you and nearby allies: F1 Might, F2 Vigor, F3 Fury, or F4 Regeneration.'
+  )
 } satisfies NonNullable<ProfessionTooltips['traits']>;

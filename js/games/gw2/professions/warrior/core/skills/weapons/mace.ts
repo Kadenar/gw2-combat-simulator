@@ -69,8 +69,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
             finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 1
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'control',

@@ -10,8 +10,7 @@ export function mesmerWeaponSkillMatchesSet(
   weapons: readonly (string | undefined)[] = [],
   context: Gw2WeaponMatcherContext = {}
 ): boolean {
-  const specialization =
-    context.specialization || context.config?.specialization || context.build?.specialization || 'Core';
+  const specialization = context.specialization || context.config?.specialization || 'Core';
 
   if (specialization === 'Mirage' && NON_MIRAGE_AXE_SKILL_IDS.has(skill.id)) return false;
 

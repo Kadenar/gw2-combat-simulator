@@ -22,8 +22,7 @@ export function bladecallEffects(): SkillEffect[] {
             finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2
           }
-        ],
-        metadata: {}
+        ]
       }
     ])
   );

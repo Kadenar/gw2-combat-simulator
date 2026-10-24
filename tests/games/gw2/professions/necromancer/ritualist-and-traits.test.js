@@ -126,7 +126,7 @@ test('spirit replacement skips its busy pulse without restarting the other spiri
         (event) =>
           event.type === 'damage' &&
           event.metadata?.spiritAttackType === 'autoattack' &&
-          event.metadata.spirit === spirit
+          event.summonOwner === `spirit:${spirit}`
       )
       .map((event) => event.at);
   assert.deepEqual(replaced.warnings, []);

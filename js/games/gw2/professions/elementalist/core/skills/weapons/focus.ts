@@ -63,8 +63,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 2.5,
         atMs: 560,
         applications: 9,
-        intervalMs: 1000,
-        metadata: {}
+        intervalMs: 1000
       }
     ])
   },
@@ -102,15 +101,14 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
       { atMs: 840, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 1 },
-        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 6, metadata: {} },
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 6 },
         {
           type: 'boon',
           boon: BOON.MIGHT,
           // Share this support boon with affected allies within its recipient cap.
           audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
           stacks: 5,
-          duration: 6,
-          metadata: {}
+          duration: 6
         }
       ]
     )
@@ -127,7 +125,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.25 },
-      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3 }
     ])
   },
   // Blast finisher and crowd-control application landing together shortly after the cast ends.
@@ -152,7 +150,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
             finisherType: COMBO_FINISHER.BLAST
           }
         ],
-        metadata: {},
+
         canCrit: true
       },
       { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
@@ -214,10 +212,9 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
             ownerId: 'elementalist',
             finisherType: COMBO_FINISHER.BLAST
           }
-        ],
-        metadata: {}
+        ]
       },
-      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 5, metadata: {} }
+      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 5 }
     ])
   },
   // Defensive channel with no packets; its long cast time is the cost the rotation has to pay for it.

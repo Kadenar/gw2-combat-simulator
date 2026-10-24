@@ -62,7 +62,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     skillFamily: 'Familiar',
     effects: impactEffects({ atMs: 880, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.63 },
-      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2 }
     ])
   },
   [ID.CONFLAGRATION]: {
@@ -93,8 +93,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
           type: 'condition',
           condition: CONDITION.BURNING,
           stacks: 2,
-          duration: 4.5,
-          metadata: {}
+          duration: 4.5
         }
       ]
     )
@@ -127,8 +126,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         duration: 4,
         atMs: 0,
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
+        timingScale: 'cast'
       }
     ]
   },
@@ -234,8 +232,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
           condition: CONDITION.WEAKNESS,
           stacks: 1,
           duration: 3
-        })),
-        metadata: {}
+        }))
       }
     ])
   },
@@ -291,10 +288,10 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
             finisherType: COMBO_FINISHER.BLAST
           }
         ],
-        metadata: {},
+
         canCrit: true
       },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 6, duration: 10, metadata: {} },
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 6, duration: 10 },
       // The initial knockdown triggers disable passives before the later damage and barrier pulses.
       { type: 'control', applications: 1, controlKind: CONTROL.KNOCKDOWN, atMs: 1320 },
       // The barrier supplies party Protection independently of hitting an enemy; its pulses keep a fixed cadence.

@@ -68,8 +68,7 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Part
             finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -107,8 +106,7 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Part
             ownerId: 'mesmer',
             finisherType: COMBO_FINISHER.PROJECTILE
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',

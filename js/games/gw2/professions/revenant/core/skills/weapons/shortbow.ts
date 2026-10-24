@@ -146,8 +146,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 2320 + index * 1000, coefficient: 0.75 / 3 })),
         name: 'Spiritcrush — Fire Field',
-        actorType: ACTOR.PLAYER,
-        metadata: {}
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',

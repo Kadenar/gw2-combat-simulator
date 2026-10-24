@@ -19,6 +19,44 @@ test('every specialization routes summon declarations through phantasm resources
   }
 });
 
+// On-disable reactions must see the phantasm's newly applied conditions, including on its repeated attack.
+test('Mage conditions settle before its owned daze activates Akeem', () => {
+  for (const specialization of ['Troubadour', 'Chronomancer']) {
+    const defaults = createDefaultConfig();
+    const result = runMesmer([ID.PHANTASMAL_MAGE, { type: 'wait', durationMs: 10000 }], {
+      ...defaults,
+      specialization,
+      selectedTraitIds: specialization === 'Chronomancer' ? [TRAIT.CHRONOPHANTASMA] : [],
+      initialResource: 0,
+      relic: 'Akeem',
+      primaryWeapon: 'Scepter',
+      secondaryWeapon: 'Torch',
+      target: { ...defaults.target, conditions: { Confusion: 2 } }
+    });
+    assert.deepEqual(result.warnings, []);
+    const dazes = result.events.filter((event) => event.type === 'control' && event.skillId === ID.PHANTASMAL_MAGE);
+    assert.ok(dazes.length > 0);
+    for (const daze of dazes) {
+      assert.equal(daze.actorType, 'summon');
+      assert.equal(daze.summonKind, 'phantasm');
+      assert.ok(
+        result.events.some(
+          (event) =>
+            event.type === 'condition' &&
+            event.condition === 'Confusion' &&
+            event.skillId === ID.PHANTASMAL_MAGE &&
+            event.at === daze.at &&
+            event.eventOrder < daze.eventOrder
+        )
+      );
+    }
+
+    assert.ok(
+      result.procSteps.some((proc) => proc.skill === 'Relic of Akeem' && proc.sourceSkill === 'Phantasmal Mage')
+    );
+  }
+});
+
 // Alter the selected runtime catalog to test resource availability without calibrating individual attack packets.
 function run(timing, specialization = 'Core', selectedTraitIds = []) {
   return runMesmer(

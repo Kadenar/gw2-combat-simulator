@@ -310,8 +310,7 @@ function applySteelPackedPowder(context: EngineerResolverContext, event: Enginee
         skillName: 'Steel-Packed Powder',
         source: 'Trait',
         triggeredBy: event.skillName,
-        offTarget: event.offTarget,
-        metadata: {}
+        offTarget: event.offTarget
       },
       transform: (packet) => ({ ...packet, name: 'Steel-Packed Powder' + ' — ' + packet.condition })
     });
@@ -470,8 +469,7 @@ function applyShrapnel(context: EngineerResolverContext, event: EngineerResolver
         skillName: 'Shrapnel',
         source: 'Trait',
         triggeredBy: event.skillName,
-        offTarget: event.offTarget,
-        metadata: {}
+        offTarget: event.offTarget
       },
       transform: (packet) => ({ ...packet, name: 'Shrapnel' + ' — ' + packet.condition })
     });

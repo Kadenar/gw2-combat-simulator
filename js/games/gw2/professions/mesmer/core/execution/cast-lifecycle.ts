@@ -28,6 +28,7 @@ export function mesmerCastDelivery(
       skillId: skill.id,
       effectiveEnd: castWasInterrupted(cast) ? interruptedEnd : Infinity,
       offTarget: cast.command.offTarget,
+      impactDelayMs: cast.command.impactDelayMs,
       independentSourceStrike: true
     }
   };

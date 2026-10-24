@@ -198,8 +198,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
           { atMs: 720, coefficient: 0.5 },
           { atMs: 840, coefficient: 0.4 },
           { atMs: 920, coefficient: 0.3 }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'strike',

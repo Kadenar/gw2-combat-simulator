@@ -71,10 +71,9 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
             ownerId: 'elementalist',
             finisherType: COMBO_FINISHER.BLAST
           }
-        ],
-        metadata: {}
+        ]
       },
-      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5 }
     ])
   },
   [ID.SEETHE]: {
@@ -95,8 +94,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
       }
     ],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 4, metadata: {} },
-      { type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 10, metadata: {} }
+      { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 4 },
+      { type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 10 }
     ])
   },
   [ID.METEOR]: {
@@ -165,8 +164,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 8,
         atMs: 240,
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
+        timingScale: 'cast'
       }
     ]
   },
@@ -331,15 +329,15 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       ...impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.7 },
-        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 1, metadata: {} }
+        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 1 }
       ]),
       ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.7 },
-        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 1, metadata: {} }
+        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 1 }
       ]),
       ...impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.7 },
-        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 1, metadata: {} }
+        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 1 }
       ])
     ]
   },
@@ -470,7 +468,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
       { atMs: 520, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 1.35 },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
       ]
     )
   },
@@ -491,23 +489,23 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       ...impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.4 },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
       ]),
       ...impactEffects({ atMs: 1480, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.4 },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
       ]),
       ...impactEffects({ atMs: 2480, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.4 },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
       ]),
       ...impactEffects({ atMs: 3480, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.4 },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
       ]),
       ...impactEffects({ atMs: 4480, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.4 },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
       ])
     ]
   },
@@ -536,8 +534,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 4,
         atMs: 0,
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
+        timingScale: 'cast'
       }
     ]
   },
@@ -562,10 +559,10 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
             finisherType: COMBO_FINISHER.BLAST
           }
         ],
-        metadata: {},
+
         canCrit: true
       },
-      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 10, metadata: {} },
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 10 },
       { type: 'control', applications: 1, controlKind: CONTROL.FLOAT }
     ])
   },
@@ -597,8 +594,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 7,
         atMs: 240,
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
+        timingScale: 'cast'
       }
     ]
   },
@@ -651,7 +647,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.2 },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5 }
     ])
   },
   [ID.EARTHEN_SPEAR]: {
@@ -674,10 +670,9 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
             ownerId: 'elementalist',
             finisherType: COMBO_FINISHER.PROJECTILE
           }
-        ],
-        metadata: {}
+        ]
       },
-      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 5, metadata: {} }
+      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 5 }
     ])
   },
   [ID.HARDEN]: {
@@ -714,8 +709,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
       { atMs: 560, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 3.375 },
-        { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 4, metadata: {} },
-        { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 4, metadata: {} }
+        { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 4 },
+        { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 4 }
       ]
     )
   },
@@ -763,7 +758,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 3,
         applications: 1
       },
-      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 5, metadata: {} }
+      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 5 }
     ])
   },
   // Full payoff retains five-second Cripple and adds Vulnerability and Weakness to the Lesser version's effects.
@@ -789,9 +784,9 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 3,
         applications: 1
       },
-      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 6, metadata: {} },
-      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 4, metadata: {} },
-      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 5, metadata: {} }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 6 },
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 4 },
+      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 5 }
     ])
   }
 });

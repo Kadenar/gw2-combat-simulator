@@ -138,7 +138,7 @@ export function eiMesmerShatters(context: EvtcProfessionReconstructionContext): 
     });
 }
 
-/** EI identifies Phase Retreat only when its teleport coincides with an owned staff clone's first awareness. */
+/** Detect Phase Retreat from its owned missile or EI's teleport-plus-clone evidence, merging both into one input. */
 export function eiMesmerPhaseRetreat(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const { log, profile, playerAddress } = context;
 
@@ -150,8 +150,13 @@ export function eiMesmerPhaseRetreat(context: EvtcProfessionReconstructionContex
       (a) => a.elite === 0xffffffff && (a.profession & 0xffff) === 8111 && owners.get(a.address) === playerAddress
     )
     .map((a) => log.events.find((e) => e.source === a.address || e.target === a.address)?.time ?? Infinity);
-  let previous = -Infinity;
-  return context.evidence.effects
+  // Skill-specific missile creation proves the input even when no clone is created or recorded.
+  const missiles = log.events.flatMap((event, eventIndex) =>
+    event.stateChange === 57 && event.skillId === 10310 && event.source === playerAddress
+      ? [{ event, eventIndex, evidence: 'missile' as const }]
+      : []
+  );
+  const teleports = context.evidence.effects
     .filter(
       ({ event, guid }) =>
         guid === 'C34E250B01FF534292EE6AB36D768337' &&
@@ -168,9 +173,16 @@ export function eiMesmerPhaseRetreat(context: EvtcProfessionReconstructionContex
               : e.stateChange === 0 && e.buffRemove !== 0)
         )
     )
+    .map(({ event, eventIndex }) => ({ event, eventIndex, evidence: 'effect' as const }));
+  let previous = -Infinity;
+  return [...missiles, ...teleports]
     .sort((a, b) => a.event.time - b.event.time)
-    .flatMap(({ event, eventIndex }) => {
-      const duplicate = event.time - previous < 50;
+    .flatMap(({ event, eventIndex, evidence }) => {
+      const duplicate =
+        event.time - previous < 50 ||
+        context.recordedActions.some(
+          (action) => action.rawSkillId === 10310 && Math.abs(action.start - event.time) < 50
+        );
       previous = event.time;
       return duplicate
         ? []
@@ -183,10 +195,10 @@ export function eiMesmerPhaseRetreat(context: EvtcProfessionReconstructionContex
               rawName: 'Phase Retreat',
               eventIndex,
               status: 'instant' as const,
-              evidence: 'effect' as const,
-              metadataAccurate: false,
+              evidence,
+              metadataAccurate: evidence === 'missile',
               castOrigin: 'skill' as const,
-              eiRule: 'MesmerHelper.EffectCastFinderByDst(PhaseRetreat)'
+              ...(evidence === 'effect' ? { eiRule: 'MesmerHelper.EffectCastFinderByDst(PhaseRetreat)' } : {})
             }
           ];
     });

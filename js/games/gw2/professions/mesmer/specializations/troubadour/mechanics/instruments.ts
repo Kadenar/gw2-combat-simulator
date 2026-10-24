@@ -38,6 +38,7 @@ import {
 } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { mesmerProfessionActionCommitted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 
 /** Lists one hit per native packet; Harp's damageless pulse still hits foes once at its impact. */
 function instrumentHits(data: MesmerInstrument, damageAt: number): MesmerShatterTraitHit[] {
@@ -180,7 +181,7 @@ export function startTroubadourInstrument(
   });
 }
 
-/** Spends notes and commits the active-instrument state after its cast completes. */
+/** Spend notes once when playing begins so duration and on-use rewards share the same instrument state. */
 function commitInstrument(
   context: MesmerRuntime,
   cast: RuntimeCast<MesmerSkill>,
@@ -202,6 +203,8 @@ function commitInstrument(
   state.lastInstrument = data.instrument;
   startTroubadourInstrument(context, data.instrument, at, expiresAt, delivery);
 
+  // Core on-use rewards share the committed note count before specialization rewards or afterimages.
+  context.fireTrigger(mesmerProfessionActionCommitted, { slot: data.slot, skill, at, spent, delivery });
   context.fireTrigger(troubadourInstrumentCommitted, { skill, data, at, spent, delivery });
 
   {
@@ -300,7 +303,7 @@ export function scheduleTroubadourPerformance(
   );
 }
 
-/** Commits Troubadour instrument state while preserving Harp's interrupt commit point. */
+/** Commit instrument state at its playing boundary while preserving Harp's interrupt commit point. */
 export function completeTroubadourPerformance(
   context: MesmerRuntime,
   cast: RuntimeCast<MesmerSkill>,

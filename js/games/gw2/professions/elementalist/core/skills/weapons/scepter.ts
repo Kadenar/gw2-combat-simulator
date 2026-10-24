@@ -43,13 +43,12 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
           condition: CONDITION.BURNING,
           stacks: 1,
           duration: 1.5,
-          interruptCommitMs: 320,
-          metadata: {}
+          interruptCommitMs: 320
         }
       ]),
       ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.7 },
-        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2.5, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2.5 }
       ])
     ]
   },
@@ -78,10 +77,9 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
               ownerId: 'elementalist',
               finisherType: COMBO_FINISHER.BLAST
             }
-          ],
-          metadata: {}
+          ]
         },
-        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 10, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 10 }
       ]
     )
   },
@@ -120,20 +118,18 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
               ownerId: 'elementalist',
               finisherType: COMBO_FINISHER.BLAST
             }
-          ],
-          metadata: {}
+          ]
         },
         {
           type: 'condition',
           condition: CONDITION.BURNING,
           stacks: 2,
-          duration: 6,
-          metadata: {}
+          duration: 6
         }
       ]),
       ...impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.75 },
-        { type: 'boon', boon: BOON.VIGOR, stacks: 1, duration: 5, metadata: {} }
+        { type: 'boon', boon: BOON.VIGOR, stacks: 1, duration: 5 }
       ])
     ]
   },
@@ -174,11 +170,11 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       ...impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.8 },
-        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 2, metadata: {} }
+        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 2 }
       ]),
       ...impactEffects({ atMs: 1040, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.8 },
-        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 2, metadata: {} }
+        { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 2 }
       ])
     ]
   },
@@ -255,7 +251,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.2 },
-      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 10, metadata: {} }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 10 }
     ])
   },
   // Instant ammo skill: two charges on a 10s recharge, applying blind plus Weakness.
@@ -279,7 +275,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
         duration: 6,
         applications: 1
       },
-      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 4, metadata: {} }
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 4 }
     ])
   },
   // Three-shard autoattack; each shard is an independent 20%-chance projectile finisher and
@@ -308,10 +304,9 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
               finisherType: COMBO_FINISHER.PROJECTILE,
               chance: 0.2
             }
-          ],
-          metadata: {}
+          ]
         },
-        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6 }
       ]),
       ...impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
         {
@@ -324,10 +319,9 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
               finisherType: COMBO_FINISHER.PROJECTILE,
               chance: 0.2
             }
-          ],
-          metadata: {}
+          ]
         },
-        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6 }
       ]),
       ...impactEffects({ atMs: 1240, timingAnchor: 'castStart', timingScale: 'cast' }, [
         {
@@ -340,10 +334,9 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
               finisherType: COMBO_FINISHER.PROJECTILE,
               chance: 0.2
             }
-          ],
-          metadata: {}
+          ]
         },
-        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6, metadata: {} }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6 }
       ])
     ]
   },
@@ -375,8 +368,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
         duration: 4,
         atMs: 760,
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
+        timingScale: 'cast'
       }
     ]
   },
@@ -455,8 +447,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'condition',
         ticks: [160, 1160, 2160].map((atMs) => ({ atMs, condition: CONDITION.CRIPPLED, stacks: 1, duration: 1.5 })),
-        persistsAfterInterrupt: true,
-        metadata: {}
+        persistsAfterInterrupt: true
       }
     ])
   }

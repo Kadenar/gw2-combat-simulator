@@ -25,8 +25,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
             finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -100,8 +99,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
             ownerId: 'thief',
             finisherType: COMBO_FINISHER.BLAST
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -154,8 +152,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
             ownerId: 'thief',
             finisherType: COMBO_FINISHER.PROJECTILE
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -182,8 +179,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
             ownerId: 'thief',
             finisherType: COMBO_FINISHER.PROJECTILE
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',

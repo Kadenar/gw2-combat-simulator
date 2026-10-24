@@ -102,7 +102,7 @@ export function resolveAttributeContributions(
   };
 }
 
-/** Add ordinary declarations, then apply accumulated scaling and actor projections without altering source pools. */
+/** Add ordinary declarations, then apply current-attribute conversions and actor projections without altering source pools. */
 export function applyAttributeContributions(
   seed: Gw2AttributeConversionInputs,
   initial: Gw2Stats,
@@ -144,12 +144,7 @@ export function applyAttributeContributions(
 
   if (uncapped) result.uncappedBoonDurationBonus = (initial.uncappedBoonDurationBonus ?? 0) + uncapped;
 
-  // Scaling consumes accumulated attributes; actor projections follow scaling regardless of declaration order.
-  for (const entry of contributions)
-    if (entry.transforms)
-      for (const transform of entry.transforms)
-        if (transform.kind === 'scale' && transform.factor !== 1)
-          for (const [key] of ATTRIBUTE_ENTRIES) result[key] = (result[key] ?? 0) * transform.factor;
+  // Current-attribute conversions precede actor projections regardless of declaration order.
   for (const entry of contributions)
     if (entry.transforms)
       for (const transform of entry.transforms)

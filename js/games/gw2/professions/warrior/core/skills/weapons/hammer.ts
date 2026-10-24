@@ -31,8 +31,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
             ownerId: 'warrior',
             finisherType: COMBO_FINISHER.WHIRL
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'control',

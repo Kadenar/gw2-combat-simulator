@@ -43,8 +43,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
                 ownerId: 'elementalist',
                 finisherType: COMBO_FINISHER.BLAST
               }
-            ],
-            metadata: {}
+            ]
           }
         ],
         timingAnchor: 'castStart',
@@ -78,8 +77,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
         duration: 20,
         atMs: 680,
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
+        timingScale: 'cast'
       }
     ]
   },
@@ -109,8 +107,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
                 ownerId: 'elementalist',
                 finisherType: COMBO_FINISHER.PROJECTILE
               }
-            ],
-            metadata: {}
+            ]
           }
         ],
         timingAnchor: 'castStart',
@@ -151,7 +148,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
             finisherType: COMBO_FINISHER.BLAST
           }
         ],
-        metadata: {},
+
         canCrit: true
       },
       { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
@@ -206,8 +203,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'condition',
         condition: CONDITION.BURNING,
         stacks: 3,
-        duration: 6,
-        metadata: {}
+        duration: 6
       }
     ])
   },
@@ -277,8 +273,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
           condition: CONDITION.BURNING,
           stacks: 1,
           duration: 2
-        })),
-        metadata: {}
+        }))
       }
     ])
   },
@@ -439,8 +434,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
           condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 3
-        })),
-        metadata: {}
+        }))
       },
       {
         type: 'condition',
@@ -471,8 +465,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'condition',
         condition: CONDITION.BURNING,
         stacks: 2,
-        duration: 10,
-        metadata: {}
+        duration: 10
       }
     ])
   },
@@ -488,8 +481,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Signet',
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5 },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 4, duration: 9, metadata: {} },
-      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 4, duration: 9 },
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 3 }
     ])
   },
   // --- Elites --------------------------------------------------------------------
@@ -507,7 +500,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Conjure',
     effects: impactEffects({ atMs: 1440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1 },
-      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3 }
     ])
   },
   // The two Glyph of Elementals variants (Fire / Earth) share the elite slot and produce no
@@ -559,10 +552,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'condition',
         condition: CONDITION.BURNING,
         stacks: 2,
-        duration: 6,
-        metadata: {}
+        duration: 6
       },
-      { type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 9, metadata: {} }
+      { type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 9 }
     ])
   }
 });

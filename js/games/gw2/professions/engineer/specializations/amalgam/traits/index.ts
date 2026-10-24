@@ -351,7 +351,7 @@ function applyCarbolicPoison(context: EngineerRuntime, { cause: event }: Amalgam
         skillName: 'Carbolic Composition',
         triggeredBy: event.skillName,
         offTarget: event.offTarget,
-        metadata: {},
+
         ownerActorType: ACTOR.PLAYER
       },
       transform: (packet) => ({

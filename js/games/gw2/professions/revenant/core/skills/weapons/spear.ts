@@ -42,26 +42,22 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         ],
         name: 'Abyssal Blitz — Mine',
         actorType: ACTOR.PLAYER,
-        ticks: [560, 720, 960].map((atMs) => ({ atMs, coefficient: 0.5 })),
-        metadata: {}
+        ticks: [560, 720, 960].map((atMs) => ({ atMs, coefficient: 0.5 }))
       },
       {
         type: 'condition',
         actorType: ACTOR.PLAYER,
-        ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: CONDITION.SLOW, stacks: 1, duration: 3 })),
-        metadata: {}
+        ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: CONDITION.SLOW, stacks: 1, duration: 3 }))
       },
       {
         type: 'condition',
         actorType: ACTOR.PLAYER,
-        ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: CONDITION.CHILLED, stacks: 1, duration: 3 })),
-        metadata: {}
+        ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: CONDITION.CHILLED, stacks: 1, duration: 3 }))
       },
       {
         type: 'condition',
         actorType: ACTOR.PLAYER,
-        ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 })),
-        metadata: {}
+        ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 }))
       }
     ])
   },
@@ -104,8 +100,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
           { atMs: 1520, coefficient: 0.4 },
           { atMs: 1800, coefficient: 0.4 },
           { atMs: 2080, coefficient: 0.4 }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -119,8 +114,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
           { atMs: 1520, condition: CONDITION.POISONED, stacks: 1, duration: 6 },
           { atMs: 1800, condition: CONDITION.POISONED, stacks: 1, duration: 6 },
           { atMs: 2080, condition: CONDITION.POISONED, stacks: 1, duration: 6 }
-        ],
-        metadata: {}
+        ]
       },
       // Share one impact timing while preserving independent payloads and declaration order.
       ...impactEffects({ atMs: 960, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
@@ -156,8 +150,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 0.8,
         hits: 1,
         name: 'Abyssal Force',
-        actorType: ACTOR.PLAYER,
-        metadata: {}
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',

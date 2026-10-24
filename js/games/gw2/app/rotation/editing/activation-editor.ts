@@ -245,6 +245,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   const impactMarkup = `<div class="activation-editor-target-impact"></div>
     <div class="activation-editor-combat-relation" hidden></div>`;
   // Pair context and controls on shared rows so the compact editor scans left-to-right.
+  // Anchor delay stepping at zero for 40 ms increments; Apply still requires a positive whole-millisecond delay.
   editor.innerHTML = `
     <div class="activation-editor-header">
       <div class="activation-editor-heading">Edit activation</div>
@@ -281,7 +282,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
       </select>
       <div class="activation-editor-input-row activation-editor-impact-delay-row">
         <span>Delay</span>
-        <input class="activation-editor-input activation-editor-impact-delay" type="number" min="1" step="20" inputmode="numeric" aria-label="Impact delay in milliseconds" />
+        <input class="activation-editor-input activation-editor-impact-delay" type="number" min="0" step="${GW2_ACTION_TICK_MS}" inputmode="numeric" aria-label="Impact delay in milliseconds" />
         <span>ms</span>
       </div>
       ${impactMarkup}

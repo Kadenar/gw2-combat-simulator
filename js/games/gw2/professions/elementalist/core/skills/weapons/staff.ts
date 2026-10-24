@@ -70,7 +70,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.4 },
-      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 1, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 1 }
     ])
   },
   // Four field-tick packets one second apart inside the 4s fire field, each burning.
@@ -110,8 +110,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 1,
         atMs: 1160,
         applications: 4,
-        intervalMs: 1000,
-        metadata: {}
+        intervalMs: 1000
       }
     ])
   },
@@ -131,8 +130,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'condition',
         condition: CONDITION.BURNING,
         stacks: 3,
-        duration: 6,
-        metadata: {}
+        duration: 6
       },
       {
         type: 'condition',
@@ -166,7 +164,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       ...impactEffects({ atMs: 80, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.2 },
-        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2 }
       ]),
       {
         type: 'strike',
@@ -187,8 +185,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         applications: 6,
         intervalMs: 1000,
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
+        timingScale: 'cast'
       }
     ]
   },
@@ -260,10 +257,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
             ownerId: 'elementalist',
             finisherType: COMBO_FINISHER.BLAST
           }
-        ],
-        metadata: {}
+        ]
       },
-      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 10, metadata: {} }
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 10 }
     ])
   },
   // Contributes only a water combo field; no strike or condition packets are modelled.
@@ -318,8 +314,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
+        timingScale: 'cast'
       }
     ]
   },
@@ -351,8 +346,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 13,
         atMs: 720,
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
+        timingScale: 'cast'
       }
     ]
   },
@@ -440,10 +434,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
-        duration: 10,
-        metadata: {}
+        duration: 10
       },
-      { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3, metadata: {} }
+      { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3 }
     ])
   },
   [ID.STATIC_FIELD]: {
@@ -492,10 +485,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
             ownerId: 'elementalist',
             finisherType: COMBO_FINISHER.PROJECTILE
           }
-        ],
-        metadata: {}
+        ]
       },
-      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 }
     ])
   },
   // Long fuse: the blast finisher, six Bleeding stacks, and Cripple all land at 4000ms.
@@ -519,11 +511,10 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
             ownerId: 'elementalist',
             finisherType: COMBO_FINISHER.BLAST
           }
-        ],
-        metadata: {}
+        ]
       },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 6, duration: 12, metadata: {} },
-      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 6, duration: 12 },
+      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 3 }
     ])
   },
   // Aura/transmute flip pair: Magnetic Aura grants the aura and flips to Transmute Earth, which
@@ -567,8 +558,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
                 ownerId: 'elementalist',
                 finisherType: COMBO_FINISHER.BLAST
               }
-            ],
-            metadata: {}
+            ]
           }
         ],
         timingAnchor: 'castStart',
@@ -618,11 +608,10 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
             ownerId: 'elementalist',
             finisherType: COMBO_FINISHER.PROJECTILE
           }
-        ],
-        metadata: {}
+        ]
       },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 20, metadata: {} },
-      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 20 },
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }
     ])
   }
 });

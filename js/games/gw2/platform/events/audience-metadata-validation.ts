@@ -22,7 +22,6 @@ const METADATA_VALUE_KINDS = Object.freeze({
   procCount: 'number',
   activeSpirits: 'number',
   affinityOnHit: 'boolean',
-  anguishConditionalDamage: 'boolean',
   dhuumfireDuration: 'number',
   dhuumfireInterval: 'number',
   engineerMech: 'boolean',
@@ -39,7 +38,6 @@ const METADATA_VALUE_KINDS = Object.freeze({
   packetKind: 'string',
   radiantWeapon: 'string',
   smallHitboxCap: 'number',
-  spirit: 'string',
   spiritAttackType: 'string',
   trigger: 'string'
 } satisfies Record<keyof EffectMetadata, 'boolean' | 'number' | 'skillId' | 'string'>);

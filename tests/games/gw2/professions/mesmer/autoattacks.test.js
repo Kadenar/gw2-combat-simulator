@@ -101,6 +101,37 @@ test('Ether Clone creates a clone below cap and inflicts torment at cap', () => 
   assert.equal(Math.round(maximumCloneTorment.at * 1000 - atCap.steps[2].start), 440);
 });
 
+// Troubadour replaces a capped note reward with torment, while reaching the cap still grants only the note.
+test('Ether Clone uses the note cap for Troubadour replacement torment', () => {
+  for (const initialResource of [2, 3]) {
+    const result = simulateMesmer(
+      ['Ether Bolt', 'Ether Blast', 'Ether Clone'],
+      defaultSimulationConfig({
+        specialization: 'Troubadour',
+        primaryWeapon: 'Scepter',
+        secondaryWeapon: 'Torch',
+        initialResource
+      })
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.notes.value, 3);
+    const replacement = result.events.find(
+      (event) => event.type === 'condition' && event.skillName === 'Ether Clone' && event.condition === 'Torment'
+    );
+    assert.equal(Boolean(replacement), initialResource === 3);
+
+    if (replacement) {
+      assert.equal(replacement.duration, 9);
+      assert.equal(replacement.stacks, 1);
+    }
+
+    assert.equal(
+      result.events.some((event) => event.type === 'resource' && event.reason === 'Ether Clone'),
+      initialResource === 2
+    );
+  }
+});
+
 test('Ether Clone resolves its at-cap outcome from clone count at projectile time', () => {
   const config = defaultSimulationConfig({
     specialization: 'Chronomancer',

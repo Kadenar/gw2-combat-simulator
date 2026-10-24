@@ -54,8 +54,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
             finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -111,8 +110,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
             finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -147,8 +145,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
               ownerId: 'thief',
               finisherType: COMBO_FINISHER.PROJECTILE
             }
-          ],
-          metadata: {}
+          ]
         },
         {
           type: 'condition',
@@ -187,8 +184,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
             finisherType: COMBO_FINISHER.LEAP,
             fieldSelectionAnchor: 'castStart'
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'condition',
@@ -217,8 +213,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
             finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'boon',
@@ -245,8 +240,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
               ownerId: 'thief',
               finisherType: COMBO_FINISHER.PROJECTILE
             }
-          ],
-          metadata: {}
+          ]
         },
         {
           type: 'condition',
@@ -290,8 +284,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
             finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 0.2
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'boon',
@@ -331,8 +324,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
             ownerId: 'thief',
             finisherType: COMBO_FINISHER.PROJECTILE
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         type: 'strike',

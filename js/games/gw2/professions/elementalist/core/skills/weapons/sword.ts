@@ -112,7 +112,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.8 },
-      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 4, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 4 }
     ])
   },
   // Leap finisher that lays its own short fire field, then two trailing field-tick packets one
@@ -146,10 +146,9 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
               ownerId: 'elementalist',
               finisherType: COMBO_FINISHER.LEAP
             }
-          ],
-          metadata: {}
+          ]
         },
-        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 4, metadata: {} }
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 4 }
       ]),
       {
         type: 'strike',
@@ -175,7 +174,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2.91 },
-      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8, metadata: {} }
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8 }
     ])
   },
   [ID.SEICHE]: {
@@ -274,7 +273,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 40, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.33 },
-      { type: 'boon', boon: BOON.REGENERATION, stacks: 1, duration: 5, metadata: {} }
+      { type: 'boon', boon: BOON.REGENERATION, stacks: 1, duration: 5 }
     ])
   },
   [ID.AQUA_SIPHON]: {
@@ -295,8 +294,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
-        duration: 5,
-        metadata: {}
+        duration: 5
       }
     ])
   },
@@ -340,7 +338,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1 },
-      { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 2, metadata: {} }
+      { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 2 }
     ])
   },
   // Chain finisher: the main strike commits the attack at 560ms, then the three launched bolts
@@ -391,11 +389,11 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
             finisherType: COMBO_FINISHER.LEAP
           }
         ],
-        metadata: {},
+
         canCrit: true
       },
-      { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3, metadata: {} },
-      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3, metadata: {} },
+      { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3 },
+      { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 },
       { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
     ])
   },
@@ -436,7 +434,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.8 },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4 }
     ])
   },
   [ID.CRYSTALLINE_STRIKE]: {
@@ -452,7 +450,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.9 },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4 }
     ])
   },
   [ID.CRYSTALLINE_SUNDER]: {
@@ -468,8 +466,8 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.4 },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 8, metadata: {} },
-      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 8 },
+      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 3 }
     ])
   },
   [ID.EARTHEN_VORTEX]: {
@@ -492,11 +490,10 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
             ownerId: 'elementalist',
             finisherType: COMBO_FINISHER.BLAST
           }
-        ],
-        metadata: {}
+        ]
       },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 8, metadata: {} },
-      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 8 },
+      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 3 }
     ])
   },
   // Eight paired packets, each applying its own six-second Bleeding stack on the same timestamps.

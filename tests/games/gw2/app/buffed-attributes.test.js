@@ -6,6 +6,7 @@ import test from 'node:test';
 import { calculateBuffedAttributes } from '#gw2/app/build/buffed-attributes.js';
 import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
+import { MESMER_SKILL_IDS as MESMER_SKILL } from '#gw2/professions/mesmer/data/ids.js';
 
 const adapters = {};
 for (const name of [
@@ -93,6 +94,40 @@ test('Amalgam previews Titanic Might scaling and both Evolve variants without ch
 
     assert.deepEqual(stats(app), base);
     assert.deepEqual({ build: app.build, attributes: app.attributeData }, saved);
+  }
+});
+
+// Fortissimo converts eligible grants once; temporary Might and passive signet bonuses stay outside that pool.
+test('Fortissimo rounds eligible attributes without scaling Might or signet passives', () => {
+  const app = previewApp('mesmer', ['Fortissimo', 'Chaotic Persistence'], 'Troubadour');
+  app.build.food = 'Spherified Cilantro Oyster Soup';
+  app.build.utility = 'Writ of Masterful Malice';
+  app.build.selectedSkillIds = {
+    Utility1: MESMER_SKILL.SIGNET_OF_DOMINATION,
+    Utility2: MESMER_SKILL.SIGNET_OF_MIDNIGHT
+  };
+  const context = app.adapter.createBuildContext({
+    build: app.build,
+    transitionDelays: normalizeTransitionDelays(),
+    patch: app.patch
+  });
+  app.attributeData = context.attributes(1);
+  const pool = attributeSourcePool(context.simulationConfig(), 'common');
+  const base = stats(app, { regeneration: 1 });
+  for (const instruments of [1, 2, 4]) {
+    const multiplier = instruments * 0.04;
+    const playing = stats(app, { regeneration: 1, instruments });
+    const mighty = stats(app, { regeneration: 1, instruments, might: 25 });
+    for (const name of ['Power', 'Condition Damage', 'Healing Power']) {
+      assert.equal(playing[name].final, base[name].final + Math.round(pool[name] * multiplier));
+    }
+
+    assert.equal(playing.Expertise.final, base.Expertise.final + Math.round((pool.Expertise + 100) * multiplier));
+    assert.equal(
+      playing.Concentration.final,
+      base.Concentration.final + Math.round((pool.Concentration + 250) * multiplier)
+    );
+    for (const name of ['Power', 'Condition Damage']) assert.equal(mighty[name].final, playing[name].final + 750);
   }
 });
 

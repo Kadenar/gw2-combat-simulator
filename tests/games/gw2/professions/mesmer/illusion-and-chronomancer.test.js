@@ -454,39 +454,6 @@ test('shift-queued Rewinder waits past its parent cast for cooldown expiry', () 
   assert.deepEqual(result.warnings, []);
 });
 
-// Cast-local selection keeps whole stacks and alternates 2/3 even when an earlier attempt was cancelled.
-test('Chaos Storm alternates whole Poison pulses across successful casts', () => {
-  const config = defaultSimulationConfig({
-    specialization: 'Core',
-    primaryWeapon: 'Staff',
-    secondaryWeapon: '',
-    initialResource: 0
-  });
-  const rotation = [
-    { name: 'Chaos Storm', interruptMs: 100 },
-    'Chaos Storm',
-    'Chaos Storm',
-    'Chaos Storm',
-    { type: 'wait', durationMs: 6000 }
-  ];
-  const result = simulateMesmer(rotation, config);
-  assert.deepEqual(result.warnings, []);
-  const casts = result.events.filter((event) => event.type === 'action' && event.skillId === ID.CHAOS_STORM);
-  const poison = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.skillId === ID.CHAOS_STORM && event.condition === 'Poisoned'
-  );
-  assert.deepEqual(
-    casts.map((cast) => poison.filter((event) => event.activationId === cast.activationId).length),
-    [0, 2, 3, 2]
-  );
-  assert.ok(poison.every((event) => event.stacks === 1 && event.duration === 4));
-  const rerun = simulateMesmer(['Chaos Storm', { type: 'wait', durationMs: 6000 }], config);
-  assert.equal(
-    rerun.resolvedEvents.filter((event) => event.type === 'condition' && event.condition === 'Poisoned').length,
-    2
-  );
-});
-
 test('Confusing Images starts its cooldown after its channel ends', () => {
   const config = defaultSimulationConfig({
     specialization: 'Core',

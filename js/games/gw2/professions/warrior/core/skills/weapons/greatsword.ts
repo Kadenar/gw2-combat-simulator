@@ -94,8 +94,7 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
             finisherType: COMBO_FINISHER.PROJECTILE,
             chance: 1
           }
-        ],
-        metadata: {}
+        ]
       },
       {
         // Both outgoing and returning impacts apply their own one-second immobilize.

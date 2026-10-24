@@ -45,7 +45,6 @@ interface UiSelectionCandidate {
   readonly catalog?: CanonicalCatalog;
   readonly specialization?: unknown;
   readonly config?: { readonly specialization?: unknown } | null;
-  readonly build?: { readonly specialization?: unknown } | null;
 }
 
 type UiSlice = Partial<ProfessionUiContract>;
@@ -58,14 +57,13 @@ interface ProfessionFamilyUiDefinition {
   readonly family?: UiSlice;
 }
 
-/** Select direct, config, then build input; trim the selected name and default blank or absent input to Core. */
+/** Presentation receives the specialization derived from canonical build selections through context or config. */
 export function uiSpecialization(context: unknown): string {
   if (!context || typeof context !== 'object') return 'Core';
 
   const candidate = context as UiSelectionCandidate;
   const config = candidate.config;
-  const build = candidate.build;
-  return String(candidate.specialization || config?.specialization || build?.specialization || 'Core').trim() || 'Core';
+  return String(candidate.specialization || config?.specialization || 'Core').trim() || 'Core';
 }
 
 function explicitUiSpecialization(context: unknown): string | null {
@@ -73,8 +71,7 @@ function explicitUiSpecialization(context: unknown): string | null {
 
   const candidate = context as UiSelectionCandidate;
   const config = candidate.config;
-  const build = candidate.build;
-  const value = candidate.specialization ?? config?.specialization ?? build?.specialization;
+  const value = candidate.specialization ?? config?.specialization;
 
   if (value == null || !String(value).trim()) return null;
 

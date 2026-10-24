@@ -109,10 +109,8 @@ export function formatResourceValue(value: unknown): string {
 
 function activeResourceDefinitions(app: ProfessionAppState): ProfessionResourceView[] {
   const professionState = paletteProfessionState(app);
-  const specialization =
-    typeof app.adapter?.eliteSpecialization === 'function'
-      ? activeSpecialization(app)
-      : String(app.build?.specialization || 'Core');
+  // Resource views use the same canonical build selection as the rest of the palette.
+  const specialization = activeSpecialization(app);
   return resourceDisplayViews(app.profession, {
     catalog: app.activeCatalog,
     specialization,
