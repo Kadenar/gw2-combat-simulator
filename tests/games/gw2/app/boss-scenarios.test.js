@@ -1,6 +1,7 @@
+import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { loadScenarioLibrary, saveScenarioLibrary } from '#gw2/app/boss-scenarios/storage.js';
 import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
-import { scenarioSimulation } from '#gw2/app/boss-scenarios/simulation.js';
+import { scenarioSimulation, withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
@@ -413,6 +414,8 @@ test('baseline, RNG, and modifier requests share the encounter configuration', (
   const draft = makeDraft();
   draft.build.targetArmor = 5346;
   draft.build.assumptions.might = 25;
+  draft.build.assumptions.alliedPlayerCount = 0;
+  draft.build.assumptions.sharePlayerBoonsWithSummons = true;
   draft.phases[0].groupDps = 200000;
   draft.phases[1].durationSeconds = 12;
   const app = {
@@ -425,14 +428,20 @@ test('baseline, RNG, and modifier requests share the encounter configuration', (
   const random = adapter.randomDistributionRequest(app).baseConfig;
   const modifier = adapter.modifierContributionRequest(app);
   assert.ok(modifier.comparisons.length > 0);
-  for (const config of [random, modifier.baseConfig, ...modifier.comparisons.map((entry) => entry.config)]) {
+  for (const config of [baseline, random, modifier.baseConfig, ...modifier.comparisons.map((entry) => entry.config)]) {
+    assert.equal(config.allies.count, 4);
+    assert.equal(config.sharePlayerBoonsWithSummons, false);
     assert.deepEqual(config.encounter, baseline.encounter);
     assert.equal(config.target.health, baseline.target.health);
     assert.equal(config.target.armor, baseline.target.armor);
   }
 
   assert.equal(draft.build.targetArmor, 5346);
+  assert.equal(draft.build.assumptions.alliedPlayerCount, 0);
+  assert.equal(draft.build.assumptions.sharePlayerBoonsWithSummons, true);
   app.workspace = undefined;
+  assert.equal(adapter.baselineSimulationRequest(app).baseConfig.allies.count, 0);
+  assert.equal(adapter.baselineSimulationRequest(app).baseConfig.sharePlayerBoonsWithSummons, true);
   assert.equal(adapter.baselineSimulationRequest(app).baseConfig.encounter, undefined);
   assert.equal(adapter.modifierContributionRequest(app).baseConfig.target.armor, 5346);
 });
@@ -461,4 +470,22 @@ test('post-split intermissions round-trip and compile between the split and next
     split.intermissionSeconds = value;
     assert.throws(() => parse(draft), /intermissions/);
   }
+});
+
+// Encounter party assumptions block incidental summon sharing without suppressing explicit trait/skill pet grants.
+test('boss boon audiences fill the subgroup and retain direct pet grants', () => {
+  const golem = { allies: { count: 0, strikesPerSecond: 2 }, sharePlayerBoonsWithSummons: true };
+  const config = withScenarioConfig(golem, makeDraft());
+  assert.equal(withScenarioConfig(golem, undefined), golem);
+  assert.equal(config.allies.strikesPerSecond, 2);
+  const recipients = (audience) => gw2BoonApplicationRecipients(config, { actorType: 'player', audience });
+  const party = recipients({ recipients: 'party', maximumRecipients: 5, eligibleCompanionIds: ['pet'] });
+  assert.equal(party.recipientCount, 5);
+  assert.equal(party.alliedPlayerCount, 4);
+  assert.deepEqual(party.companionIds, []);
+  const spareSlots = recipients({ recipients: 'party', maximumRecipients: 10, eligibleCompanionIds: ['pet'] });
+  assert.deepEqual(spareSlots.companionIds, []);
+  const direct = recipients({ recipients: 'summons', affectsSelf: false, eligibleCompanionIds: ['pet'] });
+  assert.deepEqual(direct.companionIds, ['pet']);
+  assert.equal(direct.includesSelf, false);
 });

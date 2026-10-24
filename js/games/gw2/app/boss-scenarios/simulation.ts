@@ -95,6 +95,9 @@ export function withScenarioConfig(config: Gw2Config, draft: BossScenarioDraft |
   return {
     ...config,
     encounter,
+    // A full subgroup is the player plus four allies; direct pet grants retain their explicit recipients.
+    allies: { ...config.allies, count: 4 },
+    sharePlayerBoonsWithSummons: false,
     target: {
       ...config.target,
       health: target.maximumHealth,

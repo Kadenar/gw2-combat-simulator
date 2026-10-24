@@ -275,9 +275,9 @@ export function renderAssumptions(app: ProfessionAppState): void {
             ${section(
               RECIPIENT.PARTY,
               'Party',
-              `
-                <label class="boon-control">Additional allied players <input id="allied-player-count" type="number" min="0" max="4" step="1" value="${Number(a.alliedPlayerCount || 0)}"></label>
-            `
+              isBoss
+                ? '<p>5-player subgroup (you + 4 allies)</p>'
+                : `<label class="boon-control">Additional allied players <input id="allied-player-count" type="number" min="0" max="4" step="1" value="${Number(a.alliedPlayerCount || 0)}"></label>`
             )}
             ${section(
               'simulation',
@@ -290,9 +290,10 @@ export function renderAssumptions(app: ProfessionAppState): void {
                     </select>
                 </label>
                 <label class="boon-control" title="Controls minions, clones, turrets, and other ordinary summons. Mesmer phantasms and the Mechanist mech are unchanged.">
-                    <input id="share-player-boons-with-summons" type="checkbox"${a.sharePlayerBoonsWithSummons !== false ? ' checked' : ''}>
+                    <input id="share-player-boons-with-summons" type="checkbox"${isBoss ? ' disabled' : a.sharePlayerBoonsWithSummons !== false ? ' checked' : ''}>
                     Share player boons with summons
                 </label>
+                ${isBoss ? '<small>Boss encounters keep summon sharing off. Explicit pet boons from traits and skills still apply.</small>' : ''}
                 ${simulationAssumptionItems}
             `
             )}`;
@@ -394,16 +395,20 @@ export function renderAssumptions(app: ProfessionAppState): void {
     app.changed();
   });
 
-  const alliedPlayerCount = requiredInput('allied-player-count');
-  alliedPlayerCount.addEventListener('change', () => {
-    a.alliedPlayerCount = clamp(Math.trunc(Number(alliedPlayerCount.value) || 0), 0, 4);
-    app.changed();
-  });
-  const sharePlayerBoonsWithSummons = requiredInput('share-player-boons-with-summons');
-  sharePlayerBoonsWithSummons.addEventListener('change', () => {
-    a.sharePlayerBoonsWithSummons = sharePlayerBoonsWithSummons.checked;
-    app.changed();
-  });
+  // Boss assumptions are fixed for the run without changing the saved Golem build.
+  if (!isBoss) {
+    const alliedPlayerCount = requiredInput('allied-player-count');
+    alliedPlayerCount.addEventListener('change', () => {
+      a.alliedPlayerCount = clamp(Math.trunc(Number(alliedPlayerCount.value) || 0), 0, 4);
+      app.changed();
+    });
+    const sharePlayerBoonsWithSummons = requiredInput('share-player-boons-with-summons');
+    sharePlayerBoonsWithSummons.addEventListener('change', () => {
+      a.sharePlayerBoonsWithSummons = sharePlayerBoonsWithSummons.checked;
+      app.changed();
+    });
+  }
+
   const timeOfDay = requiredSelect('time-of-day');
   timeOfDay.addEventListener('change', () => {
     a.timeOfDay = timeOfDay.value === 'night' ? 'night' : 'day';
