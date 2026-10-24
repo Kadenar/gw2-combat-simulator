@@ -4,6 +4,7 @@ import {
   readProfessionSpecializationState
 } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { createStealthState, type StealthState } from '#gw2/platform/combat/stealth.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
@@ -22,7 +23,7 @@ import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { selectedRangerPet } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerConfig } from '#gw2/professions/ranger/types.js';
 
-export interface RangerCoreState {
+export interface RangerCoreState extends StealthState {
   /** The selected pair and active slot own identity; catalog facts are queried rather than synchronized. */
   activePetSlot: 1 | 2;
   readonly petNames: readonly [string, string];
@@ -32,8 +33,6 @@ export interface RangerCoreState {
   nextPetInstance: number;
   endurance: ResourceClock;
   availableFlips: SkillFlipWindows;
-  stealthUntil: number;
-  revealedUntil: number;
   autoattackChains: Record<string, SkillId>;
   winterBiteReady: boolean;
 
@@ -62,8 +61,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     nextPetInstance: 1,
     endurance: createResourceClock(100),
     availableFlips: {},
-    stealthUntil: 0,
-    revealedUntil: 0,
+    ...createStealthState(),
     autoattackChains: {},
     winterBiteReady: false,
 
@@ -81,6 +79,7 @@ const RANGER_PLAYER_PUBLIC_STATE_KEYS = Object.freeze([
   'endurance',
 
   'availableFlips',
+  'stealthStartedAt',
   'stealthUntil',
   'revealedUntil',
   'autoattackChains',

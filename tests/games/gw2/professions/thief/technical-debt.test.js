@@ -1,7 +1,8 @@
 import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
-import { beginThiefStealthAttack, grantThiefStealth } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { beginThiefStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { emitStealth } from '#tests/helpers/stealth.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -92,14 +93,14 @@ test('stealth entry and exits honor selected linger and venom grants without rep
           [
             1,
             (runtime) => {
-              grantThiefStealth(runtime, runtime.helpers.skillsById.get(ID.BACKSTAB), 3);
+              emitStealth(runtime, runtime.helpers.skillsById.get(ID.BACKSTAB), 3);
               grants.push(structuredClone(runtime.profession.core.venomChargeBatches[ID.SPIDER_VENOM]));
             }
           ],
           [
             1.5,
             (runtime) => {
-              grantThiefStealth(runtime, runtime.helpers.skillsById.get(ID.BACKSTAB), 1);
+              emitStealth(runtime, runtime.helpers.skillsById.get(ID.BACKSTAB), 1);
               grants.push(structuredClone(runtime.profession.core.venomChargeBatches[ID.SPIDER_VENOM]));
             }
           ],

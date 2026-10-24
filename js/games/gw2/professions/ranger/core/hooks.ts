@@ -1,4 +1,5 @@
-import { ACTOR, STATUS } from '#gw2/platform/constants.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import { createStealthLifecycle, endStealth, stealthActive } from '#gw2/platform/combat/stealth.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
@@ -125,14 +126,6 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     // Completed pet commands grant Rejuvenation and Wolfsong rewards.
     if (isBeastSkill(skill)) runtime.fireTrigger(beastSkillUsed, { skill });
   },
-  tasks: {
-    'ranger.stealth'(runtime, duration) {
-      const state = runtime.profession.core;
-
-      if (state.revealedUntil <= runtime.time)
-        state.stealthUntil = Math.min(runtime.time + 15, Math.max(runtime.time, state.stealthUntil) + Number(duration));
-    }
-  },
   eventHandlers: {
     // This is an executed transition fact for presentation; the completion owner already changed the pet.
     'ranger.pet-swapped': OBSERVABLE_EVENT_HANDLER
@@ -148,20 +141,15 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
 
       if (
         (event.actorType === ACTOR.PLAYER || event.ownerActorType === ACTOR.PLAYER) &&
-        state.stealthUntil > runtime.time
+        stealthActive(state, runtime.time)
       ) {
-        state.stealthUntil = runtime.time;
-        state.revealedUntil = runtime.time + 3;
+        endStealth(state, runtime.time);
       }
     },
     'buff.applied'(runtime, event) {
       runtime.fireTrigger(buffApplied, { event });
-      const state = runtime.profession.core;
       armPetSharpenSpines(runtime, event);
       armParalyzingVenom(runtime, event);
-
-      if (event.kind === STATUS.STEALTH && event.resolvedAudience?.includesSelf && state.revealedUntil <= runtime.time)
-        runtime.schedule('ranger.stealth', runtime.time, event.duration || 0, undefined, 10);
     }
   }
 };
@@ -171,6 +159,8 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
  * trait ordering. Weapon recharge synchronization precedes Core's completion triggers on every commit and cancel.
  */
 export const rangerCoreHooks = composeRuntimeHooks<RangerRuntimeState, RangerSkill>([
+  // Ranger's granting impacts settle before the shared status becomes active.
+  createStealthLifecycle<RangerRuntimeState, RangerSkill>({ applicationPriority: 10 }),
   hammerLifecycle,
   maceLifecycle,
   spearLifecycle,

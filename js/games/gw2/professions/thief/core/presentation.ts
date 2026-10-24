@@ -1,4 +1,5 @@
 import { WEAPON, STATUS } from '#gw2/platform/constants.js';
+import { stealthActive } from '#gw2/platform/combat/stealth.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { activeChargeCount } from '#gw2/platform/combat/resources/charges.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -124,7 +125,7 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     ];
   }
 
-  const stealthRemaining = (state.stealthStartedAt || 0) <= at ? (state.stealthUntil || 0) - at : 0;
+  const stealthRemaining = stealthActive(state, at) ? state.stealthUntil! - at : 0;
   return stealthRemaining > 0
     ? [
         ...items,
@@ -253,11 +254,7 @@ export const thiefCoreUi = Object.freeze({
     const state = thiefUiState(context);
     const now = context.time || 0;
     return {
-      tileActive:
-        ((state.stealthStartedAt || 0) <= now &&
-          (state.stealthUntil || 0) > now &&
-          (state.revealedUntil || 0) <= now) ||
-        activeChargeCount(state.bonusStealthAttack, now) > 0
+      tileActive: stealthActive(state, now) || activeChargeCount(state.bonusStealthAttack, now) > 0
     };
   },
   // Equal-duration grants replace oldest stacks, so capping their active sum matches the engine's stack count.

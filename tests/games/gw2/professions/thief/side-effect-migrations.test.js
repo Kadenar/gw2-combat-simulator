@@ -306,7 +306,8 @@ test('selected stealth respects acceptance predicates, Revealed, extension and c
   const runtime = observedRuntime(result);
   const buff = result.events.find((event) => event.kind === 'stealth');
   assert.equal(runtime.profession.core.stealthUntil, buff.at + 15);
-  assert.equal(buff.duration, 15);
+  // Packets retain their authored grant; the shared status owner projects the accumulated, capped window.
+  assert.equal(buff.duration, 10);
   assert.equal(runtime.resourceController.value('initiative'), 0, 'extension does not repeat entry traits');
   const cancelled = runThief([{ skillId: ID.HIDE_IN_SHADOWS, interruptMs: 0 }], {
     selectedSkillIds: [13027]

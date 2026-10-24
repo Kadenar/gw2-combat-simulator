@@ -10,7 +10,8 @@ import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
-import { beginThiefStealthAttack, grantThiefStealth } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { beginThiefStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { emitStealth } from '#tests/helpers/stealth.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -277,7 +278,7 @@ test('THF-001: Hidden Killer requires stealth and lingers after either natural e
     observedRuntime(
       live('Core', [wait(2000)], config, {
         probes: [
-          [1, (runtime) => grantThiefStealth(runtime, skill, 3)],
+          [1, (runtime) => emitStealth(runtime, skill, 3)],
           ...(attack ? [[2, (runtime) => beginThiefStealthAttack(runtime, { skill, id: 'test-attack' })]] : [])
         ]
       })

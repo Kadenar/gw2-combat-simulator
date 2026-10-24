@@ -57,7 +57,8 @@ import {
   beginThiefStealthAttack,
   commitThiefStealth,
   reactThiefStealthBreakingStrike,
-  selectThiefStealth
+  selectThiefStealth,
+  thiefStealthLifecycle
 } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { activateVenom, applyActiveVenoms, emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
@@ -232,6 +233,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
 
 /** Compose skill-owned lifecycle behavior with the shared profession rules. */
 export const thiefCoreHooks = composeRuntimeHooks<ThiefRuntimeState, ThiefSkill>([
+  thiefStealthLifecycle,
   infiltratorsSignetLifecycle,
   ashenAssaultLifecycle(ID.ASHEN_ASSAULT, PROFILE.ashenAssaultRefund),
   coreLifecycle

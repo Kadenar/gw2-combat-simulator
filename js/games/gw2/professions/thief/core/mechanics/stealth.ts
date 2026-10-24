@@ -1,4 +1,5 @@
 import { ACTOR, STATUS } from '#gw2/platform/constants.js';
+import { createStealthLifecycle, endStealth, revealedActive, stealthActive } from '#gw2/platform/combat/stealth.js';
 import { activeChargeCount, consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -9,13 +10,10 @@ import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefSkill } from '#gw2/professions/thief/core/events.js';
 import { hiddenKillerLinger } from '#gw2/professions/thief/core/traits/critical-strikes/index.js';
 import { stealthEntered, stealthExited } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
-import type { ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
-/** Stealth is active from its entry instant until its expiry, unless Revealed blocks it. */
-export function thiefStealthed(runtime: MechanicQueriesOf<ThiefRuntime>, at = runtime.time): boolean {
-  const core = runtime.profession.core;
-  return core.stealthStartedAt <= at && core.stealthUntil > at && core.revealedUntil <= at;
-}
+// Smoke outcomes precede their finisher's damage; only that same-instant impact is protected from revealing its grant.
+const comboStealthImpacts = new WeakMap<ThiefRuntime, { at: number; activations: Set<string> }>();
 
 /** A specialization-granted stealth-attack charge is usable outside stealth until it expires at the live clock. */
 export function thiefBonusStealthAttack(runtime: MechanicQueriesOf<ThiefRuntime>): boolean {
@@ -27,29 +25,28 @@ export function thiefBonusStealthAttack(runtime: MechanicQueriesOf<ThiefRuntime>
   );
 }
 
-/**
- * Extends stealth up to its cap unless Revealed blocks entry. Enter-stealth traits fire only on a transition from an
- * unstealthed state.
- */
-export function grantThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, duration: number): void {
+/** Accepted native, combo, and external grants share entry rewards and the concurrent-strike policy. */
+function reactToStealthGrant(runtime: ThiefRuntime, event: Gw2ResolverEvent, entering: boolean): void {
   const at = runtime.time;
-
-  if (!(duration > 0)) return;
-
   const core = runtime.profession.core;
-
-  if (core.revealedUntil > at) return;
-
-  const entering = core.stealthStartedAt > at || core.stealthUntil <= at;
-
-  if (entering) core.stealthStartedAt = at;
-
-  core.stealthUntil = Math.min(at + 15, Math.max(at, core.stealthUntil) + duration);
   // Natural and forced exits use the same selected Hidden Killer linger.
   core.hiddenKillerUntil = core.stealthUntil + hiddenKillerLinger(runtime);
 
+  if (event.comboId && event.activationId) {
+    let impacts = comboStealthImpacts.get(runtime);
+
+    if (impacts?.at !== at) comboStealthImpacts.set(runtime, (impacts = { at, activations: new Set() }));
+
+    impacts.activations.add(event.activationId);
+  }
+
   if (!entering) return;
 
+  // External grants need not belong to this profession's catalog; their packet still owns attribution.
+  const skill = thiefSkill(runtime, event.skillId) ?? {
+    id: event.skillId ?? event.sourceId,
+    name: event.skillName ?? event.source
+  };
   // Entry grants use the same selected charge count, lifetime and cap as forced exits.
   runtime.fireTrigger(stealthEntered, { skill, at });
   // Quantized concurrent impacts reveal the new stealth even when an older field's packet ran first in the queue.
@@ -62,20 +59,21 @@ export function grantThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, dura
   }
 }
 
+export const thiefStealthLifecycle = createStealthLifecycle<ThiefRuntimeState, ThiefSkill>({
+  onGranted: reactToStealthGrant
+});
+
 /** Removes active stealth, applies Revealed, and fires the traits shared by every attack that breaks stealth. */
 function breakThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, at: number): boolean {
   const core = runtime.profession.core;
 
-  if (!thiefStealthed(runtime, at)) return false;
+  if (!stealthActive(core, at)) return false;
 
   runtime.fireTrigger(stealthExited, { skill, at });
 
-  core.stealthStartedAt = at;
-  core.stealthUntil = at;
+  endStealth(core, at, !skill.preservesStealth);
   // Only a real stealth exit starts the linger; bonus attack charges do not.
   core.hiddenKillerUntil = at + hiddenKillerLinger(runtime);
-
-  if (!skill.preservesStealth) core.revealedUntil = at + 3;
 
   return true;
 }
@@ -93,6 +91,10 @@ export function reactThiefStealthBreakingStrike(runtime: ThiefRuntime, event: Gw
   if (!skill || skill.stealthAttack) return;
 
   if (stealthGrantActivations.get(runtime)?.has(String(event.activationId))) return;
+
+  const combo = comboStealthImpacts.get(runtime);
+
+  if (combo?.at === runtime.time && combo.activations.has(String(event.activationId))) return;
 
   runtime.profession.core.lastStealthBreakingStrike = { at: runtime.time, skillId: skill.id };
 
@@ -114,17 +116,14 @@ export function beginThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast
   const elite = runtime.profession.specialization;
 
   // Actual stealth supplies the attack first; only the active owner can spend a bonus entitlement.
-  if (!thiefStealthed(runtime) && (elite.kind === 'Deadeye' || elite.kind === 'Antiquary'))
+  if (!stealthActive(core, runtime.time) && (elite.kind === 'Deadeye' || elite.kind === 'Antiquary'))
     consumeCharge(elite.state.bonusStealthAttack, runtime.time);
 
   core.strikeBrokeStealthAt = null;
 
   if (breakThiefStealth(runtime, skill, runtime.time)) return;
 
-  core.stealthStartedAt = runtime.time;
-  core.stealthUntil = runtime.time;
-
-  if (!skill.preservesStealth) core.revealedUntil = runtime.time + 3;
+  endStealth(core, runtime.time, !skill.preservesStealth);
 }
 
 // Selected stealth packets belong to their activation so either commitment or a landed hit can consume them once.
@@ -163,19 +162,19 @@ export function commitThiefStealth(runtime: ThiefRuntime, context: ActionContext
   const effects = stealthPackets.get(runtime)?.get(activationId) ?? [];
   stealthPackets.get(runtime)?.delete(activationId);
 
-  if (runtime.profession.core.revealedUntil > runtime.time) return;
+  if (revealedActive(runtime.profession.core, runtime.time)) return;
 
   const duration = effects.reduce((sum, effect) => sum + Number(effect.duration || 0), 0);
 
   if (!(duration > 0)) return;
 
-  grantThiefStealth(runtime, context.skill, duration);
   runtime.effects.emit({
     kind: 'profile',
+    // Native hit/commit timing admits the packet now; the common buff listener alone mutates stealth state.
+    settlement: 'reaction',
     profile: context.skill,
     effects: effects.map((effect) => ({
       ...effect,
-      duration: runtime.profession.core.stealthUntil - runtime.time,
       atMs: 0,
       timingAnchor: 'castStart' as const,
       when: undefined

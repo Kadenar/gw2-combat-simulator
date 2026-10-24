@@ -1,4 +1,5 @@
 import { COMBO_FINISHER, STATUS, WEAPON, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { endStealth } from '#gw2/platform/combat/stealth.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -321,12 +322,11 @@ function armHuntersProwess(runtime: RangerRuntime): void {
     armSkillFlip(runtime.profession.core.availableFlips, flip, runtime.time, runtime.time + 3);
 }
 
-/** Spending either Prowess or external stealth reveals the ranger and closes all spear alternatives. */
+/** Spending either Prowess or external stealth uses the shared reveal transition and closes all spear alternatives. */
 function consumeSpearOpportunity(runtime: RangerRuntime): void {
   const state = runtime.profession.core;
   for (const flip of Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT)) consumeSkillFlip(state.availableFlips, flip);
-  state.stealthUntil = runtime.time;
-  state.revealedUntil = runtime.time + 3;
+  endStealth(state, runtime.time);
 }
 
 /** Hunter's Prowess and stealth attacks share one flip ledger; paired attacks share recharge on commit and cancel. */

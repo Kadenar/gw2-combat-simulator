@@ -1,4 +1,5 @@
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
+import { stealthActive } from '#gw2/platform/combat/stealth.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
@@ -12,11 +13,10 @@ export const RANGER_SPEAR_STEALTH_FLIP_BY_PARENT: Readonly<Record<number, number
 
 /** Hunter's Prowess survives Revealed; ordinary stealth enables the same spear choices until broken. */
 export function rangerSpearStealthAvailable(
-  state: ReadonlyMechanicState<Partial<Pick<RangerCoreState, 'availableFlips' | 'stealthUntil' | 'revealedUntil'>>>,
+  state: ReadonlyMechanicState<
+    Partial<Pick<RangerCoreState, 'availableFlips' | 'stealthStartedAt' | 'stealthUntil' | 'revealedUntil'>>
+  >,
   at: number
 ): boolean {
-  return (
-    skillFlipReady(state.availableFlips?.[ID.WOLFS_ONSLAUGHT], at) ||
-    ((state.stealthUntil || 0) > at && (state.revealedUntil || 0) <= at)
-  );
+  return skillFlipReady(state.availableFlips?.[ID.WOLFS_ONSLAUGHT], at) || stealthActive(state, at);
 }

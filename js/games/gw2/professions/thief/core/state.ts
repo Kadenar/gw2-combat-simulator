@@ -1,4 +1,5 @@
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
+import { createStealthState, type StealthState } from '#gw2/platform/combat/stealth.js';
 import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
 import type { ChargePool } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
@@ -25,14 +26,11 @@ interface ThievesGuildState {
   readonly expiresAt: number;
 }
 
-export interface ThiefCoreState {
+export interface ThiefCoreState extends StealthState {
   /** Same-tick hostile impacts must reveal a new stealth grant regardless of queue insertion order. */
   lastStealthBreakingStrike: { at: number; skillId: SkillId } | null;
   initiative: ResourceClock;
-  stealthStartedAt: number;
-  stealthUntil: number;
   hiddenKillerUntil: number;
-  revealedUntil: number;
   /** A singleton choice represents a forced grant or a locked Improvisation reuse. */
   storedStolenSkillIds: SkillId[];
   storedStolenSkillCount: number;
@@ -85,10 +83,8 @@ export function createThiefCoreState(
       maximum: maximumInitiative,
       rate: thiefInitiativeRegenerationRate({ kneeling: false }, context)
     },
-    stealthStartedAt: 0,
-    stealthUntil: 0,
+    ...createStealthState(),
     hiddenKillerUntil: 0,
-    revealedUntil: 0,
     storedStolenSkillIds: [],
     storedStolenSkillCount: 0,
     kneeling: false,

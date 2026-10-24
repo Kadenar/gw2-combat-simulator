@@ -72,6 +72,7 @@ test('Ranger public state is composed from Core and specialization-owned manifes
     'petNames',
     'endurance',
     'availableFlips',
+    'stealthStartedAt',
     'stealthUntil',
     'revealedUntil',
     'autoattackChains',

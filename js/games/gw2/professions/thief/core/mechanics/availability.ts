@@ -1,4 +1,5 @@
 import { WEAPON } from '#gw2/platform/constants.js';
+import { stealthActive } from '#gw2/platform/combat/stealth.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -10,8 +11,7 @@ import { thiefSpearAvailability } from '#gw2/professions/thief/core/mechanics/sp
 import { storedStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import {
   thiefBonusStealthAttack,
-  thiefSameInstantStealthBreak,
-  thiefStealthed
+  thiefSameInstantStealthBreak
 } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -54,7 +54,7 @@ function activeFollowUpAvailability(
 /** Stealth replaces weapon slot one while retaining weapon and Shadow Shroud boundaries. */
 function stealthAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult | null {
   const [mainHand] = gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1);
-  const stealthed = thiefStealthed(runtime);
+  const stealthed = stealthActive(runtime.profession.core, runtime.time);
   const bonusStealthAttack = thiefBonusStealthAttack(runtime);
 
   // Stealth replaces the equipped weapon's slot one, never the separate Shadow Shroud bar.
