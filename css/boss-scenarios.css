@@ -69,7 +69,7 @@ body[data-simulator-view='analysis'][data-analysis-workspace='bosses']
   background: var(--bg-deep);
   color: var(--text-bright);
   border: 1px solid var(--border-light);
-  padding: 7px 9px;
+  padding: 5px 8px;
   border-radius: var(--radius);
   min-width: 0;
   max-width: 100%;
@@ -83,15 +83,15 @@ body[data-simulator-view='analysis'][data-analysis-workspace='bosses']
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
 }
 .boss-fields label {
-  flex: 0 1 300px;
+  flex: 0 1 260px;
   min-width: 0;
 }
-/* Aligned phase rows pair group damage with the following split and intermission; narrow views scroll locally. */
+/* Compact phase rows keep related inputs close together; narrow views scroll inside the table. */
 .boss-phase-scroll {
-  max-width: 1000px;
+  max-width: 820px;
   overflow-x: auto;
 }
 .boss-phase-table {
@@ -102,7 +102,7 @@ body[data-simulator-view='analysis'][data-analysis-workspace='bosses']
 }
 .boss-phase-table th,
 .boss-phase-table td {
-  padding: 14px 18px 14px 0;
+  padding: 8px 12px 8px 0;
   text-align: left;
   vertical-align: top;
   font-weight: 400;
@@ -138,12 +138,12 @@ body[data-simulator-view='analysis'][data-analysis-workspace='bosses']
   flex-wrap: wrap;
   align-items: baseline;
   gap: 4px 8px;
-  padding-top: 8px;
+  padding-top: 6px;
   font-weight: 600;
 }
 .boss-phase-option,
 .boss-rate-input + .boss-rate-input {
-  margin-top: 12px;
+  margin-top: 8px;
 }
 .boss-rate-input {
   max-width: 130px;
@@ -171,9 +171,8 @@ body[data-simulator-view='analysis'][data-analysis-workspace='bosses']
   color: var(--text-dim);
   pointer-events: none;
 }
-.boss-duration-input + small,
-.boss-phase-table thead small {
-  margin-top: 12px;
+.boss-duration-input + small {
+  margin-top: 4px;
 }
 .boss-muted {
   display: inline-block;

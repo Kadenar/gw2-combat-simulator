@@ -1,6 +1,6 @@
 import { encounterAnalysisPhases, encounterDpsSnapshots } from '#gw2/app/boss-scenarios/analysis-model.js';
 import { loadScenarioLibrary, saveScenarioLibrary } from '#gw2/app/boss-scenarios/storage.js';
-import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
+import { createEncounter, type EncounterResult } from '#gw2/platform/combat/state/encounter.js';
 import { scenarioSimulation, ENCOUNTER_RESULT_EVENT } from '#gw2/app/boss-scenarios/simulation.js';
 import { mountResultSummary } from '#gw2/app/results/summary-view.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -53,6 +53,13 @@ export function mountBossScenarios(app: ProfessionAppState): void {
   let activeId = '';
   let message = '';
   let storageBlocked = false;
+  let displayedSummary:
+    | {
+        key: string;
+        encounter: EncounterResult;
+        phaseSnapshots: ReturnType<typeof encounterDpsSnapshots>;
+      }
+    | undefined;
   const active = () => scenarios.find((draft) => draft.id === activeId);
   const parse = (value: unknown): BossScenarioDraft => {
     const patchId = (value as Partial<BossScenarioDraft> | null)?.patchId;
@@ -178,63 +185,80 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     const first = plan.phases[0]!;
     const targetDefinitions = encounterHealth(draft.encounterId, draft.difficulty)!.targets;
     const execution = scenarioSimulation(draft);
-    const result =
+    const freshResult =
       app.workspace?.scenario === draft && app.resultRevision === app.buildRevision
         ? app.results?.encounter
         : undefined;
+    const summaryKey = JSON.stringify([draft.id, draft.encounterId, draft.difficulty]);
+
+    // Keep the completed strip and its disclosure steady during recalculation, without borrowing another boss's data.
+    if (displayedSummary?.key !== summaryKey) displayedSummary = undefined;
+
+    if (freshResult)
+      displayedSummary = {
+        key: summaryKey,
+        encounter: freshResult,
+        phaseSnapshots: encounterDpsSnapshots(encounterAnalysisPhases(app.results!, plan.phases))
+      };
+
+    const result = displayedSummary?.encounter;
+    metrics.setAttribute('aria-busy', String(!freshResult));
     // Preview the same phase-local health model before results arrive, including replacement health bars.
     const healthState = result ?? (execution.config ? createEncounter(execution.config, () => {}).result(0) : null);
     const seconds = (value: number | null) => (value === null ? 'No damage rate' : `${value.toFixed(1)}s`);
     const number = (value: number) => Math.round(value).toLocaleString('en-US');
-    metrics.replaceChildren();
-    // Lead with player output, group health together, and keep static armor after transition progress.
-    mountResultSummary(metrics, {
-      metrics: [
-        {
-          label: 'Overall DPS',
-          className: 'dps',
-          value: result ? number(result.overallDps) : execution.config ? 'Calculating' : 'Unavailable'
-        },
-        {
-          label: healthState ? `${healthState.targetName} HP / total` : 'Target HP / total',
-          value: healthState
-            ? `${number(healthState.remainingHealth)} / ${number(healthState.health)}`
-            : format(draft.health)
-        },
-        {
-          label: 'Next transition',
-          value: result
-            ? result.defeated
-              ? 'Target defeated'
-              : result.phaseKind !== 'boss'
-                ? result.phaseKind === 'intermission'
-                  ? 'Intermission ends'
-                  : 'Split ends'
-                : `${result.nextHealthPercent}% HP${result.windowRemaining !== null ? ` / ${seconds(result.windowRemaining)} window` : ''}`
-            : first.kind === 'split'
-              ? first.label
-              : first.endHealthPercent === null
-                ? 'Mechanic'
-                : first.endHealthPercent === 0
-                  ? 'Target defeated'
-                  : `${first.endHealthPercent}% HP`
-        },
-        {
-          label: 'Damage to next transition',
-          value: result
-            ? number(result.damageToTransition)
-            : healthState
-              ? number(healthState.damageToTransition)
-              : 'Unavailable'
-        },
-        {
-          label: 'Estimated time to transition',
-          value: result ? seconds(result.timeToTransition) : execution.config ? 'Calculating' : 'Unavailable'
-        },
-        { label: 'Target armor', value: format(healthState?.armor ?? null) }
-      ],
-      phaseSnapshots: result ? encounterDpsSnapshots(encounterAnalysisPhases(app.results!, plan.phases)) : []
-    });
+
+    if (freshResult || !result) {
+      metrics.replaceChildren();
+      // Lead with player output, group health together, and keep static armor after transition progress.
+      mountResultSummary(metrics, {
+        metrics: [
+          {
+            label: 'Overall DPS',
+            className: 'dps',
+            value: result ? number(result.overallDps) : execution.config ? '—' : 'Unavailable'
+          },
+          {
+            label: healthState ? `${healthState.targetName} HP / total` : 'Target HP / total',
+            value: healthState
+              ? `${number(healthState.remainingHealth)} / ${number(healthState.health)}`
+              : format(draft.health)
+          },
+          {
+            label: 'Next transition',
+            value: result
+              ? result.defeated
+                ? 'Target defeated'
+                : result.phaseKind !== 'boss'
+                  ? result.phaseKind === 'intermission'
+                    ? 'Intermission ends'
+                    : 'Split ends'
+                  : `${result.nextHealthPercent}% HP${result.windowRemaining !== null ? ` / ${seconds(result.windowRemaining)} window` : ''}`
+              : first.kind === 'split'
+                ? first.label
+                : first.endHealthPercent === null
+                  ? 'Mechanic'
+                  : first.endHealthPercent === 0
+                    ? 'Target defeated'
+                    : `${first.endHealthPercent}% HP`
+          },
+          {
+            label: 'Damage to next transition',
+            value: result
+              ? number(result.damageToTransition)
+              : healthState
+                ? number(healthState.damageToTransition)
+                : 'Unavailable'
+          },
+          {
+            label: 'Estimated time to transition',
+            value: result ? seconds(result.timeToTransition) : execution.config ? '—' : 'Unavailable'
+          },
+          { label: 'Target armor', value: format(healthState?.armor ?? null) }
+        ],
+        phaseSnapshots: result ? displayedSummary!.phaseSnapshots : []
+      });
+    }
 
     const targetHealthMarkup = () =>
       healthState?.targets
@@ -289,7 +313,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     controls.innerHTML = `<p class="boss-message" role="status">${h(message || execution.reason)}</p><div class="boss-setup">
       <div class="boss-fields"><label>Boss<select id="boss-encounter">${encounterOptions(draft.encounterId)}</select></label>${modes.length > 1 ? `<label>Difficulty<select id="boss-mode">${modes.map((mode) => `<option value="${mode}" ${mode === draft.difficulty ? 'selected' : ''}>${modeNames[mode]}</option>`).join('')}</select></label>` : ''}</div>
       <div class="boss-phase-scroll"><table class="boss-phase-table" aria-label="Encounter phases">
-        <thead><tr><th scope="col">Boss phase</th><th scope="col">Group DPS</th><th scope="col">Split after phase</th><th scope="col">After split<small>No damage</small></th></tr></thead>
+        <thead><tr><th scope="col">Boss phase</th><th scope="col">Group DPS (excludes you)</th><th scope="col">Split after phase</th><th scope="col">After split</th></tr></thead>
         <tbody>${draft.phases
           .map((phase, index) => {
             const definition = plan.phases[index]!;
@@ -323,7 +347,6 @@ export function mountBossScenarios(app: ProfessionAppState): void {
           .join(
             ''
           )}</tbody></table></div>${plan.repeats ? '<small class="boss-muted">Repeating mechanic cycle</small>' : ''}
-      <small class="boss-muted">Group DPS excludes you${draft.phases.some((phase) => phase.kind === 'boss' && typeof phase.groupDps === 'object') ? '; each target uses its own DPS input' : ''}.</small>
       ${(healthState?.targets.length ?? 0) > 1 ? `<div data-encounter-targets>${targetHealthMarkup()}</div>` : ''}</div>`;
     refreshTargetHealth();
   }
