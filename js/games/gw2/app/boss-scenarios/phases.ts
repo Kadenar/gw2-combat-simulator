@@ -5,6 +5,11 @@ export interface EncounterPhaseDefinition {
   kind: 'boss' | 'split';
   label: string;
   endHealthPercent: number | null;
+  targetIndexes?: readonly number[];
+  startHealthPercent?: number;
+  entryHealthLossPercent?: number;
+  /** Authored time until a mechanic ends this damage window, independent of target health. */
+  damageWindow?: { label: string; defaultSeconds: number };
 }
 
 export interface EncounterPhasePlan {
@@ -79,18 +84,46 @@ const plans: Readonly<Record<string, EncounterPhasePlan>> = {
       ...healthPlan([10], ei('RaidWings/W5/Bosses/Dhuum'), { '10': 'Ritual' }).phases
     ]
   },
-  '020601': mechanicPlan(
-    [
-      ['split', 'Arms'],
-      ['boss', 'Burn phase']
-    ],
-    ei('RaidWings/W6/Bosses/ConjuredAmalgamate'),
-    true
-  ),
-  '020602': healthPlan([75, 50], wiki('Mythwright_Gambit'), {
-    '75': 'Platform transition',
-    '50': 'Platform transition'
-  }),
+  '020601': {
+    source: ei('RaidWings/W6/Bosses/ConjuredAmalgamate'),
+    repeats: false,
+    phases: [
+      { id: 'arms-0', kind: 'split', label: 'First arm', endHealthPercent: null },
+      {
+        id: 'burn-0',
+        kind: 'boss',
+        label: 'First Junk Absorption',
+        endHealthPercent: 50,
+        entryHealthLossPercent: 10,
+        damageWindow: { label: 'Expected burn window', defaultSeconds: 40 }
+      },
+      { id: 'arms-1', kind: 'split', label: 'Second arm', endHealthPercent: null },
+      {
+        id: 'burn-1',
+        kind: 'boss',
+        label: 'Second Junk Absorption',
+        endHealthPercent: 25,
+        entryHealthLossPercent: 10,
+        damageWindow: { label: 'Expected burn window', defaultSeconds: 40 }
+      },
+      { id: 'arms-2', kind: 'split', label: 'Regrown arms', endHealthPercent: null },
+      { id: 'burn-2', kind: 'boss', label: 'Final burn', endHealthPercent: 0, entryHealthLossPercent: 10 }
+    ]
+  },
+  // The opening platforms are sequential; only the later platforms expose both Largos together.
+  '020602': {
+    source: wiki('Mythwright_Gambit'),
+    repeats: false,
+    phases: [
+      { id: 'nikare-opening', kind: 'boss', label: 'Nikare 100% - 50%', targetIndexes: [0], endHealthPercent: 50 },
+      { id: 'kenut-travel', kind: 'split', label: 'Move to Kenut', endHealthPercent: null },
+      { id: 'kenut-opening', kind: 'boss', label: 'Kenut 100% - 50%', targetIndexes: [1], endHealthPercent: 50 },
+      { id: 'separate-platforms', kind: 'split', label: 'Separate platforms', endHealthPercent: null },
+      { id: 'paired-platforms', kind: 'boss', label: '50% - 25%', endHealthPercent: 25 },
+      { id: 'final-platforms', kind: 'split', label: 'Final platforms', endHealthPercent: null },
+      { id: 'final-burn', kind: 'boss', label: '25% - 0%', endHealthPercent: 0 }
+    ]
+  },
   '020603': {
     ...healthPlan([66, 33], wiki('Mythwright_Gambit'), {
       '66': 'Apocalypse Bringer and pyres',
@@ -123,14 +156,7 @@ const plans: Readonly<Record<string, EncounterPhasePlan>> = {
   }),
   '020802': healthPlan([75, 40], wiki('Mount_Balrior'), { '75': 'Flux Nova', '40': 'Flux Nova' }),
   '020803': healthPlan([70, 40], ei('RaidWings/W8/Bosses/UraTheSteamshrieker'), {}),
-  '040201': mechanicPlan(
-    [
-      ['boss', 'Icebrood Construct'],
-      ['split', 'Invulnerability']
-    ],
-    ei('RaidEncounters/IcebroodSaga/Grothmar/Bosses/IcebroodConstruct'),
-    true
-  ),
+  '040201': healthPlan([50], wiki('Shiverpeaks_Pass'), { 50: 'Arm shatter' }),
   '040202': mechanicPlan(
     [
       ['boss', 'Fraenir 100% – 75%'],
@@ -146,7 +172,7 @@ const plans: Readonly<Record<string, EncounterPhasePlan>> = {
   '040203': mechanicPlan(
     [
       ['boss', 'Voice and Claw'],
-      ['split', 'Merged phase']
+      ['boss', 'Deadly Synergy']
     ],
     ei('RaidEncounters/IcebroodSaga/Bjora/Bosses/SuperKodanBrothers'),
     true
@@ -167,8 +193,12 @@ const plans: Readonly<Record<string, EncounterPhasePlan>> = {
       ['boss', 'Echo phase 1'],
       ['split', 'Scarlet phantoms'],
       ['boss', 'Echo phase 2'],
+      ['split', 'Laser sweep'],
+      ['boss', 'Echo phase 3'],
       ['split', 'Scarlet phantoms'],
-      ['boss', 'Echo phase 3']
+      ['boss', 'Echo phase 4'],
+      ['split', 'Laser sweep'],
+      ['boss', 'Echo phase 5']
     ],
     ei('RaidEncounters/EndOfDragons/Bosses/AetherbladeHideout')
   ),
@@ -230,9 +260,80 @@ const plans: Readonly<Record<string, EncounterPhasePlan>> = {
 
 /** Difficulty changes select the authored mechanics for that mode, independently of EI health totals. */
 export function encounterPhasePlan(id: string, difficulty: EncounterDifficulty): EncounterPhasePlan {
-  const base = plans[id];
+  let base = plans[id];
 
   if (!base) throw new Error('No encounter phase definition.');
+
+  // Sequential fights select their real target; simultaneous fights retain independent health pools.
+  if (id === '040202') {
+    const stages = [
+      { targetIndexes: [0], endHealthPercent: 75 },
+      { targetIndexes: [1], endHealthPercent: 50 },
+      { targetIndexes: [1], endHealthPercent: 0 },
+      { targetIndexes: [0], startHealthPercent: 25, endHealthPercent: 0 }
+    ];
+    let stage = 0;
+    base = {
+      ...base,
+      phases: base.phases.map((phase) => (phase.kind === 'boss' ? { ...phase, ...stages[stage++]! } : phase))
+    };
+  }
+
+  if (id === '040301') {
+    const stages = [
+      { targetIndexes: [0], endHealthPercent: 60 },
+      { targetIndexes: [0], endHealthPercent: 30 },
+      { targetIndexes: [0], endHealthPercent: 10 },
+      { targetIndexes: [1], endHealthPercent: 80 },
+      { targetIndexes: [1], endHealthPercent: 60 },
+      { targetIndexes: [1], endHealthPercent: 40 },
+      { targetIndexes: [1], endHealthPercent: 20 },
+      { targetIndexes: [1], endHealthPercent: 0 }
+    ];
+    let stage = 0;
+    base = {
+      ...base,
+      phases: base.phases.map((phase) => (phase.kind === 'boss' ? { ...phase, ...stages[stage++]! } : phase))
+    };
+  }
+
+  if (id === '040304') {
+    let stage = 0;
+    base = {
+      ...base,
+      phases: base.phases.map((phase) => {
+        if (phase.kind !== 'boss') return phase;
+
+        const targetIndexes = [Math.min(stage, 5)];
+        const endHealthPercent = stage === 5 ? 50 : 0;
+        stage += 1;
+        return { ...phase, targetIndexes, endHealthPercent };
+      })
+    };
+  }
+
+  if (id === '040203' || id === '040601') {
+    base = {
+      ...base,
+      phases: base.phases.map((phase) =>
+        phase.kind === 'boss'
+          ? {
+              ...phase,
+              endHealthPercent: 0,
+              damageWindow: {
+                label:
+                  id === '040601'
+                    ? 'Expected calm duration'
+                    : phase.id === 'boss-0'
+                      ? 'Expected time to merge'
+                      : 'Expected merged duration',
+                defaultSeconds: 60
+              }
+            }
+          : phase
+      )
+    };
+  }
 
   if (difficulty !== 'normal') {
     if (id === '040305')
@@ -248,7 +349,15 @@ export function encounterPhasePlan(id: string, difficulty: EncounterDifficulty):
     if (id === '020802')
       return healthPlan([75, 40, 10], base.source, { 75: 'Flux Nova', 40: 'Flux Nova', 10: 'Final transition' });
 
-    if (id === '020803') return healthPlan([70, 40, 1], base.source, { 1: 'Armor shatter' });
+    if (id === '020803') {
+      const plan = healthPlan([70, 40, 1], base.source, { 1: 'Armor shatter' });
+      return {
+        ...plan,
+        phases: plan.phases.map((phase) =>
+          phase.id === 'boss-3' ? { ...phase, label: `${difficulty === 'legendary' ? 31 : 16}% - 0%` } : phase
+        )
+      };
+    }
   }
 
   return base;

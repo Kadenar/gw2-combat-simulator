@@ -1,3 +1,4 @@
+import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
 import { scenarioSimulation } from '#gw2/app/boss-scenarios/simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -195,22 +196,16 @@ test('EI importer rejects wrong modes and preserves conflicting observations wit
 });
 
 // Executable inputs must use verified health gates, never invent totals for multi-target or mechanic-driven fights.
-test('scenario execution compiles health gates and exposes unsupported encounter mechanics', () => {
+test('scenario execution compiles health gates and phase inputs', () => {
   const draft = makeDraft();
   draft.phases[0].groupDps = 200000;
   draft.phases[1].durationSeconds = 12;
   const compiled = scenarioSimulation(draft);
   assert.equal(compiled.reason, '');
-  assert.equal(compiled.config.health, draft.health);
-  assert.equal(compiled.config.phases[0].endHealthPercent, 66);
-  assert.equal(compiled.config.phases[0].groupDps, 200000);
+  assert.equal(compiled.config.phases[0].targets[0].maximumHealth, draft.health);
+  assert.equal(compiled.config.phases[0].targets[0].endHealthPercent, 66);
+  assert.equal(compiled.config.phases[0].targets[0].groupDps, 200000);
   assert.equal(compiled.config.phases[1].durationSeconds, 12);
-  for (const id of ['020304', '020602', '040601']) {
-    selectScenarioEncounter(draft, id, 'normal');
-    const unsupported = scenarioSimulation(draft);
-    assert.equal(unsupported.config, null);
-    assert.ok(unsupported.reason);
-  }
 });
 
 // Excluded encounters cannot be reintroduced through imports or a health-data refresh.
@@ -240,4 +235,107 @@ test('split names follow the selected boss and difficulty', () => {
   assert.equal(splits('020801', 'normal')[0].label, 'Gree and Reeg');
   assert.equal(splits('020801', 'challenge')[0].label, 'Gree, Reeg and Ereg');
   assert.equal(splits('020801', 'challenge').at(-1).label, 'Proto-Greerlings');
+});
+
+// Every published mode must execute, including sequential targets, replacement bars, and timed cycles.
+test('all selectable encounter modes execute to completion with their own target health', () => {
+  for (const entry of ENCOUNTER_HEALTH) {
+    const draft = makeDraft();
+    selectScenarioEncounter(draft, entry.encounterId, entry.difficulty);
+    for (const phase of draft.phases)
+      if (phase.kind === 'boss')
+        phase.groupDps =
+          typeof phase.groupDps === 'number'
+            ? 1e9
+            : Object.fromEntries(Object.keys(phase.groupDps).map((key) => [key, 1e9]));
+    const { config, reason } = scenarioSimulation(draft);
+    assert.ok(config, `${entry.encounterId}: ${reason}`);
+    const queue = [];
+    const controller = createEncounter(config, (at, token) => queue.push({ at, token }));
+    controller.begin(0);
+    let count = 0;
+    while (controller.deathTime === null && queue.length && count++ < 1000) {
+      queue.sort((a, b) => a.at - b.at);
+      const next = queue.shift();
+      controller.wake(next.at, next.token);
+    }
+
+    assert.notEqual(controller.deathTime, null, `${entry.encounterId} ${entry.difficulty} did not finish`);
+    assert.equal(controller.result(controller.deathTime).defeated, true);
+  }
+});
+
+// Authoring keys refer to actual EI targets and survive a save/import round trip without distributing squad DPS.
+test('Twin Largos authors separate rates and a player target only on parallel platforms', () => {
+  const draft = makeDraft();
+  selectScenarioEncounter(draft, '020602', 'normal');
+  const phases = draft.phases.filter((phase) => phase.kind === 'boss');
+  assert.equal(typeof phases[0].groupDps, 'number');
+  assert.equal(typeof phases[1].groupDps, 'number');
+  phases[2].groupDps = { 0: 120000, 1: 170000 };
+  phases[2].playerTargetIndex = 1;
+  const restored = parse(JSON.parse(JSON.stringify(draft)));
+  const compiled = scenarioSimulation(restored).config.phases.filter((phase) => phase.kind === 'boss');
+  assert.deepEqual(
+    compiled.map((phase) => phase.targets.map((target) => target.id)),
+    [['0'], ['1'], ['0', '1'], ['0', '1']]
+  );
+  assert.deepEqual(
+    compiled[2].targets.map((target) => target.groupDps),
+    [120000, 170000]
+  );
+  assert.equal(compiled[2].playerTargetId, '1');
+  for (const rates of [100000, { 0: 100000 }, { 0: -1, 1: 100000 }, { 0: 1, 1: 1, 2: 1 }]) {
+    const invalid = structuredClone(draft);
+    invalid.phases.find((phase) => phase.id === phases[2].id).groupDps = rates;
+    assert.throws(() => parse(invalid));
+  }
+});
+
+// EI segmented bars determine both the physical health percentage and the remaining damage budget.
+test('Xera uses the first and replacement EI bars around its floating-platform split', () => {
+  const draft = makeDraft();
+  selectScenarioEncounter(draft, '020304', 'normal');
+  draft.phases[1].durationSeconds = 5;
+  const { config } = scenarioSimulation(draft);
+  const bars = encounterHealth('020304', 'normal').targets[0].healthBars;
+  const queue = [];
+  const controller = createEncounter(config, (at, token) => queue.push({ at, token }));
+  controller.begin(0);
+  assert.equal(controller.result(0).health, bars[0][2]);
+  assert.equal(controller.damage(1e9, 'player', 1), bars[0][2] / 2);
+  assert.equal(controller.result(1).phaseKind, 'split');
+  assert.equal(controller.damage(1e9, 'player', 2), 0);
+  controller.wake(queue[0].at, queue[0].token);
+  assert.equal(controller.result(6).health, bars[1][2]);
+  assert.equal(controller.remainingHealthFraction, 0.5);
+  assert.equal(controller.damage(1e9, 'player', 7), bars[1][2] / 2);
+  assert.equal(controller.deathTime, 7);
+});
+
+// CA's authored downtime breaks an arm; that mechanic changes boss HP but never inflates player DPS.
+test('Conjured Amalgamate arm transitions and burn windows execute without inventing damage attribution', () => {
+  const draft = makeDraft();
+  selectScenarioEncounter(draft, '020601', 'normal');
+  draft.phases[0].durationSeconds = 3;
+  draft.phases[1].windowSeconds = 2;
+  draft.phases[2].durationSeconds = 4;
+  const { config } = scenarioSimulation(parse(draft));
+  const queue = [];
+  const controller = createEncounter(config, (at, token) => queue.push({ at, token }));
+  controller.begin(0);
+  const wake = () => {
+    const event = queue.shift();
+    controller.wake(event.at, event.token);
+  };
+
+  assert.equal(controller.result(0).phaseKind, 'split');
+  wake();
+  assert.equal(controller.remainingHealthFraction, 0.9);
+  assert.equal(controller.result(3).phaseId, 'burn-0');
+  wake();
+  assert.equal(controller.result(5).phaseId, 'arms-1');
+  wake();
+  assert.equal(controller.remainingHealthFraction, 0.8);
+  assert.equal(controller.result(9).overallDps, 0);
 });

@@ -453,7 +453,10 @@ export function createEffectDelivery<T extends object>(
     if (runtime.reporting && !['condition_buffer', 'condition_tick', 'action_update'].includes(event.type))
       executed.push(event);
 
-    if (runtime.deathTime == null && targetHealthLoss(config, runtime) >= targetHealth) {
+    if (
+      runtime.deathTime == null &&
+      (runtime.encounter ? runtime.encounter.deathTime !== null : targetHealthLoss(config, runtime) >= targetHealth)
+    ) {
       runtime.deathTime = event.at;
       lethalActivation = event.activationId;
     }

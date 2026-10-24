@@ -1,12 +1,30 @@
 import { canonicalTime } from '#kernel/core/clock.js';
 
+export interface EncounterPhaseTarget {
+  readonly id: string;
+  readonly name: string;
+  readonly maximumHealth: number;
+  readonly groupDps: number;
+  readonly endHealthPercent: number;
+  /** Null preserves this target's live health; a value starts a replacement bar or explicit transformation. */
+  readonly startHealthPercent: number | null;
+  readonly entryHealthLossPercent: number;
+}
+
 export type EncounterPhase =
-  | { readonly id: string; readonly kind: 'boss'; readonly endHealthPercent: number; readonly groupDps: number }
+  | {
+      readonly id: string;
+      readonly kind: 'boss';
+      readonly playerTargetId: string;
+      readonly targets: readonly EncounterPhaseTarget[];
+      readonly durationSeconds: number | null;
+    }
   | { readonly id: string; readonly kind: 'split'; readonly durationSeconds: number };
 
 export interface EncounterConfig {
-  readonly health: number;
   readonly phases: readonly EncounterPhase[];
+  /** Only time-driven cycles repeat; health-gated encounters finish after their final damage phase. */
+  readonly repeatFrom: string | null;
 }
 
 export interface EncounterPhaseResult {
@@ -19,9 +37,19 @@ export interface EncounterPhaseResult {
   dps: number;
 }
 
+export interface EncounterTargetResult {
+  readonly id: string;
+  readonly name: string;
+  readonly maximumHealth: number;
+  readonly remainingHealth: number;
+  readonly active: boolean;
+}
+
 export interface EncounterResult {
   readonly health: number;
   readonly remainingHealth: number;
+  readonly targetName: string;
+  readonly targets: readonly EncounterTargetResult[];
   readonly phaseId: string;
   readonly phaseKind: 'boss' | 'split';
   readonly defeated: boolean;
@@ -29,52 +57,127 @@ export interface EncounterResult {
   readonly nextHealthPercent: number | null;
   readonly damageToTransition: number;
   readonly timeToTransition: number | null;
+  readonly windowRemaining: number | null;
   readonly phaseDps: number;
   readonly overallDps: number;
   readonly phases: readonly EncounterPhaseResult[];
 }
 
-/** One encounter clock owns health gates and downtime; all professions retain their live combat state. */
-export function createEncounter(config: EncounterConfig, schedule: (at: number, generation: number) => void) {
-  if (!Number.isSafeInteger(config.health) || config.health <= 0 || !config.phases.length)
-    throw new TypeError('Encounter requires positive integer health and phases.');
+/** Seed the shared resolver from the first real target, never the sum of unrelated boss health pools. */
+export function initialEncounterTarget(config: EncounterConfig): EncounterPhaseTarget {
+  const first = config.phases.find((phase) => phase.kind === 'boss');
 
-  let previous = 100;
+  if (!first || !first.targets.length) throw new TypeError('Encounter requires a damageable target.');
+
+  return first.targets[0]!;
+}
+
+/** Separate target state survives phases; one clock schedules squad ticks, timed windows, and authored splits. */
+export function createEncounter(config: EncounterConfig, schedule: (at: number, generation: number) => void) {
+  initialEncounterTarget(config);
+  const phaseIds = new Set(config.phases.map((phase) => phase.id));
+
+  if (phaseIds.size !== config.phases.length || (config.repeatFrom !== null && !phaseIds.has(config.repeatFrom)))
+    throw new TypeError('Encounter phase IDs and repeat destination must be valid.');
+
   for (const phase of config.phases) {
     if (phase.kind === 'boss') {
       if (
-        !Number.isFinite(phase.endHealthPercent) ||
-        phase.endHealthPercent < 0 ||
-        phase.endHealthPercent >= previous ||
-        !Number.isFinite(phase.groupDps) ||
-        phase.groupDps < 0
+        !phase.targets.some((target) => target.id === phase.playerTargetId) ||
+        !phase.targets.length ||
+        new Set(phase.targets.map((target) => target.id)).size !== phase.targets.length
       )
-        throw new TypeError('Encounter health gates must descend and group DPS must be non-negative.');
+        throw new TypeError('Boss phases require unique targets and non-negative group DPS.');
 
-      previous = phase.endHealthPercent;
-    } else if (!Number.isFinite(phase.durationSeconds) || phase.durationSeconds < 0) {
-      throw new TypeError('Split duration must be finite and non-negative.');
+      for (const target of phase.targets) {
+        if (
+          !Number.isFinite(target.groupDps) ||
+          target.groupDps < 0 ||
+          !Number.isSafeInteger(target.maximumHealth) ||
+          target.maximumHealth <= 0 ||
+          !Number.isFinite(target.endHealthPercent) ||
+          target.endHealthPercent < 0 ||
+          target.endHealthPercent >= 100 ||
+          (target.startHealthPercent !== null &&
+            (!Number.isFinite(target.startHealthPercent) ||
+              target.startHealthPercent <= target.endHealthPercent ||
+              target.startHealthPercent > 100)) ||
+          !Number.isFinite(target.entryHealthLossPercent) ||
+          target.entryHealthLossPercent < 0 ||
+          target.entryHealthLossPercent > 100
+        )
+          throw new TypeError('Encounter target health and gates must be valid.');
+      }
     }
+
+    if (
+      phase.durationSeconds !== null &&
+      (!Number.isFinite(phase.durationSeconds) ||
+        phase.durationSeconds < 0 ||
+        (phase.kind === 'boss' && phase.durationSeconds === 0))
+    )
+      throw new TypeError('Phase duration must be finite and non-negative; damage windows must be positive.');
   }
 
-  if (previous !== 0 || config.phases.at(-1)?.kind !== 'boss')
-    throw new TypeError('Encounter must end with target defeat.');
+  if (
+    config.repeatFrom !== null &&
+    !config.phases.some((phase) => phase.kind === 'boss' && phase.durationSeconds !== null)
+  )
+    throw new TypeError('Repeating encounters need a timed damage window.');
 
-  let remaining = config.health;
+  const targets = new Map<
+    string,
+    { id: string; name: string; maximumHealth: number; remainingHealth: number; revision: number }
+  >();
+  for (const phase of config.phases)
+    if (phase.kind === 'boss')
+      for (const target of phase.targets) {
+        if (!targets.has(target.id))
+          targets.set(target.id, {
+            id: target.id,
+            name: target.name,
+            maximumHealth: target.maximumHealth,
+            revision: 0,
+            remainingHealth: (target.maximumHealth * (target.startHealthPercent ?? 100)) / 100
+          });
+      }
+
   let index = 0;
   let generation = 0;
   let start: number | null = null;
   let death: number | null = null;
+  let deadline: number | null = null;
+  let nextTick: number | null = null;
+  let selected = initialEncounterTarget(config).id;
   const phases: EncounterPhaseResult[] = [];
-  const phase = () => config.phases[index]!;
-  const threshold = () => {
-    const current = phase();
-    return current.kind === 'boss' ? Math.floor((config.health * current.endHealthPercent) / 100) : remaining;
+  const targetWindows: { key: string; start: number; end: number | null }[] = [];
+  let queryTarget: string | null = null;
+  const targetKey = (id: string) => `${id}:${targets.get(id)!.revision}`;
+  const closeWindows = (at: number, key?: string) => {
+    for (const window of targetWindows)
+      if (window.end === null && (key === undefined || window.key === key)) window.end = at;
   };
 
+  const phase = () => config.phases[index]!;
+  const gate = (target: EncounterPhaseTarget) => Math.floor((target.maximumHealth * target.endHealthPercent) / 100);
+  const available = () => {
+    const current = phase();
+    return current.kind === 'boss'
+      ? current.targets.filter((target) => targets.get(target.id)!.remainingHealth > gate(target))
+      : [];
+  };
+
+  // Player attacks stay on the authored target; phasing it does not teleport the player to another platform.
+  const chooseTarget = () => targets.get(selected)!;
+  function enqueue(): void {
+    const at = Math.min(deadline ?? Infinity, nextTick ?? Infinity);
+
+    if (Number.isFinite(at)) schedule(at, generation);
+  }
+
   function enter(at: number): void {
-    // Zero-length splits settle at the same boundary without delaying the next damage phase.
-    while (index < config.phases.length) {
+    // Zero-length splits settle immediately without resetting player resources or cooldowns.
+    for (let guard = 0; guard <= config.phases.length; guard++) {
       const current = phase();
       generation += 1;
       phases.push({
@@ -86,92 +189,193 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
         groupDamage: 0,
         dps: 0
       });
+      deadline = current.durationSeconds === null ? null : canonicalTime(at + current.durationSeconds);
+      nextTick =
+        current.kind === 'boss' && current.targets.some((target) => target.groupDps > 0) ? canonicalTime(at + 1) : null;
 
-      if (current.kind === 'split' && current.durationSeconds === 0) {
-        phases.at(-1)!.end = at;
-        index += 1;
-        continue;
+      if (current.kind === 'boss') {
+        selected = current.playerTargetId;
+        for (const definition of current.targets) {
+          const target = targets.get(definition.id)!;
+
+          if (target.maximumHealth !== definition.maximumHealth && definition.startHealthPercent === null)
+            throw new TypeError('A replacement health bar requires an explicit starting percentage.');
+
+          target.maximumHealth = definition.maximumHealth;
+
+          if (definition.startHealthPercent !== null) {
+            target.revision += 1;
+            target.remainingHealth = (definition.maximumHealth * definition.startHealthPercent) / 100;
+          }
+
+          if (definition.entryHealthLossPercent > 0)
+            target.remainingHealth -= Math.min(
+              Math.max(0, target.remainingHealth - gate(definition)),
+              (definition.maximumHealth * definition.entryHealthLossPercent) / 100
+            );
+        }
+
+        chooseTarget();
+        for (const target of available()) targetWindows.push({ key: targetKey(target.id), start: at, end: null });
+
+        if (available().length) {
+          enqueue();
+          return;
+        }
+      } else if (current.durationSeconds > 0) {
+        enqueue();
+        return;
       }
 
-      if (current.kind === 'split') schedule(canonicalTime(at + current.durationSeconds), generation);
-      else if (current.groupDps > 0) schedule(canonicalTime(at + 1), generation);
+      phases.at(-1)!.end = at;
 
-      return;
+      if (!move(at)) return;
     }
+
+    throw new TypeError('Encounter contains a zero-time phase cycle.');
   }
 
-  function begin(at: number): void {
-    if (start !== null) return;
+  function move(at: number): boolean {
+    if (index + 1 < config.phases.length) {
+      index += 1;
+      return true;
+    }
 
-    start = at;
-    enter(at);
+    if (config.repeatFrom !== null && [...targets.values()].some((target) => target.remainingHealth > 0)) {
+      index = config.phases.findIndex((entry) => entry.id === config.repeatFrom);
+      return true;
+    }
+
+    death = at;
+    generation += 1;
+    deadline = null;
+    nextTick = null;
+    return false;
   }
 
   function advance(at: number): void {
+    closeWindows(at);
     phases.at(-1)!.end = at;
 
-    if (remaining === 0) {
-      death = at;
-      generation += 1;
-    } else {
-      index += 1;
-      enter(at);
-    }
+    if (move(at)) enter(at);
   }
 
-  function damage(amount: number, owner: 'player' | 'group', at: number): number {
+  function completeIfReady(at: number): void {
+    if (phase().kind !== 'boss' || available().length) return;
+
+    // A repeating cycle ends on target defeat instead of forcing one final downtime interval.
+    if (config.repeatFrom !== null && [...targets.values()].every((target) => target.remainingHealth <= 0)) {
+      phases.at(-1)!.end = at;
+      death = at;
+      generation += 1;
+    } else advance(at);
+  }
+
+  function apply(amount: number, owner: 'player' | 'group', target: EncounterPhaseTarget, at: number): number {
+    const state = targets.get(target.id)!;
+    const accepted = Math.min(amount, Math.max(0, state.remainingHealth - gate(target)));
+    state.remainingHealth -= accepted;
+
+    if (state.remainingHealth <= gate(target)) closeWindows(at, targetKey(target.id));
+
+    phases.at(-1)![owner === 'player' ? 'playerDamage' : 'groupDamage'] += accepted;
+    return accepted;
+  }
+
+  const defeated = () => death !== null;
+  function damage(amount: number, owner: 'player' | 'group', at: number, key?: string): number {
     if (start === null || death !== null || phase().kind === 'split') return 0;
 
     let accepted = 0;
-    // Pure reporting bands do not discard overkill; an actual invulnerability gate does.
-    while (remaining > 0 && phase().kind === 'boss' && accepted < amount) {
-      const portion = Math.min(amount - accepted, Math.max(0, remaining - threshold()));
-      remaining -= portion;
-      accepted += portion;
-      phases.at(-1)![owner === 'player' ? 'playerDamage' : 'groupDamage'] += portion;
+    while (accepted < amount && !defeated() && phase().kind === 'boss') {
+      chooseTarget();
+      const target = available().find((entry) =>
+        key === undefined ? entry.id === selected : targetKey(entry.id) === key
+      );
 
-      if (remaining > threshold()) break;
+      if (!target) break;
 
-      const entersSplit = config.phases[index + 1]?.kind === 'split';
-      advance(at);
+      accepted += apply(amount - accepted, owner, target, at);
+      const previousKey = targetKey(target.id);
+      const nextIsSplit = config.phases[index + 1]?.kind === 'split';
+      const oldIndex = index;
+      completeIfReady(at);
 
-      if (entersSplit) break;
+      // Never carry an overkill packet into an invulnerability split or another target.
+      if (nextIsSplit || index === oldIndex || selected !== target.id || targetKey(target.id) !== previousKey) break;
     }
 
     return accepted;
   }
 
   return {
-    begin,
+    begin(at: number): void {
+      if (start === null) {
+        start = at;
+        enter(at);
+      }
+    },
     damage,
     get remainingHealth() {
-      return remaining;
+      return chooseTarget().remainingHealth;
+    },
+    get remainingHealthFraction() {
+      const target = queryTarget === null ? chooseTarget() : targets.get(queryTarget)!;
+      return target.remainingHealth / target.maximumHealth;
+    },
+    get activeTargetKey() {
+      return targetKey(queryTarget ?? chooseTarget().id);
+    },
+    /** Condition samples query their own target while the player's selected target stays unchanged. */
+    withTarget<T>(key: string, operation: () => T): T {
+      const target = [...targets.values()].find((entry) => targetKey(entry.id) === key);
+      const previous = queryTarget;
+      queryTarget = target?.id ?? null;
+      try {
+        return operation();
+      } finally {
+        queryTarget = previous;
+      }
     },
     get damageable() {
-      return death === null && phase().kind === 'boss';
+      return death === null && phase().kind === 'boss' && available().some((target) => target.id === selected);
     },
     get deathTime() {
       return death;
     },
-    // Expired ticks cannot spill damage into a later phase when a player hit transitions early.
+    // Generation tokens cancel ticks owned by an earlier phase; timeouts win ties at window boundaries.
     wake(at: number, token: number): number {
       if (token !== generation || death !== null) return 0;
 
-      const current = phase();
-
-      if (current.kind === 'split') {
+      if (deadline !== null && at >= deadline) {
         advance(at);
         return 0;
       }
 
-      const accepted = damage(current.groupDps, 'group', at);
+      const current = phase();
 
-      if (token === generation) schedule(canonicalTime(at + 1), generation);
+      if (current.kind !== 'boss' || nextTick === null || at < nextTick) return 0;
+
+      const active = available();
+      let accepted = 0;
+      for (const target of active) accepted += apply(target.groupDps, 'group', target, at);
+      completeIfReady(at);
+
+      if (token === generation) {
+        nextTick = canonicalTime(at + 1);
+        enqueue();
+      }
 
       return accepted;
     },
-    // Condition exposure excludes downtime even when a buffer sample straddles a transition.
-    damageableDuration(from: number, to: number): number {
+    damageableDuration(from: number, to: number, key?: string): number {
+      if (key !== undefined)
+        return targetWindows.reduce(
+          (sum, window) =>
+            window.key === key ? sum + Math.max(0, Math.min(to, window.end ?? to) - Math.max(from, window.start)) : sum,
+          0
+        );
+
       return phases.reduce(
         (sum, entry) =>
           entry.kind === 'boss' ? sum + Math.max(0, Math.min(to, entry.end ?? to) - Math.max(from, entry.start)) : sum,
@@ -186,27 +390,41 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
         return { ...entry, dps: duration > 0 ? entry.playerDamage / duration : 0 };
       });
       const current = phase();
-      const currentRow = rows.at(-1);
-      const phaseDps = currentRow?.dps ?? 0;
-      const needed = Math.max(0, remaining - threshold());
-      const rate = current.kind === 'boss' ? current.groupDps + phaseDps : 0;
+      const target = chooseTarget();
+      const phaseDps = rows.at(-1)?.dps ?? 0;
+      const active = available();
+      const needed = active.reduce((sum, entry) => sum + targets.get(entry.id)!.remainingHealth - gate(entry), 0);
+      const timed = deadline === null ? Infinity : Math.max(0, deadline - end);
+      const healthEstimate =
+        current.kind === 'boss'
+          ? Math.max(
+              0,
+              ...active.map((entry) => {
+                const targetRate = entry.groupDps + (entry.id === selected ? phaseDps : 0);
+                return targetRate > 0 ? (targets.get(entry.id)!.remainingHealth - gate(entry)) / targetRate : Infinity;
+              })
+            )
+          : Infinity;
+      const estimate = Math.min(timed, healthEstimate);
       return {
-        health: config.health,
-        remainingHealth: remaining,
+        health: target.maximumHealth,
+        remainingHealth: target.remainingHealth,
+        targetName: target.name,
+        targets: [...targets.values()].map(({ revision: _revision, ...entry }) => ({
+          ...entry,
+          active: active.some((definition) => definition.id === entry.id)
+        })),
         phaseId: current.id,
         phaseKind: current.kind,
         defeated: death !== null,
         elapsed,
-        nextHealthPercent: current.kind === 'boss' ? current.endHealthPercent : null,
+        nextHealthPercent:
+          current.kind === 'boss'
+            ? (current.targets.find((entry) => entry.id === selected)?.endHealthPercent ?? null)
+            : null,
+        windowRemaining: deadline === null ? null : Math.max(0, deadline - end),
         damageToTransition: needed,
-        timeToTransition:
-          death !== null
-            ? 0
-            : current.kind === 'split'
-              ? Math.max(0, (currentRow?.start ?? end) + current.durationSeconds - end)
-              : rate > 0
-                ? needed / rate
-                : null,
+        timeToTransition: death !== null ? 0 : Number.isFinite(estimate) ? estimate : null,
         phaseDps,
         overallDps: elapsed > 0 ? rows.reduce((sum, row) => sum + row.playerDamage, 0) / elapsed : 0,
         phases: rows

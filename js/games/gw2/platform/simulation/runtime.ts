@@ -1,4 +1,4 @@
-import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
+import { createEncounter, initialEncounterTarget } from '#gw2/platform/combat/state/encounter.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
@@ -105,7 +105,7 @@ export function runRuntime<T extends object>(
         ...inputConfig,
         target: {
           ...inputConfig.target,
-          health: inputConfig.encounter.health,
+          health: initialEncounterTarget(inputConfig.encounter).maximumHealth,
           startingHealthFraction: 1,
           fixedHealthFraction: undefined
         }
@@ -442,7 +442,7 @@ export function runRuntime<T extends object>(
 
   const targetHealth = Number(config.target?.health) > 0 ? Number(config.target?.health) : Infinity;
 
-  if (targetHealthLoss(config, runtime) >= targetHealth) runtime.deathTime = 0;
+  if (!runtime.encounter && targetHealthLoss(config, runtime) >= targetHealth) runtime.deathTime = 0;
 
   if (combatStartTime != null) {
     const marker = assertSimulationEvent({

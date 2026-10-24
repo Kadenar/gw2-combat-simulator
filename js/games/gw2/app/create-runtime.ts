@@ -1,3 +1,4 @@
+import { initialEncounterTarget } from '#gw2/platform/combat/state/encounter.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 
 import { relicComparisonAvailable } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
@@ -145,7 +146,7 @@ export function createProfessionRuntime({
           encounter,
           target: {
             ...config.target,
-            health: encounter.health,
+            health: initialEncounterTarget(encounter).maximumHealth,
             fixedHealthFraction: undefined,
             startingHealthFraction: 1
           }

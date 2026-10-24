@@ -7,13 +7,26 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 
-const encounter = {
-  health: 1000,
-  phases: [
-    { id: 'a', kind: 'boss', endHealthPercent: 50, groupDps: 200 },
-    { id: 'split', kind: 'split', durationSeconds: 2 },
-    { id: 'b', kind: 'boss', endHealthPercent: 0, groupDps: 100 }
+const bossPhase = (id, endHealthPercent, groupDps, maximumHealth = 1000) => ({
+  id,
+  kind: 'boss',
+  playerTargetId: 'target',
+  durationSeconds: null,
+  targets: [
+    {
+      id: 'target',
+      name: 'Target',
+      maximumHealth,
+      groupDps,
+      endHealthPercent,
+      startHealthPercent: null,
+      entryHealthLossPercent: 0
+    }
   ]
+});
+const encounter = {
+  repeatFrom: null,
+  phases: [bossPhase('a', 50, 200), { id: 'split', kind: 'split', durationSeconds: 2 }, bossPhase('b', 0, 100)]
 };
 const hit = (at, flatDamage) => ({
   type: 'damage',
@@ -75,11 +88,8 @@ test('combat-start preparation delays group damage without charging precombat ti
 test('reporting bands preserve excess damage, while zero-duration invulnerability still clamps its triggering hit', () => {
   const bands = createEncounter(
     {
-      health: 1000,
-      phases: [
-        { id: 'a', kind: 'boss', endHealthPercent: 50, groupDps: 0 },
-        { id: 'b', kind: 'boss', endHealthPercent: 0, groupDps: 0 }
-      ]
+      repeatFrom: null,
+      phases: [bossPhase('a', 50, 0), bossPhase('b', 0, 0)]
     },
     () => {}
   );
@@ -120,9 +130,17 @@ test('squad DPS replaces permanent environment condition damage without changing
 test('condition clocks survive splits and exclude invulnerable exposure', () => {
   const config = {
     ...encounter,
-    health: 100000,
     phases: encounter.phases.map((phase) =>
-      phase.kind === 'boss' ? { ...phase, groupDps: phase.id === 'a' ? 50000 : 0 } : phase
+      phase.kind === 'boss'
+        ? {
+            ...phase,
+            targets: phase.targets.map((target) => ({
+              ...target,
+              maximumHealth: 100000,
+              groupDps: phase.id === 'a' ? 50000 : 0
+            }))
+          }
+        : phase
     )
   };
   const result = run(
@@ -180,4 +198,92 @@ test('skills used during splits retain cooldowns and self buffs into the next da
   assert.equal(result.encounter.phaseId, 'b');
   assert.ok(result.planningState.cooldowns['990101'].remaining > 0);
   assert.ok(result.resolvedEvents.some((event) => event.type === 'buff' && event.kind.toLowerCase() === 'might'));
+});
+
+// Bar replacement is a real target-state boundary, not a recalculation against the encounter's total damage.
+test('replacement bars use their own maximum and prevent overkill and old conditions from crossing', () => {
+  const first = bossPhase('first', 50, 50000, 100000);
+  const last = bossPhase('last', 0, 0, 200000);
+  last.targets[0].startHealthPercent = 50;
+  const config = { repeatFrom: null, phases: [first, { id: 'travel', kind: 'split', durationSeconds: 2 }, last] };
+  const burn = {
+    type: 'condition',
+    at: 0,
+    condition: 'Burning',
+    duration: 10,
+    stacks: 1,
+    source: 'Player',
+    sourceId: 'burn',
+    actorType: 'player'
+  };
+  const result = run(6, [burn], { config: { encounter: config, target: {}, sigilSets: [{ names: [] }] } });
+  assert.equal(result.encounter.health, 200000);
+  assert.equal(result.encounter.remainingHealth, 100000);
+  assert.equal(result.encounter.phases.at(-1).playerDamage, 0);
+  assert.equal(result.deathTime, null);
+  const fractions = [];
+  run(6, [hit(3.5, 10000)], {
+    config: { encounter: config, target: {}, sigilSets: [{ names: [] }] },
+    engineReactions: {
+      'damage.resolved': (runtime) => fractions.push(remainingTargetHealthFraction(runtime.config, runtime))
+    }
+  });
+  assert.deepEqual(fractions, [0.45]);
+  const noSplit = createEncounter({ repeatFrom: null, phases: [first, last] }, () => {});
+  noSplit.begin(0);
+  assert.equal(noSplit.damage(200000, 'player', 0.5), 50000);
+  assert.equal(noSplit.remainingHealthFraction, 0.5);
+});
+
+// Each target receives its own rate; unused DPS cannot spill into another health pool.
+test('parallel target rates clamp independently and wait for the slower target without moving player attacks', () => {
+  const phase = bossPhase('parallel', 50, 600);
+  phase.targets.push({ ...phase.targets[0], id: 'other', name: 'Other', groupDps: 100 });
+  const config = {
+    repeatFrom: null,
+    phases: [
+      phase,
+      { id: 'split', kind: 'split', durationSeconds: 2 },
+      { ...phase, id: 'final', targets: phase.targets.map((target) => ({ ...target, endHealthPercent: 0 })) }
+    ]
+  };
+  const result = run(3, [hit(1.5, 900)], { config: { encounter: config, target: {}, sigilSets: [{ names: [] }] } });
+  assert.deepEqual(
+    result.encounter.targets.map((target) => target.remainingHealth),
+    [500, 700]
+  );
+  assert.equal(result.totalDamage, 0);
+  assert.equal(result.encounter.phaseId, 'parallel');
+  const split = run(5, [], { config: { encounter: config, target: {}, sigilSets: [{ names: [] }] } });
+  assert.equal(split.encounter.phaseKind, 'split');
+  assert.equal(split.encounter.phases[0].end, 5);
+  const selected = structuredClone(config);
+  selected.phases[0].playerTargetId = 'other';
+  const assist = run(2, [hit(0.5, 200)], { config: { encounter: selected, target: {}, sigilSets: [{ names: [] }] } });
+  assert.deepEqual(
+    assist.encounter.targets.map((target) => target.remainingHealth),
+    [500, 600]
+  );
+  assert.equal(assist.encounter.targetName, 'Other');
+});
+
+// Timed windows close even when DPS is insufficient, while a health gate can end the window early.
+test('timed cycles preserve health, cancel old wakes, and stop on defeat before another split', () => {
+  const config = {
+    repeatFrom: 'burn',
+    phases: [
+      { ...bossPhase('burn', 0, 100), durationSeconds: 2.5 },
+      { id: 'pause', kind: 'split', durationSeconds: 1 }
+    ]
+  };
+  const resumed = run(5, [], { config: { encounter: config, target: {}, sigilSets: [{ names: [] }] } });
+  assert.equal(resumed.encounter.remainingHealth, 700);
+  assert.equal(resumed.encounter.phases[1].end, 3.5);
+  const done = run(30, [], { config: { encounter: config, target: {}, sigilSets: [{ names: [] }] } });
+  assert.equal(done.encounter.defeated, true);
+  assert.equal(done.encounter.phases.at(-1).kind, 'boss');
+  assert.equal(done.environmentDamage, 1000);
+  const early = run(5, [hit(0.5, 1000)], { config: { encounter: config, target: {}, sigilSets: [{ names: [] }] } });
+  assert.equal(early.deathTime, 0.5);
+  assert.equal(early.environmentDamage, 0);
 });

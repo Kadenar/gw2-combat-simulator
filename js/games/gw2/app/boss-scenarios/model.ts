@@ -5,7 +5,14 @@ import { ENCOUNTER_TEMPLATES, encounterHealth, encounterDifficulties } from '#gw
 import { encounterPhasePlan, type EncounterDifficulty } from '#gw2/app/boss-scenarios/phases.js';
 
 export type ScenarioPhaseDraft =
-  { id: string; kind: 'boss'; groupDps: number } | { id: string; kind: 'split'; durationSeconds: number | null };
+  | {
+      id: string;
+      kind: 'boss';
+      groupDps: number | Record<string, number>;
+      playerTargetIndex?: number;
+      windowSeconds?: number;
+    }
+  | { id: string; kind: 'split'; durationSeconds: number | null };
 
 /** One continuous rotation belongs to the build; phases contain squad assumptions only. */
 export interface BossScenarioDraft {
@@ -37,17 +44,28 @@ export function selectScenarioEncounter(
 
   const evidence = encounterHealth(encounterId, difficulty);
   const target = evidence?.targets.find((entry) => entry.primary && entry.health > 0);
-  const groupDps = draft.phases.find((phase) => phase.kind === 'boss')?.groupDps ?? 0;
+  const previousDps = draft.phases.find((phase) => phase.kind === 'boss')?.groupDps ?? 0;
+  const groupDps = typeof previousDps === 'number' ? previousDps : (Object.values(previousDps)[0] ?? 0);
   draft.encounterId = encounterId;
   draft.encounter = encounter.name;
   draft.difficulty = difficulty;
   draft.health = target?.health ?? null;
   draft.targetIndex = target?.index ?? null;
-  draft.phases = encounterPhasePlan(encounterId, difficulty).phases.map((phase) =>
-    phase.kind === 'boss'
-      ? { id: phase.id, kind: 'boss', groupDps }
-      : { id: phase.id, kind: 'split', durationSeconds: null }
-  );
+  draft.phases = encounterPhasePlan(encounterId, difficulty).phases.map((phase) => {
+    if (phase.kind === 'split') return { id: phase.id, kind: 'split', durationSeconds: null };
+
+    const active = evidence!.targets.filter(
+      (target) => !phase.targetIndexes || phase.targetIndexes.includes(target.index)
+    );
+    return {
+      id: phase.id,
+      kind: 'boss',
+      // A previous single-target rate cannot imply how a new squad splits damage across targets.
+      groupDps: active.length > 1 ? Object.fromEntries(active.map((target) => [String(target.index), 0])) : groupDps,
+      ...(active.length > 1 ? { playerTargetIndex: active[0]!.index } : {}),
+      ...(phase.damageWindow ? { windowSeconds: phase.damageWindow.defaultSeconds } : {})
+    };
+  });
 }
 
 /** The default encounter copies the active golem build, keeping both editing sessions independent. */
@@ -122,6 +140,18 @@ export function parseBossScenario(
     record.phases.length !== definitions.length ||
     record.phases.some((phase, index) => {
       const definition = definitions[index]!;
+      const active = evidence!.targets.filter(
+        (target) => !definition.targetIndexes || definition.targetIndexes.includes(target.index)
+      );
+      const validDps =
+        phase?.kind === 'boss' &&
+        (active.length === 1
+          ? finite(phase.groupDps, 1e9)
+          : typeof phase.groupDps === 'object' &&
+            phase.groupDps !== null &&
+            !Array.isArray(phase.groupDps) &&
+            Object.keys(phase.groupDps).length === active.length &&
+            active.every((target) => finite((phase.groupDps as Record<string, number>)[String(target.index)], 1e9)));
       return (
         !phase ||
         phase.id !== definition.id ||
@@ -130,7 +160,12 @@ export function parseBossScenario(
         'endSplit' in phase ||
         'endHealthPercent' in phase ||
         (phase.kind === 'boss'
-          ? !finite(phase.groupDps, 1e9)
+          ? !validDps ||
+            (active.length > 1
+              ? !active.some((target) => target.index === phase.playerTargetIndex)
+              : phase.playerTargetIndex !== undefined) ||
+            (phase.windowSeconds !== undefined &&
+              (!definition.damageWindow || !finite(phase.windowSeconds, 86400) || phase.windowSeconds === 0))
           : phase.durationSeconds !== null && !finite(phase.durationSeconds, 86400))
       );
     })
@@ -164,7 +199,13 @@ export function parseBossScenario(
     targetIndex: record.targetIndex!,
     phases: record.phases.map((phase) =>
       phase.kind === 'boss'
-        ? { id: phase.id, kind: 'boss', groupDps: phase.groupDps }
+        ? {
+            id: phase.id,
+            kind: 'boss',
+            groupDps: structuredClone(phase.groupDps),
+            ...(phase.playerTargetIndex !== undefined ? { playerTargetIndex: phase.playerTargetIndex } : {}),
+            ...(phase.windowSeconds !== undefined ? { windowSeconds: phase.windowSeconds } : {})
+          }
         : { id: phase.id, kind: 'split', durationSeconds: phase.durationSeconds }
     )
   };
