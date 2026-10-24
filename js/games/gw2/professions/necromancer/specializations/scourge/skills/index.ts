@@ -10,6 +10,20 @@ import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-fo
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+
+// Intrinsic applications are removable effects, so only delivered barriers can trigger traits.
+const barrier: SkillEffect = {
+  type: 'buff',
+  name: 'barrier',
+  kind: 'barrier',
+  stacks: 1,
+  duration: 5,
+  atMs: 0,
+  timingAnchor: 'castEnd',
+  timingScale: 'fixed',
+  audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+};
 
 // Herald of Sorrow swaps Desert Shroud for Sandstorm Shroud; both are state-selected variants of one UI tile.
 const SCOURGE_SHROUD_PALETTE_TILE = 'scourge-desert-shroud';
@@ -35,10 +49,9 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     lifeForceCost: 1935
   },
   [ID.SERPENT_SIPHON]: {
-    // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
-    sideEffects: [{ on: 'castCommit', do: { type: 'scourge.barrier' } }],
     castTimeMs: 360,
     effects: [
+      barrier,
       {
         type: 'condition',
         condition: CONDITION.POISONED,
@@ -116,10 +129,9 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ]
   },
   [ID.SAND_FLARE]: {
-    // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
-    sideEffects: [{ on: 'castCommit', do: { type: 'scourge.barrier' } }],
     castTimeMs: 680,
     effects: [
+      barrier,
       {
         type: 'condition',
         condition: CONDITION.TORMENT,
@@ -131,12 +143,9 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   [ID.SAND_CASCADE]: {
     cost: SCOURGE_LIFE_FORCE_COST,
     // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'scourge.strike' } },
-      { on: 'castCommit', do: { type: 'scourge.barrier' } }
-    ],
+    sideEffects: [{ on: 'castCommit', do: { type: 'scourge.strike' } }],
     castTimeMs: 0,
-    effects: [],
+    effects: [barrier],
     specialization: 'Scourge',
     lifeForceCost: 2487
   },
@@ -157,11 +166,10 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
     sideEffects: [
       { on: 'castCommit', do: { type: 'scourge.strike' } },
-      { on: 'castCommit', do: { type: 'scourge.barrier' } },
       { on: 'castCommit', do: { type: 'scourge.desert-shroud' } }
     ],
     castTimeMs: 0,
-    effects: [],
+    effects: [barrier],
     specialization: 'Scourge',
     lifeForceCost: 4606,
     flipSkillId: null,

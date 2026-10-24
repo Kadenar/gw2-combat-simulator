@@ -601,7 +601,7 @@ test('canonical simulation resolves the selected live source once', () => {
 const inactiveStateKeys = Object.freeze({
   Reaper: [],
   Scourge: ['shades'],
-  Harbinger: ['blight', 'blightExpiries', 'nextBlightAt', 'cascadingCorruptionStacks', 'meltdownUntil'],
+  Harbinger: ['blightExpiries', 'nextBlightAt', 'cascadingCorruptionStacks', 'meltdownUntil'],
   Ritualist: [
     'activeSpirits',
     'spiritGeneration',

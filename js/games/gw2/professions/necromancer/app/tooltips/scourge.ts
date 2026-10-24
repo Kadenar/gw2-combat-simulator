@@ -125,10 +125,22 @@ export const scourgeTooltips = {
       ],
       'on torment'
     ),
-    [TRAIT.DESERT_EMPOWERMENT]: traitTooltip(
-      'Supported barrier applications grant alacrity to recipients.',
-      undefined,
-      'on barrier application'
-    )
+    // Shade creation grants barrier; accepted barrier applications then grant Alacrity.
+    [TRAIT.DESERT_EMPOWERMENT]: (balanceContext) => {
+      const effects = tooltipProfile(balanceContext, TRAIT.DESERT_EMPOWERMENT).effects;
+      return {
+        description: 'Manifesting a shade grants barrier. Supported barrier applications grant alacrity to recipients.',
+        facts: [
+          ...simulationEffectFacts(
+            effects?.filter((effect) => effect.type === 'buff' && effect.kind === 'barrier'),
+            'on shade creation'
+          ).facts,
+          ...simulationEffectFacts(
+            effects?.filter((effect) => effect.type !== 'buff' || effect.kind !== 'barrier'),
+            'on barrier application'
+          ).facts
+        ]
+      };
+    }
   }
 } satisfies ProfessionTooltips;

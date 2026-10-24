@@ -4,15 +4,10 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
-/** Preserve the accepted barrier-applied boundary and its original reward order. */
-export const scourgeBarrierApplied = defineTriggerPoint<{
-  readonly cast: RuntimeCast<NecromancerSkill>;
-}>('necromancer.barrier-applied', [TRAIT.ABRASIVE_GRIT, TRAIT.DESERT_EMPOWERMENT]);
-
 /** Preserve the accepted shade-manifested boundary and its original reward order. */
 export const scourgeShadeManifested = defineTriggerPoint<{
   readonly cast: RuntimeCast<NecromancerSkill>;
-}>('necromancer.shade-manifested', [TRAIT.ABRASIVE_GRIT, TRAIT.DESERT_EMPOWERMENT]);
+}>('necromancer.shade-manifested', [TRAIT.DESERT_EMPOWERMENT]);
 
 /** Preserve the accepted shade-committed boundary and its original reward order. */
 export const scourgeShadeCommitted = defineTriggerPoint<{

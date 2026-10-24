@@ -1,4 +1,6 @@
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
+import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { shroudInvoked } from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import {
@@ -19,6 +21,13 @@ export const scourgeHooks = composeRuntimeHooks<NecromancerRuntimeState, Necroma
   scourgeShadeLifecycle,
   scourgeShroudLifecycle,
   {
+    // Barrier and shroud Protection resolve companion candidates at delivery, not at cast creation.
+    prepareEvent: (runtime, event) =>
+      event.type === 'buff' &&
+      (event.kind === 'barrier' ||
+        (event.kind === 'protection' && (event.skillId === ID.DESERT_SHROUD || event.skillId === ID.SANDSTORM_SHROUD)))
+        ? prepareGw2BuffCompanionCandidates(event, necromancerActiveMinionCompanionIds(runtime))
+        : event,
     /** Hold the selected preview state while evaluating detached damage queries. */
     prepareDamageState(runtime, _skill, inputs) {
       scourgeState.from(runtime).shades = Array(Number(inputs.shade ?? 0)).fill(Infinity);

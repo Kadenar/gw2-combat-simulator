@@ -762,13 +762,23 @@ test('Dark Sentry claims each eligible ally once and retains strict recipient de
   const invoke = specterModule.hooks.tasks['thief.specter-dark-sentry'];
   runtime.time = 1;
   runtime.procs.setDeadline('thief.specter.darkSentry:1', 1);
-  invoke(runtime.mechanics, { allyIndices: [0, 1, 2, 2, 3, 1.5] });
+  const barrier = {
+    type: 'buff',
+    kind: 'barrier',
+    at: 1,
+    source: 'Fixture',
+    sourceId: 'fixture.barrier',
+    actorType: 'player',
+    stacks: 1,
+    duration: 5
+  };
+  invoke(runtime.mechanics, { allyIndices: [0, 1, 2, 2, 3, 1.5], cause: barrier });
   assert.equal(runtime.procs.deadline('thief.specter.darkSentry:1'), 1);
   const secondDeadline = runtime.procs.deadline('thief.specter.darkSentry:2');
   assert.ok(secondDeadline > 1);
   for (const index of [0, 3, 1.5]) assert.equal(runtime.procs.deadline(`thief.specter.darkSentry:${index}`), 0);
   runtime.time = 1.000001;
-  invoke(runtime.mechanics, { allyIndices: [1, 2] });
+  invoke(runtime.mechanics, { allyIndices: [1, 2], cause: { ...barrier, at: runtime.time } });
   assert.ok(runtime.procs.deadline('thief.specter.darkSentry:1') > 1.000001);
   assert.equal(runtime.procs.deadline('thief.specter.darkSentry:2'), secondDeadline);
 });

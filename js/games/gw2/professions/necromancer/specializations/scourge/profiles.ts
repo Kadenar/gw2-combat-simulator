@@ -105,6 +105,20 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         }
       ]),
       {
+        // Barrier is independent of Protection; its accepted application owns the trait rewards at each pulse.
+        name: 'barrier pulses',
+        type: 'buff',
+        kind: 'barrier',
+        stacks: 1,
+        duration: 5,
+        applications: 3,
+        intervalMs: 1000,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY }
+      },
+      {
         name: 'protection pulses',
         type: 'boon',
         boon: BOON.PROTECTION,
@@ -113,6 +127,18 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         applications: 3,
         intervalMs: 1000,
         timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY }
+      },
+      {
+        name: 'barrier detonation',
+        type: 'buff',
+        kind: 'barrier',
+        stacks: 1,
+        duration: 5,
+        atMs: 3500,
+        timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: ACTOR.PLAYER,
         audience: { recipients: RECIPIENT.PARTY }

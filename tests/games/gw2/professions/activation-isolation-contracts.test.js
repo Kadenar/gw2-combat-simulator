@@ -12,7 +12,6 @@ import { WARRIOR_SKILL_IDS as W, WARRIOR_TRAIT_IDS as WT } from '#gw2/profession
 import { THIEF_SKILL_IDS as T, THIEF_TRAIT_IDS as TT } from '#gw2/professions/thief/data/ids.js';
 import { SHARED_SKILL_IDS as SHARED } from '#gw2/platform/skills/shared-actions.js';
 import { DETONATE } from '#gw2/professions/warrior/specializations/berserker/traits/behavior.js';
-import { alliedBarrierGranted } from '#gw2/professions/thief/specializations/specter/skills/barrier.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
@@ -408,13 +407,34 @@ test('Dark Sentry captures distinct allied recipients and isolates implicit mino
           {
             at: 1,
             run(runtime) {
-              runtime.fireTrigger(alliedBarrierGranted, { allyIndices: [1, 1, 3, 4, 0] });
+              // Named recipients pass through actual buff admission; duplicate grants share their recipient ICD.
+              for (const ally of [1, 1, 3, 4])
+                runtime.effects.emit({
+                  kind: 'packet',
+                  event: cause(runtime.time, {
+                    type: 'buff',
+                    kind: 'barrier',
+                    stacks: 1,
+                    duration: 5,
+                    audience: { recipients: 'party', affectsSelf: false, alliedPlayerIndex: ally, maximumRecipients: 1 }
+                  })
+                });
             }
           },
           {
             at: 2,
             run(runtime) {
-              runtime.fireTrigger(alliedBarrierGranted, { allyIndices: [1, 2] });
+              for (const ally of [1, 2])
+                runtime.effects.emit({
+                  kind: 'packet',
+                  event: cause(runtime.time, {
+                    type: 'buff',
+                    kind: 'barrier',
+                    stacks: 1,
+                    duration: 5,
+                    audience: { recipients: 'party', affectsSelf: false, alliedPlayerIndex: ally, maximumRecipients: 1 }
+                  })
+                });
             }
           }
         ]
@@ -433,7 +453,10 @@ test('Dark Sentry captures distinct allied recipients and isolates implicit mino
     { traitTriggers: false, allies: { count: 1 } },
     {
       initialize(runtime) {
-        runtime.schedule('thief.specter-dark-sentry', 1, { allyIndices: [1] });
+        runtime.schedule('thief.specter-dark-sentry', 1, {
+          allyIndices: [1],
+          cause: cause(1, { type: 'buff', kind: 'barrier', stacks: 1, duration: 5 })
+        });
       }
     }
   );

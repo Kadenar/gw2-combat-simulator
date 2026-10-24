@@ -1,14 +1,14 @@
 import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
+import { barrierBoonAudience } from '#gw2/platform/combat/barrier.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { necromancerRuntimeSpecializationState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import {
   defineTrait,
   traitAttributeEffects,
@@ -24,9 +24,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { necromancerPartyAudience } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import {
-  scourgeBarrierApplied,
   scourgeConditionApplied,
   scourgeShadeCommitted,
   scourgeShadeManifested
@@ -113,15 +111,11 @@ const sandSavant = defineTrait({
 /** Owns Abrasive Grit tuning and behavior at its existing execution boundaries. */
 const abrasiveGrit = defineTrait({
   triggers: [
-    onTriggerPoint(scourgeShadeManifested, {
-      when: (runtime: MechanicQueriesOf<NecromancerRuntime>) => hasTrait(runtime, TRAIT.DESERT_EMPOWERMENT),
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeShadeManifested>) =>
-        grantBarrierBoon(runtime, input.cast, TRAIT.ABRASIVE_GRIT, boonKey(BOON.MIGHT))
-    }),
-    onTriggerPoint(scourgeBarrierApplied, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeBarrierApplied>) =>
-        grantBarrierBoon(runtime, input.cast, TRAIT.ABRASIVE_GRIT, boonKey(BOON.MIGHT))
-    })
+    {
+      on: 'buff.applied',
+      order: 0,
+      run: (runtime, event) => grantBarrierBoon(runtime, event, TRAIT.ABRASIVE_GRIT, boonKey(BOON.MIGHT))
+    }
   ],
   id: TRAIT.ABRASIVE_GRIT,
   name: 'Abrasive Grit',
@@ -144,18 +138,41 @@ const abrasiveGrit = defineTrait({
 const desertEmpowerment = defineTrait({
   triggers: [
     onTriggerPoint(scourgeShadeManifested, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeShadeManifested>) =>
-        grantBarrierBoon(runtime, input.cast, TRAIT.DESERT_EMPOWERMENT, boonKey(BOON.ALACRITY))
+      run(runtime: NecromancerRuntime, { cast }: TriggerPointInput<typeof scourgeShadeManifested>) {
+        // Shade creation produces a real removable barrier; both barrier traits observe its accepted delivery.
+        emitTraitProfile(runtime, TRAIT.DESERT_EMPOWERMENT, TRAIT.DESERT_EMPOWERMENT, undefined, {
+          effect: { type: 'buff', name: 'barrier' },
+          settlement: 'reaction',
+          activationId: cast.id,
+          attribution: {
+            source: 'necromancer',
+            sourceId: cast.skill.id,
+            skillId: cast.skill.id,
+            skillName: cast.skill.name,
+            actorType: ACTOR.PLAYER
+          }
+        });
+      }
     }),
-    onTriggerPoint(scourgeBarrierApplied, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeBarrierApplied>) =>
-        grantBarrierBoon(runtime, input.cast, TRAIT.DESERT_EMPOWERMENT, boonKey(BOON.ALACRITY))
-    })
+    {
+      on: 'buff.applied',
+      order: 1,
+      run: (runtime, event) => grantBarrierBoon(runtime, event, TRAIT.DESERT_EMPOWERMENT, boonKey(BOON.ALACRITY))
+    }
   ],
   id: TRAIT.DESERT_EMPOWERMENT,
   name: 'Desert Empowerment',
   balance: {
     effects: [
+      {
+        name: 'barrier',
+        type: 'buff',
+        kind: 'barrier',
+        stacks: 1,
+        duration: 5,
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY }
+      },
       {
         name: boonKey(BOON.ALACRITY),
         type: 'boon',
@@ -380,25 +397,26 @@ function applySadisticSearing(runtime: NecromancerRuntime, cast: RuntimeCast<Nec
   });
 }
 
-function grantBarrierBoon(
-  runtime: NecromancerRuntime,
-  cast: RuntimeCast<NecromancerSkill>,
-  trait: number,
-  kind: string
-): void {
-  // Barrier completion chooses the party audience; the named boon remains wholly profile-owned.
-  emitTraitProfile(runtime, trait, trait, undefined, {
+function grantBarrierBoon(runtime: NecromancerRuntime, event: Gw2ResolverEvent, trait: number, kind: string): void {
+  if (!isGw2PlayerModifierOwnedEvent(event)) return;
+
+  const audience = barrierBoonAudience(event, runtime.config);
+
+  if (!audience) return;
+
+  // One grouped reward requests the barrier's boon-eligible recipients; ordinary boon resolution selects them.
+  emitTraitProfile(runtime, trait, trait, event, {
     at: runtime.time,
+    settlement: 'reaction',
     effect: { type: 'boon', name: kind },
-    activationId: cast.id,
     attribution: {
       source: 'necromancer',
-      sourceId: cast.skill.id,
+      sourceId: event.sourceId,
       actorType: ACTOR.PLAYER,
-      skillId: cast.skill.id,
-      skillName: cast.skill.name,
-      audience: necromancerPartyAudience(runtime),
-      name: cast.skill.name
+      skillId: event.skillId,
+      skillName: event.skillName,
+      name: event.skillName ?? event.name,
+      audience
     }
   });
 }

@@ -1,14 +1,12 @@
 import { WEAPON, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { barrierRecipients } from '#gw2/platform/combat/barrier.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
-import { alliedBarrierGranted } from '#gw2/professions/thief/specializations/specter/skills/barrier.js';
 
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -53,12 +51,21 @@ const darkSentry = defineTrait({
   },
   // Dark Sentry is an implicit minor; isolation suppresses admission while admitted ally venom still completes.
   triggers: [
-    onTriggerPoint(alliedBarrierGranted, {
+    {
+      on: 'buff.applied',
       requiresSelection: false,
-      run(runtime, input: TriggerPointInput<typeof alliedBarrierGranted>) {
-        runtime.schedule('thief.specter-dark-sentry', runtime.time, input);
+      run(runtime, event) {
+        if (!isGw2PlayerModifierOwnedEvent(event)) return;
+
+        // Only accepted allied-player recipients can arm venom; self and companions never occupy an ally slot.
+        const allyIndices = barrierRecipients(event).flatMap((recipient) =>
+          recipient.allyIndex == null ? [] : [recipient.allyIndex]
+        );
+
+        if (allyIndices.length)
+          runtime.schedule('thief.specter-dark-sentry', runtime.time, { allyIndices, cause: event });
       }
-    })
+    }
   ],
   lifetime: { tasks: { 'thief.specter-dark-sentry': applyDarkSentry } }
 });
@@ -217,6 +224,7 @@ export const specterTraits = Object.freeze([
 
 /** Barrier on allies arms Dark Sentry's per-ally venom and its queued allied Torment. */
 function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
+  const { allyIndices, cause } = data as { allyIndices: readonly number[]; cause: Gw2ResolverEvent };
   const party = gw2AlliedPlayerAssumptions(runtime.config);
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.DARK_SENTRY);
   const venom = requireEffect(profile, 'buff', 'rot-wallow-venom');
@@ -225,33 +233,37 @@ function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
 
   // Claim only validated, distinct allies after confirming that venom can be granted.
   const allies = [
-    ...new Set(
-      ((data as { allyIndices?: readonly number[] }).allyIndices ?? [])
-        .map(Number)
-        .filter((ally) => Number.isInteger(ally) && ally >= 1 && ally <= party.count)
-    )
+    ...new Set(allyIndices.map(Number).filter((ally) => Number.isInteger(ally) && ally >= 1 && ally <= party.count))
   ].filter((ally) => runtime.procs.claim(TRAIT.DARK_SENTRY, `thief.specter.darkSentry:${ally}`, runtime.time));
 
   if (!allies.length) return;
 
   const torment = requireEffect(profile, 'condition', CONDITION.TORMENT);
   const venomDuration = effectNumber(profile, venom, 'duration');
-  emitTraitProfile(runtime, TRAIT.DARK_SENTRY, TRAIT.DARK_SENTRY, undefined, {
-    at: runtime.time,
-    fullEnd: runtime.time,
-    effect: { type: 'buff', name: 'rot-wallow-venom' },
-    attribution: {
-      source: 'Trait',
-      sourceId: TRAIT.DARK_SENTRY,
-      skillId: TRAIT.DARK_SENTRY,
-      skillName: 'Dark Sentry',
-      name: 'Rot Wallow Venom',
-      icon: ROT_WALLOW_VENOM_ICON,
-      audience: { recipients: RECIPIENT.PARTY, affectsSelf: false, maximumRecipients: allies.length },
-      actorType: ACTOR.PLAYER
-    },
-    transform: (packet) => ({ ...packet, duration: venomDuration, fixedDuration: true })
-  });
+  // Each admitted ally retains its identity in reporting as well as in the on-hit charge owner.
+  for (const ally of allies)
+    emitTraitProfile(runtime, TRAIT.DARK_SENTRY, TRAIT.DARK_SENTRY, cause, {
+      at: runtime.time,
+      fullEnd: runtime.time,
+      effect: { type: 'buff', name: 'rot-wallow-venom' },
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.DARK_SENTRY,
+        skillId: TRAIT.DARK_SENTRY,
+        skillName: 'Dark Sentry',
+        name: 'Rot Wallow Venom',
+        icon: ROT_WALLOW_VENOM_ICON,
+        audience: {
+          recipients: RECIPIENT.PARTY,
+          affectsSelf: false,
+          alliedPlayerIndex: ally,
+          maximumRecipients: 1,
+          eligibleCompanionIds: []
+        },
+        actorType: ACTOR.PLAYER
+      },
+      transform: (packet) => ({ ...packet, duration: venomDuration, fixedDuration: true })
+    });
 
   if (!torment) return;
 

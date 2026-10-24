@@ -5,7 +5,7 @@ import { scourgeState } from '#gw2/professions/necromancer/specializations/scour
 
 /** Register Scourge's effect rules only when its module is selected. */
 export function scourgeBuffPolicies(): BuffStatePolicy[] {
-  const policies: BuffStatePolicy[] = [{ kind: 'active-shade' }];
+  const policies: BuffStatePolicy[] = [{ kind: 'active-shade' }, { kind: 'barrier', maximumStacks: 1 }];
   return policies;
 }
 

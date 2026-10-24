@@ -195,15 +195,21 @@ test('Sandstorm barriers use live Sand Sage attributes at each pulse and at deto
   assert.deepEqual(state(result).shades, []);
 });
 
-test('removed Sandstorm protection pulses leave detonation and its barrier traits independent', () => {
+test('removed Sandstorm Protection leaves barrier applications and their rewards independent', () => {
   const config = { ...base, selectedTraitIds: [TRAIT.HERALD_OF_SORROW, TRAIT.DESERT_EMPOWERMENT] };
   const profession = patched(config, {
     [PROFILE.sandstormShroud]: { removeEffects: [{ type: 'boon', name: 'protection pulses' }] }
   });
   const result = run([cast(ID.SANDSTORM_SHROUD), wait(4000)], config, { profession });
+  const baseline = run([cast(ID.SANDSTORM_SHROUD), wait(4000)], config);
   const protection = result.resolvedEvents.filter((event) => event.kind === 'protection');
-  assert.equal(protection.length, 1);
-  assert.equal(result.resolvedEvents.filter((event) => event.kind === 'alacrity').length, 1);
+  assert.ok(protection.length < baseline.resolvedEvents.filter((event) => event.kind === 'protection').length);
+  for (const kind of ['barrier', 'alacrity']) {
+    const retained = result.resolvedEvents.filter((event) => event.kind === kind);
+    assert.ok(retained.length > 0);
+    assert.equal(retained.length, baseline.resolvedEvents.filter((event) => event.kind === kind).length);
+  }
+
   assert.ok(result.totalDamage > 0);
   assert.equal(
     run([cast(ID.SANDSTORM_SHROUD), wait(4000)], config, { profession, output: 'score' }).totalDamage,

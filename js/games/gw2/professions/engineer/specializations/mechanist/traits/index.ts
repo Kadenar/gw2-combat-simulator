@@ -1,5 +1,6 @@
 import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
+import { barrierBoonRecipients } from '#gw2/platform/combat/barrier.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -439,14 +440,15 @@ function pulseBarrierEngine(runtime: EngineerRuntime): void {
 /** Barrier sources share a per-recipient cooldown; only recipients of the accepted barrier gain alacrity. */
 function channelBarrierAlacrity(runtime: EngineerRuntime, event: EngineerResolverEvent): void {
   if (
-    event.kind !== 'barrier' ||
-    (event.actorType !== ACTOR.PLAYER && event.ownerActorType !== ACTOR.PLAYER && event.summonOwner !== 'engineer.mech')
+    event.actorType !== ACTOR.PLAYER &&
+    event.ownerActorType !== ACTOR.PLAYER &&
+    event.summonOwner !== 'engineer.mech'
   )
     return;
 
-  const audience = event.resolvedAudience;
+  const recipients = barrierBoonRecipients(event, runtime.config);
 
-  if (!audience) return;
+  if (!recipients.length) return;
 
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.MECH_FRAME_CHANNELING_CONDUITS);
 
@@ -463,26 +465,6 @@ function channelBarrierAlacrity(runtime: EngineerRuntime, event: EngineerResolve
     return true;
   };
 
-  const recipients = [
-    ...(audience.includesSelf ? [{ key: RECIPIENT.SELF, audience: { recipients: RECIPIENT.SELF } }] : []),
-    ...Array.from({ length: audience.alliedPlayerCount }, (_, index) => {
-      const ally = audience.alliedPlayerIndex ?? index + 1;
-      return {
-        key: `ally:${ally}`,
-        audience: {
-          recipients: RECIPIENT.PARTY,
-          affectsSelf: false,
-          alliedPlayerIndex: ally,
-          maximumRecipients: 1,
-          eligibleCompanionIds: []
-        }
-      };
-    }),
-    ...audience.companionIds.map((id) => ({
-      key: `companion:${id}`,
-      audience: { recipients: RECIPIENT.SUMMONS, affectsSelf: false, maximumRecipients: 1, eligibleCompanionIds: [id] }
-    }))
-  ];
   for (const recipient of recipients) {
     if (!claim(recipient.key)) continue;
 

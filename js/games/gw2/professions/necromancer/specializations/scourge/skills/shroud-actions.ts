@@ -2,10 +2,8 @@ import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import { assertSimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -13,8 +11,6 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { removeNecromancerSelfCondition } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
-import { necromancerPartyAudience } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { scourgeBarrierApplied } from '#gw2/professions/necromancer/specializations/scourge/mechanics/trigger-points.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import type {
   NecromancerRuntime,
@@ -23,9 +19,7 @@ import type {
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-const BARRIER = 'scourge.barrier-pulse';
-
-/** Finite area pulses survive their creating cast; barrier boons wait to sample the state at their own application. */
+/** Finite area pulses survive their creating cast; shared buff delivery samples recipients at application. */
 function emitShroudEffects(
   runtime: NecromancerRuntime,
   cast: RuntimeCast<NecromancerSkill>,
@@ -51,12 +45,6 @@ function emitShroudEffects(
     },
     skillWeaponFallback: 'Unequipped',
     transform: (event) => {
-      // Barrier pulses are mechanic transactions: their traits settle before the resulting party boon.
-      if (event.type === 'buff') {
-        runtime.scheduleForCast(BARRIER, event.at, cast, { event });
-        return null;
-      }
-
       return {
         ...event,
         ...(event.type === 'damage' ? { name: cast.skill.name } : {}),
@@ -71,9 +59,6 @@ function emitShroudEffects(
 
 /** Shroud commands own their cleanse, control, and delayed barrier effects. */
 const scourgeShroudActions = {
-  'scourge.barrier'(runtime, context) {
-    if (context.kind === 'cast') runtime.fireTrigger(scourgeBarrierApplied, { cast: context.cast });
-  },
   'scourge.cleanse'(runtime) {
     removeNecromancerSelfCondition(runtime.profession.core, runtime.time, 1);
   },
@@ -132,22 +117,7 @@ const scourgeShroudActions = {
   }
 } satisfies NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['sideEffectHandlers']>;
 
-/** Barrier traits settle before the boon samples its live party audience. */
-const scourgeShroudTasks = {
-  [BARRIER](runtime, data) {
-    const { cast, event } = data as { cast: RuntimeCast<NecromancerSkill>; event: Gw2ResolverEvent };
-    runtime.fireTrigger(scourgeBarrierApplied, { cast });
-    const packet = assertSimulationEvent({ ...event, audience: necromancerPartyAudience(runtime) });
-    runtime.effects.emit({
-      kind: 'packet',
-      event: { ...packet, kind: String(packet.kind), duration: Number(packet.duration) },
-      durationContext: packet
-    });
-  }
-} satisfies NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['tasks']>;
-
-/** Scourge shroud actions and their delayed tasks share one owner. */
+/** Shroud actions author effects; barrier rewards observe accepted buffs through the shared resolver. */
 export const scourgeShroudLifecycle = {
-  sideEffectHandlers: scourgeShroudActions,
-  tasks: scourgeShroudTasks
+  sideEffectHandlers: scourgeShroudActions
 } satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;
