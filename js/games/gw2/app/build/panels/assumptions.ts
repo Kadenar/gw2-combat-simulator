@@ -41,7 +41,7 @@ interface EffectItemOptions {
 
 export function renderAssumptions(app: ProfessionAppState): void {
   const a = app.build.assumptions as ProfessionBuildAssumptions;
-  // Boss encounters own target setup; only the Golem workspace renders and binds target overrides.
+  // Encounters own health and armor; movement and activation rate remain editable damage assumptions.
   const isBoss = Boolean(app.workspace?.scenario);
   const targetArmorValue = normalizeTargetArmor(app.build.targetArmor);
   const targetArmorPreset = TARGET_ARMOR_OPTIONS.some((option) => option.value === targetArmorValue)
@@ -245,13 +245,14 @@ export function renderAssumptions(app: ProfessionAppState): void {
   container.innerHTML = `
             ${section('boons', 'Effects', `<div class="perma-boon-label">Boons</div><div class="perma-effect-grid">${boonItems}</div>${fixedBoonItems}`)}
             ${conditionGroups}
-            ${
-              isBoss
-                ? ''
-                : section(
-                    'target',
-                    'Target',
-                    `
+            ${section(
+              'target',
+              'Target',
+              `
+                ${
+                  isBoss
+                    ? ''
+                    : `
                 <label class="boon-control">Maximum HP <input id="target-hp" type="number" min="0" step="100000" value="${Number(app.build.targetHealth)}"></label>
                 <label class="boon-control">Starting health % <input id="target-starting-health-percent" type="number" min="0" max="100" step="1" value="${Number(app.build.targetStartingHealthPercent ?? 100)}"></label>
                 <label class="boon-control">Target armor
@@ -263,12 +264,13 @@ export function renderAssumptions(app: ProfessionAppState): void {
                     </select>
                     <input id="target-armor" type="number" min="1" value="${targetArmorValue}" aria-label="Custom target armor"${targetArmorPreset === 'custom' ? '' : ' hidden'}>
                 </label>
+                `
+                }
                 <label class="boon-control">Skill activations/s <input id="target-skill-activations" type="number" min="0" max="10" step="0.1" value="${a.targetSkillActivationsPerSecond}"></label>
                 <label class="boon-control"><input id="target-moving" type="checkbox"${a.targetMoving ? ' checked' : ''}> Moving</label>
-                ${professionAssumptionItems}
-            `
-                  )
-            }
+                ${isBoss ? '' : professionAssumptionItems}
+              `
+            )}
             ${customAssumptionGroups}
             ${section(
               RECIPIENT.PARTY,
@@ -381,18 +383,16 @@ export function renderAssumptions(app: ProfessionAppState): void {
     });
   });
 
-  if (!isBoss) {
-    const targetSkillActivations = requiredInput('target-skill-activations');
-    targetSkillActivations.addEventListener('change', () => {
-      a.targetSkillActivationsPerSecond = clamp(Number(targetSkillActivations.value) || 0, 0, 10);
-      app.changed();
-    });
-    const targetMoving = requiredInput('target-moving');
-    targetMoving.addEventListener('change', () => {
-      a.targetMoving = targetMoving.checked;
-      app.changed();
-    });
-  }
+  const targetSkillActivations = requiredInput('target-skill-activations');
+  targetSkillActivations.addEventListener('change', () => {
+    a.targetSkillActivationsPerSecond = clamp(Number(targetSkillActivations.value) || 0, 0, 10);
+    app.changed();
+  });
+  const targetMoving = requiredInput('target-moving');
+  targetMoving.addEventListener('change', () => {
+    a.targetMoving = targetMoving.checked;
+    app.changed();
+  });
 
   const alliedPlayerCount = requiredInput('allied-player-count');
   alliedPlayerCount.addEventListener('change', () => {
