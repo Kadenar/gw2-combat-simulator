@@ -43,7 +43,6 @@ export interface ParsedEvtcAgent {
   readonly elite: number;
   readonly toughness: number;
   readonly concentration: number;
-  readonly healing: number;
   readonly condition: number;
   readonly character: string;
   readonly account: string;

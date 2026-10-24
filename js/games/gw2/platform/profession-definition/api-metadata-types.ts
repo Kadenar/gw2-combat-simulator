@@ -9,8 +9,6 @@ export interface Gw2ApiTrait extends CatalogEntity {
   readonly icon: string;
   readonly specialization: string;
   readonly tier: number;
-  /** Minor traits use zero; major traits use their one-based selection position. */
-  readonly position: number;
   readonly slot: 'Minor' | 'Major';
 }
 

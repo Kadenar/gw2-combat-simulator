@@ -27,17 +27,14 @@ test('shared autoattack helper resolves root and progressed chain expectations',
   const positions = indexAutoattackChains([[1, 2, 3]]);
 
   assert.deepEqual(resolveAutoattackChainStep(positions, {}, 1), {
-    position: positions.get(1),
     expectedSkillId: 1,
     matchesExpectedStep: true
   });
   assert.deepEqual(resolveAutoattackChainStep(positions, { 1: 2 }, 1), {
-    position: positions.get(1),
     expectedSkillId: 2,
     matchesExpectedStep: false
   });
   assert.deepEqual(resolveAutoattackChainStep(positions, { 1: 2 }, 2), {
-    position: positions.get(2),
     expectedSkillId: 2,
     matchesExpectedStep: true
   });

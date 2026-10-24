@@ -26,7 +26,6 @@ function assertCatalogMetadata(entry, catalog) {
         for (const record of [trait, traitById.get(trait.id)]) {
           assert.equal(record.specialization, specialization.name, trait.name);
           assert.equal(record.tier, tier + 1, trait.name);
-          assert.equal(record.position, position, trait.name);
           assert.equal(record.slot, position === 0 ? 'Minor' : 'Major', trait.name);
         }
 

@@ -109,7 +109,6 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
       elite: view.getUint32(record + 12, true),
       toughness: view.getUint16(record + 16, true),
       concentration: view.getUint16(record + 18, true),
-      healing: view.getUint16(record + 20, true),
       // Condition Damage follows the hitbox-width field; width is not an attribute score.
       condition: view.getUint16(record + 24, true),
       character: names[0] || '',

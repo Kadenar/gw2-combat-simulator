@@ -59,34 +59,33 @@ const specializations = SPECIALIZATIONS.filter((line) =>
   if (line.name !== 'Acrobatics') return line;
 
   const metadata = new Map([...line.minorTraits, ...line.majorTraits.flat()].map((trait) => [trait.id, trait]));
-  const changed = (oldId: number, id: number | string, name: string, tier: number, position: number) => ({
+  const changed = (oldId: number, id: number | string, name: string, tier: number) => ({
     ...metadata.get(oldId)!,
     id,
     name,
     tier,
-    position,
     description: descriptions[id]
   });
   return {
     ...line,
     minorTraits: line.minorTraits.map((trait) =>
       trait.id === TRAIT.EXPEDITIOUS_DODGER
-        ? changed(trait.id, REWORK.DEFT_INITIATION, 'Deft Initiation', 1, 0)
+        ? changed(trait.id, REWORK.DEFT_INITIATION, 'Deft Initiation', 1)
         : describe(trait)
     ),
     majorTraits: [
       [
-        changed(TRAIT.INSTANT_REFLEXES, REWORK.OPPORTUNE_OPENING, 'Opportune Opening', 1, 1),
-        changed(TRAIT.PUMPING_UP, REWORK.ENDURANCE_TRAINING, 'Endurance Training', 1, 2),
+        changed(TRAIT.INSTANT_REFLEXES, REWORK.OPPORTUNE_OPENING, 'Opportune Opening', 1),
+        changed(TRAIT.PUMPING_UP, REWORK.ENDURANCE_TRAINING, 'Endurance Training', 1),
         metadata.get(TRAIT.PAIN_RESPONSE)!
       ],
       [
-        changed(TRAIT.ASSASSINS_REWARD, TRAIT.ASSASSINS_REWARD, "Assassin's Reward", 2, 1),
+        changed(TRAIT.ASSASSINS_REWARD, TRAIT.ASSASSINS_REWARD, "Assassin's Reward", 2),
         metadata.get(TRAIT.SWINDLERS_EQUILIBRIUM)!,
         describe(metadata.get(TRAIT.HARD_TO_CATCH)!)
       ],
       [
-        changed(TRAIT.ASSASSINS_REWARD, REWORK.SHARP_INITIATION, 'Sharp Initiation', 3, 1),
+        changed(TRAIT.ASSASSINS_REWARD, REWORK.SHARP_INITIATION, 'Sharp Initiation', 3),
         metadata.get(TRAIT.UPPER_HAND)!,
         describe(metadata.get(TRAIT.DONT_STOP)!)
       ]

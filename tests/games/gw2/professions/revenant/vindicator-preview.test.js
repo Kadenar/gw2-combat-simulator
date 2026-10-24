@@ -30,7 +30,7 @@ test('Vindicator preview owns the moved layout and separate saved trait choices'
     ]
   );
   for (const [tier, traits] of line(preview.catalog).majorTraits.entries()) {
-    assert.ok(traits.every((trait, index) => trait.tier === tier + 1 && trait.position === index + 1));
+    assert.ok(traits.every((trait) => trait.tier === tier + 1));
   }
 
   const saved = { name: 'Vindicator', traits: '1-1-1' };

@@ -303,7 +303,6 @@ test('EVTC and dps.report produce the same replay timing for equivalent cast evi
           elite: 40,
           toughness: 0,
           concentration: 0,
-          healing: 0,
           condition: 0,
           character: 'Fixture Chronomancer',
           account: ':Fixture.1234',

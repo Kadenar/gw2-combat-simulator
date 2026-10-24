@@ -26,7 +26,6 @@ test('EVTC reads Condition Damage independently of hitbox width', () => {
   bytes.writeUInt16LE(24, agentStart + 22);
   bytes.writeUInt16LE(1000, agentStart + 24);
   const agent = parseEvtc(bytes).agents[0];
-  assert.equal(agent.healing, 600);
   assert.equal(agent.condition, 1000);
 });
 

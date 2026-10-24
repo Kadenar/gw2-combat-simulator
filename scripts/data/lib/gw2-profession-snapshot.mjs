@@ -63,7 +63,7 @@ export async function fetchManyGw2(endpoint, ids, options = {}) {
   return values;
 }
 
-// Creates a snapshot of a trait for use in the patch preview.
+// Snapshot trait identity and presentation; selection order belongs to the specialization arrays.
 export function traitSnapshot(trait, specialization) {
   return {
     id: trait.id,
@@ -72,7 +72,6 @@ export function traitSnapshot(trait, specialization) {
     icon: trait.icon || '',
     specialization,
     tier: trait.tier,
-    position: trait.slot === 'Minor' ? 0 : Number(trait.order || 0) + 1,
     slot: trait.slot
   };
 }

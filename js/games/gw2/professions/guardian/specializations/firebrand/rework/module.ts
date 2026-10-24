@@ -40,13 +40,12 @@ const description = {
   [REWORK.DELIVERANCE]: 'Retain Tome of Resolve passive while dormant. Passive healing is outside simulation scope.'
 };
 
-function trait(id: number | string, name: string, tier: number, position: number) {
+function trait(id: number | string, name: string, tier: number) {
   return {
     ...metadata.get(typeof id === 'number' ? id : TRAIT.LIBERATORS_VOW)!,
     id,
     name,
     tier,
-    position,
     description: description[id as keyof typeof description]
   };
 }
@@ -58,19 +57,19 @@ const specialization = {
   ),
   majorTraits: [
     [
-      trait(TRAIT.UNRELENTING_CRITICISM, 'Unrelenting Criticism', 1, 1),
-      trait(REWORK.REVELATION, 'Revelation', 1, 2),
-      trait(REWORK.BASTION, 'Bastion', 1, 3)
+      trait(TRAIT.UNRELENTING_CRITICISM, 'Unrelenting Criticism', 1),
+      trait(REWORK.REVELATION, 'Revelation', 1),
+      trait(REWORK.BASTION, 'Bastion', 1)
     ],
     [
-      trait(REWORK.FERVID_CONVICTION, 'Fervid Conviction', 2, 1),
-      trait(TRAIT.STALWART_SPEED, 'Stalwart Speed', 2, 2),
+      trait(REWORK.FERVID_CONVICTION, 'Fervid Conviction', 2),
+      trait(TRAIT.STALWART_SPEED, 'Stalwart Speed', 2),
       metadata.get(TRAIT.LEGENDARY_LORE)!
     ],
     [
-      trait(REWORK.RIGHTEOUS_FLAMES, 'Righteous Flames', 3, 1),
-      trait(TRAIT.STOIC_DEMEANOR, 'Stoic Demeanor', 3, 2),
-      trait(REWORK.DELIVERANCE, 'Deliverance', 3, 3)
+      trait(REWORK.RIGHTEOUS_FLAMES, 'Righteous Flames', 3),
+      trait(TRAIT.STOIC_DEMEANOR, 'Stoic Demeanor', 3),
+      trait(REWORK.DELIVERANCE, 'Deliverance', 3)
     ]
   ]
 };

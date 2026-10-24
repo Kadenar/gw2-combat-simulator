@@ -16,7 +16,6 @@ interface AutoattackChainState {
 }
 
 interface ResolvedAutoattackChainStep {
-  readonly position: AutoattackChainPosition;
   readonly expectedSkillId: number;
   readonly matchesExpectedStep: boolean;
 }
@@ -105,7 +104,6 @@ export function resolveAutoattackChainStep(
 
   const expectedSkillId = Number(chainState[position.root]) || position.root;
   return {
-    position,
     expectedSkillId,
     matchesExpectedStep: normalizedSkillId === expectedSkillId
   };

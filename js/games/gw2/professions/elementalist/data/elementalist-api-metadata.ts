@@ -19,7 +19,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/09D12A6041622A94409F276CEEEB2C17AF35A8ED/1012327.png',
         specialization: 'Water',
         tier: 1,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -30,7 +29,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/0FB92AC29456276B2FC6E25EFB91DECD93C6694B/1012328.png',
         specialization: 'Water',
         tier: 2,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -40,7 +38,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/C9059194A7A8CFE90D5A7E9831C6E7CACF060A42/2175047.png',
         specialization: 'Water',
         tier: 3,
-        position: 0,
         slot: 'Minor'
       }
     ],
@@ -53,7 +50,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/F41E5118C9A2F2C1CBF1E3F37A050669E195AADD/1012318.png',
           specialization: 'Water',
           tier: 1,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -64,7 +60,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/7C3004BABE373BC125F6A3195D0C343BC0E702D1/1012319.png',
           specialization: 'Water',
           tier: 1,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -74,7 +69,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/0965A9C6430DFFFC9B170201B964ABD8BA0337A2/1012320.png',
           specialization: 'Water',
           tier: 1,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -86,7 +80,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/CB474873D492343395726B0CD2E8E9A453D86F66/1012321.png',
           specialization: 'Water',
           tier: 2,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -96,7 +89,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/987EFE03A0E7026E5C09CD0E1BA9ED01BDEB7FBF/1012322.png',
           specialization: 'Water',
           tier: 2,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -107,7 +99,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/B60C26726A979893D897B3F2B118CF6913AF554F/2175046.png',
           specialization: 'Water',
           tier: 2,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -119,7 +110,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/BABCC72BD965F8437ACB4E0961765D29C5675355/1012324.png',
           specialization: 'Water',
           tier: 3,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -129,7 +119,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/7BA5ADA1A908D2A424FFD64AD6D0AA3908032DE1/1012325.png',
           specialization: 'Water',
           tier: 3,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -139,7 +128,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/6F7761ECC1979C1207C6166DF8EA7BA9B726B609/1012326.png',
           specialization: 'Water',
           tier: 3,
-          position: 3,
           slot: 'Major'
         }
       ]
@@ -158,7 +146,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/9FACD0F31DF1DF1957C59DA67ED9F76ACB55BEB8/1012303.png',
         specialization: 'Earth',
         tier: 1,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -169,7 +156,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/2531DCAFAEAB452C90C4572E1ADCE8236DCF5636/1012304.png',
         specialization: 'Earth',
         tier: 2,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -179,7 +165,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/3659F1C53B0CF50106ADBC4E6351011A24F59CBA/2175043.png',
         specialization: 'Earth',
         tier: 3,
-        position: 0,
         slot: 'Minor'
       }
     ],
@@ -192,7 +177,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/94B6E0582A0CC93604F12220F703C5D22C59097A/1012294.png',
           specialization: 'Earth',
           tier: 1,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -202,7 +186,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/0A2B6F1BC25AC118B67DC31F9A0BA6427ABB6A6A/1012295.png',
           specialization: 'Earth',
           tier: 1,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -212,7 +195,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/9EA9E5B50D71ACE02E1413073901CD2B152E559C/1012296.png',
           specialization: 'Earth',
           tier: 1,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -225,7 +207,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/567BA00AEB795B5021E5924CC3511DE3AAC26438/1012297.png',
           specialization: 'Earth',
           tier: 2,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -236,7 +217,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/4D23C1FE504D402ABF3E80F30FE396A9FA55A63E/1012298.png',
           specialization: 'Earth',
           tier: 2,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -247,7 +227,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/9A2144F4A44AFF9AA3B9099405F0EA36F226CD27/2175042.png',
           specialization: 'Earth',
           tier: 2,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -260,7 +239,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/D1014421F0E06325664204C905200002987E38C5/1012300.png',
           specialization: 'Earth',
           tier: 3,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -271,7 +249,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/5160CCF906702A4478C533EF5DA6BD02956E9378/1012301.png',
           specialization: 'Earth',
           tier: 3,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -282,7 +259,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/22F1BDACFBEBC8FF2BF77B22B3E535D2BA03D140/1012302.png',
           specialization: 'Earth',
           tier: 3,
-          position: 3,
           slot: 'Major'
         }
       ]
@@ -301,7 +277,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/7F0BD23838FA4E0CD2336B04C7E5AB0ED03358EB/1012315.png',
         specialization: 'Fire',
         tier: 1,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -312,7 +287,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/1405047ED70DE30F80B1F6304A787B215BB50878/1012316.png',
         specialization: 'Fire',
         tier: 2,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -322,7 +296,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/7C751D2FA513070209F24809D5232757000B1546/2175044.png',
         specialization: 'Fire',
         tier: 3,
-        position: 0,
         slot: 'Minor'
       }
     ],
@@ -336,7 +309,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/774471FA3841BB90EB6F935A76D8017A0C4B005E/1012306.png',
           specialization: 'Fire',
           tier: 1,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -346,7 +318,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/6BE466F790D5410D2E10512B1F0A523EEEB776B0/1012307.png',
           specialization: 'Fire',
           tier: 1,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -356,7 +327,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/0850B1BC61637D04045533CCDACFB5796F47B4CF/1012308.png',
           specialization: 'Fire',
           tier: 1,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -368,7 +338,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/AB4E6CB3066DFF2D3C179B026C9BC371799E5D67/2175045.png',
           specialization: 'Fire',
           tier: 2,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -379,7 +348,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/32EB577B3EC6D2AC0AC4EDB4A799EE5E4F2B1341/1012310.png',
           specialization: 'Fire',
           tier: 2,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -390,7 +358,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/5D0937674DCD7AAAE80B4D243AFBDC753DFF220B/1012311.png',
           specialization: 'Fire',
           tier: 2,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -403,7 +370,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/38496307B7C27BCB08D6800F2A699B4998DD1935/1012312.png',
           specialization: 'Fire',
           tier: 3,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -414,7 +380,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/998095CB1FD2CF0164B8A36BABFDB911DF08DB02/1012313.png',
           specialization: 'Fire',
           tier: 3,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -424,7 +389,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/150B4E2CB4039B33152D496FF04E9B1644E22E0A/1012314.png',
           specialization: 'Fire',
           tier: 3,
-          position: 3,
           slot: 'Major'
         }
       ]
@@ -443,7 +407,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/2FFB0E34C00BE2EE1E65FA0336F304199E156D0E/1012291.png',
         specialization: 'Arcane',
         tier: 1,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -454,7 +417,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/EB242E0D58000DD8DCB80B0F7B049F03C62299B6/1012292.png',
         specialization: 'Arcane',
         tier: 2,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -464,7 +426,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/C8986CF9A927C8A003ED152702270CC62745E56D/1012293.png',
         specialization: 'Arcane',
         tier: 3,
-        position: 0,
         slot: 'Minor'
       }
     ],
@@ -477,7 +438,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/1CB6B7903F10246E9405DD625380161FCD4E6C23/1012282.png',
           specialization: 'Arcane',
           tier: 1,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -487,7 +447,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/033DFD3593EED863D280AD98E6B7CC09E25D9ADE/1012283.png',
           specialization: 'Arcane',
           tier: 1,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -497,7 +456,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/5FCA61A1BC957433DA9F37AA70ED0808DAB1110C/1012284.png',
           specialization: 'Arcane',
           tier: 1,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -510,7 +468,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/E9BCF655FA539C1B0A1FDDCB52947542A1C6704B/1012285.png',
           specialization: 'Arcane',
           tier: 2,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -520,7 +477,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/72DCC1061DC06F660FC509B60A1FA557C9B82A1D/1012286.png',
           specialization: 'Arcane',
           tier: 2,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -530,7 +486,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/F00E3FB59751F0422F3D3C5859F5FD3B580EA9B3/1012287.png',
           specialization: 'Arcane',
           tier: 2,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -542,7 +497,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/0B46175A2DCC7C396EEAA34B50DB6204390F0FE8/1012288.png',
           specialization: 'Arcane',
           tier: 3,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -552,7 +506,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/005807D4EACC2FC562FAF2C6BABC3E38E33FC070/1012289.png',
           specialization: 'Arcane',
           tier: 3,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -563,7 +516,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/F0C7F54A6FC70D079E1628FFE871980CAEBFD70D/1012290.png',
           specialization: 'Arcane',
           tier: 3,
-          position: 3,
           slot: 'Major'
         }
       ]
@@ -583,7 +535,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/9B55449FC8EF093FE4925DDE9BF41B5A6298BAAA/1012279.png',
         specialization: 'Air',
         tier: 1,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -594,7 +545,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/F4622EE8300028599369D4084EA7A2774D250DEA/1012280.png',
         specialization: 'Air',
         tier: 2,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -605,7 +555,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/B07EBE9F0136026A2C710C1405C528DB4AC37936/2175041.png',
         specialization: 'Air',
         tier: 3,
-        position: 0,
         slot: 'Minor'
       }
     ],
@@ -618,7 +567,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/0542900C005EB41CEDFAF003D91A9104D479A848/1012270.png',
           specialization: 'Air',
           tier: 1,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -628,7 +576,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/200BAEAD2FCD181E102556B02AF5F326EC583DD0/1012271.png',
           specialization: 'Air',
           tier: 1,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -638,7 +585,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/A0EB166CD43079B2F7206ED305FD6C3D049BB704/1012272.png',
           specialization: 'Air',
           tier: 1,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -651,7 +597,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/0157D1D40CF9B505B907DB95149F767A6FDB09DD/1012273.png',
           specialization: 'Air',
           tier: 2,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -661,7 +606,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/74A414B378B54431EF183A37DA37CCFFFC0E04BD/2175040.png',
           specialization: 'Air',
           tier: 2,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -672,7 +616,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/4505D3D02606283B02124C3304697304E663ECAE/1012275.png',
           specialization: 'Air',
           tier: 2,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -684,7 +627,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/3E4E727D6D23DFEF4205F272A15E2136799DE291/1012276.png',
           specialization: 'Air',
           tier: 3,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -694,7 +636,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/FA64C9F2750F986E52E8376F22EDBA3844A8C603/1012277.png',
           specialization: 'Air',
           tier: 3,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -705,7 +646,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/0D26024404D06BBB0A3BD70340251740C73E0F2C/1012278.png',
           specialization: 'Air',
           tier: 3,
-          position: 3,
           slot: 'Major'
         }
       ]
@@ -725,7 +665,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/B5B020BD12E7A490DE9551FA06D920AC4F9A6036/1029952.png',
         specialization: 'Tempest',
         tier: 1,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -735,7 +674,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/410EF84D7D37FBE72E1D2AB026249E1050CD70AF/2207774.png',
         specialization: 'Tempest',
         tier: 2,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -746,7 +684,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/F61B0203A07CDF17A3613731EE93F6C09410E825/1029953.png',
         specialization: 'Tempest',
         tier: 3,
-        position: 0,
         slot: 'Minor'
       }
     ],
@@ -759,7 +696,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/65ED3B2F3816172BC7E23598DA93A0731D6D0245/1029943.png',
           specialization: 'Tempest',
           tier: 1,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -770,7 +706,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/BA1F1D070867AC48FE57F876315657DDA25A044E/1029944.png',
           specialization: 'Tempest',
           tier: 1,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -780,7 +715,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/51765B3330426700C8A2E580B23637CA9CD728FB/1029945.png',
           specialization: 'Tempest',
           tier: 1,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -793,7 +727,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/0C2A72B848A7FBB596DE6096B4C45814D3266EEB/1029946.png',
           specialization: 'Tempest',
           tier: 2,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -803,7 +736,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/DC03410B07E666C9F8AECFEDCE9855C65136E597/1029948.png',
           specialization: 'Tempest',
           tier: 2,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -813,7 +745,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/053DD3F436F333340672EB1F7F951F540ADFDBC4/1029947.png',
           specialization: 'Tempest',
           tier: 2,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -826,7 +757,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/0C79A761B446E53CAB6DA4B320D12D656B5E1151/2207773.png',
           specialization: 'Tempest',
           tier: 3,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -837,7 +767,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/2E3AEA68A85501D1209EABD2E1603C0151ED9292/1029951.png',
           specialization: 'Tempest',
           tier: 3,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -848,7 +777,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/570FD4DD0094280F906ACAAD37705E9B0F4ADA63/1029949.png',
           specialization: 'Tempest',
           tier: 3,
-          position: 3,
           slot: 'Major'
         }
       ]
@@ -868,7 +796,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/B0707EB06310175FC0CAB50C68C113F4D5B3912E/1769924.png',
         specialization: 'Weaver',
         tier: 1,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -878,7 +805,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/32D4A99DECA90337DC0722ACF84C38B44A93429C/1769925.png',
         specialization: 'Weaver',
         tier: 2,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -888,7 +814,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/28460700BDF3B9D3000B963977B1555F7E999512/1769926.png',
         specialization: 'Weaver',
         tier: 3,
-        position: 0,
         slot: 'Minor'
       }
     ],
@@ -902,7 +827,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/0017B2083219583F0150B537B0B8B54A3A7E3228/1769915.png',
           specialization: 'Weaver',
           tier: 1,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -913,7 +837,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/194D097708234E783C04C790E2C362290054B9C1/1769916.png',
           specialization: 'Weaver',
           tier: 1,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -923,7 +846,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/FCA86506DDAD2C32CF130C4819DFEE3119026C96/1769917.png',
           specialization: 'Weaver',
           tier: 1,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -935,7 +857,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/28BEBF776AF9FDBEF0BDF8B715265AE724E40878/1769923.png',
           specialization: 'Weaver',
           tier: 2,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -945,7 +866,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/7B0B0072429031F44DC41404F9BA0D08A5B2EDE2/1769919.png',
           specialization: 'Weaver',
           tier: 2,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -956,7 +876,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/BE23D1F64BA73B9837C87A2059EA531BBE65D52B/1769920.png',
           specialization: 'Weaver',
           tier: 2,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -969,7 +888,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/4269910A34FB0FB861DAE2A13229D594523B0BA0/1769921.png',
           specialization: 'Weaver',
           tier: 3,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -980,7 +898,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/66CB08AA2823930D5B47AF3259B60A7DD86FAFE4/1769922.png',
           specialization: 'Weaver',
           tier: 3,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -991,7 +908,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/78DA4AC17D4EBDA04BBBD325A024C346F59ED150/1769918.png',
           specialization: 'Weaver',
           tier: 3,
-          position: 3,
           slot: 'Major'
         }
       ]
@@ -1011,7 +927,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/F5BFCBC8BEF112AF6C046FCF6ABC44C997EFAA0E/2491528.png',
         specialization: 'Catalyst',
         tier: 1,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -1021,7 +936,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/C3B3C99943ECABFAA936573030C599EE2A974420/2491529.png',
         specialization: 'Catalyst',
         tier: 2,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -1032,7 +946,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/1D6590FD63020A49AC1D975478E6AE5E79495447/2491530.png',
         specialization: 'Catalyst',
         tier: 3,
-        position: 0,
         slot: 'Minor'
       }
     ],
@@ -1046,7 +959,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/07F6DDB8129A05F6DF05E6669CE00C29FF260F80/2491519.png',
           specialization: 'Catalyst',
           tier: 1,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -1056,7 +968,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/F5AD2F77BC2920E35E04D3026ED4B07C94B1734D/2491520.png',
           specialization: 'Catalyst',
           tier: 1,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -1067,7 +978,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/FBE5C807BE540522A044043B040427A117AF38CF/2491521.png',
           specialization: 'Catalyst',
           tier: 1,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -1080,7 +990,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/C52EDB20EC120936089EC83C54A55A610A075652/2491522.png',
           specialization: 'Catalyst',
           tier: 2,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -1090,7 +999,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/D5DA661099326A32D307FDC103A21E21BE5A0800/2491523.png',
           specialization: 'Catalyst',
           tier: 2,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -1101,7 +1009,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/B207785D56DABD962921DA4A0D65EB4C39270D3D/2491524.png',
           specialization: 'Catalyst',
           tier: 2,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -1114,7 +1021,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/5F43FA3C1DB337CDF9152CCE4A651661F062C3B2/2491525.png',
           specialization: 'Catalyst',
           tier: 3,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -1125,7 +1031,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/AB403FC4AF1A3DA40AE1ADF20E09550E11706972/2491526.png',
           specialization: 'Catalyst',
           tier: 3,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -1136,7 +1041,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/9806DF11221102AF1FAD30AA5E4A4FEB0F4FF8CE/2491527.png',
           specialization: 'Catalyst',
           tier: 3,
-          position: 3,
           slot: 'Major'
         }
       ]
@@ -1156,7 +1060,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/3FE7D7FE06E2FBF1DFC85AAE1EB101F56F137938/3679940.png',
         specialization: 'Evoker',
         tier: 1,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -1166,7 +1069,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/F31CA1E555EEEC123D09D7602E7C07F326FC0DFE/3679941.png',
         specialization: 'Evoker',
         tier: 2,
-        position: 0,
         slot: 'Minor'
       },
       {
@@ -1176,7 +1078,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         icon: 'https://render.guildwars2.com/file/18964AD8371C1FB3160A7779D0AA0120B9FFABBB/3679942.png',
         specialization: 'Evoker',
         tier: 3,
-        position: 0,
         slot: 'Minor'
       }
     ],
@@ -1189,7 +1090,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/B90AE3D7B9BF46A516567DDD7DC072AEC64DE850/3679934.png',
           specialization: 'Evoker',
           tier: 1,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -1199,7 +1099,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/1A01DE9D0567081D12F9B75DF8B5B26D38AE1508/3679933.png',
           specialization: 'Evoker',
           tier: 1,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -1209,7 +1108,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/5963EEA1935F352ADE7EAB464EC5F89FA8A74A7F/3679936.png',
           specialization: 'Evoker',
           tier: 1,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -1221,7 +1119,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/F9FE2E9559AD4700D0737EACCF3608CED3E50BA6/3679937.png',
           specialization: 'Evoker',
           tier: 2,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -1231,7 +1128,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/324AF976A04EADC23FAF0D27B1FD01EC057B5B5E/3679938.png',
           specialization: 'Evoker',
           tier: 2,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -1241,7 +1137,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/5978B791032A18A2C596986B482B1B1A48E916C9/3679931.png',
           specialization: 'Evoker',
           tier: 2,
-          position: 3,
           slot: 'Major'
         }
       ],
@@ -1254,7 +1149,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/1561D12A4FFC17F3D52AE27337A359274A74D53F/3679932.png',
           specialization: 'Evoker',
           tier: 3,
-          position: 1,
           slot: 'Major'
         },
         {
@@ -1265,7 +1159,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/6B625B190E65062542F7CCF9B1565D2AF403C2C6/3679935.png',
           specialization: 'Evoker',
           tier: 3,
-          position: 2,
           slot: 'Major'
         },
         {
@@ -1276,7 +1169,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           icon: 'https://render.guildwars2.com/file/7FC97790020E564E5507630A75069F42903B57AE/3679939.png',
           specialization: 'Evoker',
           tier: 3,
-          position: 3,
           slot: 'Major'
         }
       ]

@@ -178,7 +178,8 @@ for (const [name, label, traitName, buff, attribute, activeBonus] of [
     const skillId = app.activeCatalog.skillsByName.get(label).id;
     const trait = family.catalog.traits.find((trait) => trait.name === traitName);
     const choices = [0, 0, 0];
-    choices[trait.tier - 1] = trait.position;
+    const line = family.catalog.specializations.find((line) => line.name === trait.specialization);
+    choices[trait.tier - 1] = line.majorTraits[trait.tier - 1].findIndex((entry) => entry.id === trait.id) + 1;
     app.build.specializations = [{ name: trait.specialization, traits: choices.join('-') }];
     app.build.selectedSkillIds = { Utility1: skillId };
     app.build.initialInitiative = 0;

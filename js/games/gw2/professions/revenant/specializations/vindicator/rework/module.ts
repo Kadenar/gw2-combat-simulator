@@ -59,10 +59,9 @@ const specialization = {
         description:
           'Unlock Shield of Saint Viktor. Deferred: the skill is not implemented; ally barrier and projectile blocking are outside simulation scope.'
       }
-    ].map((trait, index) => ({
+    ].map((trait) => ({
       ...trait,
       tier: 3,
-      position: index + 1,
       slot: 'Major',
       specialization: 'Vindicator',
       icon: live.icon

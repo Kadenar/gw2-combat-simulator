@@ -50,7 +50,6 @@ export function log(overrides = {}) {
         elite: 40,
         toughness: 0,
         concentration: 0,
-        healing: 0,
         condition: 0,
         character: 'Fixture Chronomancer',
         account: ':Fixture.1234',

@@ -34,7 +34,11 @@ function previewApp(name, traitNames = [], specialization = null) {
     assert.ok(trait, name);
     const choices = selections.get(trait.specialization) || [0, 0, 0];
 
-    if (trait.position > 0 && trait.tier > 0) choices[trait.tier - 1] = trait.position;
+    // Saved choices follow the canonical specialization layout.
+    const line = adapter.profession.catalog.specializations.find((line) => line.name === trait.specialization);
+
+    if (trait.slot === 'Major')
+      choices[trait.tier - 1] = line.majorTraits[trait.tier - 1].findIndex((entry) => entry.id === trait.id) + 1;
 
     selections.set(trait.specialization, choices);
   }
