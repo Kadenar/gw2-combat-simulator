@@ -14,8 +14,6 @@ import { timeKey } from '#kernel/core/clock.js';
 
 export const REVENANT_ENERGY_DEPLETED = 'revenant.energy-depleted';
 
-const STARVATION_OWNER = 'revenant.energy-depleted';
-
 // Deferred upkeep costs are immutable acceptance facts, spent only if the activation commits.
 const upkeepCosts = new WeakMap<RuntimeCast<RevenantSkill>, number>();
 
@@ -72,29 +70,12 @@ export function revenantUpkeepDrain(runtime: RevenantRuntime): number {
     .reduce((sum, active) => sum + (active.upkeepCost || 0), 0);
 }
 
-/** Every rate or balance change replaces the prior starvation wake at the next action-tick zero crossing. */
-export function refreshRevenantStarvation(runtime: RevenantRuntime): void {
-  const core = runtime.profession.core;
-  runtime.cancelOwner({ id: STARVATION_OWNER, generation: core.energyWakeGeneration });
-  core.energyWakeGeneration++;
-  const at = gw2CooldownReadyAt(resourceDepletionAt(core.energy));
-
-  if (Number.isFinite(at))
-    runtime.schedule(
-      REVENANT_ENERGY_DEPLETED,
-      at,
-      null,
-      { id: STARVATION_OWNER, generation: core.energyWakeGeneration },
-      -300
-    );
-}
-
 /** Starvation ends every upkeep, applies its starvation recharge, and drops legend follow-ups. */
 export function starveRevenantUpkeeps(runtime: RevenantRuntime): void {
   const core = runtime.profession.core;
 
   if (gw2CooldownReadyAt(resourceDepletionAt(core.energy)) > runtime.time) {
-    refreshRevenantStarvation(runtime);
+    runtime.resourceController.refresh('energy');
     return;
   }
 

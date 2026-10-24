@@ -47,8 +47,7 @@ export interface RevenantCoreState {
   selfConditions: RevenantSelfCondition[];
   selfConditionCount: number;
 
-  /** Live wake generations let a rate change or combat anchor replace pending work without replaying state. */
-  energyWakeGeneration: number;
+  /** Passive generations let a combat anchor replace pending work without replaying state. */
   assassinsPresenceGeneration: number;
 }
 
@@ -95,7 +94,6 @@ export function createRevenantCoreState(
     selfConditions: [],
     selfConditionCount: Math.max(0, Math.trunc(config.selfConditionCount || 0)),
 
-    energyWakeGeneration: 0,
     assassinsPresenceGeneration: 0
   };
 }

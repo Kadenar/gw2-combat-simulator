@@ -26,7 +26,6 @@ export function createNecromancerCoreState(
       rate: 0,
       updatedAt: 0
     },
-    lifeForceWakeGeneration: 0,
     passiveNextAt: {},
     activeShroud: '',
     activeShroudEntryId: null,

@@ -1,6 +1,4 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -21,20 +19,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 export const SHADOW_DEPLETED = 'thief.shadow-shroud-depleted';
 
-/**
- * Every gain or rate change replaces the prior depletion wake; shroud exhaustion is detected on the same tick grid as
- * cooldowns so fractional drain is kept.
- */
-function refreshShadowDepletion(runtime: ThiefRuntime): void {
-  const state = specterState.from(runtime);
-  runtime.cancelOwner({ id: SHADOW_DEPLETED, generation: state.shadowWakeGeneration });
-  state.shadowWakeGeneration++;
-  const at = gw2CooldownReadyAt(resourceDepletionAt(state.shadowClock));
-
-  if (Number.isFinite(at))
-    runtime.schedule(SHADOW_DEPLETED, at, null, { id: SHADOW_DEPLETED, generation: state.shadowWakeGeneration }, -10);
-}
-
 /** Specter supplies drain and capacity; the shared lifecycle advances and replaces the depletion deadline. */
 export const shadowForce: ResourcePolicy<ThiefRuntime> = {
   kind: 'continuous',
@@ -47,7 +31,8 @@ export const shadowForce: ResourcePolicy<ThiefRuntime> = {
       ? -balanceProfileNumber(profile, 'maximumStacks') * balanceProfileNumber(profile, 'lifeForceDrain')
       : 0;
   },
-  depletion: { refresh: refreshShadowDepletion, stop: refreshShadowDepletion }
+  // Exhaustion keeps Specter's existing task priority and shared action-tick detection.
+  depletion: { task: SHADOW_DEPLETED, priority: -10 }
 };
 
 /** Shroud transitions block input for their recovery and publish the bar change like a weapon swap. */

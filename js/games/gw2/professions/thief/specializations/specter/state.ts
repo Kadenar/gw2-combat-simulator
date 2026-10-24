@@ -10,8 +10,6 @@ export interface SpecterState {
   shadowShroudExitReadyAt: number;
   shadowClock: ResourceClock;
   shadowShroudActive: boolean;
-  /** Owner generation of the queued live depletion wake; each gain or rate change replaces it. */
-  shadowWakeGeneration: number;
 }
 
 /** Track Shadow Force as a percentage; incoming damage and its health-scaled pool are outside simulation scope. */
@@ -24,8 +22,7 @@ function createSpecterState(config: ThiefConfig = {}): SpecterState {
       rate: 0
     },
     shadowShroudActive: false,
-    shadowShroudExitReadyAt: 0,
-    shadowWakeGeneration: 0
+    shadowShroudExitReadyAt: 0
   };
 }
 

@@ -6,7 +6,7 @@ import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import type { EndurancePolicy, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { refreshRevenantStarvation, revenantUpkeepDrain } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
+import { REVENANT_ENERGY_DEPLETED, revenantUpkeepDrain } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
 import {
   REVENANT_MAXIMUM_ENERGY,
@@ -31,7 +31,8 @@ export const revenantEnergy: ResourcePolicy<RevenantRuntime> = {
   recovery: (runtime) => revenantBaseEnergyRegeneration(runtime) - revenantUpkeepDrain(runtime),
   recoveryMaximum: (runtime) =>
     runtime.profession.core.combatBeganAt == null ? REVENANT_PRECOMBAT_ENERGY_CEILING : REVENANT_MAXIMUM_ENERGY,
-  depletion: { refresh: refreshRevenantStarvation, stop: refreshRevenantStarvation }
+  // Starvation keeps its place before upkeep pulses while the resource controller replaces obsolete wakes.
+  depletion: { task: REVENANT_ENERGY_DEPLETED, priority: -300 }
 };
 
 /** Vigor and Enduring Recovery add together; Vindicator shares the ten-per-second cap. */

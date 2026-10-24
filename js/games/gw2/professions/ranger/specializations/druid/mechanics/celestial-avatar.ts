@@ -86,28 +86,15 @@ export const celestialAvatarLifecycle: RuntimeHooks<RangerRuntimeState, RangerSk
         return Math.min(state.naturalMenderAt, ...state.pendingHitTimes);
       },
       depletion: {
-        // Any live spend or rate change replaces the pending deadline; stale wakes cannot end a newer lifetime.
-        refresh(runtime) {
+        task: 'ranger.avatar-exit',
+        priority: 0,
+        retainUnchangedDeadline: true,
+        // Avatar ends at exact depletion or its maximum lifetime, whichever comes first; it does not use action ticks.
+        deadline(runtime, depletionAt) {
           const state = druidState.from(runtime);
-          const next = state.celestialAvatarActive
-            ? canonicalTime(
-                Math.min(
-                  state.celestialAvatarEndsAt,
-                  state.astralClock.rate < 0
-                    ? runtime.time + state.astralClock.value / -state.astralClock.rate
-                    : Infinity
-                )
-              )
+          return state.celestialAvatarActive
+            ? canonicalTime(Math.min(state.celestialAvatarEndsAt, depletionAt))
             : Infinity;
-
-          if (next === state.avatarDepletionAt) return;
-
-          state.avatarDepletionAt = next;
-
-          if (Number.isFinite(next)) runtime.schedule('ranger.avatar-exit', next, next);
-        },
-        stop(runtime) {
-          druidState.from(runtime).avatarDepletionAt = Infinity;
         }
       }
     }
@@ -161,8 +148,9 @@ export const celestialAvatarLifecycle: RuntimeHooks<RangerRuntimeState, RangerSk
     }
   },
   tasks: {
-    'ranger.avatar-exit'(runtime, deadline) {
-      if (druidState.from(runtime).avatarDepletionAt === deadline) avatar(runtime, false, true);
+    'ranger.avatar-exit'(runtime) {
+      // Shared wake ownership cancels obsolete exits before this exhaustion transition can run.
+      avatar(runtime, false, true);
     }
   },
   reactions: {

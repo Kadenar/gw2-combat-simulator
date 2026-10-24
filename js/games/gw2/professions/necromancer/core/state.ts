@@ -24,7 +24,6 @@ export interface NecromancerCoreState {
   endurance: ResourceClock;
   /** Current and maximum life force are points; percentage mechanics convert against this capacity. */
   lifeForce: ResourceClock;
-  lifeForceWakeGeneration: number;
   /** Readiness reads the next actual passive wake without crediting a future grant. */
   passiveNextAt: Record<string, number>;
   activeShroud: string;

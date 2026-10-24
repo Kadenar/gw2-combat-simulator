@@ -1,9 +1,11 @@
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import {
   anchorResourceClock,
   advanceResource,
   resourceAt,
+  resourceDepletionAt,
   resourceRecoveryReadyAt,
   type DiscreteResourceClock
 } from '#gw2/platform/combat/resources/clock.js';
@@ -34,6 +36,7 @@ export function createRuntimeResources<T extends object>(
 ): ResourceController {
   const policies = profession.resources ?? {};
   const pools = new Set();
+  const depletionWakes = new Map<ResourceKey, { at: number; generation: number }>();
   // Explicitly absent optional policies grant no pool, matching runtime capability admission.
   const keys = (Object.keys(policies) as ResourceKey[]).filter((key) => policies[key] != null);
   const get = (key: ResourceKey) => {
@@ -52,9 +55,33 @@ export function createRuntimeResources<T extends object>(
   const changed = (key: ResourceKey) => {
     const { policy, state } = get(key);
 
-    if (policy.depletion) {
-      if (state.maximum > 0) policy.depletion.refresh(runtime.mechanics);
-      else policy.depletion.stop(runtime.mechanics);
+    const depletion = policy.depletion;
+
+    if (depletion) {
+      const zeroAt = resourceDepletionAt(state);
+      const at =
+        state.maximum > 0
+          ? depletion.deadline
+            ? depletion.deadline(runtime.mechanics, zeroAt)
+            : gw2CooldownReadyAt(zeroAt)
+          : Infinity;
+
+      if (at !== Infinity && (!Number.isFinite(at) || at < runtime.time))
+        throw new RangeError(`Invalid depletion deadline for ${key}.`);
+
+      const previous = depletionWakes.get(key);
+
+      // A new resource segment replaces its owned wake; disabled pools cancel without scheduling another exit.
+      if (!depletion.retainUnchangedDeadline || previous?.at !== at) {
+        const id = `resource-depletion:${key}`;
+
+        if (previous) runtime.cancelOwner({ id, generation: previous.generation });
+
+        const generation = (previous?.generation ?? 0) + 1;
+        depletionWakes.set(key, { at, generation });
+
+        if (Number.isFinite(at)) runtime.schedule(depletion.task, at, null, { id, generation }, depletion.priority);
+      }
     }
 
     policy.changed?.(runtime.mechanics, runtime.time);

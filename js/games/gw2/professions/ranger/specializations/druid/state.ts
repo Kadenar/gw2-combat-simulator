@@ -9,7 +9,6 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 export interface DruidState {
   pendingHitTimes: number[];
   naturalMenderAt: number;
-  avatarDepletionAt: number;
   astralClock: ResourceClock;
   celestialAvatarActive: boolean;
   celestialAvatarEndsAt: number;
@@ -27,7 +26,6 @@ export function createDruidState(config: RangerConfig = {}): DruidState {
   return {
     pendingHitTimes: [],
     naturalMenderAt: Infinity,
-    avatarDepletionAt: Infinity,
     astralClock: {
       value: boundedNumber(config.initialAstralForce ?? 100, 100, 0, 100),
       maximum: 100,

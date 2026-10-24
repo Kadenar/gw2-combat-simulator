@@ -29,10 +29,20 @@ export const RESOURCE_KEYS = [
 
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];
 
+/** Shared scheduling owns replacement; professions retain the task, ordering, and any lifetime deadline. */
+export interface ResourceDepletionPolicy<TContext> {
+  readonly task: string;
+  readonly priority: number;
+  /** Defaults to action-tick detection; an override receives the unrounded zero crossing. */
+  readonly deadline?: (context: TContext, depletionAt: number) => number;
+  /** Preserve insertion order when a lifetime's deadline has not changed. */
+  readonly retainUnchangedDeadline?: boolean;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- The shared registry erases profession state; each owner declares its concrete TContext.
 export interface ResourcePolicy<TContext = MechanicContext<any>> {
   readonly kind: 'continuous' | 'discrete';
-  readonly depletion?: { refresh(context: TContext): void; stop(context: TContext): void };
+  readonly depletion?: ResourceDepletionPolicy<TContext>;
   readonly recoveryMaximum?: (context: TContext) => number;
   readonly changed?: (context: TContext, at: number) => void;
   readonly nextChange?: (context: TContext, cost: number) => number;
@@ -92,6 +102,21 @@ export function validateResourcePolicies(resources: ResourcePolicies = {}, endur
       )
     )
       throw new TypeError(`Resource policies require kind, state, maximum, initial, and recovery (${key}).`);
+
+    const depletion = policy.depletion;
+
+    if (
+      depletion &&
+      (policy.kind !== 'continuous' ||
+        typeof depletion.task !== 'string' ||
+        !depletion.task.trim() ||
+        !Number.isFinite(depletion.priority) ||
+        (depletion.deadline != null && typeof depletion.deadline !== 'function') ||
+        (depletion.retainUnchangedDeadline != null && typeof depletion.retainUnchangedDeadline !== 'boolean'))
+    )
+      throw new TypeError(
+        `Resource depletion requires a continuous pool, task, priority, and valid deadline policy (${key}).`
+      );
   }
 
   if (
