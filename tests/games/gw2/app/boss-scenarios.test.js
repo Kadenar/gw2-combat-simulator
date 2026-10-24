@@ -1,3 +1,4 @@
+import { loadScenarioLibrary, saveScenarioLibrary } from '#gw2/app/boss-scenarios/storage.js';
 import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
 import { scenarioSimulation } from '#gw2/app/boss-scenarios/simulation.js';
 import assert from 'node:assert/strict';
@@ -338,4 +339,41 @@ test('Conjured Amalgamate arm transitions and burn windows execute without inven
   wake();
   assert.equal(controller.remainingHealthFraction, 0.8);
   assert.equal(controller.result(9).overallDps, 0);
+});
+
+// Older documents must neither block current saving nor be read, converted, or overwritten.
+test('obsolete stored scenarios do not block creating and reloading a current library', () => {
+  const oldKey = 'gw2-boss-scenarios-engineer-v2';
+  const oldDraft = { ...makeDraft(), version: 2 };
+  const oldRaw = JSON.stringify({ version: 2, activeId: oldDraft.id, scenarios: [oldDraft] });
+  const values = new Map([[oldKey, oldRaw]]);
+  const storage = {
+    getItem: (key) => {
+      assert.notEqual(key, oldKey, 'The obsolete namespace must not be read');
+      return values.get(key) ?? null;
+    },
+    setItem: (key, value) => values.set(key, value)
+  };
+  assert.equal(loadScenarioLibrary(storage, 'engineer', parse), null);
+  const draft = makeDraft();
+  const library = { activeId: draft.id, scenarios: [draft] };
+  saveScenarioLibrary(storage, 'engineer', library);
+  assert.deepEqual(loadScenarioLibrary(storage, 'engineer', parse), library);
+  assert.equal(values.get(oldKey), oldRaw);
+  assert.throws(() => parse(oldDraft), /version/);
+  assert.equal(loadScenarioLibrary(storage, 'mesmer', parse), null);
+});
+
+// A real current-format load error remains visible rather than being silently discarded as old data.
+test('current scenario storage rejects malformed libraries and invalid selection', () => {
+  const draft = makeDraft();
+  for (const raw of ['{', JSON.stringify({ version: draft.version, scenarios: [draft], activeId: 'missing' })]) {
+    const storage = {
+      getItem: () => raw,
+      setItem: () => {
+        throw new Error('Load must not write');
+      }
+    };
+    assert.throws(() => loadScenarioLibrary(storage, 'engineer', parse));
+  }
 });

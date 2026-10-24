@@ -1,3 +1,4 @@
+import { loadScenarioLibrary, saveScenarioLibrary } from '#gw2/app/boss-scenarios/storage.js';
 import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
 import { scenarioSimulation, ENCOUNTER_RESULT_EVENT } from '#gw2/app/boss-scenarios/simulation.js';
 import { mountResultSummary } from '#gw2/app/results/summary-view.js';
@@ -53,8 +54,6 @@ export function mountBossScenarios(app: ProfessionAppState): void {
   // Encounter assumptions live beside their results, below the shared rotation's DPS strip.
   metrics.after(workspace);
 
-  // Version 2 owns a continuous rotation. Previous prototype documents are left untouched in their own storage.
-  const storageKey = `gw2-boss-scenarios-${app.contentId}-v2`;
   let scenarios: BossScenarioDraft[] = [];
   let activeId = '';
   let message = '';
@@ -74,32 +73,10 @@ export function mountBossScenarios(app: ProfessionAppState): void {
   };
 
   try {
-    const raw = localStorage.getItem(storageKey);
+    const saved = loadScenarioLibrary(localStorage, app.contentId, parse);
 
-    if (raw) {
-      const saved = JSON.parse(raw);
-
-      if (saved?.version !== 2 || !Array.isArray(saved.scenarios) || saved.scenarios.length > 100)
-        throw new Error('Invalid scenario library.');
-
-      // Retiring encounters removes only their saved scenarios; other authored builds remain available.
-      const retained = saved.scenarios.filter((value: unknown) => {
-        const id = (value as Partial<BossScenarioDraft> | null)?.encounterId;
-        return typeof id !== 'string' || ENCOUNTER_TEMPLATES.some((entry) => entry.id === id);
-      });
-      scenarios = retained.map(parse);
-      const selectedWasRemoved = saved.scenarios.some(
-        (value: Partial<BossScenarioDraft> | null) => value?.id === saved.activeId && !retained.includes(value)
-      );
-
-      if (selectedWasRemoved) saved.activeId = scenarios[0]?.id ?? '';
-
-      if (
-        new Set(scenarios.map((draft) => draft.id)).size !== scenarios.length ||
-        (scenarios.length && !scenarios.some((draft) => draft.id === saved.activeId))
-      )
-        throw new Error('Invalid scenario selection.');
-
+    if (saved) {
+      scenarios = saved.scenarios;
       activeId = saved.activeId;
     }
   } catch {
@@ -112,7 +89,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     if (storageBlocked) return;
 
     try {
-      localStorage.setItem(storageKey, JSON.stringify({ version: 2, activeId, scenarios }));
+      saveScenarioLibrary(localStorage, app.contentId, { activeId, scenarios });
     } catch {
       message = 'Could not save. Export this scenario before leaving.';
     }

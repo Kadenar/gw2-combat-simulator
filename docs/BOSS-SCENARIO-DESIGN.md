@@ -82,15 +82,16 @@ Player health remains fixed at 100%. Incoming damage and variable player health 
 
 ## Persistence and validation
 
-Version 2 scenario documents store the canonical build with its continuous rotation and DPS/duration/target inputs per
+Version 3 scenario documents store the canonical build with its continuous rotation and DPS/duration/target inputs per
 predefined phase. Single-target DPS is a number; parallel DPS is keyed by EI target index and requires a valid player
 target index. Imports reject a single number for a parallel phase instead of guessing a distribution. Imports validate
 the profession, boss, difficulty, exact health evidence, phase sequence, non-negative finite inputs, and rotation
 commands. Local persistence is separate from Golem.
 
-Old version 1 prototype drafts are left untouched in their previous storage key and are not loaded or migrated. They
-used per-phase rotations, which the current document format does not support. Invalid saved data is preserved rather
-than overwritten; the UI reports when new work must be exported instead of saved.
+Version 3 uses its own local-storage namespace. Older version 1 and 2 libraries are not read, converted, or overwritten.
+They do not prevent a default scenario from opening or new scenarios from saving. Imported older documents are rejected.
+Unreadable data in the current namespace is preserved rather than overwritten; only that current-format failure blocks
+saving and asks the user to export new work.
 
 Split controls and timeline sections use the selected boss and difficulty's mechanic names from the shared phase plan.
 Repeated mechanics retain their split numbers. Names describe the existing authored intervals and do not add or retime

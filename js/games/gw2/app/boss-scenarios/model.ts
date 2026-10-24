@@ -4,6 +4,9 @@ import { validateRotationCommand } from '#gw2/platform/builds/rotation.js';
 import { ENCOUNTER_TEMPLATES, encounterHealth, encounterDifficulties } from '#gw2/app/boss-scenarios/catalog.js';
 import { encounterPhasePlan, type EncounterDifficulty } from '#gw2/app/boss-scenarios/phases.js';
 
+// Per-target inputs and revised phase layouts use a separate document and storage version.
+export const BOSS_SCENARIO_VERSION = 3;
+
 export type ScenarioPhaseDraft =
   | {
       id: string;
@@ -16,7 +19,7 @@ export type ScenarioPhaseDraft =
 
 /** One continuous rotation belongs to the build; phases contain squad assumptions only. */
 export interface BossScenarioDraft {
-  version: 2;
+  version: typeof BOSS_SCENARIO_VERSION;
   id: string;
   name: string;
   profession: string;
@@ -77,7 +80,7 @@ export function createBossScenario(
   copyRotation: boolean
 ): BossScenarioDraft {
   const draft: BossScenarioDraft = {
-    version: 2,
+    version: BOSS_SCENARIO_VERSION,
     id: crypto.randomUUID(),
     name: '',
     profession: build.profession,
@@ -114,7 +117,7 @@ export function parseBossScenario(
 
   if (
     !record ||
-    record.version !== 2 ||
+    record.version !== BOSS_SCENARIO_VERSION ||
     record.profession !== profession ||
     !text(record.id) ||
     !text(record.name) ||
@@ -185,7 +188,7 @@ export function parseBossScenario(
   const build = structuredClone(parseBuild(record.build));
 
   return {
-    version: 2,
+    version: BOSS_SCENARIO_VERSION,
     id: record.id,
     name: record.name.trim(),
     profession,
