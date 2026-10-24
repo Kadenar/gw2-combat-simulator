@@ -15,7 +15,7 @@ export type ScenarioPhaseDraft =
       playerTargetIndex?: number;
       windowSeconds?: number;
     }
-  | { id: string; kind: 'split'; durationSeconds: number | null };
+  | { id: string; kind: 'split'; durationSeconds: number | null; intermissionSeconds?: number };
 
 /** One continuous rotation belongs to the build; phases contain squad assumptions only. */
 export interface BossScenarioDraft {
@@ -169,11 +169,14 @@ export function parseBossScenario(
               : phase.playerTargetIndex !== undefined) ||
             (phase.windowSeconds !== undefined &&
               (!definition.damageWindow || !finite(phase.windowSeconds, 86400) || phase.windowSeconds === 0))
-          : phase.durationSeconds !== null && !finite(phase.durationSeconds, 86400))
+          : (phase.durationSeconds !== null && !finite(phase.durationSeconds, 86400)) ||
+            (phase.intermissionSeconds !== undefined && !finite(phase.intermissionSeconds, 86400)))
       );
     })
   )
-    throw new Error('Phase inputs must match the selected boss; DPS and split durations must be non-negative.');
+    throw new Error(
+      'Phase inputs must match the selected boss; DPS, split durations, and intermissions must be non-negative.'
+    );
 
   // Validate raw commands before build normalization can discard malformed imported input.
   if (
@@ -209,7 +212,13 @@ export function parseBossScenario(
             ...(phase.playerTargetIndex !== undefined ? { playerTargetIndex: phase.playerTargetIndex } : {}),
             ...(phase.windowSeconds !== undefined ? { windowSeconds: phase.windowSeconds } : {})
           }
-        : { id: phase.id, kind: 'split', durationSeconds: phase.durationSeconds }
+        : {
+            id: phase.id,
+            kind: 'split',
+            durationSeconds: phase.durationSeconds,
+            // An intermission is optional encounter authoring, independent of the split's own duration.
+            ...(phase.intermissionSeconds !== undefined ? { intermissionSeconds: phase.intermissionSeconds } : {})
+          }
     )
   };
 }

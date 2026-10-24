@@ -146,7 +146,7 @@ test('DPS strip snapshots show observed phase DPS, including repeated and unfini
   assert.match(snapshots[1].detail, /in progress/);
   const container = inertContainer();
   mountResultSummary(container, {
-    metrics: [{ label: 'Your phase DPS / overall DPS', value: '100 / 100', className: 'dps' }],
+    metrics: [{ label: 'Overall DPS', value: '100', className: 'dps' }],
     phaseSnapshots: snapshots
   });
   assert.match(container.innerHTML, /Show Phase DPS/);
@@ -176,4 +176,32 @@ test('nearby split and phase labels use separate lanes while transition position
 
     assert.notEqual(labels[1].lane, labels[2].lane);
   }
+});
+
+// Intermissions are downtime in the cumulative clock, not selectable damage phases or DPS disclosure entries.
+test('intermissions preserve phase numbering and stay out of damage analysis controls', () => {
+  const result = fixture();
+  result.encounter.phases.splice(2, 0, {
+    id: 'intermission-split',
+    kind: 'intermission',
+    start: 15,
+    end: 18,
+    playerDamage: 0,
+    groupDamage: 0
+  });
+  result.encounter.phases[3].start = 18;
+  const phases = encounterAnalysisPhases(result, definitions);
+  assert.equal(phases[2].label, 'Intermission 1');
+  assert.equal(phases[3].label, 'Phase 2');
+  assert.ok(phases[2].overallDps < phases[1].overallDps);
+  assert.deepEqual(
+    encounterDpsSnapshots(phases).map((phase) => phase.label),
+    ['Phase 1', 'Phase 2']
+  );
+  const container = inertContainer();
+  mountTimeSeriesCharts(container, buildTimeSeries({ ...result, resolvedEvents: [] }, 250, { includeEffects: false }), {
+    encounterPhases: phases
+  });
+  assert.doesNotMatch(container.innerHTML, /data-chart-phase="encounter-2"/);
+  assert.match(container.innerHTML, /data-chart-phase="encounter-3"/);
 });

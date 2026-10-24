@@ -200,8 +200,10 @@ export function mountBossScenarios(app: ProfessionAppState): void {
           value: result
             ? result.defeated
               ? 'Target defeated'
-              : result.phaseKind === 'split'
-                ? 'Split ends'
+              : result.phaseKind !== 'boss'
+                ? result.phaseKind === 'intermission'
+                  ? 'Intermission ends'
+                  : 'Split ends'
                 : `${result.nextHealthPercent}% HP${result.windowRemaining !== null ? ` / ${seconds(result.windowRemaining)} window` : ''}`
             : first.kind === 'split'
               ? first.label
@@ -228,13 +230,9 @@ export function mountBossScenarios(app: ProfessionAppState): void {
               : 'Unavailable'
         },
         {
-          label: 'Your phase DPS / overall DPS',
+          label: 'Overall DPS',
           className: 'dps',
-          value: result
-            ? `${number(result.phaseDps)} / ${number(result.overallDps)}`
-            : execution.config
-              ? 'Calculating'
-              : 'Unavailable'
+          value: result ? number(result.overallDps) : execution.config ? 'Calculating' : 'Unavailable'
         }
       ],
       phaseSnapshots: result ? encounterDpsSnapshots(encounterAnalysisPhases(app.results!, plan.phases)) : []
@@ -283,7 +281,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
           const definition = plan.phases[index]!;
 
           if (phase.kind === 'split')
-            return `<label class="boss-phase-input boss-split-input"><span>Split ${++splitIndex} (seconds)</span><small>${h(definition.label)}</small><input type="number" data-phase-input="${h(phase.id)}" aria-label="Split ${splitIndex}: ${h(definition.label)} duration in seconds" min="0" max="86400" step="0.1" placeholder="0" value="${phase.durationSeconds ?? ''}"></label>`;
+            return `<label class="boss-phase-input boss-split-input"><span>Split ${++splitIndex} (seconds)</span><small>${h(definition.label)}</small><input type="number" data-phase-input="${h(phase.id)}" aria-label="Split ${splitIndex}: ${h(definition.label)} duration in seconds" min="0" max="86400" step="0.1" placeholder="0" value="${phase.durationSeconds ?? ''}"></label><label class="boss-phase-input boss-intermission-input"><span>Intermission ${splitIndex} (seconds)</span><small>After split ${splitIndex} &middot; no damage</small><input type="number" data-phase-input="${h(phase.id)}" data-intermission aria-label="Intermission after split ${splitIndex} in seconds" min="0" max="86400" step="0.1" value="${phase.intermissionSeconds ?? 0}"></label>`;
 
           bossIndex += 1;
           // Parallel encounters author independent rates; single-target phases keep the existing compact control.
@@ -417,6 +415,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
             else if (phase.kind === 'boss' && typeof phase.groupDps === 'object')
               phase.groupDps[control.dataset.targetDps!] = Number(control.value);
             else if (phase.kind === 'boss') phase.groupDps = Number(control.value);
+            else if (control.hasAttribute('data-intermission')) phase.intermissionSeconds = Number(control.value);
             else phase.durationSeconds = control.value === '' ? null : Number(control.value);
           }
         }, control instanceof HTMLSelectElement),

@@ -274,7 +274,14 @@ export function timelineRowsView(
 
   // Read-only phase labels share the timeline clock; they never become editable rotation commands.
   const renderEncounterMarker = (marker: (typeof encounterMarkers)[number]): string => {
-    const state = marker.kind === 'split' ? 'Invulnerable' : marker.kind === 'boss' ? 'Damageable' : 'Encounter ended';
+    const state =
+      marker.kind === 'intermission'
+        ? 'No damage'
+        : marker.kind === 'split'
+          ? 'Invulnerable'
+          : marker.kind === 'boss'
+            ? 'Damageable'
+            : 'Encounter ended';
     const time = formatTime(marker.start);
     const detail = [
       `${marker.label}: ${state}`,
@@ -531,7 +538,11 @@ export function timelineRowsView(
         encounterMarkers.length && step && !invalid
           ? `\n${[
               encounterContext.phase?.label ?? 'Before encounter',
-              ...(encounterContext.phase?.kind === 'split' ? ['Boss invulnerable'] : []),
+              ...(encounterContext.phase?.kind === 'split'
+                ? ['Boss invulnerable']
+                : encounterContext.phase?.kind === 'intermission'
+                  ? ['Intermission: no damage']
+                  : []),
               ...encounterContext.crossings.map(
                 (marker) => `${marker.label} starts during this action at ${formatTime(marker.start)}`
               )

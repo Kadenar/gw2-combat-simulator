@@ -17,10 +17,23 @@ export function scenarioSimulation(draft: BossScenarioDraft): { config: Encounte
 
   const previousEnds = new Map<number, number>();
   const previousBars = new Map<number, number>();
-  const phases: EncounterPhase[] = plan.phases.map((definition, index) => {
+  const phases: EncounterPhase[] = plan.phases.flatMap<EncounterPhase>((definition, index) => {
     const input = draft.phases[index]!;
 
-    if (input.kind === 'split') return { id: input.id, kind: 'split', durationSeconds: input.durationSeconds ?? 0 };
+    // Authored intermissions run after the split, with no damage windows or squad ticks until the next boss phase.
+    if (input.kind === 'split')
+      return [
+        { id: input.id, kind: 'split', durationSeconds: input.durationSeconds ?? 0 },
+        ...(input.intermissionSeconds
+          ? [
+              {
+                id: `intermission-${input.id}`,
+                kind: 'intermission' as const,
+                durationSeconds: input.intermissionSeconds
+              }
+            ]
+          : [])
+      ];
 
     const active = definition.targetIndexes
       ? targets.filter((target) => definition.targetIndexes!.includes(target.index))
@@ -29,39 +42,43 @@ export function scenarioSimulation(draft: BossScenarioDraft): { config: Encounte
     if (!active.length || definition.endHealthPercent === null)
       throw new Error('Encounter phase has no target or health gate.');
 
-    return {
-      id: input.id,
-      kind: 'boss',
-      playerTargetId: String(input.playerTargetIndex ?? active[0]!.index),
-      durationSeconds: definition.damageWindow ? (input.windowSeconds ?? definition.damageWindow.defaultSeconds) : null,
-      targets: active.map((target) => {
-        const end = definition.endHealthPercent!;
-        const previousEnd = previousEnds.get(target.index) ?? 100;
-        // EI bars are [end %, start %, maximum HP, bar order]; a new bar may restore health (Ura).
-        const bars = target.healthBars;
-        const barIndex = bars?.findIndex(([lower, upper]) => end >= lower! && end < upper!) ?? -1;
-        const bar = barIndex >= 0 ? bars![barIndex]! : null;
-        const changedBar = bar !== null && previousBars.get(target.index) !== barIndex;
-        const maximumHealth = bar ? bar[2]! : target.health;
-        const startHealthPercent = definition.startHealthPercent ?? (changedBar ? bar![1]! : null);
-        previousEnds.set(target.index, end);
-        previousBars.set(target.index, barIndex);
+    return [
+      {
+        id: input.id,
+        kind: 'boss',
+        playerTargetId: String(input.playerTargetIndex ?? active[0]!.index),
+        durationSeconds: definition.damageWindow
+          ? (input.windowSeconds ?? definition.damageWindow.defaultSeconds)
+          : null,
+        targets: active.map((target) => {
+          const end = definition.endHealthPercent!;
+          const previousEnd = previousEnds.get(target.index) ?? 100;
+          // EI bars are [end %, start %, maximum HP, bar order]; a new bar may restore health (Ura).
+          const bars = target.healthBars;
+          const barIndex = bars?.findIndex(([lower, upper]) => end >= lower! && end < upper!) ?? -1;
+          const bar = barIndex >= 0 ? bars![barIndex]! : null;
+          const changedBar = bar !== null && previousBars.get(target.index) !== barIndex;
+          const maximumHealth = bar ? bar[2]! : target.health;
+          const startHealthPercent = definition.startHealthPercent ?? (changedBar ? bar![1]! : null);
+          previousEnds.set(target.index, end);
+          previousBars.set(target.index, barIndex);
 
-        if (startHealthPercent === null && previousEnd <= end && !plan.repeats)
-          throw new Error('Encounter target gates must descend.');
+          if (startHealthPercent === null && previousEnd <= end && !plan.repeats)
+            throw new Error('Encounter target gates must descend.');
 
-        return {
-          id: String(target.index),
-          name: target.name,
-          maximumHealth,
-          armor: target.armor,
-          groupDps: typeof input.groupDps === 'number' ? input.groupDps : input.groupDps[String(target.index)]!,
-          endHealthPercent: end,
-          startHealthPercent,
-          entryHealthLossPercent: definition.entryHealthLossPercent ?? 0
-        };
-      })
-    };
+          return {
+            id: String(target.index),
+            name: target.name,
+            maximumHealth,
+            armor: target.armor,
+            groupDps: typeof input.groupDps === 'number' ? input.groupDps : input.groupDps[String(target.index)]!,
+            endHealthPercent: end,
+            startHealthPercent,
+            entryHealthLossPercent: definition.entryHealthLossPercent ?? 0
+          };
+        })
+      }
+    ];
   });
   return { config: { phases, repeatFrom: plan.repeats ? phases[0]!.id : null }, reason: '' };
 }

@@ -20,7 +20,7 @@ export type EncounterPhase =
       readonly targets: readonly EncounterPhaseTarget[];
       readonly durationSeconds: number | null;
     }
-  | { readonly id: string; readonly kind: 'split'; readonly durationSeconds: number };
+  | { readonly id: string; readonly kind: 'split' | 'intermission'; readonly durationSeconds: number };
 
 export interface EncounterConfig {
   readonly phases: readonly EncounterPhase[];
@@ -30,7 +30,7 @@ export interface EncounterConfig {
 
 export interface EncounterPhaseResult {
   readonly id: string;
-  readonly kind: 'boss' | 'split';
+  readonly kind: 'boss' | 'split' | 'intermission';
   readonly start: number;
   end: number | null;
   playerDamage: number;
@@ -54,7 +54,7 @@ export interface EncounterResult {
   readonly armor: number;
   readonly targets: readonly EncounterTargetResult[];
   readonly phaseId: string;
-  readonly phaseKind: 'boss' | 'split';
+  readonly phaseKind: 'boss' | 'split' | 'intermission';
   readonly defeated: boolean;
   readonly elapsed: number;
   readonly nextHealthPercent: number | null;
@@ -293,7 +293,7 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
 
   const defeated = () => death !== null;
   function damage(amount: number, owner: 'player' | 'group', at: number, key?: string): number {
-    if (start === null || death !== null || phase().kind === 'split') return 0;
+    if (start === null || death !== null || phase().kind !== 'boss') return 0;
 
     let accepted = 0;
     while (accepted < amount && !defeated() && phase().kind === 'boss') {
@@ -306,12 +306,12 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
 
       accepted += apply(amount - accepted, owner, target, at);
       const previousKey = targetKey(target.id);
-      const nextIsSplit = config.phases[index + 1]?.kind === 'split';
+      const nextIsDowntime = config.phases[index + 1] !== undefined && config.phases[index + 1]!.kind !== 'boss';
       const oldIndex = index;
       completeIfReady(at);
 
-      // Never carry an overkill packet into an invulnerability split or another target.
-      if (nextIsSplit || index === oldIndex || selected !== target.id || targetKey(target.id) !== previousKey) break;
+      // Splits and intermissions block all damage, including overkill carried across a transition.
+      if (nextIsDowntime || index === oldIndex || selected !== target.id || targetKey(target.id) !== previousKey) break;
     }
 
     return accepted;

@@ -438,3 +438,29 @@ test('baseline, RNG, and modifier requests share the encounter configuration', (
   assert.equal(adapter.baselineSimulationRequest(app).baseConfig.encounter, undefined);
   assert.equal(adapter.modifierContributionRequest(app).baseConfig.target.armor, 5346);
 });
+
+// Optional downtime is preserved by authoring without altering boss-owned split layouts or the rotation.
+test('post-split intermissions round-trip and compile between the split and next damage phase', () => {
+  const draft = makeDraft();
+  const rotation = structuredClone(draft.build.rotation);
+  const split = draft.phases.find((phase) => phase.kind === 'split');
+  split.durationSeconds = 3;
+  split.intermissionSeconds = 5;
+  const restored = parse(JSON.parse(JSON.stringify(draft)));
+  assert.deepEqual(restored, draft);
+  const { config } = scenarioSimulation(restored);
+  assert.deepEqual(
+    config.phases.slice(0, 4).map((phase) => phase.kind),
+    ['boss', 'split', 'intermission', 'boss']
+  );
+  assert.equal(config.phases[1].durationSeconds, 3);
+  assert.equal(config.phases[2].durationSeconds, 5);
+  assert.equal(new Set(config.phases.map((phase) => phase.id)).size, config.phases.length);
+  assert.deepEqual(draft.build.rotation, rotation);
+  split.intermissionSeconds = 0;
+  assert.ok(scenarioSimulation(parse(draft)).config.phases.every((phase) => phase.kind !== 'intermission'));
+  for (const value of [-1, Infinity, NaN, 86401, '5', null]) {
+    split.intermissionSeconds = value;
+    assert.throws(() => parse(draft), /intermissions/);
+  }
+});

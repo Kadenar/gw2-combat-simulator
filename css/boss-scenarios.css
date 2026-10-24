@@ -151,14 +151,14 @@ body[data-analysis-workspace='bosses']
 .rot-encounter-marker > time {
   font-variant-numeric: tabular-nums;
 }
-.rot-encounter-marker[data-encounter-kind='split'] {
+.rot-encounter-marker:is([data-encounter-kind='split'], [data-encounter-kind='intermission']) {
   background: color-mix(in srgb, #d9ad58 12%, var(--bg-panel));
 }
 .rot-encounter-marker[data-encounter-kind='defeated'] {
   background: color-mix(in srgb, #85bf88 10%, var(--bg-panel));
 }
 /* An amber outline identifies actions started while the boss is invulnerable, including wrapped lines. */
-.rot-skill[data-encounter-kind='split'] {
+.rot-skill:is([data-encounter-kind='split'], [data-encounter-kind='intermission']) {
   outline: 1px dashed #d9ad58;
   outline-offset: 2px;
 }

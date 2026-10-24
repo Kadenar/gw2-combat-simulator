@@ -734,7 +734,7 @@ export function mountTimeSeriesCharts(
   const healthMarkers: ChartMarker[] = resolvedOptions.encounterPhases
     ? resolvedOptions.encounterPhases.map((phase) => ({
         label: phase.label,
-        color: phase.kind === 'split' ? '#d9ad58' : resolvedOptions.healthBreakpointColor,
+        color: phase.kind !== 'boss' ? '#d9ad58' : resolvedOptions.healthBreakpointColor,
         timeMs: phase.startMs,
         damage: phase.startDamage
       }))

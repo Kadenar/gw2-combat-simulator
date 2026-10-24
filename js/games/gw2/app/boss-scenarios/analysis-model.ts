@@ -27,11 +27,17 @@ export function encounterAnalysisPhases(
     const duration = (endMs - startMs) / 1000;
     const startDamage = damage;
     damage += phase.playerDamage;
-    const detail = definitions.find((definition) => definition.id === phase.id)!.label;
+    const detail =
+      phase.kind === 'intermission' ? 'No damage' : definitions.find((definition) => definition.id === phase.id)!.label;
     return {
       id: `encounter-${index}`,
       kind: phase.kind,
-      label: phase.kind === 'boss' ? `Phase ${++bossIndex}` : `Split ${++splitIndex}: ${detail}`,
+      label:
+        phase.kind === 'boss'
+          ? `Phase ${++bossIndex}`
+          : phase.kind === 'intermission'
+            ? `Intermission ${splitIndex}`
+            : `Split ${++splitIndex}: ${detail}`,
       detail,
       complete: phase.end !== null,
       startMs,

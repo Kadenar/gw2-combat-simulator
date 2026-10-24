@@ -157,3 +157,15 @@ Phase DPS is available from the DPS strip's existing disclosure style, replacing
 inputs. The disclosure lists observed damage phases, including partial phases and repeated cycles. Chart transition
 labels use measured collision lanes and expand the canvas downward without shrinking the plot or moving transition
 times. Long labels are shortened only when wider than the plot; full split names remain in Boss configuration.
+
+## Post-split intermissions
+
+Each split has an optional intermission duration, authored beside its own duration. A positive value inserts a separate
+intermission between that split and the next damage phase. Player strikes, summon damage, conditions, and group DPS
+cannot damage any target during this interval. Cooldowns, resources, buffs, and condition lifetimes continue on the same
+clock; expired effects are not replayed when damage resumes. Zero leaves the original split-to-phase transition.
+
+Intermissions have their own rotation rows and chart markers, but do not appear in damage-phase range buttons, DPS
+breakdown rows, or phase DPS snapshots. Overall DPS includes their elapsed time. The rotation DPS strip displays only
+overall DPS; individual phase DPS remains in its click-menu disclosure. The optional field is stored only when authored;
+no saved draft migration or storage-version change is required.

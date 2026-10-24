@@ -16,7 +16,7 @@ export interface ChartPoint {
 export interface ChartEncounterPhase {
   readonly id: string;
   readonly label: string;
-  readonly kind: 'boss' | 'split';
+  readonly kind: 'boss' | 'split' | 'intermission';
   readonly startMs: number;
   readonly endMs: number;
   readonly startDamage: number;

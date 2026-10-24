@@ -3,7 +3,7 @@ import type { Gw2SimulationResult, SimulationStep } from '#gw2/platform/results/
 
 export interface EncounterTimelineMarker {
   readonly label: string;
-  readonly kind: 'boss' | 'split' | 'defeated';
+  readonly kind: 'boss' | 'split' | 'intermission' | 'defeated';
   readonly start: number;
   readonly end: number | null;
   readonly insertionIndex: number;
@@ -34,7 +34,9 @@ export function encounterTimelineMarkers(
       label:
         phase.kind === 'boss'
           ? `Phase ${++boss}`
-          : `Split ${++split}: ${definitions.find((entry) => entry.id === phase.id)!.label}`,
+          : phase.kind === 'intermission'
+            ? `Intermission ${split}`
+            : `Split ${++split}: ${definitions.find((entry) => entry.id === phase.id)!.label}`,
       kind: phase.kind,
       start,
       end: phase.end === null ? null : Math.round(phase.end * 1000),

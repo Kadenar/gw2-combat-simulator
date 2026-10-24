@@ -365,3 +365,71 @@ test('automatic armor does not rescale group DPS or condition damage', () => {
   assert.ok(low.totalDamage > 0);
   assert.equal(high.totalDamage, low.totalDamage);
 });
+
+// The split and intermission have separate boundaries, but neither admits player, summon, condition, or squad damage.
+test('intermissions halt all damage after a split and resume squad and player damage only afterward', () => {
+  const config = {
+    ...encounter,
+    phases: [
+      encounter.phases[0],
+      encounter.phases[1],
+      { id: 'intermission', kind: 'intermission', durationSeconds: 3 },
+      encounter.phases[2]
+    ]
+  };
+  const events = [hit(5.5, 100), { ...hit(6.5, 100), actorType: 'summon', source: 'Summon' }, hit(8.5, 50)];
+  const execute = (endTime) =>
+    run(endTime, events, { config: { encounter: config, target: {}, sigilSets: [{ names: [] }] } });
+  const paused = execute(7);
+  assert.equal(paused.encounter.phaseKind, 'intermission');
+  assert.equal(paused.encounter.remainingHealth, 500);
+  assert.equal(paused.totalDamage, 0);
+  assert.equal(paused.environmentDamage, 500);
+  assert.equal(paused.encounter.timeToTransition, 1);
+  const resumed = execute(9);
+  const intermission = resumed.encounter.phases.find((phase) => phase.kind === 'intermission');
+  assert.equal(intermission.start, 5);
+  assert.equal(intermission.end, 8);
+  assert.equal(intermission.playerDamage, 0);
+  assert.equal(intermission.groupDamage, 0);
+  assert.equal(resumed.totalDamage, 50);
+  assert.equal(resumed.environmentDamage, 600);
+  assert.equal(resumed.encounter.remainingHealth, 350);
+});
+
+test('conditions continue aging through an intermission without dealing deferred damage', () => {
+  const config = {
+    repeatFrom: null,
+    phases: [
+      bossPhase('a', 50, 50000, 100000),
+      { id: 'split', kind: 'split', durationSeconds: 1 },
+      { id: 'intermission', kind: 'intermission', durationSeconds: 2 },
+      bossPhase('b', 0, 0, 100000)
+    ]
+  };
+  const burn = {
+    type: 'condition',
+    at: 0,
+    condition: 'Burning',
+    duration: 8,
+    stacks: 1,
+    source: 'Player',
+    sourceId: 'burn',
+    actorType: 'player'
+  };
+  const execute = (endTime) =>
+    run(endTime, [burn], { config: { encounter: config, target: {}, sigilSets: [{ names: [] }] } });
+  const split = execute(2);
+  const paused = execute(3);
+  assert.equal(paused.encounter.phaseKind, 'intermission');
+  assert.equal(paused.totalDamage, split.totalDamage);
+  assert.ok(paused.encounter.overallDps < split.encounter.overallDps);
+  const resumed = execute(6);
+  const intermission = resumed.encounter.phases.find((phase) => phase.kind === 'intermission');
+  assert.equal(intermission.playerDamage, 0);
+  assert.ok(resumed.totalDamage > paused.totalDamage);
+  const expired = run(6, [{ ...burn, duration: 3 }], {
+    config: { encounter: config, target: {}, sigilSets: [{ names: [] }] }
+  });
+  assert.equal(expired.encounter.phases.at(-1).playerDamage, 0);
+});

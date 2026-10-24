@@ -134,3 +134,15 @@ test('encounter phases render as separate full-width rows while keeping their co
     assert.doesNotMatch(render({ ...result, encounter: undefined }), /rot-encounter-marker|data-encounter-kind/);
   }
 });
+
+// Intermission markers distinguish the extra pause without renumbering the next damage phase.
+test('post-split intermissions appear as distinct timeline sections', () => {
+  const result = fixture();
+  result.encounter.phases.splice(2, 0, { id: 'intermission-split-0', kind: 'intermission', start: 7, end: 8 });
+  result.encounter.phases[3].start = 8;
+  const markers = encounterTimelineMarkers(result, 4, definitions);
+  assert.equal(markers[2].label, 'Intermission 1');
+  assert.equal(markers[2].kind, 'intermission');
+  assert.equal(markers[3].label, 'Phase 2');
+  assert.equal(encounterStepContext({ start: 7500, end: 7800 }, markers).phase.kind, 'intermission');
+});
