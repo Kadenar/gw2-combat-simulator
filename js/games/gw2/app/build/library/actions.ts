@@ -90,6 +90,9 @@ export async function loadTemplateAction(
 
   if (loading && !loading.hidden) return;
 
+  // Boss templates supply gear and skills only; encounter rotations belong to local drafts and imported files.
+  if (app.workspace?.scenario) action = 'build';
+
   const previousBuild = structuredClone(app.build);
   const validateDestination = captureBuildDestination(app);
   const patchId = app.patch.id;

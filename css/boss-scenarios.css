@@ -15,7 +15,7 @@ body[data-simulator-view='analysis'][data-analysis-workspace='bosses'] #boss-sce
 body[data-simulator-view='bosses'][data-boss-editor-ready='false'] .build-editor,
 body[data-analysis-workspace='bosses'] :is(#header-dps, #rotation-dps-summary),
 body[data-simulator-view='bosses'] #rotation-results,
-body[data-analysis-workspace='bosses'] [data-template-action='new-tab'],
+body[data-analysis-workspace='bosses'] :is([data-template-action='new-tab'], [data-template-action='rotation']),
 body[data-simulator-view='analysis'][data-analysis-workspace='bosses']
   :is(.patch-preview-picker, #build-workspace-tabs) {
   display: none;
