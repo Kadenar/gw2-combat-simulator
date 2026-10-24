@@ -187,12 +187,19 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     const seconds = (value: number | null) => (value === null ? 'No damage rate' : `${value.toFixed(1)}s`);
     const number = (value: number) => Math.round(value).toLocaleString('en-US');
     metrics.replaceChildren();
+    // Lead with player output, group health together, and keep static armor after transition progress.
     mountResultSummary(metrics, {
       metrics: [
-        { label: 'Target armor', value: format(healthState?.armor ?? null) },
         {
-          label: healthState ? `${healthState.targetName} total health` : 'Target total health',
-          value: format(healthState?.health ?? draft.health)
+          label: 'Overall DPS',
+          className: 'dps',
+          value: result ? number(result.overallDps) : execution.config ? 'Calculating' : 'Unavailable'
+        },
+        {
+          label: healthState ? `${healthState.targetName} HP / total` : 'Target HP / total',
+          value: healthState
+            ? `${number(healthState.remainingHealth)} / ${number(healthState.health)}`
+            : format(draft.health)
         },
         {
           label: 'Next transition',
@@ -221,18 +228,10 @@ export function mountBossScenarios(app: ProfessionAppState): void {
               : 'Unavailable'
         },
         {
-          label: 'Current HP / estimated time to transition',
-          value: result
-            ? `${number(result.remainingHealth)} / ${seconds(result.timeToTransition)}`
-            : execution.config
-              ? 'Calculating'
-              : 'Unavailable'
+          label: 'Estimated time to transition',
+          value: result ? seconds(result.timeToTransition) : execution.config ? 'Calculating' : 'Unavailable'
         },
-        {
-          label: 'Overall DPS',
-          className: 'dps',
-          value: result ? number(result.overallDps) : execution.config ? 'Calculating' : 'Unavailable'
-        }
+        { label: 'Target armor', value: format(healthState?.armor ?? null) }
       ],
       phaseSnapshots: result ? encounterDpsSnapshots(encounterAnalysisPhases(app.results!, plan.phases)) : []
     });
