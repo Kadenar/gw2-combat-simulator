@@ -147,6 +147,7 @@ export function createProfessionRuntime({
           target: {
             ...config.target,
             health: initialEncounterTarget(encounter).maximumHealth,
+            armor: initialEncounterTarget(encounter).armor,
             fixedHealthFraction: undefined,
             startingHealthFraction: 1
           }

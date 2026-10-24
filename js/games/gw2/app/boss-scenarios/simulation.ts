@@ -52,6 +52,7 @@ export function scenarioSimulation(draft: BossScenarioDraft): { config: Encounte
           id: String(target.index),
           name: target.name,
           maximumHealth,
+          armor: target.armor,
           groupDps: typeof input.groupDps === 'number' ? input.groupDps : input.groupDps[String(target.index)]!,
           endHealthPercent: end,
           startHealthPercent,

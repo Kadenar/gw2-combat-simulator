@@ -1,3 +1,5 @@
+import { scenarioSimulation } from '#gw2/app/boss-scenarios/simulation.js';
+import { initialEncounterTarget } from '#gw2/platform/combat/state/encounter.js';
 import { RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { optionHtml } from '#ui/shared/select-options.js';
@@ -41,11 +43,17 @@ interface EffectItemOptions {
 
 export function renderAssumptions(app: ProfessionAppState): void {
   const a = app.build.assumptions as ProfessionBuildAssumptions;
-  const targetArmorValue = normalizeTargetArmor(app.build.targetArmor);
+  // Encounter armor is derived, so the shared Golem build preference is never overwritten by boss selection.
+  const encounter = app.workspace?.scenario ? scenarioSimulation(app.workspace.scenario).config : null;
+  const targetArmorValue = encounter
+    ? initialEncounterTarget(encounter).armor
+    : normalizeTargetArmor(app.build.targetArmor);
   const targetArmorPreset = TARGET_ARMOR_OPTIONS.some((option) => option.value === targetArmorValue)
     ? String(targetArmorValue)
     : 'custom';
-  app.build.targetArmor = targetArmorValue;
+
+  if (!encounter) app.build.targetArmor = targetArmorValue;
+
   const container = document.getElementById('perma-boons');
 
   if (!container) throw new Error('Required assumptions panel is missing.');
@@ -248,13 +256,21 @@ export function renderAssumptions(app: ProfessionAppState): void {
                 <label class="boon-control">Maximum HP <input id="target-hp" type="number" min="0" step="100000" value="${Number(app.build.targetHealth)}"></label>
                 <label class="boon-control">Starting health % <input id="target-starting-health-percent" type="number" min="0" max="100" step="1" value="${Number(app.build.targetStartingHealthPercent ?? 100)}"></label>
                 <label class="boon-control">Target armor
-                    <select class="gear-select" id="target-armor-preset">
-                        ${TARGET_ARMOR_OPTIONS.map(({ value, label }) =>
-                          optionHtml(String(value), targetArmorPreset, `${label} (${value})`)
-                        ).join('')}
-                        ${optionHtml('custom', targetArmorPreset, 'Custom…')}
+                    <select class="gear-select" id="target-armor-preset"${encounter ? ' disabled title="Armor is set by the encounter target"' : ''}>
+                        ${
+                          encounter
+                            ? optionHtml(
+                                String(targetArmorValue),
+                                String(targetArmorValue),
+                                `Boss (${targetArmorValue})`
+                              )
+                            : TARGET_ARMOR_OPTIONS.map(({ value, label }) =>
+                                optionHtml(String(value), targetArmorPreset, `${label} (${value})`)
+                              ).join('')
+                        }
+                        ${encounter ? '' : optionHtml('custom', targetArmorPreset, 'Custom…')}
                     </select>
-                    <input id="target-armor" type="number" min="1" value="${targetArmorValue}" aria-label="Custom target armor"${targetArmorPreset === 'custom' ? '' : ' hidden'}>
+                    <input id="target-armor" type="number" min="1" value="${targetArmorValue}" aria-label="Custom target armor"${targetArmorPreset === 'custom' && !encounter ? '' : ' hidden'}>
                 </label>
                 <label class="boon-control">Skill activations/s <input id="target-skill-activations" type="number" min="0" max="10" step="0.1" value="${a.targetSkillActivationsPerSecond}"></label>
                 <label class="boon-control"><input id="target-moving" type="checkbox"${a.targetMoving ? ' checked' : ''}> Moving</label>

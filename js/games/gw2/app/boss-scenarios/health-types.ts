@@ -2,5 +2,12 @@
 export interface EncounterHealth {
   encounterId: string;
   difficulty: 'normal' | 'challenge' | 'legendary';
-  targets: { index: number; name: string; health: number; primary: boolean; healthBars: number[][] | null }[];
+  targets: {
+    index: number;
+    name: string;
+    health: number;
+    armor: number;
+    primary: boolean;
+    healthBars: number[][] | null;
+  }[];
 }

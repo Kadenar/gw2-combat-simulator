@@ -16,6 +16,7 @@ const bossPhase = (id, endHealthPercent, groupDps, maximumHealth = 1000) => ({
     {
       id: 'target',
       name: 'Target',
+      armor: 2597,
       maximumHealth,
       groupDps,
       endHealthPercent,
@@ -286,4 +287,81 @@ test('timed cycles preserve health, cancel old wakes, and stop on defeat before 
   const early = run(5, [hit(0.5, 1000)], { config: { encounter: config, target: {}, sigilSets: [{ names: [] }] } });
   assert.equal(early.deathTime, 0.5);
   assert.equal(early.environmentDamage, 0);
+});
+
+// Encounter target changes must affect the next strike without inheriting the Golem armor preference.
+test('strikes use each phase target armor while armor-ignoring damage retains its formula', () => {
+  const first = bossPhase('first', 50, 0);
+  first.targets[0].armor = 1000;
+  const second = bossPhase('second', 0, 0, 2000);
+  second.playerTargetId = 'other';
+  second.targets[0] = { ...second.targets[0], id: 'other', name: 'Other', armor: 2000 };
+  const config = {
+    encounter: { repeatFrom: null, phases: [first, second] },
+    target: { armor: 9999 },
+    sigilSets: [{ names: [] }]
+  };
+  const strike = (at) => ({
+    type: 'damage',
+    at,
+    coefficient: 0.1,
+    weaponStrength: 1000,
+    canCrit: false,
+    actorType: 'player',
+    source: 'Player',
+    sourceId: 'armor-probe'
+  });
+  const result = resolveTestGw2Events({
+    config,
+    endTime: 2,
+    events: [strike(0.5), hit(1, 400), strike(1.5)],
+    query: { statsAt: () => ({ power: 1000, conditionDamage: 0 }), strikeMultiplier: () => 1 }
+  });
+  assert.deepEqual(
+    result.encounter.phases.map((phase) => phase.playerDamage),
+    [500, 50]
+  );
+  assert.equal(result.encounter.armor, 2000);
+  assert.equal(result.encounter.targetName, 'Other');
+  assert.equal(config.target.armor, 9999);
+  const parallel = { ...first, playerTargetId: 'other', targets: [first.targets[0], second.targets[0]] };
+  const selected = resolveTestGw2Events({
+    config: { ...config, encounter: { repeatFrom: null, phases: [parallel] } },
+    endTime: 1,
+    events: [strike(0.5)],
+    query: { statsAt: () => ({ power: 1000, conditionDamage: 0 }), strikeMultiplier: () => 1 }
+  });
+  assert.equal(selected.totalDamage, 50);
+  assert.equal(selected.encounter.armor, 2000);
+});
+
+// Squad DPS is damage already dealt, and condition formulas do not use armor.
+test('automatic armor does not rescale group DPS or condition damage', () => {
+  const simulate = (armor) => {
+    const phase = bossPhase('burn', 0, 100, 100000);
+    phase.targets[0].armor = armor;
+    return resolveTestGw2Events({
+      endTime: 2,
+      config: { encounter: { repeatFrom: null, phases: [phase] }, target: {}, sigilSets: [{ names: [] }] },
+      events: [
+        {
+          type: 'condition',
+          at: 0,
+          condition: 'Burning',
+          duration: 5,
+          stacks: 1,
+          actorType: 'player',
+          source: 'Player',
+          sourceId: 'armor-condition'
+        }
+      ]
+    });
+  };
+
+  const low = simulate(1223);
+  const high = simulate(2597);
+  assert.equal(low.environmentDamage, 200);
+  assert.equal(high.environmentDamage, low.environmentDamage);
+  assert.ok(low.totalDamage > 0);
+  assert.equal(high.totalDamage, low.totalDamage);
 });

@@ -124,7 +124,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
       }, true),
     import: () => fileInput.click()
   });
-  const mutate = (edit: (draft: BossScenarioDraft) => void): void => {
+  const mutate = (edit: (draft: BossScenarioDraft) => void, rebuild = false): void => {
     const current = active();
 
     if (!current) return;
@@ -134,7 +134,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     edit(candidate);
     Object.assign(current, parse(candidate));
     save();
-    app.changed(false);
+    app.changed(rebuild);
   };
 
   const newDraft = (): void => {
@@ -195,6 +195,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     metrics.replaceChildren();
     mountResultSummary(metrics, {
       metrics: [
+        { label: 'Target armor', value: format(healthState?.armor ?? null) },
         {
           label: healthState ? `${healthState.targetName} total health` : 'Target total health',
           value: format(healthState?.health ?? draft.health)
@@ -430,7 +431,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
             else if (phase.kind === 'boss') phase.groupDps = Number(control.value);
             else phase.durationSeconds = control.value === '' ? null : Number(control.value);
           }
-        }),
+        }, control instanceof HTMLSelectElement),
       control instanceof HTMLInputElement
     );
   });

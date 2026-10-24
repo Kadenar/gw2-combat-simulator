@@ -106,6 +106,7 @@ export function runRuntime<T extends object>(
         target: {
           ...inputConfig.target,
           health: initialEncounterTarget(inputConfig.encounter).maximumHealth,
+          armor: initialEncounterTarget(inputConfig.encounter).armor,
           startingHealthFraction: 1,
           fixedHealthFraction: undefined
         }

@@ -51,7 +51,8 @@ export function createGw2HitResolution({
   }
 
   function targetArmorFor(ctx: Gw2ResolverRuntime): number {
-    return Math.max(1, ctx.config.target?.armor || STANDARD_TARGET_ARMOR);
+    // Boss encounters own target armor; Golem retains its authored armor setting.
+    return ctx.encounter?.armor ?? Math.max(1, ctx.config.target?.armor || STANDARD_TARGET_ARMOR);
   }
 
   // Sample once for proc eligibility and reporting; rolled damage reuses this same outcome.

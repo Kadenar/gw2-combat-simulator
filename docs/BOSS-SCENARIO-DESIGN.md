@@ -126,3 +126,11 @@ phase target. Conditions retain target and bar ownership and cannot transfer to 
 Pure reporting bands preserve overkill only while the same target and health bar remain active. Estimated transition
 time is the slowest target's remaining damage divided by its own rate, capped by an authored window deadline. It does
 not assume that idle DPS from a phased target moves to another target. Repeated windows end immediately on defeat.
+
+## Automatic target armor
+
+Boss and difficulty selection supplies each target's armor from the EI evidence catalog. Runtime hits use the current
+phase's selected target, so sequential targets and player-target selections do not keep the first boss's armor. Armor
+appears in the encounter DPS strip, and the existing Target armor control displays the starting target's automatic value
+while in Bosses. The saved Golem armor preference is unchanged. Authored group DPS is already damage dealt and is not
+scaled by armor a second time. Conditions and armor-ignoring packets keep their existing formulas.

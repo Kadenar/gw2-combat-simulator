@@ -1,4 +1,4 @@
-/** Extract only encounter health evidence; player names, accounts, rotations, and instance addresses are discarded. */
+/** Extract only encounter health and armor evidence; player names, accounts, rotations, and instance addresses are discarded. */
 export function extractEncounterHealth(data, source) {
   const html = source.format === 'ei-html';
 
@@ -28,6 +28,12 @@ export function extractEncounterHealth(data, source) {
   const targets = source.primaryTargetIndexes.map((index) => {
     const target = data.targets[index];
     const health = html ? target?.health : target?.totalHealth;
+    const toughness = html ? target?.tough : target?.toughness;
+
+    if (!Number.isSafeInteger(toughness) || toughness < 0) throw new Error(`Invalid EI toughness at target ${index}.`);
+
+    // Level-80 encounter NPC armor combines the report's toughness with 1,223 base defense.
+    const armor = toughness + 1223;
 
     if (!target || typeof target.name !== 'string' || !Number.isSafeInteger(health) || (health !== -1 && health <= 0))
       throw new Error(`Invalid EI health at target ${index}.`);
@@ -50,7 +56,7 @@ export function extractEncounterHealth(data, source) {
     )
       throw new Error('Invalid segmented EI health bars.');
 
-    return { index, name: target.name, health, primary: true, healthBars };
+    return { index, name: target.name, health, armor, primary: true, healthBars };
   });
   return {
     encounterId: source.encounterId,
@@ -71,7 +77,9 @@ export function combineEncounterHealth(reports) {
 
   const signature = (report) =>
     JSON.stringify(
-      report.targets.map(({ health, healthBars }) => ({ health, healthBars })).sort((a, b) => a.health - b.health)
+      report.targets
+        .map(({ health, healthBars, armor }) => ({ health, healthBars, armor }))
+        .sort((a, b) => a.health - b.health)
     );
   const corroboratingReports = [];
   const differingReports = [];

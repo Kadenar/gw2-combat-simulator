@@ -11,7 +11,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Vale Guardian',
         health: 22021440,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1910
       }
     ]
   },
@@ -24,7 +25,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Gorseval the Multifarious',
         health: 21628200,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -37,7 +39,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Sabetha the Saboteur',
         health: 34015256,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -50,7 +53,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Slothasor',
         health: 18973828,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -63,7 +67,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Matthias Gabrel',
         health: 25953840,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -76,7 +81,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Keep Construct',
         health: 55053600,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1910
       }
     ]
   },
@@ -89,7 +95,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Keep Construct',
         health: 55053600,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1910
       }
     ]
   },
@@ -105,7 +112,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         healthBars: [
           [50, 100, 22611300, 0],
           [0, 50, 25560600, 1]
-        ]
+        ],
+        armor: 2597
       }
     ]
   },
@@ -118,7 +126,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Cairn the Indomitable',
         health: 19999998,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -131,7 +140,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Cairn the Indomitable',
         health: 19999998,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -144,7 +154,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Mursaat Overseer',
         health: 30000000,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -157,7 +168,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Mursaat Overseer',
         health: 22021440,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -170,7 +182,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Samarog',
         health: 40000000,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -183,7 +196,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Samarog',
         health: 29493000,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -199,7 +213,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         healthBars: [
           [10, 100, 42000000, 0],
           [0, 10, 50049000, 1]
-        ]
+        ],
+        armor: 2597
       }
     ]
   },
@@ -215,7 +230,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         healthBars: [
           [10, 100, 35981456, 0],
           [0, 10, 50049000, 1]
-        ]
+        ],
+        armor: 2597
       }
     ]
   },
@@ -228,7 +244,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Soulless Horror',
         health: 35391600,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -241,7 +258,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Soulless Horror',
         health: 35391600,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -254,7 +272,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Dhuum',
         health: 40000000,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -267,7 +286,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Dhuum',
         health: 32000000,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -280,7 +300,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Conjured Amalgamate',
         health: 52290000,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1223
       }
     ]
   },
@@ -293,7 +314,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Conjured Amalgamate',
         health: 52290000,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1223
       }
     ]
   },
@@ -306,14 +328,16 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Nikare',
         health: 19219604,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       },
       {
         index: 1,
         name: 'Kenut',
         health: 17548336,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -326,14 +350,16 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Nikare',
         health: 17548336,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       },
       {
         index: 1,
         name: 'Kenut',
         health: 15877066,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -346,7 +372,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Qadim',
         health: 21195636,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -359,7 +386,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Qadim',
         health: 19268760,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -372,7 +400,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Cardinal Adina',
         health: 24872430,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -385,7 +414,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Cardinal Adina',
         health: 22611300,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -398,7 +428,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Cardinal Sabir',
         health: 32442300,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -411,7 +442,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Cardinal Sabir',
         health: 29493000,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -424,7 +456,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Qadim the Peerless',
         health: 51000000,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -437,7 +470,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Qadim the Peerless',
         health: 47188800,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -450,7 +484,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Godspoil Greer',
         health: 42469920,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -463,7 +498,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Greer, the Blightbringer',
         health: 42469920,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -476,7 +512,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Godsquall Decima',
         health: 87318152,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -489,7 +526,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Decima, the Stormsinger',
         health: 54149148,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -505,7 +543,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         healthBars: [
           [1, 100, 71774168, 0],
           [0, 16, 71774168, 1]
-        ]
+        ],
+        armor: 2597
       }
     ]
   },
@@ -521,7 +560,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         healthBars: [
           [1, 100, 94962736, 0],
           [0, 31, 94962736, 1]
-        ]
+        ],
+        armor: 2597
       }
     ]
   },
@@ -534,7 +574,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Ura, the Steamshrieker',
         health: 55210896,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -547,7 +588,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Icebrood Construct',
         health: 11698890,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -560,14 +602,16 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Fraenir of Jormag',
         health: 12387060,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       },
       {
         index: 1,
         name: 'Icebrood Construct',
         health: 8258040,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -580,14 +624,16 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Voice of the Fallen',
         health: 8258040,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       },
       {
         index: 1,
         name: 'Claw of the Fallen',
         health: 8258040,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -600,7 +646,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Boneskinner',
         health: 20979420,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -613,7 +660,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Whisper of Jormag',
         health: 24774120,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -626,14 +674,16 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Captain Mai Trin',
         health: 8008740,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       },
       {
         index: 1,
         name: 'Echo of Scarlet Briar',
         health: 36074160,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -646,14 +696,16 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Captain Mai Trin',
         health: 5308740,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       },
       {
         index: 1,
         name: 'Echo of Scarlet Briar',
         health: 15926220,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -666,7 +718,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Ankka',
         health: 46955764,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -679,7 +732,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Ankka',
         health: 26453952,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -692,7 +746,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Minister Li',
         health: 38222928,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -705,7 +760,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Minister Li',
         health: 26543700,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -718,42 +774,48 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'The JormagVoid',
         health: 16807500,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1223
       },
       {
         index: 1,
         name: 'The PrimordusVoid',
         health: 16807500,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1223
       },
       {
         index: 2,
         name: 'The KralkatorrikVoid',
         health: 16807500,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1223
       },
       {
         index: 3,
         name: 'The MordremothVoid',
         health: 16807500,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1223
       },
       {
         index: 4,
         name: 'The ZhaitanVoid',
         health: 16807500,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1223
       },
       {
         index: 5,
         name: 'The SooWonVoid',
         health: 31075200,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1223
       }
     ]
   },
@@ -766,42 +828,48 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'The JormagVoid',
         health: 6723000,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1223
       },
       {
         index: 1,
         name: 'The PrimordusVoid',
         health: 6723000,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1223
       },
       {
         index: 2,
         name: 'The KralkatorrikVoid',
         health: 6723000,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1223
       },
       {
         index: 3,
         name: 'The MordremothVoid',
         health: 6723000,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1223
       },
       {
         index: 4,
         name: 'The ZhaitanVoid',
         health: 6723000,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1223
       },
       {
         index: 5,
         name: 'The SooWonVoid',
         health: 9711000,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 1223
       }
     ]
   },
@@ -814,21 +882,24 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Prototype Vermilion',
         health: 21234960,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       },
       {
         index: 1,
         name: 'Prototype Indigo',
         health: 21234960,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       },
       {
         index: 2,
         name: 'Prototype Arsenite',
         health: 21234960,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -841,21 +912,24 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Prototype Vermillon',
         health: 12740976,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       },
       {
         index: 1,
         name: 'Prototype Indigo',
         health: 12740976,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       },
       {
         index: 2,
         name: 'Prototype Arsénite',
         health: 12740976,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -868,7 +942,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Dagda',
         health: 50963904,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -881,7 +956,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Dagda',
         health: 42469920,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -894,7 +970,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Cerus',
         health: 95557328,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -907,7 +984,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Cerus',
         health: 117057712,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -920,7 +998,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Cerus',
         health: 47778660,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -933,7 +1012,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Kela, Seneschal of Waves',
         health: 66890120,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -946,7 +1026,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Kela, Seneschal of Waves',
         health: 38222928,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -959,7 +1040,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Vloxx',
         health: 84939840,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -972,7 +1054,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Vloxx',
         health: 102777208,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   },
@@ -985,7 +1068,8 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         name: 'Vloxx',
         health: 42469920,
         primary: true,
-        healthBars: null
+        healthBars: null,
+        armor: 2597
       }
     ]
   }

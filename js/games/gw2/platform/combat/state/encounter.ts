@@ -4,6 +4,7 @@ export interface EncounterPhaseTarget {
   readonly id: string;
   readonly name: string;
   readonly maximumHealth: number;
+  readonly armor: number;
   readonly groupDps: number;
   readonly endHealthPercent: number;
   /** Null preserves this target's live health; a value starts a replacement bar or explicit transformation. */
@@ -41,6 +42,7 @@ export interface EncounterTargetResult {
   readonly id: string;
   readonly name: string;
   readonly maximumHealth: number;
+  readonly armor: number;
   readonly remainingHealth: number;
   readonly active: boolean;
 }
@@ -49,6 +51,7 @@ export interface EncounterResult {
   readonly health: number;
   readonly remainingHealth: number;
   readonly targetName: string;
+  readonly armor: number;
   readonly targets: readonly EncounterTargetResult[];
   readonly phaseId: string;
   readonly phaseKind: 'boss' | 'split';
@@ -67,9 +70,11 @@ export interface EncounterResult {
 export function initialEncounterTarget(config: EncounterConfig): EncounterPhaseTarget {
   const first = config.phases.find((phase) => phase.kind === 'boss');
 
-  if (!first || !first.targets.length) throw new TypeError('Encounter requires a damageable target.');
+  const target = first?.targets.find((entry) => entry.id === first.playerTargetId);
 
-  return first.targets[0]!;
+  if (!target) throw new TypeError('Encounter requires a selected damageable target.');
+
+  return target;
 }
 
 /** Separate target state survives phases; one clock schedules squad ticks, timed windows, and authored splits. */
@@ -93,6 +98,8 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
         if (
           !Number.isFinite(target.groupDps) ||
           target.groupDps < 0 ||
+          !Number.isSafeInteger(target.armor) ||
+          target.armor <= 0 ||
           !Number.isSafeInteger(target.maximumHealth) ||
           target.maximumHealth <= 0 ||
           !Number.isFinite(target.endHealthPercent) ||
@@ -127,7 +134,7 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
 
   const targets = new Map<
     string,
-    { id: string; name: string; maximumHealth: number; remainingHealth: number; revision: number }
+    { id: string; name: string; maximumHealth: number; armor: number; remainingHealth: number; revision: number }
   >();
   for (const phase of config.phases)
     if (phase.kind === 'boss')
@@ -137,6 +144,7 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
             id: target.id,
             name: target.name,
             maximumHealth: target.maximumHealth,
+            armor: target.armor,
             revision: 0,
             remainingHealth: (target.maximumHealth * (target.startHealthPercent ?? 100)) / 100
           });
@@ -202,6 +210,7 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
             throw new TypeError('A replacement health bar requires an explicit starting percentage.');
 
           target.maximumHealth = definition.maximumHealth;
+          target.armor = definition.armor;
 
           if (definition.startHealthPercent !== null) {
             target.revision += 1;
@@ -319,6 +328,10 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
     get remainingHealth() {
       return chooseTarget().remainingHealth;
     },
+    // Strike resolution samples the selected target on every hit, including after a phase target change.
+    get armor() {
+      return chooseTarget().armor;
+    },
     get remainingHealthFraction() {
       const target = queryTarget === null ? chooseTarget() : targets.get(queryTarget)!;
       return target.remainingHealth / target.maximumHealth;
@@ -410,6 +423,7 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
         health: target.maximumHealth,
         remainingHealth: target.remainingHealth,
         targetName: target.name,
+        armor: target.armor,
         targets: [...targets.values()].map(({ revision: _revision, ...entry }) => ({
           ...entry,
           active: active.some((definition) => definition.id === entry.id)

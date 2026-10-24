@@ -173,13 +173,22 @@ test('EI importer rejects wrong modes and preserves conflicting observations wit
     parser: 'Elite Insights test',
     gw2Build: 100,
     phases: [{ success: true, mode: 'Normal Mode', targets: [0], targetPriorities: [0] }],
-    targets: [{ name: 'Target', health: 12345, hpBars: null }]
+    targets: [{ name: 'Target', tough: 687, health: 12345, hpBars: null }]
   };
   const first = extractEncounterHealth(raw, source);
   assert.equal(first.targets[0].health, 12345);
+  assert.equal(first.targets[0].armor, 1910);
+  assert.equal(
+    extractEncounterHealth({ ...raw, targets: [{ ...raw.targets[0], tough: 0 }] }, source).targets[0].armor,
+    1223
+  );
+  assert.throws(
+    () => extractEncounterHealth({ ...raw, targets: [{ ...raw.targets[0], tough: undefined }] }, source),
+    /toughness/
+  );
   assert.throws(() => extractEncounterHealth(raw, { ...source, difficulty: 'challenge' }), /difficulty/);
   assert.throws(
-    () => extractEncounterHealth({ ...raw, targets: [{ name: 'Target', health: null }] }, source),
+    () => extractEncounterHealth({ ...raw, targets: [{ name: 'Target', tough: 687, health: null }] }, source),
     /health/
   );
   const second = structuredClone(first);
@@ -376,4 +385,27 @@ test('current scenario storage rejects malformed libraries and invalid selection
     };
     assert.throws(() => loadScenarioLibrary(storage, 'engineer', parse));
   }
+});
+
+// Armor is derived at execution, so changing a boss cannot rewrite the saved build's Golem assumptions.
+test('boss and difficulty selection supplies armor for every target without changing the build', () => {
+  const draft = makeDraft();
+  draft.build.targetArmor = 5346;
+  const build = structuredClone(draft.build);
+  for (const entry of ENCOUNTER_HEALTH) {
+    selectScenarioEncounter(draft, entry.encounterId, entry.difficulty);
+    const { config } = scenarioSimulation(draft);
+    for (const phase of config.phases.filter((phase) => phase.kind === 'boss')) {
+      for (const target of phase.targets) {
+        assert.equal(target.armor, entry.targets.find((candidate) => String(candidate.index) === target.id).armor);
+        assert.ok(Number.isSafeInteger(target.armor) && target.armor > 0);
+      }
+    }
+
+    assert.deepEqual(draft.build, build);
+  }
+
+  assert.equal(encounterHealth('020101', 'normal').targets[0].armor, 1910);
+  assert.equal(encounterHealth('020102', 'normal').targets[0].armor, 2597);
+  assert.equal(encounterHealth('020601', 'normal').targets[0].armor, 1223);
 });

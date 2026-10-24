@@ -47,20 +47,21 @@
       "difficulty": "normal",
       "reports": [
         {
-          "report": "https://gw2wingman.nevermindcreations.de/log/54fa2-Quadesh1345_20261022-230404_sab_kill",
-          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/54fa2-Quadesh1345_20261022-230404_sab_kill",
-          "format": "ei-html",
-          "triggerId": 15375,
-          "primaryTargetIndexes": [0]
-        },
-        {
           "report": "https://gw2wingman.nevermindcreations.de/log/LKGt-20260928-223301_sab",
           "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/LKGt-20260928-223301_sab",
           "format": "ei-html",
           "triggerId": 15375,
           "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/54fa2-Quadesh1345_20261022-230404_sab_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/54fa2-Quadesh1345_20261022-230404_sab_kill",
+          "format": "ei-html",
+          "triggerId": 15375,
+          "primaryTargetIndexes": [0]
         }
-      ]
+      ],
+      "armorSelectionNote": "Selected observation reports 1374 toughness. The October 22/23 comparison reports 2748 while health matches; retain the conflict without averaging or applying an inferred correction."
     },
     {
       "encounterId": "020201",
@@ -287,20 +288,21 @@
       "difficulty": "challenge",
       "reports": [
         {
-          "report": "https://gw2wingman.nevermindcreations.de/log/9a012-20261022-210013_dei_kill",
-          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/9a012-20261022-210013_dei_kill",
-          "format": "ei-html",
-          "triggerId": 17154,
-          "primaryTargetIndexes": [0]
-        },
-        {
           "report": "https://gw2wingman.nevermindcreations.de/log/ae203-20260922-232443_dei_kill",
           "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/ae203-20260922-232443_dei_kill",
           "format": "ei-html",
           "triggerId": 17154,
           "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/9a012-20261022-210013_dei_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/9a012-20261022-210013_dei_kill",
+          "format": "ei-html",
+          "triggerId": 17154,
+          "primaryTargetIndexes": [0]
         }
-      ]
+      ],
+      "armorSelectionNote": "Selected observation reports 1374 toughness. The October 22/23 comparison reports 2748 while health matches; retain the conflict without averaging or applying an inferred correction."
     },
     {
       "encounterId": "020404",
@@ -867,20 +869,21 @@
       "difficulty": "normal",
       "reports": [
         {
-          "report": "https://gw2wingman.nevermindcreations.de/log/359a4-Gordon5094_20261023-211527_woj_kill",
-          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/359a4-Gordon5094_20261023-211527_woj_kill",
-          "format": "ei-html",
-          "triggerId": 22711,
-          "primaryTargetIndexes": [0]
-        },
-        {
           "report": "https://gw2wingman.nevermindcreations.de/log/113ba-20260728-104611_woj_kill",
           "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/113ba-20260728-104611_woj_kill",
           "format": "ei-html",
           "triggerId": 22711,
           "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/359a4-Gordon5094_20261023-211527_woj_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/359a4-Gordon5094_20261023-211527_woj_kill",
+          "format": "ei-html",
+          "triggerId": 22711,
+          "primaryTargetIndexes": [0]
         }
-      ]
+      ],
+      "armorSelectionNote": "Selected observation reports 1374 toughness. The October 22/23 comparison reports 2748 while health matches; retain the conflict without averaging or applying an inferred correction."
     },
     {
       "encounterId": "040301",
@@ -947,20 +950,21 @@
       "difficulty": "normal",
       "reports": [
         {
-          "report": "https://gw2wingman.nevermindcreations.de/log/fedf3-20261022-001747_xunjadejunk_kill",
-          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/fedf3-20261022-001747_xunjadejunk_kill",
-          "format": "ei-html",
-          "triggerId": 23957,
-          "primaryTargetIndexes": [0]
-        },
-        {
           "report": "https://gw2wingman.nevermindcreations.de/log/df85e-20260814-221220_xunjadejunk_kill",
           "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/df85e-20260814-221220_xunjadejunk_kill",
           "format": "ei-html",
           "triggerId": 23957,
           "primaryTargetIndexes": [0]
+        },
+        {
+          "report": "https://gw2wingman.nevermindcreations.de/log/fedf3-20261022-001747_xunjadejunk_kill",
+          "endpoint": "https://gw2wingman.nevermindcreations.de/api/getJson/fedf3-20261022-001747_xunjadejunk_kill",
+          "format": "ei-html",
+          "triggerId": 23957,
+          "primaryTargetIndexes": [0]
         }
-      ]
+      ],
+      "armorSelectionNote": "Selected observation reports 1374 toughness. The October 22/23 comparison reports 2748 while health matches; retain the conflict without averaging or applying an inferred correction."
     },
     {
       "encounterId": "040303",
