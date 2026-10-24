@@ -406,23 +406,31 @@ test('Sharpened Edges observes patched critical chance and packets through its s
   };
   bindTriggerPoints(context, rangerProfession, context.config);
   const details = { hitContext: { critical: { chance: 1, didCrit: true } } };
-  for (const [chance, duration] of [
-    [0.33, 3],
-    [0.75, 6]
+  for (const [chance, duration, override] of [
+    [0.33, 3, undefined],
+    [0.75, 6, undefined],
+    [0.75, 6, 0.25],
+    [0.75, 6, undefined]
   ]) {
+    // Clearing the saved override restores the active patch's default; it never changes critical eligibility.
+    context.config.procRateOverrides = override === undefined ? {} : { 'ranger.sharpened-edges': override };
     context.catalog = withProfile(rangerCatalog, TRAIT.SHARPENED_EDGES, {
       criticalChance: chance,
       effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration, stacks: 2 }]
     });
     const event = { type: 'damage', at: 1, actorType: 'player', skillName: 'Test' };
     context.fireTrigger(criticalResolved, { event: { ...event, actorType: 'effect' }, details });
+    context.fireTrigger(criticalResolved, {
+      event,
+      details: { hitContext: { critical: { chance: 1, didCrit: false } } }
+    });
     context.fireTrigger(criticalResolved, { event, details });
-    assert.equal(chances.at(-1), chance);
+    assert.equal(chances.at(-1), override ?? chance);
     assert.equal(queued.at(-1).duration, duration);
     assert.equal(queued.at(-1).stacks, 2);
   }
 
-  assert.deepEqual(chances, [0.33, 0.75]);
+  assert.deepEqual(chances, [0.33, 0.75, 0.25, 0.75]);
 });
 
 test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', () => {

@@ -1,88 +1,96 @@
 import { availableProcRateProfiles, normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
-/** Render only active, opted-in traits using their runtime defaults; blank/reset inherits future balance changes. */
-export function mountProcRateOverrides(app: ProfessionAppState, expanded = true): void {
-  const container = document.getElementById('perma-boons');
+interface ProcRateControl {
+  readonly id: string;
+  readonly inputId: string;
+  readonly label: string;
+  readonly defaultChance: number;
+  readonly opportunity: string;
+}
 
-  if (!container) return;
+/** Keep trait and equipment overrides in one saved map; clearing an input restores its current default. */
+export function createProcRateControl(app: ProfessionAppState, control: ProcRateControl): HTMLLabelElement {
+  const overrides = normalizeProcRateOverrides(app.build.assumptions.procRateOverrides);
+  const defaultPercent = Number((control.defaultChance * 100).toFixed(4));
+  const label = document.createElement('label');
+  label.className = 'proc-rate-control';
+  label.textContent = `${control.label} (%) `;
+  label.title = `Chance per ${control.opportunity}. Leave blank to use the default: ${defaultPercent}%.`;
+  const input = document.createElement('input');
+  input.id = control.inputId;
+  input.type = 'number';
+  input.min = '0';
+  input.max = '100';
+  input.step = 'any';
+  input.dataset.procRateId = control.id;
+  input.placeholder = `${defaultPercent}%`;
+  input.value = overrides[control.id] === undefined ? '' : String(Number((overrides[control.id] * 100).toFixed(4)));
+  input.addEventListener('change', () => {
+    if (!input.checkValidity()) {
+      input.reportValidity();
+      return;
+    }
 
-  const previous = container.querySelector<HTMLDetailsElement>('[data-assumption-section="proc-rates"]');
-  previous?.remove();
-  // Proc defaults share the selected catalog used by attributes and simulation.
-  const catalog = app.patch.catalog;
+    const next = normalizeProcRateOverrides(app.build.assumptions.procRateOverrides);
+
+    if (input.value === '') delete next[control.id];
+    else next[control.id] = input.valueAsNumber / 100;
+
+    app.build.assumptions.procRateOverrides = next;
+    // Rerender all copies of an equipped sigil and invalidate the simulation together.
+    const focused = document.activeElement === input;
+    app.changed();
+
+    if (focused) document.getElementById(control.inputId)?.focus();
+  });
+  label.append(input);
+  return label;
+}
+
+/** Selected trait overrides live beneath Traits in both Live and Preview, retaining disclosure state on reruns. */
+export function mountProcRateOverrides(app: ProfessionAppState): void {
+  const traits = document.getElementById('traits-panel');
+
+  if (!traits) return;
+
+  const previous = document.querySelector<HTMLDetailsElement>('#trait-proc-rates');
   const profiles = availableProcRateProfiles(
-    catalog,
+    app.patch.catalog,
     (app.attributeData?.activeTraits || []).map((trait) => trait.id)
   );
 
-  if (!profiles.length) return;
+  if (!profiles.length) {
+    previous?.remove();
+    return;
+  }
 
-  const overrides = normalizeProcRateOverrides(app.build.assumptions.procRateOverrides);
   const section = document.createElement('details');
-  section.className = 'perma-group';
-  section.dataset.assumptionSection = 'proc-rates';
-  section.open = expanded;
+  section.id = 'trait-proc-rates';
+  section.className = 'trait-proc-rates';
+  section.open = previous?.open ?? false;
   const summary = document.createElement('summary');
-  summary.className = 'perma-group-label';
   summary.textContent = 'Proc rate overrides';
   const controls = document.createElement('div');
-  controls.className = 'perma-group-content proc-rate-controls';
+  controls.className = 'proc-rate-controls';
   const description = document.createElement('p');
   description.textContent = 'Custom chance per eligible trigger. Leave blank to use the default.';
   controls.append(description);
   for (const profile of profiles) {
     const declaration = profile.procRate!;
-    const defaultPercent = Number((Number(profile[declaration.field]) * 100).toFixed(4));
-    const label = document.createElement('label');
-    label.className = 'boon-control';
-    label.textContent = `${profile.name} (%) `;
-    label.title = `Chance per ${declaration.opportunity}. Default: ${defaultPercent}%.`;
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.min = '0';
-    input.max = '100';
-    input.step = 'any';
-    input.dataset.procRateId = declaration.id;
-    input.placeholder = `${defaultPercent}%`;
-    input.value =
-      overrides[declaration.id] === undefined ? '' : String(Number((overrides[declaration.id] * 100).toFixed(4)));
-    const reset = document.createElement('button');
-    reset.type = 'button';
-    reset.className = 'btn';
-    reset.textContent = 'Reset';
-    reset.setAttribute('aria-label', `Reset ${profile.name} proc rate`);
-    reset.disabled = overrides[declaration.id] === undefined;
-    // Keep each trait's input and reset action together on its own row.
-    const row = document.createElement('div');
-    row.className = 'proc-rate-control';
-    const update = (): void => {
-      if (!input.checkValidity()) {
-        input.reportValidity();
-        return;
-      }
-
-      const next = normalizeProcRateOverrides(app.build.assumptions.procRateOverrides);
-
-      if (input.value === '') delete next[declaration.id];
-      else next[declaration.id] = input.valueAsNumber / 100;
-
-      app.build.assumptions.procRateOverrides = next;
-      reset.disabled = next[declaration.id] === undefined;
-      // A build change invalidates worker results and any pinned rotation comparison together.
-      app.changed();
-    };
-
-    input.addEventListener('change', update);
-    reset.addEventListener('click', () => {
-      input.value = '';
-      update();
-    });
-    label.append(input);
-    row.append(label, reset);
-    controls.append(row);
+    controls.append(
+      createProcRateControl(app, {
+        id: declaration.id,
+        inputId: `proc-rate-${declaration.id}`,
+        label: profile.name,
+        defaultChance: Number(profile[declaration.field]),
+        opportunity: declaration.opportunity
+      })
+    );
   }
 
   section.append(summary, controls);
-  container.append(section);
+
+  if (previous) previous.replaceWith(section);
+  else traits.insertAdjacentElement('afterend', section);
 }

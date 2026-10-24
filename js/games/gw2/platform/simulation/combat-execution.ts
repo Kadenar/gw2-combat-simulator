@@ -46,7 +46,11 @@ export function createCombatExecution<T extends object>(
         get sigil() {
           return getRuntime().sigil;
         },
+        get random() {
+          return getRuntime().random;
+        },
         procs: Object.freeze({
+          deadline: (key: string | number) => getRuntime().procs.deadline(key),
           claimCooldown: (key: string | number, at: number, duration: number) =>
             getRuntime().procs.claimCooldown(key, at, duration)
         }),

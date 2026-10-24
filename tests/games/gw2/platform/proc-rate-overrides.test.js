@@ -80,6 +80,53 @@ test('proc overrides control every opted-in trait without bypassing selection or
   }
 });
 
+test('Sharpened Edges overrides apply to player and pet critical hits and require the selected trait', async () => {
+  const profession = await loadProfession('ranger');
+  const profile = profession.catalog.balanceProfiles.find((entry) => entry.name === 'Sharpened Edges');
+  const key = 'ranger.sharpened-edges';
+  assert.ok(availableProcRateProfiles(profession.catalog, [profile.procRate.traitId]).includes(profile));
+  assert.ok(!availableProcRateProfiles(profession.catalog, []).includes(profile));
+  for (const mode of ['deterministic', 'stochastic']) {
+    for (const [rate, selected] of [
+      [0, true],
+      [1, true],
+      [1, false]
+    ]) {
+      // The player supplies one guaranteed critical hit while an active pet supplies its own eligible hits.
+      const result = runRuntime({
+        profession,
+        rotation: ['Crossfire', { type: 'wait', durationMs: 12000 }],
+        config: {
+          specialization: 'Core',
+          primaryWeapon: 'Shortbow',
+          selectedPet: 'Jacaranda',
+          attributeInputs: baseAttributeInputs({ power: 2000, precision: 3000, conditionDamage: 1200 }),
+          target: { armor: 2597 },
+          boons: { fury: true },
+          sharePlayerBoonsWithSummons: true,
+          selectedTraitIds: selected ? [profile.procRate.traitId] : [],
+          randomness: { mode, seed: 1 },
+          procRateOverrides: { [key]: rate }
+        },
+        observationPolicy: { kind: 'tail', durationMs: 4000 }
+      });
+      assert.deepEqual(result.warnings, []);
+      const applications = result.resolvedEvents.filter(
+        (event) => event.type === 'condition' && event.sourceId === profile.id
+      );
+      const enabled = rate === 1 && selected;
+      assert.equal(
+        applications.some((event) => event.ownerActorType === 'player'),
+        enabled
+      );
+      assert.equal(
+        applications.some((event) => event.actorType === 'summon'),
+        enabled
+      );
+    }
+  }
+});
+
 test('Serrated Steel overrides preserve independent mech critical eligibility and trait selection', async () => {
   const profession = await loadProfession('engineer');
   const profile = profession.catalog.balanceProfiles.find((entry) => entry.name === 'Serrated Steel');
@@ -171,7 +218,11 @@ test('unset overrides follow patched defaults without mutating balance data', ()
 test('proc rates round-trip with builds and become detached worker configuration', async () => {
   const adapter = await loadProfessionAppAdapter('engineer');
   const original = adapter.toApplicationBuild({});
-  original.assumptions.procRateOverrides = { 'engineer.shrapnel': 0, 'engineer.serrated-steel': 0.5 };
+  original.assumptions.procRateOverrides = {
+    'engineer.shrapnel': 0,
+    'engineer.serrated-steel': 0.5,
+    'sigil.severance': 0.25
+  };
   const build = adapter.toApplicationBuild(JSON.parse(JSON.stringify(original)));
   assert.deepEqual(build.assumptions.procRateOverrides, original.assumptions.procRateOverrides);
   const app = {

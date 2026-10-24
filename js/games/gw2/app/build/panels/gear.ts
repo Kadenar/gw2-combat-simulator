@@ -1,6 +1,7 @@
 import { getProfessionEntry } from '#gw2/profession-registry.js';
 import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS, INFUSION_ICONS } from '#gw2/app/shared/equipment/icons.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import { createProcRateControl } from '#gw2/app/build/panels/proc-rates.js';
 import { FOOD_GROUPS } from '#gw2/platform/equipment/consumables/food.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { PREFIX_GROUPS } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
@@ -190,7 +191,7 @@ export function renderGear(app: ProfessionAppState): void {
           (name) => !canEquipWeaponSigil(b.weaponSigils, setNumber - 1, slot, name)
         ),
         SIGIL_DATA[sigils[slot]]?.icon || ''
-      )}</div>`;
+      )}${sigils[slot] === 'Severance' ? `<div data-severance-proc-input="severance-proc-${setNumber}-${slot}"></div>` : ''}</div>`;
     return `<section class="weapon-set" aria-label="Weapon set ${setNumber}">${sectionHeading(`Weapon set ${setNumber}`)}
       ${[0, 1]
         .map((slot) => {
@@ -230,6 +231,18 @@ export function renderGear(app: ProfessionAppState): void {
   requiredElement('weapon-select').innerHTML = `
     ${weaponSetRows(1, b.weapons, [b.gear.Weapon1, b.gear.Weapon2], b.weaponSigils[0])}
     ${weaponSetRows(2, b.alternateWeapons, b.alternateWeaponPrefixes, b.weaponSigils[1], true)}`;
+  // Every equipped copy edits the same build-wide probability, beside its own sigil selector.
+  document.querySelectorAll<HTMLElement>('[data-severance-proc-input]').forEach((host) => {
+    host.append(
+      createProcRateControl(app, {
+        id: 'sigil.severance',
+        inputId: host.dataset.severanceProcInput!,
+        label: 'Proc chance',
+        defaultChance: 1,
+        opportunity: 'eligible control trigger while Severance is off cooldown'
+      })
+    );
+  });
   document.querySelectorAll('.weapon-prefix').forEach((select) => {
     if (!(select instanceof HTMLSelectElement)) return;
 

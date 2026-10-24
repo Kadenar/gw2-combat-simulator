@@ -7,6 +7,7 @@ import { initBuildTemplates } from '#gw2/app/build/library/controller.js';
 import { updateTemplateSelection } from '#gw2/app/build/library/view.js';
 import { renderSkills } from '#gw2/app/build/panels/skills.js';
 import { renderTraits } from '#gw2/app/build/panels/traits.js';
+import { mountProcRateOverrides } from '#gw2/app/build/panels/proc-rates.js';
 import { mountRotationDisplayControls } from '#gw2/app/rotation/timeline/display-controls.js';
 import { mountSimulationSettings } from '#gw2/app/build/panels/simulation-settings.js';
 import { mountPreviewAssumptions } from '#gw2/app/patch-preview/assumptions.js';
@@ -17,7 +18,13 @@ import type { ProfessionAppState } from '#gw2/app/types.js';
 export const gw2BuildEditor: BuildEditor<ProfessionAppState> = Object.freeze({
   sections: Object.freeze([
     { id: 'gear', render: renderGear },
-    { id: 'traits', render: renderTraits },
+    {
+      id: 'traits',
+      render(app: ProfessionAppState) {
+        renderTraits(app);
+        mountProcRateOverrides(app);
+      }
+    },
     { id: 'preview-assumptions', render: mountPreviewAssumptions },
     { id: 'attributes', render: renderAttributes },
     { id: 'skills', render: renderSkills },

@@ -12,7 +12,6 @@ import {
   TARGET_CONDITION_GROUPS
 } from '#gw2/app/build/panels/metadata.js';
 import { requiredInput, requiredSelect } from '#ui/shared/dom.js';
-import { mountProcRateOverrides } from '#gw2/app/build/panels/proc-rates.js';
 
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type {
@@ -472,5 +471,4 @@ export function renderAssumptions(app: ProfessionAppState): void {
     targetArmor.value = String(app.build.targetArmor);
     app.changed();
   });
-  mountProcRateOverrides(app, expandedSections.get('proc-rates') !== false);
 }

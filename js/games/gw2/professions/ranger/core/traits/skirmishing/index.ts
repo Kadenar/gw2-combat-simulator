@@ -23,6 +23,7 @@ import {
   balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
+  procChanceFromContext,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -209,6 +210,13 @@ export const sharpenedEdges = defineTrait({
   id: TRAIT.SHARPENED_EDGES,
   name: 'Sharpened Edges',
   balance: {
+    // One saved override tunes player and pet proc rolls without changing their critical-hit eligibility.
+    procRate: {
+      id: 'ranger.sharpened-edges',
+      traitId: TRAIT.SHARPENED_EDGES,
+      field: 'criticalChance',
+      opportunity: 'eligible player or pet critical hit'
+    },
     criticalChance: 0.33,
     effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, duration: 3, stacks: 1 }]
   }
@@ -386,8 +394,7 @@ type RangerCriticalHitDefinition = ResolvedCriticalHitOptions<
 
 const rangerCoreCriticalReactions = Object.freeze({
   id: 'ranger.sharpened-edges',
-  chanceOnCriticalHit: (context: RangerResolverContext) =>
-    balanceNumberFromContext(context, TRAIT.SHARPENED_EDGES, 'criticalChance'),
+  chanceOnCriticalHit: (context: RangerResolverContext) => procChanceFromContext(context, TRAIT.SHARPENED_EDGES),
   actorTypes: [ACTOR.PLAYER, ACTOR.SUMMON] as const,
   when(_context: RangerResolverContext, event: Gw2ResolverEvent): boolean {
     return event.actorType === ACTOR.PLAYER || isPetStrike(event);

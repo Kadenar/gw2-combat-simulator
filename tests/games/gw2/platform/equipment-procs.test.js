@@ -428,9 +428,10 @@ test('Severance affects strikes after its control trigger', () => {
       vulnerability: 0
     }
   });
-  const run = (names) =>
+  const run = (names, chance = 1) =>
     simulateMesmer(['Magic Bullet', 'Mind Slash'], {
       ...config,
+      procRateOverrides: { 'sigil.severance': chance },
       sigilSets: [
         { names, strike: 1, condition: 1 },
         { names: [], strike: 1, condition: 1 }
@@ -444,6 +445,10 @@ test('Severance affects strikes after its control trigger', () => {
   assert.ok(
     severance.procSteps.some((proc) => proc.skill === 'Sigil of Severance' && proc.sourceSkill === 'Magic Bullet')
   );
+  // The combat producer forwards the override; suppressing Severance preserves the control and base strike damage.
+  const suppressed = run(['Severance'], 0);
+  assert.equal(mindSlashDamage(suppressed), mindSlashDamage(base));
+  assert.ok(!suppressed.procSteps.some((proc) => proc.skill === 'Sigil of Severance'));
 });
 
 test('sigil and relic damage modifiers affect the queued rotation result', () => {

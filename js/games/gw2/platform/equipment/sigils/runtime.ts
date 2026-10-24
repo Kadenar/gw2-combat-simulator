@@ -1,4 +1,5 @@
 import { ACTOR } from '#gw2/platform/constants.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
 import { SIGIL_IDS, SIGIL_PROCS, SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
@@ -12,14 +13,14 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 const procs = SIGIL_PROCS as Readonly<Record<number, Gw2SigilProc>>;
 
-/** Sigils own their armed state and use only combat facts, proc claims, emission and endurance grants. */
+/** Sigils own their armed state and use shared combat facts, seeded rolls, cooldowns and effect grants. */
 export interface SigilRuntimeContext extends Pick<
   MechanicContext,
-  'config' | 'effects' | 'engagement' | 'activeWeaponSet'
+  'config' | 'effects' | 'engagement' | 'activeWeaponSet' | 'random'
 > {
   readonly sigil: Gw2SigilRuntimeState;
   readonly firstHitTime: number | null;
-  readonly procs: Pick<MechanicContext['procs'], 'claimCooldown'>;
+  readonly procs: Pick<MechanicContext['procs'], 'claimCooldown' | 'deadline'>;
   readonly endurance: Pick<MechanicContext['endurance'], 'grant'>;
 }
 
@@ -83,7 +84,18 @@ export function applyRuntimeSigils(
     // Defiance also represents flanking; ineligible Ice hits must leave the shared ICD untouched.
     if (id === SIGIL_IDS.ICE && !runtime.config.target?.defiant) continue;
 
-    if (!runtime.procs.claimCooldown(`sigil.${id}`, event.at, proc.cooldown)) continue;
+    const cooldownKey = `sigil.${id}`;
+
+    if (id === SIGIL_IDS.SEVERANCE) {
+      // Blocked controls never advance the stream; failed rolls leave the cooldown available.
+      if (!isInternalCooldownReady(event.at, runtime.procs.deadline(cooldownKey))) continue;
+
+      const chance = runtime.config.procRateOverrides?.['sigil.severance'] ?? 1;
+
+      if (!runtime.random.roll(chance, 'sigil.severance')) continue;
+    }
+
+    if (!runtime.procs.claimCooldown(cooldownKey, event.at, proc.cooldown)) continue;
 
     const sourceSkill = event.skillName || (trigger === 'swap' ? 'Swap Weapons' : '');
 
