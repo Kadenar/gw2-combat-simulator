@@ -363,7 +363,6 @@ test('fresh results reveal once while cached visibility changes stay immediate',
           { t: 10000, v: totalDamage }
         ],
         dps: totalDamage / 10,
-        totalDamage,
         targetDied: true,
         warnings: []
       });

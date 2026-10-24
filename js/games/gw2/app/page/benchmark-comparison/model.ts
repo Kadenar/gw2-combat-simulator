@@ -34,7 +34,6 @@ export interface ComparisonResult {
   /** Exact cumulative damage packets, relative to the engine's DPS origin. */
   readonly damage: readonly ChartPoint[];
   readonly dps: number;
-  readonly totalDamage: number;
   readonly targetDied: boolean;
   readonly warnings: readonly Gw2SimulationDiagnostic[];
 }
@@ -70,7 +69,6 @@ export function comparisonResult(result: Gw2ResolverResult): ComparisonResult {
     durationMs,
     damage,
     dps: result.dps,
-    totalDamage: result.totalDamage,
     targetDied: result.deathTime !== null,
     warnings: result.warnings
   };

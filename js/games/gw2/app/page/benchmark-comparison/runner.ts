@@ -2,7 +2,6 @@ import { comparisonKey, type ComparisonResult } from '#gw2/app/page/benchmark-co
 import type { Benchmark } from '#gw2/app/page/benchmarks.js';
 
 export interface ComparisonEntry {
-  readonly row: Benchmark;
   status: 'queued' | 'running' | 'complete' | 'error';
   result?: ComparisonResult;
   error?: string;
@@ -61,7 +60,8 @@ export class ComparisonRunner {
 
     const controller = new AbortController();
     this.controller = controller;
-    for (const row of queue) this.entries.set(comparisonKey(row), { row, status: 'queued' });
+    // Cache execution state by asset identity; the queue owns the builds needed to run it.
+    for (const row of queue) this.entries.set(comparisonKey(row), { status: 'queued' });
     this.changed();
     const consume = async (): Promise<void> => {
       while (queue.length && !controller.signal.aborted) {
