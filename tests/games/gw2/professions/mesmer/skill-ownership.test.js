@@ -12,7 +12,7 @@ import { scheduleAxesClones, completeAxesConfusion } from '#gw2/professions/mesm
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 
 // Successful activation rewards are visible at the owning completion transaction.
-test('Clarity, blade refunds, and instrument state share their successful completion', () => {
+test('Clarity and blade refunds share their successful completion', () => {
   for (const [id, config, reward] of [
     [
       ID.MIND_THE_GAP,
@@ -23,11 +23,6 @@ test('Clarity, blade refunds, and instrument state share their successful comple
       ID.BLADESONG_HARMONY,
       { specialization: 'Virtuoso', initialResource: 5, selectedTraitIds: [TRAIT.INFINITE_FORGE] },
       (event) => event.type === 'resource' && event.reason === 'Infinite Forge refund'
-    ],
-    [
-      ID.LIVELY_LUTE,
-      { specialization: 'Troubadour', initialResource: 3 },
-      (event) => event.type === 'mesmer.instrument'
     ]
   ]) {
     const skill = mesmerCatalog.skillsById.get(id);
@@ -39,6 +34,24 @@ test('Clarity, blade refunds, and instrument state share their successful comple
     assert.ok(applied, skill.name);
     assert.equal(applied.at, cast.endsAt, skill.name);
   }
+});
+
+// Lute spends its notes when playing begins so its first impact can use the active instrument state.
+test('Lute owns its note spend and playing state before its first damage', () => {
+  const result = runMesmer([ID.LIVELY_LUTE], { specialization: 'Troubadour', initialResource: 3 });
+  assert.deepEqual(result.warnings, []);
+  const cast = result.events.find((event) => event.type === 'action');
+  assert.equal(cast.cancelled, false);
+  const ownedEvents = result.events.filter((event) => event.activationId === cast.activationId);
+  const spend = ownedEvents.find((event) => event.type === 'resource' && event.reason === 'profession mechanic');
+  const playing = ownedEvents.find((event) => event.type === 'mesmer.instrument');
+  const damage = ownedEvents.find((event) => event.type === 'damage');
+  assert.ok(spend);
+  assert.ok(playing);
+  assert.ok(damage);
+  assert.equal(spend.at, playing.at);
+  assert.ok(ownedEvents.indexOf(spend) < ownedEvents.indexOf(playing));
+  assert.ok(playing.at < damage.at);
 });
 
 test('Lancer consumes Clarity before preparation and never reuses another activation snapshot', () => {

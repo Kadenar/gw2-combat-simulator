@@ -216,10 +216,18 @@ test('Combat Start is timeline zero while DPS waits for the first subsequent hit
 test('timeline retains simulation time while DPS starts on first damage without Combat Start', () => {
   const result = simulateMesmer(['Phantasmal Swordsman', 'Bladecall'], defaultSimulationConfig());
 
-  assert.equal(result.dpsStartTime, 0.759);
-  assert.ok(Math.abs(result.dpsWindow - 0.561) < 1e-12);
+  // Anchor DPS to observed damage while keeping displayed times on the simulation clock.
+  assert.deepEqual(result.warnings, []);
+  const firstDamage = result.resolvedEvents.find((event) => event.type === 'damage' && event.damage > 0);
+  assert.ok(firstDamage);
+  assert.ok(firstDamage.at > 0);
+  assert.equal(result.dpsStartTime, firstDamage.at);
+  assert.equal(result.dpsWindow, result.combatEndTime - firstDamage.at);
   assert.equal(formatResultTimelineTime(result.steps[0].start, result), '0.000s');
-  assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.880s');
+  assert.equal(
+    formatResultTimelineTime(result.steps[1].start, result),
+    `${(result.steps[1].start / 1000).toFixed(3)}s`
+  );
 });
 
 test('rotation warnings use timeline-relative timestamps', () => {
