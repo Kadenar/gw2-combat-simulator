@@ -45,7 +45,7 @@ export interface ThiefCoreState {
   /** Retain each axe's source so recall repeats that projectile's damage and conditions. */
   spinningAxes: { skillId: SkillId; expiresAt: number }[];
   /** Outgoing projectiles are recallable before landing, but do not occupy grounded slots yet. */
-  outboundAxes: { id: string; skillId: SkillId; landsAt: number }[];
+  outboundAxes: { id: string; skillId: SkillId }[];
   venomChargeBatches: ChargePool['grants'];
   activeThievesGuild: ThievesGuildState | null;
   assassinsSignetPassiveDisabledUntil: number;

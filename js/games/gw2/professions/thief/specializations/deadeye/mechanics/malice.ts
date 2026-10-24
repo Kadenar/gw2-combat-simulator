@@ -93,7 +93,6 @@ export function captureDeadeyeMalice(runtime: ThiefRuntime, cast: RuntimeCast<Th
 
   const malice = runtime.resourceController.value('malice');
   deadeyeCastFacts.set(cast, {
-    malice,
     // Poison, quickness, and duration scaling apply only against a live mark and a hit target.
     markedMalice: cast.command.offTarget !== true && deadeyeMarked(runtime) ? malice : 0
   });

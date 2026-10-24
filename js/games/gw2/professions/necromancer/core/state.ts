@@ -12,7 +12,6 @@ import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 export interface NecromancerSelfCondition {
   readonly condition: string;
   readonly stacks: number;
-  readonly duration?: number;
   readonly appliedAt: number;
   readonly expiresAt: number;
 }

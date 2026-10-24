@@ -26,7 +26,7 @@ test('axe materialization replaces the oldest grant without mutating earlier sta
     {
       initialize(runtime) {
         runtime.profession.core.spinningAxes = prior;
-        runtime.profession.core.outboundAxes = [{ id: 'landing-axe', skillId: 71854, landsAt: 1 }];
+        runtime.profession.core.outboundAxes = [{ id: 'landing-axe', skillId: 71854 }];
         snapshot = snapshotProfessionState(runtime.profession);
       },
       // Exercise landing directly: pending flight cannot mutate the earlier grounded snapshot.
