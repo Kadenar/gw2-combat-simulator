@@ -11,6 +11,7 @@ import { formatResourceValue } from '#gw2/app/rotation/palette/resource-view.js'
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
 import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
@@ -35,6 +36,69 @@ const baseConfig = Object.freeze({
 });
 
 const simulate = createObservedProfessionSimulator(necromancerProfession, baseConfig);
+
+// Cursor and end-state counters share combat observations, including expiry, minion eligibility, and patched caps.
+test('Carapace state tracking follows the inspected observation across Necromancer specializations', () => {
+  for (const maximumStacks of [30, 6]) {
+    const family = withPatchPreview(necromancerProfession, {
+      id: 'carapace-display',
+      label: 'Carapace display',
+      professions: {
+        necromancer: { balanceProfiles: { [TRAIT.FLESH_OF_THE_MASTER]: { fields: { maximumStacks } } } }
+      }
+    });
+    const patch = family.resolvePatch({ id: 'carapace-display' });
+    for (const specialization of ['Core', 'Reaper', 'Scourge', 'Harbinger', 'Ritualist']) {
+      for (const minionTraitSelected of [false, true]) {
+        const planningState = planningFixture(
+          family,
+          {
+            specialization,
+            patchId: 'carapace-display',
+            selectedTraitIds: minionTraitSelected ? [TRAIT.FLESH_OF_THE_MASTER] : []
+          },
+          (runtime) => {
+            runtime.profession.core.carapaceExpiries = [0, 5, 10, 10];
+            runtime.profession.core.activeMinions = { [ID.SUMMON_BONE_MINIONS]: 2 };
+          }
+        );
+        const app = {
+          profession: family,
+          patch,
+          build: {
+            specializations: [{ name: 'Death Magic', traits: minionTraitSelected ? '1-1-1' : '2-1-1' }],
+            rotation: [{ type: 'wait', durationMs: 10000 }]
+          },
+          results: { planningState: { ...planningState, atSeconds: 10 }, rotationEndTime: 10 },
+          adapter: {
+            eliteSpecialization: () => specialization,
+            rotationPlanningStateAt: () => planningState
+          },
+          rotationInsertionIndex: 0
+        };
+        const carapace = () =>
+          rotationStateSnapshot(app).items.find((item) => item.id === 'necromancer-deaths-carapace');
+        const persistent = minionTraitSelected ? 4 : 0;
+        assert.equal(carapace().value, `${Math.min(3 + persistent, maximumStacks)}/${maximumStacks}`);
+        app.rotationInsertionIndex = null;
+        assert.equal(carapace().value, `${persistent}/${maximumStacks}`);
+        assert.equal(carapace().label, "Death's Carapace");
+      }
+    }
+  }
+});
+
+// Keep zero visible for Death Magic builds while avoiding an unrelated counter on other builds.
+test('Carapace state tracking is visible at zero only when Death Magic is equipped', () => {
+  const context = {
+    balanceContext: withPatchPreview(necromancerProfession).resolvePatch().balanceContext,
+    specialization: 'Core',
+    build: { specializations: [] }
+  };
+  assert.deepEqual(necromancerProfession.ui.rotationStateSnapshot(context), []);
+  context.build.specializations = [{ name: 'Death Magic', traits: '1-1-1' }];
+  assert.equal(necromancerProfession.ui.rotationStateSnapshot(context)[0].value, '0/30');
+});
 
 // Runtime and presentation share point capacity; starting input remains a percentage.
 test('Necromancer stores and displays life-force points while starting settings remain percentages', () => {

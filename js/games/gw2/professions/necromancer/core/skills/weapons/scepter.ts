@@ -16,7 +16,8 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
       { atMs: 560, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 0.8 },
-        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 10 }
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 10 },
+        { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 7 }
       ]
     )
   },

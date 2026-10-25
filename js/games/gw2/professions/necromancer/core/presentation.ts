@@ -29,6 +29,8 @@ import type {
   NecromancerUiSlice
 } from '#gw2/professions/necromancer/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 
 const HALF_HEALTH_TRAITS = new Set(['Siphoned Power', 'Spiteful Fortitude', 'Chill of Death', 'Close to Death']);
 const NECROMANCER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
@@ -275,8 +277,25 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
           }
         : undefined,
     assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
-    // Core owns both labels because the effects remain available across Necromancer specializations.
+    // Core owns these labels because the effects remain available across Necromancer specializations.
     effectPresentations: () => [...NECROMANCER_EFFECT_PRESENTATIONS],
+    // Read the inspected combat observation so timed and minion stacks follow the cursor across all specializations.
+    rotationStateSnapshot: (context) => {
+      const stacks = planningBuffStacks(context.planningState, 'necromancer-deaths-carapace');
+      const deathMagic = context.build?.specializations.some((selection) => selection.name === 'Death Magic');
+
+      if (!deathMagic && stacks === 0) return [];
+
+      const maximum = balanceNumberFromContext(context.balanceContext, TRAIT.FLESH_OF_THE_MASTER, 'maximumStacks');
+      return [
+        {
+          id: 'necromancer-deaths-carapace',
+          label: "Death's Carapace",
+          value: `${stacks}/${maximum}`,
+          title: "Current Death's Carapace stacks"
+        }
+      ];
+    },
 
     targetHealthThresholds: necromancerCoreTargetHealthThresholds,
     paletteGroups: (context: NecromancerUiContext) =>

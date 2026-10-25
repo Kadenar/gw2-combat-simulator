@@ -42,40 +42,41 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
         chance: 0.2
       }
     ],
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: [
-      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
-        {
-          type: 'strike',
-          // Each landed bullet grants its share; misses and interrupted shots earn nothing.
-          reactions: [
-            {
-              on: 'damage.resolved',
-              actor: ACTOR.PLAYER,
-              packets: 'each',
-              when: (_runtime, { event }) => Number(event.coefficient) > 0,
-              do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 1.5 } })
-            }
-          ],
-          ticks: [240, 360, 520, 640, 760, 880].map((atMs) => ({ atMs, coefficient: 0.4 }))
-        },
-        {
-          type: 'condition',
-          ticks: [240, 360, 520, 640, 760, 880].map((atMs) => ({
-            atMs,
-            condition: CONDITION.TORMENT,
-            stacks: 1,
-            duration: 4
-          }))
-        }
-      ]),
+    // Both conditions follow each bullet so partial casts and condition-triggered rewards use landed shots.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        // Each landed bullet grants its share; misses and interrupted shots earn nothing.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: ACTOR.PLAYER,
+            packets: 'each',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 1.5 } })
+          }
+        ],
+        ticks: [240, 360, 520, 640, 760, 880].map((atMs) => ({ atMs, coefficient: 0.4 }))
+      },
       {
         type: 'condition',
-        condition: CONDITION.VULNERABILITY,
-        duration: 6,
-        stacks: 6
+        ticks: [240, 360, 520, 640, 760, 880].map((atMs) => ({
+          atMs,
+          condition: CONDITION.TORMENT,
+          stacks: 1,
+          duration: 4
+        }))
+      },
+      {
+        type: 'condition',
+        ticks: [240, 360, 520, 640, 760, 880].map((atMs) => ({
+          atMs,
+          condition: CONDITION.VULNERABILITY,
+          stacks: 1,
+          duration: 6
+        }))
       }
-    ]
+    ])
   },
   [ID.VICIOUS_SHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
