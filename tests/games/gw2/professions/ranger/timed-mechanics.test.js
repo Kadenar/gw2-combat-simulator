@@ -134,7 +134,8 @@ test('Bird of Prey accepts permanent and timed movement buffs only for player-ow
     );
     const application = { at: 1, expiresAt: 2, resolvedAudience: { includesSelf: true } };
     const runtime = { boons: new Map(), buffs: new Map() };
-    (boon === 'swiftness' ? runtime.boons : runtime.buffs).set(boon, [application]);
+    const applicationsByKind = boon === 'swiftness' ? runtime.boons : runtime.buffs;
+    applicationsByKind.set(boon, [application]);
     for (const [time, expected] of [
       [0, false],
       [1, true],
@@ -146,7 +147,8 @@ test('Bird of Prey accepts permanent and timed movement buffs only for player-ow
     assert.equal(rule.when({ ...context, runtime, event: { actorType: 'summon' } }), false);
     assert.equal(rule.when({ ...context, runtime, event: { actorType: 'effect', ownerActorType: 'player' } }), true);
     assert.equal(rule.when({ ...context, runtime, config: { selectedTraitIds: [] } }), false);
-    application.resolvedAudience.includesSelf = false;
+    // Accepted histories are append-only; a different audience needs a fresh history for cached boon queries.
+    applicationsByKind.set(boon, [{ ...application, resolvedAudience: { includesSelf: false } }]);
     assert.equal(rule.when({ ...context, runtime }), false);
   }
 });
