@@ -80,6 +80,67 @@ interface BuffStackApplication extends BuffAudienceMetadata {
 // Per history: its first `length` grants have all expired by `at`, so later queries of that history skip them.
 const expiredGrantPrefixes = new WeakMap<readonly object[], { readonly at: number; readonly length: number }>();
 
+interface DurationBoonCursor {
+  readonly kind: string;
+  readonly audience: Gw2BuffAudience;
+  readonly companionId: string | null | undefined;
+  at: number;
+  length: number;
+  previousTime: number;
+  remaining: number;
+}
+
+const durationBoonCursors = new WeakMap<readonly object[], DurationBoonCursor[]>();
+
+/** Advance append-only accepted pools once per recipient; backwards queries replay without changing grant history. */
+function orderedDurationBoonRemaining(
+  applications: readonly BuffStackApplication[],
+  kind: string,
+  time: number,
+  audience: Gw2BuffAudience,
+  companionId: string | null | undefined
+): number {
+  time = normalizeDurationPool(time);
+  let cursors = durationBoonCursors.get(applications);
+
+  if (!cursors) {
+    cursors = [];
+    durationBoonCursors.set(applications, cursors);
+  }
+
+  let cursor = cursors.find(
+    (entry) => entry.kind === kind && entry.audience === audience && entry.companionId === companionId
+  );
+
+  if (!cursor) {
+    cursor = { kind, audience, companionId, at: time, length: 0, previousTime: time, remaining: 0 };
+    cursors.push(cursor);
+  }
+
+  if (time < cursor.at || applications.length < cursor.length) {
+    cursor.length = 0;
+    cursor.previousTime = time;
+    cursor.remaining = 0;
+  }
+
+  const maximum = durationStackingBoonCapSeconds(kind);
+  for (; cursor.length < applications.length; cursor.length += 1) {
+    const application = applications[cursor.length];
+    const appliedAt = canonicalTime(application.at);
+
+    if (appliedAt > time) break;
+
+    if (!buffMatchesAudience(application, audience, companionId)) continue;
+
+    cursor.remaining = advanceDurationStack(cursor.remaining, application, cursor.previousTime, maximum);
+    cursor.previousTime = appliedAt;
+  }
+
+  cursor.at = time;
+  // Keep the checkpoint at the last grant, avoiding accumulated rounding from intermediate observations.
+  return normalizeDurationPool(Math.max(0, cursor.remaining - Math.max(0, time - cursor.previousTime)));
+}
+
 /** Query only the supplied history; callers retain ownership of phase visibility and permanent assumptions. */
 export function buffApplicationStacks<T extends BuffStackApplication>(
   applications: readonly T[],
@@ -92,7 +153,7 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
     duration,
     start = 0,
     ordered = false,
-    includes = (application: T): boolean => buffMatchesAudience(application, audience, companionId)
+    includes
   }: {
     readonly audience?: Gw2BuffAudience;
     readonly companionId?: string | null;
@@ -102,13 +163,19 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
     readonly includes?: (application: T) => boolean;
   } = {}
 ): number {
+  const matches = includes ?? ((application: T): boolean => buffMatchesAudience(application, audience, companionId));
+
   if (isDurationStackingBoon(kind)) {
-    const remaining = remainingDurationStackSeconds(applications, time, {
-      includes,
-      duration,
-      ordered,
-      maximum: durationStackingBoonCapSeconds(kind)
-    });
+    // Custom filters and duration callbacks may change between reads, so only canonical accepted queries reuse a pool.
+    const remaining =
+      ordered && !duration && !includes
+        ? orderedDurationBoonRemaining(applications, kind, time, audience, companionId)
+        : remainingDurationStackSeconds(applications, time, {
+            includes: matches,
+            duration,
+            ordered,
+            maximum: durationStackingBoonCapSeconds(kind)
+          });
     return remaining > 0 ? clamp(1, 0, maximum) : 0;
   }
 
@@ -140,7 +207,7 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
         }
       }
 
-      if (!includes(application)) continue;
+      if (!matches(application)) continue;
 
       const expiresAt = expiryOf(application);
 
