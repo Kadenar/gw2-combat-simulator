@@ -3,9 +3,15 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
-import { appendChargeGrant, consumeChargeBatch, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import {
+  activeChargeCount,
+  appendChargeGrant,
+  consumeChargeBatch,
+  grantCharges
+} from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -381,12 +387,23 @@ function applyVampiricPresence(context: NecromancerResolverContext, event: Necro
 
   const key = actorKey === RECIPIENT.SELF ? 'necromancer.core.vampiricPresence' : `vampiricPresence:${actorKey}`;
 
-  // Player and companion hits keep independent cooldowns. In-game logs bracket the ICD at (498, 500] ms
-  // with a proc exactly at +0.5 s, so a hit on the deadline is eligible.
-  if (canonicalTime(event.at) < canonicalTime(context.procs.deadline(key))) return;
+  if (claimVampiricPresence(context, key, event.at, profile)) queueBloodMagicLifeSteal(context, event, damage);
+}
 
-  context.procs.setDeadline(key, event.at + balanceProfileNumber(profile, 'cooldown'));
-  queueBloodMagicLifeSteal(context, event, damage);
+/**
+ * Player, companion, and ally hits keep independent cooldowns under one boundary. In-game logs bracket the ICD at
+ * (498, 500] ms with a proc exactly at +0.5 s, so a hit on the deadline is eligible.
+ */
+function claimVampiricPresence(
+  context: Pick<NecromancerResolverContext, 'procs'>,
+  key: string,
+  at: number,
+  profile: BalanceProfile
+): boolean {
+  if (canonicalTime(at) < canonicalTime(context.procs.deadline(key))) return false;
+
+  context.procs.setDeadline(key, at + balanceProfileNumber(profile, 'cooldown'));
+  return true;
 }
 
 function alliedTasteForBloodRecipient(allyIndex: number): string {
@@ -401,16 +418,16 @@ function companionTasteForBloodRecipient(companionId: string): string {
 function addTasteForBloodApplication(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  recipient: string
-): TasteForBloodGrant {
+  recipient: string,
+  cause?: Gw2ResolverEvent | null
+): void {
   const grants = professionCoreState(context).tasteForBloodGrants;
-  const application = {
+  const application: TasteForBloodGrant = {
     ...grantCharges(Math.max(1, event.stacks ?? 1), canonicalTime(event.at + Math.max(0, event.duration || 0))),
-    at: canonicalTime(event.at)
+    at: canonicalTime(event.at),
+    ...(cause === undefined ? {} : { cause })
   };
   grants[recipient] = appendChargeGrant(grants[recipient] ?? [], application, event.at, 'insertion');
-  // Even an immediately expired application retains its own identity when registering its allied window.
-  return application;
 }
 
 // Trait-derived Taste for Blood packets and proc markers keep Overflowing
@@ -424,20 +441,14 @@ const OVERFLOWING_THIRST_ICON = NECROMANCER_TRAITS.find((trait) => trait.id === 
 function consumeTasteForBlood(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  recipient: string,
-  application?: TasteForBloodGrant
+  recipient: string
 ): boolean {
   const profile = requireBalanceProfileFromContext(context, TRAIT.OVERFLOWING_THIRST);
   const effect = requireEffect(profile, 'strike', 'Strike');
   // Application time remains owner metadata: future grants cannot pay for an earlier hit.
   const grants = professionCoreState(context).tasteForBloodGrants[recipient] ?? [];
 
-  // Stable grant identity keeps each allied callback bound to its own application instead of borrowing a sibling.
-  if (
-    !effect ||
-    !consumeChargeBatch(grants, event.at, (grant) => grant.at <= event.at && (!application || grant === application))
-  )
-    return false;
+  if (!effect || !consumeChargeBatch(grants, event.at, (grant) => grant.at <= event.at)) return false;
 
   // Taste for Blood is a power-only life siphon, so armor and weapon strength
   // must not enter its flat base plus Power damage formula.
@@ -455,16 +466,20 @@ function consumeTasteForBlood(
 function reactToTasteForBloodGrant(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.resolvedAudience?.includesSelf) addTasteForBloodApplication(context, event, RECIPIENT.SELF);
 
+  // One registration per ally offers each strike once, so a strike spends that ally's oldest eligible batch, under the
+  // cause of the grant that batch came from.
   context.alliedStrikes.registerRecipients(
-    (allyIndex) => {
+    (allyIndex, cause) => {
       const recipient = alliedTasteForBloodRecipient(allyIndex);
-      const added = addTasteForBloodApplication(context, event, recipient);
+      addTasteForBloodApplication(context, event, recipient, cause);
+      const next = (time: number) =>
+        professionCoreState(context).tasteForBloodGrants[recipient]?.find(
+          (grant) => grant.at <= time && activeChargeCount(grant, time) > 0
+        );
       return {
-        id: `taste-for-blood:${event.eventOrder}:${event.at}:${allyIndex}`,
-        // Matching finite batches retain their individual cause even when application times coincide.
-        expiresAt: added.expiresAt,
-        isActive: () => added.charges > 0,
-        consumptionGroup: 'taste-for-blood',
+        id: `taste-for-blood:${allyIndex}`,
+        isActive: (time) => next(time) != null,
+        causeAt: (time) => next(time)?.cause ?? null,
         trigger(opportunity) {
           return consumeTasteForBlood(
             context,
@@ -476,8 +491,7 @@ function reactToTasteForBloodGrant(context: NecromancerResolverContext, event: N
               allyIndex,
               activationId: opportunity.activationId
             },
-            recipient,
-            added
+            recipient
           );
         }
       };
@@ -555,14 +569,14 @@ function startNecromancerAlliedOpportunities(runtime: NecromancerRuntime): void 
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.VAMPIRIC_PRESENCE);
   runtime.alliedStrikes.registerRecipients((allyIndex) => ({
     id: `necromancer.vampiric-presence:${allyIndex}`,
-    internalCooldown: balanceProfileNumber(profile, 'cooldown'),
     trigger(opportunity) {
       // Allies share the player's aura pulse; strikes before it neither siphon nor spend the recipient ICD.
       if (!vampiricAuraActive(runtime, profile, opportunity.at)) return false;
 
       const damage = vampiricPresenceDamage(runtime, profile);
 
-      if (!damage) return false;
+      if (!damage || !claimVampiricPresence(runtime, `vampiricPresence:ally:${allyIndex}`, opportunity.at, profile))
+        return false;
 
       queueBloodMagicLifeSteal(
         runtime,

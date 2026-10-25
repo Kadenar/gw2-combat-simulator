@@ -4,7 +4,7 @@ import { barrierRecipients } from '#gw2/platform/combat/barrier.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { activeChargeCount, consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { activeChargeCount, consumeChargeBatch, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -270,23 +270,23 @@ function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
 
   const stacks = effectNumber(profile, venom, 'stacks');
   // Barrier grants stack per ally as native batches with inclusive expiry; Rot Wallow Venom has no player counterpart.
-  // The controller only offers strikes, and its consumption group spends one surviving batch per strike.
+  // One registration per ally offers each strike once, so a strike spends that ally's oldest surviving batch, under the
+  // cause of the barrier that granted it.
   runtime.alliedStrikes.registerRecipients(
-    (allyIndex) => {
+    (allyIndex, cause) => {
       const state = specterState.from(runtime);
-      const batch = grantCharges(stacks, runtime.time + venomDuration);
       state.rotWallowVenom[allyIndex] = [
         ...(state.rotWallowVenom[allyIndex] ?? []).filter((grant) => activeChargeCount(grant, runtime.time, true) > 0),
-        batch
+        { ...grantCharges(stacks, runtime.time + venomDuration), cause }
       ];
+      const batches = () => specterState.from(runtime).rotWallowVenom[allyIndex] ?? [];
+      const next = (time: number) => batches().find((batch) => activeChargeCount(batch, time, true) > 0);
       return {
-        id: `rot-wallow:${runtime.time}:${allyIndex}`,
-        expiresAt: batch.expiresAt,
-        inclusiveExpiry: true,
-        isActive: () => batch.charges > 0,
-        consumptionGroup: 'rot-wallow',
+        id: `rot-wallow:${allyIndex}`,
+        isActive: (time) => next(time) != null,
+        causeAt: (time) => next(time)?.cause ?? null,
         trigger(proc) {
-          if (!consumeCharge(batch, proc.at, 0, true)) return false;
+          if (!consumeChargeBatch(batches(), proc.at, undefined, true)) return false;
 
           emitTraitProfile(runtime, TRAIT.DARK_SENTRY, TRAIT.DARK_SENTRY, undefined, {
             at: proc.at,

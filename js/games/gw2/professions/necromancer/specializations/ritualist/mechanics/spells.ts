@@ -1,6 +1,6 @@
 import { RECIPIENT, ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import { activeChargeCount, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import {
   balanceProfileNumber,
@@ -168,10 +168,10 @@ function grantAlliedWeaponSpell(
       active.recipients![`ally:${allyIndex}`] = grantCharges(charges, expiresAt);
       return {
         id: `ritualist.weapon-spell:${spell}:${allyIndex}`,
-        expiresAt: active.recipients![`ally:${allyIndex}`].expiresAt,
-        isActive: () =>
+        // A replacement spell retires this registration; otherwise the ally's native grant answers liveness.
+        isActive: (at) =>
           ritualistState.from(runtime).weaponSpells[spell] === active &&
-          active.recipients![`ally:${allyIndex}`].charges > 0,
+          activeChargeCount(active.recipients![`ally:${allyIndex}`], at) > 0,
         trigger(opportunity) {
           triggerRitualistWeaponSpell(
             runtime,

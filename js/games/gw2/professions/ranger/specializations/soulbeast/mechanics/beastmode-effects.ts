@@ -230,11 +230,12 @@ function scheduleSharedStance(context: RangerResolverContext, event: Gw2Resolver
   if (!maximumAllies) return;
 
   // Live windows share the global strike cadence; the existing recipient ICD handles overlapping grants.
+  const expiresAt = canonicalTime(event.at + (event.duration || 0));
   context.alliedStrikes.registerRecipients(
     (allyIndex) => ({
       id: `stance:${event.kind}:${event.activationId}:${event.at}:${allyIndex}`,
-      expiresAt: event.at + (event.duration || 0),
-      inclusiveExpiry: true,
+      // The shared stance window includes a strike landing exactly at its end.
+      isActive: (at) => at <= expiresAt,
       trigger(proc) {
         handleSharedStanceHit(context, {
           type: 'proc',

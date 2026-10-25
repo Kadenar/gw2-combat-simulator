@@ -22,7 +22,7 @@ for (const [at, duration, expiry] of [
     assert.equal(activeChargeCount(grant, expiry - 0.000001), 1);
     assert.equal(activeChargeCount(grant, expiry), 0);
     assert.equal(consumeCharge(grant, expiry), false);
-    assert.equal(consumeChargeBatch([grant], expiry), false);
+    assert.equal(consumeChargeBatch([grant], expiry), undefined);
     assert.deepEqual(activeChargeGrants([grant], expiry), []);
     expireCharges(grant, expiry);
     assert.equal(grant.charges, 0);
@@ -31,6 +31,7 @@ for (const [at, duration, expiry] of [
     expireCharges(inclusive, expiry, true);
     assert.equal(activeChargeCount(inclusive, expiry, true), 2);
     assert.equal(consumeCharge(inclusive, expiry, 0, true), true);
+    assert.equal(consumeChargeBatch([inclusive], expiry, undefined, true), inclusive);
     expireCharges(inclusive, expiry + 0.000001, true);
     assert.equal(inclusive.charges, 0);
   });
@@ -39,7 +40,7 @@ for (const [at, duration, expiry] of [
 test('charge readers and expiry compare canonical observations and deadlines', () => {
   const grant = { charges: 1, expiresAt: 0.56 + 0.04 };
   assert.equal(activeChargeCount(grant, 0.6), 0);
-  assert.equal(consumeChargeBatch([grant], 0.6), false);
+  assert.equal(consumeChargeBatch([grant], 0.6), undefined);
   expireCharges(grant, 0.6);
   assert.equal(grant.charges, 0);
   assert.equal(activeChargeCount(grantCharges(1, 0.1), 0.3 - 0.2), 0);
@@ -119,18 +120,19 @@ test('batch consumption preserves identity and cannot spend a sibling through an
   const onlySelected = (grant) => grant === selected;
   assert.equal(
     consumeChargeBatch(grants, 1, () => false),
-    false
+    undefined
   );
   assert.equal(selected.charges, 2);
-  assert.equal(consumeChargeBatch(grants, 1, onlySelected), true);
+  // The spent batch is returned so its owner can attribute the spend to that batch's grant.
+  assert.equal(consumeChargeBatch(grants, 1, onlySelected), selected);
   assert.equal(grants[0], selected);
   assert.equal(selected.charges, 1);
-  assert.equal(consumeChargeBatch(grants, 2, onlySelected), true);
+  assert.equal(consumeChargeBatch(grants, 2, onlySelected), selected);
   assert.equal(selected.charges, 0);
   assert.equal(grants.length, 1);
   assert.equal(grants[0], sibling);
-  assert.equal(consumeChargeBatch(grants, 3, onlySelected), false);
-  assert.equal(consumeChargeBatch(grants, 5), false);
+  assert.equal(consumeChargeBatch(grants, 3, onlySelected), undefined);
+  assert.equal(consumeChargeBatch(grants, 5), undefined);
   assert.equal(sibling.charges, 2);
 });
 

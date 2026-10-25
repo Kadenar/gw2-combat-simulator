@@ -408,6 +408,40 @@ for (const cooldown of [0, 1]) {
   });
 }
 
+// The player and an ally keep separate Soulcleave cooldowns, and both admit a strike exactly at the 1 s deadline.
+test("Soulcleave's player and allied procs share the inclusive cooldown boundary", () => {
+  const result = runRevenant(
+    ["Soulcleave's Summit", wait(3500)],
+    {
+      specialization: 'Renegade',
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      allies: { count: 1, strikesPerSecond: 1 }
+    },
+    {
+      initialize(runtime) {
+        // Player hits coincide with each allied strike, one cooldown apart.
+        for (const at of [1, 2, 3]) runtime.effects.emit({ kind: 'packet', event: revenantHit(at) });
+      }
+    }
+  );
+  const procTimes = (allied) => [
+    ...new Set(
+      result.events
+        .filter(
+          (event) =>
+            event.skillName === "Soulcleave's Summit" &&
+            event.type === 'damage' &&
+            Boolean(event.metadata?.triggeredByAlly) === allied
+        )
+        .map((event) => event.at)
+    )
+  ];
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(procTimes(false), [1, 2, 3]);
+  assert.deepEqual(procTimes(true), [1, 2, 3]);
+});
+
 test('Battle Scars rejects overflow and consumes newest before longest-lived', () => {
   const vulnerability = (at, stacks) => ({
     type: 'condition',

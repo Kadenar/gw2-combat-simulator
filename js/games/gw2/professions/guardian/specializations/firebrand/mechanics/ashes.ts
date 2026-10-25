@@ -86,18 +86,15 @@ export function grantAshes(runtime: GuardianRuntime, request: AshesGrantRequest)
         ? { priority: 5, skillName: 'Quickfire', name: 'Quickfire' }
         : { priority: 5, skillName: 'Fervid Conviction', name: 'Fervid Conviction' };
   const event = request.cause;
-  // The controller only offers strikes; its window mirrors the native inclusive expiry. Each new grant replaces the
-  // ally's registration, so later procs carry the latest source's attribution.
+  // The controller only offers strikes; the native grant answers liveness. Each new grant replaces the ally's
+  // registration, so later procs carry the latest source's attribution.
   runtime.alliedStrikes.registerRecipients(
     (allyIndex) => {
-      const grant = install(state.alliedAshes[allyIndex]);
-      state.alliedAshes[allyIndex] = grant;
+      state.alliedAshes[allyIndex] = install(state.alliedAshes[allyIndex]);
       const current = () => firebrandState.from(runtime).alliedAshes[allyIndex];
       return {
         id: `ashes:${allyIndex}`,
-        expiresAt: grant.expiresAt,
-        inclusiveExpiry: true,
-        isActive: () => (current()?.charges ?? 0) > 0,
+        isActive: (at) => activeChargeCount(current(), at, true) > 0,
         trigger(opportunity) {
           const resolved = spendAshesCharge(runtime, current(), opportunity.at);
 

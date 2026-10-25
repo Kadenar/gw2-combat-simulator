@@ -1,6 +1,11 @@
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import { consumeCharge, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import {
+  activeChargeCount,
+  consumeCharge,
+  grantCharges,
+  type ChargeGrant
+} from '#gw2/platform/combat/resources/charges.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -94,13 +99,11 @@ export function razorclawsRage(
   // The controller only offers strikes; each ally's charges, expiry, and cooldown follow the player's policy.
   // Reapplication replaces every grant without resetting the shared strike cadence.
   runtime.alliedStrikes.registerRecipients((allyIndex) => {
-    const grant = arm();
-    state.alliedRazorclawsRage[allyIndex] = grant;
+    state.alliedRazorclawsRage[allyIndex] = arm();
     const current = () => renegadeState.from(runtime).alliedRazorclawsRage[allyIndex];
     return {
       id: `razorclaw:${allyIndex}`,
-      expiresAt: grant.expiresAt,
-      isActive: () => (current()?.charges ?? 0) > 0,
+      isActive: (at) => activeChargeCount(current(), at) > 0,
       trigger(allied) {
         const spent = spendRazorclawCharge(runtime, current());
 

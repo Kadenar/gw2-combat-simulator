@@ -1,5 +1,6 @@
 import { necromancerSoulShardMaximum } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { cappedResource } from '#gw2/platform/combat/resources/pool.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
@@ -19,6 +20,8 @@ export interface NecromancerSelfCondition {
 
 export interface TasteForBloodGrant extends ChargeGrant {
   readonly at: number;
+  /** Allied batches keep their registering cause, which parents the siphon each one pays for. */
+  readonly cause?: Gw2ResolverEvent | null;
 }
 
 /** Preserve accepted cadence independently of action-tick-rounded queue deadlines. */

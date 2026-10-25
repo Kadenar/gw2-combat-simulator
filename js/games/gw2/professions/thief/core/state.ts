@@ -2,7 +2,8 @@ import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.
 import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import { createStealthState, type StealthState } from '#gw2/platform/combat/stealth.js';
 import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
-import type { ChargePool } from '#gw2/platform/combat/resources/charges.js';
+import type { ChargeGrant, ChargePool } from '#gw2/platform/combat/resources/charges.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
@@ -27,6 +28,12 @@ interface ThievesGuildState {
   readonly expiresAt: number;
 }
 
+/** An ally's venom batch keeps the granting cast's identity and cause, which its spends report. */
+export interface AlliedVenomBatch extends ChargeGrant {
+  readonly castId: string;
+  readonly cause: Gw2ResolverEvent | null;
+}
+
 export interface ThiefCoreState extends StealthState {
   /** Same-tick hostile impacts must reveal a new stealth grant regardless of queue insertion order. */
   lastStealthBreakingStrike: { at: number; skillId: SkillId } | null;
@@ -47,7 +54,7 @@ export interface ThiefCoreState extends StealthState {
   outboundAxes: { id: string; skillId: SkillId }[];
   venomChargeBatches: ChargePool['grants'];
   /** Each assumed ally's venom batches, keyed by `${allyIndex}:${skillId}`; the allied controller supplies strikes. */
-  alliedVenomChargeBatches: ChargePool['grants'];
+  alliedVenomChargeBatches: Record<string, AlliedVenomBatch[]>;
   activeThievesGuild: ThievesGuildState | null;
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;

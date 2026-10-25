@@ -37,10 +37,9 @@ test('patched venom duration owns personal and allied charge expiry and tooltip 
       batches.map(({ expiresAt }) => expiresAt),
       [12, 13]
     );
-    assert.deepEqual(
-      recipients.map(({ expiresAt }) => expiresAt),
-      [12, 13]
-    );
+    // The ally's registration answers liveness from its native batches, through the later batch's expiry.
+    assert.equal(recipients.at(-1).isActive(12.999), true);
+    assert.equal(recipients.at(-1).isActive(13), false);
     // The ally's native batches share the player's lifetime and exclusive expiry.
     const allied = runtime.profession.core.alliedVenomChargeBatches[`1:${skill.id}`];
     for (const owned of [batches, allied]) {

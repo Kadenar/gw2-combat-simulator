@@ -10,33 +10,34 @@ export interface AlliedStrikeOpportunity {
   readonly activationId: string;
 }
 
+/**
+ * A recipient's interest in allied strikes. The owning mechanic keeps the recipient's charges, expiry, and cooldowns in
+ * its own state; the controller supplies only the shared strike cadence and the grant's causal parent.
+ */
 export interface AlliedStrikeGrant {
   readonly id: string;
   readonly allyIndex: number;
-  readonly expiresAt?: number;
-  readonly inclusiveExpiry?: boolean;
-  readonly charges?: number;
-  readonly internalCooldown?: number;
-  /** Existing profession state can retire a grant when its charges or upkeep end. */
-  readonly isActive?: () => boolean;
-  /** Stacked batches in one group consume at most one charge per allied strike. */
-  readonly consumptionGroup?: string;
-  /** Returning false leaves the grant available when its effect-specific eligibility fails. */
+  /** Whether the native grant is live at an opportunity time, including future opportunities being scheduled. */
+  readonly isActive?: (at: number) => boolean;
+  /** Batched owners name the cause of the batch an opportunity would spend; otherwise the registering cause applies. */
+  readonly causeAt?: (at: number) => Gw2ResolverEvent | null;
+  /** Returning false leaves the grant registered when its effect-specific eligibility fails. */
   readonly trigger: (opportunity: AlliedStrikeOpportunity) => boolean | void;
 }
 
 export interface AlliedStrikeGrants {
-  /** Select configured recipients once; targeted audiences retain their original ally index. */
+  /**
+   * Select configured recipients once; targeted audiences retain their original ally index. Each recipient receives
+   * the registering cause so native batches that outlive a replaced registration can keep their own parent.
+   */
   registerRecipients(
-    create: (allyIndex: number) => Omit<AlliedStrikeGrant, 'allyIndex'>,
+    create: (allyIndex: number, cause: Gw2ResolverEvent | null) => Omit<AlliedStrikeGrant, 'allyIndex'>,
     recipients?: { maximumAllies?: number; alliedPlayerIndex?: number; allyIndices?: readonly number[] }
   ): void;
 }
 
 interface LiveGrant {
   readonly grant: AlliedStrikeGrant;
-  charges: number;
-  readyAt: number;
   readonly cause: Gw2ResolverEvent | null;
 }
 
@@ -55,15 +56,12 @@ export function createAlliedStrikeController(
   }
 ) {
   const grants = new Map<string, LiveGrant>();
-  const groupReadyAt = new Map<string, number>();
   let anchor: number | null = null;
   let nextAt: number | null = null;
   let sequence = 0;
   let dispatching = false;
-  const liveAt = (live: LiveGrant, at: number): boolean => {
-    const end = live.grant.expiresAt ?? Infinity;
-    return live.charges > 0 && (live.grant.inclusiveExpiry ? at <= end : at < end) && (live.grant.isActive?.() ?? true);
-  };
+  const liveAt = (live: LiveGrant, at: number): boolean => live.grant.isActive?.(at) ?? true;
+  const causeAt = (live: LiveGrant, at: number): Gw2ResolverEvent | null => live.grant.causeAt?.(at) ?? live.cause;
 
   // Exhausted windows leave no heartbeat; re-registration rejoins the original engagement grid.
   function start(): void {
@@ -96,18 +94,6 @@ export function createAlliedStrikeController(
     services.schedule(at, sequence);
   }
 
-  function register(grant: AlliedStrikeGrant): void {
-    grants.set(grant.id, {
-      grant: {
-        ...grant,
-        expiresAt: Number.isFinite(grant.expiresAt) ? canonicalTime(grant.expiresAt!) : grant.expiresAt
-      },
-      charges: grant.charges ?? Infinity,
-      readyAt: -Infinity,
-      cause: services.captureCause()
-    });
-  }
-
   const capability: AlliedStrikeGrants = {
     registerRecipients(create, recipients = {}) {
       const { count, strikesPerSecond } = gw2AlliedPlayerAssumptions(runtime().config);
@@ -123,7 +109,13 @@ export function createAlliedStrikeController(
       const selected = [...new Set(indices)]
         .filter((i) => Number.isInteger(i) && i > 0 && i <= count)
         .slice(0, Math.max(0, Math.trunc(recipients.maximumAllies ?? count)));
-      for (const allyIndex of selected) register({ ...create(allyIndex), allyIndex });
+      const cause = services.captureCause();
+      // Reusing an ID replaces that recipient's registration without moving the shared cadence.
+      for (const allyIndex of selected) {
+        const grant = { ...create(allyIndex, cause), allyIndex };
+        grants.set(grant.id, { grant, cause });
+      }
+
       // Publish the whole party before scanning eligibility and scheduling its shared opportunity.
       start();
     }
@@ -135,9 +127,10 @@ export function createAlliedStrikeController(
     pendingEffects(): { at: number; cause: Gw2ResolverEvent; grant: AlliedStrikeGrant }[] {
       if (nextAt == null) return [];
 
-      return [...grants.values()].flatMap((live) =>
-        live.cause && liveAt(live, nextAt!) ? [{ at: nextAt!, cause: live.cause, grant: live.grant }] : []
-      );
+      return [...grants.values()].flatMap((live) => {
+        const cause = liveAt(live, nextAt!) ? causeAt(live, nextAt!) : null;
+        return cause ? [{ at: nextAt!, cause, grant: live.grant }] : [];
+      });
     },
     strike(expectedSequence: number): void {
       const context = runtime();
@@ -148,7 +141,6 @@ export function createAlliedStrikeController(
 
       if (!autonomousActionsAllowed(context)) return;
 
-      const consumed = new Set<string>();
       dispatching = true;
       try {
         // Freeze membership before callbacks: new grants wait for the next causal strike.
@@ -161,19 +153,10 @@ export function createAlliedStrikeController(
           }
 
           const { grant } = live;
-          const group = grant.consumptionGroup && `${grant.allyIndex}:${grant.consumptionGroup}`;
-
-          // Recipient ICDs admit the strike landing exactly on the deadline; in-game logs show
-          // Vampiric Presence procs at +0.5 s and Soulcleave grants one proc per 1 s window.
-          if (
-            context.time < live.readyAt ||
-            (group && (consumed.has(group) || context.time < (groupReadyAt.get(group) ?? -Infinity)))
-          )
-            continue;
 
           if (
             // Parentage belongs to the grant; ordering belongs to this live opportunity.
-            services.withCause(live.cause, () =>
+            services.withCause(causeAt(live, context.time), () =>
               grant.trigger({
                 allyIndex: grant.allyIndex,
                 at: context.time,
@@ -183,14 +166,7 @@ export function createAlliedStrikeController(
           )
             continue;
 
-          live.charges--;
-          live.readyAt = canonicalTime(context.time + (grant.internalCooldown ?? 0));
-
-          if (group) {
-            consumed.add(group);
-            groupReadyAt.set(group, live.readyAt);
-          }
-
+          // A spend can exhaust the native grant; retire it unless the trigger already replaced it.
           if (!liveAt(live, context.time) && grants.get(id) === live) grants.delete(id);
         }
       } finally {

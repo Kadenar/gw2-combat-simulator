@@ -501,7 +501,7 @@ export function runRuntime<T extends object>(
     acceptCast: casts.acceptCast,
     reject: casts.reject
   };
-  const recurringPreviewDeadlines = new WeakMap<object, number>();
+  const sustainedPreviewDeadlines = new WeakMap<object, number>();
   coordinator.run(
     runtime,
     execution,
@@ -535,11 +535,13 @@ export function runRuntime<T extends object>(
 
       const { grant } = pending;
 
-      // Preview completion samples an open-ended grant without changing its combat lifetime or charges.
-      if (!Number.isFinite(grant.expiresAt) && !Number.isFinite(grant.charges)) {
-        if (!recurringPreviewDeadlines.has(grant)) recurringPreviewDeadlines.set(grant, pending.at);
+      // A grant still live at the safety horizon, such as one sustained by an upkeep, has no finite payout to finish:
+      // sample its first opportunity instead of following it past the calculation window.
+      // Assumes finite allied grants expire well before the 120 s horizon (the longest, venoms, last 24 s).
+      if (runtime.horizon != null && (grant.isActive?.(runtime.horizon) ?? true)) {
+        if (!sustainedPreviewDeadlines.has(grant)) sustainedPreviewDeadlines.set(grant, pending.at);
 
-        deadline = Math.max(deadline, recurringPreviewDeadlines.get(grant)!);
+        deadline = Math.max(deadline, sustainedPreviewDeadlines.get(grant)!);
       } else deadline = Math.max(deadline, pending.at);
     }
 

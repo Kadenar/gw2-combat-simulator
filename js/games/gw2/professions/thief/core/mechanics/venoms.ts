@@ -11,6 +11,7 @@ import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thie
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 import {
+  activeChargeCount,
   activeChargeGrants,
   appendChargeGrant,
   consumeChargeBatch,
@@ -84,12 +85,9 @@ export function addVenomCharges(
   grantChargePool(pool, String(skillId), at, charges, duration, cap);
 }
 
-/**
- * One venom policy for every recipient: a strike spends the oldest live batch, or only `batch` when a recipient's
- * opportunity is bound to one, and expiry is exclusive.
- */
-function spendVenomCharge(batches: ChargeGrant[] | undefined, at: number, batch?: ChargeGrant): boolean {
-  return batches != null && consumeChargeBatch(batches, at, (grant) => batch == null || grant === batch);
+/** One venom policy for every recipient: a strike spends the oldest live batch, whose expiry is exclusive. */
+function spendVenomCharge<T extends ChargeGrant>(batches: T[] | undefined, at: number): T | undefined {
+  return batches && consumeChargeBatch(batches, at);
 }
 
 /** Consumes one charge from every active venom on a player strike and applies each venom's complete proc packet. */
@@ -152,26 +150,28 @@ export function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
   const duration = balanceProfileNumber(profile, 'duration');
   addVenomCharges(core, cast.skill.id, at, maximumStacks, duration);
-  // Each cast adds one native batch per ally under the player's policy. The controller only offers strikes; its
-  // consumption group lets one strike spend a single batch per venom, oldest registration first.
-  runtime.alliedStrikes.registerRecipients((allyIndex) => {
+  // Each cast appends one native batch per ally that keeps its cast's identity and cause. One registration per ally and
+  // venom offers each strike once, so a strike spends at most that ally's oldest live batch.
+  runtime.alliedStrikes.registerRecipients((allyIndex, cause) => {
     const key = `${allyIndex}:${venom.skillId}`;
-    const batch = grantCharges(maximumStacks, at + duration);
     core.alliedVenomChargeBatches[key] = appendChargeGrant(
       core.alliedVenomChargeBatches[key] ?? [],
-      batch,
+      { ...grantCharges(maximumStacks, at + duration), castId: cast.id, cause },
       at,
       'earliest-expiry'
     );
+    const batches = () => runtime.profession.core.alliedVenomChargeBatches[key] ?? [];
+    const next = (time: number) => batches().find((batch) => activeChargeCount(batch, time) > 0);
     return {
-      id: `venom:${cast.id}:${allyIndex}`,
-      expiresAt: batch.expiresAt,
-      isActive: () => batch.charges > 0,
-      consumptionGroup: `venom:${venom.skillId}`,
+      id: `venom:${venom.skillId}:${allyIndex}`,
+      isActive: (time) => next(time) != null,
+      causeAt: (time) => next(time)?.cause ?? null,
       trigger(proc) {
-        if (!spendVenomCharge(runtime.profession.core.alliedVenomChargeBatches[key], proc.at, batch)) return false;
+        const batch = spendVenomCharge(batches(), proc.at);
 
-        emitAlliedVenom(runtime, venom, profile, cast, proc);
+        if (!batch) return false;
+
+        emitAlliedVenom(runtime, venom, profile, batch.castId, proc);
       }
     };
   });
@@ -182,7 +182,7 @@ function emitAlliedVenom(
   runtime: ThiefRuntime,
   venom: VenomDefinition,
   profile: BalanceProfile,
-  cast: RuntimeCast<ThiefSkill>,
+  castId: string,
   proc: AlliedStrikeOpportunity
 ): void {
   for (const [effectIndex, effect] of conditionEffects(profile).entries())
@@ -196,7 +196,7 @@ function emitAlliedVenom(
         condition: String(effect.condition),
         stacks: effectNumber(profile, effect, 'stacks'),
         duration: effectNumber(profile, effect, 'duration'),
-        activationId: `${cast.id}:${proc.activationId}`,
+        activationId: `${castId}:${proc.activationId}`,
         metadata: { triggeredByAlly: proc.allyIndex, venomProcEffectIndex: effectIndex }
       })
     });

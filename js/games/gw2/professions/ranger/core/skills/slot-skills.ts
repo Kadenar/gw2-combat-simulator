@@ -688,7 +688,7 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Gw
     context,
     event,
     PROFILE.sharpeningStone,
-    () => consumeChargeBatch(state.sharpeningStoneGrants, event.at),
+    () => consumeChargeBatch(state.sharpeningStoneGrants, event.at) !== undefined,
     {
       attribution: {
         source: 'ranger',

@@ -108,22 +108,26 @@ export function appendChargeGrant<T extends ChargeGrant>(
   return activeChargeGrants([...grants, grant], at, order);
 }
 
-/** Spends the first eligible live batch in its retained order and removes it when exhausted. */
+/**
+ * Spends the first eligible live batch in its retained order, removes it when exhausted, and returns it so the owner
+ * can attribute the spend to that batch's own grant.
+ */
 export function consumeChargeBatch<T extends ChargeGrant>(
   grants: T[],
   at: number,
-  eligible: (grant: T) => boolean = () => true
-): boolean {
-  const index = grants.findIndex((grant) => eligible(grant) && activeChargeCount(grant, at) > 0);
+  eligible: (grant: T) => boolean = () => true,
+  inclusiveExpiry = false
+): T | undefined {
+  const index = grants.findIndex((grant) => eligible(grant) && activeChargeCount(grant, at, inclusiveExpiry) > 0);
 
-  if (index < 0) return false;
+  if (index < 0) return;
 
   // Registered consumers retain this batch reference and must observe its live charge count through exhaustion.
   const grant = grants[index];
 
-  if (!consumeCharge(grant, at)) return false;
+  if (!consumeCharge(grant, at, 0, inclusiveExpiry)) return;
 
   if (grant.charges === 0) grants.splice(index, 1);
 
-  return true;
+  return grant;
 }

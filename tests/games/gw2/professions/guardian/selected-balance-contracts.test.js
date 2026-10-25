@@ -166,7 +166,9 @@ test('Quickfire grants selected charges to self or the eligible ally', async () 
     if (alliedPlayerCount) {
       assert.equal(state.alliedAshes[1].charges, 3);
       assert.equal(state.alliedAshes[1].expiresAt, 6);
-      assert.equal(recipients[0][0].expiresAt, 6);
+      // The ally's native grant, not the registration, owns its inclusive expiry.
+      assert.equal(recipients[0][0].isActive(6), true);
+      assert.equal(recipients[0][0].isActive(6.001), false);
       assert.equal(recipients[0][1].maximumAllies, 1);
       assert.equal(state.ashes.charges, 0);
     } else {

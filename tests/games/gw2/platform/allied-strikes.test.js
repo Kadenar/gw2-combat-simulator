@@ -16,10 +16,14 @@ function fixture({ explicit = true, rate = 2 } = {}) {
   const engagement = createCombatEngagement({ authoredMarkers: explicit ? 1 : 0 }, () => runtime.time);
   runtime.engagement = engagement.query;
   const queue = [];
+  const causes = [];
   const controller = createAlliedStrikeController(() => runtime, {
     schedule: (at, sequence) => queue.push({ at, sequence }),
     captureCause: () => null,
-    withCause: (_cause, run) => run()
+    withCause: (cause, run) => {
+      causes.push(cause);
+      return run();
+    }
   });
   const triggered = [];
   return {
@@ -27,18 +31,28 @@ function fixture({ explicit = true, rate = 2 } = {}) {
     engagement,
     controller,
     queue,
+    causes,
     triggered,
+    // A minimal native owner keeps the charges and exclusive expiry that the controller no longer owns.
     grant(id, extras = {}) {
-      const { allyIndex = 1, ...grant } = extras;
+      const {
+        allyIndex = 1,
+        expiresAt = 10,
+        charges = 1,
+        trigger = (event) => {
+          triggered.push({ id, ...event });
+        }
+      } = extras;
+      const owned = { charges };
       controller.grants.registerRecipients(
         () => ({
           id,
-          expiresAt: 10,
-          charges: 1,
-          trigger: (event) => {
-            triggered.push({ id, ...event });
-          },
-          ...grant
+          isActive: (at) => owned.charges > 0 && at < expiresAt,
+          trigger(event) {
+            if (trigger(event) === false) return false;
+
+            owned.charges--;
+          }
         }),
         { alliedPlayerIndex: allyIndex }
       );
@@ -194,37 +208,58 @@ test('application, replacement and exhaustion preserve one shared causal strike 
   assert.equal(f.triggered.at(-1).allyIndex, 2);
 });
 
-test('stacked batches spend in order without stealing another effect or recipient opportunity', () => {
+// One registration per ally offers each strike once; the owner names the batch it will spend as the strike's parent.
+test('batched owners parent each opportunity with the batch it will spend', () => {
   const f = fixture();
-  f.grant('old', { consumptionGroup: 'venom' });
-  f.grant('new', { consumptionGroup: 'venom' });
-  f.grant('other-ally', { consumptionGroup: 'venom', allyIndex: 2 });
-  f.grant('other-effect', { consumptionGroup: 'ashes' });
+  const older = { activationId: 'older' };
+  const newer = { activationId: 'newer' };
+  const batches = [
+    { cause: older, charges: 1 },
+    { cause: newer, charges: 1 }
+  ];
+  const next = () => batches.find((batch) => batch.charges > 0);
+  f.controller.grants.registerRecipients(
+    () => ({
+      id: 'batched',
+      isActive: () => next() != null,
+      causeAt: () => next()?.cause ?? null,
+      trigger() {
+        next().charges--;
+      }
+    }),
+    { alliedPlayerIndex: 1 }
+  );
   f.engage();
-  f.advance(0.5);
   assert.deepEqual(
-    f.triggered.map(({ id }) => id),
-    ['old', 'other-ally', 'other-effect']
+    f.controller.pendingEffects().map(({ cause }) => cause),
+    [older]
   );
   f.advance(1);
-  assert.equal(f.triggered.at(-1).id, 'new');
+  assert.deepEqual(f.causes, [older, newer]);
+  assert.deepEqual(f.queue, []);
 });
 
-test('recipient ICDs and inclusive or exclusive expiry are evaluated on actual opportunities', () => {
+// Native owners decide liveness for the strike being dispatched and for the next one being scheduled.
+test('owners answer liveness at actual and scheduled opportunity times', () => {
   const f = fixture({ rate: 10 });
-  f.grant('inclusive', { charges: 5, expiresAt: 0.3, inclusiveExpiry: true, internalCooldown: 0.2 });
-  f.grant('exclusive', { charges: 5, expiresAt: 0.3, internalCooldown: 0.2 });
+  f.controller.grants.registerRecipients(
+    () => ({
+      id: 'window',
+      // An inclusive native window admits the strike landing exactly at its end.
+      isActive: (at) => at <= 0.3,
+      trigger: (event) => {
+        f.triggered.push(event);
+      }
+    }),
+    { alliedPlayerIndex: 1 }
+  );
   f.engage();
   f.advance(0.3);
-  // The 0.3 opportunity sits on both ICD deadlines; only expiry inclusivity decides which grant fires.
   assert.deepEqual(
-    f.triggered.map(({ id, at }) => [id, at]),
-    [
-      ['inclusive', 0.1],
-      ['exclusive', 0.1],
-      ['inclusive', 0.3]
-    ]
+    f.triggered.map(({ at }) => at),
+    [0.1, 0.2, 0.3]
   );
+  assert.deepEqual(f.queue, [], 'no opportunity is scheduled after the window closes');
 });
 
 test('failed eligibility keeps charges and death stops consumption and rescheduling', () => {
@@ -275,7 +310,7 @@ test('recipient registration clamps counts and deduplicates selected allies', ()
   const selected = [];
   const create = (allyIndex) => {
     selected.push(allyIndex);
-    return { id: String(allyIndex), charges: 1, trigger() {} };
+    return { id: String(allyIndex), trigger() {} };
   };
 
   f.controller.grants.registerRecipients(create, { maximumAllies: 1 });
