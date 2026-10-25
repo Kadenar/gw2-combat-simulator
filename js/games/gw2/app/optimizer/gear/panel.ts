@@ -9,7 +9,6 @@ import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { escapeHtml } from '#ui/shared/html.js';
-import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import {
   prefixOptionLabel,
   runeOptionLabel,
@@ -144,7 +143,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
         .join('')}
       <p>Show the best result found for each option or combination, up to 100 results.</p></fieldset></details></div>
       <progress data-role="optimizer-progress" max="100" value="0" aria-label="Optimizer coverage"></progress>
-      <p data-role="optimizer-warnings"></p></div>
+      </div>
       <div data-role="optimizer-results"></div>
       <section data-role="optimizer-preview" class="optimizer-preview" aria-label="Result character" hidden></section>`;
     results.append(panel);
@@ -418,15 +417,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       : `${state.completed.toLocaleString()} / ${state.count.toLocaleString()} candidates checked; ${state.simulations.toLocaleString()} simulations.`
     : '';
 
-  panel.querySelector('[data-role="optimizer-warnings"]')!.textContent = [...state.warnings]
-    .map(([warning, count]) => `${warning} (${count.toLocaleString()} evaluated candidates)`)
-    .join(' • ');
-
-  if (equippedScore?.warnings.length) {
-    panel.querySelector('[data-role="optimizer-warnings"]')!.textContent +=
-      ` Current-build warnings: ${equippedScore.warnings.map(formatSimulationDiagnostic).join(' • ')}`;
-  }
-
+  // Keep optimizer feedback focused on search status and rankings; simulation warnings stay in result data.
   const list = panel.querySelector<HTMLElement>('[data-role="optimizer-results"]')!;
   const candidates = displayedResults();
   const signature = JSON.stringify([
@@ -485,7 +476,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
         )
         .join(
           ''
-        )}${equipmentCell('Rune', equipment.rune, true, EQUIPMENT_ICONS[equipment.rune])}${equipmentCell('Relic', equipment.relic, true, (RELIC_DATA as Record<string, { icon?: string }>)[equipment.relic]?.icon)}${equipmentCell('Food', equipment.food, false, EQUIPMENT_ICONS[equipment.food])}${equipmentCell('Utility', equipment.utility, false, EQUIPMENT_ICONS[equipment.utility])}${equipmentCell('Infusions', infusions(equipment))}</tr>${!pinned && candidate.score.warnings.length ? `<tr class="optimizer-result-warning"><td colspan="${slots.length + sets.length * 2 + 6}">${candidate.score.warnings.map((warning) => escapeHtml(formatSimulationDiagnostic(warning))).join('<br>')}</td></tr>` : ''}`;
+        )}${equipmentCell('Rune', equipment.rune, true, EQUIPMENT_ICONS[equipment.rune])}${equipmentCell('Relic', equipment.relic, true, (RELIC_DATA as Record<string, { icon?: string }>)[equipment.relic]?.icon)}${equipmentCell('Food', equipment.food, false, EQUIPMENT_ICONS[equipment.food])}${equipmentCell('Utility', equipment.utility, false, EQUIPMENT_ICONS[equipment.utility])}${equipmentCell('Infusions', infusions(equipment))}</tr>`;
     };
 
     list.innerHTML = best

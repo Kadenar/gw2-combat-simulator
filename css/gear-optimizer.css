@@ -659,9 +659,6 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   font-size: 11px;
   color: var(--text-dim);
 }
-.optimizer-feedback [data-role='optimizer-warnings']:empty {
-  display: none;
-}
 .optimizer-feedback [data-role='optimizer-counts'] {
   color: var(--text-dim);
   font-size: 11px;
@@ -836,11 +833,6 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 .optimizer-table-scroll thead tr:first-child th:first-child,
 .optimizer-table-scroll td:first-child {
   padding-left: 12px;
-}
-.optimizer-result-warning td {
-  white-space: normal;
-  color: var(--text-dim);
-  font-size: 11px;
 }
 /* The equipped setup remains visible below the scrollable, filtered candidates. */
 .optimizer-equipped td {
