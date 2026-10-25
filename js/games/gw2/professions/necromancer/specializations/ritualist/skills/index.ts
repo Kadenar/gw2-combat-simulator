@@ -56,7 +56,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   [ID.SUMMON_SPIRITS]: {
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
     sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-spirits' } }],
-    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 0,
     effects: [],
     type: 'Profession',
@@ -131,7 +130,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   [ID.ANGUISH]: {
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
     sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-anguish' } }],
-    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 560,
     interruptCommitMs: 400,
     interruptMode: 'commit',
@@ -160,7 +158,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       { on: 'castStart', do: { type: 'ritualist.wanderlust-opening' } },
       { on: 'castCommit', do: { type: 'ritualist.summon-wanderlust' } }
     ],
-    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 760,
     effects: [],
     type: 'Profession',

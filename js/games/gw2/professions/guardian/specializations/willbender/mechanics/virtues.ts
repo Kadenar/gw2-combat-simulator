@@ -16,11 +16,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import {
-  justiceActivated,
-  refreshGuardianVirtues,
-  virtueActivated
-} from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import { admitVirtueActivation, completeVirtueActivation } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { permeatingWrathThreshold } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -40,8 +36,6 @@ import type {
 import { canonicalTime } from '#kernel/core/clock.js';
 
 const PULSE = 'guardian.willbender.pulse';
-
-const readyVirtues = new WeakSet<RuntimeCast<GuardianSkill>>();
 
 const VIRTUES = [
   [ID.RUSHING_JUSTICE, 'justice'],
@@ -246,26 +240,14 @@ function prepareWillbenderVirtue(runtime: GuardianRuntime, cast: RuntimeCast<Gua
 
   const virtue = VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
 
-  if (!virtue) return;
-
-  refreshGuardianVirtues(runtime);
-
-  if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtues.add(cast);
+  if (virtue) admitVirtueActivation(runtime, cast, virtue);
 }
 
 /** Committed virtues publish shared activation rewards only for their accepted readiness. */
 function completeWillbenderVirtue(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
   const virtue = VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
 
-  if (virtue) {
-    refreshGuardianVirtues(runtime);
-
-    if (readyVirtues.has(cast)) {
-      runtime.fireTrigger(virtueActivated, { cast, virtue });
-
-      if (virtue === 'justice') runtime.fireTrigger(justiceActivated, { cast });
-    }
-  }
+  if (virtue) completeVirtueActivation(runtime, cast, virtue);
 }
 
 /** Keep scheduled work with the state and generation that own its lifetime. */

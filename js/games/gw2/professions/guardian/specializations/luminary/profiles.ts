@@ -13,6 +13,7 @@ export const LUMINARY_BALANCE_PROFILE_IDS = Object.freeze({
   glaringBurstVulnerability: 'guardian.luminary.glaring-burst.vulnerability',
   radiantJusticeImpact: 'guardian.luminary.radiant-justice-impact',
   radiantCourageImmobilize: 'guardian.luminary.radiant-courage-immobilize',
+  radiantResolveRegeneration: 'guardian.luminary.radiant-resolve-regeneration',
   effulgentStance: 'guardian.luminary.effulgent-stance-detonation',
   lightAura: 'guardian.luminary.light-aura'
 });
@@ -25,6 +26,14 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     profileKind: 'skill-variant',
     parentId: ID.GLEAMING_BLADE,
     effects: [{ type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }]
+  },
+  // Radiant Resolve adds four seconds of party Regeneration to the next Luminous Staff impact (wiki: Radiant_Resolve).
+  {
+    id: LUMINARY_BALANCE_PROFILE_IDS.radiantResolveRegeneration,
+    name: 'Radiant Resolve - Luminous Staff Regeneration',
+    profileKind: 'skill-variant',
+    parentId: ID.LUMINOUS_STAFF,
+    effects: [{ type: 'boon', boon: BOON.REGENERATION, duration: 4, audience: { recipients: RECIPIENT.PARTY } }]
   },
   // Support weapons replace the strike with a party boon; every weapon applies the shared vulnerability afterward.
   {

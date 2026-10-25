@@ -21,6 +21,8 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     sideEffects: [
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.blossoming-aura' } }
     ],
+    // The Aura lifecycle pulses these effects as its payload, so the cast itself emits none.
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 600,
     interruptCommitMs: 480,
     rechargeAnchor: 'castStart',
@@ -365,9 +367,6 @@ export const scepterLifecycle = {
     'revenant.detonate-aura'(runtime, context) {
       if (context.kind === 'cast') detonateRevenantBlossomingAura(runtime, context.cast);
     }
-  },
-  modifyEffects(_runtime, cast, effects) {
-    return cast.skill.id === ID.BLOSSOMING_AURA || cast.skill.id === ID.DETONATE_BLOSSOMING_AURA ? [] : effects;
   },
   tasks: {
     [REVENANT_BLOSSOMING_AURA]: revenantBlossomingAuraPulse,

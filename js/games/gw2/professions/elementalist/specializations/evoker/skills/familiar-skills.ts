@@ -41,13 +41,10 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
     sideEffects: [
       { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
-      { on: 'castStart', do: { type: 'elementalist.evoker.capture-ignite-tier' } },
       { on: 'castCommit', do: { type: 'elementalist.evoker.settle-basic-familiar' } }
     ],
-    // The start action snapshots one tier; repeated packet selection cannot increment it again.
-    effectVariants: [
-      { when: () => true, profileId: PROFILE.ignite, transform: (_runtime, cast) => selectIgniteEffects(cast) }
-    ],
+    // Acceptance advances the Burning tier once and selects that tier's packet for this cast.
+    effectVariants: [{ when: () => true, transform: acceptIgniteEffects }],
 
     name: 'Ignite',
     type: 'Profession',
@@ -450,20 +447,26 @@ export function beginFamiliarCast(
   }
 }
 
-const igniteBurningByCast = new WeakMap<RuntimeCast<ElementalistSkill>, SkillEffect | undefined>();
-
-/** Capture and advance the tier once at acceptance; effect selection only reads this immutable choice. */
-export function captureIgniteTier(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
+/**
+ * Advance Ignite's Burning tier once per accepted cast and select that tier's packet. A replaced Ignite keeps the
+ * current tier; `modifyFamiliarEffects` removes its packets.
+ */
+export function acceptIgniteEffects(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  effects: readonly SkillEffect[]
+): readonly SkillEffect[] {
   const state = evokerState.from(context);
 
-  if (state.cancelledFamiliarActivations[cast.id]) return;
+  if (state.cancelledFamiliarActivations[cast.id]) return effects;
 
   if (cast.start - state.igniteLastUsedAt >= balanceNumberFromContext(context, PROFILE.ignite, 'threshold'))
     state.igniteTier = 0;
 
-  igniteBurningByCast.set(cast, igniteTierEffect(context, state.igniteTier));
+  const burning = igniteTierEffect(context, state.igniteTier);
   state.igniteTier = Math.min(state.igniteTier + 1, IGNITE_TIERS.length - 1);
   state.igniteLastUsedAt = cast.start;
+  return projectIgniteEffects(effects, burning);
 }
 
 /** Replacement cancellation remains shared across familiar packets, independent of their selected payload. */
@@ -473,11 +476,6 @@ export function modifyFamiliarEffects(
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   return evokerState.from(context).cancelledFamiliarActivations[cast.id] ? [] : effects;
-}
-
-/** Ignite's definition selects Burning from its accepted tier without advancing state during a query. */
-export function selectIgniteEffects(cast: RuntimeCast<ElementalistSkill>): readonly SkillEffect[] {
-  return projectIgniteEffects(cast.skill.effects ?? [], igniteBurningByCast.get(cast));
 }
 
 /** Convert basic charges and gate the empowered flip using the selected patch's familiar delay. */

@@ -10,11 +10,15 @@ import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardia
 
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
+import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
+import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
+const HAMMER = 'guardian.luminary.hammer';
+
 /** Justice is sampled at hammer impact, allowing a concurrent virtue to empower an already accepted cast. */
-export function hammerImpact(runtime: GuardianRuntime, data: unknown): void {
+function hammerImpact(runtime: GuardianRuntime, data: unknown): void {
   const state = luminaryState.from(runtime);
 
   if (!state.radiantJusticeArmed) return;
@@ -61,3 +65,16 @@ export function hammerImpact(runtime: GuardianRuntime, data: unknown): void {
       })
     });
 }
+
+/**
+ * Radiant Justice empowers the first committed Dazzling Hammer impact after activation. Sampling at impact rather than
+ * at acceptance lets a virtue used mid-cast empower that hammer, and lets a missed hammer still spend the entitlement.
+ */
+export const luminaryHammerLifecycle = {
+  sideEffectHandlers: {
+    'guardian.empower-hammer'(runtime, context) {
+      if (context.kind === 'cast') runtime.scheduleForCast(HAMMER, luminaryImpactAt(context.cast), context.cast);
+    }
+  },
+  tasks: { [HAMMER]: hammerImpact }
+} satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;

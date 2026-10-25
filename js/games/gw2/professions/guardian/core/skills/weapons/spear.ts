@@ -30,19 +30,29 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 
 const consumedCharges = new WeakMap<RuntimeCast<GuardianSkill>, ChargeGrant>();
 
+/** Symbol of Luminance or a remaining single charge illuminates a spear skill accepted at this instant. */
+function spearIlluminated(runtime: { readonly profession: GuardianRuntime['profession'] }, at: number): boolean {
+  const state = runtime.profession.core;
+  return state.spearLuminanceUntil > at || activeChargeCount(state.spearIlluminated, at) > 0;
+}
+
+/** Illuminated spear skills select their patchable bonus profile once, at acceptance. */
+function illuminatedSpearVariant(profileId: string): NonNullable<Skill['effectVariants']>[number] {
+  return {
+    when: (runtime, cast) => spearIlluminated(runtime, cast.start),
+    transform: (runtime, cast, effects) => illuminatedSpearEffects(runtime, cast, profileId, effects)
+  };
+}
+
 /** Select illumination at acceptance so delayed packets cannot borrow a later charge or edit executed history. */
 function illuminatedSpearEffects(
   runtime: GuardianRuntime,
   cast: RuntimeCast<GuardianSkill>,
-  profileId: number | string,
+  profileId: string,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   const state = runtime.profession.core;
   const luminance = state.spearLuminanceUntil > cast.start;
-
-  if (!luminance && activeChargeCount(state.spearIlluminated, cast.start) === 0)
-    return cast.skill.id === ID.HELIO_RUSH ? effects.filter((effect) => effect.type !== 'boon') : effects;
-
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   const multiplier = balanceProfileNumber(profile, 'damageMultiplier');
 
@@ -185,12 +195,9 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
   [ID.HELIO_RUSH]: {
     // Capture illumination at acceptance and settle only that captured charge on commitment.
     effectVariants: [
-      {
-        when: () => true,
-        profileId: PROFILE.spearHelioRush,
-        transform: (runtime, cast) =>
-          illuminatedSpearEffects(runtime, cast, PROFILE.spearHelioRush, cast.skill.effects ?? [])
-      }
+      illuminatedSpearVariant(PROFILE.spearHelioRush),
+      // Only an illuminated charge grants Resolution.
+      { when: () => true, transform: (_runtime, _cast, effects) => effects.filter((effect) => effect.type !== 'boon') }
     ],
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.spear-illumination' } }],
     castTimeMs: 440,
@@ -218,16 +225,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
   },
   [ID.GLEAMING_DISC]: {
     // Capture illumination at acceptance and settle only that captured charge on commitment.
-    effectVariants: [
-      {
-        when: (runtime, cast) =>
-          runtime.profession.core.spearLuminanceUntil > cast.start ||
-          activeChargeCount(runtime.profession.core.spearIlluminated, cast.start) > 0,
-        profileId: PROFILE.spearGleamingDisc,
-        transform: (runtime, cast) =>
-          illuminatedSpearEffects(runtime, cast, PROFILE.spearGleamingDisc, cast.skill.effects ?? [])
-      }
-    ],
+    effectVariants: [illuminatedSpearVariant(PROFILE.spearGleamingDisc)],
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.spear-illumination' } }],
     castTimeMs: 560,
     // The disc commits at 520 ms, allowing a queued cancel to release the remaining animation.
@@ -262,16 +260,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
   },
   [ID.SOLAR_STORM]: {
     // Capture illumination at acceptance and settle only that captured charge on commitment.
-    effectVariants: [
-      {
-        when: (runtime, cast) =>
-          runtime.profession.core.spearLuminanceUntil > cast.start ||
-          activeChargeCount(runtime.profession.core.spearIlluminated, cast.start) > 0,
-        profileId: PROFILE.spearSolarStorm,
-        transform: (runtime, cast) =>
-          illuminatedSpearEffects(runtime, cast, PROFILE.spearSolarStorm, cast.skill.effects ?? [])
-      }
-    ],
+    effectVariants: [illuminatedSpearVariant(PROFILE.spearSolarStorm)],
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.spear-illumination' } }],
     castTimeMs: 560,
 

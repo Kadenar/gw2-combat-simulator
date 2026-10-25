@@ -214,6 +214,8 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     sideEffects: [
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.abyssal-raze' } }
     ],
+    // The impact task reads these effects as its payload, so the cast itself emits none.
+    effectVariants: [{ when: () => true, transform: () => [] }],
     // Impact reads live Crushing Abyss stacks, emits scaled damage, then grants one stack.
     // A qualifying weapon swap consumes the pool.
     castTimeMs: 600,
@@ -494,9 +496,6 @@ export const spearLifecycle = {
     'revenant.spear-recharge'(runtime, context) {
       if (context.kind === 'effect') reactRevenantSpearRecharge(runtime, context.trigger.event);
     }
-  },
-  modifyEffects(_runtime, cast, effects) {
-    return cast.skill.id === ID.ABYSSAL_RAZE ? [] : effects;
   },
   onCastCommit(runtime, cast) {
     if (cast.skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) completeRevenantCrushingAbyssSwap(runtime, cast);

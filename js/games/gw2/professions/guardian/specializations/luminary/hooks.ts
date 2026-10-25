@@ -1,14 +1,12 @@
-import { ACTOR, AURA, RECIPIENT } from '#gw2/platform/constants.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { ACTOR, AURA } from '#gw2/platform/constants.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import {
+  admitVirtueActivation,
+  completeVirtueActivation,
   guardianVirtueForSlot,
-  justiceActivated,
   reactToJusticeHitWithOptions,
-  refreshGuardianVirtues,
-  virtueActivated
+  refreshGuardianVirtues
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import {
@@ -27,13 +25,10 @@ import {
   startLuminaryEffects
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { radiantForgeLifecycle } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
-import { hammerImpact } from '#gw2/professions/guardian/specializations/luminary/skills/hammer-impact.js';
+import { luminaryHammerLifecycle } from '#gw2/professions/guardian/specializations/luminary/skills/hammer-impact.js';
 import {
-  WEAPON_BOON,
   glaringBurstDetail,
-  glaringBurstDuration,
-  HAMMER,
-  luminaryWeaponLifecycle
+  glaringBurstDuration
 } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { luminaryStanceLifecycle } from '#gw2/professions/guardian/specializations/luminary/skills/stance-skills.js';
 import { luminaryVirtueLifecycle } from '#gw2/professions/guardian/specializations/luminary/skills/virtue-skills.js';
@@ -42,11 +37,9 @@ import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guard
 
 const VIRTUES: readonly number[] = [ID.RADIANT_JUSTICE, ID.RADIANT_RESOLVE, ID.RADIANT_COURAGE];
 
-const readyVirtues = new WeakSet<RuntimeCast<GuardianSkill>>();
-
 /** Luminary owns its live form, virtue entitlements, finite stance work, and actual combo-derived auras. */
 export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianSkill>([
-  luminaryWeaponLifecycle,
+  luminaryHammerLifecycle,
   luminaryVirtueLifecycle,
   luminaryStanceLifecycle,
   radiantForgeLifecycle,
@@ -95,12 +88,8 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
 
       startLuminaryEffects(runtime, cast);
 
-      if (VIRTUES.includes(Number(cast.skill.id))) {
-        refreshGuardianVirtues(runtime);
-        const virtue = guardianVirtueForSlot(cast.skill.slot)!;
-
-        if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtues.add(cast);
-      }
+      if (VIRTUES.includes(Number(cast.skill.id)))
+        admitVirtueActivation(runtime, cast, guardianVirtueForSlot(cast.skill.slot)!);
 
       if (cast.skill.radiantWeapon && cast.skill.flipParentId == null)
         runtime.fireTrigger(radiantWeaponDrawn, { cast });
@@ -108,15 +97,7 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
     onCastCommit(runtime, cast) {
       if (!VIRTUES.includes(Number(cast.skill.id))) return;
 
-      const virtue = guardianVirtueForSlot(cast.skill.slot)!;
-      refreshGuardianVirtues(runtime);
-
-      if (readyVirtues.has(cast)) {
-        runtime.fireTrigger(virtueActivated, { cast, virtue });
-
-        if (virtue === 'justice') runtime.fireTrigger(justiceActivated, { cast });
-      }
-
+      completeVirtueActivation(runtime, cast, guardianVirtueForSlot(cast.skill.slot)!);
       runtime.fireTrigger(luminaryVirtueCompleted, { cast });
     },
     reactions: {
@@ -131,27 +112,6 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
       },
       'aura.applied'(runtime, event) {
         if (event.aura === AURA.LIGHT) acceptLuminaryAura(runtime, event);
-      }
-    },
-    tasks: {
-      [HAMMER]: hammerImpact,
-      [WEAPON_BOON](runtime, data) {
-        const { cast, kind, duration, party } = data as {
-          cast: RuntimeCast<GuardianSkill>;
-          kind: string;
-          duration: number;
-          party?: boolean;
-        };
-        runtime.effects.emit({
-          kind: 'packet',
-          event: {
-            ...guardianCastCause(runtime, cast),
-            kind,
-            duration,
-            stacks: 1,
-            audience: { recipients: party ? RECIPIENT.PARTY : RECIPIENT.SELF }
-          }
-        });
       }
     }
   }

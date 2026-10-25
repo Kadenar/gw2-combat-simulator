@@ -7,10 +7,7 @@ import {
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import {
-  captureIgniteTier,
-  selectIgniteEffects
-} from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
+import { acceptIgniteEffects } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { AURA } from '#gw2/platform/constants.js';
@@ -310,10 +307,10 @@ test('Ignite removal preserves tier identity and suppresses Burning in both cons
     const runtime = { helpers: context.catalog, profession: { specialization: { kind: 'Evoker', state } } };
     for (let tier = 0; tier < 4; tier++) {
       const cast = { id: `ignite-${tier}`, start: tier, skill: context.catalog.skillsById.get(ID.IGNITE) };
-      captureIgniteTier(runtime, cast);
+      const effects = acceptIgniteEffects(runtime, cast, cast.skill.effects ?? []);
       const expectedBurning = !nativeRemoved && tier !== 1;
       assert.equal(
-        selectIgniteEffects(cast).some((effect) => effect.type === 'condition' && effect.condition === 'Burning'),
+        effects.some((effect) => effect.type === 'condition' && effect.condition === 'Burning'),
         expectedBurning
       );
       const tab = model.factTabs.find(({ label }) => label === `Tier ${tier + 1}`);

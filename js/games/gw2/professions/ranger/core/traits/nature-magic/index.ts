@@ -152,7 +152,10 @@ function spiritRepeatSlamAt(runtime: MechanicQueriesOf<RangerRuntime>, cast: Run
   );
 }
 
-/** Capture trait admission separately so isolated skill effects cannot create another slam. */
+/**
+ * Trait hooks run even when trait triggers are disabled (skill damage preview with trait procs Off), so only the
+ * admitted `castStart` trigger may enable the repeated slam; `hasTrait` alone would leak it into that preview.
+ */
 const admittedSpiritRepeats = new WeakSet<RuntimeCast<RangerSkill>>();
 
 /** Repeat only slam payloads after the last shake, without another cast, summon reward, or boon sequence. */

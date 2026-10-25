@@ -3,7 +3,6 @@ import { boonKey } from '#gw2/platform/combat/boons.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -18,13 +17,13 @@ import {
 } from '#gw2/professions/guardian/core/mechanics/trigger-points.js';
 import { expireSpearIllumination, GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import {
+  admitVirtueActivation,
   applyJusticeBurn,
+  completeVirtueActivation,
   CORE_VIRTUES,
   guardianVirtueForSlot,
-  justiceActivated,
   reactToJusticeHitWithOptions,
-  refreshGuardianVirtues,
-  virtueActivated
+  refreshGuardianVirtues
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianJusticeLifecycle } from '#gw2/professions/guardian/core/skills/profession-skills.js';
 import {
@@ -37,24 +36,7 @@ import { guardianTorchLifecycle } from '#gw2/professions/guardian/core/skills/we
 import { writOfPersistenceFields } from '#gw2/professions/guardian/core/traits/honor/writ-of-persistence.js';
 import { masterOfConsecrationsFields } from '#gw2/professions/guardian/core/traits/virtues/index.js';
 import { GUARDIAN_TRAIT_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type {
-  GuardianRuntimeState,
-  GuardianSkill,
-  GuardianVirtue,
-  GuardianRuntime
-} from '#gw2/professions/guardian/types.js';
-
-const readyVirtueActivations = new WeakSet<RuntimeCast<GuardianSkill>>();
-/** Virtue state changes once on commitment; report packets do not restore a second copy of that state. */
-function completeCoreVirtue(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, virtue: GuardianVirtue): void {
-  refreshGuardianVirtues(runtime);
-
-  if (!readyVirtueActivations.has(cast)) return;
-
-  runtime.fireTrigger(virtueActivated, { cast, virtue });
-
-  if (virtue === 'justice') runtime.fireTrigger(justiceActivated, { cast });
-}
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 /** Shared virtue, symbol, and follow-up wiring composed with each Core skill owner's registered actions. */
 export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianSkill>([
@@ -131,17 +113,13 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
     onCastStart(runtime, cast) {
       const virtue = CORE_VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
 
-      if (!virtue) return;
-
-      refreshGuardianVirtues(runtime);
-
-      if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtueActivations.add(cast);
+      if (virtue) admitVirtueActivation(runtime, cast, virtue);
     },
     onCastCommit(runtime, cast) {
       runtime.fireTrigger(guardianCastCompleted, { cast });
       const virtue = CORE_VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
 
-      if (virtue) completeCoreVirtue(runtime, cast, virtue);
+      if (virtue) completeVirtueActivation(runtime, cast, virtue);
     },
     onCooldownReset: refreshGuardianVirtues,
     reactions: {

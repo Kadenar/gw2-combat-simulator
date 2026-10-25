@@ -32,7 +32,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.SUMMON_BONE_FIEND]: {
     // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
     sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }],
-    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 360,
     effects: [],
     rechargeOnMinionDeath: true
@@ -58,7 +57,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.SUMMON_BONE_MINIONS]: {
     // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
     sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }],
-    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 360,
     effects: [],
     rechargeOnMinionDeath: true
@@ -147,7 +145,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.SUMMON_BLOOD_FIEND]: {
     // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
     sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }],
-    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 680,
     effects: []
   },
@@ -349,7 +346,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.TASTE_OF_DEATH]: {
     // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
     sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }],
-    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 680,
     minionKey: 'blood-fiend',
     consumes: 1,
@@ -358,7 +354,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.SUMMON_SHADOW_FIEND]: {
     // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
     sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }],
-    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 360,
     effects: [],
     rechargeOnMinionDeath: true
@@ -498,7 +493,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.SUMMON_FLESH_GOLEM]: {
     // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
     sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }],
-    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 680,
     effects: [],
     rechargeOnMinionDeath: true

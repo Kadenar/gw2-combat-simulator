@@ -22,6 +22,8 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
   [ID.ENCHANTED_DAGGERS]: {
     // The skill-owned lifecycle arms charges on commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'revenant.enchanted-daggers' } }],
+    // The commit lifecycle reads these effects as its payload, so the cast itself emits none.
+    effectVariants: [{ when: () => true, transform: () => [] }],
     // Charges feed the strike-triggered siphon defined below.
     castTimeMs: 360,
     cooldown: 30,
@@ -288,9 +290,6 @@ export const enchantedDaggersLifecycle = {
     'revenant.enchanted-daggers'(runtime, context) {
       if (context.kind === 'cast') completeRevenantEnchantedDaggers(runtime, context.cast);
     }
-  },
-  modifyEffects(_runtime, cast, effects) {
-    return cast.skill.id === ID.ENCHANTED_DAGGERS ? [] : effects;
   }
 } satisfies RuntimeHooks<RevenantRuntimeState, RevenantSkill>;
 

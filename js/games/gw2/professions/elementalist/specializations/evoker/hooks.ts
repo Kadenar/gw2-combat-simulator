@@ -29,7 +29,6 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
 import {
   beginFamiliarCast,
-  captureIgniteTier,
   modifyFamiliarEffects
 } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
@@ -66,11 +65,6 @@ export const evokerHooks = composeRuntimeHooks<ElementalistRuntimeState, Element
         if (context.kind !== 'cast') throw new TypeError('Familiar activation requires a cast trigger.');
 
         beginFamiliarCast(runtime, context.cast, context.skill);
-      },
-      'elementalist.evoker.capture-ignite-tier'(runtime, context) {
-        if (context.kind !== 'cast') throw new TypeError('Ignite requires a cast trigger.');
-
-        captureIgniteTier(runtime, context.cast);
       },
       // Replay payloads with Procession ownership without performing a familiar cast's resource or trait settlement.
       'elementalist.evoker.release-elemental-procession'(runtime, context) {

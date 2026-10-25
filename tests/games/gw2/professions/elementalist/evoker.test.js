@@ -8,10 +8,9 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import {
+  acceptIgniteEffects,
   beginFamiliarCast,
-  captureIgniteTier,
-  modifyFamiliarEffects,
-  selectIgniteEffects
+  modifyFamiliarEffects
 } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
@@ -50,7 +49,7 @@ test('familiar replacement honors patched cancellation windows and preserves the
         assert.deepEqual(modifyFamiliarEffects(context, cast, effects), withinWindow ? [] : effects);
 
         if (basicName === 'Ignite') {
-          captureIgniteTier(context, cast);
+          acceptIgniteEffects(context, cast, basic.effects ?? []);
           assert.equal(state.igniteTier, withinWindow ? 0 : 1);
         }
       }
@@ -103,11 +102,7 @@ test('Ignite retains its final burning tier until the inactivity window expires'
       start,
       id: 'ignite'
     };
-    captureIgniteTier(context, cast);
-    const tier = state.igniteTier;
-    const effects = selectIgniteEffects(cast);
-    assert.deepEqual(selectIgniteEffects(cast), effects);
-    assert.equal(state.igniteTier, tier);
+    const effects = acceptIgniteEffects(context, cast, cast.skill.effects);
     assert.equal(effects[0].duration, duration);
   }
 });

@@ -218,6 +218,41 @@ const LUMINARY_VIRTUES = [
   [GUARDIAN_SKILL_IDS.RADIANT_COURAGE, 'courage']
 ] as const;
 
+const readyVirtueActivations = new WeakSet<RuntimeCast<GuardianSkill>>();
+
+/**
+ * Records at acceptance whether a virtue's recharge was ready, before the cast starts its own recharge. Only a ready
+ * activation earns the shared rewards when it commits.
+ */
+export function admitVirtueActivation(
+  runtime: GuardianRuntime,
+  cast: RuntimeCast<GuardianSkill>,
+  virtue: GuardianVirtue
+): boolean {
+  refreshGuardianVirtues(runtime);
+
+  if (runtime.profession.core.virtueReadyAt[virtue] > runtime.time) return false;
+
+  readyVirtueActivations.add(cast);
+  return true;
+}
+
+/** A committed ready virtue grants the shared rewards; an owner that defers Justice's own point fires it later. */
+export function completeVirtueActivation(
+  runtime: GuardianRuntime,
+  cast: RuntimeCast<GuardianSkill>,
+  virtue: GuardianVirtue,
+  { deferJustice = false }: { readonly deferJustice?: boolean } = {}
+): void {
+  refreshGuardianVirtues(runtime);
+
+  if (!readyVirtueActivations.has(cast)) return;
+
+  runtime.fireTrigger(virtueActivated, { cast, virtue });
+
+  if (virtue === 'justice' && !deferJustice) runtime.fireTrigger(justiceActivated, { cast });
+}
+
 /** Recharge-backed virtue projections follow the shared cast controller, including Alacrity and explicit resets. */
 export function refreshGuardianVirtues(runtime: GuardianRuntime): void {
   const kind = runtime.profession.specialization.kind;

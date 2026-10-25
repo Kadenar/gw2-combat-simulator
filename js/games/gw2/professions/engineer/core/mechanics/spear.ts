@@ -363,15 +363,6 @@ export function engineerSpearAvailability(
   return { ready: true };
 }
 
-const CUSTOM_SPEAR = new Set<number>([ID.LIGHTNING_ROD, ID.CONDUIT_SURGE, ID.ELECTRIC_ARTILLERY]);
-
-/** Stateful spear packets replace authored effects to avoid emitting both paths. */
-const engineerSpearEffects: NonNullable<RuntimeHooks<EngineerRuntimeState, EngineerSkill>['modifyEffects']> = (
-  _runtime,
-  cast,
-  effects
-) => (CUSTOM_SPEAR.has(Number(cast.skill.id)) ? [] : effects);
-
 /** Core hooks register this feature without owning its impact policy. */
 const engineerSpearEventHandlers: RuntimeProfession<EngineerRuntimeState, EngineerSkill>['eventHandlers'] = {
   'engineer.lightning-rod-pulse': handleLightningRodPulse,
@@ -383,6 +374,5 @@ const engineerSpearEventHandlers: RuntimeProfession<EngineerRuntimeState, Engine
 export const engineerSpearLifecycle = {
   sideEffectHandlers: engineerSpearSideEffectHandlers,
   tasks: engineerSpearTasks,
-  eventHandlers: engineerSpearEventHandlers,
-  modifyEffects: engineerSpearEffects
+  eventHandlers: engineerSpearEventHandlers
 } satisfies RuntimeHooks<EngineerRuntimeState, EngineerSkill>;

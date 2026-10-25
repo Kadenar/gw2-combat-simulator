@@ -1,7 +1,6 @@
 import { ACTOR, CONDITION, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import { armSkillFlip, consumeSkillFlip, expireSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -15,11 +14,12 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
 import {
+  admitVirtueActivation,
+  completeVirtueActivation,
   guardianVirtueForSlot,
   justiceActivated,
   reactToJusticeHitWithOptions,
   refreshGuardianVirtues,
-  virtueActivated,
   type JusticeActivation
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { indomitableCourageInterval } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
@@ -76,8 +76,6 @@ function reactToDragonhunterJusticeHit(
     }
   }
 }
-
-const readyVirtues = new WeakSet<RuntimeCast<GuardianSkill>>();
 
 const COURAGE = 'guardian.dragonhunter.courage';
 
@@ -217,13 +215,7 @@ export const dragonhunterVirtueLifecycle: RuntimeHooks<GuardianRuntimeState, Gua
 
     const virtue = guardianVirtueForSlot(cast.skill.slot);
 
-    if (!virtue) return;
-
-    refreshGuardianVirtues(runtime);
-
-    if (runtime.profession.core.virtueReadyAt[virtue] > runtime.time) return;
-
-    readyVirtues.add(cast);
+    if (!virtue || !admitVirtueActivation(runtime, cast, virtue)) return;
 
     if (cast.skill.id === ID.SPEAR_OF_JUSTICE && !cast.cancelled) {
       const at = canonicalTime(
@@ -238,11 +230,8 @@ export const dragonhunterVirtueLifecycle: RuntimeHooks<GuardianRuntimeState, Gua
   onCastCommit(runtime, cast) {
     const virtue = cast.skill.categories?.includes('Virtue') ? guardianVirtueForSlot(cast.skill.slot) : null;
 
-    if (virtue) {
-      refreshGuardianVirtues(runtime);
-
-      if (readyVirtues.has(cast)) runtime.fireTrigger(virtueActivated, { cast, virtue });
-    }
+    // Furious Focus waits for the spear's impact, so Justice's own point fires from that task instead.
+    if (virtue) completeVirtueActivation(runtime, cast, virtue, { deferJustice: true });
 
     runtime.fireTrigger(dragonhunterCastCompleted, { cast });
   },
