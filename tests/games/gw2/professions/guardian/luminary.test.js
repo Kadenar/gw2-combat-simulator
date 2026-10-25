@@ -865,6 +865,31 @@ test('Radiant virtues grant one-use hammer and sword empowerments', () => {
   );
 });
 
+test('Radiant Courage damage belongs to its consuming blade when impacts arrive out of order', () => {
+  // Delay the empowered impact past a later blade to verify ownership without a shared buff window.
+  const result = runGuardian(
+    [
+      'Radiant Courage',
+      'Enter Radiant Forge',
+      { name: 'Gleaming Blade', impactDelayMs: 2000 },
+      { type: 'cooldown-reset' },
+      'Gleaming Blade',
+      { type: 'wait', durationMs: 3000 }
+    ],
+    { ...config, specialization: 'Luminary' }
+  );
+  assert.deepEqual(result.warnings, []);
+  const hits = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_BLADE
+  );
+  const empowered = hits.find((event) => event.metadata?.guardianRadiantCourage);
+  const ordinary = hits.find((event) => !event.metadata?.guardianRadiantCourage);
+  assert.ok(empowered && ordinary);
+  assert.ok(ordinary.at < empowered.at);
+  assertFlooredDamageMultiplier(empowered.damage, ordinary.damage, 1.5);
+  assert.equal(result.planningState.profession.radiantCourageSwordArmed, false);
+});
+
 test('Radiant Justice selects the first committed hammer impact after activation', () => {
   const run = (rotation) =>
     createObservedProfessionSimulator(guardianProfession, {

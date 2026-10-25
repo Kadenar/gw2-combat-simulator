@@ -11,7 +11,6 @@ export function luminaryBuffPolicies(): BuffStatePolicy[] {
     { kind: 'radiant-forge', maximumStacks: 1 },
     { kind: 'light-aura', maximumStacks: 1 },
     { kind: 'guardian-radiant-armaments', maximumStacks: 1 },
-    { kind: 'guardian-radiant-courage-sword', maximumStacks: 1 },
     { kind: 'guardian-empowered-armaments', maximumStacks: 1 }
   ];
 }

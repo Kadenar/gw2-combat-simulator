@@ -25,6 +25,7 @@ const METADATA_VALUE_KINDS = Object.freeze({
   dhuumfireInterval: 'number',
   engineerMech: 'boolean',
   guardianSymbol: 'boolean',
+  guardianRadiantCourage: 'boolean',
   hitboxIndex: 'number',
   largeHitboxOnly: 'boolean',
   legendId: 'string',

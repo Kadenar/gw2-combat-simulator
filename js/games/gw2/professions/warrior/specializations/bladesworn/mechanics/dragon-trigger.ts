@@ -130,7 +130,7 @@ function enterDragonTrigger(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
   state.dragonTriggerFlowSpent = 0;
   state.dragonTriggerEventActivationId = cast.id;
   scheduleCharge(runtime);
-  // The deadline admits both its last charge and a command at that instant; close at the next canonical microsecond.
+  // The scheduler drains queued work before commands; +1 µs lets a deadline-time Slash use the final charge.
   runtime.schedule(
     TRIGGER_EXPIRY,
     (timeKey(state.dragonTriggerChargeDeadline) + 1) / 1_000_000,

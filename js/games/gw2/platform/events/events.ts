@@ -212,6 +212,8 @@ export interface EffectMetadata {
   readonly engineerMech?: boolean;
   /** Guardian symbol damage is authored independently of skill names and descriptive text. */
   readonly guardianSymbol?: boolean;
+  /** Only the Gleaming Blade cast that consumed Radiant Courage receives its damage multiplier. */
+  readonly guardianRadiantCourage?: boolean;
   readonly hitboxIndex?: number;
   readonly largeHitboxOnly?: boolean;
   readonly legendId?: string;

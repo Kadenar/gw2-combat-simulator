@@ -9,7 +9,6 @@ import {
   CONDITION
 } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 
 import type { CastDetailContext } from '#gw2/platform/profession-definition/runtime-context.js';
@@ -18,7 +17,7 @@ import { impactEffects, strikeEffectCoefficient } from '#gw2/platform/effects/au
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { projectCastRelativeEffectTimingMs, scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
@@ -112,8 +111,14 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     // An accepted equip belongs to its captured forge entry, including delayed commitment.
     sideEffects: [
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.snapshot-forge' } },
-      { on: 'castCommit', do: { type: 'guardian.equip-forge' } },
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.empower-blade' } }
+      { on: 'castCommit', do: { type: 'guardian.equip-forge' } }
+    ],
+    // An armed Radiant Courage is consumed by the next accepted blade and travels with that cast's own packets.
+    effectVariants: [
+      {
+        when: (runtime, cast) => !cast.cancelled && luminaryState.from(runtime).radiantCourageSwordArmed,
+        transform: (runtime, _cast, effects) => radiantCourageBlade(runtime, effects)
+      }
     ],
     castTimeMs: 840,
     interruptCommitMs: 760,
@@ -314,8 +319,6 @@ export const HAMMER = 'guardian.luminary.hammer';
 
 export const WEAPON_BOON = 'guardian.luminary.weapon-boon';
 
-export const BLADE_IMMOBILIZE = 'guardian.luminary.blade-immobilize';
-
 /** Duration and label inspect the same cadence that selection advances only after acceptance. */
 export function glaringBurstDuration(
   runtime: MechanicQueriesOf<GuardianRuntime>,
@@ -376,29 +379,37 @@ function burstEffects(
   }));
 }
 
-/** Hammer samples its entitlement at impact; blade/staff consume theirs at acceptance and deliver at impact. */
+/**
+ * Consume Radiant Courage once at acceptance and mark this blade's strikes for its multiplier. The immobilize shares
+ * the strike's timing so impact delay and interruption treat both packets alike.
+ */
+function radiantCourageBlade(runtime: GuardianRuntime, effects: readonly SkillEffect[]): readonly SkillEffect[] {
+  luminaryState.from(runtime).radiantCourageSwordArmed = false;
+
+  const impact = effects.find((effect): effect is StrikeEffect => effect.type === 'strike');
+
+  if (!impact) throw new TypeError('Radiant Courage requires a Gleaming Blade strike.');
+
+  const immobilize = impactEffects(
+    {
+      atMs: impact.ticks?.[0]?.atMs ?? impact.atMs,
+      timingAnchor: impact.timingAnchor,
+      timingScale: impact.timingScale
+    },
+    requireBalanceProfileFromContext(runtime, PROFILE.radiantCourageImmobilize).effects ?? []
+  );
+  return [
+    ...effects.map((effect) =>
+      effect.type === 'strike' ? { ...effect, metadata: { ...effect.metadata, guardianRadiantCourage: true } } : effect
+    ),
+    ...immobilize
+  ];
+}
+
+/** Hammer samples its entitlement at impact; staff consumes its own at acceptance and delivers at impact. */
 const luminaryWeaponActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.empower-hammer'(runtime, context) {
     if (context.kind === 'cast') runtime.scheduleForCast(HAMMER, luminaryImpactAt(context.cast), context.cast);
-  },
-  'guardian.empower-blade'(runtime, context) {
-    if (context.kind !== 'cast') return;
-
-    const state = luminaryState.from(runtime);
-
-    if (!state.radiantCourageSwordArmed) return;
-
-    state.radiantCourageSwordArmed = false;
-    // Capture the consumed entitlement now, but apply its condition only if the blade reaches impact.
-    runtime.scheduleForCast(BLADE_IMMOBILIZE, luminaryImpactAt(context.cast), context.cast);
-    runtime.scheduleForCast(
-      WEAPON_BOON,
-      luminaryImpactAt(context.cast),
-      context.cast,
-      { kind: 'guardian-radiant-courage-sword', duration: 0.001 },
-      undefined,
-      -10
-    );
   },
   'guardian.empower-staff'(runtime, context) {
     if (context.kind !== 'cast') return;
@@ -421,7 +432,7 @@ export const luminaryWeaponLifecycle = {
   sideEffectHandlers: luminaryWeaponActions
 } satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;
 
-/** Intrinsic weapon multipliers run after shared additive bonuses and query live empowerment at impact. */
+/** Intrinsic weapon multipliers run after shared additive bonuses using each packet's accepted empowerment. */
 export const luminaryWeaponModifiers: readonly Gw2ModifierRule[] = [
   {
     id: 'guardian.shining-spin',
@@ -447,7 +458,7 @@ export const luminaryWeaponModifiers: readonly Gw2ModifierRule[] = [
     factor: 1.5,
     order: 100,
     when: (context) =>
-      context.event?.skillId === ID.GLEAMING_BLADE && buffActive(context, 'guardian-radiant-courage-sword')
+      context.event?.skillId === ID.GLEAMING_BLADE && context.event.metadata?.guardianRadiantCourage === true
   }
 ];
 

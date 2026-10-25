@@ -164,6 +164,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Painful Bond',
     profileKind: 'mechanic',
     pulseInterval: 1,
+    // Retain the original 4 ms pulse offset pending verification; its gameplay rationale is undocumented.
     initialDelay: 0.004,
     icon: 'https://render.guildwars2.com/file/9CA8D4479BEE9A28C810CCB0E234BAC7712104A0/3680170.png',
     effects: [

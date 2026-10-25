@@ -2,7 +2,6 @@ import { ACTOR, AURA, RECIPIENT } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import {
   guardianVirtueForSlot,
@@ -28,10 +27,8 @@ import {
   startLuminaryEffects
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { radiantForgeLifecycle } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
-import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { hammerImpact } from '#gw2/professions/guardian/specializations/luminary/skills/hammer-impact.js';
 import {
-  BLADE_IMMOBILIZE,
   WEAPON_BOON,
   glaringBurstDetail,
   glaringBurstDuration,
@@ -138,15 +135,6 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
     },
     tasks: {
       [HAMMER]: hammerImpact,
-      [BLADE_IMMOBILIZE](runtime, data) {
-        const { cast } = data as { cast: RuntimeCast<GuardianSkill> };
-        runtime.effects.emit({
-          kind: 'profile',
-          profile: requireBalanceProfileFromContext(runtime, PROFILE.radiantCourageImmobilize),
-          attribution: guardianCastCause(runtime, cast),
-          transform: (event) => ({ ...event, offTarget: cast.command.offTarget === true })
-        });
-      },
       [WEAPON_BOON](runtime, data) {
         const { cast, kind, duration, party } = data as {
           cast: RuntimeCast<GuardianSkill>;
@@ -158,7 +146,6 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
           kind: 'packet',
           event: {
             ...guardianCastCause(runtime, cast),
-            priority: kind === 'guardian-radiant-courage-sword' ? -5 : 0,
             kind,
             duration,
             stacks: 1,

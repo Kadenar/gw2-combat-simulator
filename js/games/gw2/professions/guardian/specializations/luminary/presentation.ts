@@ -157,11 +157,6 @@ function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
       name: 'Piercing Stance'
     },
     {
-      id: 'guardian-radiant-courage-sword',
-      kind: 'guardian-radiant-courage-sword',
-      name: 'Radiant Courage (Sword)'
-    },
-    {
       id: 'guardian-empowered-armaments',
       kind: 'guardian-empowered-armaments',
       name: 'Empowered Armaments'

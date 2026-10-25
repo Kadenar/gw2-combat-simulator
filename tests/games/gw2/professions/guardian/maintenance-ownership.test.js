@@ -22,7 +22,6 @@ test('Guardian composition installs each effect owner once and excludes inactive
       'radiant-forge',
       'light-aura',
       'guardian-radiant-armaments',
-      'guardian-radiant-courage-sword',
       'guardian-empowered-armaments'
     ]
   };
