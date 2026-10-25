@@ -149,7 +149,7 @@ const radiantArmaments = defineTrait({
   ]
 });
 
-/** Delayed equips extend the capped damage window without revoking already-applied buffs. */
+/** Successful equips extend the capped damage window without revoking already-applied buffs. */
 const empoweredArmaments = defineTrait({
   id: TRAIT.EMPOWERED_ARMAMENTS,
   name: 'Empowered Armaments',
@@ -172,7 +172,7 @@ const empoweredArmaments = defineTrait({
   ]
 });
 
-/** Completed equips grant the authored party boon package at the delayed reward boundary. */
+/** Successful equips grant the authored party boon package at the equip timestamp. */
 const resplendentWeaponry = defineTrait({
   id: TRAIT.RESPLENDENT_WEAPONRY,
   name: 'Resplendent Weaponry',
@@ -304,7 +304,7 @@ function reportMasterAtArms(runtime: GuardianRuntime, { cast }: LuminaryCast): v
   });
 }
 
-/** Completed equips grant the authored party boon package at the delayed reward boundary. */
+/** Successful equips grant the authored party boon package at the equip timestamp. */
 function grantResplendentWeaponry(runtime: GuardianRuntime, { cast }: LuminaryCast): void {
   // The accepted equip is the cause; the profile owns the party boon package.
   const cause = guardianCastCause(runtime, cast);

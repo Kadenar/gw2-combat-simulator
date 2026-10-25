@@ -130,8 +130,10 @@ test('Illuminating Inspiration delegates capped reductions for the three radiant
       }
     );
     const runtime = observedRuntime(result);
+    // A capped recharge becomes ready at the equip transition, before the observation wait ends.
+    const equip = result.steps.find((step) => step.skillId === ids.DAZZLING_HAMMER);
     assert.ok(Math.abs(runtime.cooldownController.readyAt(ids.RADIANT_JUSTICE) - (enabled ? 12.8 : 16)) < 1e-9);
-    assert.equal(runtime.cooldownController.readyAt(ids.RADIANT_RESOLVE), enabled ? runtime.time : 1.6);
+    assert.equal(runtime.cooldownController.readyAt(ids.RADIANT_RESOLVE), enabled ? equip.end / 1000 : 1.6);
     assert.equal(runtime.cooldownController.readyAt(ids.RADIANT_COURAGE), 0);
     assert.equal(runtime.cooldownController.readyAt(ids.PIERCING_STANCE), 79.2);
   }
@@ -280,6 +282,13 @@ test('Resplendent Weaponry grants scaled party boons only on traited, completed 
       })(undefined, ['Enter Radiant Forge', weapon, { type: 'wait', durationMs: 1000 }]);
       const boons = result.resolvedEvents.filter(
         (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.RESPLENDENT_WEAPONRY
+      );
+      // Equip boons belong to the completed state transition, with no extra elapsed time.
+      const equip = result.steps.find((step) => step.skill === weapon);
+      assert.ok(equip, weapon);
+      assert.ok(
+        boons.every((event) => event.at === equip.end / 1000),
+        weapon
       );
       assert.deepEqual(
         boons.map((event) => [event.kind, event.stacks, event.duration]),

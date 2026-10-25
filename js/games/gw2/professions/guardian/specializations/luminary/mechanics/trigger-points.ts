@@ -25,7 +25,7 @@ export const luminaryVirtueCompleted = defineTriggerPoint<LuminaryCast>('guardia
   TRAIT.MASTER_AT_ARMS
 ]);
 
-/** A delayed radiant weapon equip completion. */
+/** A radiant weapon equip completion, queued at the transition timestamp. */
 export const radiantWeaponEquipped = defineTriggerPoint<LuminaryCast>('guardian.radiant-weapon-equipped', [
   TRAIT.RESPLENDENT_WEAPONRY,
   TRAIT.EMPOWERED_ARMAMENTS,

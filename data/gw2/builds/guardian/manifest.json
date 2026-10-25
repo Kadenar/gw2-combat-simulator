@@ -344,25 +344,25 @@
         "build": "data/gw2/builds/guardian/b-power-luminary-greatsword-longbow.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-greatsword-longbow-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-longbow-greatsword",
-        "benchmarkDps": 41423,
+        "benchmarkDps": 41425,
         "upToDate": true,
         "benchmarkApm": 97.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 44338, "phase": 44338 },
-          "80-60": { "cumulative": 41624, "phase": 39238 },
-          "60-40": { "cumulative": 41235, "phase": 40471 },
-          "40-20": { "cumulative": 41353, "phase": 41721 },
-          "20-0": { "cumulative": 41423, "phase": 41423 }
+          "100-80": { "cumulative": 44353, "phase": 44353 },
+          "80-60": { "cumulative": 41630, "phase": 39238 },
+          "60-40": { "cumulative": 41239, "phase": 40471 },
+          "40-20": { "cumulative": 41357, "phase": 41721 },
+          "20-0": { "cumulative": 41425, "phase": 41425 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42205,
+          "benchmarkDps": 42208,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 44647, "phase": 44647 },
-            "80-60": { "cumulative": 42483, "phase": 40550 },
-            "60-40": { "cumulative": 41930, "phase": 40844 },
-            "40-20": { "cumulative": 42558, "phase": 44527 },
-            "20-0": { "cumulative": 42205, "phase": 42205 }
+            "100-80": { "cumulative": 44666, "phase": 44666 },
+            "80-60": { "cumulative": 42492, "phase": 40550 },
+            "60-40": { "cumulative": 41936, "phase": 40844 },
+            "40-20": { "cumulative": 42563, "phase": 44527 },
+            "20-0": { "cumulative": 42208, "phase": 42208 }
           }
         }
       },

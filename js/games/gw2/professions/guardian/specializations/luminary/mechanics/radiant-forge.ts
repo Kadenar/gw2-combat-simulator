@@ -148,7 +148,8 @@ const radiantForgeActions: NonNullable<RuntimeHooks<GuardianRuntimeState, Guardi
         kind: 'packet',
         event: { ...guardianCastCause(runtime, cast), type: 'sigil_swap', weaponSet: runtime.activeWeaponSet }
       });
-      runtime.scheduleForCast(EQUIP, canonicalTime(runtime.time + 0.001), cast);
+      // Queue equip rewards after the state transition without adding elapsed combat time.
+      runtime.scheduleForCast(EQUIP, runtime.time, cast);
     }
   }
 };
@@ -180,7 +181,7 @@ const radiantForgeTasks: NonNullable<RuntimeHooks<GuardianRuntimeState, Guardian
   [EXIT](runtime, data) {
     if (luminaryState.from(runtime).forgeActivationId === data) exitForge(runtime);
   },
-  // Delayed equip rewards retain boon, armament, then recharge ordering.
+  // Same-time equip rewards retain boon, armament, then recharge ordering.
   [EQUIP]: (runtime, data) =>
     runtime.fireTrigger(radiantWeaponEquipped, { cast: (data as { cast: RuntimeCast<GuardianSkill> }).cast })
 };
