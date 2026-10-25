@@ -86,26 +86,26 @@
         "label": "Condition (Sword / Pistol)",
         "build": "data/gw2/builds/warrior/b-condi-bladesworn-sword-pistol.json",
         "rotation": "data/gw2/rotations/warrior/r-condi-bladesworn-sword-pistol-bench.json",
-        "benchmarkDps": 42430,
+        "benchmarkDps": 42428,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/condition-bladesworn-sword-pistol",
         "benchmarkApm": 78.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42651, "phase": 42651 },
-          "80-60": { "cumulative": 43027, "phase": 43403 },
-          "60-40": { "cumulative": 41556, "phase": 38760 },
-          "40-20": { "cumulative": 42054, "phase": 43695 },
-          "20-0": { "cumulative": 42430, "phase": 43973 }
+          "100-80": { "cumulative": 42646, "phase": 42646 },
+          "80-60": { "cumulative": 41925, "phase": 41201 },
+          "60-40": { "cumulative": 41553, "phase": 40851 },
+          "40-20": { "cumulative": 42052, "phase": 43695 },
+          "20-0": { "cumulative": 42428, "phase": 43973 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42430,
+          "benchmarkDps": 42428,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 42651, "phase": 42651 },
-            "80-60": { "cumulative": 43027, "phase": 43403 },
-            "60-40": { "cumulative": 41556, "phase": 38760 },
-            "40-20": { "cumulative": 42054, "phase": 43695 },
-            "20-0": { "cumulative": 42430, "phase": 43973 }
+            "100-80": { "cumulative": 42646, "phase": 42646 },
+            "80-60": { "cumulative": 41925, "phase": 41201 },
+            "60-40": { "cumulative": 41553, "phase": 40851 },
+            "40-20": { "cumulative": 42052, "phase": 43695 },
+            "20-0": { "cumulative": 42428, "phase": 43973 }
           }
         }
       }
@@ -199,26 +199,26 @@
         "label": "Condition (Longbow + Sword/Torch)",
         "build": "data/gw2/builds/warrior/b-condi-berserker-longbow-sword-torch.json",
         "rotation": "data/gw2/rotations/warrior/r-condi-berserker-longbow-sword-torch-bench.json",
-        "benchmarkDps": 44324,
+        "benchmarkDps": 44325,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/condition-berserker-longbow-sword-torch",
         "benchmarkApm": 93.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 41198, "phase": 41198 },
-          "80-60": { "cumulative": 43642, "phase": 46516 },
-          "60-40": { "cumulative": 43779, "phase": 44063 },
-          "40-20": { "cumulative": 43930, "phase": 44409 },
-          "20-0": { "cumulative": 44324, "phase": 44324 }
+          "100-80": { "cumulative": 41204, "phase": 41204 },
+          "80-60": { "cumulative": 43639, "phase": 46503 },
+          "60-40": { "cumulative": 43767, "phase": 44031 },
+          "40-20": { "cumulative": 43932, "phase": 44454 },
+          "20-0": { "cumulative": 44325, "phase": 44325 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 44324,
+          "benchmarkDps": 44325,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 41198, "phase": 41198 },
-            "80-60": { "cumulative": 43642, "phase": 46516 },
-            "60-40": { "cumulative": 43779, "phase": 44063 },
-            "40-20": { "cumulative": 43930, "phase": 44409 },
-            "20-0": { "cumulative": 44324, "phase": 44324 }
+            "100-80": { "cumulative": 41204, "phase": 41204 },
+            "80-60": { "cumulative": 43639, "phase": 46503 },
+            "60-40": { "cumulative": 43767, "phase": 44031 },
+            "40-20": { "cumulative": 43932, "phase": 44454 },
+            "20-0": { "cumulative": 44325, "phase": 44325 }
           }
         }
       }

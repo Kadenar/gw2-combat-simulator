@@ -987,25 +987,25 @@
         "build": "data/gw2/builds/elementalist/b-condi-air-se-evoker.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-evoker-specialized-elements",
         "rotation": "data/gw2/rotations/elementalist/r-condi-air-se-evoker.json",
-        "benchmarkDps": 44234,
+        "benchmarkDps": 44415,
         "upToDate": true,
         "benchmarkApm": 104.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39973, "phase": 39973 },
-          "80-60": { "cumulative": 41908, "phase": 44058 },
-          "60-40": { "cumulative": 43287, "phase": 46370 },
-          "40-20": { "cumulative": 43920, "phase": 45937 },
-          "20-0": { "cumulative": 44234, "phase": 45539 }
+          "100-80": { "cumulative": 39977, "phase": 39977 },
+          "80-60": { "cumulative": 41995, "phase": 44239 },
+          "60-40": { "cumulative": 43357, "phase": 46401 },
+          "40-20": { "cumulative": 44017, "phase": 46149 },
+          "20-0": { "cumulative": 44415, "phase": 46072 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42912,
+          "benchmarkDps": 42913,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 38684, "phase": 38684 },
-            "80-60": { "cumulative": 41268, "phase": 44138 },
-            "60-40": { "cumulative": 42526, "phase": 45410 },
-            "40-20": { "cumulative": 42415, "phase": 42090 },
-            "20-0": { "cumulative": 42912, "phase": 44984 }
+            "100-80": { "cumulative": 38688, "phase": 38688 },
+            "80-60": { "cumulative": 41270, "phase": 44138 },
+            "60-40": { "cumulative": 42527, "phase": 45410 },
+            "40-20": { "cumulative": 42416, "phase": 42090 },
+            "20-0": { "cumulative": 42913, "phase": 44984 }
           }
         }
       },
@@ -1014,25 +1014,25 @@
         "build": "data/gw2/builds/elementalist/b-condi-quick-air-se-evoker.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-quickness-evoker-specialized-elements",
         "rotation": "data/gw2/rotations/elementalist/r-condi-quick-air-se-evoker.json",
-        "benchmarkDps": 40214,
+        "benchmarkDps": 40215,
         "upToDate": true,
         "benchmarkApm": 103.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35522, "phase": 35522 },
-          "80-60": { "cumulative": 37896, "phase": 40770 },
+          "100-80": { "cumulative": 35523, "phase": 35523 },
+          "80-60": { "cumulative": 37897, "phase": 40770 },
           "60-40": { "cumulative": 38623, "phase": 40148 },
           "40-20": { "cumulative": 39654, "phase": 43206 },
-          "20-0": { "cumulative": 40214, "phase": 42574 }
+          "20-0": { "cumulative": 40215, "phase": 42574 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 39657,
+          "benchmarkDps": 39702,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 35250, "phase": 35250 },
-            "80-60": { "cumulative": 37489, "phase": 40063 },
-            "60-40": { "cumulative": 38037, "phase": 39245 },
-            "40-20": { "cumulative": 39160, "phase": 42948 },
-            "20-0": { "cumulative": 39657, "phase": 41777 }
+            "100-80": { "cumulative": 35424, "phase": 35424 },
+            "80-60": { "cumulative": 37538, "phase": 39969 },
+            "60-40": { "cumulative": 38309, "phase": 40054 },
+            "40-20": { "cumulative": 39205, "phase": 42129 },
+            "20-0": { "cumulative": 39702, "phase": 41820 }
           }
         }
       },

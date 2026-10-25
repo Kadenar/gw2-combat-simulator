@@ -6,26 +6,25 @@ import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/rel
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
-// Combat activation requires this pre-existing stack threshold.
-const REQUIRED_BLEEDING = 6;
+// Five existing bleeds qualify because the incoming application supplies the sixth.
+const REQUIRED_BLEEDING = 5;
 
 export const fractal = defineRelic({
   damagePayload: emitDamagePayload,
   createState: () => ({ readyAt: 0 }),
-  condition(ctx, state, application, { activeConditionStackCount }) {
+  condition(ctx, state, application, { stacksBeforeApplication }) {
     if (
       application.condition !== CONDITION.BLEEDING ||
       // Only bleeding the player owns arms the relic. Pets and the mech own the bleeding they apply, so their
       // applications never trigger it; other summons share the player's condition packets and still do.
       (application.actorType === ACTOR.SUMMON && application.independentConditionOwner === true) ||
       !isInternalCooldownReady(application.at, state.readyAt) ||
-      activeConditionStackCount(ctx, CONDITION.BLEEDING, application.at) - (application.stacks || 0) < REQUIRED_BLEEDING
+      stacksBeforeApplication < REQUIRED_BLEEDING
     ) {
       return;
     }
 
-    // The condition hook fires with the new stacks already counted, so subtract
-    // application.stacks to check for the required six pre-existing stacks.
+    // The resolver snapshots the threshold before the whole application; sibling stacks cannot qualify each other.
     // Relic damage stays effect-sourced while explicitly inheriting the player's outgoing modifiers.
     state.readyAt = application.at + 20;
     emitDamagePayload(ctx, state, application);

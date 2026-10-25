@@ -172,7 +172,11 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         id: 'relic.condition',
         order: GW2_REACTION_ORDER.LATE_COMMON,
         handler(ctx, application, details = {}) {
-          ctx.relic.rules.condition?.(ctx, ctx.relic.state, application, conditionHelpers(ctx, details));
+          // Forward the original target count so relic thresholds do not include sibling stacks.
+          ctx.relic.rules.condition?.(ctx, ctx.relic.state, application, {
+            ...conditionHelpers(ctx, details),
+            stacksBeforeApplication: details.stacksBeforeApplication as number
+          });
         }
       }
     ],

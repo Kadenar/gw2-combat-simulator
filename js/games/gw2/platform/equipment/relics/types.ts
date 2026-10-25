@@ -137,7 +137,7 @@ export interface Gw2RelicRule {
     context: Gw2RelicContext,
     state: Gw2RelicState,
     application: SimulationEvent,
-    helpers: Gw2ConditionHelpers
+    helpers: Gw2ConditionHelpers & { readonly stacksBeforeApplication: number }
   ) => unknown;
   readonly damageResolved?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
 }
