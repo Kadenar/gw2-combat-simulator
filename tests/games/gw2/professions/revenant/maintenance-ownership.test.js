@@ -44,7 +44,8 @@ test('only the selected Revenant elite contributes effect policies and observati
       for (const kind of kinds) {
         assert.equal(policies.includes(kind), owner === specialization, `${specialization}: ${kind}`);
 
-        if (owner === 'Renegade') assert.equal(observations.includes(kind), owner === specialization);
+        if (owner === 'Renegade')
+          assert.equal(observations.includes(kind), owner === specialization && kind !== 'band-together');
       }
     }
 
@@ -79,7 +80,23 @@ test('Renegade observations retain live charge consumption and strict Fervor exp
 test('Band Together observation disappears when its enhancement is consumed or expires', () => {
   const options = {
     initialize(runtime) {
-      runtime.profession.specialization.state.bandTogether = { charges: 1, expiresAt: 2 };
+      // Band Together is accepted by the shared buff owner, including its ordinary expiry.
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'buff',
+          kind: 'band-together',
+          at: 0,
+          duration: 2,
+          stacks: 1,
+          source: 'fixture',
+          sourceId: ID.ICERAZORS_IRE,
+          skillId: ID.ICERAZORS_IRE,
+          skillName: "Icerazor's Ire",
+          actorType: 'player',
+          audience: { recipients: 'self' }
+        }
+      });
     }
   };
   const config = {
@@ -88,14 +105,14 @@ test('Band Together observation disappears when its enhancement is consumed or e
     startingLegend: LEGEND.RENEGADE
   };
   const idle = runRevenant([], config, options);
-  const band = effects(idle).find(({ kind }) => kind === 'band-together');
+  const band = idle.planningState.effects.find(({ kind }) => kind === 'band-together');
   assert.equal(effectStateValue(band, 1).count, 1);
   assert.equal(effectStateValue(band, 2).count, 0);
   const consumed = runRevenant(["Icerazor's Ire"], config, options);
   assert.deepEqual(consumed.warnings, []);
   assert.equal(
     effectStateValue(
-      effects(consumed).find(({ kind }) => kind === 'band-together'),
+      consumed.planningState.effects.find(({ kind }) => kind === 'band-together'),
       consumed.rotationEndTime
     ).count,
     0

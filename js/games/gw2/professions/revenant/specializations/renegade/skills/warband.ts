@@ -1,6 +1,6 @@
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { consumeCharge, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -29,13 +29,18 @@ function enhancedSkill(runtime: RevenantRuntime, skillId: SkillId): RevenantSkil
 
 /** A committed warband summon consumes Band Together at acceptance and selects its enhanced profile. */
 export function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  const state = renegadeState.from(runtime);
   const enhanced = bandTogetherReady(runtime, cast.skill.id);
   const profile = enhanced ? enhancedSkill(runtime, cast.skill.id) : undefined;
   // Capture the accepted profile before spending; later grants cannot change this cast's effects or rewards.
   bandTogether.set(cast, { enhanced, profileSkillId: profile?.id ?? cast.skill.id });
 
-  if (enhanced) consumeCharge(state.bandTogether, runtime.time);
+  // End the active buff before rewards so another accepted summon cannot reuse it.
+  if (enhanced)
+    runtime.combat.reviseBuffExpiry(
+      'band-together',
+      () => true,
+      (expiry) => Math.min(expiry, runtime.time)
+    );
 
   runtime.fireTrigger(warbandCompleted, { enhanced });
 
@@ -59,58 +64,103 @@ export function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<Re
     });
 }
 
-/** Razorclaw's Rage arms live player and allied charges with their own expiry and ICD. */
+/** A missing proc declaration is invalid content, unlike an explicitly removed Bleeding that leaves charges unspent. */
+function razorclawProcProfile(runtime: RevenantRuntime): RevenantSkill {
+  const proc = runtime.helpers.skillsById.get(PROFILE.razorclawsRageProc);
+
+  if (!proc) throw new Error("Missing Razorclaw's Rage proc declaration.");
+
+  return proc;
+}
+
+/** Razorclaw's Rage arms the player and each assumed ally with an independent replacement grant. */
 export function razorclawsRage(
   runtime: RevenantRuntime,
   cast: RuntimeCast<RevenantSkill>,
   profile: RevenantSkill
 ): void {
   const buff = profile.effects?.find((effect) => effect.type === 'buff' && effect.kind === 'razorclaws-rage');
-  const proc = runtime.helpers.skillsById.get(PROFILE.razorclawsRageProc);
-
-  if (!proc) throw new Error("Missing Razorclaw's Rage proc declaration.");
-
-  const bleed = requireEffect(proc, 'condition', CONDITION.BLEEDING);
+  const bleed = requireEffect(razorclawProcProfile(runtime), 'condition', CONDITION.BLEEDING);
 
   // Charges exist only to deliver the empowered bleed, so either removal arms nothing.
   if (!buff || !bleed) return;
 
   const duration = Math.max(0, effectNumber(profile, buff, 'duration'));
   const charges = Math.max(0, Math.trunc(effectNumber(profile, buff, 'stacks')));
-  renegadeState.from(runtime).razorclawsRage = {
-    ...grantCharges(charges, runtime.time + duration),
-    readyAt: runtime.time
-  };
-  // Reapplication replaces recipient charges without resetting the ally's strike cadence.
-  runtime.alliedStrikes.registerRecipients((allyIndex) => ({
-    id: `razorclaw:${allyIndex}`,
-    expiresAt: runtime.time + duration,
-    inclusiveExpiry: true,
-    charges,
-    internalCooldown: Math.max(0, proc.cooldown || 0),
-    trigger(allied) {
-      runtime.effects.emit({
-        kind: 'packet',
-        event: buildResolverCondition({
-          at: allied.at,
-          source: 'revenant',
-          sourceId: cast.skill.id,
-          actorType: bleed.actorType || ACTOR.PLAYER,
-          skillId: cast.skill.id,
-          skillName: cast.skill.name,
-          activationId: `${cast.id}:${allied.activationId}`,
-          name: `${cast.skill.name} — Ally ${allied.allyIndex} Bleeding`,
-          condition: String(bleed.condition),
-          stacks: effectNumber(proc, bleed, 'stacks'),
-          duration: effectNumber(proc, bleed, 'duration'),
-          metadata: { triggeredByAlly: allied.allyIndex }
-        })
-      });
-    }
-  }));
+  // Every recipient's grant is blocked at its arming instant, so no strike at that timestamp can spend it.
+  const arm = (): ChargeGrant => ({ ...grantCharges(charges, runtime.time + duration), readyAt: runtime.time });
+  const state = renegadeState.from(runtime);
+  state.razorclawsRage = arm();
+  // The controller only offers strikes; each ally's charges, expiry, and cooldown follow the player's policy.
+  // Reapplication replaces every grant without resetting the shared strike cadence.
+  runtime.alliedStrikes.registerRecipients((allyIndex) => {
+    const grant = arm();
+    state.alliedRazorclawsRage[allyIndex] = grant;
+    const current = () => renegadeState.from(runtime).alliedRazorclawsRage[allyIndex];
+    return {
+      id: `razorclaw:${allyIndex}`,
+      expiresAt: grant.expiresAt,
+      isActive: () => (current()?.charges ?? 0) > 0,
+      trigger(allied) {
+        const spent = spendRazorclawCharge(runtime, current());
+
+        if (!spent) return false;
+
+        runtime.effects.emit({
+          kind: 'packet',
+          event: razorclawBleed(spent, allied.at, {
+            allyIndex: allied.allyIndex,
+            activationId: `${cast.id}:${allied.activationId}`
+          })
+        });
+      }
+    };
+  });
 }
 
-/** Completion arms Razorclaw's charges and, for an ordinary summon, the next Band Together enhancement. */
+/**
+ * Spends one recipient's charge under the single Razorclaw policy: exclusive expiry, the proc's cooldown, and at most
+ * one bleed per timestamp even without a cooldown. A removed Bleeding leaves the charge unspent.
+ */
+function spendRazorclawCharge(runtime: RevenantRuntime, grant: ChargeGrant | undefined) {
+  if (!grant || !isInternalCooldownReady(runtime.time, grant.readyAt)) return;
+
+  const proc = razorclawProcProfile(runtime);
+  const bleed = requireEffect(proc, 'condition', CONDITION.BLEEDING);
+
+  if (!bleed) return;
+
+  const cooldown = Math.max(0, proc.cooldown || 0);
+
+  if (!consumeCharge(grant, runtime.time, cooldown)) return;
+
+  if (cooldown === 0) grant.readyAt = runtime.time;
+
+  return { proc, bleed };
+}
+
+/** Player and allied bleeds share the elite's identity; only the ally's name, activation, and tag differ. */
+function razorclawBleed(
+  { proc, bleed }: NonNullable<ReturnType<typeof spendRazorclawCharge>>,
+  at: number,
+  ally?: { readonly allyIndex: number; readonly activationId: string }
+) {
+  return buildResolverCondition({
+    at,
+    source: 'revenant',
+    sourceId: ID.RAZORCLAWS_RAGE,
+    actorType: ACTOR.PLAYER,
+    skillId: ID.RAZORCLAWS_RAGE,
+    skillName: "Razorclaw's Rage",
+    name: ally ? `Razorclaw's Rage — Ally ${ally.allyIndex} Bleeding` : "Razorclaw's Rage — Bleeding",
+    condition: String(bleed.condition),
+    stacks: effectNumber(proc, bleed, 'stacks'),
+    duration: effectNumber(proc, bleed, 'duration'),
+    ...(ally && { activationId: ally.activationId, metadata: { triggeredByAlly: ally.allyIndex } })
+  });
+}
+
+/** Ordinary completion grants a temporary enhancement; an empowered summon does not grant it again. */
 export function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const selected = bandTogether.get(cast);
   bandTogether.delete(cast);
@@ -125,8 +175,12 @@ export function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast
   // The enhancement window is the buff, so a removed buff arms no enhancement.
   if (!effect) return;
 
-  const state = renegadeState.from(runtime);
-  state.bandTogether = grantCharges(1, runtime.time + Math.max(0, effectNumber(window, effect, 'duration')));
+  // Reapplication replaces the previous window, even when the new duration is shorter.
+  runtime.combat.reviseBuffExpiry(
+    'band-together',
+    () => true,
+    (expiry) => Math.min(expiry, runtime.time)
+  );
   runtime.effects.emit({
     kind: 'profile',
     profile: window,
@@ -144,46 +198,13 @@ export function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast
   });
 }
 
-/** A ready, unexpired Razorclaw charge becomes an empowered Bleeding on a landed player strike. */
+/** A landed player strike other than Razorclaw's own spends the player's grant under the shared recipient policy. */
 export function razorclawProc(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   if (event.skillId === ID.RAZORCLAWS_RAGE) return;
 
-  const razorclaw = renegadeState.from(runtime).razorclawsRage;
+  const spent = spendRazorclawCharge(runtime, renegadeState.from(runtime).razorclawsRage);
 
-  // Keep activation and same-timestamp gating even when the profile has zero ICD.
-  if (!isInternalCooldownReady(runtime.time, razorclaw.readyAt)) return;
-
-  const profile = runtime.helpers.skillsById.get(PROFILE.razorclawsRageProc);
-
-  if (!profile) throw new Error("Missing Razorclaw's Rage proc declaration.");
-
-  const effect = requireEffect(profile, 'condition', CONDITION.BLEEDING);
-
-  // Charges exist only to deliver the bleed, so a removed packet leaves them unspent.
-  if (!effect) return;
-
-  const cooldown = Math.max(0, profile.cooldown || 0);
-
-  if (!consumeCharge(razorclaw, runtime.time, cooldown)) return;
-
-  if (cooldown === 0) razorclaw.readyAt = runtime.time;
-
-  runtime.effects.emit({
-    kind: 'packet',
-    cause: event,
-    event: buildResolverCondition({
-      at: runtime.time,
-      source: 'revenant',
-      sourceId: ID.RAZORCLAWS_RAGE,
-      actorType: ACTOR.PLAYER,
-      skillId: ID.RAZORCLAWS_RAGE,
-      skillName: "Razorclaw's Rage",
-      name: "Razorclaw's Rage — Bleeding",
-      condition: String(effect.condition),
-      stacks: effectNumber(profile, effect, 'stacks'),
-      duration: effectNumber(profile, effect, 'duration')
-    })
-  });
+  if (spent) runtime.effects.emit({ kind: 'packet', cause: event, event: razorclawBleed(spent, runtime.time) });
 }
 
 /** The accepted summon enhancement determines its Energy reward. */

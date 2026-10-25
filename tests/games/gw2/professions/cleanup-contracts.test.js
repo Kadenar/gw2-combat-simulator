@@ -216,15 +216,14 @@ test('Galeshot arrow restoration preserves fractional gains and uses the current
 
 test('Fervor counting preserves start, expiry, and cap boundaries on readonly partial state', () => {
   const state = Object.freeze({
-    kallasFervorMaximumStacks: 1,
     kallasFervor: Object.freeze([Object.freeze({ at: 1, expiresAt: 3 }), Object.freeze({ at: 2, expiresAt: 4 })])
   });
-  assert.equal(activeKallasFervorStacks(state, 0), 0);
-  assert.equal(activeKallasFervorStacks(state, 1), 1);
-  assert.equal(activeKallasFervorStacks(state, 2), 1);
+  assert.equal(activeKallasFervorStacks(state, 0, 1), 0);
+  assert.equal(activeKallasFervorStacks(state, 1, 1), 1);
+  assert.equal(activeKallasFervorStacks(state, 2, 1), 1);
   assert.equal(activeKallasFervorStacks(state, 2, 2), 2);
   assert.equal(activeKallasFervorStacks(state, 3, 2), 1);
-  assert.equal(activeKallasFervorStacks(state, 4), 0);
+  assert.equal(activeKallasFervorStacks(state, 4, 1), 0);
 });
 
 // Display labels cannot grant another skill's resonance or suppress a valid proc.

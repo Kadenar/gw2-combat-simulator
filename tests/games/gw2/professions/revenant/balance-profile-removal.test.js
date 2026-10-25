@@ -1,3 +1,4 @@
+import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/revenant/core/profiles.js';
 import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
@@ -115,7 +116,7 @@ test('removed Band Together buff arms no enhancement while the unpatched window 
   ]) {
     const result = runRevenant(["Icerazor's Ire"], RENEGADE_CONFIG, { catalog: patched(balanceProfiles) });
     assert.deepEqual(result.warnings, []);
-    assert.equal(observedRuntime(result).profession.specialization.state.bandTogether.charges, ready ? 1 : 0);
+    assert.equal(planningBuffStacks(result.planningState, 'band-together'), ready ? 1 : 0);
   }
 });
 

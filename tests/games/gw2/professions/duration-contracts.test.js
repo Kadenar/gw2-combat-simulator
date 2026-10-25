@@ -25,7 +25,7 @@ test('patched venom duration owns personal and allied charge expiry and tooltip 
     const runtime = {
       helpers: catalog,
       time: 10,
-      profession: { core: { venomChargeBatches: {} } },
+      profession: { core: { venomChargeBatches: {}, alliedVenomChargeBatches: {} } },
       alliedStrikes: { registerRecipients: (create) => recipients.push(create(1)) }
     };
     const skill = catalog.skillsById.get(venom.skillId);
@@ -41,10 +41,14 @@ test('patched venom duration owns personal and allied charge expiry and tooltip 
       recipients.map(({ expiresAt }) => expiresAt),
       [12, 13]
     );
-    assert.ok(recipients.every(({ inclusiveExpiry }) => inclusiveExpiry));
-    assert.equal(activeChargeGrants(batches, 11.999).length, 2);
-    assert.equal(activeChargeGrants(batches, 12).length, 1);
-    assert.equal(activeChargeGrants(batches, 13).length, 0);
+    // The ally's native batches share the player's lifetime and exclusive expiry.
+    const allied = runtime.profession.core.alliedVenomChargeBatches[`1:${skill.id}`];
+    for (const owned of [batches, allied]) {
+      assert.equal(activeChargeGrants(owned, 11.999).length, 2);
+      assert.equal(activeChargeGrants(owned, 12).length, 1);
+      assert.equal(activeChargeGrants(owned, 13).length, 0);
+    }
+
     const context = { catalog };
     const { facts } = describeSimulationSkill(context, skill, thiefTooltips);
     assert.equal(facts.find(({ name }) => name === 'Charge lifetime').detail, '2s');

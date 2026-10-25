@@ -146,7 +146,7 @@ test('Quickfire grants selected charges to self or the eligible ally', async () 
   });
   for (const alliedPlayerCount of [0, 1]) {
     const { effects, announcements } = captureEffectEmissions();
-    const state = { ashes: { charges: 0, expiresAt: 0, readyAt: 0 } };
+    const state = { ashes: { charges: 0, expiresAt: 0, readyAt: 0 }, alliedAshes: {} };
     const recipients = [];
     const scheduled = [];
     const runtime = {
@@ -164,7 +164,8 @@ test('Quickfire grants selected charges to self or the eligible ally', async () 
     assert.equal(announcements[0].announcement.detail, '+3 Ashes of the Just');
 
     if (alliedPlayerCount) {
-      assert.equal(recipients[0][0].charges, 3);
+      assert.equal(state.alliedAshes[1].charges, 3);
+      assert.equal(state.alliedAshes[1].expiresAt, 6);
       assert.equal(recipients[0][0].expiresAt, 6);
       assert.equal(recipients[0][1].maximumAllies, 1);
       assert.equal(state.ashes.charges, 0);

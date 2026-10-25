@@ -1,3 +1,4 @@
+import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import {
   definePublicStateDefaults,
@@ -10,6 +11,8 @@ export interface SpecterState {
   shadowShroudExitReadyAt: number;
   shadowClock: ResourceClock;
   shadowShroudActive: boolean;
+  /** Each assumed ally's Rot Wallow Venom batches, keyed by ally index; the allied controller supplies strikes. */
+  rotWallowVenom: Record<number, ChargeGrant[]>;
 }
 
 /** Track Shadow Force as a percentage; incoming damage and its health-scaled pool are outside simulation scope. */
@@ -22,7 +25,8 @@ function createSpecterState(config: ThiefConfig = {}): SpecterState {
       rate: 0
     },
     shadowShroudActive: false,
-    shadowShroudExitReadyAt: 0
+    shadowShroudExitReadyAt: 0,
+    rotWallowVenom: {}
   };
 }
 

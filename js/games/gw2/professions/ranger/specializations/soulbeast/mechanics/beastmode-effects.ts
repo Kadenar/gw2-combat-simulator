@@ -153,17 +153,26 @@ function queueStanceProc(
   queueVultureStanceEffects(context, event, profile, poison, might);
 }
 
-/** Allied stance cooldowns block their exact deadline independently, including across overlapping applications. */
+/**
+ * One cooldown boundary per stance for every recipient. One Wolf Pack admits a strike exactly at its deadline: observed
+ * Frost Trap pulses echo at its 1 s cadence, which the strict boundary would halve. Vulture Stance blocks its deadline.
+ */
+function stanceCooldownReady(wolfPack: boolean, at: number, deadline: number): boolean {
+  return wolfPack ? canonicalTime(at) >= canonicalTime(deadline) : isInternalCooldownReady(at, deadline);
+}
+
+/** Each ally keeps independent stance cooldowns across overlapping applications, under the player's boundaries. */
 export function handleSharedStanceHit(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const allyIndex = event.metadata?.triggeredByAlly;
 
   if (!allyIndex) return;
 
   const key = `${event.kind}:${allyIndex}`;
+  const wolfPack = event.kind === 'one-wolf-pack';
 
-  if (!isInternalCooldownReady(event.at, context.procs.deadline(`ranger.soulbeast.alliedStance:${key}`))) return;
+  if (!stanceCooldownReady(wolfPack, event.at, context.procs.deadline(`ranger.soulbeast.alliedStance:${key}`))) return;
 
-  queueStanceProc(context, event, event.kind === 'one-wolf-pack', (internalCooldown) => {
+  queueStanceProc(context, event, wolfPack, (internalCooldown) => {
     context.procs.setDeadline(`ranger.soulbeast.alliedStance:${key}`, event.at + internalCooldown);
   });
 }
@@ -178,9 +187,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
     isPlayerStrike(event) &&
     event.sourceId !== ID.ONE_WOLF_PACK_STRIKE &&
     activeSoulbeastBuff(context, 'one-wolf-pack', event.at) &&
-    // Personal One Wolf Pack intentionally includes its 1s deadline: observed Frost Trap pulses each echo at 1s cadence.
-    // The shared strict ICD helper would skip alternate pulses; canonical times avoid needing an epsilon here.
-    canonicalTime(event.at) >= canonicalTime(context.procs.deadline('ranger.soulbeast.oneWolfPack'))
+    stanceCooldownReady(true, event.at, context.procs.deadline('ranger.soulbeast.oneWolfPack'))
   ) {
     // 1-second ICD between echoes even within a single multi-hit skill.
     queueStanceProc(context, event, true, (internalCooldown) => {
@@ -191,7 +198,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
   // Vulture Stance procs per player hit with a 0.25 s ICD; effect-sourced hits (e.g. OWP echoes) are excluded.
   if (
     activeSoulbeastBuff(context, 'vulture-stance', event.at) &&
-    isInternalCooldownReady(event.at, context.procs.deadline('ranger.soulbeast.vultureStance')) &&
+    stanceCooldownReady(false, event.at, context.procs.deadline('ranger.soulbeast.vultureStance')) &&
     isPlayerStrike(event)
   ) {
     queueStanceProc(context, event, false, (internalCooldown) => {

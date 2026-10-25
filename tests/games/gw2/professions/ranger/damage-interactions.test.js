@@ -192,13 +192,14 @@ test('Leader of the Pack shares half the extended stance window with independent
         event.metadata?.triggeredByAlly &&
         event.type === (skillId === ID.ONE_WOLF_PACK ? 'damage' : 'condition')
     );
-    const procInterval = skillId === ID.ONE_WOLF_PACK ? 1.25 : 0.5;
+    // One Wolf Pack admits the strike exactly at its 1 s deadline, as for the player; Vulture blocks its deadline.
+    const procInterval = skillId === ID.ONE_WOLF_PACK ? 1 : 0.5;
     const delay = skillId === ID.ONE_WOLF_PACK ? 0.28 : 0;
     for (const allyIndex of [1, 2]) {
       const times = procs
         .filter((event) => event.metadata.triggeredByAlly === allyIndex)
         .map((event) => Number((event.at - shared.at - delay).toFixed(6)));
-      // Four attacks per second continue through blocked opportunities; equality never advances the stance ICD.
+      // Four attacks per second continue through blocked opportunities without advancing the stance ICD.
       const expected = Array.from(
         { length: Math.floor((shared.duration - 0.25) / procInterval) + 1 },
         (_, i) => 0.25 + i * procInterval

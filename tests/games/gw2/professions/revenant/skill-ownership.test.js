@@ -1,3 +1,4 @@
+import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -130,7 +131,7 @@ for (const [skillId, specialization, legend, active] of [
     ID.BREAKRAZORS_BASTION,
     'Renegade',
     LEGEND.RENEGADE,
-    (result) => renegadeState.from(observedRuntime(result)).bandTogether.charges > 0
+    (result) => planningBuffStacks(result.planningState, 'band-together') > 0
   ],
   [
     ID.BEGUILING_HAZE,

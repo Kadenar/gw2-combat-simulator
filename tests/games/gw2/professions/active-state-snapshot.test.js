@@ -486,10 +486,29 @@ test('Revenant snapshots expose shared drains and elite stack/form windows', () 
         kallasFervor: [
           { at: 1, expiresAt: 10 },
           { at: 2, expiresAt: 11 }
-        ],
-        bandTogether: { charges: 1, expiresAt: 8 }
+        ]
       },
-      4
+      4,
+      effectFields(
+        [
+          {
+            type: 'buff',
+            kind: 'band-together',
+            at: 0,
+            duration: 8,
+            stacks: 1,
+            resolvedAudience: {
+              includesSelf: true,
+              includesSummons: false,
+              companionIds: [],
+              alliedPlayerCount: 0,
+              recipientCount: 1
+            }
+          }
+        ],
+        10,
+        { policies: [{ kind: 'band-together', maximumStacks: 1 }] }
+      )
     )
   );
   assert.equal(renegade['revenant-upkeep-drain'], '-8/s');

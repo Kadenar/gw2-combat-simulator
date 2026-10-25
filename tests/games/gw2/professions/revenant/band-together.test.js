@@ -2,14 +2,15 @@ import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
+import { gw2BuffApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
+import { effectStateValue, observeBuffState } from '#gw2/platform/combat/effect-state.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import { renegadeHooks } from '#gw2/professions/revenant/specializations/renegade/hooks.js';
-import { renegadeEffectStates } from '#gw2/professions/revenant/specializations/renegade/effect-state.js';
 import { bandTogetherReady } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
@@ -28,7 +29,20 @@ function fixture(traits = []) {
     profession: native.createState(config),
     helpers: native.catalog
   };
-  const emitted = captureEffectEmissions({ now: () => runtime.time });
+  runtime.buffs = new Map();
+  runtime.companions = new Map();
+  runtime.combat = createMechanicCombatServices(runtime);
+  const acceptBuff = (event) => {
+    if (event.type === 'buff')
+      recordBuffApplication(runtime.buffs, {
+        ...event,
+        resolvedAudience: gw2BuffApplicationRecipients(config, event)
+      });
+
+    return event;
+  };
+
+  const emitted = captureEffectEmissions({ now: () => runtime.time, submit: acceptBuff });
   runtime.effects = emitted.effects;
   bindTriggerPoints(runtime, revenantProfession, config);
   const state = runtime.profession.specialization.state;
@@ -43,42 +57,57 @@ function fixture(traits = []) {
     command: {}
   });
   const apply = (accepted, phase) => applySkillSideEffects(runtime, accepted, phase, renegadeHooks.sideEffectHandlers);
-  return { runtime, state, cast, apply, emitted };
+  const grant = (expiresAt) =>
+    acceptBuff({
+      type: 'buff',
+      kind: 'band-together',
+      at: runtime.time,
+      duration: expiresAt - runtime.time,
+      stacks: 1,
+      actorType: 'player',
+      audience: { recipients: 'self' }
+    });
+  const observe = () =>
+    observeBuffState('band-together', runtime.combat.buffApplications('band-together'), runtime.time, {
+      maximumStacks: 1
+    });
+  return { runtime, state, cast, apply, emitted, grant, observe };
 }
 
-test('ordinary completion replaces Band Together with one finite charge and cannot arm twice', () => {
-  const { runtime, state, cast, apply, emitted } = fixture();
+test('ordinary completion replaces the timed Band Together buff and cannot grant twice', () => {
+  const { runtime, cast, apply, emitted, grant, observe } = fixture();
   const ordinary = cast(ID.ICERAZORS_IRE);
   apply(ordinary, 'castStart');
-  assert.equal(state.bandTogether.charges, 0);
+  assert.equal(bandTogetherReady(runtime, ID.ICERAZORS_IRE), false);
   // A grant arriving during the ordinary cast is replaced, never added to its completion reward.
-  state.bandTogether = grantCharges(1, 99);
+  grant(99);
   runtime.time = ordinary.effectiveEnd;
   apply(ordinary, 'castCommit');
   const duration = runtime.helpers.balanceProfilesById
     .get(PROFILE.bandTogether)
     .effects.find((effect) => effect.kind === 'band-together').duration;
-  assert.deepEqual(state.bandTogether, grantCharges(1, runtime.time + duration));
-  const granted = state.bandTogether;
+  assert.equal(effectStateValue(observe(), runtime.time).count, 1);
+  assert.equal(effectStateValue(observe(), runtime.time).expiresAt, runtime.time + duration);
+  const granted = runtime.combat.buffApplications('band-together');
   runtime.time += 1;
   apply(ordinary, 'castCommit');
-  assert.equal(state.bandTogether, granted);
+  assert.equal(runtime.combat.buffApplications('band-together'), granted);
   assert.equal(emitted.events.filter((event) => event.kind === 'band-together').length, 1);
 });
 
 test('only mapped skills are eligible, readiness is read-only, and acceptance excludes exact expiry', () => {
   for (const at of [1.999999, 2, 2.000001]) {
-    const { runtime, state, cast, apply } = fixture();
-    state.bandTogether = grantCharges(1, 2);
+    const { runtime, cast, apply, grant } = fixture();
+    grant(2);
     runtime.time = at;
-    const before = structuredClone(state.bandTogether);
+    const before = structuredClone(runtime.combat.buffApplications('band-together'));
     for (const skillId of Object.keys(RENEGADE_ENHANCED_SKILL_BY_ID))
       assert.equal(bandTogetherReady(runtime, Number(skillId)), at < 2);
     assert.equal(bandTogetherReady(runtime, ID.SOULCLEAVES_SUMMIT), false);
-    assert.deepEqual(state.bandTogether, before);
+    assert.deepEqual(runtime.combat.buffApplications('band-together'), before);
     const accepted = cast(ID.ICERAZORS_IRE);
     apply(accepted, 'castStart');
-    assert.equal(state.bandTogether.charges, at < 2 ? 0 : 1);
+    assert.equal(bandTogetherReady(runtime, ID.ICERAZORS_IRE), false);
     assert.deepEqual(
       renegadeHooks.modifyEffects(runtime, accepted, accepted.skill.effects),
       at < 2 ? [] : accepted.skill.effects
@@ -90,14 +119,14 @@ test('only mapped skills are eligible, readiness is read-only, and acceptance ex
 });
 
 test('acceptance spends and records the enhanced profile before rewards and preserves it across later grants', () => {
-  const { runtime, state, cast, apply, emitted } = fixture([TRAIT.ALL_FOR_ONE]);
-  state.bandTogether = grantCharges(1, 2);
+  const { runtime, cast, apply, emitted, grant } = fixture([TRAIT.ALL_FOR_ONE]);
+  grant(2);
   const accepted = cast(ID.ICERAZORS_IRE);
   let rewards = 0;
   runtime.resourceController = {
     grant(resource) {
       assert.equal(resource, 'energy');
-      assert.equal(state.bandTogether.charges, 0);
+      assert.equal(bandTogetherReady(runtime, ID.ICERAZORS_IRE), false);
       assert.deepEqual(renegadeHooks.modifyEffects(runtime, accepted, accepted.skill.effects), []);
       rewards += 1;
     }
@@ -106,37 +135,29 @@ test('acceptance spends and records the enhanced profile before rewards and pres
   assert.equal(rewards, 1);
   assert.ok(emitted.events.some((event) => event.condition === 'Chilled' && event.activationId === accepted.id));
   // A subsequent grant belongs to a future cast; enhanced completion must leave it untouched.
-  state.bandTogether = grantCharges(1, 10);
-  const replacement = state.bandTogether;
+  grant(10);
+  const replacement = runtime.combat.buffApplications('band-together');
   runtime.time = 3;
   assert.deepEqual(renegadeHooks.modifyEffects(runtime, accepted, accepted.skill.effects), []);
   apply(accepted, 'castCommit');
-  assert.equal(state.bandTogether, replacement);
-  assert.equal(state.bandTogether.charges, 1);
+  assert.equal(runtime.combat.buffApplications('band-together'), replacement);
+  assert.equal(bandTogetherReady(runtime, ID.ICERAZORS_IRE), true);
   assert.equal(
     emitted.events.some((event) => event.kind === 'band-together'),
     false
   );
 });
 
-test('Band Together observations and public grants are detached from their owner', () => {
-  const { runtime, state } = fixture();
-  state.bandTogether = grantCharges(1, 2);
-  const effect = renegadeEffectStates(runtime).find(({ kind }) => kind === 'band-together');
+test('Band Together observations are detached and profession state contains no duplicate buff', () => {
+  const { runtime, state, grant, observe, cast, apply } = fixture();
+  grant(2);
+  const effect = observe();
   const projected = projectObservedState(revenantProfession, runtime);
-  assert.notEqual(projected.bandTogether, state.bandTogether);
-  assert.deepEqual(projected.bandTogether, state.bandTogether);
-  projected.bandTogether.charges = 0;
-  assert.equal(state.bandTogether.charges, 1);
+  assert.equal(Object.hasOwn(state, 'bandTogether'), false);
+  assert.equal(Object.hasOwn(projected, 'bandTogether'), false);
   assert.equal(effectStateValue(effect, 2).count, 0);
-  assert.equal(state.bandTogether.charges, 1);
-  state.bandTogether.charges = 0;
+  assert.equal(bandTogetherReady(runtime, ID.ICERAZORS_IRE), true);
+  apply(cast(ID.ICERAZORS_IRE), 'castStart');
   assert.equal(effectStateValue(effect, 1).count, 1);
-  assert.equal(
-    effectStateValue(
-      renegadeEffectStates(runtime).find(({ kind }) => kind === 'band-together'),
-      1
-    ).count,
-    0
-  );
+  assert.equal(effectStateValue(observe(), 1).count, 0);
 });

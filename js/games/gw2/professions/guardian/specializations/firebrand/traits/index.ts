@@ -506,7 +506,7 @@ function grantQuickfireAshes(runtime: GuardianRuntime, { cause: event }: Firebra
 
   const lifetimeSeconds = effectNumber(profile, admission.buff, 'duration');
   const stacks = effectNumber(profile, admission.buff, 'stacks');
-  grantAshes(runtime, admission, {
+  grantAshes(runtime, {
     source: 'quickfire',
     cause: event,
     charges: stacks,

@@ -114,7 +114,7 @@ function grantFervidAshes(runtime: GuardianRuntime, { cast }: { readonly cast: R
 
   if (stacks <= 0 || duration <= 0 || maximumTargets <= 0) return;
 
-  grantAshes(runtime, admission, {
+  grantAshes(runtime, {
     source: 'fervid-conviction',
     cause: guardianCastCause(runtime, cast),
     charges: stacks,

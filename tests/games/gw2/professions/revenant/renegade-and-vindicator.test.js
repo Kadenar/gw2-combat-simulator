@@ -508,8 +508,8 @@ test("Kalla's Fervor replaces the soonest-expiring stack at its cap", () => {
       capped.kallasFervor.map((application) => application.expiresAt),
       [1, 2, 3, 4, 5].map((at) => at + duration)
     );
-    assert.equal(activeKallasFervorStacks(capped, duration), 5);
-    assert.equal(activeKallasFervorStacks(capped, duration + 1), 4);
+    assert.equal(activeKallasFervorStacks(capped, duration, 5), 5);
+    assert.equal(activeKallasFervorStacks(capped, duration + 1, 5), 4);
     // Heroic Command explicitly refreshes every stack at its completion, unlike an ordinary capped application.
     const refreshed = run([{ type: 'wait', durationMs: 6000 }, 'Heroic Command']);
     assert.deepEqual(refreshed.warnings, []);
@@ -627,7 +627,6 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
         specialization: {
           kind: 'Renegade',
           state: {
-            kallasFervorMaximumStacks: 5,
             kallasFervor: Array.from({ length: 6 }, () => ({
               at: 0,
               expiresAt: 10
@@ -1539,7 +1538,6 @@ test('Kallas Fervor reports the same selected grant that updates its capped owne
   const { captureEffectEmissions } = await import('#tests/helpers/effect-emission.js');
   for (const selectedTraitIds of [[], [TRAIT.LASTING_LEGACY]]) {
     const state = {
-      kallasFervorMaximumStacks: 5,
       kallasFervor: [
         { at: 0, expiresAt: 3 },
         { at: 0, expiresAt: 4 }
@@ -1564,8 +1562,8 @@ test('Kallas Fervor reports the same selected grant that updates its capped owne
       state.kallasFervor.map((entry) => entry.expiresAt),
       [4, 7, 7]
     );
-    assert.equal(activeKallasFervorStacks(state, 4), 2);
-    assert.equal(activeKallasFervorStacks(state, 7), 0);
+    assert.equal(activeKallasFervorStacks(state, 4, 3), 2);
+    assert.equal(activeKallasFervorStacks(state, 7, 3), 0);
     runtime.time = 2;
     grantKallasFervor(runtime, { sourceId: TRAIT.AMBUSH_COMMANDER, sourceName: 'Repeated grant' });
     assert.deepEqual(
@@ -1573,5 +1571,36 @@ test('Kallas Fervor reports the same selected grant that updates its capped owne
       [7, 8, 8]
     );
     assert.equal(captured.events[1].stacks, 2);
+  }
+});
+
+test('Fervor modifiers and observations resolve the selected profile cap without cached state', async () => {
+  const { withProfile } = await import('#tests/helpers/catalog-overrides.js');
+  const { fervorProfile } = await import('#gw2/professions/revenant/specializations/renegade/traits/fervor.js');
+  const { renegadeEffectStates } = await import('#gw2/professions/revenant/specializations/renegade/effect-state.js');
+  // An over-cap preview verifies both consumers read patch tuning rather than a state factory default.
+  for (const selectedTraitIds of [[], [TRAIT.LASTING_LEGACY]]) {
+    const config = { specialization: 'Renegade', selectedTraitIds };
+    const native = revenantProfession.runtimeFor(config);
+    const profession = native.createState(config);
+    profession.specialization.state.kallasFervor = Array.from({ length: 8 }, () => ({ at: 0, expiresAt: 10 }));
+    const profile = fervorProfile({ config, catalog: native.catalog });
+    for (const maximumStacks of [3, 7]) {
+      const catalog = withProfile(native.catalog, profile.id, { maximumStacks });
+      const runtime = { profession, config, traits: new Set(selectedTraitIds), helpers: catalog, time: 1 };
+      const effect = renegadeEffectStates(runtime).find(({ kind }) => kind === 'kallas-fervor');
+      assert.equal(effect.countLimit, maximumStacks);
+      const context = { catalog, config, runtime, time: 1, event: { actorType: 'player' } };
+      assert.equal(
+        revenantModifiers.modifyStrikeDamage(context, 1),
+        1 + maximumStacks * profile.damageIncreasePerStack
+      );
+      assert.equal(
+        revenantModifiers.modifyConditionDamage({ ...context, condition: 'Burning' }, 1),
+        1 + maximumStacks * profile.conditionDamageIncreasePerStack
+      );
+    }
+
+    assert.equal(Object.hasOwn(profession.specialization.state, 'kallasFervorMaximumStacks'), false);
   }
 });

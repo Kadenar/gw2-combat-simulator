@@ -324,8 +324,8 @@ test('Engineer condition traits stay blocked at the exact ICD boundary', () => {
   assert.equal(context.queue.pending().length, 1);
 });
 
-test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and independent recipients', () => {
-  // Only personal One Wolf Pack includes equality; all gates still reject hits before their deadline.
+test('Soulbeast stance ICDs share each stance boundary across recipients while cooldowns stay independent', () => {
+  // One Wolf Pack includes equality for the player and allies alike; every gate still rejects earlier hits.
   for (const kind of ['one-wolf-pack', 'vulture-stance']) {
     for (const ally of [false, true]) {
       const state = createSoulbeastState();
@@ -350,7 +350,7 @@ test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and in
         kind,
         ...(ally ? { metadata: { triggeredByAlly: 1 } } : {})
       };
-      const inclusive = !ally && kind === 'one-wolf-pack';
+      const inclusive = kind === 'one-wolf-pack';
       const blockedTimes = inclusive ? [0.96, READY_AT - 0.000001] : [0.96, READY_AT, READY_AT + 0.0000004];
       for (const at of blockedTimes) react(context, { ...event, at });
       assert.equal(context.queue.pending().length, 0);

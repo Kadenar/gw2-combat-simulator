@@ -32,7 +32,10 @@ import {
   razorclawsRage
 } from '#gw2/professions/revenant/specializations/renegade/skills/warband.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
-import { fervorProfile } from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
+import {
+  fervorProfile,
+  fervorMaximumStacks
+} from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Renegade owns Fervor, warband summons, Kalla's commands, and their actual hit/boon reactions. */
@@ -49,12 +52,6 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
   },
   buffPolicies: renegadeBuffPolicies,
   observeEffects: renegadeEffectStates,
-  initialize(runtime) {
-    renegadeState.from(runtime).kallasFervorMaximumStacks = Math.max(
-      1,
-      balanceProfileNumber(fervorProfile(runtime), 'maximumStacks')
-    );
-  },
   // Enhanced Band Together is instant; normal summons keep their authored cast time.
   castDurationMs: (runtime, skill, duration) => (bandTogetherReady(runtime, skill.id) ? 0 : duration),
   // Band Together readiness is sampled before the accepted cast changes its state.
@@ -111,7 +108,7 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
 
       if (core == null) return;
 
-      const stacks = activeKallasFervorStacks(renegadeState.from(runtime), runtime.time);
+      const stacks = activeKallasFervorStacks(renegadeState.from(runtime), runtime.time, fervorMaximumStacks(runtime));
 
       if (!stacks) return;
 

@@ -10,33 +10,27 @@ import type { RenegadeState } from '#gw2/professions/revenant/specializations/re
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import { fervorProfile } from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
 
-/** Returns whether the one-use Band Together enhancement is active at `at`. */
-export function isBandTogetherReady(state: Partial<RenegadeState>, at: number): boolean {
-  const grant = state.bandTogether;
-  return grant != null && grant.charges > 0 && grant.expiresAt > at;
-}
-
 /** Counts started, unexpired Fervor applications consistently for grants, modifiers, and siphons. */
 export function activeKallasFervorStacks(
   state: {
     readonly kallasFervor?: readonly Readonly<RenegadeState['kallasFervor'][number]>[];
-    readonly kallasFervorMaximumStacks?: number;
   },
   at: number,
-  maximumStacks = state.kallasFervorMaximumStacks
+  maximumStacks: number
 ): number {
   // Count in place so hit-time queries and repeated grants do not allocate temporary stack arrays.
   let count = 0;
   for (const application of state.kallasFervor || [])
     if ((application.at || 0) <= at && (application.expiresAt || 0) > at) count++;
 
-  return Math.min(Math.max(1, Number(maximumStacks)), count);
+  return Math.min(Math.max(1, maximumStacks), count);
 }
 
+/** Eligible summons consume the shared timed buff; natural expiry uses the same combat query. */
 export function bandTogetherReady(runtime: MechanicQueriesOf<RevenantRuntime>, skillId: SkillId): boolean {
   return (
     RENEGADE_ENHANCED_SKILL_BY_ID[Number(skillId)] != null &&
-    isBandTogetherReady(renegadeState.from(runtime), runtime.time)
+    runtime.combat.activeBuffStacks('band-together', runtime.time, 1) > 0
   );
 }
 
@@ -53,7 +47,6 @@ export function grantKallasFervor(
   if (!effect) return;
 
   const maximum = Math.max(1, balanceProfileNumber(profile, 'maximumStacks'));
-  state.kallasFervorMaximumStacks = maximum;
   state.kallasFervor = state.kallasFervor.filter((application) => application.expiresAt > runtime.time);
   const duration = Math.max(0, effectNumber(profile, effect, 'duration'));
   const stacks = Math.max(0, Math.floor(effectNumber(profile, effect, 'stacks')));

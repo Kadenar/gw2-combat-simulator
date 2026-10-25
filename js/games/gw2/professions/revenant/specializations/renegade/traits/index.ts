@@ -43,6 +43,7 @@ import {
 } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { warbandCompleted } from '#gw2/professions/revenant/specializations/renegade/skills/warband.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { fervorMaximumStacks } from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
 
 /** Owns All for One tuning and behavior at its established execution boundaries. */
 const allForOne = defineTrait({
@@ -512,5 +513,9 @@ function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
 
 /** Trait modifiers count only Fervor stacks active at the hit instant. */
 function kallasFervorStacks(context: Gw2ModifierContext): number {
-  return activeKallasFervorStacks(revenantRuntimeSpecializationState(context, 'Renegade'), context.time);
+  return activeKallasFervorStacks(
+    revenantRuntimeSpecializationState(context, 'Renegade'),
+    context.time,
+    fervorMaximumStacks(context)
+  );
 }

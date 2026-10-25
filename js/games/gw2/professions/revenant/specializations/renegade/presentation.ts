@@ -12,7 +12,7 @@ import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
-import { isBandTogetherReady } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import type {
   ProfessionEffectPresentation,
@@ -58,13 +58,13 @@ function renegadeStateSnapshot(
     });
   }
 
-  const bandRemaining = (state.bandTogether?.expiresAt ?? 0) - at;
+  const band = planningBuffAt(context.planningState, 'band-together');
 
-  if (isBandTogetherReady(state, at)) {
+  if (band) {
     items.push({
       id: 'renegade-band-together',
       label: 'Band Together',
-      value: `${bandRemaining.toFixed(1)}s`,
+      value: `${band.remaining.toFixed(1)}s`,
       title: 'Time remaining to empower the next Renegade summon'
     });
   }
@@ -130,8 +130,8 @@ export const renegadeUi: RevenantUiSlice = Object.freeze({
     }
   ],
   isPaletteSkillInstant: (context: RevenantUiContext, skill: RevenantSkill) =>
-    // Band Together is instant only when the one-use enhancement window is active; the UI must expose this so the user can see at a glance that the next press is the empowered summon
+    // The palette observes the same timed buff as combat, including early consumption.
     RENEGADE_ENHANCED_SKILL_BY_ID[Number(skill.id)] != null &&
-    isBandTogetherReady(revenantUiState(context), context.time || 0),
+    planningBuffAt(context.planningState, 'band-together') != null,
   resourceViews: () => []
 });

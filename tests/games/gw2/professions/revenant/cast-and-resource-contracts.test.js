@@ -1,3 +1,4 @@
+import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -16,6 +17,7 @@ import {
   affinity as modifierAffinity
 } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
 import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
+import { razorclawsRage } from '#gw2/professions/revenant/specializations/renegade/skills/warband.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { REVENANT_TEST_CONFIG as baseConfig, revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
@@ -230,7 +232,7 @@ for (const [spec, name, legend, config = {}] of [
 
     if (spec === 'Renegade') {
       assert.equal(state.razorclawsRage.charges, 0);
-      assert.equal(state.bandTogether.charges, 0);
+      assert.equal(planningBuffStacks(result.planningState, 'band-together'), 0);
     } else {
       assert.equal(Object.hasOwn(state, 'razorclawsRage'), false);
       assert.equal(Object.hasOwn(state, 'bandTogether'), false);
@@ -367,6 +369,44 @@ test('Razorclaw rejects a missing proc and keeps charges when its bleed is remov
     false
   );
 });
+
+// Player and ally grants are separate, but one expiry and cooldown policy decides every recipient's spend.
+for (const cooldown of [0, 1]) {
+  test(`Razorclaw allies spend under the player's expiry and ${cooldown ? 'cooldown' : 'same-timestamp'} policy`, () => {
+    const procId = RENEGADE_PROFILE_IDS.razorclawsRageProc;
+    const skill = revenantCatalog.skillsById.get(SKILL.RAZORCLAWS_RAGE);
+    // Surplus charges leave only expiry and the cooldown able to stop spending.
+    const profile = {
+      ...skill,
+      effects: skill.effects.map((effect) => (effect.type === 'buff' ? { ...effect, stacks: 10, duration: 4 } : effect))
+    };
+    const result = runRevenant(
+      [wait(6000)],
+      { specialization: 'Renegade', allies: { count: 1, strikesPerSecond: 1 } },
+      {
+        catalog: (catalog) => withSkill(catalog, procId, { cooldown }),
+        initialize(runtime) {
+          razorclawsRage(runtime.mechanics, { id: 'razorclaw-test', skill }, profile);
+          // Player hits coincide with each allied opportunity, including the exact expiry.
+          for (const at of [1, 2, 3, 4]) runtime.effects.emit({ kind: 'packet', event: revenantHit(at) });
+        }
+      }
+    );
+    const bleeds = (ally) =>
+      result.events
+        .filter(
+          (event) =>
+            event.condition === 'Bleeding' &&
+            event.skillId === SKILL.RAZORCLAWS_RAGE &&
+            Boolean(event.metadata?.triggeredByAlly) === ally
+        )
+        .map((event) => event.at);
+    // Expiry is exclusive and a cooldown blocks its exact deadline for the player and the ally alike.
+    const expected = cooldown ? [1, 3] : [1, 2, 3];
+    assert.deepEqual(bleeds(false), expected);
+    assert.deepEqual(bleeds(true), expected);
+  });
+}
 
 test('Battle Scars rejects overflow and consumes newest before longest-lived', () => {
   const vulnerability = (at, stacks) => ({

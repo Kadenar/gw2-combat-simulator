@@ -1,7 +1,4 @@
-import {
-  grantAshes,
-  resolveAshesGrantData
-} from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
+import { grantAshes } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
 import { ASHES_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
@@ -188,11 +185,7 @@ test('Ashes replacement resets readiness while trait refresh can shorten the liv
             ...native.tasks,
             'test.ashes'(runtime) {
               runtime.profession.specialization.state.ashes = { charges: 4, expiresAt: 20, readyAt: 8 };
-              const admission = resolveAshesGrantData(
-                runtime,
-                runtime.helpers.balanceProfilesById.get(ASHES_PROFILE.epilogueGrant)
-              );
-              grantAshes(runtime, admission, {
+              grantAshes(runtime, {
                 source,
                 cause: { type: 'buff', at: runtime.time },
                 charges: 2,
@@ -212,7 +205,8 @@ test('Ashes replacement resets readiness while trait refresh can shorten the liv
   }
 });
 
-test('Fervid preserves raw allied expiry and aligned personal expiry, including inclusive boundaries', () => {
+// Allies share the player's aligned deadline, so a strike between the raw and aligned deadlines still consumes.
+test('Fervid gives allies and the player the same aligned inclusive expiry', () => {
   for (const grantAt of [0.001, 0.04]) {
     const lifetimeSeconds = 0.4;
     const raw = canonicalTime(grantAt + lifetimeSeconds);
@@ -230,11 +224,7 @@ test('Fervid preserves raw allied expiry and aligned personal expiry, including 
             tasks: {
               ...native.tasks,
               'test.ashes'(runtime) {
-                const admission = resolveAshesGrantData(
-                  runtime,
-                  runtime.helpers.balanceProfilesById.get(ASHES_PROFILE.epilogueGrant)
-                );
-                grantAshes(runtime, admission, {
+                grantAshes(runtime, {
                   source: 'fervid-conviction',
                   cause: { type: 'buff', at: runtime.time, activationId: 'fervid' },
                   charges: 2,
@@ -249,7 +239,7 @@ test('Fervid preserves raw allied expiry and aligned personal expiry, including 
       );
       assert.equal(
         burns(result).some((event) => event.metadata?.triggeredByAlly),
-        at <= raw,
+        at <= aligned,
         `ally at ${at}`
       );
       assert.equal(

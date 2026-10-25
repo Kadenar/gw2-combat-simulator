@@ -46,6 +46,8 @@ export interface ThiefCoreState extends StealthState {
   /** Outgoing projectiles are recallable before landing, but do not occupy grounded slots yet. */
   outboundAxes: { id: string; skillId: SkillId }[];
   venomChargeBatches: ChargePool['grants'];
+  /** Each assumed ally's venom batches, keyed by `${allyIndex}:${skillId}`; the allied controller supplies strikes. */
+  alliedVenomChargeBatches: ChargePool['grants'];
   activeThievesGuild: ThievesGuildState | null;
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
@@ -103,6 +105,7 @@ export function createThiefCoreState(
     ),
     outboundAxes: [],
     venomChargeBatches: {},
+    alliedVenomChargeBatches: {},
     activeThievesGuild: null,
     availableFlips: {},
     autoattackChains: {},

@@ -16,7 +16,8 @@ import {
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import { runThief } from '#tests/helpers/thief-simulation.js';
+import { activateVenom } from '#gw2/professions/thief/core/mechanics/venoms.js';
+import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -1005,6 +1006,33 @@ test('Skale and Devourer Venom grant party charges that proc together on attacks
   assert.deepEqual(limited.warnings, []);
   assert.equal(personalProcs(ID.SKALE_VENOM).length, 8);
   assert.equal(personalProcs(ID.DEVOURER_VENOM).length, 2);
+});
+
+// Player and ally batches are separate, but both spend only before the batch's exclusive expiry.
+test('Venom allies spend native batches under the player expiry policy', () => {
+  const skill = thiefCatalog.skillsById.get(ID.SPIDER_VENOM);
+  const result = runThief(
+    [{ type: 'wait', durationMs: 25000 }],
+    { selectedSkillIds: [ID.SPIDER_VENOM], allies: { count: 1, strikesPerSecond: 1 / 12 } },
+    {
+      initialize(runtime) {
+        activateVenom(runtime.mechanics, { id: 'venom-test', skill });
+        // Player hits coincide with the allied strike halfway through the batch and at its exact expiry.
+        for (const at of [12, 24]) runtime.effects.emit({ kind: 'packet', event: thiefHit(at) });
+      }
+    }
+  );
+  const procs = (allied) =>
+    result.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === 'condition' &&
+          event.skillId === ID.SPIDER_VENOM &&
+          Boolean(event.metadata?.triggeredByAlly) === allied
+      )
+      .map((event) => event.at);
+  assert.deepEqual(procs(false), [12]);
+  assert.deepEqual(procs(true), [12]);
 });
 
 test('Mistburn charges are spent once by later player strikes, never by the Mortar itself', () => {

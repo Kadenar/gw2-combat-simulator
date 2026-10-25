@@ -25,7 +25,6 @@ export function heroicCommand(runtime: RevenantRuntime, cast: RuntimeCast<Revena
   if (!fervor) return;
 
   const maximum = Math.max(1, balanceProfileNumber(profile, 'maximumStacks'));
-  state.kallasFervorMaximumStacks = maximum;
   state.kallasFervor = state.kallasFervor.filter((application) => application.expiresAt > runtime.time);
   const duration = Math.max(0, effectNumber(profile, fervor, 'duration'));
   for (const application of state.kallasFervor)

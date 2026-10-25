@@ -15,7 +15,8 @@ import {
   activeChargeCount,
   consumeCharge,
   expireCharges,
-  grantCharges
+  grantCharges,
+  type ChargeGrant
 } from '#gw2/platform/combat/resources/charges.js';
 import {
   effectNumber,
@@ -40,7 +41,6 @@ export const FIREBRAND_ASHES_EXPIRE = 'guardian.firebrand.ashes-expiry';
 
 interface AshesGrantAdmission {
   readonly buff: SkillEffect;
-  readonly triggerIntervalSeconds: number;
 }
 
 interface AshesGrantRequest {
@@ -51,28 +51,29 @@ interface AshesGrantRequest {
   readonly recipients: { readonly includesSelf: boolean; readonly maximumAllies: number };
 }
 
-/** Admission precedes proc claims; payloads are resolved again when each charge fires. */
+/** Admission requires both the buff and a deliverable payload before proc claims; each spend resolves it again. */
 export function resolveAshesGrantData(
   selection: AshesSelection,
   profile: BalanceProfile
 ): AshesGrantAdmission | undefined {
   const buff = requireEffect(profile, 'buff', 'ashes-of-the-just');
   const ashes = resolveAshes(selection);
-  return buff && ashes ? { buff, triggerIntervalSeconds: ashes.triggerIntervalSeconds } : undefined;
+  return buff && ashes ? { buff } : undefined;
 }
 
-/** Install existing charge stores with source-specific overlap, recipient, and deadline semantics. */
-export function grantAshes(runtime: GuardianRuntime, admission: AshesGrantAdmission, request: AshesGrantRequest): void {
-  const selfExpiresAt = gw2EffectExpiresAt(runtime.time, request.lifetimeSeconds);
-  // Fervid historically uses a raw allied deadline; the other sources share the aligned self deadline.
-  const alliedExpiresAt =
-    request.source === 'fervid-conviction' ? canonicalTime(runtime.time + request.lifetimeSeconds) : selfExpiresAt;
+/**
+ * Every recipient receives the same grant: the aligned effect deadline, replacement by Epilogue, and refresh by trait
+ * sources that keeps live charges and readiness. Each recipient owns its grant; allies are not stacked batches.
+ */
+export function grantAshes(runtime: GuardianRuntime, request: AshesGrantRequest): void {
+  const expiresAt = gw2EffectExpiresAt(runtime.time, request.lifetimeSeconds);
+  const state = firebrandState.from(runtime);
+  const install = (previous: ChargeGrant | undefined) =>
+    grantCharges(request.charges, expiresAt, request.source === 'epilogue' ? undefined : previous, runtime.time);
 
   if (request.recipients.includesSelf) {
-    const state = firebrandState.from(runtime);
-    const previous = request.source === 'epilogue' ? undefined : state.ashes;
-    state.ashes = grantCharges(request.charges, selfExpiresAt, previous, runtime.time);
-    runtime.schedule(FIREBRAND_ASHES_EXPIRE, selfExpiresAt, undefined, undefined, 10);
+    state.ashes = install(state.ashes);
+    runtime.schedule(FIREBRAND_ASHES_EXPIRE, expiresAt, undefined, undefined, 10);
   }
 
   // Self-only grants (Quickfire without allied recipients) never touch the allied controller.
@@ -85,33 +86,56 @@ export function grantAshes(runtime: GuardianRuntime, admission: AshesGrantAdmiss
         ? { priority: 5, skillName: 'Quickfire', name: 'Quickfire' }
         : { priority: 5, skillName: 'Fervid Conviction', name: 'Fervid Conviction' };
   const event = request.cause;
+  // The controller only offers strikes; its window mirrors the native inclusive expiry. Each new grant replaces the
+  // ally's registration, so later procs carry the latest source's attribution.
   runtime.alliedStrikes.registerRecipients(
-    (allyIndex) => ({
-      id: `ashes:${event.activationId}:${event.sourceId}:${runtime.time}:${allyIndex}`,
-      expiresAt: alliedExpiresAt,
-      inclusiveExpiry: true,
-      charges: request.charges,
-      consumptionGroup: 'ashes',
-      internalCooldown: admission.triggerIntervalSeconds,
-      trigger(opportunity) {
-        const resolved = resolveAshes(runtime);
+    (allyIndex) => {
+      const grant = install(state.alliedAshes[allyIndex]);
+      state.alliedAshes[allyIndex] = grant;
+      const current = () => firebrandState.from(runtime).alliedAshes[allyIndex];
+      return {
+        id: `ashes:${allyIndex}`,
+        expiresAt: grant.expiresAt,
+        inclusiveExpiry: true,
+        isActive: () => (current()?.charges ?? 0) > 0,
+        trigger(opportunity) {
+          const resolved = spendAshesCharge(runtime, current(), opportunity.at);
 
-        if (!resolved) return false;
+          if (!resolved) return false;
 
-        runtime.effects.emit({
-          kind: 'packet',
-          event: buildAshesBurningPacket(resolved, {
-            kind: 'ally',
-            grantCause: event,
-            opportunity,
-            source,
-            priority: source.priority
-          })
-        });
-      }
-    }),
+          runtime.effects.emit({
+            kind: 'packet',
+            event: buildAshesBurningPacket(resolved, {
+              kind: 'ally',
+              grantCause: event,
+              opportunity,
+              source,
+              priority: source.priority
+            })
+          });
+        }
+      };
+    },
     { maximumAllies: request.recipients.maximumAllies }
   );
+}
+
+/**
+ * One Ashes policy for every recipient: inclusive expiry and a strict trigger interval. Most strikes find no live
+ * charge, so the selected payload resolves only when one could be spent, and a removed payload spends nothing.
+ */
+function spendAshesCharge(
+  context: Parameters<typeof resolveAshes>[0],
+  grant: ChargeGrant | undefined,
+  at: number
+): ResolvedAshes | undefined {
+  if (activeChargeCount(grant, at, true) === 0) return;
+
+  const resolved = resolveAshes(context);
+
+  if (!resolved || !consumeCharge(grant, at, resolved.triggerIntervalSeconds, true)) return;
+
+  return resolved;
 }
 
 type AshesTrigger =
@@ -174,17 +198,9 @@ export function reactToAshesHit(
 ): void {
   if (!hitContext || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
 
-  const state = firebrandState.from(context);
+  const resolved = spendAshesCharge(context, firebrandState.from(context).ashes, event.at);
 
-  // Most strikes find no live charge; resolve the selected payload only when one could be spent.
-  if (activeChargeCount(state.ashes, event.at, true) === 0) return;
-
-  const resolved = resolveAshes(context);
-
-  // A removed payload must not spend a charge.
-  if (!resolved || !consumeCharge(state.ashes, event.at, resolved.triggerIntervalSeconds, true)) return;
-
-  emitPersonalAshes(context, event, resolved, 'self');
+  if (resolved) emitPersonalAshes(context, event, resolved, 'self');
 }
 
 /** Inspect a single selected charge without installing or consuming live charges. */
@@ -260,7 +276,7 @@ function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<Guardia
 
   const duration = effectNumber(profile, admission.buff, 'duration');
   const charges = effectNumber(profile, admission.buff, 'stacks');
-  grantAshes(runtime, admission, {
+  grantAshes(runtime, {
     source: 'epilogue',
     cause: event,
     charges,

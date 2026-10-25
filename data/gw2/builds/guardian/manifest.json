@@ -207,7 +207,7 @@
           "100-80": { "cumulative": 33875, "phase": 33875 },
           "80-60": { "cumulative": 35181, "phase": 36605 },
           "60-40": { "cumulative": 34918, "phase": 34392 },
-          "40-20": { "cumulative": 35434, "phase": 37132 },
+          "40-20": { "cumulative": 35435, "phase": 37132 },
           "20-0": { "cumulative": 35286, "phase": 34703 }
         },
         "patchPreview": {

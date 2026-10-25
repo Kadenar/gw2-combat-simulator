@@ -14,6 +14,8 @@ export interface GuardianFirebrandState {
   activeTome: string;
   tomePages: DiscreteResourceClock;
   ashes: ChargeGrant;
+  /** Each assumed ally's own Ashes grant, keyed by ally index; the allied controller supplies only strikes. */
+  alliedAshes: Record<number, ChargeGrant>;
   swiftScholarTome: string;
   swiftScholarCount: number;
 
@@ -37,6 +39,7 @@ function createFirebrandState(profileContext: {
       nextAt: pages < maximum && interval > 0 ? interval : Infinity
     },
     ashes: grantCharges(0, 0),
+    alliedAshes: {},
     swiftScholarTome: '',
     swiftScholarCount: 0,
 
