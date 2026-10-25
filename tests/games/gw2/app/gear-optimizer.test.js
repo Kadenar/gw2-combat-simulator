@@ -1166,26 +1166,69 @@ test('reject invalid inputs without reducing search; preserve count precision an
   assert.throws(() => optimizerScore({ dps: NaN }), /non-finite/);
 });
 
-// Invalid commands must fail baseline validation; ordinary warnings still belong to usable scores.
-test('optimizer rejects invalid rotation skills without suppressing other warnings', () => {
+// Detailed baseline and verification must preserve skipped-cast warnings just like candidate scoring.
+test('optimizer scores skipped rotation skills without suppressing warnings', () => {
   const captured = request(
     {},
     { rotation: adapter.toApplicationBuild({ rotation: ['Chop', 'Chop'] }).rotation, weapons: ['Greatsword', ''] }
   );
   const result = createOptimizerEvaluator(captured, adapter).evaluate(captured.build);
   assert.ok(result.steps.some((step) => step.invalid));
-  assert.throws(
-    () => optimizerScore(result),
-    (error) => {
-      assert.match(error.message, /Fix invalid rotation skills.*Chop/);
-      assert.equal(error.message.split('Chop').length - 1, 1);
-      return true;
-    }
+  assert.ok(result.warnings.length > 0);
+  assert.deepEqual(optimizerScore(result).warnings, result.warnings);
+  assert.deepEqual(
+    optimizerScore(result),
+    optimizerScore(createOptimizerEvaluator(captured, adapter).score(captured.build))
   );
   const valid = request({}, { rotation: [], weapons: ['Greatsword', ''] });
   const detailed = createOptimizerEvaluator(valid, adapter).evaluate(valid.build);
   const warnings = [{ message: 'A non-blocking simulation warning.', at: 1 }];
   assert.deepEqual(optimizerScore({ ...detailed, warnings }).warnings, warnings);
+});
+
+// Resource failures and their dependent shroud casts must not prevent either search from reaching verification.
+test('life-force warnings survive optimizer baseline, search, and detailed verification', async () => {
+  const necromancer = await loadProfessionAppAdapter('necromancer');
+  for (const [specialization, rotation] of [
+    ['Death Magic', ['Death Shroud', 'Life Blast', 'Exit Death Shroud', 'Grasping Dead']],
+    ['Scourge', ['Desert Shroud', 'Grasping Dead']]
+  ]) {
+    const build = necromancer.toApplicationBuild({
+      ...necromancer.profession.createBuildDefaults(),
+      initialResource: 0,
+      specializations: [
+        { name: 'Curses', traits: '1-1-1' },
+        { name: 'Spite', traits: '1-1-1' },
+        { name: specialization, traits: '1-1-1' }
+      ],
+      rotation
+    });
+    const captured = captureGearOptimizerRequest(
+      {
+        contentId: necromancer.id,
+        adapter: necromancer,
+        build,
+        buildRevision: 0,
+        patch: necromancer.profession.resolvePatch({ id: 'current' })
+      },
+      { food: ['', build.food] }
+    );
+    for (const createOptimizer of [createGroupedOptimizer, createFastOptimizer]) {
+      const job = createOptimizer(captured, necromancer);
+      const baseline = optimizerScore(job.evaluator.evaluate(build));
+      assert.ok(baseline.warnings.some(({ message }) => /life.?force/i.test(message)));
+      assert.ok(baseline.totalDamage > 0);
+      const result = job.evaluateRange(0n, job.space.count);
+      assert.ok(result.winners.length > 0);
+      assert.ok(result.warnings.length > 0);
+      for (const candidate of result.winners) {
+        const detailed = optimizerScore(job.evaluator.evaluate(candidate.equipment));
+        verifyOptimizerScore(candidate.score, detailed);
+        assert.deepEqual(candidate.score.warnings, detailed.warnings);
+        assert.ok(detailed.warnings.some(({ message }) => /life.?force/i.test(message)));
+      }
+    }
+  }
 });
 
 test('ordinary evaluator preserves deterministic configuration and isolates consecutive builds', () => {
