@@ -159,7 +159,12 @@ export const shroudEntered = defineTriggerPoint<{
 /** Keep the original reward order at the shroud-exited boundary. */
 export const shroudExited = defineTriggerPoint<Record<string, never>>('necromancer.shroud-exited', [TRAIT.SOUL_BARBS]);
 
-/** Keep the original reward order at the shroud-invoked boundary. */
+/** Scourge shrouds reward existing Carapace before granting new entry stacks and arming other shroud traits. */
 export const shroudInvoked = defineTriggerPoint<{
   readonly cast: RuntimeCast<NecromancerSkill>;
-}>('necromancer.shroud-invoked', [TRAIT.PLAGUE_SENDING, TRAIT.SOUL_BARBS]);
+}>('necromancer.shroud-invoked', [
+  TRAIT.SOUL_COMPREHENSION,
+  TRAIT.ARMORED_SHROUD,
+  TRAIT.PLAGUE_SENDING,
+  TRAIT.SOUL_BARBS
+]);

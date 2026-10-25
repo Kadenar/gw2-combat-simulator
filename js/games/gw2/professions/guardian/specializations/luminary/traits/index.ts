@@ -1,4 +1,4 @@
-import { RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { RECIPIENT, ACTOR, BOON, CONDITION, AURA } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
@@ -83,7 +83,11 @@ const sovereignOfLight = defineTrait({
   id: TRAIT.SOVEREIGN_OF_LIGHT,
   name: 'Sovereign of Light',
   balance: {
-    effects: [{ type: 'strike', name: 'Strike', coefficient: 1.5, hits: 1 }]
+    // Forge entry grants this trait's aura; detonation selects only its independent strike.
+    effects: [
+      { type: 'strike', name: 'Strike', coefficient: 1.5, hits: 1 },
+      { type: 'aura', name: AURA.LIGHT, aura: AURA.LIGHT, duration: 4 }
+    ]
   },
   triggers: [
     onTriggerPoint(luminaryCastStarted, {
@@ -98,8 +102,8 @@ const sovereignOfLight = defineTrait({
             AURA_GRANT,
             cast.start,
             {
-              ...guardianCastCause(runtime, cast),
-              offTarget: cast.command.offTarget === true
+              cause: { ...guardianCastCause(runtime, cast), offTarget: cast.command.offTarget === true },
+              traitId: TRAIT.SOVEREIGN_OF_LIGHT
             },
             undefined,
             -10

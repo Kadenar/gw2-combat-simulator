@@ -317,8 +317,16 @@ test('Luminary trait aura admission obeys selection and isolation, independently
             [id],
             { traitTriggers, selectedTraitIds: selected ? [trait] : [] },
             {
+              // Removing the offensive component must retain the trait's independently owned aura.
               catalog: (catalog) =>
-                removed ? withProfile(catalog, trait, { effects: [], removedEffectKeys: [key] }) : catalog
+                removed
+                  ? withProfile(catalog, trait, {
+                      effects: catalog.balanceProfilesById
+                        .get(trait)
+                        .effects.filter((effect) => skillEffectKey(effect.type, effect.name) !== key),
+                      removedEffectKeys: [key]
+                    })
+                  : catalog
             }
           );
           assert.equal(state(runtime).lightAuraUntil > runtime.time, selected && traitTriggers);
@@ -353,7 +361,7 @@ test('Luminary retains admitted aura delivery and consumes an old aura before it
     { traitTriggers: false },
     {
       initialize(runtime) {
-        runtime.schedule(AURA_GRANT, 0.5, cause(0.5, { duration: 3 }));
+        runtime.schedule(AURA_GRANT, 0.5, { cause: cause(0.5), traitId: TRAIT.SOVEREIGN_OF_LIGHT });
       }
     }
   );

@@ -7,20 +7,16 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
+import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { justiceBlinding } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import {
-  lightAuraGranting,
-  luminaryCastStarted
-} from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
+import { lightAuraGranting } from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianSkill, GuardianRuntime, GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -31,9 +27,15 @@ export const EFFULGENT = 'guardian.luminary.effulgent';
 
 export const STANCE = 'guardian.luminary.stance';
 
+/** Every scheduled grant identifies its payload owner independently of the triggering cast's attribution. */
+type AuraGrant = { readonly cause: Gw2ResolverEvent } & ({ readonly skillId: SkillId } | { readonly traitId: SkillId });
+
 /** Native grants use the standard aura packet, after old-aura detonation and before same-time impacts. */
-export function grantLuminaryAura(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.lightAura);
+export function grantLuminaryAura(
+  runtime: GuardianRuntime,
+  event: Gw2ResolverEvent,
+  profile: Skill | BalanceProfile
+): void {
   const aura = requireEffect(profile, 'aura', AURA.LIGHT);
 
   if (!aura) return;
@@ -56,19 +58,6 @@ export function acceptLuminaryAura(runtime: GuardianRuntime, event: Gw2ResolverE
   luminaryState.from(runtime).lightAuraUntil = gw2EffectExpiresAt(runtime.time, event.duration ?? 0);
 }
 
-/** Schedule finite activation effects; all state mutations happen when their boundary executes. */
-export function startLuminaryEffects(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
-  const skill = cast.skill;
-  const event = guardianCastCause(runtime, cast);
-  const hostile = { ...event, offTarget: cast.command.offTarget === true };
-  // Sovereign of Light schedules detonation before this cast's replacement aura.
-  runtime.fireTrigger(luminaryCastStarted, { cast });
-
-  // Announce the accepted virtue independently of selection; the trait owns both aura and Blind admission.
-  if (skill.categories?.includes('Virtue') && skill.slot === 'Profession_1')
-    runtime.fireTrigger(justiceBlinding, { cause: hostile, skill, auraTask: AURA_GRANT });
-}
-
 /** Count only accepted strikes in the half-open window, excluding gear and summoned actors. */
 export function countEffulgentHit(runtime: GuardianRuntime, event: Gw2ResolverEvent, damage: number): void {
   const state = luminaryState.from(runtime);
@@ -77,12 +66,20 @@ export function countEffulgentHit(runtime: GuardianRuntime, event: Gw2ResolverEv
 
   if (!isGw2PlayerActorEvent(event) && !(event.source === 'guardian' && event.actorType === ACTOR.EFFECT)) return;
 
-  const maximum = balanceNumberFromContext(runtime, PROFILE.effulgentStance, 'maximumStacks');
+  const skill = requireSkillFromContext(runtime, ID.EFFULGENT_STANCE);
+  const maximum = requireBalanceNumber(skill.maximumStacks, `skill=${skill.id} field=maximumStacks`);
   state.effulgentStacks = Math.min(maximum, state.effulgentStacks + 1);
 }
 
 const luminaryEffectTasks = {
-  [AURA_GRANT]: (runtime: GuardianRuntime, data: unknown) => grantLuminaryAura(runtime, data as Gw2ResolverEvent),
+  [AURA_GRANT](runtime: GuardianRuntime, data: unknown) {
+    const grant = data as AuraGrant;
+    const owner =
+      'skillId' in grant
+        ? requireSkillFromContext(runtime, grant.skillId)
+        : requireBalanceProfileFromContext(runtime, grant.traitId);
+    grantLuminaryAura(runtime, grant.cause, owner);
+  },
   [STANCE](runtime: GuardianRuntime, data: unknown) {
     const { cast, piercing } = data as { cast: RuntimeCast<GuardianSkill>; piercing: boolean };
     const state = luminaryState.from(runtime);
@@ -107,13 +104,13 @@ const luminaryEffectTasks = {
 
     if (state.effulgentActivationId !== event.activationId) return;
 
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.effulgentStance);
-    const maximum = balanceProfileNumber(profile, 'maximumStacks');
+    const skill = requireSkillFromContext(runtime, ID.EFFULGENT_STANCE);
+    const maximum = requireBalanceNumber(skill.maximumStacks, `skill=${skill.id} field=maximumStacks`);
     const stacks = Math.max(0, Math.min(maximum, state.effulgentStacks));
     state.effulgentActiveUntil = 0;
     state.effulgentStacks = 0;
     state.effulgentActivationId = null;
-    const strike = requireEffect(profile, 'strike', 'Strike');
+    const strike = requireEffect(skill, 'strike', 'Strike');
 
     if (strike) {
       runtime.effects.emit({
@@ -137,15 +134,16 @@ const luminaryEffectTasks = {
           skillName: 'Effulgent Stance',
           name: 'Effulgent Stance',
           coefficient:
-            effectNumber(profile, strike, 'coefficient') +
-            stacks * balanceProfileNumber(profile, 'damageIncreasePerStack'),
+            effectNumber(skill, strike, 'coefficient') +
+            stacks *
+              requireBalanceNumber(skill.damageIncreasePerStack, `skill=${skill.id} field=damageIncreasePerStack`),
           weaponStrengthProfileId: 'nonweapon.unequipped',
           offTarget: event.offTarget === true
         })
       });
     }
 
-    if (stacks === maximum && requireEffect(profile, 'control', 'Control'))
+    if (stacks === maximum && requireEffect(skill, 'control', 'Control'))
       runtime.effects.emit({
         kind: 'packet',
         cause: event,

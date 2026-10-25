@@ -1,7 +1,7 @@
 import { WEAPON, AURA } from '#gw2/platform/constants.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
@@ -12,7 +12,6 @@ import {
   guardianUiSkillsByMode
 } from '#gw2/professions/guardian/core/presentation.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 
 import type {
   ProfessionEffectPresentation,
@@ -96,7 +95,8 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
 
   if (effulgentRemaining > 0) {
     // Display the selected cap, including patches that allow more than the baseline stack count.
-    const maximum = balanceNumberFromContext(context.balanceContext, PROFILE.effulgentStance, 'maximumStacks');
+    const skill = requireSkillFromContext(context.balanceContext, GUARDIAN_SKILL_IDS.EFFULGENT_STANCE);
+    const maximum = requireBalanceNumber(skill.maximumStacks, `skill=${skill.id} field=maximumStacks`);
     const stacks = boundedInteger(state.effulgentStacks || 0, 0, 0, maximum);
     items.push({
       id: 'luminary-effulgent-stance',

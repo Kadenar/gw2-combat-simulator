@@ -1,4 +1,4 @@
-import { WEAPON, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { WEAPON, ACTOR, BOON, CONDITION, AURA } from '#gw2/platform/constants.js';
 import { boonKey, durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
@@ -24,7 +24,7 @@ import {
 } from '#gw2/professions/guardian/core/mechanics/trigger-points.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
-import { justiceBlinding, type JusticeBlinding } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import { virtueActivated, type VirtueActivation } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
@@ -33,6 +33,8 @@ import { canonicalTime } from '#kernel/core/clock.js';
 const MIGHT = 'guardian.righteous-might';
 
 const RESOLUTION_EXPIRY = 'guardian.resolution-expiry';
+
+const JUSTICE_AURA = 'guardian.justice-is-blind-aura';
 
 /** Owns Healer's Resolution's live tuning and trait behavior. */
 export const healersResolution = defineTrait({
@@ -227,10 +229,19 @@ export const justiceIsBlind = defineTrait({
         stacks: 1,
         duration: 3,
         name: 'Blind'
-      }
+      },
+      // Every ready Justice activation admits this aura independently of the Blind component.
+      { type: 'aura', name: AURA.LIGHT, aura: AURA.LIGHT, duration: 4 }
     ]
   },
-  triggers: [onTriggerPoint(justiceBlinding, { run: blindFromJustice })]
+  triggers: [
+    onTriggerPoint(virtueActivated, {
+      when: (_runtime, { virtue }: VirtueActivation) => virtue === 'justice',
+      run: blindFromJustice
+    })
+  ],
+  // Already admitted grants survive trait isolation and use the shared aura pipeline in every specialization.
+  lifetime: { tasks: { [JUSTICE_AURA]: grantJusticeAura } }
 });
 
 /** Owns Retribution's live tuning and trait behavior. */
@@ -410,9 +421,11 @@ function grantHealersResolution(runtime: GuardianRuntime, { cast }: GuardianCast
 }
 
 /** Admit the companion aura before Blind; removing Blind does not remove the independent aura reward. */
-function blindFromJustice(runtime: GuardianRuntime, { cause: event, skill, auraTask }: JusticeBlinding): void {
+function blindFromJustice(runtime: GuardianRuntime, { cast }: VirtueActivation): void {
+  const skill = cast.skill;
+  const event = { ...guardianCastCause(runtime, cast), offTarget: cast.command.offTarget === true };
   // The independent aura is admitted before Blind; removal of the latter never cancels the former.
-  runtime.schedule(auraTask, event.at, event, undefined, -10);
+  runtime.schedule(JUSTICE_AURA, runtime.time, event, undefined, -10);
   emitTraitProfile(runtime, TRAIT.JUSTICE_IS_BLIND, TRAIT.JUSTICE_IS_BLIND, event, {
     at: event.at,
     effect: { type: 'condition', name: 'Blind' },
@@ -426,6 +439,26 @@ function blindFromJustice(runtime: GuardianRuntime, { cause: event, skill, auraT
       offTarget: event.offTarget
     },
     transform: (packet) => ({ ...packet, causalOrder: event.causalOrder ?? event.eventOrder, name: event.name })
+  });
+}
+
+/** The Core trait owns delivery; Luminary may react to the aura without owning its grant. */
+function grantJusticeAura(runtime: GuardianRuntime, data: unknown): void {
+  const event = data as Gw2ResolverEvent;
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.JUSTICE_IS_BLIND);
+  const aura = requireEffect(profile, 'aura', AURA.LIGHT);
+
+  if (!aura) return;
+
+  runtime.effects.emit({
+    kind: 'profile',
+    profile,
+    effects: [aura],
+    at: runtime.time,
+    fullEnd: runtime.time,
+    cause: event,
+    attribution: event,
+    priority: -10
   });
 }
 

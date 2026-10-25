@@ -8,16 +8,11 @@ import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-fl
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  balanceNumberFromContext,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { radiantWeaponEquipped } from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
-import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -42,7 +37,9 @@ function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianSkill>):
     const used = Object.keys(state.radiantWeaponsUsed).filter((weapon) =>
       ['hammer', 'staff', 'blade', 'bulwark'].includes(weapon)
     ).length;
-    const reduction = used <= 1 ? balanceNumberFromContext(runtime, PROFILE.forge, 'rechargeReduction') : 0;
+    // Entry owns the selected recharge adjustment even when expiry initiates the exit.
+    const reduction =
+      used <= 1 ? requireBalanceNumber(enter.rechargeReduction, `skill=${enter.id} field=rechargeReduction`) : 0;
     // Forge entry is a fourth profession action, outside weapon and virtue recharge traits.
     const work = Math.max(0, gw2BaseRecharge(enter) - reduction);
     runtime.cooldownController.startRecharge(enter, runtime.time, work);
@@ -84,14 +81,14 @@ function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianSkill>):
 /** The form has one exact expiry; a stale expiry cannot close a later entry at the same deadline. */
 function enterForge(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
   runtime.cooldownController.clear(cast.skill.id);
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.forge);
-  const effect = requireEffect(profile, 'buff', 'radiant-forge');
+  const skill = requireSkillFromContext(runtime, ID.ENTER_RADIANT_FORGE);
+  const effect = requireEffect(skill, 'buff', 'radiant-forge');
 
   if (!effect) return;
 
   const state = luminaryState.from(runtime);
   state.radiantForge = true;
-  state.radiantForgeEndsAt = canonicalTime(runtime.time + effectNumber(profile, effect, 'duration'));
+  state.radiantForgeEndsAt = canonicalTime(runtime.time + effectNumber(skill, effect, 'duration'));
   state.forgeActivationId = cast.id;
   state.radiantWeapon = '';
   state.glaringBurstSwordSlow = false;

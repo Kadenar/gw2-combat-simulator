@@ -4,6 +4,8 @@ import {
   tooltipDecimal,
   tooltipFactorChange,
   tooltipPercent,
+  tooltipProfile,
+  tooltipNumber,
   tooltipSeconds,
   traitTooltip,
   type ProfessionTooltips
@@ -12,9 +14,21 @@ import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.
 
 /** Describe radiance tooltips from the selected balance data. */
 export const guardianRadianceTooltips = {
-  [TRAIT.JUSTICE_IS_BLIND]: traitTooltip(
-    'Activating Justice blinds the target. For Luminary, the activation also grants a light aura.'
-  ),
+  // Describe each surviving component's selected duration for Core and every elite specialization.
+  [TRAIT.JUSTICE_IS_BLIND]: (context, entity) => {
+    const effects = tooltipProfile(context, TRAIT.JUSTICE_IS_BLIND).effects ?? [];
+    const blind = effects.find((effect) => effect.type === 'condition' && effect.name === 'Blind');
+    const aura = effects.find((effect) => effect.type === 'aura');
+    const grants = [
+      ...(blind ? [`blinds the target for ${tooltipNumber(blind, 'duration')} seconds`] : []),
+      ...(aura ? [`grants you a light aura for ${tooltipNumber(aura, 'duration')} seconds`] : [])
+    ];
+    return traitTooltip(
+      grants.length
+        ? `Activating Justice ${grants.join(' and ')}.`
+        : 'No simulated effects remain in the selected balance data.'
+    )(context, entity);
+  },
   [TRAIT.RENEWED_JUSTICE]: outsideScopeTooltip,
   [TRAIT.RADIANT_POWER]: traitTooltip('Gain ferocity and additional critical-strike chance against burning targets.', [
     ['attributeBonus', 'Ferocity', tooltipDecimal],

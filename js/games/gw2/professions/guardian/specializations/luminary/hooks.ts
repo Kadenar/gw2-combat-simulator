@@ -1,4 +1,5 @@
 import { ACTOR, AURA } from '#gw2/platform/constants.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
@@ -15,14 +16,14 @@ import {
 } from '#gw2/professions/guardian/specializations/luminary/effect-state.js';
 import {
   luminaryVirtueCompleted,
+  luminaryCastStarted,
   radiantWeaponDrawn
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
 import {
   acceptLuminaryAura,
   countEffulgentHit,
   grantLuminaryAura,
-  luminaryEffectLifecycle,
-  startLuminaryEffects
+  luminaryEffectLifecycle
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { radiantForgeLifecycle } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
 import { luminaryHammerLifecycle } from '#gw2/professions/guardian/specializations/luminary/skills/hammer-impact.js';
@@ -74,7 +75,8 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
 
     sideEffectHandlers: {
       'guardian.hammer-aura'(runtime, context) {
-        if (context.kind === 'effect') grantLuminaryAura(runtime, context.trigger.event);
+        if (context.kind === 'effect')
+          grantLuminaryAura(runtime, context.trigger.event, requireSkillFromContext(runtime, ID.DAZZLING_HAMMER));
       }
     },
     castDurationMs(runtime, skill, duration) {
@@ -86,7 +88,8 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
     onCastStart(runtime, cast) {
       if (cast.cancelled) return;
 
-      startLuminaryEffects(runtime, cast);
+      // Sovereign admits detonation before replacement auras from the cast or shared virtue rewards.
+      runtime.fireTrigger(luminaryCastStarted, { cast });
 
       if (VIRTUES.includes(Number(cast.skill.id)))
         admitVirtueActivation(runtime, cast, guardianVirtueForSlot(cast.skill.slot)!);

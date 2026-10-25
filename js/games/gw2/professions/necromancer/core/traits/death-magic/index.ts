@@ -1,4 +1,4 @@
-import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { addCarapace, deathCarapaceStacks } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -13,7 +13,7 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import { necromancerConditionApplied } from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
-import { shroudEntering } from '#gw2/professions/necromancer/core/mechanics/forms.js';
+import { shroudEntering, shroudInvoked } from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerRuntimeCoreState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -105,17 +105,23 @@ export const shroudedRemoval = defineTrait({
   balance: { maximumConditions: 1, resourceGain: 3, duration: 10 }
 });
 
-/** Owns Soul Comprehension tuning and behavior at its existing execution boundaries. */
+/** Grants Carapace-based life force on ordinary shroud entry and Scourge's committed shroud activation. */
 export const soulComprehension = defineTrait({
-  triggers: [onTriggerPoint(shroudEntering, { run: prepareSoulComprehension })],
+  triggers: [
+    onTriggerPoint(shroudEntering, { run: applySoulComprehension }),
+    onTriggerPoint(shroudInvoked, { run: applySoulComprehension })
+  ],
   id: TRAIT.SOUL_COMPREHENSION,
   name: 'Soul Comprehension',
   balance: { lifeForcePerStack: 0.5, maximumStacks: 30 }
 });
 
-/** Owns Armored Shroud tuning and behavior at its existing execution boundaries. */
+/** Both shroud forms and Scourge activations grant Carapace after Soul Comprehension samples existing stacks. */
 export const armoredShroud = defineTrait({
-  triggers: [onTriggerPoint(shroudEntering, { run: prepareArmoredShroud })],
+  triggers: [
+    onTriggerPoint(shroudEntering, { run: applyArmoredShroud }),
+    onTriggerPoint(shroudInvoked, { run: applyArmoredShroud })
+  ],
   id: TRAIT.ARMORED_SHROUD,
   name: 'Armored Shroud',
   balance: { resourceGain: 5, duration: 10 }
@@ -123,10 +129,23 @@ export const armoredShroud = defineTrait({
 
 /** Owns Putrid Defense tuning and behavior at its existing execution boundaries. */
 export const putridDefense = defineTrait({
+  // Accepted conditions arrive one stack at a time, so each poison stack earns its own Carapace.
+  triggers: [
+    onTriggerPoint(necromancerConditionApplied, {
+      when: (_runtime, { event }) => event.condition === CONDITION.POISONED,
+      run: (runtime: NecromancerRuntime, { event }: TriggerPointInput<typeof necromancerConditionApplied>) =>
+        addCarapace(
+          runtime,
+          balanceNumberFromContext(runtime, TRAIT.PUTRID_DEFENSE, 'resourceGain'),
+          event.at,
+          balanceNumberFromContext(runtime, TRAIT.PUTRID_DEFENSE, 'duration')
+        )
+    })
+  ],
   id: TRAIT.PUTRID_DEFENSE,
   name: 'Putrid Defense',
   // Trait balance is the single tuning source for modifiers and presentation.
-  balance: { conditionDamageMultiplier: 1.15 },
+  balance: { conditionDamageMultiplier: 1.15, resourceGain: 1, duration: 10 },
   modifierRules: [
     {
       order: 110,
@@ -163,9 +182,8 @@ function applyDarkDefense(runtime: NecromancerRuntime, cast: RuntimeCast<Necroma
   });
 }
 
+/** Every accepted condition stack grants Carapace, including conditions inflicted by the necromancer's minions. */
 function applyCorruptorsFervor(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (event.actorType === ACTOR.SUMMON) return;
-
   addCarapace(
     context,
     balanceNumberFromContext(context, TRAIT.CORRUPTERS_FERVOR, 'resourceGain'),
@@ -174,8 +192,8 @@ function applyCorruptorsFervor(context: NecromancerResolverContext, event: Necro
   );
 }
 
-/** Applies soul comprehension before shroud entry mutates the form. */
-function prepareSoulComprehension(runtime: NecromancerRuntime): void {
+/** Samples live Carapace at the shroud boundary so both forms and shade shrouds share the same reward. */
+function applySoulComprehension(runtime: NecromancerRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.SOUL_COMPREHENSION);
   // This reward may count fewer stacks than capacity, but cannot count Carapace beyond the shared cap.
   grantNecromancerLifeForce(
@@ -187,8 +205,8 @@ function prepareSoulComprehension(runtime: NecromancerRuntime): void {
   );
 }
 
-/** Applies armored shroud before shroud entry mutates the form. */
-function prepareArmoredShroud(runtime: NecromancerRuntime): void {
+/** Grants the entry stacks at either shroud boundary without requiring a draining shroud form. */
+function applyArmoredShroud(runtime: NecromancerRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.ARMORED_SHROUD);
   addCarapace(
     runtime,

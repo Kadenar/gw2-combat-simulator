@@ -34,6 +34,7 @@ export const necromancerConditionApplied = defineTriggerPoint<{ readonly event: 
   [
     TRAIT.BITTER_CHILL,
     TRAIT.CORRUPTERS_FERVOR,
+    TRAIT.PUTRID_DEFENSE,
     TRAIT.CHILLING_DARKNESS,
     TRAIT.DREAD,
     TRAIT.INSIDIOUS_DISRUPTION,

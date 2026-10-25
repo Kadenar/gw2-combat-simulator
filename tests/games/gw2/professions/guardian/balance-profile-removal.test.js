@@ -208,9 +208,14 @@ test('Weighty Terms keeps its page refund when Slow is removed', () => {
 });
 
 test('Radiant Forge removal leaves no active form, expiry, or exit flip', () => {
-  const result = run({ 'guardian.luminary.radiant-forge': remove('buff', 'radiant-forge') }, 'Luminary', [
-    'Enter Radiant Forge'
-  ]);
+  const result = run(
+    {},
+    'Luminary',
+    ['Enter Radiant Forge'],
+    [],
+    {},
+    { [SKILL.ENTER_RADIANT_FORGE]: remove('buff', 'radiant-forge') }
+  );
   for (const state of [result.planningState.profession, result.planningState.profession]) {
     assert.equal(state.radiantForge, false);
     assert.equal(state.radiantForgeEndsAt, 0);
@@ -220,12 +225,14 @@ test('Radiant Forge removal leaves no active form, expiry, or exit flip', () => 
 });
 
 test('Radiant Justice strike removal preserves delayed Vulnerability', () => {
-  const result = run({ 'guardian.luminary.radiant-justice-impact': remove('strike', 'Strike') }, 'Luminary', [
-    'Radiant Justice',
-    'Enter Radiant Forge',
-    'Dazzling Hammer',
-    { type: 'wait', durationMs: 1200 }
-  ]);
+  const result = run(
+    {},
+    'Luminary',
+    ['Radiant Justice', 'Enter Radiant Forge', 'Dazzling Hammer', { type: 'wait', durationMs: 1200 }],
+    [],
+    {},
+    { [SKILL.DAZZLING_HAMMER]: remove('strike', 'Radiant Justice Strike') }
+  );
   assert.equal(has(result, 'damage', 'name', 'Dazzling Hammer — Radiant Justice Impact'), false);
   assert.ok(
     result.events.some(
@@ -235,11 +242,14 @@ test('Radiant Justice strike removal preserves delayed Vulnerability', () => {
 });
 
 test('Glaring Burst support removal preserves shared Vulnerability', () => {
-  const result = run({ 'guardian.luminary.glaring-burst.staff': remove('boon', 'regeneration') }, 'Luminary', [
-    'Enter Radiant Forge',
-    'Luminous Staff',
-    'Glaring Burst'
-  ]);
+  const result = run(
+    {},
+    'Luminary',
+    ['Enter Radiant Forge', 'Luminous Staff', 'Glaring Burst'],
+    [],
+    {},
+    { [SKILL.GLARING_BURST]: remove('boon', 'regeneration') }
+  );
   assert.equal(
     result.events.some(
       (event) => event.type === 'buff' && event.skillName === 'Glaring Burst' && event.kind === 'regeneration'
@@ -470,10 +480,12 @@ test('Quickfire window removal leaves its cooldown and charge reactions inactive
 
 test('Light Aura removal prevents its window and Sovereign detonation', () => {
   const result = run(
-    { 'guardian.luminary.light-aura': remove('aura', 'Light Aura') },
+    { [TRAIT.SOVEREIGN_OF_LIGHT]: remove('aura', 'Light Aura') },
     'Luminary',
     ['Enter Radiant Forge', 'Radiant Resolve'],
-    [TRAIT.SOVEREIGN_OF_LIGHT]
+    [TRAIT.SOVEREIGN_OF_LIGHT],
+    {},
+    { [SKILL.RADIANT_RESOLVE]: remove('aura', 'Light Aura') }
   );
   assert.equal(result.planningState.profession.lightAuraUntil, 0);
   assert.equal(has(result, 'damage', 'skillName', 'Sovereign of Light'), false);
@@ -485,11 +497,12 @@ test('Effulgent strike and control deletions preserve the other packet and consu
     ['control', 'Control', 'damage']
   ]) {
     const result = run(
-      { 'guardian.luminary.effulgent-stance-detonation': remove(type, name) },
+      {},
       'Luminary',
       ['Effulgent Stance', 'Whirling Wrath', 'Strike', 'Vengeful Strike', { type: 'wait', durationMs: 5000 }],
       [],
-      { primaryWeapon: 'Greatsword', boons: { quickness: true } }
+      { primaryWeapon: 'Greatsword', boons: { quickness: true } },
+      { [SKILL.EFFULGENT_STANCE]: remove(type, name) }
     );
     const effects = result.events.filter(
       (event) => event.skillId === SKILL.EFFULGENT_STANCE_DAMAGE && ['damage', 'control'].includes(event.type)

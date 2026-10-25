@@ -1,4 +1,4 @@
-import { RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { RECIPIENT, BOON, AURA } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
@@ -32,7 +32,9 @@ export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       { on: 'castCommit', do: { type: 'guardian.arm-radiant-resolve' } }
     ],
     castTimeMs: 0,
-    effects: []
+    // Resolve's scheduled grant owns its aura separately from its staff empowerment.
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    effects: [{ type: 'aura', name: AURA.LIGHT, aura: AURA.LIGHT, duration: 4 }]
   },
   [ID.RADIANT_JUSTICE]: {
     // Commitment arms this virtue's next weapon entitlement, then fires the arming point.
@@ -50,7 +52,10 @@ const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState, GuardianSki
     runtime.schedule(
       AURA_GRANT,
       context.cast.start,
-      { ...guardianCastCause(runtime, context.cast), offTarget: context.cast.command.offTarget === true },
+      {
+        cause: { ...guardianCastCause(runtime, context.cast), offTarget: context.cast.command.offTarget === true },
+        skillId: context.cast.skill.id
+      },
       undefined,
       -10
     );

@@ -41,7 +41,8 @@ export const virtueActivated = defineTriggerPoint<VirtueActivation>('guardian.vi
   GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
   GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION,
   GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE,
-  GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE
+  GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE,
+  GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND
 ]);
 
 /** An accepted Justice activation; Dragonhunter's deferred spear supplies only the cast identity. */
@@ -57,17 +58,6 @@ export const justiceActivated = defineTriggerPoint<JusticeActivation>('guardian.
   GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS
 ]);
 
-/** A hostile Justice activation supplies the mechanic's aura delivery task; the trait admits both rewards. */
-export interface JusticeBlinding {
-  readonly cause: GuardianResolverEvent;
-  readonly skill: GuardianSkill;
-  readonly auraTask: string;
-}
-
-/** Luminary fires this Core point so the Core trait keeps its own Blind payload. */
-export const justiceBlinding = defineTriggerPoint<JusticeBlinding>('guardian.justice-blinding', [
-  GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND
-]);
 const VIRTUES_BY_SLOT: readonly (GuardianVirtue | null)[] = Object.freeze([null, 'justice', 'resolve', 'courage']);
 
 /** Decodes the slot's trailing digit; each caller owns its skill eligibility checks. */

@@ -52,6 +52,8 @@ const SKILL_FIELDS = new Set([
   'countsAsToolbeltSkill',
   'cycloneBowSkill',
   'damageAtMs',
+  // Delayed skill detonations can scale their owned payload by a capped hit count.
+  'damageIncreasePerStack',
   'defaultInterruptMs',
   'description',
   'dhuumfireDuration',

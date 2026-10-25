@@ -1,4 +1,6 @@
-import { COMBO_FIELD, COMBO_FINISHER, CONTROL, RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { COMBO_FIELD, COMBO_FINISHER, CONTROL, RECIPIENT, BOON, AURA } from '#gw2/platform/constants.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
@@ -56,7 +58,16 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-effulgent' } }
     ],
     castTimeMs: 0,
-    effects: []
+    // The stance owns its aura and detonation tuning; scheduled work chooses when each payload is emitted.
+    duration: 4,
+    maximumStacks: 10,
+    damageIncreasePerStack: 0.35,
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    effects: [
+      { type: 'aura', name: AURA.LIGHT, aura: AURA.LIGHT, duration: 4 },
+      { type: 'strike', name: 'Strike', coefficient: 0.5, hits: 1 },
+      { type: 'control', name: 'Control' }
+    ]
   },
   [ID.PIERCING_STANCE]: {
     // Schedule the intrinsic self effect at its boundary even when the hostile impact misses.
@@ -104,9 +115,12 @@ const luminaryStanceActions: RuntimeProfession<GuardianRuntimeState, GuardianSki
 
     const cast = context.cast;
     const event = { ...guardianCastCause(runtime, cast), offTarget: cast.command.offTarget === true };
-    runtime.schedule(AURA_GRANT, cast.start, event, undefined, -10);
+    runtime.schedule(AURA_GRANT, cast.start, { cause: event, skillId: cast.skill.id }, undefined, -10);
     const state = luminaryState.from(runtime);
-    state.effulgentActiveUntil = canonicalTime(cast.start + 4);
+    const skill = requireSkillFromContext(runtime, cast.skill.id);
+    state.effulgentActiveUntil = canonicalTime(
+      cast.start + requireBalanceNumber(skill.duration, `skill=${skill.id} field=duration`)
+    );
     state.effulgentStacks = 0;
     state.effulgentActivationId = cast.id;
     runtime.schedule(EFFULGENT, state.effulgentActiveUntil, event);

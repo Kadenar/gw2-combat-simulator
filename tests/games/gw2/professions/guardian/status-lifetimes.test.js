@@ -92,8 +92,14 @@ test('Radiant Armaments damage and display agree through the final live microsec
 test('Light Aura refreshes on the effect clock and can be consumed only once before expiry', () => {
   const settings = { ...config, selectedTraitIds: [TRAIT.SOVEREIGN_OF_LIGHT] };
   const initialize = (runtime) => {
-    runtime.schedule('guardian.luminary.aura-grant', 0.001, { ...cause, at: 0.001 });
-    runtime.schedule('guardian.luminary.aura-grant', 1.001, { ...cause, at: 1.001, duration: 4 });
+    runtime.schedule('guardian.luminary.aura-grant', 0.001, {
+      cause: { ...cause, at: 0.001 },
+      traitId: TRAIT.SOVEREIGN_OF_LIGHT
+    });
+    runtime.schedule('guardian.luminary.aura-grant', 1.001, {
+      cause: { ...cause, at: 1.001 },
+      traitId: TRAIT.SOVEREIGN_OF_LIGHT
+    });
   };
 
   const granted = runGuardian([wait(1100)], settings, { initialize: initialize });

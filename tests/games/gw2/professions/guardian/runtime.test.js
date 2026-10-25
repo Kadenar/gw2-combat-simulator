@@ -9,7 +9,6 @@ import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as DH_PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as FB_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import { LUMINARY_BALANCE_PROFILE_IDS as LUM_PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS as WB_PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runGuardian as run } from '#tests/helpers/guardian-simulation.js';
@@ -277,10 +276,14 @@ test('Luminary selected component removal preserves independent effects and neve
     label: 'Luminary removed components',
     professions: {
       guardian: {
-        balanceProfiles: {
-          [LUM_PROFILE.forge]: { removeEffects: [{ type: 'buff', all: true }] },
-          [LUM_PROFILE.lightAura]: { removeEffects: [{ type: 'aura', all: true }] },
-          [LUM_PROFILE.effulgentStance]: { removeEffects: [{ type: 'strike', all: true }] }
+        skills: {
+          [ID.ENTER_RADIANT_FORGE]: { removeEffects: [{ type: 'buff', all: true }] },
+          [ID.EFFULGENT_STANCE]: {
+            removeEffects: [
+              { type: 'strike', all: true },
+              { type: 'aura', all: true }
+            ]
+          }
         }
       }
     }

@@ -3,32 +3,39 @@ import {
   fromModifier,
   modifierFact,
   outsideScopeTooltip,
-  profileFact,
   simulationEffectFacts,
   skillTooltip,
   tooltipFactorChange,
   tooltipPercent,
-  tooltipProfile,
   tooltipSeconds,
+  tooltipNumber,
+  tooltipDecimal,
   traitTooltip,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { LUMINARY_BALANCE_PROFILE_IDS as LUMINARY } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 
 const glaringBurstTooltip: DescribeSimulationTooltip = (balanceContext) => ({
   description:
     "Use the equipped radiant weapon's Glaring Burst. Hammer and sword strike; staff and shield grant their listed party boons. Every variant applies vulnerability after its impact. The sword alternates its attack cadence.",
   facts: [
     ...[
-      [LUMINARY.glaringBurstHammer, 'hammer'],
-      [LUMINARY.glaringBurstBlade, 'sword'],
-      [LUMINARY.glaringBurstStaff, 'staff'],
-      [LUMINARY.glaringBurstBulwark, 'shield']
+      ['hammer', 'hammer'],
+      ['staff', 'staff'],
+      ['blade', 'sword'],
+      ['bulwark', 'shield']
     ].flatMap(
-      ([id, label]) =>
-        simulationEffectFacts(tooltipProfile(balanceContext, id).effects, `with ${label}; alternative`).facts
+      ([weapon, label]) =>
+        simulationEffectFacts(
+          requireSkillFromContext(balanceContext, ID.GLARING_BURST).effects?.filter(
+            (effect) => effect.metadata?.radiantWeapon === weapon
+          ),
+          `with ${label}; alternative`
+        ).facts
     ),
     modifierFact(
       balanceContext,
@@ -38,7 +45,9 @@ const glaringBurstTooltip: DescribeSimulationTooltip = (balanceContext) => ({
       tooltipFactorChange
     ),
     ...simulationEffectFacts(
-      tooltipProfile(balanceContext, LUMINARY.glaringBurstVulnerability).effects,
+      requireSkillFromContext(balanceContext, ID.GLARING_BURST).effects?.filter(
+        (effect) => !effect.metadata?.radiantWeapon
+      ),
       'all variants, after the impact'
     ).facts
   ]
@@ -50,14 +59,13 @@ const radiantForgeTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
         description:
           'Enter Radiant Forge and replace your weapon bar. Equipping radiant weapons changes Glaring Burst and unlocks follow-ups. Recharge starts on exit and is reduced when at most one distinct radiant weapon was used.',
         facts: [
-          ...simulationEffectFacts(tooltipProfile(balanceContext, LUMINARY.forge).effects).facts,
-          profileFact(
-            balanceContext,
-            LUMINARY.forge,
-            'rechargeReduction',
-            'Base recharge reduction with at most one weapon',
-            tooltipSeconds
-          )
+          ...simulationEffectFacts(requireSkillFromContext(balanceContext, ID.ENTER_RADIANT_FORGE).effects).facts,
+          {
+            name: 'Base recharge reduction with at most one weapon',
+            detail: tooltipSeconds(
+              tooltipNumber(requireSkillFromContext(balanceContext, ID.ENTER_RADIANT_FORGE), 'rechargeReduction')
+            )
+          }
         ]
       }
     : {
@@ -73,6 +81,29 @@ const radiantWeaponTooltip: DescribeSimulationTooltip = (balanceContext, entity)
       : "Use the equipped radiant weapon's follow-up and apply its listed effects."
   )(balanceContext, entity);
 
+/** Skill-owned conditional payloads retain their qualifiers instead of appearing as unconditional grants. */
+function radiantWeaponFacts(context: ProfessionBalanceContext, id: SkillId) {
+  const effects = requireSkillFromContext(context, id).effects ?? [];
+  return [
+    ...simulationEffectFacts(effects.filter((effect) => !effect.metadata?.trigger)).facts,
+    ...simulationEffectFacts(
+      effects.filter((effect) => effect.metadata?.trigger === 'hammer-combo'),
+      'after a successful blast combo'
+    ).facts,
+    ...[
+      ['radiant-justice', 'Radiant Justice'],
+      ['radiant-courage', 'Radiant Courage'],
+      ['radiant-resolve', 'Radiant Resolve']
+    ].flatMap(
+      ([trigger, label]) =>
+        simulationEffectFacts(
+          effects.filter((effect) => effect.metadata?.trigger === trigger),
+          `additional when ${label} is armed`
+        ).facts
+    )
+  ];
+}
+
 /** Describe luminary tooltips from the selected balance data. */
 export const luminaryTooltips = {
   skills: {
@@ -84,25 +115,34 @@ export const luminaryTooltips = {
         radiantWeaponTooltip
       ])
     ),
-    [ID.DAZZLING_HAMMER]: skillTooltip(
-      'Equip the radiant hammer, strike and daze your target, and grant party might and Fury. Radiant Justice empowers the next committed hammer hit with an additional delayed strike and vulnerability.',
-      (balanceContext) =>
-        simulationEffectFacts(
-          tooltipProfile(balanceContext, LUMINARY.radiantJusticeImpact).effects,
-          'additional when Radiant Justice is armed'
-        ).facts
-    ),
+    [ID.DAZZLING_HAMMER]: (context, entity) => ({
+      description:
+        'Equip the radiant hammer, strike and daze your target, and grant party might and Fury. Radiant Justice empowers the next committed hammer hit with an additional delayed strike and vulnerability.',
+      facts: radiantWeaponFacts(context, entity.id)
+    }),
     [ID.SHINING_SPIN]: skillTooltip(
       "Use the radiant hammer's follow-up strike. Damage increases against an eligible disabled target.",
       [fromModifier('guardian.shining-spin', 'factor', 'Strike damage against disabled targets', tooltipFactorChange)]
     ),
-    [ID.GLEAMING_BLADE]: skillTooltip(
-      "Equip the radiant sword and strike your target. Consume an armed Radiant Courage sword bonus to increase this impact's damage.",
-      [fromModifier('guardian.gleaming-blade', 'factor', 'Strike damage with Radiant Courage', tooltipFactorChange)]
-    ),
-    [ID.LUMINOUS_STAFF]: skillTooltip(
-      'Equip the radiant staff, grant party protection, and create a damaging symbol. An armed Radiant Resolve also grants party regeneration once.'
-    ),
+    [ID.GLEAMING_BLADE]: (context, entity) => ({
+      description:
+        "Equip the radiant sword and strike your target. Consume an armed Radiant Courage sword bonus to increase this impact's damage.",
+      facts: [
+        ...radiantWeaponFacts(context, entity.id),
+        modifierFact(
+          context,
+          'guardian.gleaming-blade',
+          'factor',
+          'Strike damage with Radiant Courage',
+          tooltipFactorChange
+        )
+      ]
+    }),
+    [ID.LUMINOUS_STAFF]: (context, entity) => ({
+      description:
+        'Equip the radiant staff, grant party protection, and create a damaging symbol. An armed Radiant Resolve also grants party regeneration once.',
+      facts: radiantWeaponFacts(context, entity.id)
+    }),
     [ID.RADIANT_JUSTICE]: skillTooltip(
       'Activate Justice and arm an additional delayed strike and vulnerability for the next Dazzling Hammer impact.'
     ),
@@ -120,24 +160,30 @@ export const luminaryTooltips = {
       'Apply these effects and gain a temporary strike-damage bonus. Its own impact benefits only when an earlier application was already active.',
       [fromModifier('guardian.daring-advance', 'factor', 'Strike damage while active', tooltipFactorChange)]
     ),
-    [ID.EFFULGENT_STANCE]: skillTooltip(
-      'Count qualifying Guardian-owned strike packets during the stance, then detonate. Each counted packet increases the detonation coefficient; reaching the stack cap also dazes the target.',
-      (balanceContext) => [
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, LUMINARY.effulgentStance).effects?.filter(
-            (effect) => effect.type === 'strike'
-          ),
-          'base detonation'
-        ).facts,
-        profileFact(
-          balanceContext,
-          LUMINARY.effulgentStance,
-          'damageIncreasePerStack',
-          'Additional coefficient per counted hit'
-        ),
-        profileFact(balanceContext, LUMINARY.effulgentStance, 'maximumStacks', 'Maximum counted hits')
-      ]
-    )
+    [ID.EFFULGENT_STANCE]: (context, entity) => {
+      const skill = requireSkillFromContext(context, entity.id);
+      return {
+        description:
+          'Gain a light aura and count qualifying Guardian-owned strike packets during the stance, then detonate. Each counted packet increases the detonation coefficient; reaching the stack cap also dazes the target.',
+        facts: [
+          ...simulationEffectFacts(skill.effects?.filter((effect) => effect.type === 'aura')).facts,
+          ...simulationEffectFacts(
+            skill.effects?.filter((effect) => effect.type === 'strike'),
+            'base detonation'
+          ).facts,
+          ...simulationEffectFacts(
+            skill.effects?.filter((effect) => effect.type === 'control'),
+            'at maximum counted hits'
+          ).facts,
+          { name: 'Stance duration', detail: tooltipSeconds(tooltipNumber(skill, 'duration')) },
+          {
+            name: 'Additional coefficient per counted hit',
+            detail: tooltipDecimal(tooltipNumber(skill, 'damageIncreasePerStack'))
+          },
+          { name: 'Maximum counted hits', detail: tooltipDecimal(tooltipNumber(skill, 'maximumStacks')) }
+        ]
+      };
+    }
   },
   traits: {
     [TRAIT.LUMINARY]: traitTooltip('Unlock Radiant Forge, radiant weapons, and radiant virtues.'),
