@@ -8,6 +8,7 @@ import { createGroupedOptimizer } from '#gw2/app/optimizer/gear/search-space.js'
 import { createFastOptimizer, OPTIMIZER_SEARCH_BUDGET } from '#gw2/app/optimizer/gear/fast-search.js';
 import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
+import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';
 import { verifyOptimizerScore, applyOptimizerCandidate } from '#gw2/app/optimizer/gear/search.js';
 import {
   groupOptimizerSpace,
@@ -1189,9 +1190,10 @@ test('optimizer scores skipped rotation skills without suppressing warnings', ()
 // Resource failures and their dependent shroud casts must not prevent either search from reaching verification.
 test('life-force warnings survive optimizer baseline, search, and detailed verification', async () => {
   const necromancer = await loadProfessionAppAdapter('necromancer');
+  const { DEATH_SHROUD, LIFE_BLAST, END_DEATH_SHROUD, GRASPING_DEAD, DESERT_SHROUD } = NECROMANCER_SKILL_IDS;
   for (const [specialization, rotation] of [
-    ['Death Magic', ['Death Shroud', 'Life Blast', 'Exit Death Shroud', 'Grasping Dead']],
-    ['Scourge', ['Desert Shroud', 'Grasping Dead']]
+    ['Death Magic', [DEATH_SHROUD, LIFE_BLAST, END_DEATH_SHROUD, GRASPING_DEAD]],
+    ['Scourge', [DESERT_SHROUD, GRASPING_DEAD]]
   ]) {
     const build = necromancer.toApplicationBuild({
       ...necromancer.profession.createBuildDefaults(),
@@ -1201,7 +1203,7 @@ test('life-force warnings survive optimizer baseline, search, and detailed verif
         { name: 'Spite', traits: '1-1-1' },
         { name: specialization, traits: '1-1-1' }
       ],
-      rotation
+      rotation: rotation.map((skillId) => ({ type: 'cast', skillId }))
     });
     const captured = captureGearOptimizerRequest(
       {
