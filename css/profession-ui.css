@@ -1472,7 +1472,7 @@
   font-size: 12px;
 }
 
-/* Settings share aligned rows and a single control height, independent of compact gear dropdown styles. */
+/* Settings share aligned rows and a minimum control height, independent of compact gear dropdown styles. */
 #perma-boons .boon-control:has(> input[type='checkbox']) {
   display: flex;
   gap: 8px;
@@ -1489,7 +1489,8 @@
   width: 100%;
   min-width: 0;
   max-width: none;
-  height: 28px;
+  /* Grow with wrapped selection labels so long target names stay inside the control. */
+  min-height: 28px;
   padding: 3px 7px;
   color: var(--text-bright);
   font-family: inherit;
