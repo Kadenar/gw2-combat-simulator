@@ -2144,6 +2144,7 @@ body[data-simulator-view='workspace'] .build-editor .rng-distribution {
 }
 
 .simulation-settings-column {
+  container: simulation-settings / inline-size;
   min-width: 0;
   padding: 0 8px;
 }
@@ -2274,8 +2275,8 @@ body[data-rotation-focus] .perma-section {
   gap: 6px 3px;
 }
 
-/* Narrow screens need two columns to keep names and stack counts readable. */
-@media (max-width: 360px) {
+/* Fit effects to their settings column, including narrow desktop columns and embedded workspaces. */
+@container simulation-settings (max-width: 380px) {
   .perma-effect-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2305,6 +2306,12 @@ body[data-rotation-focus] .perma-section {
   color: var(--text);
   font-size: 10px;
   cursor: pointer;
+}
+
+/* Let long effect names wrap without pushing their checkbox, icon, or stack input outside the column. */
+.perma-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .perma-item input[type='checkbox'] {
