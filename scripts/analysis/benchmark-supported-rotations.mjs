@@ -1,5 +1,6 @@
 import { loadBuildContext } from '#gw2/build-context/load.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 /** Profiles existing manifest rotations after warmup; loading and build preparation stay outside timed runs. */
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { Session } from 'node:inspector/promises';
@@ -12,12 +13,15 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 // Usage: node scripts/analysis/benchmark-supported-rotations.mjs [profession ...] > timings.json
 // Add --filter Ritualist to match preset IDs, or --cpu-profile-dir .scratch/profiles for separate warmed CPU captures.
+// Add --no-permanent-boons to measure generated boon pools without permanent boon assumptions.
+// Player cast timings and recharge rates remain fixed by the engine even when boon presence assumptions are cleared.
 const root = path.resolve(import.meta.dirname, '../..');
 const { values, positionals: requested } = parseArgs({
   allowPositionals: true,
   options: {
     filter: { type: 'string' },
     output: { type: 'string', default: 'detailed' },
+    'no-permanent-boons': { type: 'boolean', default: false },
     'prefix-length': { type: 'string' },
     'cpu-profile-dir': { type: 'string' }
   }
@@ -56,6 +60,12 @@ for (const profession of professions) {
         transitionDelays: normalizeTransitionDelays(),
         patch: adapter.profession.resolvePatch({ id: 'current' })
       });
+      const config = context.simulationConfig();
+
+      // Explicitly clear every standard boon, including timing boons normally forced on by build preparation.
+      if (values['no-permanent-boons'])
+        config.boons = Object.fromEntries(GW2_STANDARD_BOONS.map((kind) => [kind, kind === 'might' ? 0 : false]));
+
       cases.push({
         id,
         profession,
@@ -66,7 +76,7 @@ for (const profession of professions) {
         options: {
           profession: adapter.profession,
           rotation: prefixLength == null ? build.rotation : build.rotation.slice(0, prefixLength),
-          config: context.simulationConfig(),
+          config,
           output: values.output
         },
         samples: []
@@ -186,6 +196,10 @@ console.log(
       platform: process.platform,
       cpu: cpus()[0]?.model,
       output: values.output,
+      permanentBoons: values['no-permanent-boons'] ? 'disabled' : 'preset',
+      note: values['no-permanent-boons']
+        ? 'All configured boon presence is disabled; player cast timings and recharge rates retain engine policy.'
+        : undefined,
       prefixLength,
       warmups,
       repetitions,
