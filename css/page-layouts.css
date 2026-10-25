@@ -390,10 +390,6 @@
 }
 
 @media (max-width: 900px) {
-  body[data-simulation-config-open][data-rotation-focus] .rotation-section {
-    right: 0;
-  }
-
   .traits-panel-inline {
     width: 100%;
   }
@@ -423,12 +419,6 @@
 
   body[data-rotation-focus] .rotation-panel-shell > .rotation-panel {
     height: auto;
-  }
-
-  .perma-section {
-    inset: 6px 6px 6px auto;
-    /* Match the narrower phone margins on both sides of the drawer. */
-    width: min(360px, calc(100% - 12px));
   }
 
   body[data-rotation-focus] .rotation-dps-summary .res-summary {
@@ -578,39 +568,4 @@ html.embed {
   inset: 0;
   z-index: -1;
   background: var(--bg-dark);
-}
-
-/* Center settings in the visible host viewport and keep the heading visible while its controls scroll. */
-.embed dialog.perma-section {
-  inset: 0;
-  width: min(560px, calc(var(--embed-viewport-width, 100vw) - 24px));
-  max-width: none;
-  max-height: calc(var(--embed-viewport-height, 100vh) - 24px);
-  margin: auto;
-  padding: 0;
-  overflow: hidden;
-  border: 0;
-  border-radius: var(--radius);
-  color: var(--text);
-  background: var(--bg-panel);
-  transform: none;
-  transition: none;
-}
-
-.embed dialog.perma-section[open] {
-  display: flex;
-}
-
-.embed dialog.perma-section::backdrop {
-  background: rgba(5, 7, 12, 0.72);
-}
-
-.embed dialog.perma-section .perma-panel {
-  width: 100%;
-  height: auto;
-  min-height: 0;
-}
-
-.embed body[data-simulation-config-open][data-rotation-focus] .rotation-section {
-  right: 0;
 }

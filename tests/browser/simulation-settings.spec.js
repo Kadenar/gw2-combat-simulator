@@ -39,7 +39,7 @@ test('weapon-swap line breaks survive settings that end combat before the remain
   };
 
   await assertRows();
-  await page.getByRole('button', { name: 'Open simulation config', exact: true }).click();
+  await page.locator('#simulation-settings > summary').click();
   const health = page.locator('#target-hp');
   await health.fill('1');
   await health.press('Tab');
@@ -84,7 +84,7 @@ test('returning to a cached tab refreshes Current and Reference after a shared d
     addBuildTab(app, app.build, 'Other build');
   });
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-  await page.getByRole('button', { name: 'Open simulation config', exact: true }).click();
+  await page.locator('#simulation-settings > summary').click();
   const delay = page.locator('#simulation-weaponSwapMs');
   await delay.fill('1000');
   await delay.press('Tab');
@@ -115,7 +115,7 @@ test('transition delay preferences persist globally and control imported rotatio
   });
   await page.goto('/mesmer.html');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.getByRole('button', { name: 'Open simulation config', exact: true }).click();
+  await page.locator('#simulation-settings > summary').click();
   const settings = page.locator('#simulation-transition-delays');
   await expect(settings.getByRole('spinbutton')).toHaveCount(5);
   await settings.getByRole('button', { name: 'Apply 100 ms to all' }).click();
@@ -149,7 +149,7 @@ test('transition delay preferences persist globally and control imported rotatio
   await page.getByRole('checkbox', { name: 'Display transition delays', exact: true }).uncheck();
   await expect(forced.first()).toBeHidden();
   expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(revision);
-  // Switch through the real workspace path without relying on the config panel's overlay position.
+  // Switch through the real workspace path while preserving the inline settings.
   await page.evaluate(async () => {
     const { addBuildTab } = await import('/js/games/gw2/app/build/state/workspace.ts');
     const app = window.professionApp;
@@ -163,7 +163,7 @@ test('transition delay preferences persist globally and control imported rotatio
   await page.goto('/guardian.html');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.forgeEntryMs)).toBe(100);
-  await page.getByRole('button', { name: 'Open simulation config', exact: true }).click();
+  await page.locator('#simulation-settings > summary').click();
   await settings.getByRole('button', { name: 'Clear all', exact: true }).click();
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
   expect(await settings.getByRole('spinbutton').evaluateAll((inputs) => inputs.map((input) => input.value))).toEqual([
@@ -185,7 +185,7 @@ test('transition delay preferences persist globally and control imported rotatio
 test('simulation seed and critical damage settings persist with the build', async ({ page }) => {
   await page.goto('/elementalist.html');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.getByRole('button', { name: 'Open simulation config', exact: true }).click();
+  await page.locator('#simulation-settings > summary').click();
   const seed = page.getByRole('spinbutton', { name: 'Simulation seed', exact: true });
   const criticalDamage = page.getByRole('combobox', { name: 'Critical damage', exact: true });
   await expect(criticalDamage).toHaveValue('averaged');
@@ -205,7 +205,7 @@ test('simulation seed and critical damage settings persist with the build', asyn
   await expect(explanation).toBeVisible();
   await info.press('Escape');
   await expect(explanation).toBeHidden();
-  await expect(page.locator('#simulation-config-panel')).toBeVisible();
+  await expect(page.locator('#simulation-settings')).toBeVisible();
   await criticalDamage.focus();
   await info.focus();
   await expect(explanation).toBeVisible();
@@ -237,7 +237,7 @@ test('simulation seed and critical damage settings persist with the build', asyn
   ).toBe(3576928633);
   await page.reload();
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.getByRole('button', { name: 'Open simulation config', exact: true }).click();
+  await page.locator('#simulation-settings > summary').click();
   await expect(seed).toHaveValue('3576928633');
   await expect(criticalDamage).toHaveValue('rolled');
   await page.waitForFunction(() => window.professionApp.results?.randomness.seed === 3576928633);

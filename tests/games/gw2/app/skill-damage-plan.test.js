@@ -35,6 +35,21 @@ function healthPlan(app) {
   return createSkillDamagePlan(app, controls, clearedValues(controls));
 }
 
+// The browser app exposes the selected patch catalog through a prototype getter, not an enumerable field.
+test('skill damage preparation retains the active catalog from an app getter', async () => {
+  class PreviewApp {
+    get activeCatalog() {
+      return this.patch.catalog;
+    }
+  }
+  const { activeCatalog, ...state } = await headlessApp('guardian', await firstPresetBuildPath('guardian'));
+  const app = Object.assign(new PreviewApp(), state);
+  assert.equal(app.activeCatalog, activeCatalog);
+  const plan = healthPlan(app);
+  assert.ok(plan.rows.size > 0);
+  assert.ok(plan.groups.some((group) => group.id.startsWith('weapon-')));
+});
+
 // Selected traits own visibility by canonical identity, independently of their current display labels.
 test('target-health visibility follows selected damage traits without leaking damage-only attribute controls', async () => {
   for (const [profession, weapons, names, attributeNames = []] of [

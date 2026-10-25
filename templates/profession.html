@@ -205,14 +205,12 @@
         </section>
 
         <div class="simulation-workspace">
-          <section class="perma-section">
-            <div class="panel perma-panel">
-              <h3>Simulation config</h3>
-              <div id="perma-boons"></div>
-            </div>
-          </section>
-
           <section class="rotation-section">
+            <!-- Keep settings in the workspace flow, including focus mode, using the existing disclosure styling. -->
+            <details id="simulation-settings" class="perma-section">
+              <summary class="simulation-settings-title">Simulation settings</summary>
+              <div id="perma-boons"></div>
+            </details>
             <div class="panel rotation-panel">
               <h3>
                 <span class="rotation-builder-title">Rotation builder</span>

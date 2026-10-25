@@ -44,7 +44,7 @@ body[data-profession][data-simulator-view='workspace'] #rotation-results:not(:ha
   display: none;
 }
 
-/* Hide the settings drawer in Analysis even when mounted directly on the body. */
+/* Analysis hides editor controls, including the inline simulation settings. */
 body[data-profession][data-simulator-view='analysis']
   :is(.build-section, .skills-section, .rotation-panel-shell, .perma-section) {
   display: none;
@@ -274,7 +274,6 @@ body[data-profession] .rotation-section {
   margin-left: auto;
 }
 
-.simulation-config-open-button,
 .rotation-focus-toggle,
 .rotation-hotkey-button {
   display: inline-flex;
@@ -289,16 +288,11 @@ body[data-profession] .rotation-section {
   white-space: nowrap;
 }
 
-.simulation-config-open-button::before,
 .rotation-focus-toggle::before,
 .rotation-hotkey-button::before {
   margin: 0;
   font-size: 14px;
   line-height: 1;
-}
-
-.simulation-config-open-button::before {
-  content: '\2699';
 }
 
 .rotation-focus-toggle::before {
@@ -329,11 +323,10 @@ body[data-rotation-focus] .rotation-section {
   inset: 0;
   z-index: 1100;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 8px;
   padding: 12px;
   background: var(--bg-dark);
-  transition: right 160ms ease;
 }
 
 body[data-rotation-focus] .rotation-panel {

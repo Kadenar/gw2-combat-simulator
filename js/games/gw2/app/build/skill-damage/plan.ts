@@ -204,7 +204,13 @@ export function clearedValues(controls: readonly PreviewControl[]): AttributePre
  * matter where the rotation editor's cursor or last result left resources, charges, or forms.
  */
 function buildStart(app: ProfessionAppState): ProfessionAppState {
-  return { ...app, results: null, rotationInsertionIndex: null } as ProfessionAppState;
+  // Capture the selected catalog explicitly: spreading the app omits its prototype getter.
+  return {
+    ...app,
+    activeCatalog: app.activeCatalog,
+    results: null,
+    rotationInsertionIndex: null
+  } as ProfessionAppState;
 }
 
 /** Isolated damage previews inspect either equipped set without borrowing combat swap restrictions. */

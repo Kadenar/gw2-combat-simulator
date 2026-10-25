@@ -1,28 +1,20 @@
 /** Owns the simulator page's rotation workspace layout, focus mode, and live DPS strip. */
 import { trackEmbeddedViewport } from '#browser/page/embed.js';
-import { bindDialog, showDialog } from '#browser/page/dialog.js';
 
-export type RotationWorkspaceAction = 'toggle-config' | 'close-config' | 'toggle-focus' | 'escape';
+export type RotationWorkspaceAction = 'toggle-focus';
 
 export type RotationWorkspaceState = Readonly<{
-  configOpen: boolean;
   focus: boolean;
 }>;
 
 export const DEFAULT_ROTATION_WORKSPACE_STATE: RotationWorkspaceState = Object.freeze({
-  configOpen: false,
   focus: false
 });
 
 type RotationWorkspaceController = {
-  configButton: HTMLButtonElement;
-  configCloseButton: HTMLButtonElement;
-  configDialog?: HTMLDialogElement;
-  configPanel: HTMLElement;
   document: Document;
   focusButton: HTMLButtonElement;
   rotationSection: HTMLElement;
-  stopConfigViewport?: () => void;
   stopFocusViewport?: () => void;
   focusScrollPosition?: Readonly<{ left: number; top: number }>;
   state: RotationWorkspaceState;
@@ -47,34 +39,15 @@ export function enterRotationFocus(root: Document = document): void {
 
   if (!controller || controller.state.focus) return;
 
-  applyWorkspaceState(controller, { configOpen: false, focus: true });
+  applyWorkspaceState(controller, { focus: true });
 }
 
 export function reduceRotationWorkspaceState(
   state: RotationWorkspaceState,
   action: RotationWorkspaceAction
 ): RotationWorkspaceState {
-  if (action === 'toggle-config') {
-    return { ...state, configOpen: !state.configOpen };
-  }
-
-  if (action === 'close-config') {
-    return { ...state, configOpen: false };
-  }
-
-  if (action === 'toggle-focus') {
-    return { configOpen: false, focus: !state.focus };
-  }
-
-  if (state.configOpen) {
-    return { ...state, configOpen: false };
-  }
-
-  return state;
-}
-
-export function isSimulationConfigVisible(state: RotationWorkspaceState): boolean {
-  return state.configOpen;
+  // Settings use a native disclosure; only full-screen focus needs shared workspace state.
+  return action === 'toggle-focus' ? { focus: !state.focus } : state;
 }
 
 function applyWorkspaceState(controller: RotationWorkspaceController, state: RotationWorkspaceState): void {
@@ -92,31 +65,7 @@ function applyWorkspaceState(controller: RotationWorkspaceController, state: Rot
   controller.state = state;
 
   const body = controller.document.body;
-  body.toggleAttribute('data-simulation-config-open', state.configOpen);
   body.toggleAttribute('data-rotation-focus', state.focus);
-
-  controller.configButton.setAttribute('aria-expanded', String(state.configOpen));
-  const configButtonLabel = state.configOpen ? 'Hide simulation config' : 'Open simulation config';
-  // Keep the settings action visibly labeled while its accessible hint reflects the drawer state.
-  controller.configButton.textContent = 'Settings';
-  controller.configButton.setAttribute('aria-label', configButtonLabel);
-  controller.configButton.title = configButtonLabel;
-  const configVisible = isSimulationConfigVisible(state);
-  controller.configPanel.setAttribute('aria-hidden', String(!configVisible));
-  controller.configPanel.inert = !configVisible;
-  controller.configPanel.setAttribute('role', 'dialog');
-  controller.configPanel.toggleAttribute('aria-modal', state.configOpen);
-
-  if (controller.configDialog) {
-    if (state.configOpen && !previous.configOpen) {
-      controller.stopConfigViewport = showDialog(controller.configDialog);
-    } else if (!state.configOpen) {
-      controller.stopConfigViewport?.();
-      controller.stopConfigViewport = undefined;
-
-      if (controller.configDialog.open) controller.configDialog.close();
-    }
-  }
 
   controller.focusButton.setAttribute('aria-pressed', String(state.focus));
   controller.focusButton.textContent = state.focus ? 'Exit focus' : 'Focus';
@@ -141,33 +90,7 @@ function applyWorkspaceState(controller: RotationWorkspaceController, state: Rot
   }
 }
 
-function dispatchWorkspaceAction(
-  controller: RotationWorkspaceController,
-  action: RotationWorkspaceAction,
-  restoreConfigFocus = false
-): void {
-  const previous = controller.state;
-  const next = reduceRotationWorkspaceState(previous, action);
-
-  if (next === previous) return;
-
-  applyWorkspaceState(controller, next);
-
-  if (!previous.configOpen && next.configOpen && !controller.configDialog) {
-    controller.configCloseButton.focus();
-  } else if (previous.configOpen && !next.configOpen && restoreConfigFocus) {
-    controller.configButton.focus();
-  }
-}
-
-function mountRotationHeading(
-  root: Document,
-  heading: HTMLElement,
-  configPanelId: string
-): {
-  configButton: HTMLButtonElement;
-  focusButton: HTMLButtonElement;
-} {
+function mountRotationHeading(root: Document, heading: HTMLElement): HTMLButtonElement {
   const titleText =
     heading.querySelector('.rotation-builder-title')?.textContent?.trim() ||
     heading.textContent?.trim() ||
@@ -197,40 +120,16 @@ function mountRotationHeading(
   const controls = root.createElement('span');
   controls.className = 'rotation-builder-controls';
 
-  const configButton = root.createElement('button');
-  configButton.type = 'button';
-  configButton.className = 'btn btn-io simulation-config-open-button';
-  configButton.setAttribute('aria-controls', configPanelId);
-  configButton.setAttribute('aria-haspopup', 'dialog');
-  configButton.title = 'Open simulation config';
-
   const focusButton = root.createElement('button');
   focusButton.type = 'button';
   focusButton.className = 'btn btn-io rotation-focus-toggle';
   focusButton.title = 'Maximize the rotation builder';
 
-  controls.append(focusButton, configButton);
+  controls.append(focusButton);
   heading.replaceChildren(headingTitle, controls);
   heading.classList.add('rotation-builder-heading');
 
-  return { configButton, focusButton };
-}
-
-function mountConfigHeading(root: Document, heading: HTMLElement): HTMLButtonElement {
-  const title = root.createElement('span');
-  title.className = 'simulation-config-title';
-  title.textContent = heading.textContent?.trim() || 'Simulation config';
-
-  const button = root.createElement('button');
-  button.type = 'button';
-  button.className = 'simulation-config-close-button';
-  button.setAttribute('aria-label', 'Close simulation config');
-  button.title = 'Close simulation config';
-  button.textContent = '\u00d7';
-  button.autofocus = true;
-
-  heading.replaceChildren(title, button);
-  return button;
+  return focusButton;
 }
 
 /** Adds the live DPS strip between the timeline and its expandable analysis panels. */
@@ -247,7 +146,7 @@ export function mountRotationDpsSummary(root: Document, rotationPanel: HTMLEleme
   timeline.after(summary);
 }
 
-/** Mounts the anchored config panel and full-viewport Rotation Builder mode. */
+/** Mounts the rotation builder while native inline settings remain available in normal and focus modes. */
 export function mountRotationWorkspace(root: Document = document): void {
   if (controllers.has(root)) return;
 
@@ -255,20 +154,8 @@ export function mountRotationWorkspace(root: Document = document): void {
   const rotationHeading = workspace?.querySelector<HTMLElement>('.rotation-panel > h3');
   const rotationPanel = rotationHeading?.closest<HTMLElement>('.rotation-panel');
   const rotationSection = rotationPanel?.closest<HTMLElement>('.rotation-section');
-  let configPanel = workspace?.querySelector<HTMLElement>('.perma-section');
-  const configHeading = configPanel?.querySelector<HTMLElement>('.perma-panel > h3');
 
-  if (
-    !root.body ||
-    !workspace ||
-    !rotationHeading ||
-    !rotationPanel ||
-    !rotationSection ||
-    !configPanel ||
-    !configHeading
-  ) {
-    return;
-  }
+  if (!root.body || !workspace || !rotationHeading || !rotationPanel || !rotationSection) return;
 
   const panelShell = root.createElement('div');
   panelShell.className = 'rotation-panel-shell';
@@ -276,32 +163,9 @@ export function mountRotationWorkspace(root: Document = document): void {
   panelShell.append(rotationPanel);
   mountRotationDpsSummary(root, rotationPanel);
 
-  // Embedded settings use a native modal so focus and background interaction stay inside the dialog.
-  const configDialog = root.documentElement.classList.contains('embed') ? root.createElement('dialog') : undefined;
-
-  if (configDialog) {
-    configDialog.className = configPanel.className;
-    configDialog.id = configPanel.id;
-    configDialog.append(...configPanel.childNodes);
-    configPanel.replaceWith(configDialog);
-    configPanel = configDialog;
-  }
-
-  configPanel.id ||= 'simulation-config-panel';
-  configPanel.setAttribute('aria-labelledby', 'simulation-config-title');
-
-  // Keep the viewport drawer outside layout and stacking containers.
-  root.body.append(configPanel);
-
-  const configCloseButton = mountConfigHeading(root, configHeading);
-  configHeading.querySelector('.simulation-config-title')!.id = 'simulation-config-title';
-  const { configButton, focusButton } = mountRotationHeading(root, rotationHeading, configPanel.id);
+  const focusButton = mountRotationHeading(root, rotationHeading);
 
   const controller: RotationWorkspaceController = {
-    configButton,
-    configCloseButton,
-    configDialog,
-    configPanel,
     document: root,
     focusButton,
     rotationSection,
@@ -310,25 +174,7 @@ export function mountRotationWorkspace(root: Document = document): void {
   controllers.set(root, controller);
   applyWorkspaceState(controller, controller.state);
 
-  configButton.addEventListener('click', () => dispatchWorkspaceAction(controller, 'toggle-config', true));
-  configCloseButton.addEventListener('click', () => dispatchWorkspaceAction(controller, 'close-config', true));
-
-  if (configDialog) bindDialog(configDialog, () => dispatchWorkspaceAction(controller, 'close-config', true));
-
-  focusButton.addEventListener('click', () => dispatchWorkspaceAction(controller, 'toggle-focus'));
-  root.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape' || event.defaultPrevented) return;
-
-    if (root.querySelector('dialog[open]')) return;
-
-    const next = reduceRotationWorkspaceState(controller.state, 'escape');
-
-    if (next === controller.state) return;
-
-    event.preventDefault();
-    const restoreConfigFocus = controller.state.configOpen;
-    applyWorkspaceState(controller, next);
-
-    if (restoreConfigFocus) controller.configButton.focus();
+  focusButton.addEventListener('click', () => {
+    applyWorkspaceState(controller, reduceRotationWorkspaceState(controller.state, 'toggle-focus'));
   });
 }

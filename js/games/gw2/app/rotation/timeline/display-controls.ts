@@ -37,10 +37,10 @@ function checkboxControl(root: Document, options: CheckboxControlOptions): HTMLL
   return control;
 }
 
-/** Places timeline-only preferences in Simulation Config while keeping them separate from simulation inputs. */
+/** Places timeline preferences below target and party settings in the left column. */
 export function mountRotationDisplayControls(app: ProfessionAppState): void {
   const root = document;
-  const container = root.getElementById('perma-boons');
+  const container = root.getElementById('simulation-target-settings');
 
   if (!container) return;
 

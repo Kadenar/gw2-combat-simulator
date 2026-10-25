@@ -26,9 +26,9 @@ test('embedded focus and settings follow the viewport of a scrolled cross-origin
   await expect(frame.locator('#loading-overlay')).toHaveClass(/hidden/);
   await expect.poll(() => page.locator('iframe').evaluate((iframe) => iframe.clientHeight)).toBeGreaterThan(900);
 
-  const settings = frame.getByRole('button', { name: 'Open simulation config' });
-  const config = frame.getByRole('dialog', { name: 'Simulation config' });
-  const close = config.getByRole('button', { name: 'Close simulation config' });
+  const settings = frame.locator('#simulation-settings > summary');
+  const config = frame.locator('#simulation-settings');
+  const controls = config.locator('#perma-boons');
   const focus = frame.locator('.rotation-focus-toggle');
   const workspace = frame.locator('.rotation-section');
   const expectInHostViewport = async (element) => {
@@ -41,18 +41,12 @@ test('embedded focus and settings follow the viewport of a scrolled cross-origin
   };
 
   await settings.click();
-  await expect(close).toBeFocused();
-  await expectInHostViewport(config);
+  await expect(controls).toBeVisible();
   await config.getByLabel('Display idle time').check();
-  await page.evaluate(() => scrollBy(0, -250));
-  await expectInHostViewport(config);
-  await page.setViewportSize({ width: 900, height: 600 });
-  await expectInHostViewport(config);
   await config.getByLabel('Overlay relics').check();
-  await expectInHostViewport(close);
-  await page.keyboard.press('Escape');
-  await expect(config).toBeHidden();
-  await expect(settings).toBeFocused();
+  await settings.click();
+  await expect(controls).toBeHidden();
+  await page.setViewportSize({ width: 900, height: 600 });
 
   await focus.scrollIntoViewIfNeeded();
   const hostScroll = await page.evaluate(() => scrollY);
@@ -72,8 +66,8 @@ test('embedded focus and settings follow the viewport of a scrolled cross-origin
   await expect(config.getByLabel('Display idle time')).toBeChecked();
   await expect(config.getByLabel('Overlay relics')).toBeChecked();
   await expectInHostViewport(config);
-  await close.click();
-  await expect(config).toBeHidden();
+  await settings.click();
+  await expect(controls).toBeHidden();
 
   // Scrolling into host content below the iframe must clip the full workspace instead of squeezing its controls.
   const focusedHeight = (await workspace.boundingBox()).height;

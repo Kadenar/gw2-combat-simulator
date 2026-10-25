@@ -141,7 +141,7 @@ function comparisonHeadingButtons(app: ProfessionAppState): void {
     compareButton.dataset.rotationCompare = '';
     compareButton.textContent = 'Compare';
     compareButton.title = 'Open rotation comparison';
-    controls.insertBefore(compareButton, controls.querySelector('.simulation-config-open-button'));
+    controls.append(compareButton);
   }
 
   const comparing = Boolean(app.rotationComparison);

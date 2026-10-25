@@ -238,9 +238,9 @@ export function renderAssumptions(app: ProfessionAppState): void {
       )
     )
     .join('');
+  // Keep related settings together across responsive columns without adding another layer of headings.
   container.innerHTML = `
-            ${section('boons', 'Effects', `<div class="perma-boon-label">Boons</div><div class="perma-effect-grid">${boonItems}</div>${fixedBoonItems}`)}
-            ${conditionGroups}
+          <div id="simulation-target-settings" class="simulation-settings-column">
             ${section(
               'target',
               'Target',
@@ -269,6 +269,12 @@ export function renderAssumptions(app: ProfessionAppState): void {
                 <label class="boon-control">Additional allied players <input id="allied-player-count" type="number" min="0" max="4" step="1" value="${Number(a.alliedPlayerCount || 0)}"></label>
             `
             )}
+          </div>
+          <div class="simulation-settings-column">
+            ${section('boons', 'Boons', `<div class="perma-effect-grid">${boonItems}</div>${fixedBoonItems}`)}
+            ${conditionGroups}
+          </div>
+          <div id="simulation-options" class="simulation-settings-column">
             ${section(
               'simulation',
               'Simulation',
@@ -285,7 +291,8 @@ export function renderAssumptions(app: ProfessionAppState): void {
                 </label>
                 ${simulationAssumptionItems}
             `
-            )}`;
+            )}
+          </div>`;
 
   // Hover and keyboard focus preview the explanation; clicking keeps it open for reading.
   const criticalDetails = container.querySelector<HTMLDetailsElement>('#critical-damage-details');

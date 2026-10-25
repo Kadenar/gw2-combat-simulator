@@ -275,10 +275,10 @@ test('shared hotkey exclusion protects editable controls and dialogs', async ({ 
 test('simulation config controls and result-dependent palette state work in the browser', async ({ page }) => {
   await openSimulator(page);
 
-  const openConfig = page.getByRole('button', { name: 'Open simulation config' });
+  const openConfig = page.locator('#simulation-settings > summary');
 
   await openConfig.click();
-  const config = page.locator('#simulation-config-panel');
+  const config = page.locator('#simulation-settings');
 
   await expect(config).toBeVisible();
   await expect(config.getByText('Timeline Display', { exact: true })).toBeVisible();
@@ -287,8 +287,8 @@ test('simulation config controls and result-dependent palette state work in the 
   await expect(config.getByLabel('Overlay relics')).toBeVisible();
   await expect(config.getByLabel('Overlay Sovereign of Light')).toHaveCount(0);
 
-  await config.getByRole('button', { name: 'Close simulation config' }).click();
-  await expect(config).toBeHidden();
+  await openConfig.click();
+  await expect(config.locator('#perma-boons')).toBeHidden();
   await expect(openConfig).toBeFocused();
 
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
@@ -297,92 +297,64 @@ test('simulation config controls and result-dependent palette state work in the 
   await expect(page.locator('[data-role="current-rotation-dps"]')).toHaveCount(0);
 });
 
-// Embedded settings must trap focus, preserve edits, and remain usable inside a short, narrow frame.
-test('embedded simulation config uses a dismissible native modal', async ({ page }) => {
+// Embedded settings use the same native disclosure and retain edits across collapse and resize.
+test('embedded simulation settings expand inline on narrow frames', async ({ page }) => {
   await page.goto('/');
   await page.setContent(
     '<iframe title="Simulator" src="/mesmer.html?embed=1" style="width: 800px; height: 600px"></iframe>'
   );
   const frame = page.frameLocator('iframe');
   await expect(frame.locator('#loading-overlay')).toHaveClass(/hidden/);
-  const trigger = frame.getByRole('button', { name: 'Open simulation config' });
-  const config = frame.getByRole('dialog', { name: 'Simulation config' });
-  const close = config.getByRole('button', { name: 'Close simulation config' });
+  const trigger = frame.locator('#simulation-settings > summary');
+  const config = frame.locator('#simulation-settings');
+  const controls = config.locator('#perma-boons');
 
-  await trigger.click();
-  await expect(config).toBeVisible();
-  expect(await config.evaluate((dialog) => dialog.matches(':modal'))).toBe(true);
-  await expect(close).toBeFocused();
-  await frame.locator('.simulation-config-open-button').evaluate((button) => button.focus());
-  await expect(close).toBeFocused();
-  await close.press('Tab');
-  expect(await config.evaluate((dialog) => dialog.contains(document.activeElement))).toBe(true);
+  await trigger.focus();
+  await trigger.press('Enter');
+  await expect(controls).toBeVisible();
+  await expect(trigger).toBeFocused();
+  await expect(frame.locator('dialog[open]')).toHaveCount(0);
   await config.getByLabel('Display idle time').check();
-  await page.keyboard.press('Escape');
-  await expect(config).toBeHidden();
+  await trigger.click();
+  await expect(controls).toBeHidden();
   await expect(trigger).toBeFocused();
 
   await page.locator('iframe').evaluate((iframe) => {
     iframe.style.width = '320px';
     iframe.style.height = '400px';
   });
-  await trigger.click();
+  await trigger.press('Space');
   await expect(config.getByLabel('Display idle time')).toBeChecked();
-  const bounds = await config.evaluate((dialog) => {
-    const rect = dialog.getBoundingClientRect();
-    const controls = dialog.querySelector('#perma-boons');
-    return {
-      fits: rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight,
-      centered: Math.abs(rect.left + rect.width / 2 - innerWidth / 2) < 1,
-      scrolls: controls.scrollHeight > controls.clientHeight
-    };
-  });
-  expect(bounds).toEqual({ fits: true, centered: true, scrolls: true });
+  expect(await config.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
   await config.getByLabel('Overlay relics').check();
-  await expect(close).toBeInViewport();
-  await close.click();
-  await expect(trigger).toBeFocused();
-
   await trigger.click();
-  // Host viewport measurement opens asynchronously; raw mouse clicks do not wait for the backdrop to exist.
-  await expect(config).toBeVisible();
-  const iframeBox = await page.locator('iframe').boundingBox();
-  await page.mouse.click(iframeBox.x + 4, iframeBox.y + 4);
-  await expect(config).toBeHidden();
+  await expect(controls).toBeHidden();
   await expect(trigger).toBeFocused();
 });
 
-// The settings drawer stays pinned outside editor containers and retains both viewport margins.
-test('simulation config stays inside the viewport after scrolling and hides in Analysis', async ({ page }) => {
+// Settings occupy page space before the builder instead of covering it, and remain hidden in Analysis.
+test('simulation settings fit the workspace and hide in Analysis', async ({ page }) => {
   await openSimulator(page);
-  const config = page.locator('body > #simulation-config-panel');
+  const config = page.locator('.rotation-section > #simulation-settings');
+  const trigger = config.locator(':scope > summary');
+  const controls = config.locator('#perma-boons');
 
   for (const width of [320, 390, 1280]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.getByRole('button', { name: 'Open simulation config' }).click();
-    await expect(config).toBeVisible();
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    const margin = width <= 700 ? 6 : 12;
-    await expect
-      .poll(async () => {
-        const box = await config.boundingBox();
-        return (
-          box && {
-            top: Math.round(box.y),
-            right: Math.round(width - box.x - box.width),
-            bottom: Math.round(900 - box.y - box.height),
-            width: Math.round(box.width)
-          }
-        );
-      })
-      .toEqual({ top: margin, right: margin, bottom: margin, width: Math.min(360, width - 2 * margin) });
-    await page.keyboard.press('Escape');
-    await expect(config).toBeHidden();
-    await expect(page.getByRole('button', { name: 'Open simulation config' })).toBeFocused();
+    await trigger.click();
+    await expect(controls).toBeVisible();
+    expect(await config.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+    const expanded = await config.boundingBox();
+    const builder = await page.locator('.rotation-panel-shell').boundingBox();
+    expect(builder.y).toBeGreaterThanOrEqual(expanded.y + expanded.height);
+    await trigger.click();
+    await expect(controls).toBeHidden();
+    await expect(trigger).toBeFocused();
+    expect((await config.boundingBox()).height).toBeLessThan(expanded.height);
   }
 
-  await page.getByRole('button', { name: 'Open simulation config' }).click();
-  // Isolate Analysis visibility from navigation's separate close-on-view-change behavior.
+  await trigger.click();
+  // Isolate Analysis visibility from navigation's separate workspace-reset behavior.
   await page.evaluate(() => {
     document.body.dataset.simulatorView = 'analysis';
   });

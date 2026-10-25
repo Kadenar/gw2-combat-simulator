@@ -229,6 +229,8 @@ function emitPersonalAshes(
       type: 'profession',
       name: 'Ashes of the Just',
       at: event.at,
+      // Proc artwork belongs to Ashes; the consuming strike remains its trigger attribution.
+      icon,
       sourceSkill: event.skillName
     }
   });

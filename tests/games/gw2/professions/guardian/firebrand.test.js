@@ -66,10 +66,12 @@ test('Firebrand tomes consume shared pages and execute tome damage', () => {
   assert.equal(result.planningState.profession.ashes.charges, 0);
   assert.ok(result.conditionBreakdown.some((row) => row.name === 'Burning'));
   assert.ok(result.conditionBreakdown.some((row) => row.name === 'Bleeding'));
-  assert.equal(
-    result.procSteps.some((step) => step.skill === 'Ashes of the Just'),
-    true
-  );
+  const ashesProc = result.procSteps.find((step) => step.skill === 'Ashes of the Just');
+  assert.ok(ashesProc);
+  // The proc owns its artwork even when a different skill consumes the charge.
+  assert.equal(ashesProc.icon, guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST).icon);
+  assert.ok(guardianCatalog.skillsByName.has(ashesProc.sourceSkill));
+  assert.notEqual(ashesProc.icon, guardianCatalog.skillsByName.get(ashesProc.sourceSkill).icon);
 });
 
 test('Scorched Aftermath applies Burning with its field strikes', () => {

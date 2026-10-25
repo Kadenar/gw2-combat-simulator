@@ -4,37 +4,16 @@ import test from 'node:test';
 import { mountHeaderDps, updateHeaderDps } from '#browser/shell/header-dps.js';
 import {
   DEFAULT_ROTATION_WORKSPACE_STATE,
-  isSimulationConfigVisible,
   mountRotationDpsSummary,
   reduceRotationWorkspaceState
 } from '#browser/shell/rotation-workspace.js';
 
-test('rotation workspace keeps simulation config in a drawer in normal and focus modes', () => {
-  assert.deepEqual(DEFAULT_ROTATION_WORKSPACE_STATE, {
-    configOpen: false,
-    focus: false
-  });
-  assert.equal(isSimulationConfigVisible(DEFAULT_ROTATION_WORKSPACE_STATE), false);
-
-  const configOpen = reduceRotationWorkspaceState(DEFAULT_ROTATION_WORKSPACE_STATE, 'toggle-config');
-
-  assert.deepEqual(configOpen, { configOpen: true, focus: false });
-  assert.equal(isSimulationConfigVisible(configOpen), true);
-  assert.deepEqual(reduceRotationWorkspaceState(configOpen, 'escape'), {
-    configOpen: false,
-    focus: false
-  });
-
+// Inline settings own their native disclosure state independently of full-screen focus.
+test('rotation workspace toggles focus independently of simulation settings', () => {
+  assert.deepEqual(DEFAULT_ROTATION_WORKSPACE_STATE, { focus: false });
   const focused = reduceRotationWorkspaceState(DEFAULT_ROTATION_WORKSPACE_STATE, 'toggle-focus');
-
-  assert.deepEqual(focused, { configOpen: false, focus: true });
-  assert.equal(isSimulationConfigVisible(focused), false);
-  assert.equal(isSimulationConfigVisible({ configOpen: true, focus: true }), true);
-  assert.deepEqual(reduceRotationWorkspaceState({ configOpen: true, focus: true }, 'toggle-focus'), {
-    configOpen: false,
-    focus: false
-  });
-  assert.equal(reduceRotationWorkspaceState(focused, 'escape'), focused);
+  assert.deepEqual(focused, { focus: true });
+  assert.deepEqual(reduceRotationWorkspaceState(focused, 'toggle-focus'), { focus: false });
 });
 
 test('rotation DPS summary mounts directly after the timeline', () => {

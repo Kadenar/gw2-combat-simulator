@@ -66,8 +66,20 @@ const pageEntries = [
 
 // Expands each thin profession entry into the shared simulator document before Vite processes its assets.
 function renderProfessionPages() {
+  const templatePath = path.resolve('templates', 'profession.html');
+
   return {
     name: 'render-profession-pages',
+    configureServer(server) {
+      // The shared template is not a page URL; reload open pages so updated CSS never styles obsolete markup.
+      const reloadTemplate = (file) => {
+        if (path.resolve(file) === templatePath) server.ws.send({ type: 'full-reload' });
+      };
+
+      server.watcher.add(templatePath);
+      server.watcher.on('change', reloadTemplate);
+      server.httpServer?.once('close', () => server.watcher.off('change', reloadTemplate));
+    },
     transformIndexHtml: {
       order: 'pre',
       handler(html, ctx) {
@@ -86,7 +98,7 @@ function renderProfessionPages() {
 
         const name = professionId[0].toUpperCase() + professionId.slice(1);
         // Read on each transform so template edits cannot leave stale markup paired with updated CSS.
-        return readFileSync(path.resolve('templates', 'profession.html'), 'utf8')
+        return readFileSync(templatePath, 'utf8')
           .replaceAll('{{profession-id}}', professionId)
           .replaceAll('{{profession-name}}', name)
           .replaceAll('{{attribute-note}}', page.attributeNote);

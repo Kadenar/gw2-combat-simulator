@@ -7,9 +7,9 @@ import { loadSimulationSettings, saveSimulationSettings } from '#gw2/app/simulat
 import { invalidateInactiveBuildTabs } from '#gw2/app/build/state/workspace.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
-/** Mount native numeric inputs outside build assumptions; changing them reruns every dependent simulation. */
+/** Group shared delays with simulation options; changing them reruns every dependent simulation. */
 export function mountSimulationSettings(app: ProfessionAppState, root: Document = document): void {
-  const container = root.getElementById('perma-boons');
+  const container = root.getElementById('simulation-options');
 
   if (!container) return;
 

@@ -16,7 +16,7 @@ test('quickness and alacrity stay active after restoring a build that disabled i
   });
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.getByRole('button', { name: 'Open simulation config', exact: true }).click();
+  await page.locator('#simulation-settings > summary').click();
 
   const boons = page.locator('#perma-boons');
   const alacrity = boons.getByRole('checkbox', { name: 'Alacrity', exact: true });
