@@ -199,6 +199,8 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: []
   },
   [ID.RADIANT_BULWARK]: {
+    // Stopping the blocking channel preserves its activation boons and radiant weapon equip rewards.
+    interruptMode: 'per-packet',
     // An accepted equip belongs to its captured forge entry, including delayed commitment.
     sideEffects: [
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.snapshot-forge' } },
