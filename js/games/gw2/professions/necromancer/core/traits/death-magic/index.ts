@@ -116,7 +116,7 @@ export const soulComprehension = defineTrait({
   balance: { lifeForcePerStack: 0.5, maximumStacks: 30 }
 });
 
-/** Both shroud forms and Scourge activations grant Carapace after Soul Comprehension samples existing stacks. */
+/** Both shroud forms and Scourge activations grant Carapace before Soul Comprehension samples the live stacks. */
 export const armoredShroud = defineTrait({
   triggers: [
     onTriggerPoint(shroudEntering, { run: applyArmoredShroud }),

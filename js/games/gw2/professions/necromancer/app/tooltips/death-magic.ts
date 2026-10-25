@@ -16,7 +16,7 @@ export const necromancerDeathMagicTooltips = {
     ['duration', 'Carapace duration', tooltipSeconds]
   ]),
   [TRAIT.SOUL_COMPREHENSION]: traitTooltip(
-    'Entering shroud generates life force for each carapace stack already active before entry grants.',
+    "Entering shroud generates life force for each active carapace stack, including Armored Shroud's entry stacks.",
     [
       ['lifeForcePerStack', 'Life force per current carapace stack', lifeForce],
       ['maximumStacks', 'Maximum carapace stacks counted']
@@ -50,8 +50,8 @@ export const necromancerDeathMagicTooltips = {
     ['attributePerStack', 'Power and condition damage per carapace']
   ]),
   [TRAIT.DEATH_NOVA]: outsideScopeTooltip,
-  [TRAIT.CORRUPTERS_FERVOR]: traitTooltip('Qualifying non-summon condition applications grant carapace.', [
-    ['resourceGain', 'Carapace per qualifying condition application'],
+  [TRAIT.CORRUPTERS_FERVOR]: traitTooltip('Inflicting a condition on a foe grants carapace.', [
+    ['resourceGain', 'Carapace per condition stack applied'],
     ['duration', 'Carapace duration', tooltipSeconds]
   ]),
   [TRAIT.UNHOLY_SANCTUARY]: outsideScopeTooltip

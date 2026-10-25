@@ -34,7 +34,8 @@ export const necromancerCursesTooltips = {
   [TRAIT.INSIDIOUS_DISRUPTION]: traitTooltip('Applying a control effect inflicts torment.', undefined, 'on control'),
   [TRAIT.PLAGUE_SENDING]: traitTooltip(
     'Entering shroud or using the supported shade trigger arms a transfer of self-applied conditions on the qualifying hit.',
-    [['maximumConditions', 'Maximum self-condition applications transferred']]
+    // Use the standard transfer-count label so the fact receives the game's book icon.
+    [['maximumConditions', 'Conditions Transferred']]
   ),
   [TRAIT.CHILLING_DARKNESS]: traitTooltip(
     'Applying blind also inflicts chill.',
@@ -54,7 +55,7 @@ export const necromancerCursesTooltips = {
   [TRAIT.WEAKENING_SHROUD]: traitTooltip(
     'Entering shroud strikes and inflicts bleeding and weakness with Lesser Enfeeble.'
   ),
-  [TRAIT.TERROR]: traitTooltip("Fear applications also apply the simulator's damaging Fear condition.", [
+  [TRAIT.TERROR]: traitTooltip('Fear deals damage over time.', [
     ['conditionBaseDamage', 'Base damage'],
     ['conditionDamageScaling', 'Condition damage scaling']
   ]),
