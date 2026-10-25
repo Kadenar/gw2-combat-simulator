@@ -87,6 +87,21 @@ test('linked and temporary ammo pools share charges until explicitly retired', (
   assert.equal(controller.hasAmmo(1), true);
 });
 
+// A retired magazine takes its mirrored readiness with it, so a replacement pool never inherits an old lockout.
+test('retiring a magazine also discards its cooldown deadline and use lockout', () => {
+  const { controller } = fixture();
+  controller.ensureAmmo(magazine);
+  controller.spendAmmo(magazine, 0);
+  controller.setAmmoLockout(magazine, 2, 0);
+  assert.equal(controller.hasCooldown(magazine.id), true);
+  controller.retireAmmo(magazine.id);
+  assert.equal(controller.hasAmmo(magazine.id), false);
+  assert.equal(controller.readyAt(magazine.id), undefined);
+  assert.equal(controller.rechargeFor(magazine.id), undefined);
+  assert.equal(controller.ensureAmmo(magazine).charges, 3);
+  assert.equal(controller.isOnCooldown(magazine.id), false);
+});
+
 // Formula readiness keeps sub-tick precision and refreshes only the requested magazine on the live clock.
 test('live readiness owns ordinary progress and ammo settlement', () => {
   const { state, controller } = fixture();

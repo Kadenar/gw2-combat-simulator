@@ -86,10 +86,18 @@ for (const [profession, names, simulate = simulateGw2] of [
 }
 
 // Replacement faces must stay usable through their equipped parent, never as independent slot choices.
-for (const [profession, parent, child, specialization = 'Core', simulate = simulateGw2] of [
+for (const [profession, parent, child, specialization = 'Core', simulate = simulateGw2, opening = [parent]] of [
   [necromancerProfession, 'Summon Blood Fiend', 'Taste of Death', 'Core', simulateRuntime],
   [engineerProfession, 'Elite Mortar Kit', 'Stow Elite Mortar Kit', 'Core', simulateRuntime],
-  [mesmerProfession, 'Mantra of Pain', 'Power Spike', 'Core', simulateRuntime],
+  // Power Spike starts prepared and blocks its parent, so the opener spends both charges before re-preparing.
+  [
+    mesmerProfession,
+    'Mantra of Pain',
+    'Power Spike',
+    'Core',
+    simulateRuntime,
+    ['Power Spike', 'Power Spike', 'Mantra of Pain']
+  ],
   [rangerProfession, 'Water Spirit', 'Aqua Surge', 'Core', simulateRuntime],
   [thiefProfession, 'Prepare Thousand Needles', 'Thousand Needles', 'Core', simulateRuntime],
   [thiefProfession, 'Fist Flurry', 'Palm Strike', 'Daredevil', simulateRuntime]
@@ -97,7 +105,7 @@ for (const [profession, parent, child, specialization = 'Core', simulate = simul
   test(`${profession.id} ${child} inherits its parent's selection`, () => {
     const result = simulate({
       profession,
-      rotation: [parent, { type: 'wait', durationMs: 3000 }, child],
+      rotation: [...opening, { type: 'wait', durationMs: 3000 }, child],
       config: { ...config, specialization, selectedSkillIds: [profession.catalog.skillsByName.get(parent).id] }
     });
     assert.deepEqual(result.warnings, []);

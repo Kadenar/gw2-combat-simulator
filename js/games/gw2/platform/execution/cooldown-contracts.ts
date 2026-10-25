@@ -46,6 +46,7 @@ export interface CooldownController {
   rechargeFor(skillId: SkillId): Readonly<RechargeProgress> | undefined;
   cooldownSkillIds(): IterableIterator<SkillId>;
   ammoSkillIds(): IterableIterator<SkillId>;
+  /** Discard a pool together with its mirrored deadline, recharge progress, and cast lockout. */
   retireAmmo(skillId: SkillId): void;
   linkAmmo(sourceId: SkillId, targetId: SkillId): void;
   /** Replace ordinary or between-charge recharge without restoring ammunition or restarting count recharge. */

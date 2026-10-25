@@ -243,6 +243,20 @@ test('Power Return remains unavailable during Mantra of Recovery preparation', (
   assert.equal(result.planningState.ammoBySkillId[ID.POWER_RETURN].charges, 2);
 });
 
+// A prepared mantra replaces its parent, so the parent cannot re-prepare until the final charge is spent.
+test('Mantra parents are unavailable while their prepared flip holds charges', () => {
+  for (const [rotation, parent, flip, charges] of [
+    [['Mantra of Pain'], 'Mantra of Pain', ID.POWER_SPIKE, 2],
+    [['Power Spike', 'Mantra of Pain'], 'Mantra of Pain', ID.POWER_SPIKE, 1],
+    [['Power Return', 'Mantra of Recovery'], 'Mantra of Recovery', ID.POWER_RETURN, 1]
+  ]) {
+    const result = simulateMesmer(rotation, defaultSimulationConfig({ specialization: 'Core' }));
+    assert.equal(result.steps.at(-1).invalid, true, parent);
+    assert.match(result.warnings.at(-1).message, new RegExp(`${parent} is already prepared`));
+    assert.equal(result.planningState.ammoBySkillId[flip].charges, charges, parent);
+  }
+});
+
 test('Power Spike opens with two charges and reverts to Mantra of Pain when spent', () => {
   const result = simulateMesmer(
     ['Power Spike', 'Power Spike', 'Power Spike'],

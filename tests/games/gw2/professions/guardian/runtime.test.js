@@ -599,6 +599,18 @@ test('Firebrand explicit recharge resets invalidate pending mantra wakes and res
   assert.equal(observedRuntime(result).cooldownController.hasCooldown(ID.MANTRA_OF_FLAME), false);
 });
 
+// Readiness refreshes a queried pool on demand; a recharging mantra must not regain charges before its rearm.
+test('Firebrand mantra root recharge creates no charge pool when readiness refreshes a closed face', () => {
+  const result = run([ID.FLAME_RUSH, ID.FLAME_RUSH, ID.FLAME_SURGE], firebrand);
+  const runtime = observedRuntime(result);
+  assert.ok(runtime.cooldownController.readyAt(ID.MANTRA_OF_FLAME) > runtime.time);
+  assert.equal(
+    runtime.cooldownController.refreshAmmo(runtime.helpers.skillsById.get(ID.FLAME_RUSH), runtime.time),
+    null
+  );
+  assert.equal(runtime.cooldownController.hasAmmo(ID.FLAME_RUSH), false);
+});
+
 test('Firebrand mantra recharge wakes ignore transient Alacrity and preserve later charge spends', () => {
   const result = run([ID.FLAME_RUSH, ID.FLAME_RUSH, ID.FLAME_SURGE, ID.FLAME_RUSH, wait(1100)], firebrand, {
     initialize: (runtime) => boon(runtime, 'alacrity', 5, 4)

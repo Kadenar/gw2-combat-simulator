@@ -2,6 +2,13 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
+import {
+  closePreparedMagazine,
+  openPreparedMagazine,
+  preparedMagazineMaximum,
+  preparedMagazineOpen,
+  type PreparedMagazine
+} from '#gw2/platform/execution/prepared-magazines.js';
 import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
@@ -12,19 +19,27 @@ import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import { finalMantraChargeUsed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 
 export const FIREBRAND_MANTRA_WAKE = 'guardian.firebrand.mantra';
 const owner = (definition: MantraDefinition, generation: number) => ({ id: `mantra:${definition.rootId}`, generation });
 
+/** The normal and final faces spend one pool kept on the normal skill. */
+const faces = (definition: MantraDefinition) => ({ faceIds: [definition.normalId, definition.finalId] });
+
+function magazine(runtime: GuardianRuntime, definition: MantraDefinition): PreparedMagazine {
+  return { pool: runtime.helpers.skillsById.get(definition.normalId)!, ...faces(definition) };
+}
+
 /** Preparation replaces the charge pool once; subsequent recovery uses the shared ammo controller. */
 function arm(runtime: GuardianRuntime, definition: MantraDefinition): void {
-  const normal = runtime.helpers.skillsById.get(definition.normalId)!;
-  const flips = runtime.profession.core.availableFlips;
-  consumeSkillFlip(flips, definition.finalId);
-  armSkillFlip(flips, definition.normalId, runtime.time);
-  runtime.cooldownController.retireAmmo(normal.id);
-  runtime.cooldownController.clear(normal.id);
-  runtime.cooldownController.ensureAmmo(normal);
+  openPreparedMagazine(
+    runtime.profession.core.availableFlips,
+    runtime.cooldownController,
+    magazine(runtime, definition),
+    definition.normalId,
+    runtime.time
+  );
   runtime.cooldownController.clear(definition.rootId);
   firebrandState.from(runtime).mantraRechargeReadyAt[definition.rootId] = runtime.time;
 }
@@ -48,8 +63,6 @@ function sync(runtime: GuardianRuntime, definition: MantraDefinition): void {
 
     if (readyAt <= runtime.time) arm(runtime, definition);
     else {
-      // Shared readiness can provision an ammo pool while probing; root recharge still owns its eligibility.
-      runtime.cooldownController.retireAmmo(normal.id);
       state.mantraRechargeReadyAt[definition.rootId] = readyAt;
       next = readyAt;
     }
@@ -113,8 +126,7 @@ export function firebrandMantraAvailability(runtime: MechanicQueriesOf<GuardianR
   const flips = runtime.profession.core.availableFlips;
 
   if (skill.id === definition.rootId)
-    return skillFlipReady(flips[definition.normalId], runtime.time) ||
-      skillFlipReady(flips[definition.finalId], runtime.time)
+    return preparedMagazineOpen(flips, faces(definition))
       ? denyCast('guardian.mantra-prepared', `${skill.name} is already prepared.`)
       : CAST_READY;
 
@@ -149,11 +161,11 @@ const firebrandMantraActions: RuntimeProfession<GuardianRuntimeState, GuardianSk
         `guardian.finish-mantra-${definition.rootId}`,
         (runtime: GuardianRuntime, context: ActionContext) => {
           runtime.fireTrigger(finalMantraChargeUsed, { context });
-          const flips = runtime.profession.core.availableFlips;
-          consumeSkillFlip(flips, definition.normalId);
-          consumeSkillFlip(flips, definition.finalId);
-          runtime.cooldownController.retireAmmo(definition.normalId);
-          runtime.cooldownController.clear(definition.normalId);
+          closePreparedMagazine(
+            runtime.profession.core.availableFlips,
+            runtime.cooldownController,
+            magazine(runtime, definition)
+          );
           const root = runtime.helpers.skillsById.get(definition.rootId)!;
           firebrandState.from(runtime).mantraRechargeReadyAt[definition.rootId] =
             runtime.cooldownController.startRecharge(root, runtime.time);
@@ -163,8 +175,21 @@ const firebrandMantraActions: RuntimeProfession<GuardianRuntimeState, GuardianSk
     ])
   );
 
+/** During root recharge both faces are closed, so readiness checks must not create a pool for the normal skill. */
+function firebrandMantraMaximumAmmo(
+  context: MaximumAmmoContext<GuardianRuntimeState>,
+  skill: GuardianSkill,
+  maximum: number
+): number {
+  const definition = MANTRAS.find(({ normalId }) => normalId === skill.id);
+  return definition
+    ? preparedMagazineMaximum(context.readProfessionState().core.availableFlips, faces(definition), maximum)
+    : maximum;
+}
+
 /** Mantra actions, the charge wake that reprojects them, and cooldown-reset refreshes share one owner. */
 export const firebrandMantraLifecycle = {
+  maximumAmmo: firebrandMantraMaximumAmmo,
   sideEffectHandlers: firebrandMantraActions,
   tasks: { [FIREBRAND_MANTRA_WAKE]: firebrandMantraWake },
   onCooldownReset: refreshFirebrandMantras

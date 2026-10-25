@@ -204,7 +204,7 @@ test('Scepter weapon skills preserve Ether Bolt chain progress', () => {
 test('scepter chains continue through intervening skills of every category', () => {
   for (const [specialization, skillId] of [
     ['Core', ID.SIGNET_OF_THE_ETHER],
-    ['Core', ID.MANTRA_OF_PAIN],
+    ['Core', ID.SIGNET_OF_ILLUSIONS],
     ['Core', ID.TIME_WARP],
     ['Chronomancer', ID.WELL_OF_CALAMITY],
     ['Troubadour', ID.TALE_OF_THE_SECOND_SCION],

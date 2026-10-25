@@ -1,6 +1,5 @@
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
@@ -98,12 +97,9 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
       }
     },
     initialize(runtime) {
-      for (const skill of runtime.helpers.skills) {
-        if (skill.armedAtStart && skill.flipParentId && Number(skill.ammo) > 0) {
-          armSkillFlip(runtime.profession.core.availableFlips, skill.id, 0);
-          runtime.cooldownController.ensureAmmo(skill);
-        }
-      }
+      // Mantras that start prepared use the same preparation as a completed channel, at the run's zero clock.
+      for (const skill of runtime.helpers.skills)
+        if (skill.armedAtStart && skill.flipParentId && Number(skill.ammo) > 0) prepareMesmerMantra(runtime, skill.id);
 
       if (!runtime.engagement.boundaryPending) restartSignetIllusionsPassive(runtime, 0);
     },

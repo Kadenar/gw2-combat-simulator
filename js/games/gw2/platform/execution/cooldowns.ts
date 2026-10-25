@@ -318,7 +318,9 @@ export function createCooldownController({
     cooldownSkillIds: () => cooldowns.keys(),
     ammoSkillIds: () => ammoPools.keys(),
     retireAmmo(id: SkillId) {
+      // The cooldown entry of an ammo skill mirrors its pool, so retiring the pool drops that deadline and lockout too.
       ammoPools.delete(id);
+      clear(id);
     },
     linkAmmo(sourceId: SkillId, targetId: SkillId) {
       // Alternate skill identities intentionally share one magazine and queue, rather than copying charge counts.

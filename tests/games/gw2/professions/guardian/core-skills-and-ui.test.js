@@ -3,13 +3,14 @@ import { createProfessionBuildAttributeRules, createCalculateAttributes } from '
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
-import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
+import { displayedSkillTiles, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { guardianVirtueForSlot } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -186,6 +187,33 @@ test('Guardian mantra flips inherit selection from the root slot skill', () => {
       );
     }
   }
+});
+
+// The final face shares the normal face's pool, so its tile reports the last charge and when the normal face returns.
+test('Firebrand final mantra face shows the shared charges and next charge timer until retirement', () => {
+  const { FLAME_RUSH, FLAME_SURGE } = GUARDIAN_SKILL_IDS;
+  const surge = guardianCatalog.skillsById.get(FLAME_SURGE);
+  const view = (results) =>
+    paletteSkillView(
+      {
+        patch: guardianAppAdapter.profession.resolvePatch(),
+        adapter: guardianAppAdapter,
+        build: { rotation: [] },
+        results
+      },
+      surge
+    );
+  const final = runGuardian([FLAME_RUSH, FLAME_RUSH], { specialization: 'Firebrand' });
+  const { ammoBySkillId, atSeconds } = final.planningState;
+  assert.deepEqual(view(final).ammo, { current: 1, maximum: 3, pips: [true, false, false] });
+  assert.match(
+    view(final).castDetails,
+    new RegExp(`Next charge in: ${(ammoBySkillId[FLAME_RUSH].nextRechargeAt - atSeconds).toFixed(3)}s`)
+  );
+
+  const retired = runGuardian([FLAME_RUSH, FLAME_RUSH, FLAME_SURGE], { specialization: 'Firebrand' });
+  assert.equal(retired.planningState.ammoBySkillId[FLAME_SURGE], undefined);
+  assert.equal(view(retired).ammo, null);
 });
 
 test('Virtue of Resolution extends delivered boons once without creating extra symbol reactions', () => {

@@ -1,4 +1,5 @@
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import { preparedMagazineMaximum } from '#gw2/platform/execution/prepared-magazines.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -52,8 +53,12 @@ export function mesmerMaximumAmmo(
   skill: MesmerSkill,
   maximum: number
 ): number {
-  // Inactive mantra flips have no charge pool; only their parent can rearm and refill them.
-  if (skill.flipParentId && !context.readProfessionState().core.availableFlips[skill.id]) return 0;
+  // Inactive mantra flips have no charge pool; only their parent can rearm and refill them. The flip is its own face.
+  if (
+    skill.flipParentId &&
+    !preparedMagazineMaximum(context.readProfessionState().core.availableFlips, { faceIds: [skill.id] }, maximum)
+  )
+    return 0;
 
   return shatterStormMaximumAmmo(context, skill, maximum);
 }

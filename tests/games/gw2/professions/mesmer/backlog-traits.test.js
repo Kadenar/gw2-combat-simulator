@@ -143,7 +143,8 @@ test('Ego Restoration creates clones, blades, and notes only from committed comb
       [[{ name: 'Ether Feast', interruptAfterMs: 1 }], true, 0],
       [['Ether Feast', { type: 'combat-start' }], true, 0],
       [['Mind Slash'], true, 0],
-      [['Mantra of Recovery', 'Mantra of Recovery'], true, 2]
+      // A prepared mantra blocks its parent, so both Power Return heals precede the re-preparing channel.
+      [['Power Return', 'Power Return', 'Mantra of Recovery'], true, 3]
     ]) {
       const result = simulate(specialization, rotation, { selectedTraitIds: selected ? [TRAIT.EGO_RESTORATION] : [] });
       assert.deepEqual(result.warnings, [], specialization);
