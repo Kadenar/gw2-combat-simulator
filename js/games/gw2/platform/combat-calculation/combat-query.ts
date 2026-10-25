@@ -454,9 +454,10 @@ export function createGw2CombatQuery({
       }
 
       const stats = sampledStats ?? statsAt(time, event, runtime);
-      let contributors: Gw2CriticalChanceContributor[] = [];
+      // Scoring needs the same critical facts and rolls, but no explanatory arrays or modifier labels.
+      let contributors: Gw2CriticalChanceContributor[] | undefined = runtime?.output === 'score' ? undefined : [];
       const addContributor = (id: string, label: string, amount: number) => {
-        if (Math.abs(amount) <= Number.EPSILON) return;
+        if (!contributors || Math.abs(amount) <= Number.EPSILON) return;
 
         contributors.push({ id, label, amount });
       };
@@ -486,7 +487,7 @@ export function createGw2CombatQuery({
         addContributor(boonKey(BOON.FURY), BOON.FURY, 0.25);
       }
 
-      const professionContributors: Gw2CriticalChanceContributor[] = [];
+      const professionContributors: Gw2CriticalChanceContributor[] | undefined = contributors ? [] : undefined;
       const beforeProfession = chance;
       chance = activeProfession.modifyCriticalChance(
         hookContext(time, {
@@ -496,13 +497,17 @@ export function createGw2CombatQuery({
         }),
         chance
       );
-      const tracedProfessionAmount = professionContributors.reduce((sum, contributor) => sum + contributor.amount, 0);
-      contributors.push(...professionContributors);
-      addContributor(
-        'profession-effects',
-        'Other profession effects',
-        chance - beforeProfession - tracedProfessionAmount
-      );
+
+      if (contributors && professionContributors) {
+        const tracedProfessionAmount = professionContributors.reduce((sum, contributor) => sum + contributor.amount, 0);
+        contributors.push(...professionContributors);
+        addContributor(
+          'profession-effects',
+          'Other profession effects',
+          chance - beforeProfession - tracedProfessionAmount
+        );
+      }
+
       const relicBonus = relicCriticalChanceBonus(
         runtime?.relic ? runtime : historicalRelicContext,
         event,
@@ -514,7 +519,7 @@ export function createGw2CombatQuery({
       damage = activeProfession.modifyCriticalDamage(hookContext(time, { event, runtime }), damage);
       const severanceCritical = severanceCriticalContribution(runtime, time);
       chance += severanceCritical.chance;
-      contributors.push(...severanceCritical.chanceContributors);
+      contributors?.push(...severanceCritical.chanceContributors);
       damage += severanceCritical.damage;
       let chanceBeforeCap = chance;
 
@@ -524,13 +529,15 @@ export function createGw2CombatQuery({
       if (event.forceCrit) {
         chance = 1;
         chanceBeforeCap = 1;
-        contributors = [
-          {
-            id: 'forced-critical-hit',
-            label: 'Forced critical hit',
-            amount: 1
-          }
-        ];
+
+        if (contributors)
+          contributors = [
+            {
+              id: 'forced-critical-hit',
+              label: 'Forced critical hit',
+              amount: 1
+            }
+          ];
       }
 
       return {
@@ -745,6 +752,7 @@ export function createGw2CombatQuery({
 }
 
 export interface Gw2QueryRuntime extends Gw2RuntimeStateLike {
+  readonly output?: 'detailed' | 'score' | 'damage';
   readonly companions?: ReadonlyMap<string, CompanionEffects>;
   readonly retiredCompanions?: ReadonlyMap<string, number>;
   readonly boons?: Map<string, Gw2TimedBuffApplication[]>;

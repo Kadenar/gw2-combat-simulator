@@ -19,11 +19,10 @@ export function mesmerAmbushAttacks(context: MesmerRuntime) {
   );
 }
 
-/** Bind Mirage operations without importing family construction; lifetimes remain in the specialization slice. */
+/** Bind the selected Mirage module's operations; lifetimes remain in the specialization slice. */
 export function createMirageMechanics(context: MesmerRuntime): MesmerMirageController {
   return createMirageActionController({
     state: context,
-    config: context.config,
     ambushAttacks: mesmerAmbushAttacks(context),
     cloneAttacks: MESMER_CORE_CLONE_ATTACKS,
     activePrimaryWeapon: () => gw2ActivePrimaryWeapon(context.config, context.activeWeaponSet === 1 ? 1 : 2) || ''

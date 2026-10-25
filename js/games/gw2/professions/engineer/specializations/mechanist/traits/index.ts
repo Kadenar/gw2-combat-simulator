@@ -392,10 +392,7 @@ function emitRocketPunch(context: EngineerRuntime, skill: EngineerSkill, at: num
 
 /** Weapon slot three invokes Rocket Punch after command recovery, using the mech's own recharge. */
 function triggerMechFighter(context: EngineerRuntime, { skill, at }: MechanistCastCompletion): void {
-  const state = mechanistState.from(context);
-
   if (
-    state.mech.active &&
     skill.type === 'Weapon' &&
     !skill.kitId &&
     skill.slot === 'Weapon_3' &&
@@ -412,7 +409,7 @@ function triggerMechFighter(context: EngineerRuntime, { skill, at }: MechanistCa
 function startBarrierEngine(runtime: EngineerRuntime): void {
   const state = mechanistState.from(runtime);
 
-  if (state.barrierEngine.generation > 0 || !state.mech.active) return;
+  if (state.barrierEngine.generation > 0) return;
 
   barrierEnginePassive.restart(
     runtime,
@@ -420,9 +417,9 @@ function startBarrierEngine(runtime: EngineerRuntime): void {
   );
 }
 
-/** Each passive grant selects up to five recipients, with the mech behind players in recipient priority. */
+/** The selected trait owns each passive grant; the present mech follows players in recipient priority. */
 function pulseBarrierEngine(runtime: EngineerRuntime): void {
-  if (!hasTrait(runtime, TRAIT.MECH_CORE_BARRIER_ENGINE) || !mechanistState.from(runtime).mech.active) {
+  if (!hasTrait(runtime, TRAIT.MECH_CORE_BARRIER_ENGINE)) {
     barrierEnginePassive.stop(runtime);
     return;
   }

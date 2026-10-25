@@ -145,7 +145,4 @@ export interface ThiefUiContext extends Omit<ProfessionUiCallbackContext<Partial
 export interface ThiefWeaponMatcherContext extends Gw2WeaponMatcherContext {
   readonly catalog?: CanonicalCatalog<ThiefSkill> | null;
   readonly config?: ThiefConfig;
-  readonly state?: {
-    readonly profession?: ThiefRuntimeState | Partial<ThiefState>;
-  };
 }

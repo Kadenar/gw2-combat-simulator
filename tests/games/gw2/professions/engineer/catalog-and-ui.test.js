@@ -80,7 +80,6 @@ test('Mechanist keeps its mech present and exposes only trait-selected commands'
     selectedSkillIds: [...baseConfig.selectedSkillIds.slice(0, 4), 63095]
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.mech.active, true);
   assert.ok(result.events.some((event) => event.type === 'damage' && event.skillId === ID.JADE_BUSTER_CANNON));
   assert.ok(result.events.some((event) => event.type === 'damage' && event.mechBasicAttack));
 

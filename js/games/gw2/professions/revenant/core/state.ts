@@ -46,7 +46,6 @@ export interface RevenantCoreState {
   nextThrillOfCombatAt: number | null;
   exposeDefensesUsed: boolean;
   selfConditions: RevenantSelfCondition[];
-  selfConditionCount: number;
 
   /** Combat anchors replace pending passive work through the shared lifecycle. */
   assassinsPresence: PeriodicTaskState;
@@ -93,7 +92,6 @@ export function createRevenantCoreState(
     nextThrillOfCombatAt: null,
     exposeDefensesUsed: false,
     selfConditions: [],
-    selfConditionCount: Math.max(0, Math.trunc(config.selfConditionCount || 0)),
 
     assassinsPresence: createPeriodicTaskState()
   };
@@ -113,8 +111,7 @@ const REVENANT_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantCoreState)[] 
   'battleScars',
   'crushingAbyss',
   'combatBeganAt',
-  'selfConditions',
-  'selfConditionCount'
+  'selfConditions'
 ]);
 
 // Core fields have no inactive fallbacks; their values come from the live state.

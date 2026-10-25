@@ -31,9 +31,6 @@ function activeAutoattack(context: RevenantUiContext): Skill | null {
 }
 
 function vindicatorDodgeAutoPaletteSkill(context: RevenantUiContext): Skill | null {
-  // Guard specialization first: this helper is called from shared palette code that doesn't know the spec.
-  if ((context.specialization || '') !== 'Vindicator') return null;
-
   // No auto-attack means there's nothing to pair a dodge with; suppress the synthetic entry.
   if (!activeAutoattack(context)) return null;
 

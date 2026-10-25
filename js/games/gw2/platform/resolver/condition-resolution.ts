@@ -505,7 +505,7 @@ export function createGw2ConditionResolution({
 
       if (attributeBatch && application.stacks === 1) attributeBatches.set(application, attributeBatch);
 
-      if (ctx.reporting) ctx.resolved.push(application);
+      if (ctx.retainsResolved(application)) ctx.resolved.push(application);
 
       // Queries and queued damage share the accepted application, including its natural expiry and retirement.
       const state = ensureConditionState(ctx, name);
@@ -588,17 +588,22 @@ export function createGw2ConditionResolution({
       const { application, fraction, damage: share } = contribution;
       application.damage += share;
 
-      if (ctx.reporting) application.damageTicks.push({ at: event.at, damage: share, fraction });
+      // Tick history belongs to returned applications; unowned measurement packets keep only their damage totals.
+      if (ctx.retainsResolved(application)) application.damageTicks.push({ at: event.at, damage: share, fraction });
 
       ctx.addBreakdown(application.name, share, 'conditionDamage', 0, application);
     }
 
     if (contributions.length) {
       ctx.totals.condition += damage;
-      const entry = ctx.conditions.get(group.condition) || { name: group.condition, damage: 0, stackSeconds: 0 };
-      entry.damage += damage;
-      entry.stackSeconds += contributions.reduce((total, contribution) => total + contribution.stackSeconds, 0);
-      ctx.conditions.set(group.condition, entry);
+
+      // Per-condition totals are a detailed-report projection; live damage and measurement packets remain independent.
+      if (ctx.output === 'detailed') {
+        const entry = ctx.conditions.get(group.condition) || { name: group.condition, damage: 0, stackSeconds: 0 };
+        entry.damage += damage;
+        entry.stackSeconds += contributions.reduce((total, contribution) => total + contribution.stackSeconds, 0);
+        ctx.conditions.set(group.condition, entry);
+      }
 
       if (damage > 0) ctx.markDamageTime(event.at);
     }
@@ -637,7 +642,8 @@ export function createGw2ConditionResolution({
     entry.damage += damage;
     entry.stackSeconds += stacks;
 
-    if (ctx.reporting) entry.damageTicks.push({ at: event.at, damage });
+    // Environment tick rows are a detailed-report projection.
+    if (ctx.output === 'detailed') entry.damageTicks.push({ at: event.at, damage });
   }
 
   return Object.freeze({

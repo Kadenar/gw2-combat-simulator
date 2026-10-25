@@ -1,3 +1,4 @@
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -39,16 +40,17 @@ test('Soulbeast spear diagnostic import loads and simulates with the requested e
       patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-  const result = adapter.simulateBuild(
-    build.rotation,
-    adapter
+  const result = simulateGw2({
+    profession: adapter.profession,
+    rotation: build.rotation,
+    config: adapter
       .createBuildContext({
         build: app.build,
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
         patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig()
-  );
+  });
   assert.ok(Number.isFinite(result.dps) && result.dps > 0);
   // The documented manual opener makes this saved replay valid; no simulator warnings are waived.
   assert.deepEqual(result.warnings, []);

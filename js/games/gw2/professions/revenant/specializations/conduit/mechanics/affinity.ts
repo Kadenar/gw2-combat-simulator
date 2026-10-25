@@ -15,9 +15,9 @@ export const conduitAffinityPolicy: ResourcePolicy<RevenantRuntime> = {
   recovery: () => 0
 };
 
-/** Affinity is combat-only and capped; reaching the cap grants Expanded Consciousness Energy. */
+/** The selected Conduit module grants combat-only affinity; cap crossings can reward Expanded Consciousness Energy. */
 export function gainAffinity(runtime: RevenantRuntime, amount: number): void {
-  if (runtime.config.specialization !== 'Conduit' || !runtime.engagement.combatMechanicsAllowed()) return;
+  if (!runtime.engagement.combatMechanicsAllowed()) return;
 
   const state = conduitState.from(runtime);
   const previous = runtime.resourceController.value('affinity');

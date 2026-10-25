@@ -107,8 +107,12 @@ function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
 export function createModifierContributionRequest(
   app: ProfessionAppState,
   profession: ProfessionRuntimeOptions['profession'],
-  createBuildContext: BuildContextFactory
+  createBuildContext: BuildContextFactory,
+  baselineDps: number
 ): ModifierContributionRequest {
+  // Reject an unusable baseline before preparing omission configs or dispatching any worker.
+  if (!Number.isFinite(baselineDps)) throw new TypeError('Modifier contributions require a finite baseline DPS.');
+
   const comparisonConfig = (disabled: ProfessionModifier | null = null): Gw2Config =>
     deterministicSimulationConfig(
       createBuildContext({
@@ -146,5 +150,6 @@ export function createModifierContributionRequest(
   }
 
   const comparisons = candidates.map((modifier) => ({ modifier, config: comparisonConfig(modifier) }));
-  return { gameId: 'gw2', contentId: profession.id, rotation: app.build.rotation, baseConfig, comparisons };
+  // The baseline config discovers passive owners locally; comparison execution reuses the caller's score.
+  return { gameId: 'gw2', contentId: profession.id, rotation: app.build.rotation, baselineDps, comparisons };
 }

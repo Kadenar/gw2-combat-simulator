@@ -124,7 +124,7 @@ export function createThievesGuildHooks(
       summonUsesEquipmentModifiers: false,
       activationId: `${work.ownerId}:${work.summonIndex}:${work.attackIndex}:${work.occurrence}`
     };
-    buildThiefStrikes(null, {
+    buildThiefStrikes({
       ...common,
       name: attackName,
       coefficient: (attack.coefficientPerHit || 0) * hits,

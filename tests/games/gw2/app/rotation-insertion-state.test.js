@@ -227,19 +227,18 @@ test('native insertion previews project weapon set and cooldown state', async ()
   assert.equal(adapter.rotationPlanningStateAt(app, 3), result.planningState);
 
   // Reusing a tailed result would make recovered cooldowns available too early when appending.
-  app.results = adapter.simulateBuild(
-    build.rotation,
-    adapter
+  app.results = simulateGw2({
+    profession: adapter.profession,
+    rotation: build.rotation,
+    config: adapter
       .createBuildContext({
         build: app.build,
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
         patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig(),
-    {
-      observationPolicy: { kind: 'tail', durationMs: 20000 }
-    }
-  );
+    observationPolicy: { kind: 'tail', durationMs: 20000 }
+  });
   assert.ok(app.results.planningState.atSeconds * 1000 > result.planningState.atSeconds * 1000);
   assert.deepEqual(adapter.rotationPlanningStateAt(app, 3), result.planningState);
   for (const insertionIndex of [null, build.rotation.length]) {
@@ -255,9 +254,13 @@ test('native insertion previews project weapon set and cooldown state', async ()
       patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .simulationConfig();
-  app.results = adapter.simulateBuild(build.rotation, {
-    ...config,
-    target: { ...config.target, health: 1 }
+  app.results = simulateGw2({
+    profession: adapter.profession,
+    rotation: build.rotation,
+    config: {
+      ...config,
+      target: { ...config.target, health: 1 }
+    }
   });
   assert.ok(app.results.combatEndTime < app.results.rotationEndTime);
   assert.equal(app.results.planningState.atSeconds, app.results.rotationEndTime);

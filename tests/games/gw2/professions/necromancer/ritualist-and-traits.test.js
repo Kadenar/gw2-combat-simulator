@@ -1,3 +1,4 @@
+import { modifierComparisonRequest } from '#tests/helpers/modifier-contributions.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
@@ -1003,8 +1004,7 @@ test('modifier candidates include every active Necromancer trait', () => {
 
   const activeTraitNames = new Set(app.attributeData.activeTraits.map((trait) => trait.name));
   const candidateNames = new Set(
-    necromancerAppAdapter
-      .modifierContributionRequest(app)
+    modifierComparisonRequest(app, necromancerAppAdapter)
       .comparisons.map(({ modifier }) => modifier)
       .filter((candidate) => candidate.type === 'Trait')
       .map((candidate) => candidate.name)

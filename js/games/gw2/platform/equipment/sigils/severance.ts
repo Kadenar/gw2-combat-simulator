@@ -38,12 +38,16 @@ export function severanceCriticalContribution(
   return {
     chance,
     damage: (severance.procFerocity || 0) / FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
-    chanceContributors: [
-      {
-        id: 'sigil-severance',
-        label: 'Sigil of Severance',
-        amount: chance
-      }
-    ]
+    // Scores consume the numeric grant without allocating presentation labels for every critical query.
+    chanceContributors:
+      runtime?.output === 'score'
+        ? NO_CRITICAL_CONTRIBUTION.chanceContributors
+        : [
+            {
+              id: 'sigil-severance',
+              label: 'Sigil of Severance',
+              amount: chance
+            }
+          ]
   };
 }

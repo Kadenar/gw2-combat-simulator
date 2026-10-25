@@ -11,14 +11,14 @@ import { testProfession } from '#tests/fixtures/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-for (const reporting of [true, false]) {
-  test(`pet retirement cancels independent conditions immediately with reporting=${reporting}`, () => {
+for (const output of ['score', 'detailed']) {
+  test(`pet retirement cancels independent conditions immediately with output=${output}`, () => {
     const conditions = createGw2ConditionResolution({
       expansionBudget: createEffectExpansionBudget(),
       reactions: { dispatch() {} }
     });
     const context = createGw2ResolverRuntimeState({
-      reporting,
+      output,
       config: {},
       horizon: 3,
       query: {

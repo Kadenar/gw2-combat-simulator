@@ -84,15 +84,15 @@ export function updateSpearChain(runtime: ThiefRuntime, skill: ThiefSkill): void
 
   if (stage != null) {
     core.spearChainStage = (stage + 1) % 3;
-    core.spearLastWasFinisher = stage === 2;
     core.spearPreviousSkillId = skill.id;
     return;
   }
 
-  if (skill.id === ID.DISTRACTING_THROW && (core.spearLastWasFinisher || (core.spearChainStage || 0) === 0)) {
-    const followsFinisher = core.spearLastWasFinisher;
+  // The preceding spear identity already records whether this throw earns the finisher reward.
+  const followsFinisher = core.spearPreviousSkillId != null && spearChainStageForSkill(core.spearPreviousSkillId) === 2;
+
+  if (skill.id === ID.DISTRACTING_THROW && (followsFinisher || (core.spearChainStage || 0) === 0)) {
     core.spearChainStage = 1;
-    core.spearLastWasFinisher = false;
     core.spearPreviousSkillId = skill.id;
 
     // The committed window follows the throw's own same-time packets, so it buffs subsequent damage only.
@@ -103,7 +103,6 @@ export function updateSpearChain(runtime: ThiefRuntime, skill: ThiefSkill): void
 
   if (skill.spearStealthAttack || SPEAR_STEALTH_SKILLS.has(skill.id)) {
     core.spearChainStage = 0;
-    core.spearLastWasFinisher = false;
     core.spearPreviousSkillId = skill.id;
   }
 }

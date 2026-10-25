@@ -36,13 +36,14 @@ export function partitionModifierComparisons(
   return batches;
 }
 
-/** Batches arrive in partition order, with the shared deterministic baseline owned by the first batch. */
-export function mergeModifierContributions(groups: readonly ModifierContributionBatchResult[]): ModifierContribution[] {
+/** Every omission is compared with the caller's completed deterministic baseline, regardless of batch order. */
+export function mergeModifierContributions(
+  baselineDps: number,
+  groups: readonly ModifierContributionBatchResult[]
+): ModifierContribution[] {
+  if (!Number.isFinite(baselineDps)) throw new Error('Modifier contributions require a finite baseline DPS.');
+
   if (!groups.length) return [];
-
-  const baselineDps = groups[0]!.baselineDps;
-
-  if (baselineDps == null) throw new Error('Modifier comparisons are missing their baseline.');
 
   const contributions: ModifierContribution[] = [];
   for (const { scores } of groups) {
@@ -63,22 +64,20 @@ export function mergeModifierContributions(groups: readonly ModifierContribution
 type SimulateForContribution = (rotation: readonly RotationCommand[], config: Gw2Config) => { readonly dps: number };
 
 /**
- * Calculates the DPS contribution of each modifier by comparing a baseline
- * simulation with simulations that omit one modifier at a time.
+ * Calculates each modifier's contribution without rerunning the caller's baseline.
  */
 export function calculateContributionComparisons(
   request: Omit<ModifierContributionRequest, 'gameId' | 'contentId'>,
   simulateBuild: SimulateForContribution
 ): ModifierContribution[] {
-  return mergeModifierContributions([calculateContributionBatch(request, simulateBuild)]);
+  return mergeModifierContributions(request.baselineDps, [calculateContributionBatch(request, simulateBuild)]);
 }
 
-/** Each worker simulates its omissions; the designated baseline batch also scores the unmodified build once. */
+/** Each worker simulates only its assigned omissions; baseline scoring belongs to the caller. */
 export function calculateContributionBatch(
-  { rotation, baseConfig, comparisons }: Omit<ModifierContributionBatchRequest, 'gameId' | 'contentId'>,
+  { rotation, comparisons }: Omit<ModifierContributionBatchRequest, 'gameId' | 'contentId'>,
   simulateBuild: SimulateForContribution
 ): ModifierContributionBatchResult {
-  const baselineDps = baseConfig === null ? null : simulateBuild(rotation, baseConfig).dps;
   const scores = comparisons.map(({ modifier, config }) => {
     // Unequipped casts disappear with their active effects, resource rewards, and time cost.
     const comparisonRotation =
@@ -87,5 +86,5 @@ export function calculateContributionBatch(
         : rotation;
     return { id: modifier.id, name: modifier.label, dps: simulateBuild(comparisonRotation, config).dps };
   });
-  return { baselineDps, scores };
+  return { scores };
 }

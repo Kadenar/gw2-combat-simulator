@@ -220,13 +220,16 @@ export function createGw2HitResolution({
     hitContext: Gw2HitResolutionContext
   ): void {
     const damage = hitContext.damage;
-    // Copy already computed facts before health commits; diagnostics never query modifiers or consume RNG again.
-    let damageCalculation: Gw2DamageCalculation | undefined;
+    // Reactions receive the existing hit context; only returned rows need a detached hit packet. Ownership reads the
+    // packet's resolved activation, so measurements discard unowned copies before diagnostics are assembled.
+    const candidate = ctx.output === 'score' ? null : resolvedHitPacket(ctx, event, hitContext);
+    const resolved = candidate && ctx.retainsResolved(candidate) ? candidate : null;
 
-    if (ctx.damageDiagnostics) {
+    // Copy already computed facts before health commits; diagnostics never query modifiers or consume RNG again.
+    if (resolved && ctx.damageDiagnostics) {
       const maximum = Number(ctx.config.target?.health);
       const healthFraction = Number.isFinite(maximum) ? currentHealthFraction(ctx) : null;
-      damageCalculation = {
+      const damageCalculation: Gw2DamageCalculation = {
         phase: (['Sample', 'Settle', 'Ordinary'] as const)[ctx.queue.currentPhase] ?? 'Ordinary',
         targetHealthBefore: healthFraction == null ? null : maximum * healthFraction,
         targetHealthFractionBefore: healthFraction,
@@ -241,6 +244,7 @@ export function createGw2HitResolution({
         unroundedDamage: hitContext.unroundedDamage,
         rounding: event.damageKind === 'condition' ? 'half-even' : 'floor'
       };
+      Object.assign(resolved, { damageCalculation });
     }
 
     const damageType = event.damageKind === 'condition' ? 'conditionDamage' : 'strikeDamage';
@@ -259,9 +263,17 @@ export function createGw2HitResolution({
 
     if (damage > 0) ctx.markDamageTime(event.at);
 
-    const resolved = {
+    if (resolved) ctx.resolved.push(resolved);
+  }
+
+  /** Detaches one hit's resolved facts from its scheduled packet for reports and measurements. */
+  function resolvedHitPacket(
+    ctx: Gw2ResolverRuntime,
+    event: Gw2ResolverEvent,
+    hitContext: Gw2HitResolutionContext
+  ): Gw2ResolverEvent {
+    return {
       ...event,
-      ...(damageCalculation ? { damageCalculation } : {}),
       ...(hitContext.weaponStrength
         ? {
             activationId: hitContext.weaponStrength.activationId ?? event.activationId,
@@ -270,7 +282,7 @@ export function createGw2HitResolution({
             weaponStrengthSampled: hitContext.weaponStrength.sampled
           }
         : {}),
-      damage,
+      damage: hitContext.damage,
       didCrit: hitContext.critical.didCrit,
       averagedCriticalDamage: ctx.criticalDamageMode === 'averaged' && hitContext.critEligible,
       criticalChance: hitContext.critical.chance,
@@ -278,10 +290,7 @@ export function createGw2HitResolution({
       criticalChanceContributors: hitContext.critical.contributors,
       criticalDamage: hitContext.critical.damage,
       critEligible: hitContext.critEligible
-    } as Gw2ResolverEvent;
-
-    // Reactions still receive the resolved hit, but score jobs do not retain a strike history.
-    if (ctx.reporting) ctx.resolved.push(resolved);
+    };
   }
 
   return Object.freeze({

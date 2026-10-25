@@ -8,7 +8,7 @@ export interface CombatEngagementQueries {
   readonly boundaryPending: boolean;
   hostileEffectsAllowed(at: number, inclusive?: boolean): boolean;
   preparationComplete(at?: number): boolean;
-  combatMechanicsAllowed(at?: number): boolean;
+  combatMechanicsAllowed(): boolean;
 }
 
 /** One run owns boundary discovery, authored setup completion, and the exactly-once combat-start trigger. */
@@ -51,9 +51,9 @@ export function createCombatEngagement(
     preparationComplete(at = now()) {
       return !explicit || (markerConsumed && query.hostileEffectsAllowed(at));
     },
-    // Gate autonomous and reactive mechanics during explicit setup; implicit companions may initiate combat.
-    combatMechanicsAllowed(at = now()) {
-      return !explicit || (active && query.preparationComplete(at));
+    // Gate live autonomous and reactive mechanics at the runtime clock; implicit companions may initiate combat.
+    combatMechanicsAllowed() {
+      return !explicit || (active && query.preparationComplete());
     }
   });
 

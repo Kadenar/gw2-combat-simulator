@@ -48,7 +48,6 @@ export interface RevenantConfig extends Gw2Config {
   readonly selectedLegends?: readonly string[];
   readonly startingLegend?: string;
   readonly initialEnergy?: number;
-  readonly selfConditionCount?: number;
 }
 
 export interface RevenantTimedStack {

@@ -94,7 +94,8 @@ test('shared buff handling records allied recipient scope before reactions run',
     })
   });
   const context = {
-    reporting: true,
+    output: 'detailed',
+    retainsResolved: () => true,
     resolved: [],
     config: {
       allies: { count: 4, strikesPerSecond: 1 },

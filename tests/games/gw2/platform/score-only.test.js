@@ -45,7 +45,7 @@ test('action updates change authoritative history without enabling score reporti
     assert.equal(action.interrupted, undefined, 'emission must detach the authored action');
 
     if (output === 'score') {
-      assert.equal(runtime.reporting, false);
+      assert.equal(runtime.output, 'score');
       assert.equal(runtime.effectRecorder, null);
       assert.deepEqual(runtime.resolved, []);
       assert.equal('events' in result, false);
@@ -60,12 +60,13 @@ test('action updates change authoritative history without enabling score reporti
 
 test('combo and aura handlers skip score report rows while preserving state and reactions', () => {
   // Check the internal buffer: score output alone hides accidentally retained report rows.
-  for (const reporting of [false, true]) {
+  for (const output of ['score', 'detailed']) {
     const dispatched = [];
     const facts = createExecutedFacts([]);
     const context = {
       engagement: createCombatEngagement().query,
-      reporting,
+      output,
+      retainsResolved: () => output === 'detailed',
       resolved: [],
       traits: new Set(),
       profession: { core: { activeAuras: [] } },
@@ -98,7 +99,7 @@ test('combo and aura handlers skip score report rows while preserving state and 
 
     // Standard aura delivery records one gameplay fact and one profession state entry in either output mode.
     assert.deepEqual(facts.reader.read(), [aura]);
-    assert.deepEqual(context.resolved, reporting ? [combo, aura] : []);
+    assert.deepEqual(context.resolved, output === 'detailed' ? [combo, aura] : []);
     assert.deepEqual(dispatched, [
       ['combo.resolved', combo],
       ['aura.applied', aura]
@@ -124,6 +125,86 @@ test('score skips end-state projection for a custom profession without feedback'
   assert.equal(projections, 1);
   simulateGw2({ profession, rotation: [], output: 'score' });
   assert.equal(projections, 1);
+});
+
+// Output selection changes retained observations, never critical reactions, condition settlement, or sampled damage.
+test('score and damage measurements omit unused report collections while preserving combat facts', () => {
+  const runs = new Map();
+  for (const output of ['detailed', 'score', 'damage']) {
+    const criticals = [];
+    const traceRequests = [];
+    const profession = defineTestProfession({
+      id: 'output-observers',
+      name: 'Output observers',
+      hooks: {
+        modifyCriticalChance(context, chance) {
+          traceRequests.push(context.criticalChanceContributors !== undefined);
+          context.criticalChanceContributors?.push({ id: 'fixture', label: 'Fixture', amount: 0.1 });
+          return chance + 0.1;
+        },
+        reactions: {
+          'damage.resolved'(_context, _event, { hitContext }) {
+            criticals.push(hitContext.critical);
+          }
+        }
+      }
+    });
+    const result = observeGw2Runtime({
+      profession: profession.runtimeFor({}),
+      config: { boons: { fury: true }, sigilSets: [{ names: ['Severance'] }] },
+      output,
+      ...(output === 'damage' ? { ownsEffect: () => true } : {}),
+      rotation: [{ type: 'wait', durationMs: 4000 }],
+      engineInitialize(runtime) {
+        const origin = { source: 'Fixture', sourceId: 'fixture', actorType: 'player' };
+        for (const payload of [
+          { type: 'buff', at: 0, kind: 'sigil-severance', stacks: 1, duration: 5 },
+          { type: 'damage', at: 0.1, coefficient: 1, weaponStrengthProfileId: 'weapon.axe' },
+          { type: 'condition', at: 0.1, condition: 'Burning', stacks: 1, duration: 1 }
+        ])
+          runtime.effects.emit({ kind: 'packet', event: { ...origin, ...payload } });
+        runtime.effects.emit({
+          kind: 'announcement',
+          announcement: { type: 'trait', name: 'Fixture proc', at: 0 }
+        });
+      }
+    });
+    const runtime = observedRuntime(result);
+    assert.ok(runtime.totals.strike > 0 && runtime.totals.condition > 0);
+    assert.equal(criticals.length, 1);
+    assert.deepEqual(traceRequests, [output !== 'score']);
+    assert.equal(criticals[0].furyActive, true);
+
+    if (output === 'detailed') {
+      assert.ok(runtime.breakdown.size > 0);
+      assert.ok(runtime.conditions.size > 0);
+      assert.ok(runtime.procRecorder.steps.length > 0);
+    } else {
+      assert.equal(runtime.breakdown.size, 0);
+      assert.equal(runtime.conditions.size, 0);
+      assert.equal(runtime.procRecorder, null);
+    }
+
+    if (output === 'score') {
+      assert.equal(criticals[0].contributors, undefined);
+      assert.deepEqual(runtime.resolved, []);
+    } else {
+      assert.ok(criticals[0].contributors.some(({ id }) => id === 'fixture'));
+      assert.ok(criticals[0].contributors.some(({ id }) => id === 'sigil-severance'));
+    }
+
+    if (output === 'damage') {
+      assert.equal(result.complete, true);
+      assert.ok(result.events.some((event) => event.type === 'damage' && event.damageCalculation));
+      assert.ok(result.events.some((event) => event.type === 'condition' && event.damageTicks.length > 0));
+    }
+
+    const criticalFacts = Object.fromEntries(Object.entries(criticals[0]).filter(([key]) => key !== 'contributors'));
+    runs.set(output, { totals: runtime.totals, criticalFacts });
+  }
+
+  assert.deepEqual(runs.get('score'), runs.get('detailed'));
+  assert.deepEqual(runs.get('damage'), runs.get('detailed'));
 });
 
 // Short casts exercise profession reporting writers; exact parity covers every numeric score field.

@@ -259,11 +259,10 @@ function elementRowsHtml(
 
 // Arrange Weaver weapon skills by primary hand, dual slot, and secondary hand,
 // keeping the optional cooldown inventory behind a native disclosure.
+// The palette dispatcher invokes this renderer only for the selected Weaver specialization.
 function renderWeaverWeaponPalette(
   context: ProfessionWeaponPaletteRenderContext<Partial<ElementalistState>>
 ): ProfessionWeaponPaletteView | null {
-  if ((context.specialization || '') !== 'Weaver') return null;
-
   const skills = context.skills;
 
   if (!skills.length) return null;

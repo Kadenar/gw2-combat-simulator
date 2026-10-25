@@ -604,7 +604,6 @@ export const pistolSideEffectHandlers: RuntimeProfession<
           'Water Bullet',
           skill.name,
           skill.id,
-          undefined,
           { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
         )
       );

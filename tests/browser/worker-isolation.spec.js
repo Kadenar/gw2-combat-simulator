@@ -59,10 +59,11 @@ test('simulation workers load current and preview patches without UI dependencie
   const modifierWorkerReady = page.waitForEvent('worker', (worker) =>
     worker.url().includes('/simulation/modifier-contributions/worker.')
   );
-  const contributions = await page.evaluate(() => {
+  const contributions = await page.evaluate((baselineDps) => {
     const app = window.professionApp;
     app.modifierContributionRunner.cancel();
-    const request = app.adapter.modifierContributionRequest(app);
+    const { gameId, contentId, rotation, comparisons } = app.adapter.modifierContributionRequest(app, baselineDps);
+    const request = { gameId, contentId, rotation, comparisons };
     return new Promise((resolve, reject) => {
       const worker = new Worker('/js/games/gw2/app/simulation/modifier-contributions/worker.ts', {
         type: 'module'
@@ -74,11 +75,11 @@ test('simulation workers load current and preview patches without UI dependencie
       });
       worker.postMessage({ requestId: 17, request });
     });
-  });
+  }, baseline.output.result.dps);
   expect(contributions.requestId).toBe(17);
   expect(contributions.scores.length).toBeGreaterThan(0);
-  expect(contributions.baselineDps).toBeGreaterThan(0);
-  expect(contributions.scores.some(({ dps }) => dps < contributions.baselineDps)).toBe(true);
+  expect(baseline.output.result.dps).toBeGreaterThan(0);
+  expect(contributions.scores.some(({ dps }) => dps < baseline.output.result.dps)).toBe(true);
   expect(await uiImports(await modifierWorkerReady)).toEqual([]);
 
   const randomWorkerReady = page.waitForEvent('worker', (worker) =>

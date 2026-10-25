@@ -20,18 +20,13 @@ import type {
   RandomDistributionRequest,
   RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
-import type {
-  ProfessionAppState,
-  ProfessionRuntimeApi,
-  ProfessionRuntimeOptions,
-  ProfessionSimulationOptions
-} from '#gw2/app/types.js';
+import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
@@ -41,28 +36,6 @@ export function createProfessionRuntime({
   profession,
   createBuildContext
 }: ProfessionRuntimeOptions): ProfessionRuntimeApi {
-  function simulateBuild(
-    rotation: readonly RotationCommand[],
-    config: Gw2Config,
-    options: ProfessionSimulationOptions & { output: 'score' }
-  ): Gw2SimulationScore;
-  function simulateBuild(
-    rotation: readonly RotationCommand[],
-    config: Gw2Config,
-    options?: ProfessionSimulationOptions & { output?: 'detailed' }
-  ): Gw2SimulationResult;
-  function simulateBuild(
-    rotation: readonly RotationCommand[],
-    config: Gw2Config,
-    options: ProfessionSimulationOptions & { output?: 'detailed' | 'score' } = {}
-  ): Gw2SimulationResult | Gw2SimulationScore {
-    // Preserve detailed output by default while allowing analysis callers to avoid unused reporting.
-    const request = { profession, rotation, config, ...options };
-    return options.output === 'score'
-      ? simulateGw2({ ...request, output: 'score' })
-      : simulateGw2({ ...request, output: 'detailed' });
-  }
-
   const eliteNames = new Set(
     profession.catalog.specializations
       .filter((specialization) => specialization.elite)
@@ -73,9 +46,9 @@ export function createProfessionRuntime({
     return build.specializations.find((specialization) => eliteNames.has(specialization.name))?.name || 'Core';
   }
 
-  function calculateModifierContributions({ rotation, baseConfig, comparisons }: ModifierContributionRequest) {
+  function calculateModifierContributions({ rotation, baselineDps, comparisons }: ModifierContributionRequest) {
     // Main-thread comparisons need only DPS, matching workers without constructing unused chart histories.
-    return calculateContributionComparisons({ rotation, baseConfig, comparisons }, (rotation, config) =>
+    return calculateContributionComparisons({ rotation, baselineDps, comparisons }, (rotation, config) =>
       simulateGw2({ profession, rotation, config, output: 'score' })
     );
   }
@@ -124,7 +97,7 @@ export function createProfessionRuntime({
     // Distribution explanations need events, but never boon or attribute chart histories.
     return calculateDistribution(
       request,
-      (rotation, config) => simulateBuild(rotation, config, { collectChartData: false }),
+      (rotation, config) => simulateGw2({ profession, rotation, config, collectChartData: false }),
       options
     );
   }
@@ -170,7 +143,8 @@ export function createProfessionRuntime({
     // A prefix before the marker still uses the full rotation's boundary, including casts that finish across it.
     const combatStartTime =
       index <= rotation.findIndex((command) => command.type === 'combat-start')
-        ? (app.results ?? simulateBuild(rotation, config, { observationPolicy: { kind: 'rotation' } })).combatStartTime
+        ? (app.results ?? simulateGw2({ profession, rotation, config, observationPolicy: { kind: 'rotation' } }))
+            .combatStartTime
         : undefined;
     return simulateGw2({
       profession,
@@ -184,6 +158,18 @@ export function createProfessionRuntime({
 
   /** Captures a clone-safe baseline job before later edits can mutate the rotation. */
   function baselineSimulationRequest(app: ProfessionAppState): BaselineSimulationRequest {
+    // Prepare each patch once; the selected run and reference share that same captured config.
+    const patchConfigs = profession.preview?.id
+      ? {
+          current: baselineSimulationConfig(app, 'current'),
+          preview: baselineSimulationConfig(app, profession.preview.id)
+        }
+      : undefined;
+    const baseConfig = patchConfigs
+      ? app.patch.id === patchConfigs.preview.patchId
+        ? patchConfigs.preview
+        : patchConfigs.current
+      : baselineSimulationConfig(app);
     return {
       gameId: 'gw2',
       contentId: profession.id,
@@ -193,16 +179,9 @@ export function createProfessionRuntime({
       ...(app.rotationComparison?.referenceStatus === 'queued'
         ? { referenceRotation: cloneRotation(app.rotationComparison.referenceRotation) }
         : null),
-      baseConfig: baselineSimulationConfig(app),
+      baseConfig,
       selectedPatchId: app.patch.id,
-      ...(profession.preview?.id
-        ? {
-            patchConfigs: {
-              current: baselineSimulationConfig(app, 'current'),
-              preview: baselineSimulationConfig(app, profession.preview.id)
-            }
-          }
-        : null)
+      ...(patchConfigs ? { patchConfigs } : null)
     };
   }
 
@@ -212,10 +191,10 @@ export function createProfessionRuntime({
   }
 
   const api: ProfessionRuntimeApi = {
-    simulateBuild,
     eliteSpecialization,
     createBuildContext,
-    modifierContributionRequest: (app) => createModifierContributionRequest(app, profession, createBuildContext),
+    modifierContributionRequest: (app, baselineDps) =>
+      createModifierContributionRequest(app, profession, createBuildContext, baselineDps),
     calculateModifierContributions,
     randomDistributionRequest,
     relicComparisonRequest,

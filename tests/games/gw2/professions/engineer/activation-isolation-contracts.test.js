@@ -228,31 +228,20 @@ test('Barrier Engine admits one selected loop at implicit or deferred explicit c
       }
 });
 
-test('An admitted barrier task runs under isolation and stops when the mech becomes inactive', () => {
-  const { result, runtime } = run(
+// An explicitly admitted producer keeps running under isolation, but its grants cannot trigger isolated trait reactions.
+test('An admitted barrier task runs under isolation without Channeling Conduits reactions', () => {
+  const { result } = run(
     'Mechanist',
     {
       traitTriggers: false,
       duration: 8,
       selectedTraitIds: [TRAIT.MECH_CORE_BARRIER_ENGINE, TRAIT.MECH_FRAME_CHANNELING_CONDUITS]
     },
-    {
-      initialize: (runtime) => barrierEnginePassive.restart(runtime, 1),
-      timeline: [
-        {
-          at: 3.5,
-          run(runtime) {
-            mechanistState.from(runtime).mech.active = false;
-          }
-        }
-      ]
-    }
+    { initialize: (runtime) => barrierEnginePassive.restart(runtime, 1) }
   );
-  assert.equal(mechanistState.from(runtime).barrierEngine.nextAt, Infinity);
-  assert.deepEqual(
-    rewards(result, TRAIT.MECH_CORE_BARRIER_ENGINE).map((event) => event.at),
-    [1]
-  );
+  const barriers = rewards(result, TRAIT.MECH_CORE_BARRIER_ENGINE);
+  assert.ok(barriers.length > 0);
+  assert.equal(barriers[0].at, 1, 'the admitted restart owns the first grant');
   assert.deepEqual(rewards(result, TRAIT.MECH_FRAME_CHANNELING_CONDUITS), []);
 });
 

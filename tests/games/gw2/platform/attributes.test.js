@@ -1,3 +1,5 @@
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { modifierContributionRequest } from '#tests/helpers/modifier-contributions.js';
 import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
@@ -133,11 +135,13 @@ test('modifier requests preserve workspace target settings for baseline and remo
       ({ disabledModifier: disabled }) => {
         disabledEffects.push(disabled?.id ?? null);
         return { simulationConfig: () => sourceConfig };
-      }
+      },
+      100
     );
     assert.deepEqual(disabledEffects, [null, 'Boon:Might', ...(relic ? [`Relic:${relic}`] : [])]);
     assert.equal(request.contentId, 'mesmer');
-    for (const config of [request.baseConfig, ...request.comparisons.map(({ config }) => config)]) {
+    assert.equal(request.baselineDps, 100);
+    for (const config of request.comparisons.map(({ config }) => config)) {
       assert.deepEqual(config.randomness, { mode: 'deterministic', seed: 7 });
       assert.deepEqual(config.target, sourceConfig.target);
     }
@@ -148,11 +152,16 @@ test('modifier requests preserve workspace target settings for baseline and remo
 });
 
 test('shared contribution comparisons accept a profession simulator', () => {
-  const simulate = (_rotation, config) => ({ dps: config.dps });
+  const simulated = [];
+  const simulate = (_rotation, config) => {
+    simulated.push(config);
+    return { dps: config.dps };
+  };
+
   const contributions = calculateContributionComparisons(
     {
       rotation: [],
-      baseConfig: { dps: 100 },
+      baselineDps: 100,
       comparisons: [
         {
           modifier: { id: 'test', label: 'Test modifier' },
@@ -163,6 +172,8 @@ test('shared contribution comparisons accept a profession simulator', () => {
     simulate
   );
 
+  // The explicit baseline is reused; only the removed modifier requires simulation.
+  assert.deepEqual(simulated, [{ dps: 80 }]);
   assert.deepEqual(contributions, [
     {
       id: 'test',
@@ -171,6 +182,20 @@ test('shared contribution comparisons accept a profession simulator', () => {
       pctIncrease: 25
     }
   ]);
+});
+
+// Explicit baselines must remain valid even when the comparison list is empty.
+test('modifier contributions reject missing or nonfinite baseline DPS', () => {
+  for (const baselineDps of [undefined, NaN, Infinity, -Infinity]) {
+    assert.throws(() => mergeModifierContributions(baselineDps, []), /finite baseline DPS/);
+    // Request creation fails before preparing any omission config, so no worker batch is dispatched.
+    assert.throws(
+      () => createModifierContributionRequest({}, {}, () => assert.fail('Configs must not be prepared.'), baselineDps),
+      /finite baseline DPS/
+    );
+  }
+
+  assert.deepEqual(mergeModifierContributions(0, []), []);
 });
 
 test('modifier comparisons partition across a capped worker pool', () => {
@@ -188,9 +213,9 @@ test('modifier comparisons partition across a capped worker pool', () => {
     ]
   );
   assert.deepEqual(
-    mergeModifierContributions([
-      { baselineDps: 100, scores: [{ id: 'low', name: 'Low', dps: 98 }] },
-      { baselineDps: null, scores: [{ id: 'high', name: 'High', dps: 92 }] }
+    mergeModifierContributions(100, [
+      { scores: [{ id: 'low', name: 'Low', dps: 98 }] },
+      { scores: [{ id: 'high', name: 'High', dps: 92 }] }
     ]).map(({ id }) => id),
     ['high', 'low']
   );
@@ -200,7 +225,7 @@ test('modifier comparisons partition across a capped worker pool', () => {
 test('tied modifier contributions match main-thread order across worker counts', () => {
   const request = {
     rotation: [],
-    baseConfig: { dps: 100 },
+    baselineDps: 100,
     comparisons: ['z', 'a', 'm', 'b'].map((id) => ({ modifier: { id, label: id }, config: { dps: 80 } }))
   };
   const simulate = (_rotation, config) => config;
@@ -210,13 +235,10 @@ test('tied modifier contributions match main-thread order across worker counts',
     ['a', 'b', 'm', 'z']
   );
   for (const count of [1, 2, 3]) {
-    const batches = partitionModifierComparisons(request.comparisons, count).map((comparisons, index) =>
-      calculateContributionBatch(
-        { ...request, comparisons, baseConfig: index === 0 ? request.baseConfig : null },
-        simulate
-      )
+    const batches = partitionModifierComparisons(request.comparisons, count).map((comparisons) =>
+      calculateContributionBatch({ ...request, comparisons }, simulate)
     );
-    assert.deepEqual(mergeModifierContributions(batches), expected);
+    assert.deepEqual(mergeModifierContributions(request.baselineDps, batches), expected);
   }
 });
 
@@ -235,7 +257,7 @@ test('shared contribution comparisons omit deltas that render as zero', () => {
   const contributions = calculateContributionComparisons(
     {
       rotation: [],
-      baseConfig: { dps: 100 },
+      baselineDps: 100,
       comparisons
     },
     simulate
@@ -618,7 +640,7 @@ test('modifier contributions compare the active build against each modifier remo
     activeCatalog: { skillsByName: new Map() }
   };
   const contributions = mesmerAppAdapter.calculateModifierContributions(
-    mesmerAppAdapter.modifierContributionRequest(app)
+    modifierContributionRequest(app, mesmerAppAdapter)
   );
   const names = new Set(contributions.map((entry) => entry.name));
 
@@ -648,7 +670,7 @@ test('Accuracy comparisons remove its attribute and one-strike critical chance b
     attributeWeaponSet: 1,
     activeCatalog: { skillsByName: new Map() }
   };
-  const request = mesmerAppAdapter.modifierContributionRequest(app);
+  const request = modifierContributionRequest(app, mesmerAppAdapter);
   const comparison = request.comparisons.find(({ modifier }) => modifier.id === 'Sigil:Accuracy');
   const contribution = mesmerAppAdapter
     .calculateModifierContributions(request)
@@ -676,21 +698,18 @@ test('food comparisons remove both nourishment procs and attribute bonuses', () 
     attributeWeaponSet: 1,
     activeCatalog: { skillsByName: new Map() }
   };
-  const request = mesmerAppAdapter.modifierContributionRequest(app);
+  const request = modifierContributionRequest(app, mesmerAppAdapter);
   const comparison = request.comparisons.find(({ modifier }) => modifier.id === `Food:${build.food}`);
   const contribution = mesmerAppAdapter
     .calculateModifierContributions(request)
     .find(({ id }) => id === `Food:${build.food}`);
 
+  const baselineTotals =
+    mesmerAppAdapter.baselineSimulationRequest(app).baseConfig.attributeInputs.weaponSets[0].commonTotals;
+  const removedTotals = comparison.config.attributeInputs.weaponSets[0].commonTotals;
   assert.equal(comparison.config.food, '');
-  assert.ok(
-    comparison.config.attributeInputs.weaponSets[0].commonTotals.power <
-      request.baseConfig.attributeInputs.weaponSets[0].commonTotals.power
-  );
-  assert.ok(
-    comparison.config.attributeInputs.weaponSets[0].commonTotals.precision <
-      request.baseConfig.attributeInputs.weaponSets[0].commonTotals.precision
-  );
+  assert.ok(removedTotals.power < baselineTotals.power);
+  assert.ok(removedTotals.precision < baselineTotals.precision);
   assert.ok(contribution.dpsIncrease > 0);
 });
 
@@ -712,14 +731,20 @@ test('interactive simulation leaves contribution passes to the background worker
 
   assert.equal(result.contributions, undefined);
 
-  const request = structuredClone(mesmerAppAdapter.modifierContributionRequest(app));
+  // The completed interactive baseline supplies the score every contribution pass compares against.
+  const request = structuredClone(mesmerAppAdapter.modifierContributionRequest(app, result.dps));
   const contributions = mesmerAppAdapter.calculateModifierContributions(request);
 
   // DPS-only comparisons must retain the same modifier deltas as the chart-producing simulation.
-  assert.deepEqual(contributions, calculateContributionComparisons(request, mesmerAppAdapter.simulateBuild));
   assert.deepEqual(
     contributions,
-    mesmerAppAdapter.calculateModifierContributions(mesmerAppAdapter.modifierContributionRequest(app))
+    calculateContributionComparisons(request, (rotation, config) =>
+      simulateGw2({ profession: mesmerAppAdapter.profession, rotation, config })
+    )
+  );
+  assert.deepEqual(
+    contributions,
+    mesmerAppAdapter.calculateModifierContributions(mesmerAppAdapter.modifierContributionRequest(app, result.dps))
   );
 });
 

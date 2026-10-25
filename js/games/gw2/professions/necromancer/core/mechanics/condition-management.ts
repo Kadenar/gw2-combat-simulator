@@ -326,19 +326,9 @@ function purgeNecromancerSelfConditions(state: NecromancerCoreState, at: number)
   return state.selfConditions;
 }
 
-/** Removes up to the requested number of distinct active self-condition types. */
-export function removeNecromancerSelfCondition(
-  state: NecromancerCoreState,
-  at: number,
-  maximumConditionTypes = 1
-): void {
+/** Cleanse every application of the first active condition type after discarding inactive applications. */
+export function removeNecromancerSelfCondition(state: NecromancerCoreState, at: number): void {
   const active = purgeNecromancerSelfConditions(state, at);
-  const selected = new Set<string>();
-  for (const application of active) {
-    if (selected.size >= maximumConditionTypes) break;
-
-    selected.add(application.condition);
-  }
-
-  state.selfConditions = active.filter((application) => !selected.has(application.condition));
+  const condition = active[0]?.condition;
+  state.selfConditions = active.filter((application) => application.condition !== condition);
 }

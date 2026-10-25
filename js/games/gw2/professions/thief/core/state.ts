@@ -47,7 +47,6 @@ export interface ThiefCoreState extends StealthState {
   leadAttackExpirations: number[];
   spearChainStage: number;
   spearPreviousSkillId: SkillId | null;
-  spearLastWasFinisher: boolean;
   /** Retain each axe's source so recall repeats that projectile's damage and conditions. */
   spinningAxes: { skillId: SkillId; expiresAt: number }[];
   /** Outgoing projectiles are recallable before landing, but do not occupy grounded slots yet. */
@@ -101,7 +100,6 @@ export function createThiefCoreState(
     leadAttackExpirations: [],
     spearChainStage: 0,
     spearPreviousSkillId: null,
-    spearLastWasFinisher: false,
     // Starting axes persist through setup; combat entry starts their ordinary ten-second recall window.
     spinningAxes: Array.from(
       { length: boundedInteger(config.initialSpinningAxes, 0, 0, MAXIMUM_SPINNING_AXES) },
@@ -139,7 +137,6 @@ const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[] = Obje
   'leadAttackExpirations',
   'spearChainStage',
   'spearPreviousSkillId',
-  'spearLastWasFinisher',
   'spinningAxes',
   'outboundAxes',
   'venomChargeBatches',

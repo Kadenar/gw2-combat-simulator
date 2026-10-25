@@ -76,35 +76,37 @@ export function createDiscreteResourceClock(value = 0): DiscreteResourceClock {
   return { ...createResourceClock(value), interval: 0, amount: 1, nextAt: Infinity };
 }
 
-/** Reads preserve continuous anchors so partitioning an observation cannot shift threshold detection. */
-export function resourceAt(state: ResourceClock, at: number): number {
+/** Project discrete balance and phase together; continuous reads keep their fixed anchor without allocating a result. */
+function resourceProjectionAt(state: ResourceClock, at: number): number | { value: number; nextAt: number } {
   if (at < state.updatedAt || !Number.isFinite(at))
     throw new RangeError('Resource time must be finite and nondecreasing.');
 
   if ('nextAt' in state) {
     const discrete = state as DiscreteResourceClock;
 
-    if (!(discrete.interval > 0)) return state.value;
+    if (!(discrete.interval > 0)) return { value: state.value, nextAt: discrete.nextAt };
 
-    const ticks = advanceDiscreteResource(0, Infinity, discrete.nextAt, discrete.interval, at).value;
-    return Math.min(state.maximum, state.value + ticks * discrete.amount);
+    const projection = advanceDiscreteResource(0, Infinity, discrete.nextAt, discrete.interval, at);
+    projection.value = Math.min(state.maximum, state.value + projection.value * discrete.amount);
+    return projection;
   }
 
   return resourceValueAt(state, at);
 }
 
+/** Reads preserve continuous anchors so partitioning an observation cannot shift threshold detection. */
+export function resourceAt(state: ResourceClock, at: number): number {
+  const projection = resourceProjectionAt(state, at);
+  return typeof projection === 'number' ? projection : projection.value;
+}
+
 /** Settle the old segment before a mutation, keeping discrete phase even when grants overflow. */
 export function advanceResource(state: ResourceClock, at: number): void {
-  const value = resourceAt(state, at);
+  const projection = resourceProjectionAt(state, at);
 
-  if ('nextAt' in state) {
-    const discrete = state as DiscreteResourceClock;
+  if (typeof projection !== 'number') (state as DiscreteResourceClock).nextAt = projection.nextAt;
 
-    if (discrete.interval > 0)
-      discrete.nextAt = advanceDiscreteResource(0, Infinity, discrete.nextAt, discrete.interval, at).nextAt;
-  }
-
-  state.value = value;
+  state.value = typeof projection === 'number' ? projection : projection.value;
   state.updatedAt = at;
 }
 
@@ -112,7 +114,8 @@ export function advanceResource(state: ResourceClock, at: number): void {
 export function resourceRecoveryReadyAt(state: ResourceClock, cost: number, at: number): number | null {
   if (!Number.isFinite(cost) || cost < 0) throw new RangeError('Resource cost must be finite and non-negative.');
 
-  const value = resourceAt(state, at);
+  const projection = resourceProjectionAt(state, at);
+  const value = typeof projection === 'number' ? projection : projection.value;
   const anchor = resourceAnchor(state);
 
   // Recovery-funded thresholds remain tick aligned even when another event observes sufficient fractional value first.
@@ -127,12 +130,13 @@ export function resourceRecoveryReadyAt(state: ResourceClock, cost: number, at: 
 
   let readyAt = Infinity;
 
-  if ('nextAt' in state) {
+  if (typeof projection !== 'number') {
     const discrete = state as DiscreteResourceClock;
 
     if (discrete.interval > 0 && discrete.amount > 0 && Number.isFinite(discrete.nextAt)) {
-      const next = advanceDiscreteResource(0, Infinity, discrete.nextAt, discrete.interval, at).nextAt;
-      readyAt = gw2CooldownReadyAt(next + (Math.ceil((cost - value) / discrete.amount) - 1) * discrete.interval);
+      readyAt = gw2CooldownReadyAt(
+        projection.nextAt + (Math.ceil((cost - value) / discrete.amount) - 1) * discrete.interval
+      );
     }
   } else if (state.rate > 0 && cost <= (state.recoveryMaximum ?? state.maximum)) {
     readyAt = gw2CooldownReadyAt(anchor.updatedAt + (cost - anchor.value) / state.rate);

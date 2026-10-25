@@ -1,7 +1,5 @@
 import type { Gw2TraitLookupContext } from '#gw2/platform/builds/selected-traits.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 
 import {
   balanceNumberFromContext,
@@ -12,11 +10,6 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
-
-// Trait windows count only live self applications, never an ally's or companion's copy.
-export function runtimeBuffActive(context: Gw2ModifierContext, kind: string): boolean {
-  return activeBuffStacks({ ...context, timeline: undefined }, kind, 1) > 0;
-}
 
 export function maximumDragonCharges(context: Gw2TraitLookupContext): number {
   const dragonTriggerProfile = requireBalanceProfileFromContext(context, PROFILE.dragonTrigger);

@@ -47,7 +47,7 @@ function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions:
   Object.assign(event, { resolvedAudience });
 
   // Retain actual applications, including trait-generated boons, for effects charts.
-  if (ctx.reporting) ctx.resolved.push(event);
+  if (ctx.retainsResolved(event)) ctx.resolved.push(event);
 
   // Record before reactions so their boon queries include this application at its timestamp.
   // Accepted standard boons and ordinary buffs have exclusive stores, shared recipients and causal ordering.
@@ -83,7 +83,7 @@ export function createGw2ResolverEventHandlers({
     self_condition: noop,
     'gw2.transition-lockout'(ctx, event) {
       // Preserve forced recovery for timeline occupancy without applying combat effects.
-      if (ctx.reporting) ctx.resolved.push(event);
+      if (ctx.retainsResolved(event)) ctx.resolved.push(event);
     },
     buff(ctx, event) {
       handleBuff(ctx, event, reactions);
@@ -92,7 +92,7 @@ export function createGw2ResolverEventHandlers({
       applyBoonExtension(ctx.boons, event);
       for (const effects of ctx.companions.values()) applyBoonExtension(effects.boons, event);
 
-      if (ctx.reporting) ctx.resolved.push(event);
+      if (ctx.retainsResolved(event)) ctx.resolved.push(event);
     },
 
     damage(ctx, event) {

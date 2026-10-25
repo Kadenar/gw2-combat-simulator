@@ -142,16 +142,11 @@ const weaverPistolSideEffects: RuntimeProfession<ElementalistRuntimeState, Eleme
     const at = cast.effectiveEnd;
 
     context.effects.emit(
-      elementalistProfiledConditionRequest(
-        context,
-        at,
-        PROFILE.frostfireFlurry,
-        'Water',
-        skill.name,
-        skill.id,
-        undefined,
-        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-      )
+      elementalistProfiledConditionRequest(context, at, PROFILE.frostfireFlurry, 'Water', skill.name, skill.id, {
+        activationId: cast.id,
+        skillId: cast.skill.id,
+        offTarget: cast.command.offTarget
+      })
     );
   },
   'elementalist.weaver.pistol.plasma-fire'(context, trigger) {
@@ -161,16 +156,11 @@ const weaverPistolSideEffects: RuntimeProfession<ElementalistRuntimeState, Eleme
     const at = cast.effectiveEnd;
 
     context.effects.emit(
-      elementalistProfiledConditionRequest(
-        context,
-        at,
-        PROFILE.purblindingPlasma,
-        'Fire',
-        skill.name,
-        skill.id,
-        undefined,
-        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-      )
+      elementalistProfiledConditionRequest(context, at, PROFILE.purblindingPlasma, 'Fire', skill.name, skill.id, {
+        activationId: cast.id,
+        skillId: cast.skill.id,
+        offTarget: cast.command.offTarget
+      })
     );
   },
   'elementalist.weaver.pistol.meteor-earth'(context, trigger) {
@@ -180,16 +170,11 @@ const weaverPistolSideEffects: RuntimeProfession<ElementalistRuntimeState, Eleme
     const at = cast.effectiveEnd;
 
     context.effects.emit(
-      elementalistProfiledConditionRequest(
-        context,
-        at,
-        PROFILE.moltenMeteor,
-        'Earth',
-        skill.name,
-        skill.id,
-        undefined,
-        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-      )
+      elementalistProfiledConditionRequest(context, at, PROFILE.moltenMeteor, 'Earth', skill.name, skill.id, {
+        activationId: cast.id,
+        skillId: cast.skill.id,
+        offTarget: cast.command.offTarget
+      })
     );
   },
   'elementalist.weaver.pistol.finesse-water'(context, trigger) {
@@ -266,16 +251,11 @@ const weaverPistolSideEffects: RuntimeProfession<ElementalistRuntimeState, Eleme
     const at = cast.effectiveEnd;
 
     context.effects.emit(
-      elementalistProfiledConditionRequest(
-        context,
-        at,
-        PROFILE.enervatingEarth,
-        'Earth',
-        skill.name,
-        skill.id,
-        undefined,
-        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-      )
+      elementalistProfiledConditionRequest(context, at, PROFILE.enervatingEarth, 'Earth', skill.name, skill.id, {
+        activationId: cast.id,
+        skillId: cast.skill.id,
+        offTarget: cast.command.offTarget
+      })
     );
   }
 };

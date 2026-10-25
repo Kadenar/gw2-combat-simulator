@@ -111,11 +111,11 @@ export function buildChartSeries(
   result: Gw2SimulationResult,
   sampleStepMs = 250,
   presentations: readonly ProfessionEffectPresentation[] = [],
-  applications: readonly ProfessionChartApplication[] = []
+  applications: readonly ProfessionChartApplication[] = [],
+  skillKeyByIdentity: ReadonlyMap<string, string> = skillDamageKeyByIdentity(result)
 ): ChartSeries {
   // Attribute each per-hit event to the same breakdown row key the skill table
   // uses, so expanding a row shows exactly its hits in the local timeline.
-  const skillKeyByIdentity = skillDamageKeyByIdentity(result);
   const series = buildTimeSeries(result, sampleStepMs, {
     effectName: (kind, event) => effectName(kind, event, presentations),
     skillKey: (event) =>

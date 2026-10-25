@@ -90,10 +90,7 @@ export function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCas
 
 const hexEaterCleanses = new WeakMap<
   RuntimeCast<RevenantSkill>,
-  {
-    configured: number;
-    conditions: RevenantRuntime['profession']['core']['selfConditions'];
-  }
+  RevenantRuntime['profession']['core']['selfConditions']
 >();
 
 /** Select projectiles now; defer removal of the selected conditions until commitment. */
@@ -115,13 +112,13 @@ function hexEaterEffects(
           : 0
     )
   );
-  const configured = Math.min(maximum, core.selfConditionCount);
+  // Reserve the actual surviving applications so commitment cannot cleanse later arrivals with identical expiries.
   const conditions = core.selfConditions
     .filter((condition) => condition.expiresAt > cast.effectiveEnd)
-    .slice(0, maximum - configured);
-  hexEaterCleanses.set(cast, { configured, conditions });
+    .slice(0, maximum);
+  hexEaterCleanses.set(cast, conditions);
 
-  const projectiles = core.selectedLegendIds.includes(LEGEND.DEMON) ? maximum : configured + conditions.length;
+  const projectiles = core.selectedLegendIds.includes(LEGEND.DEMON) ? maximum : conditions.length;
 
   if (projectiles === 0) return [];
 
@@ -164,9 +161,8 @@ export function cleanseHexEater(runtime: RevenantRuntime, cast: RuntimeCast<Reve
   if (!selected) return;
 
   const core = runtime.profession.core;
-  core.selfConditionCount = Math.max(0, core.selfConditionCount - selected.configured);
   core.selfConditions = core.selfConditions.filter(
-    (condition) => condition.expiresAt > runtime.time && !selected.conditions.includes(condition)
+    (condition) => condition.expiresAt > runtime.time && !selected.includes(condition)
   );
   hexEaterCleanses.delete(cast);
 }

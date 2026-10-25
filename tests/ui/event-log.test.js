@@ -32,16 +32,21 @@ const rows = [
   { at: 1, type: 'condition', description: 'CONDITION Burning', id: 'o1', orphan: true }
 ];
 
-// A container that reports a prior search so the first mount renders filtered tree rows.
-function searchedContainer(query) {
+// Model an already-open disclosure so rerenders retain user state without a production-only test option.
+function openContainer(query = '') {
   const container = inertContainer();
-  container.querySelector = (selector) => (selector.includes('event-log-search') ? { value: query } : null);
+  container.querySelector = (selector) =>
+    selector.includes('event-log-details')
+      ? { open: true }
+      : selector.includes('event-log-search')
+        ? { value: query }
+        : null;
   return container;
 }
 
 test('event-log tree nests rows depth first with guides, offsets, and group summaries', () => {
-  const container = inertContainer();
-  mountEventLog(container, rows, { initiallyOpen: true, metricUnit: ['hit', 'hits'] });
+  const container = openContainer();
+  mountEventLog(container, rows, { metricUnit: ['hit', 'hits'] });
   const html = container.innerHTML;
 
   assert.match(html, /data-view="tree" aria-pressed="true"/);
@@ -61,8 +66,8 @@ test('event-log tree nests rows depth first with guides, offsets, and group summ
 });
 
 test('event-log tree keeps filtered matches under dimmed ancestors', () => {
-  const container = searchedContainer('might');
-  mountEventLog(container, rows, { initiallyOpen: true });
+  const container = openContainer('might');
+  mountEventLog(container, rows);
   const html = container.innerHTML;
 
   assert.match(html, /BUFF <mark>Might<\/mark>/);
@@ -72,8 +77,8 @@ test('event-log tree keeps filtered matches under dimmed ancestors', () => {
 });
 
 test('event-log rows without parents keep the flat layout and its controls', () => {
-  const container = inertContainer();
-  mountEventLog(container, [{ at: 0, type: 'cast', description: 'CAST Solo' }], { initiallyOpen: true });
+  const container = openContainer();
+  mountEventLog(container, [{ at: 0, type: 'cast', description: 'CAST Solo' }]);
 
   assert.match(container.innerHTML, /<div class="log-line">/);
   assert.doesNotMatch(container.innerHTML, /data-view=/);

@@ -1,5 +1,5 @@
 import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
-import { boonKey, boonIntervals } from '#gw2/platform/combat/boons.js';
+import { boonKey, boonIntervalsFromWindows, prepareBoonWindows, type BoonWindow } from '#gw2/platform/combat/boons.js';
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { GW2_ACTION_TICK_MS, gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 
@@ -9,30 +9,55 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 
+/** Cache one runtime's append-only executed history; unrelated facts cannot change its prepared self-Vigor windows. */
+export function createVigorWindowReader(events: readonly SimulationEvent[]): () => readonly BoonWindow[] {
+  const kind = boonKey(BOON.VIGOR);
+  const relevant: SimulationEvent[] = [];
+  let cursor = 0;
+  let windows: readonly BoonWindow[] | undefined;
+  return () => {
+    let dirty = false;
+    // Consume execution order, including new facts at the same timestamp as an earlier readiness query.
+    while (cursor < events.length) {
+      const event = events[cursor++];
+
+      if (
+        !event.cancelled &&
+        ((event.type === 'buff' && String(event.kind).toLowerCase() === kind) ||
+          (event.type === 'boon_extension' && (!event.kind || event.kind === kind) && event.excludedKind !== kind))
+      ) {
+        relevant.push(event);
+        dirty = true;
+      }
+    }
+
+    if (!windows || dirty) windows = prepareBoonWindows(relevant, kind, RECIPIENT.SELF, undefined, true);
+
+    return windows;
+  };
+}
+
 /** Shares self-Vigor history for recovery and readiness while professions retain their rate policy. */
 export function* vigorEnduranceIntervals(
   context: {
-    readonly events: readonly SimulationEvent[];
+    readonly vigorWindows: () => readonly BoonWindow[];
     readonly config: Pick<Gw2Config, 'boons'>;
-    readonly resolved?: boolean;
   },
   start: number,
   end: number,
   rateAt: (vigor: boolean, at: number) => number,
   rateBoundaries: readonly number[] = []
 ): Generator<RateInterval> {
+  // Endurance uses executed self-Vigor history; empty windows and permanent Vigor need no history reconstruction.
+  if (end <= start) return;
+
+  const intervals = context.config.boons?.vigor
+    ? [{ start, end, active: true }]
+    : boonIntervalsFromWindows(context.vigorWindows(), start, end);
   // Timed profession bonuses split the same windows used by both recovery and affordability forecasts.
   const boundaries = [...new Set(rateBoundaries.filter((at) => at > start && at < end))].sort((a, b) => a - b);
   let index = 0;
-  for (const interval of boonIntervals(
-    context.events,
-    boonKey(BOON.VIGOR),
-    start,
-    end,
-    Boolean(context.config.boons?.vigor),
-    RECIPIENT.SELF,
-    context.resolved
-  )) {
+  for (const interval of intervals) {
     let from = interval.start;
     while (index < boundaries.length && boundaries[index] < interval.end) {
       const boundary = boundaries[index++];

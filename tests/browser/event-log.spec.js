@@ -84,19 +84,16 @@ test('damage calculation details open with the keyboard', async ({ page }) => {
   await page.evaluate(async () => {
     const { mountEventLog } = await import('/js/ui/results/event-log.ts');
     document.body.innerHTML = '<div id="log"></div>';
-    mountEventLog(
-      document.getElementById('log'),
-      [
-        {
-          at: 0.600001,
-          type: 'damage',
-          description: 'HIT Example',
-          details: ['Simulation time: 0.600001s; phase: Ordinary', 'Power: <1000>']
-        }
-      ],
-      { initiallyOpen: true }
-    );
+    mountEventLog(document.getElementById('log'), [
+      {
+        at: 0.600001,
+        type: 'damage',
+        description: 'HIT Example',
+        details: ['Simulation time: 0.600001s; phase: Ordinary', 'Power: <1000>']
+      }
+    ]);
   });
+  await page.locator('[data-role="event-log-details"] > summary').click();
   const calculation = page.locator('.log-desc');
   await expect(calculation.locator('li').first()).toBeHidden();
   await calculation.locator('summary').focus();
@@ -115,11 +112,11 @@ test('event log preserves reading position and follows the end across updates', 
     window.renderLog = (count) =>
       mountEventLog(
         document.getElementById('log'),
-        Array.from({ length: count }, (_, at) => ({ at, type: 'cast', description: `CAST Skill ${at}` })),
-        { initiallyOpen: true }
+        Array.from({ length: count }, (_, at) => ({ at, type: 'cast', description: `CAST Skill ${at}` }))
       );
     window.renderLog(100);
   });
+  await page.locator('[data-role="event-log-details"] > summary').click();
   const log = page.locator('[data-role="event-log-rows"]');
   await log.evaluate((element) => {
     element.scrollTop = 200;
@@ -160,33 +157,30 @@ test('event log tree collapses groups, traces causes, and reveals rows from the 
     const { mountEventLog } = await import('/js/ui/results/event-log.ts');
     document.body.innerHTML = '<div id="log" class="rotation-event-log"></div>';
     const partOf = { kind: 'recorded', label: 'part of' };
-    mountEventLog(
-      document.getElementById('log'),
-      [
-        { at: 0, type: 'cast', description: 'CAST Strike (500ms)', id: 'c1', ordinal: 1, span: 0.5 },
-        {
-          at: 0.5,
-          type: 'damage',
-          description: 'HIT Strike',
-          id: 'h1',
-          parentId: 'c1',
-          parentLink: partOf,
-          metric: 10
-        },
-        {
-          at: 0.5,
-          type: 'trigger',
-          description: 'BUFF Might',
-          id: 'b1',
-          parentId: 'h1',
-          parentLink: { kind: 'recorded', label: 'triggered by' }
-        },
-        { at: 0.5, type: 'cast_end', description: 'END Strike', parentId: 'c1', layout: 'flat' },
-        { at: 0.9, type: 'damage', description: 'HIT Echo', id: 'h2', parentId: 'c1', parentLink: partOf, metric: 20 }
-      ],
-      { initiallyOpen: true }
-    );
+    mountEventLog(document.getElementById('log'), [
+      { at: 0, type: 'cast', description: 'CAST Strike (500ms)', id: 'c1', ordinal: 1, span: 0.5 },
+      {
+        at: 0.5,
+        type: 'damage',
+        description: 'HIT Strike',
+        id: 'h1',
+        parentId: 'c1',
+        parentLink: partOf,
+        metric: 10
+      },
+      {
+        at: 0.5,
+        type: 'trigger',
+        description: 'BUFF Might',
+        id: 'b1',
+        parentId: 'h1',
+        parentLink: { kind: 'recorded', label: 'triggered by' }
+      },
+      { at: 0.5, type: 'cast_end', description: 'END Strike', parentId: 'c1', layout: 'flat' },
+      { at: 0.9, type: 'damage', description: 'HIT Echo', id: 'h2', parentId: 'c1', parentLink: partOf, metric: 20 }
+    ]);
   });
+  await page.locator('[data-role="event-log-details"] > summary').click();
   const rows = page.locator('[data-role="event-log-rows"] .log-line');
   await expect(rows).toHaveCount(4);
 

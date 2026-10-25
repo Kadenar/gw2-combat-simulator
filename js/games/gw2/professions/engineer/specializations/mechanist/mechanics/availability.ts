@@ -4,13 +4,11 @@ import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/avail
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
-/** Enforces Mechanist's tool-belt replacement and trait-selected commands before casting. */
+/** The selected Mechanist module enforces tool-belt replacement and trait-selected commands before casting. */
 export function mechanistCastAvailability(
   context: MechanicQueriesOf<EngineerRuntime>,
   skill: EngineerSkill
 ): AvailabilityResult {
-  if (context.config.specialization !== 'Mechanist') return { ready: true };
-
   const state = mechanistState.from(context);
 
   if (skill.toolbeltParentId) {

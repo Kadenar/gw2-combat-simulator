@@ -67,7 +67,7 @@ export function createRotationDriver<T extends object>(
             const end = canonicalTime(runtime.time + command.durationMs / 1000);
 
             // Every authored command retains its timeline row, including waits and environment controls.
-            if (runtime.reporting)
+            if (runtime.output !== 'score')
               runtime.steps.push({
                 ri: cursor.index,
                 skill: 'Wait',
@@ -80,7 +80,7 @@ export function createRotationDriver<T extends object>(
           }
 
           if (command.type === 'combat-start') {
-            if (runtime.reporting)
+            if (runtime.output !== 'score')
               runtime.steps.push({
                 ri: cursor.index,
                 skill: 'Combat Start',
@@ -104,7 +104,7 @@ export function createRotationDriver<T extends object>(
           }
 
           if (command.type === 'cooldown-reset') {
-            if (runtime.reporting)
+            if (runtime.output !== 'score')
               runtime.steps.push({
                 ri: cursor.index,
                 skill: 'Cooldown Reset',

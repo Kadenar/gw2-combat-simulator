@@ -8,12 +8,11 @@ interface ProfessionBuildCodecOptions<TBuild extends Gw2CanonicalBuild> extends 
   readonly assumptionControls?: readonly ProfessionAssumptionControl[];
 }
 
-/** Normalizes the assumptions persisted by a profession build definition. */
-export function normalizeProfessionBuildAssumptions(
-  assumptions: ProfessionBuildAssumptions = {},
-  controls: readonly ProfessionAssumptionControl[] = []
+/** Creates declared assumption defaults for new builds; persisted values are normalized by the codec. */
+export function createProfessionAssumptionDefaults(
+  controls: readonly ProfessionAssumptionControl[]
 ): ProfessionBuildAssumptions {
-  return normalizeProfessionAssumptions(assumptions, buildAssumptionControls(controls));
+  return normalizeProfessionAssumptions({}, buildAssumptionControls(controls));
 }
 
 /**

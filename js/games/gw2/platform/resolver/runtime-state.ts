@@ -39,7 +39,8 @@ import { createMechanicCombatServices, type MechanicCombatServices } from '#gw2/
  */
 export function createGw2ResolverRuntimeState({
   engagement = createCombatEngagement().query,
-  reporting = true,
+  output = 'detailed',
+  ownsEffect,
   effectRecorder = null,
   procRecorder = null,
   damageDiagnostics = false,
@@ -56,6 +57,9 @@ export function createGw2ResolverRuntimeState({
   random = createSimulationRandom(config.randomness)
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
   const criticalDamageMode = normalizeCriticalDamageMode(config.criticalDamageMode);
+
+  if (output === 'damage' && !ownsEffect) throw new TypeError('Damage measurements require an effect owner.');
+
   const runtime: Gw2ResolverRuntime = {
     get combat() {
       return combat;
@@ -63,12 +67,12 @@ export function createGw2ResolverRuntimeState({
     // Distribution trials always couple damage to crit outcomes, regardless of the baseline preference.
     criticalDamageMode: config.randomness?.mode === 'stochastic' ? 'rolled' : criticalDamageMode,
     engagement,
-    reporting,
+    output,
     // Damage previews retain resolved packets without constructing chart histories.
     effectRecorder,
     // Timeline proc rows are an optional observer; resolution only announces executed procs.
     procRecorder,
-    damageDiagnostics: reporting && damageDiagnostics,
+    damageDiagnostics: output !== 'score' && damageDiagnostics,
     config,
     traits,
     horizon,
@@ -110,6 +114,11 @@ export function createGw2ResolverRuntimeState({
       return reactions?.dispatch(stage, this, event, details);
     },
 
+    // Detailed reports keep every resolved row, measurements keep only the packets they return, and scores keep none.
+    retainsResolved(event: Gw2ResolverEvent): boolean {
+      return output === 'detailed' || (output === 'damage' && ownsEffect!(event));
+    },
+
     addBreakdown(
       name: string,
       damage: number,
@@ -119,7 +128,7 @@ export function createGw2ResolverRuntimeState({
       critical: Gw2CriticalResult | null = null
     ): void {
       // Damage totals and reaction state are maintained separately from these display rows.
-      if (!reporting) return;
+      if (output !== 'detailed') return;
 
       const sourceSkill = source?.skillName || source?.name || name;
       const parentSkill = source?.parentSkillName || '';
@@ -208,7 +217,7 @@ export interface Gw2ResolverRuntime {
   readonly procRecorder: ProcStepObserver | null;
   readonly criticalDamageMode: Gw2CriticalDamageMode;
   readonly procs: ProcRegistry;
-  readonly reporting: boolean;
+  readonly output: 'detailed' | 'score' | 'damage';
   readonly damageDiagnostics: boolean;
   config: Gw2Config;
   traits: ReadonlySet<string | number>;
@@ -269,6 +278,7 @@ export interface Gw2ResolverRuntime {
     source?: Gw2ResolverEvent | null,
     critical?: Gw2CriticalResult | null
   ): void;
+  retainsResolved(event: Gw2ResolverEvent): boolean;
   markDamageTime(at: number): void;
 }
 
@@ -277,7 +287,9 @@ interface CreateGw2ResolverRuntimeStateOptions {
   readonly effectRecorder?: EffectReportObserver | null;
   readonly procRecorder?: ProcStepObserver | null;
   readonly damageDiagnostics?: boolean;
-  readonly reporting?: boolean;
+  readonly output?: Gw2ResolverRuntime['output'];
+  /** Damage measurements name the resolved packets they return; other outputs ignore ownership. */
+  readonly ownsEffect?: (event: Gw2ResolverEvent) => boolean;
   readonly config: Gw2Config;
   readonly traits?: ReadonlySet<string | number>;
   readonly horizon: number | null;

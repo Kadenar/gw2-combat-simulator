@@ -526,9 +526,9 @@ const TASTE_FOR_BLOOD_SKILLS = new Set<number>([
   ID.ENFEEBLING_BLOOD
 ]);
 
-/** Dagger activations deliver party charges before player, minion, and allied hits spend their individual pools. */
+/** After trait selection is admitted, dagger activations grant party charges for each recipient's hits to spend. */
 function applyOverflowingThirstCast(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  if (!TASTE_FOR_BLOOD_SKILLS.has(Number(cast.skill.id)) || !hasTrait(runtime, TRAIT.OVERFLOWING_THIRST)) return;
+  if (!TASTE_FOR_BLOOD_SKILLS.has(Number(cast.skill.id))) return;
 
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.OVERFLOWING_THIRST);
   const buff = requireEffect(profile, 'buff', 'taste-for-blood');

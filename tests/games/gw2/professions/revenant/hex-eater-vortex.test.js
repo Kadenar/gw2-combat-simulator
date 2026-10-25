@@ -22,14 +22,20 @@ const wait = { type: 'wait', durationMs: 1500 };
 const selfCondition = (expiresAt = 10) => ({ expiresAt });
 
 test('Hex-Eater cleanses its acceptance selection only when the cast commits', () => {
-  // Configured conditions consume capacity first; later arrivals and unselected conditions must survive.
+  // A two-projectile fixture reserves surviving applications; later arrivals and excess conditions must survive.
   for (const cancelled of [false, true]) {
-    const initial = [selfCondition(0.1), ...Array.from({ length: 6 }, () => selfCondition())];
+    const initial = [selfCondition(0.1), ...Array.from({ length: 3 }, () => selfCondition())];
     const arriving = selfCondition();
     const result = runRevenant(
       [{ skillId: ID.HEX_EATER_VORTEX, ...(cancelled ? { interruptMs: 0 } : {}) }, wait],
-      { ...config, selfConditionCount: 2 },
+      config,
       {
+        catalog: (catalog) =>
+          withSkill(catalog, ID.HEX_EATER_VORTEX, {
+            effects: catalog.skillsById
+              .get(ID.HEX_EATER_VORTEX)
+              .effects.map((effect) => ({ ...effect, ticks: effect.ticks.slice(0, 2) }))
+          }),
         initialize(runtime) {
           runtime.profession.core.selfConditions = [...initial];
           runtime.schedule('test.add-condition', 0.2);
@@ -38,7 +44,6 @@ test('Hex-Eater cleanses its acceptance selection only when the cast commits', (
           tasks: {
             ...native.tasks,
             'test.add-condition'(runtime) {
-              assert.equal(runtime.profession.core.selfConditionCount, 2);
               assert.deepEqual(runtime.profession.core.selfConditions, initial);
               runtime.profession.core.selfConditions.push(arriving);
             }
@@ -48,9 +53,8 @@ test('Hex-Eater cleanses its acceptance selection only when the cast commits', (
     );
     assert.deepEqual(result.warnings, []);
     const core = observedRuntime(result).profession.core;
-    assert.equal(core.selfConditionCount, cancelled ? 2 : 0);
     // Equal expiry values must not make later applications interchangeable with the selected objects.
-    const expected = cancelled ? [...initial, arriving] : [...initial.slice(5), arriving];
+    const expected = cancelled ? [...initial, arriving] : [...initial.slice(3), arriving];
     assert.equal(core.selfConditions.length, expected.length);
     expected.forEach((condition, index) => assert.equal(core.selfConditions[index], condition));
     const packets = result.events.filter((event) => event.skillId === ID.HEX_EATER_VORTEX);
@@ -102,7 +106,7 @@ test('Hex-Eater zero-condition salvo and Shared Wisdom are independently gated',
 
       if (resolution) assert.equal(resolution.stacks, 2);
 
-      assert.equal(observedRuntime(result).profession.core.selfConditionCount, 0);
+      assert.deepEqual(observedRuntime(result).profession.core.selfConditions, []);
     }
   }
 });
@@ -110,18 +114,17 @@ test('Hex-Eater zero-condition salvo and Shared Wisdom are independently gated',
 test('Hex-Eater selects surviving strike and condition components independently', () => {
   // Remove components at construction; the surviving sibling still supplies the projectile capacity.
   for (const removed of ['strike', 'condition', 'both']) {
-    const result = runRevenant(
-      ['Hex-Eater Vortex', wait],
-      { ...config, selfConditionCount: 1 },
-      {
-        catalog: (catalog) =>
-          withSkill(catalog, ID.HEX_EATER_VORTEX, {
-            effects: catalog.skillsById
-              .get(ID.HEX_EATER_VORTEX)
-              .effects.filter((effect) => removed !== 'both' && effect.type !== removed)
-          })
-      }
-    );
+    const result = runRevenant(['Hex-Eater Vortex', wait], config, {
+      initialize(runtime) {
+        runtime.profession.core.selfConditions.push(selfCondition());
+      },
+      catalog: (catalog) =>
+        withSkill(catalog, ID.HEX_EATER_VORTEX, {
+          effects: catalog.skillsById
+            .get(ID.HEX_EATER_VORTEX)
+            .effects.filter((effect) => removed !== 'both' && effect.type !== removed)
+        })
+    });
     assert.deepEqual(result.warnings, []);
     assert.equal(
       result.events.some((event) => event.type === 'damage'),
@@ -131,6 +134,6 @@ test('Hex-Eater selects surviving strike and condition components independently'
       result.events.some((event) => event.type === 'condition'),
       removed === 'strike'
     );
-    assert.equal(observedRuntime(result).profession.core.selfConditionCount, removed === 'both' ? 1 : 0);
+    assert.equal(observedRuntime(result).profession.core.selfConditions.length, removed === 'both' ? 1 : 0);
   }
 });

@@ -1,6 +1,5 @@
 import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -149,10 +148,10 @@ const rallyTheValiant = defineTrait({
       run(runtime, cast) {
         if (cast.cancelled) return;
 
+        // Trait dispatch admits selection; a non-chant burst rewards motivation only while a refrain is active.
         if (
           cast.skill.burst &&
           !cast.skill.categories?.includes('Chant') &&
-          hasTrait(runtime, TRAIT.RALLY_THE_VALIANT) &&
           paragonState.from(runtime).activeRefrainId != null
         )
           runtime.resourceController.grant(

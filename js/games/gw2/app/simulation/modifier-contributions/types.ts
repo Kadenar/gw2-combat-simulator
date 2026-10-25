@@ -9,19 +9,18 @@ export interface ProfessionModifierComparison {
   readonly config: Gw2Config;
 }
 
-export interface ModifierContributionRequest extends GameContentAddress {
+/** Workers receive only the omission inputs; the caller owns the already computed baseline. */
+export interface ModifierContributionBatchRequest extends GameContentAddress {
   readonly rotation: readonly RotationCommand[];
-  readonly baseConfig: Gw2Config;
   readonly comparisons: readonly ProfessionModifierComparison[];
 }
 
-/** Only one batch receives the deterministic baseline configuration; other workers simulate omissions only. */
-export interface ModifierContributionBatchRequest extends Omit<ModifierContributionRequest, 'baseConfig'> {
-  readonly baseConfig: Gw2Config | null;
+/** An explicit deterministic baseline keeps interactive and standalone comparisons on the same contract. */
+export interface ModifierContributionRequest extends ModifierContributionBatchRequest {
+  readonly baselineDps: number;
 }
 
 export interface ModifierContributionBatchResult {
-  readonly baselineDps: number | null;
   readonly scores: readonly { readonly id: string; readonly name: string; readonly dps: number }[];
 }
 

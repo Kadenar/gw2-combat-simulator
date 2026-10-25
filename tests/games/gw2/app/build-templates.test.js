@@ -1,3 +1,4 @@
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -244,16 +245,17 @@ test('template loading resolves duplicate Mesmer skill names before the first si
       patch: mesmerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-  const result = mesmerAppAdapter.simulateBuild(
-    app.build.rotation,
-    mesmerAppAdapter
+  const result = simulateGw2({
+    profession: mesmerAppAdapter.profession,
+    rotation: app.build.rotation,
+    config: mesmerAppAdapter
       .createBuildContext({
         build: app.build,
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
         patch: mesmerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig()
-  );
+  });
 
   assert.equal(app.build.rotation[1].skillId, MESMER_ID.LINGERING_THOUGHTS);
   assert.deepEqual(result.warnings, []);
@@ -307,16 +309,17 @@ test('Engineer rotation-only template loading resolves morph slots before simula
       patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-  const result = adapter.simulateBuild(
-    app.build.rotation,
-    adapter
+  const result = simulateGw2({
+    profession: adapter.profession,
+    rotation: app.build.rotation,
+    config: adapter
       .createBuildContext({
         build: app.build,
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
         patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .simulationConfig()
-  );
+  });
   assert.deepEqual(result.warnings, []);
   assert.ok(result.totalDamage > 0);
   undoTemplateLoad(app);

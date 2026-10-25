@@ -3,7 +3,7 @@ import type { createFastOptimizer } from '#gw2/app/optimizer/gear/fast-search.js
 import type { GearOptimizerRequest, OptimizerCandidate } from '#gw2/app/optimizer/gear/search.js';
 
 type GearOptimizerWorkerRequest = { readonly requestId: number } & (
-  | { readonly kind: 'init'; readonly request: GearOptimizerRequest }
+  | { readonly kind: 'init'; readonly request: GearOptimizerRequest; readonly bootstrap: boolean }
   | { readonly kind: 'chunk'; readonly chunkId: number; readonly start: string; readonly end: string }
   | { readonly kind: 'verify'; readonly candidates: readonly OptimizerCandidate[] }
   | { readonly kind: 'refine'; readonly candidates: readonly OptimizerCandidate[] }
@@ -37,12 +37,15 @@ self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWork
         data.request.search === 'fast'
           ? createFastOptimizer(data.request, adapter)
           : createGroupedOptimizer(data.request, adapter);
-      const baseline = optimizerScore(job.evaluator.evaluate(optimizerEquipment(data.request.build)));
+      // Every worker owns its evaluator; only bootstrap pays for the shared detailed baseline and validates its score.
+      const baseline = data.bootstrap
+        ? optimizerScore(job.evaluator.evaluate(optimizerEquipment(data.request.build)))
+        : undefined;
       post({
         kind: 'ready',
         count: job.space.count.toString(),
         rawCount: job.space.ordinary.rawCount.toString(),
-        baseline
+        ...(baseline ? { baseline } : {})
       });
       return;
     }

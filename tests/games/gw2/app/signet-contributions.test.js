@@ -1,3 +1,4 @@
+import { modifierComparisonRequest, modifierContributionRequest } from '#tests/helpers/modifier-contributions.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -84,7 +85,7 @@ test('skill comparisons omit every removed cast and preserve all other rotation 
   calculateContributionComparisons(
     {
       rotation,
-      baseConfig: {},
+      baselineDps: 0,
       comparisons: [
         { modifier: { id: 'Skill:1', type: 'Skill', skillId: 1, name: 'Signet', label: 'Signet' }, config: {} },
         { modifier: { id: 'Trait:Example', type: 'Trait', name: 'Example', label: 'Example' }, config: {} }
@@ -95,12 +96,12 @@ test('skill comparisons omit every removed cast and preserve all other rotation 
       return { dps: 0 };
     }
   );
-  assert.deepEqual(runs[0], saved);
-  assert.deepEqual(runs[1], [
+  assert.equal(runs.length, 2);
+  assert.deepEqual(runs[0], [
     { type: 'cast', skillId: 2 },
     { type: 'wait', durationMs: 1000 }
   ]);
-  assert.deepEqual(runs[2], saved);
+  assert.deepEqual(runs[1], saved);
   assert.deepEqual(rotation, saved);
 });
 
@@ -108,10 +109,11 @@ for (const [name, entries] of Object.entries(signets)) {
   test(`${name}: equipped attribute signets receive independent removal comparisons`, async () => {
     const app = await signetApp(name);
     const saved = structuredClone(app.build);
-    const request = structuredClone(app.adapter.modifierContributionRequest(app));
+    const request = structuredClone(modifierComparisonRequest(app, app.adapter));
     const comparisons = request.comparisons.filter(({ modifier }) => modifier.type === 'Skill');
     assert.equal(comparisons.length, entries.length);
-    const baseline = stats(app.adapter.profession, request.baseConfig);
+    const { baseConfig } = app.adapter.baselineSimulationRequest(app);
+    const baseline = stats(app.adapter.profession, baseConfig);
     for (const [label, attribute] of entries) {
       const skill = app.activeCatalog.skillsByName.get(label);
       const comparison = comparisons.find(({ modifier }) => modifier.skillId === skill.id);
@@ -119,8 +121,8 @@ for (const [name, entries] of Object.entries(signets)) {
       assert.equal(comparison.modifier.label, label);
       assert.equal(resultSkillIcon(app, { id: comparison.modifier.id, name: comparison.modifier.label }), skill.icon);
       assert.deepEqual(comparison.config, {
-        ...request.baseConfig,
-        selectedSkillIds: request.baseConfig.selectedSkillIds.filter((id) => id !== skill.id)
+        ...baseConfig,
+        selectedSkillIds: baseConfig.selectedSkillIds.filter((id) => id !== skill.id)
       });
       const removed = stats(app.adapter.profession, comparison.config);
       assert.equal(baseline[attribute] - removed[attribute], 180, label);
@@ -139,7 +141,7 @@ for (const [name, entries] of Object.entries(signets)) {
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     assert.equal(
-      app.adapter.modifierContributionRequest(app).comparisons.some(({ modifier }) => modifier.type === 'Skill'),
+      modifierComparisonRequest(app, app.adapter).comparisons.some(({ modifier }) => modifier.type === 'Skill'),
       false
     );
   });
@@ -197,23 +199,21 @@ for (const [name, label, traitName, buff, attribute, activeBonus] of [
         patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-    const request = app.adapter.modifierContributionRequest(app);
-    const comparison = request.comparisons.find(({ modifier }) => modifier.skillId === skillId);
     const outputs = [];
-    const contributions = calculateContributionComparisons(
-      { ...request, comparisons: [comparison] },
-      (rotation, config) => {
-        const result = observeGw2Runtime({
-          profession: family.runtimeFor(config),
-          config,
-          rotation
-        });
-        assert.deepEqual(result.warnings, []);
-        const runtime = observedRuntime(result);
-        outputs.push({ result, attributes: runtime.query.statsAt(runtime.time, null, runtime) });
-        return result;
-      }
-    );
+    // Observe the baseline explicitly; contribution execution now owns only omission runs.
+    const simulate = (rotation, config) => {
+      const result = observeGw2Runtime({ profession: family.runtimeFor(config), config, rotation });
+      assert.deepEqual(result.warnings, []);
+      const runtime = observedRuntime(result);
+      outputs.push({ result, attributes: runtime.query.statsAt(runtime.time, null, runtime) });
+      return result;
+    };
+
+    const baselineInput = app.adapter.baselineSimulationRequest(app);
+    const baseline = simulate(baselineInput.rotation, baselineInput.baseConfig);
+    const request = app.adapter.modifierContributionRequest(app, baseline.dps);
+    const comparison = request.comparisons.find(({ modifier }) => modifier.skillId === skillId);
+    const contributions = calculateContributionComparisons({ ...request, comparisons: [comparison] }, simulate);
     assert.equal(contributions.length, 1);
     assert.ok(contributions[0].dpsIncrease > 0);
     assert.equal(outputs[0].attributes[attribute] - outputs[1].attributes[attribute], activeBonus);
@@ -254,9 +254,9 @@ test('Signet of the Wild contribution includes player and pet passive removal', 
       patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-  const request = app.adapter.modifierContributionRequest(app);
+  const request = modifierContributionRequest(app, app.adapter);
   const comparison = request.comparisons.find(({ modifier }) => modifier.skillId === skillId);
-  const snapshots = [request.baseConfig, comparison.config].map((config) => {
+  const snapshots = [app.adapter.baselineSimulationRequest(app).baseConfig, comparison.config].map((config) => {
     let snapshot;
     observeGw2Runtime({
       profession: app.adapter.profession.runtimeFor(config),

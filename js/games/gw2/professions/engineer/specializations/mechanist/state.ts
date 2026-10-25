@@ -11,8 +11,6 @@ import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 
 interface EngineerMechState {
-  enabled: boolean;
-  active: boolean;
   commandSkillIds: SkillId[];
   /** Owns the autonomous loop independently of commands. */
   attackLoopStarted: boolean;
@@ -25,11 +23,9 @@ export interface MechanistState {
   mech: EngineerMechState;
 }
 
-// Mechanist owns its public mech projection and the disabled inactive representation.
+// Only the Mechanist module publishes mech state; its presence needs no separate mutable flag.
 export const MECHANIST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   mech: {
-    enabled: false,
-    active: false,
     commandSkillIds: [],
     attackLoopStarted: false,
     busyUntil: 0
@@ -47,8 +43,6 @@ export function createMechanistState(config: EngineerConfig = {}): MechanistStat
   return {
     barrierEngine: createPeriodicTaskState(),
     mech: {
-      enabled: true,
-      active: true,
       commandSkillIds: selectedMechCommands(traits),
       attackLoopStarted: false,
       busyUntil: 0

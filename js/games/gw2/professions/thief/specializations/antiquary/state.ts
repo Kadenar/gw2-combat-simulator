@@ -22,7 +22,6 @@ export interface ThiefArtifactSlot {
 
 export interface AntiquaryState {
   bonusStealthAttack: ChargeGrant;
-  initiativePipRows: number;
   artifactSlots: ThiefArtifactSlot[];
   artifactUsesRemaining: number;
   scoundrelsLuck: number;
@@ -42,7 +41,6 @@ export interface AntiquaryState {
 
 export function createAntiquaryState(): AntiquaryState {
   return {
-    initiativePipRows: 3,
     artifactSlots: [],
     artifactUsesRemaining: 0,
     scoundrelsLuck: 0,
@@ -64,8 +62,6 @@ export function createAntiquaryState(): AntiquaryState {
 
 // Publish Antiquary's visible resources and windows; artifact outcomes and sequence counters remain runtime-only.
 export const ANTIQUARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  // Inactive builds retain their two-row UI fallback; live Antiquary state supplies three rows.
-  initiativePipRows: undefined,
   artifactSlots: [],
   artifactUsesRemaining: 0,
   initiativeSpentSincePilfer: 0,

@@ -184,7 +184,6 @@ export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerRe
     event.type === 'buff' &&
     isStandardBoon(event.kind) &&
     event.resolvedAudience?.includesSelf &&
-    mechanistState.from(context).mech.active &&
     shiftSignetPassive(context, event.at)
   ) {
     buildEngineerPackets('buff', {
@@ -209,7 +208,7 @@ export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerRe
 
 /** Capture the concrete mech owner before queued packets can outlive their originating activation. */
 function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
-  // These grants explicitly exempt the active mech from the allied target cap.
+  // Mechanist always owns a present mech, and these grants exempt it from the allied target cap.
   if (
     event.type === 'buff' &&
     event.audience?.recipients === RECIPIENT.PARTY &&
@@ -218,14 +217,13 @@ function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEve
       event.sourceId === TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS)
   ) {
     const party = gw2AlliedEffectRecipients(context.config, { ...event.audience, eligibleCompanionIds: [] });
-    const active = mechanistState.from(context).mech.active;
     event = {
       ...event,
       resolvedAudience: {
         ...party,
-        includesSummons: active,
-        companionIds: active ? ['engineer.mech'] : [],
-        recipientCount: party.recipientCount + Number(active)
+        includesSummons: true,
+        companionIds: ['engineer.mech'],
+        recipientCount: party.recipientCount + 1
       }
     };
   }
@@ -292,14 +290,12 @@ export const mechanistCastCompleted = defineTriggerPoint<MechanistCastCompletion
   TRAIT.MECH_FIGHTER
 ]);
 
-/** Applies post-cast mech lane recovery, then completes the cast for Mechanist traits. */
+/** The Mechanist lifecycle reserves post-cast mech recovery before notifying its trait listeners. */
 function completeEngineerMechCast(context: EngineerRuntime, skill: EngineerSkill): void {
-  if (context.config.specialization !== 'Mechanist') return;
-
   const state = mechanistState.from(context);
   const at = context.time;
 
-  if (state.mech.active && isEngineerMechCommand(skill) && (skill.castTimeMs || 0) > 0) {
+  if (isEngineerMechCommand(skill) && (skill.castTimeMs || 0) > 0) {
     // The command cast already reserves its measured animation on the mech lane;
     // only its recovery extends the pause before the basic attack chain resumes.
     // Instant support commands neither occupy this lane nor reset the melee chain.
@@ -310,12 +306,11 @@ function completeEngineerMechCast(context: EngineerRuntime, skill: EngineerSkill
   context.fireTrigger(mechanistCastCompleted, { skill, at });
 }
 
-/** Starts the autonomous mech attack loop when the specialization begins with an active mech. */
+/** Starts one autonomous attack loop when the Mechanist's combat boundary admits summon actions. */
 function initializeEngineerMech(context: EngineerRuntime): void {
   const state = mechanistState.from(context);
 
-  if (!autonomousActionsAllowed(context) || !state.mech.enabled || !state.mech.active || state.mech.attackLoopStarted)
-    return;
+  if (!autonomousActionsAllowed(context) || state.mech.attackLoopStarted) return;
 
   state.mech.attackLoopStarted = true;
   const firstAttackAt = Math.max(context.time + MECHANIST_ATTACK_TIMING.initialDelay, state.mech.busyUntil);
@@ -355,8 +350,6 @@ function stepMechAttack(
 /** Reserves the mech lane and emits Overclock Signet's timed Jade Buster Cannon burst. */
 function activateOverclockSignet(context: EngineerRuntime, skill: EngineerSkill): void {
   const state = mechanistState.from(context);
-
-  if (!state.mech.active) return;
 
   const at = context.time;
   const rate = mechAttackRate(context, at);
@@ -407,15 +400,12 @@ export const engineerMechLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerS
     return mechImpactEffects(cast.skill.id, effects, engineerMechHasQuickness(runtime, cast.start));
   },
   prepareEvent(runtime, event) {
-    return prepareEngineerMechEvent(
-      runtime,
-      prepareGw2BuffCompanionCandidates(event, mechanistState.from(runtime).mech.active ? ['engineer.mech'] : [])
-    );
+    return prepareEngineerMechEvent(runtime, prepareGw2BuffCompanionCandidates(event, ['engineer.mech']));
   },
   onCastStart(runtime, cast) {
     const mech = mechanistState.from(runtime).mech;
 
-    if (mech.active && isEngineerMechCommand(cast.skill) && cast.fullEnd > cast.start)
+    if (isEngineerMechCommand(cast.skill) && cast.fullEnd > cast.start)
       mech.busyUntil = Math.max(mech.busyUntil, cast.effectiveEnd + MECHANIST_ATTACK_TIMING.commandRecovery);
   },
   sideEffectHandlers: {
@@ -436,20 +426,14 @@ export const engineerMechLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerS
       const impact = data as MechImpactPayload;
 
       // A command that took the lane after windup began cancels this pending basic attack.
-      if (
-        !autonomousActionsAllowed(runtime) ||
-        !mech.enabled ||
-        !mech.active ||
-        mech.busyUntil > impact.previousCommandEnd
-      )
-        return;
+      if (!autonomousActionsAllowed(runtime) || mech.busyUntil > impact.previousCommandEnd) return;
 
       emitMechAttack(runtime, impact.skillId, runtime.time);
     },
     'engineer.mech-attack'(runtime, data) {
       const mech = mechanistState.from(runtime).mech;
 
-      if (!autonomousActionsAllowed(runtime) || !mech.enabled || !mech.active) return;
+      if (!autonomousActionsAllowed(runtime)) return;
 
       const phase = data as MechAttackPayload;
 

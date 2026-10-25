@@ -44,18 +44,16 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 interface MirageActionControllerOptions {
   readonly state: MesmerRuntime;
-  readonly config: MesmerRuntime['config'];
   readonly ambushAttacks: Readonly<Record<string, MesmerAmbushAttack>>;
   readonly cloneAttacks: Readonly<Record<string, MesmerCloneAttack>>;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
 }
 
 /**
- * Owns Mirage cloak, ambush, and shatter reactions.
+ * Owns cloak, ambush, and shatter reactions for the registered Mirage module.
  */
 export function createMirageActionController({
   state,
-  config,
   ambushAttacks,
   cloneAttacks,
   activePrimaryWeapon
@@ -96,15 +94,9 @@ export function createMirageActionController({
     });
   };
 
-  // Refresh the exact ambush deadline without shortening an existing window or snapping it to a buff tick.
-  const grantAmbushWindow = (
-    at: number,
-    source: string,
-    duration = balanceNumberFromContext(state, PROFILE.mechanics, 'durationPerTier'),
-    delivery: EffectDelivery = {}
-  ) => {
-    if (config.specialization !== 'Mirage') return;
-
+  // The selected balance profile sets every ambush window; refresh it without shortening a surviving deadline.
+  const grantAmbushWindow = (at: number, source: string, delivery: EffectDelivery = {}) => {
+    const duration = balanceNumberFromContext(state, PROFILE.mechanics, 'durationPerTier');
     at = canonicalTime(at);
     mirageState.from(state).ambushUntil = Math.max(mirageState.from(state).ambushUntil, canonicalTime(at + duration));
     mirageState.from(state).ambushSource = source;
@@ -132,10 +124,8 @@ export function createMirageActionController({
     { duration = balanceNumberFromContext(state, PROFILE.mechanics, 'duration') }: MesmerMirageCloakOptions = {},
     delivery: EffectDelivery = {}
   ) => {
-    if (config.specialization !== 'Mirage') return;
-
     at = canonicalTime(at);
-    grantAmbushWindow(at, source, undefined, delivery);
+    grantAmbushWindow(at, source, delivery);
     {
       const packet = buildMesmerPacket({
         type: 'buff',

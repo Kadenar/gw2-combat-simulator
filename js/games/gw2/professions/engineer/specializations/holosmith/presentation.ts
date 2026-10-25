@@ -11,7 +11,6 @@ import type {
 } from '#gw2/platform/profession-presentation/types.js';
 import {
   engineerToolbeltSkillIds,
-  engineerUiSpecialization,
   engineerUiState,
   hasActiveTrait,
   uniqueSkillIds
@@ -44,18 +43,11 @@ const HOLOSMITH_PACKET_EVENTS = new Set<string>([
   'engineer.refraction-cutter-extra-blades'
 ]);
 
-/** Hides internal packets with `null`, renders heat snapshots, and defers unrelated events with `undefined`. */
+/** The selected Holosmith UI hides internal packets, renders heat snapshots, and defers unrelated events. */
 function holosmithEventLogRow(
-  context: EngineerUiContext,
+  _context: EngineerUiContext,
   event: EngineerResolverEvent
 ): ProfessionEventLogDescriptor | null | undefined {
-  const buildSpecializations = Array.isArray(context.build?.specializations) ? context.build.specializations : [];
-  const isHolosmith =
-    engineerUiSpecialization(context) === 'Holosmith' ||
-    buildSpecializations.some((specialization) => String(specialization.name || specialization) === 'Holosmith');
-
-  if (!isHolosmith) return undefined;
-
   if (HOLOSMITH_PACKET_EVENTS.has(event.type)) return null;
 
   if (event.type !== 'engineer.heat') return undefined;

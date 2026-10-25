@@ -1,3 +1,5 @@
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { modifierContributionRequest } from '#tests/helpers/modifier-contributions.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -81,19 +83,24 @@ test('slaying selections survive build loading and potion removal comparisons re
       patch: mesmerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-  const request = mesmerAppAdapter.modifierContributionRequest(app);
+  const request = modifierContributionRequest(app, mesmerAppAdapter);
   const comparison = request.comparisons.find(({ modifier }) => modifier.id === 'Utility:Potion of Slaying');
-  assert.equal(request.baseConfig.utility, build.utility);
+  const { baseConfig } = mesmerAppAdapter.baselineSimulationRequest(app);
+  assert.equal(baseConfig.utility, build.utility);
   assert.equal(comparison.config.utility, '');
   assert.deepEqual(
     comparison.config.attributeInputs.weaponSets.map((seed) => seed.commonTotals),
-    request.baseConfig.attributeInputs.weaponSets.map((seed) => seed.commonTotals)
+    baseConfig.attributeInputs.weaponSets.map((seed) => seed.commonTotals)
   );
   const contribution = mesmerAppAdapter
     .calculateModifierContributions(request)
     .find(({ id }) => id === 'Utility:Potion of Slaying');
   // The displayed contribution compares sums of floored packets, so it need not be exactly 10%.
-  const without = mesmerAppAdapter.simulateBuild(request.rotation, comparison.config);
+  const without = simulateGw2({
+    profession: mesmerAppAdapter.profession,
+    rotation: request.rotation,
+    config: comparison.config
+  });
   assertFlooredDamageMultiplier(
     without.strikeDamage * (1 + contribution.pctIncrease / 100),
     without.strikeDamage,

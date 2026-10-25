@@ -12,8 +12,7 @@ import type { ProfessionTooltips, SimulationTooltip } from '#gw2/app/shared/simu
 
 /** Composes application state, adapters, and runtime callbacks from domain-owned contracts. */
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
-import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
-import type { Gw2SimulationOptions } from '#gw2/platform/simulation/options.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import type { CanonicalCatalog, CatalogLookup, SkillId, Skill, CatalogEntity } from '#gw2/platform/skills/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
@@ -132,23 +131,10 @@ export interface ProfessionRuntimeOptions {
   readonly createBuildContext: BuildContextFactory;
 }
 
-/** Callers select only the observations and output needed for their analysis. */
-export type ProfessionSimulationOptions = Pick<Gw2SimulationOptions, 'observationPolicy' | 'collectChartData'>;
-
 export interface ProfessionRuntimeApi {
-  simulateBuild(
-    rotation: readonly RotationCommand[],
-    config: Gw2Config,
-    options: ProfessionSimulationOptions & { output: 'score' }
-  ): Gw2SimulationScore;
-  simulateBuild(
-    rotation: readonly RotationCommand[],
-    config: Gw2Config,
-    options?: ProfessionSimulationOptions & { output?: 'detailed' }
-  ): Gw2SimulationResult;
   eliteSpecialization(build: Gw2CanonicalBuild): string;
   readonly createBuildContext: BuildContextFactory;
-  modifierContributionRequest(app: ProfessionAppState): ModifierContributionRequest;
+  modifierContributionRequest(app: ProfessionAppState, baselineDps: number): ModifierContributionRequest;
   calculateModifierContributions(request: ModifierContributionRequest): ModifierContribution[];
   randomDistributionRequest(app: ProfessionAppState): RandomDistributionJobRequest | null;
   relicComparisonRequest(app: ProfessionAppState, comparisonRelic?: string): RelicComparisonRequest | null;

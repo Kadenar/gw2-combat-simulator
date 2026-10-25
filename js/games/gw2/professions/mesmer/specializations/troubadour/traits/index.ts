@@ -475,11 +475,9 @@ function triggerRaconteur(context: MesmerRuntime, skill: MesmerSkill, at: number
   });
 }
 
-/** Resolves Syncopate from accepted Troubadour control events. */
+/** Resolve Syncopate's control reward after its trait listener admits selection. */
 function observeSyncopateEvent(context: MesmerRuntime, event: SimulationEvent): void {
   if (event.type !== 'control') return;
-
-  if (!hasTrait(context, TRAIT.SYNCOPATE)) return;
 
   const syncopateProfile = requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE);
   const damage = requireEffect(syncopateProfile, 'strike', 'Immediate wave');

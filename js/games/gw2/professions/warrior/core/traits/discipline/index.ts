@@ -191,10 +191,10 @@ export const warriorsSprint = defineTrait({
  * outgoing-healing stacks are support-only and intentionally not modeled.
  */
 function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
+  // The trait listener admits selection; only strike eligibility, target health, and proc availability remain.
   if (
     event.actorType !== ACTOR.PLAYER ||
     !((event.coefficient || 0) > 0) ||
-    !hasTrait(runtime, TRAIT.HEIGHTENED_FOCUS) ||
     !runtime.combat.targetHealthBelow(balanceNumberFromContext(runtime, TRAIT.HEIGHTENED_FOCUS, 'threshold')) ||
     !runtime.procs.claim(TRAIT.HEIGHTENED_FOCUS)
   )

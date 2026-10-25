@@ -269,9 +269,7 @@ test('profiled condition procs preserve fractional totals and source attribution
       }),
       effects: captureEffectEmissions({ submit: (event) => events.push(event) }).effects
     };
-    context.effects.emit(
-      elementalistProfiledConditionRequest(context, 3, 'fixture', 'Fire', 'Fixture Proc', 123, 'Fixture Skill')
-    );
+    context.effects.emit(elementalistProfiledConditionRequest(context, 3, 'fixture', 'Fire', 'Fixture Proc', 123));
     assert.deepEqual(
       events.map((event) => event.stacks),
       [stacks]
@@ -285,8 +283,7 @@ test('profiled condition procs preserve fractional totals and source attribution
     );
     assert.ok(
       applications.every(
-        (event) =>
-          event.at === 3 && event.duration === 7 && event.sourceId === 123 && event.triggeredBy === 'Fixture Skill'
+        (event) => event.at === 3 && event.duration === 7 && event.sourceId === 123 && event.source === 'Fixture Proc'
       )
     );
     assert.equal(

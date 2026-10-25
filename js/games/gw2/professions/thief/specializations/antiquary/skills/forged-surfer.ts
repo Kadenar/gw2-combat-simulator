@@ -27,7 +27,7 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
   const name = occurrence === 0 ? 'Forged Surfer Dash' : 'Forged Surfer Dash — Bomb';
 
   if (strike)
-    buildThiefStrikes(null, {
+    buildThiefStrikes({
       at: runtime.time,
       sourceId: skillId,
       skillId,

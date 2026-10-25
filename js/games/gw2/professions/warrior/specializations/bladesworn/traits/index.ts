@@ -5,6 +5,7 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
@@ -32,10 +33,7 @@ import {
 import { dragonSlashRelease } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import { gunsaberEntered } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import {
-  resolveSharpAsTheWindSkillId,
-  runtimeBuffActive
-} from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
+import { resolveSharpAsTheWindSkillId } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -212,7 +210,8 @@ const gunsAndGlory = defineTrait({
           to: 'Ferocity',
           amount: balanceNumberFromContext(context.balanceContext, TRAIT.GUNS_AND_GLORY, 'attributeBonus'),
           feedsConversions: 'none',
-          enabled: runtimeBuffActive(context, 'guns-and-glory')
+          // Dropping the timeline counts only live self applications, never an ally's or companion's copy.
+          enabled: activeBuffStacks({ ...context, timeline: undefined }, 'guns-and-glory', 1) > 0
         }
       ]
     };

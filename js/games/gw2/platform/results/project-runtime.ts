@@ -12,7 +12,6 @@ import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 
 /** Project settled combat and planning facts without dispatching work or advancing time. */
@@ -23,20 +22,19 @@ export function projectRuntimeResult<T extends object>(
   {
     output,
     executed,
-    ownsEffect,
     damageCompletionTime
   }: {
     output: 'detailed' | 'score' | 'damage';
     executed: Gw2ResolverEvent[];
-    ownsEffect?: (event: SimulationEventBase) => boolean;
     damageCompletionTime?: () => number;
   }
 ): DamageRuntimeResult | Gw2SimulationResult | Gw2SimulationScore {
   if (runtime.rotationEndTime == null) throw new Error('Results require settled command execution.');
 
-  if (ownsEffect) {
+  // Resolution retained only the measurement's owned packets.
+  if (output === 'damage') {
     return {
-      events: projectResolvedEvents(runtime.resolved.filter(ownsEffect), runtime.deathTime ?? runtime.horizon!),
+      events: projectResolvedEvents(runtime.resolved, runtime.deathTime ?? runtime.horizon!),
       castSeconds: runtime.steps.length ? (runtime.steps[0].end - runtime.steps[0].start) / 1000 : 0,
       // Pending damage stays incomplete until its actual canonical deadline.
       complete: damageCompletionTime!() <= runtime.time

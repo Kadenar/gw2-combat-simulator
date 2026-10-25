@@ -22,9 +22,8 @@ export function activeInstrumentCount(context: Gw2ModifierContext): number {
   return activeTroubadourInstrumentsAt(instrumentEvents(context), context.time, context.event).size;
 }
 
+/** Troubadour's registered damage modifiers query the Lute's live window and commitment order. */
 export function hasLute(context: Gw2ModifierContext): boolean {
-  if (!instrumentChecksEnabled(context)) return false;
-
   return activeTroubadourInstrumentsAt(instrumentEvents(context), context.time, context.event).has('Lute');
 }
 

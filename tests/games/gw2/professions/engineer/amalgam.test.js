@@ -1,3 +1,4 @@
+import { modifierComparisonRequest } from '#tests/helpers/modifier-contributions.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
@@ -649,18 +650,13 @@ test('Amalgam food comparisons use the recalculated Evolve attribute pool', () =
       patch: engineerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-  const request = engineerAppAdapter.modifierContributionRequest(app);
+  const request = modifierComparisonRequest(app, engineerAppAdapter);
   const comparison = request.comparisons.find(({ modifier }) => modifier.id === `Food:${canonical.food}`);
+  const baseline = attributeSourcePool(engineerAppAdapter.baselineSimulationRequest(app).baseConfig, 'common');
+  const removed = attributeSourcePool(comparison.config, 'common');
 
-  assert.equal(
-    attributeSourcePool(request.baseConfig, 'common').Power - attributeSourcePool(comparison.config, 'common').Power,
-    100
-  );
-  assert.equal(
-    attributeSourcePool(request.baseConfig, 'common').Precision -
-      attributeSourcePool(comparison.config, 'common').Precision,
-    70
-  );
+  assert.equal(baseline.Power - removed.Power, 100);
+  assert.equal(baseline.Precision - removed.Precision, 70);
 });
 
 test('Thorns retaliation requires the damaging-field assumption', () => {

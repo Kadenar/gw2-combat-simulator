@@ -414,9 +414,7 @@ export const necromancerHarbingerTraits = [
 
 /** Entry and completed Dark Barrage independently deliver the surviving trait boons. */
 function applyDeathlyHaste(runtime: NecromancerRuntime, skill: Skill): void {
-  // Entry and finisher share profile expansion while preserving party ownership and the invoking skill.
-  if (!hasTrait(runtime, TRAIT.DEATHLY_HASTE)) return;
-
+  // Selection-gated entry and finisher listeners share party rewards attributed to the invoking skill.
   emitTraitProfile(runtime, TRAIT.DEATHLY_HASTE, TRAIT.DEATHLY_HASTE, undefined, {
     skillId: skill.id,
     skillName: skill.name,

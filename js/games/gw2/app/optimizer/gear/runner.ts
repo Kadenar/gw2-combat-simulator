@@ -236,12 +236,14 @@ export class GearOptimizerRunner {
         }
 
         if (!bootstrapped) {
+          if (!message.baseline) throw new Error('Optimizer bootstrap did not provide a validated baseline.');
+
           bootstrapped = true;
           this.state.rawCount = BigInt(message.rawCount!);
-          this.state.baseline = message.baseline!;
+          this.state.baseline = message.baseline;
           this.state.status = 'running';
           poolSize = Number(this.state.count < BigInt(workerCount) ? this.state.count : BigInt(workerCount));
-          for (let index = 1; index < poolSize; index++) spawn();
+          for (let index = 1; index < poolSize; index++) spawn(false);
         } else if (BigInt(message.rawCount!) !== this.state.rawCount) {
           throw new Error('Optimizer workers disagree on the search space.');
         }
@@ -319,8 +321,9 @@ export class GearOptimizerRunner {
       this.publish();
     };
 
-    const spawn = (): void => {
-      this.batch.spawn(this.createWorker, requestId, { kind: 'init', requestId, request }, receive);
+    // The first worker validates the equipped baseline before the remaining workers initialize their own search jobs.
+    const spawn = (bootstrap: boolean): void => {
+      this.batch.spawn(this.createWorker, requestId, { kind: 'init', requestId, request, bootstrap }, receive);
     };
 
     if (this.app.buildRevision !== request.revision) {
@@ -328,7 +331,7 @@ export class GearOptimizerRunner {
       return;
     }
 
-    spawn();
+    spawn(true);
     this.publish(true);
   }
 }

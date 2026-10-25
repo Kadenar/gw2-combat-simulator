@@ -1,3 +1,4 @@
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import {
   createOptimizerSpace,
   createOptimizerEvaluator,
@@ -23,7 +24,12 @@ export function runOrdinaryOptimizer(request, adapter) {
         key: JSON.stringify(equipment),
         equipment,
         score: optimizerScore(
-          adapter.simulateBuild(request.build.rotation, config, { observationPolicy: request.observationPolicy })
+          simulateGw2({
+            profession: adapter.profession,
+            rotation: request.build.rotation,
+            config,
+            observationPolicy: request.observationPolicy
+          })
         ),
         represented: '1'
       },

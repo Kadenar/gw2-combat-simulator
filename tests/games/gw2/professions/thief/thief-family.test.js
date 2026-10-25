@@ -20,19 +20,16 @@ import { runThief } from '#tests/helpers/thief-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-test('Antiquary projects its own charge fields and preserves the inactive initiative layout fallback', () => {
+test('Antiquary projects its own charge fields and inactive grants', () => {
   // The slice must expose its charges without relying on Deadeye's contribution to the family metadata.
   const { keys, defaults } = ANTIQUARY_PUBLIC_STATE_PROJECTION;
   const state = createAntiquaryState();
   state.bonusStealthAttack = { charges: 2, expiresAt: 10 };
   const active = projectPublicProfessionState(state, keys, defaults);
-  assert.equal(active.initiativePipRows, 3);
   assert.equal(active.bonusStealthAttack.charges, 2);
   assert.equal(active.bonusStealthAttack.expiresAt, 10);
 
   const inactive = projectPublicProfessionState({}, keys, defaults);
-  assert.equal(Object.hasOwn(inactive, 'initiativePipRows'), true);
-  assert.equal(inactive.initiativePipRows, undefined);
   assert.equal(inactive.bonusStealthAttack.charges, 0);
   assert.equal(inactive.bonusStealthAttack.expiresAt, 0);
 });

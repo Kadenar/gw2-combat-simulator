@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import { boonIntervalsFromWindows, prepareBoonWindows } from '#gw2/platform/combat/boons.js';
 
 import {
   advanceEndurance,
   advanceEnduranceIntervals,
+  createVigorWindowReader,
   enduranceIntervalsReadyAt,
   vigorEnduranceIntervals,
   grantEndurance,
@@ -13,6 +15,113 @@ import {
 
 // Test clocks carry capacity and their settled rate alongside the balance.
 const clock = (value, updatedAt = 0, maximum = 100, rate = 0) => ({ value, maximum, updatedAt, rate });
+
+// Accepted grants carry resolved recipients; the cache must preserve their ordering and audience semantics.
+const vigorGrant = (at, duration, recipients = 'self') => {
+  const event = {
+    type: 'buff',
+    kind: 'vigor',
+    at,
+    duration,
+    audience: { recipients, affectsSelf: recipients === 'self' }
+  };
+  return { ...event, resolvedAudience: gw2BoonApplicationRecipients({}, event) };
+};
+
+test('Vigor cache reads each appended fact once and keeps independent runtime histories', () => {
+  const history = [vigorGrant(0, 2)];
+  const reads = [];
+  const events = new Proxy(history, {
+    get(target, key, receiver) {
+      if (typeof key === 'string' && /^\d+$/.test(key)) reads.push(Number(key));
+
+      return Reflect.get(target, key, receiver);
+    }
+  });
+  const windows = createVigorWindowReader(events);
+  assert.deepEqual(reads, [], 'Constructing the reader must remain lazy for permanent Vigor');
+  const first = windows();
+  assert.equal(windows(), first);
+  history.push(
+    { type: 'action', at: 0 },
+    { ...vigorGrant(0, 10), kind: 'fury' },
+    { type: 'boon_extension', at: 0, duration: 10, excludedKind: 'vigor' },
+    { ...vigorGrant(0, 10), cancelled: true }
+  );
+  assert.equal(windows(), first, 'Unrelated and cancelled facts must reuse the prepared windows');
+  assert.deepEqual(reads, [0, 1, 2, 3, 4]);
+  assert.equal(windows(), first);
+  assert.deepEqual(reads, [0, 1, 2, 3, 4], 'Repeated queries must not reread old history');
+  assert.deepEqual(
+    [...boonIntervalsFromWindows(createVigorWindowReader([])(), 0, 3)],
+    [{ start: 0, end: 3, active: false }]
+  );
+});
+
+test('Vigor cache refreshes same-time affordability without changing earlier windows', () => {
+  const history = [];
+  const windows = createVigorWindowReader(history);
+  const context = { config: {}, vigorWindows: windows };
+  const ready = () =>
+    enduranceIntervalsReadyAt(
+      clock(0),
+      30,
+      vigorEnduranceIntervals(context, 0, Infinity, (active) => (active ? 10 : 5))
+    );
+  assert.equal(ready(), 6);
+  // An extension before the first grant cannot create Vigor, even at the same timestamp.
+  history.push({ type: 'boon_extension', at: 0, duration: 3 });
+  assert.equal(ready(), 6);
+  history.push(vigorGrant(0, 2));
+  assert.equal(ready(), 4);
+  const beforeExtension = windows();
+  history.push({ type: 'boon_extension', at: 0, duration: 3 });
+  assert.equal(ready(), 3);
+  assert.deepEqual(
+    [...boonIntervalsFromWindows(beforeExtension, 0, 6)],
+    [
+      { start: 0, end: 2, active: true },
+      { start: 2, end: 6, active: false }
+    ]
+  );
+  assert.equal(
+    advanceEnduranceIntervals(
+      clock(0),
+      vigorEnduranceIntervals(context, 0, 3, (active) => (active ? 10 : 5))
+    ).value,
+    30
+  );
+});
+
+test('cached Vigor preserves duration caps, expiry, and recipient filtering as execution advances', () => {
+  const history = [];
+  const windows = createVigorWindowReader(history);
+  // Compare a minimal sequence at every append, including absent/excluded kinds and extensions after expiry.
+  for (const event of [
+    vigorGrant(0, 10, 'summons'),
+    { type: 'boon_extension', at: 0, duration: 5, extensionAudience: 'all' },
+    vigorGrant(1, 50),
+    { type: 'boon_extension', at: 2, kind: 'vigor', duration: 5 },
+    { type: 'boon_extension', at: 3, kind: 'fury', duration: 5 },
+    { type: 'boon_extension', at: 4, excludedKind: 'vigor', duration: 5 },
+    { ...vigorGrant(5, 10), cancelled: true },
+    { type: 'boon_extension', at: 32, duration: 5 },
+    vigorGrant(33, 2)
+  ]) {
+    history.push(event);
+    assert.deepEqual(windows(), prepareBoonWindows(history, 'vigor', 'self', undefined, true));
+  }
+
+  assert.deepEqual(
+    [...boonIntervalsFromWindows(windows(), 31, 36)],
+    [
+      { start: 31, end: 32, active: true },
+      { start: 32, end: 33, active: false },
+      { start: 33, end: 35, active: true },
+      { start: 35, end: 36, active: false }
+    ]
+  );
+});
 
 // Readiness under one constant regeneration rate starting at the observed time.
 function steadyEnduranceReadyAt(endurance, cost, at, rate) {
@@ -47,11 +156,13 @@ test('Vigor endurance windows share self-only recovery and readiness with profes
   };
   const context = {
     config: {},
-    events: [
-      { ...vigor, at: 0, duration: 20, cancelled: true },
-      { ...vigor, at: 0, duration: 20, audience: { recipients: 'summons', affectsSelf: false } },
-      vigor
-    ].map((event) => ({ ...event, resolvedAudience: gw2BoonApplicationRecipients({}, event) }))
+    vigorWindows: createVigorWindowReader(
+      [
+        { ...vigor, at: 0, duration: 20, cancelled: true },
+        { ...vigor, at: 0, duration: 20, audience: { recipients: 'summons', affectsSelf: false } },
+        vigor
+      ].map((event) => ({ ...event, resolvedAudience: gw2BoonApplicationRecipients({}, event) }))
+    )
   };
   const observed = [];
   const rateAt = (active, at) => {
@@ -72,7 +183,7 @@ test('Vigor endurance windows share self-only recovery and readiness with profes
   assert.equal(enduranceIntervalsReadyAt(state, 30, vigorEnduranceIntervals(context, 0, Infinity, rateAt)), 4);
   const permanent = {
     config: { boons: { vigor: true } },
-    events: new Proxy([], { get: () => assert.fail('Permanent Vigor must not read event history') })
+    vigorWindows: () => assert.fail('Permanent Vigor must not read event history')
   };
   assert.equal(enduranceIntervalsReadyAt(state, 30, vigorEnduranceIntervals(permanent, 0, Infinity, rateAt)), 3);
 });
@@ -83,6 +194,40 @@ test('endurance advancement caps regeneration and does not mutate or rewind its 
   assert.deepEqual(advanceEndurance(state, 8, 5), clock(60, 8, 60, 5));
   assert.deepEqual(advanceEndurance(state, 1, 5), state);
   assert.deepEqual(state, clock(40, 2, 60));
+});
+
+test('permanent Vigor preserves profession rate boundaries without reading history', () => {
+  // Permanent Vigor still permits timed profession bonuses to expire inside an observation window.
+  const context = {
+    config: { boons: { vigor: true } },
+    vigorWindows: () => assert.fail('Permanent Vigor must not read event history')
+  };
+  for (const end of [5, Infinity]) {
+    assert.deepEqual(
+      [...vigorEnduranceIntervals(context, 2, end, (vigor, at) => (vigor && at < 3 ? 10 : 7.5), [3])],
+      [
+        { start: 2, end: 3, rate: 10 },
+        { start: 3, end, rate: 7.5 }
+      ]
+    );
+  }
+});
+
+test('empty and reversed endurance windows bypass history with or without permanent Vigor', () => {
+  // No resource time elapses, so neither history reconstruction nor profession rate queries are needed.
+  const vigorWindows = () => assert.fail('Empty windows must not read event history');
+  for (const vigor of [false, true]) {
+    for (const [start, end] of [
+      [2, 2],
+      [2, 1],
+      [Infinity, Infinity]
+    ]) {
+      assert.deepEqual(
+        [...vigorEnduranceIntervals({ vigorWindows, config: { boons: { vigor } } }, start, end, () => assert.fail())],
+        []
+      );
+    }
+  }
 });
 
 test('endurance spend and grant clamp values and carry their timestamps', () => {

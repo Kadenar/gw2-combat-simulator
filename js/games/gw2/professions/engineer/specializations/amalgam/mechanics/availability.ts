@@ -4,13 +4,11 @@ import type { AvailabilityResult } from '#gw2/platform/execution/availability.js
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
-/** Rejects Amalgam morphs outside the selected protocols; Double Helix's `modifySkillId` hook selects Evolve earlier. */
+/** The selected Amalgam module rejects unequipped morphs; Double Helix's `modifySkillId` hook selects Evolve earlier. */
 export function amalgamCastAvailability(
   context: MechanicQueriesOf<EngineerRuntime>,
   skill: EngineerSkill
 ): AvailabilityResult {
-  if (context.config.specialization !== 'Amalgam') return { ready: true };
-
   const state = amalgamState.from(context);
 
   // Each protocol type (e.g., "Offensive Protocol: Shred") exists as several

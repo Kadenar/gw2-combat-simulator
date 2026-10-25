@@ -2,7 +2,7 @@ import { ACTOR, type ControlKind, type SimulationActorType } from '#gw2/platform
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { normalizeEffectAudience } from '#gw2/platform/events/audience-metadata-validation.js';
-import { proceduralSkillWeapon, splitStrikeHits } from '#gw2/platform/effects/packet-builders.js';
+import { splitStrikeHits } from '#gw2/platform/effects/packet-builders.js';
 import type { EffectAudience, EffectMetadata, SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -55,31 +55,29 @@ function envelope(skill: { readonly id: SkillId; readonly name: string } | null,
   };
 }
 
-/** Builds equally divided strike packets; weapon identity defaults to the owning skill, or none for procedural strikes. */
+/** Procedural strikes supply their own attribution and optional weapon; each divided hit can critically strike. */
 export function buildThiefStrikes(
-  skill: ThiefSkill | null,
   options: ThiefPacketAttribution & {
     readonly coefficient: number;
     readonly hits?: number;
     readonly hitIndex?: number;
     readonly totalHits?: number;
     readonly skillWeapon?: string;
-    readonly canCrit?: boolean;
   }
 ): SimulationEventBase[] {
-  const { coefficient, hits, hitIndex, totalHits, skillWeapon, canCrit, ...attribution } = options;
-  const fields = envelope(skill, attribution);
+  const { coefficient, hits, hitIndex, totalHits, skillWeapon, ...attribution } = options;
+  const fields = envelope(null, attribution);
   return splitStrikeHits({
     ...fields,
     type: 'damage',
     at: canonicalTime(options.at),
-    name: options.name ?? fields.skillName ?? skill?.name,
+    name: options.name ?? fields.skillName,
     coefficient,
     hits,
     hitIndex,
     totalHits,
-    skillWeapon: skillWeapon ?? (skill ? proceduralSkillWeapon(skill) : ''),
-    canCrit: canCrit !== false
+    skillWeapon: skillWeapon ?? '',
+    canCrit: true
   });
 }
 

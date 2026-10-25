@@ -320,7 +320,7 @@ const sharedWisdom = defineTrait({
     }),
     onTriggerPoint(entityCastCompleted, {
       run: (runtime, input: TriggerPointInput<typeof entityCastCompleted>) =>
-        completionSharedWisdom(runtime, input.cast, 'entity-skill')
+        completionSharedWisdom(runtime, input.cast)
     })
   ],
   id: TRAIT.SHARED_WISDOM,
@@ -469,10 +469,8 @@ function grantExpandedConsciousness(runtime: RevenantRuntime, previous: number, 
     );
 }
 
-/** Found Purpose shares every Numinous Gift trigger, including Cosmic Wisdom, with the party. */
+/** Conduit listeners grant Numinous Gift; Found Purpose shares its boons, including Cosmic Wisdom's, with the party. */
 function numinousGift(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  if (runtime.config.specialization !== 'Conduit') return;
-
   emitTraitProfile(runtime, TRAIT.NUMINOUS_GIFT, PROFILE.numinousGift, undefined, {
     effects: (effect) =>
       effect.type === 'boon' && (!effect.metadata?.legendId || hasLegend(runtime, effect.metadata.legendId)),
@@ -497,9 +495,9 @@ function hasLegend(runtime: RevenantRuntime, legendId: string): boolean {
 }
 
 /** One entity-specific Shared Wisdom boon accompanies the cast's completion. */
-function completionSharedWisdom(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, trigger: string): void {
+function completionSharedWisdom(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.sharedWisdom);
-  const shared = requireEffect(profile, 'boon', trigger);
+  const shared = requireEffect(profile, 'boon', 'entity-skill');
 
   if (!shared) return;
 

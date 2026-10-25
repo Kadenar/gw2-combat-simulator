@@ -222,11 +222,13 @@ export function skillDamageKeyByIdentity(result: Gw2ResolverResult): Map<string,
   return keyByIdentity;
 }
 
-export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow[] {
+export function skillBreakdownRows(
+  result: Gw2ResolverResult,
+  keyByIdentity: ReadonlyMap<string, string> = skillDamageKeyByIdentity(result)
+): SkillBreakdownRow[] {
   // Attribute resolved proc damage to its trigger, retaining actual tick damage and the report's DPS window.
   const damageByTrigger = new Map<string, Map<string, number>>();
   const procCounts = new Map<string, number>();
-  const keyByIdentity = skillDamageKeyByIdentity(result);
   for (const event of result.resolvedEvents || []) {
     if (event.type !== 'damage' && event.type !== 'condition') continue;
 

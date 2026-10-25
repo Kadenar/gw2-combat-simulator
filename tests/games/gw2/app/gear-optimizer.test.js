@@ -206,11 +206,41 @@ test('a worker crash and stale messages cannot publish a complete exhaustive res
   assert.equal(worker.terminated, true);
 });
 
+// Bootstrap failure must stop the search before additional workers or candidate ranges are admitted.
+test('baseline validation gates worker pool expansion', () => {
+  const captured = request();
+  for (const response of [{ error: 'Equipped baseline is invalid.' }, { kind: 'ready', count: '4', rawCount: '4' }]) {
+    const messages = [];
+    const workers = [];
+    const runner = new GearOptimizerRunner(
+      { buildRevision: captured.revision },
+      () => {},
+      () => {
+        const worker = new OptimizerTestWorker();
+        worker.postMessage = (message) => messages.push(message);
+        workers.push(worker);
+        return worker;
+      },
+      4
+    );
+    runner.run(captured);
+    const init = messages[0];
+    assert.equal(init.bootstrap, true);
+    workers[0].listeners.get('message')({ data: { requestId: init.requestId, ...response } });
+    assert.equal(runner.state.status, 'failed');
+    assert.match(runner.state.error, /baseline/i);
+    assert.equal(workers.length, 1);
+    assert.equal(messages.length, 1);
+    assert.equal(workers[0].terminated, true);
+  }
+});
+
 // Real enumeration/evaluation behind a tiny transport fake isolates partitioning and message ownership.
 class OptimizerTestWorker {
   listeners = new Map();
   terminated = false;
   job = null;
+  baselineEvaluations = 0;
   verified = [];
   constructor(searchedKeys = new Set()) {
     this.searchedKeys = searchedKeys;
@@ -244,11 +274,19 @@ class OptimizerTestWorker {
           return score(equipment);
         };
 
+        // Model the bootstrap contract separately from each worker's local search initialization.
+        let baseline;
+
+        if (message.bootstrap) {
+          this.baselineEvaluations++;
+          baseline = optimizerScore(this.job.evaluator.evaluate(optimizerEquipment(message.request.build)));
+        }
+
         result = {
           kind: 'ready',
           count: this.job.space.count.toString(),
           rawCount: this.job.space.ordinary.rawCount.toString(),
-          baseline: optimizerScore(this.job.evaluator.evaluate(optimizerEquipment(message.request.build)))
+          ...(baseline ? { baseline } : {})
         };
       } else if (message.kind === 'refine') {
         this.job.refine(message.candidates);
@@ -320,21 +358,26 @@ test('selectable worker pools evaluate each unique candidate once and retain ide
   const run = (count) =>
     new Promise((resolve, reject) => {
       const searchedKeys = new Set();
-      let spawned = 0;
+      const workers = [];
       const runner = new GearOptimizerRunner(
         { buildRevision: captured.revision },
         () => {
           if (runner.state.status === 'complete') {
             assert.equal(BigInt(searchedKeys.size), runner.state.count);
-            assert.equal(spawned, Math.min(count, Number(runner.state.count)));
+            assert.equal(workers.length, Math.min(count, Number(runner.state.count)));
+            assert.deepEqual(
+              workers.map((worker) => worker.baselineEvaluations),
+              [1, ...workers.slice(1).map(() => 0)]
+            );
             resolve(runner.state);
           }
 
           if (runner.state.status === 'failed') reject(new Error(runner.state.error));
         },
         () => {
-          spawned++;
-          return new OptimizerTestWorker(searchedKeys);
+          const worker = new OptimizerTestWorker(searchedKeys);
+          workers.push(worker);
+          return worker;
         },
         2
       );
@@ -343,6 +386,7 @@ test('selectable worker pools evaluate each unique candidate once and retain ide
   const single = await run(1);
   for (const count of [2, 4]) {
     const multiple = await run(count);
+    assert.deepEqual(multiple.baseline, single.baseline);
     assert.deepEqual(single.winners, multiple.winners);
     assert.equal(multiple.represented, 32n);
     assert.equal(multiple.count, 28n);

@@ -1315,6 +1315,8 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   const app = {
     profession: revenantProfession,
     activeCatalog: revenantCatalog,
+    // Palette-only actions still resolve their tooltip through the application's selected balance patch.
+    patch: revenantAppAdapter.profession.resolvePatch({ id: 'current' }),
     results: {
       planningState: {
         activeWeaponSet: 1,

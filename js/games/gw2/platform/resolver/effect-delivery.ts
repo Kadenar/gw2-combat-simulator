@@ -287,7 +287,7 @@ export function createEffectDelivery<T extends object>(
     const info = request.announcement;
     runtime.procRecorder?.record(info, runtime.deathTime);
 
-    if (request.log && runtime.reporting) executed.push(event);
+    if (request.log && runtime.output !== 'score') executed.push(event);
   }
 
   function applyConditionNow(event: SimulationEventBase) {
@@ -380,7 +380,7 @@ export function createEffectDelivery<T extends object>(
 
     if (missesTarget(event) || (precombat && isPrecombatTargetEffect(event) && event.type !== 'condition_tick')) {
       // Preserve attempted packets for targeting edits; only resolved rows contribute damage.
-      if (runtime.reporting) executed.push(event);
+      if (runtime.output !== 'score') executed.push(event);
 
       // A missed impact can still finish a field and grant self effects; hostile combo outcomes retain its miss.
       if (runtime.deathTime == null && !preparedCombos.has(event))
@@ -443,7 +443,7 @@ export function createEffectDelivery<T extends object>(
 
     if (!preparedCombos.has(event)) produceRuntimeCombos(runtime, profession.catalog, event);
 
-    if (runtime.reporting && !['condition_buffer', 'condition_tick', 'action_update'].includes(event.type))
+    if (runtime.output !== 'score' && !['condition_buffer', 'condition_tick', 'action_update'].includes(event.type))
       executed.push(event);
 
     if (runtime.deathTime == null && targetHealthLoss(config, runtime) >= targetHealth) {

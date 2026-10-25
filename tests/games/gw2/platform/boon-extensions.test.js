@@ -1,7 +1,6 @@
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   applyBoonExtension,
-  boonIntervals,
   boonIntervalsFromWindows,
   prepareBoonWindows,
   recordBuffApplication,
@@ -123,30 +122,6 @@ test('prepared windows respect causal order for grants and extensions sharing a 
         { start: expiry, end: 6, active: false }
       ]
     );
-  }
-});
-
-test('permanent self-boon windows bypass event history for integration and readiness', () => {
-  // A fixed boon rate must stay independent of the rotation's growing history.
-  const events = new Proxy([], { get: () => assert.fail('Permanent boons must not read event history') });
-  for (const end of [5, Infinity]) {
-    assert.deepEqual([...boonIntervals(events, 'vigor', 2, end, true)], [{ start: 2, end, active: true }]);
-  }
-
-  assert.deepEqual([...boonIntervals(events, 'alacrity', 2, 2, true)], []);
-});
-
-test('empty and reversed self-boon windows bypass history with or without permanent boons', () => {
-  // No resource time elapses, so even a dynamic boon needs no reconstruction.
-  const events = new Proxy([], { get: () => assert.fail('Empty windows must not read event history') });
-  for (const permanent of [false, true]) {
-    for (const [start, end] of [
-      [2, 2],
-      [2, 1],
-      [Infinity, Infinity]
-    ]) {
-      assert.deepEqual([...boonIntervals(events, 'vigor', start, end, permanent)], []);
-    }
   }
 });
 

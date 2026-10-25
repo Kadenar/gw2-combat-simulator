@@ -2,7 +2,6 @@ import { WEAPON, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constan
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { barrierRecipients } from '#gw2/platform/combat/barrier.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeChargeCount, consumeChargeBatch, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
@@ -316,12 +315,8 @@ function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
  * the shroud is active.
  */
 function applyLarcenousTorment(runtime: ThiefRuntime, application: Gw2ResolverEvent): void {
-  if (
-    application.condition !== CONDITION.TORMENT ||
-    application.actorType !== ACTOR.PLAYER ||
-    !hasTrait(runtime, TRAIT.LARCENOUS_TORMENT)
-  )
-    return;
+  // The trait listener admits selection; only player-owned Torment applications earn the reward.
+  if (application.condition !== CONDITION.TORMENT || application.actorType !== ACTOR.PLAYER) return;
 
   const stacks = Math.max(0, Math.trunc(application.stacks || 0));
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.LARCENOUS_TORMENT);

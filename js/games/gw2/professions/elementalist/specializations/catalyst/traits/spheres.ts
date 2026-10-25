@@ -16,14 +16,15 @@ export function sphereSpecialistDuration(context: ElementalistRuntime): number {
     : 1;
 }
 
-/** Extend only authored boons and buffs, leaving damage and field windows unchanged. */
+/** Resolve selection once, then extend only authored boons and buffs when the multiplier changes their duration. */
 export function applySphereSpecialistDurations(
   context: ElementalistRuntime,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
-  if (!hasTrait(context, TRAIT.SPHERE_SPECIALIST)) return effects;
-
   const multiplier = sphereSpecialistDuration(context);
+
+  if (multiplier === 1) return effects;
+
   return effects.map((effect) =>
     effect.type === 'boon' || effect.type === 'buff' ? { ...effect, duration: effect.duration * multiplier } : effect
   );

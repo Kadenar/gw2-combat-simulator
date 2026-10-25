@@ -86,7 +86,8 @@ export class ModifierContributionRunner {
     this.onUpdate();
     let request: ModifierContributionRequest;
     try {
-      request = app.adapter.modifierContributionRequest(app);
+      // Revision gating above guarantees that this score belongs to the current build and selected patch.
+      request = app.adapter.modifierContributionRequest(app, app.results.dps);
     } catch (error) {
       failContributions(error);
 
@@ -141,21 +142,22 @@ export class ModifierContributionRunner {
             requestId,
             {
               requestId,
-              // Only this batch computes the deterministic baseline; all omissions can run concurrently.
+              // Omission workers do not receive baseline configuration or recompute its score.
               request: {
-                ...request,
-                baseConfig: index === 0 ? request.baseConfig : null,
+                gameId: request.gameId,
+                contentId: request.contentId,
+                rotation: request.rotation,
                 comparisons
               } satisfies ModifierContributionBatchRequest
             },
             (data, worker) => {
               this.batch.finish(worker);
-              // Preserve batch ownership even when later workers finish before the baseline batch.
+              // Preserve partition order when workers finish in a different order.
               completed[index] = data;
               completedCount += 1;
 
               if (completedCount === batches.length) {
-                applyContributions(mergeModifierContributions(completed));
+                applyContributions(mergeModifierContributions(request.baselineDps, completed));
               }
             }
           );

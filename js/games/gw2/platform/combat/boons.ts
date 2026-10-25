@@ -387,29 +387,6 @@ export function* boonIntervalsFromWindows(windows: readonly BoonWindow[], start:
   }
 }
 
-/** Split integration at audience-specific boon applications, extensions, and pooled expiry. */
-export function* boonIntervals(
-  events: readonly SimulationEvent[],
-  kind: string,
-  start: number,
-  end: number,
-  permanent = false,
-  audience: Gw2BuffAudience = RECIPIENT.SELF,
-  resolved = false
-) {
-  // Empty or reversed resource windows cannot accrue a boon, so avoid preparing their history.
-  if (end <= start) return;
-
-  // Permanent boon assumptions keep the rate constant, so resource updates need no event-history replay.
-  if (permanent) {
-    if (end > start) yield { start, end, active: true };
-
-    return;
-  }
-
-  yield* boonIntervalsFromWindows(prepareBoonWindows(events, kind, audience, undefined, resolved), start, end);
-}
-
 /** Apply extensions at their own timestamp, keeping past observations and other recipients unchanged. */
 export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>, event: SimulationEvent): void {
   event = normalizeBoonDuration(canonicalEvent(event));

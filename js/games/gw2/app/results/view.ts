@@ -10,7 +10,11 @@ import type { ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
-import { ownerConditionBreakdown, skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import {
+  ownerConditionBreakdown,
+  skillBreakdownRows,
+  skillDamageKeyByIdentity
+} from '#gw2/app/results/skill-breakdown.js';
 import { analysisViewIsActive, renderSimulationViewModel } from '#browser/shell/result-view.js';
 import { renderPatchComparison } from '#gw2/app/patch-preview/view.js';
 import { mountPreviewAssumptionNotice } from '#gw2/app/patch-preview/assumptions.js';
@@ -169,7 +173,9 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
     catalog: app.activeCatalog,
     specialization: app.adapter.eliteSpecialization(app.build)
   });
-  const skillRows = skillBreakdownRows(result);
+  // The table and charts share one identity map for this render's result snapshot.
+  const skillKeys = skillDamageKeyByIdentity(result);
+  const skillRows = skillBreakdownRows(result, skillKeys);
   const conditions = result.conditionBreakdown || [];
   const modifiers = modifierContributionModel(app);
   const charts: ResultChartsModel = {
@@ -177,7 +183,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
     chartsError: !result.effectReport ? app.simulationError : undefined,
     chartSeries:
       result.effectReport && app.resultRevision === app.buildRevision
-        ? buildChartSeries(result, 250, effectPresentations, chartApplications)
+        ? buildChartSeries(result, 250, effectPresentations, chartApplications, skillKeys)
         : null
   };
   const breakdown: DamageBreakdownModel = {

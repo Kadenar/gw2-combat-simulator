@@ -1,3 +1,4 @@
+import { modifierComparisonRequest } from '#tests/helpers/modifier-contributions.js';
 import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 import { BOON } from '#gw2/platform/constants.js';
 
@@ -81,8 +82,7 @@ test('modifier contribution candidates include every active Revenant trait', () 
     activeCatalog: revenantCatalog
   };
   const activeTraitNames = app.attributeData.activeTraits.map((trait) => trait.name).sort();
-  const candidateNames = revenantAppAdapter
-    .modifierContributionRequest(app)
+  const candidateNames = modifierComparisonRequest(app, revenantAppAdapter)
     .comparisons.map(({ modifier }) => modifier)
     .filter((candidate) => candidate.type === 'Trait')
     .map((candidate) => candidate.name)
@@ -504,6 +504,8 @@ test('legend palette shows only the destination legend with the shared swap cool
     paletteSkillView(
       {
         adapter: revenantAppAdapter,
+        // Palette rendering describes the skill using the application's selected balance patch.
+        patch: revenantAppAdapter.profession.resolvePatch({ id: 'current' }),
         results: {
           planningState: {
             availability: {},

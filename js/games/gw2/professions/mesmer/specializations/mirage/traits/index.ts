@@ -18,7 +18,7 @@ import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechan
 import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerShatterCompleted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
 import { executeMirageCloneAmbushPackets } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import { createMirageMechanics } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
@@ -464,13 +464,11 @@ function selfDeceptionCommitted(
   }
 }
 
-/** Preserve riddle of sand at its accepted mechanic boundary. */
+/** Rearm Riddle of Sand after a shatter admitted by its selected Mirage trait listener. */
 function primeRiddleAfterShatter(
   state: MesmerRuntime,
   { resolution }: TriggerPointInput<typeof mesmerShatterCompleted>
 ): void {
-  if (state.config.specialization !== 'Mirage') return;
-
   const { skill, at, delivery } = resolution;
 
   if (requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', CONDITION.CONFUSION)) {
@@ -485,13 +483,11 @@ function primeRiddleAfterShatter(
   }
 }
 
-/** Preserve nomads endurance at its accepted mechanic boundary. */
+/** Grant Vigor after a shatter admitted by the selected Nomad's Endurance listener. */
 function grantNomadsEndurance(
   state: MesmerRuntime,
   { resolution }: TriggerPointInput<typeof mesmerShatterCompleted>
 ): void {
-  if (state.config.specialization !== 'Mirage') return;
-
   const { skill, at, delivery } = resolution;
   const profile = requireBalanceProfileFromContext(state, TRAIT.NOMADS_ENDURANCE);
 
@@ -523,68 +519,57 @@ function grantNomadsEndurance(
   });
 }
 
-/** Preserve phantom pain at its accepted mechanic boundary. */
+/** Grant Phantom Pain stacks after a shatter admitted by its selected Mirage trait listener. */
 function grantPhantomPain(
   state: MesmerRuntime,
   { resolution }: TriggerPointInput<typeof mesmerShatterCompleted>
 ): void {
-  if (state.config.specialization !== 'Mirage') return;
-
   const { skill, at, spent, delivery } = resolution;
-
-  {
-    const phantomPainProfile = requireBalanceProfileFromContext(state, TRAIT.PHANTOM_PAIN);
-    {
-      const grants: readonly MesmerEventExtra[] = [
-        {
-          // Phantom Pain starts after the same-time shatter packets resolve.
-          priority: 5,
-          kind: 'phantom-pain',
-          stacks: Math.min(balanceProfileNumber(phantomPainProfile, 'maximumStacks'), spent + 1),
-          duration: balanceProfileNumber(phantomPainProfile, 'duration')
-        }
-      ];
-      const traitProfile = requireBalanceProfileFromContext(state, TRAIT.PHANTOM_PAIN);
-      const traitSource = {
-        source: 'Trait',
-        sourceId: TRAIT.PHANTOM_PAIN,
-        actorType: ACTOR.PLAYER,
-        skillId: TRAIT.PHANTOM_PAIN,
-        skillName: traitProfile.name
-      };
-      {
-        const proc = state.effects.emit({
-          receipt: true,
-          ...delivery,
-          kind: 'announcement',
-          log: true,
-          attribution: { ...traitSource, actorType: ACTOR.EFFECT },
-          announcement: { type: 'trait', name: traitProfile.name, at: at, sourceSkill: skill.name, detail: '' }
-        });
-        for (const grant of grants)
-          state.effects.emit({
-            ...delivery,
-            kind: 'packet',
-            cause: proc,
-            event: { ...grant, ...traitSource, type: 'buff', at: at, name: traitProfile.name, sourceSkill: skill.name }
-          });
-      }
+  const profile = requireBalanceProfileFromContext(state, TRAIT.PHANTOM_PAIN);
+  const traitSource = {
+    source: 'Trait',
+    sourceId: TRAIT.PHANTOM_PAIN,
+    actorType: ACTOR.PLAYER,
+    skillId: TRAIT.PHANTOM_PAIN,
+    skillName: profile.name
+  };
+  const proc = state.effects.emit({
+    receipt: true,
+    ...delivery,
+    kind: 'announcement',
+    log: true,
+    attribution: { ...traitSource, actorType: ACTOR.EFFECT },
+    announcement: { type: 'trait', name: profile.name, at, sourceSkill: skill.name, detail: '' }
+  });
+  // The buff retains its announcement as cause and starts after the same-time shatter packets resolve.
+  state.effects.emit({
+    ...delivery,
+    kind: 'packet',
+    cause: proc,
+    event: {
+      ...traitSource,
+      type: 'buff',
+      at,
+      name: profile.name,
+      sourceSkill: skill.name,
+      priority: 5,
+      kind: 'phantom-pain',
+      stacks: Math.min(balanceProfileNumber(profile, 'maximumStacks'), spent + 1),
+      duration: balanceProfileNumber(profile, 'duration')
     }
-  }
+  });
 }
 
-/** Preserve desert distortion at its accepted mechanic boundary. */
+/** Grant Distortion's ambush window and mirrors after selection is admitted by the Mirage trait listener. */
 function createDesertDistortionMirrors(
   state: MesmerRuntime,
   { resolution }: TriggerPointInput<typeof mesmerShatterCompleted>
 ): void {
-  if (state.config.specialization !== 'Mirage') return;
-
   const { skill, at, spent, delivery } = resolution;
   const { grantAmbushWindow, createMirrors } = createMirageMechanics(state);
 
   if (skill.id === ID.DISTORTION) {
-    grantAmbushWindow(at, 'Desert Distortion', undefined, delivery);
+    grantAmbushWindow(at, 'Desert Distortion', delivery);
     createMirrors(at, spent * balanceNumberFromContext(state, TRAIT.DESERT_DISTORTION, 'resourceGain'));
     state.effects.emit({
       ...delivery,
@@ -602,10 +587,8 @@ function createDesertDistortionMirrors(
   }
 }
 
-/** Preserve dune cloak at its accepted mechanic boundary. */
+/** Grant cloak for a qualifying shatter after selection is admitted by the Mirage trait listener. */
 function grantDuneCloak(state: MesmerRuntime, { resolution }: TriggerPointInput<typeof mesmerShatterCompleted>): void {
-  if (state.config.specialization !== 'Mirage') return;
-
   const { at, spent, delivery } = resolution;
   const { grantMirageCloak } = createMirageMechanics(state);
 

@@ -13,6 +13,7 @@ import { type ResourceController, type ResourceKey } from '#gw2/platform/combat/
 import type { EnduranceController } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   advanceEnduranceIntervals,
+  createVigorWindowReader,
   enduranceIntervalsReadyAt,
   grantEndurance,
   spendEndurance,
@@ -246,9 +247,11 @@ export function createRuntimeEndurance<T extends object>(
     return { state, maximum };
   };
 
+  // Advancement and readiness share a lazy history cursor, scoped to this simulation's executed facts.
+  const vigor = { config: runtime.config, vigorWindows: createVigorWindowReader(runtime.history) };
   const intervals = (start: number, end: number) =>
     vigorEnduranceIntervals(
-      { events: runtime.history, config: runtime.config, resolved: true },
+      vigor,
       start,
       end,
       (vigor, at) => policy!.regenerationRate(runtime.mechanics, vigor, at),

@@ -3,7 +3,6 @@ import { boonKey } from '#gw2/platform/combat/boons.js';
 import { addCarapace, deathCarapaceStacks } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -140,9 +139,9 @@ export const putridDefense = defineTrait({
   ]
 });
 
-/** Compiled heal admission grants Carapace and independent Protection under one Dark Defense cooldown. */
+/** After trait selection is admitted, completed heals grant Carapace and Protection under one shared cooldown. */
 function applyDarkDefense(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  if (cast.skill.type !== 'Heal' || !hasTrait(runtime, TRAIT.DARK_DEFENSE)) return;
+  if (cast.skill.type !== 'Heal') return;
 
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.DARK_DEFENSE);
 

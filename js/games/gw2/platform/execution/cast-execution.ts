@@ -191,7 +191,7 @@ export function createCastExecution<T extends object>(
       ...(cursor.index >= 0 ? { rotationIndex: cursor.index } : {})
     });
 
-    if (runtime.reporting)
+    if (runtime.output !== 'score')
       runtime.steps.push({
         ri: cursor.index,
         skill: name,
@@ -219,7 +219,7 @@ export function createCastExecution<T extends object>(
   function acceptCast(skill: Skill, command: CastCommand): void {
     const start = runtime.time;
     // Resolve before recharge reservations or cast effects can mutate the active bar.
-    const manualInput = runtime.reporting && activationInputKind(profession.catalog, skill) === 'manual';
+    const manualInput = runtime.output === 'detailed' && activationInputKind(profession.catalog, skill) === 'manual';
     const professionInput = manualInput
       ? profession.resolveInputControl?.(runtime.mechanicQueries, skill, command)
       : null;
@@ -305,7 +305,7 @@ export function createCastExecution<T extends object>(
       );
     const detail = profession.castDetail?.(castDetailContext, cast);
 
-    if (runtime.reporting)
+    if (runtime.output !== 'score')
       runtime.steps.push({
         ri: cursor.index,
         skill: skill.name,

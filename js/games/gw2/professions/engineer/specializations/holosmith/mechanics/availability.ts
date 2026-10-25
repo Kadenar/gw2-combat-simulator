@@ -7,14 +7,12 @@ import { holosmithState } from '#gw2/professions/engineer/specializations/holosm
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
 
-/** Enforces Holosmith sword replacement, Forge bar state, overheat, and kit-lockout cast rules; Storm autoattacks are
+/** The selected Holosmith module enforces sword replacement, Forge bar state, overheat, and kit-lockout cast rules; Storm autoattacks are
  * selected earlier by the Crystal Configuration: Storm `modifySkillId` hook. */
 export function holosmithCastAvailability(
   context: EngineerRuntime<HolosmithSkill>,
   skill: HolosmithSkill
 ): AvailabilityResult {
-  if (context.config.specialization !== 'Holosmith') return { ready: true };
-
   // Holosmith replaces the shared Weaponmaster sword IDs with heat-aware variants.
   if (NON_HOLOSMITH_SWORD_SKILL_IDS.has(Number(skill.id))) {
     return denyEngineerCast(skill, 'engineer.holosmith-sword-replaced', 'Holosmith replaces this sword skill.');

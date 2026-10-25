@@ -51,7 +51,6 @@ export interface EventLogRow extends EventLogDescriptor {
 }
 
 export interface EventLogMountOptions {
-  readonly initiallyOpen?: boolean;
   readonly title?: string;
   readonly filename?: string;
   /** Singular and plural names for the summed metric in group summaries. */
@@ -451,9 +450,8 @@ export function mountEventLog<TRow extends EventLogRow>(
   const followEnd = Boolean(
     previousLog && scrollTop > 0 && previousLog.scrollHeight - previousLog.clientHeight - scrollTop <= 1
   );
-  const wasMounted = Boolean(previousDetails);
   // Preserve disclosure state when simulation results rerender.
-  const open = wasMounted ? Boolean(previousDetails?.open) : Boolean(options.initiallyOpen);
+  const open = Boolean(previousDetails?.open);
   // Preserve the free-text search across result rerenders, like the per-container view state.
   const previousSearch = container.querySelector<HTMLInputElement>('[data-role="event-log-search"]');
   let searchQuery = previousSearch?.value || '';

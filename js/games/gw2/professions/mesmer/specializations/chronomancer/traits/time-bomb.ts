@@ -1,5 +1,4 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -18,7 +17,7 @@ import { chronomancerState } from '#gw2/professions/mesmer/specializations/chron
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-/** Arms Time Bomb only after a completed Time Sink and keeps its delayed explosion attributed to that cast. */
+/** After trait admission, arm Time Bomb for a completed Time Sink and attribute its delayed explosion to that cast. */
 export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const skill = cast.skill;
 
@@ -27,7 +26,7 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
   const state = chronomancerState.from(context);
   const at = cast.fullEnd;
 
-  if (!hasTrait(context, TRAIT.TIME_BOMB) || at < state.timeBombUntil) return;
+  if (at < state.timeBombUntil) return;
 
   // Read the selected trait directly so patch edits and removals govern the explosion and its timer together.
   const profile = requireBalanceProfileFromContext(context, TRAIT.TIME_BOMB);

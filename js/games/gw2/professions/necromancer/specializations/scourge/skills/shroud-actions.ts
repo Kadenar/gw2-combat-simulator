@@ -60,7 +60,7 @@ function emitShroudEffects(
 /** Shroud commands own their cleanse, control, and delayed barrier effects. */
 const scourgeShroudActions = {
   'scourge.cleanse'(runtime) {
-    removeNecromancerSelfCondition(runtime.profession.core, runtime.time, 1);
+    removeNecromancerSelfCondition(runtime.profession.core, runtime.time);
   },
   'scourge.garish-pillar'(runtime, context) {
     if (context.kind !== 'cast') return;

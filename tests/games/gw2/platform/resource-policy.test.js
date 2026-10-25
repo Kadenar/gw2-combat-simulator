@@ -193,6 +193,24 @@ test('discrete recovery preserves cadence at cap and starts idle pools on spendi
   }
 });
 
+test('discrete readiness and settlement share earned grants without mutating observations', () => {
+  // A forecast includes already-earned grants and retains the same phase across partitioned observations.
+  for (const waits of [[0.2], [0.12, 0.159, 0.16, 0.2]]) {
+    const context = fixture('discrete', { interval: 0.05, amount: 2, maximum: 10 });
+    const pool = context.profession.pool;
+    context.time = 0.12;
+    const before = structuredClone(pool);
+    assert.equal(context.resourceController.value('initiative'), 4);
+    assert.equal(context.resourceController.readyAt('initiative', 8), 0.2);
+    assert.deepEqual(pool, before);
+    for (const at of waits) advance(context, at);
+    assert.equal(pool.value, 8);
+    assert.equal(pool.nextAt, 0.25);
+    assert.equal(context.resourceController.readyAt('initiative', 8), 0.2);
+    assert.equal(context.resourceController.readyAt('initiative', 10), 0.28);
+  }
+});
+
 test('rate and capacity changes settle the previous segment without refilling', () => {
   const context = fixture('continuous', { initial: 8, rate: -1, maximum: 10 });
   advance(context, 2);

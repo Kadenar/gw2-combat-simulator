@@ -1,3 +1,4 @@
+import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
 import { calculateContributionBatch } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
 import { calculateRelicComparison } from '#gw2/app/optimizer/relic-comparison/calculate.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
@@ -459,6 +460,38 @@ test('superseded baseline fallbacks release the slot and publish only the newest
   assert.equal(runner.queue.pending, null);
 });
 
+// A request captures one config per patch and reuses the selected config for reference work.
+test('baseline requests prepare each patch once and share the selected snapshot', () => {
+  for (const preview of [undefined, { id: 'preview' }]) {
+    const prepared = [];
+    const profession = {
+      id: 'fixture',
+      catalog: { specializations: [] },
+      preview,
+      resolvePatch: (patch) => patch
+    };
+    const runtime = createProfessionRuntime({
+      profession,
+      createBuildContext: ({ patch }) => {
+        prepared.push(patch.id);
+        return { simulationConfig: () => ({ patchId: patch.id }) };
+      }
+    });
+    for (const id of preview ? ['current', 'preview'] : ['current']) {
+      prepared.length = 0;
+      const request = runtime.baselineSimulationRequest({
+        build: { rotation: [] },
+        patch: { id, values: {} }
+      });
+      assert.deepEqual(prepared, preview ? ['current', 'preview'] : ['current']);
+      assert.equal(request.baseConfig.patchId, id);
+
+      if (preview) assert.equal(request.baseConfig, request.patchConfigs[id]);
+      else assert.equal(request.patchConfigs, undefined);
+    }
+  }
+});
+
 test('baseline requests refresh a queued reference once, using independent command clones', async () => {
   const adapter = await loadProfessionAppAdapter('engineer');
   const build = adapter.toApplicationBuild(adapter.profession.createBuildDefaults());
@@ -644,10 +677,11 @@ test('modifier scheduling is deferred until Analysis and skips fresh or already 
     build: { rotation: STRIKE_ROTATION },
     buildRevision: 2,
     resultRevision: 1,
-    results: { modifierContributionsStale: true },
+    results: { dps: 100, modifierContributionsStale: true },
     randomDistributionRunner: { isRunning: false },
     adapter: {
-      modifierContributionRequest() {
+      modifierContributionRequest(_app, baselineDps) {
+        assert.equal(baselineDps, 100);
         prepared++;
         return { comparisons: [] };
       },
@@ -757,16 +791,17 @@ test('modifier worker batches ignore superseded responses and terminate on compl
     value: ControlledWorker
   });
 
-  const results = { dps: 999, contributions: [], modifierContributionsStale: true };
+  const results = { dps: 100, contributions: [], modifierContributionsStale: true };
   let renderCount = 0;
   const app = {
     build: { rotation: STRIKE_ROTATION },
     results,
     adapter: {
-      modifierContributionRequest() {
+      modifierContributionRequest(_app, baselineDps) {
+        assert.equal(baselineDps, results.dps);
         return {
           rotation: STRIKE_ROTATION,
-          baseConfig: { dps: 100 },
+          baselineDps,
           comparisons: [80, 90, 100].map((dps) => ({
             modifier: { id: String(dps), label: `Without ${dps}` },
             config: { dps }
@@ -786,30 +821,27 @@ test('modifier worker batches ignore superseded responses and terminate on compl
   runner.schedule();
   assert.equal(workers.length, 6);
   assert.ok(workers.slice(0, 3).every((worker) => worker.terminated));
-  workers[0].respond({ requestId: 1, baselineDps: 1000, scores: [{ id: 'old', name: 'Old', dps: 1 }] });
+  workers[0].respond({ requestId: 1, scores: [{ id: 'old', name: 'Old', dps: 1 }] });
   assert.deepEqual(results.contributions, []);
 
   const current = workers.slice(3);
-  assert.equal(current.filter((worker) => worker.message.request.baseConfig !== null).length, 1);
-  let baselineRuns = 0;
+  assert.ok(current.every((worker) => !Object.hasOwn(worker.message.request, 'baseConfig')));
   let comparisonRuns = 0;
   const finish = (worker) =>
     worker.respond({
       requestId: worker.message.requestId,
       ...calculateContributionBatch(worker.message.request, (_rotation, config) => {
-        if (config === worker.message.request.baseConfig) baselineRuns++;
-        else comparisonRuns++;
+        comparisonRuns++;
 
         return config;
       })
     });
-  // The shared baseline can arrive last; partial batches must not publish stale or incomplete values.
+  // Partial batches must not publish stale or incomplete values.
   finish(current[2]);
   finish(current[1]);
   assert.deepEqual(results.contributions, []);
   assert.equal(runner.isRunning, true);
   finish(current[0]);
-  assert.equal(baselineRuns, 1);
   assert.equal(comparisonRuns, 3);
   assert.deepEqual(results.contributions, [
     { id: '80', name: 'Without 80', dpsIncrease: 20, pctIncrease: 25 },
@@ -819,7 +851,7 @@ test('modifier worker batches ignore superseded responses and terminate on compl
   assert.equal(runner.isRunning, false);
   assert.equal(renderCount, 0, 'modifier completion does not rebuild the full view');
 
-  // A failed baseline invalidates every score from that request, including responses already in flight.
+  // A failed omission invalidates every score from that request, including responses already in flight.
   results.modifierContributionsStale = true;
   runner.schedule();
   const failed = workers.slice(6);

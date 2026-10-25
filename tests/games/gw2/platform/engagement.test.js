@@ -25,7 +25,7 @@ test('authored discovery, preparation, and accepted combat entry remain separate
   owner.dispatchMarker(time);
   assert.equal(owner.acceptEntry(time, true), true);
   assert.equal(query.combatMechanicsAllowed(), true);
-  assert.equal(query.combatMechanicsAllowed(1), false);
+  assert.equal(query.preparationComplete(1), false);
   owner.dispatchMarker(3);
   assert.equal(owner.acceptEntry(3, true), false, 'repeated notification cannot start producers twice');
   assert.equal(query.startTime, 2);

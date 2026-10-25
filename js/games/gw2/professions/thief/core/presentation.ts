@@ -277,6 +277,7 @@ export const thiefCoreUi = Object.freeze({
     (context.specialization || context.config?.specialization || 'Core') === 'Core' ? thiefStealPaletteGroups() : [],
   resourceViews: (context: ThiefUiContext) => {
     const state = thiefUiState(context);
+    const specialization = context.specialization || context.config?.specialization || 'Core';
     const enduranceCapacity = state.endurance?.maximum ?? context.resources!.endurance!.maximum;
     const endurance = state.endurance?.value ?? enduranceCapacity;
     return [
@@ -292,14 +293,13 @@ export const thiefCoreUi = Object.freeze({
         step: 1,
         displayMode: 'pips',
         pipStyle: 'thief-initiative',
-        pipRows: state.initiativePipRows || 2,
+        // Initiative layout belongs to the selected specialization, independent of live resource snapshots.
+        pipRows: specialization === 'Antiquary' ? 3 : 2,
         shortLabel: 'Init',
         statusLabel: 'Current'
       },
       // Core contributes its own starting inventory control; elite modules declare theirs independently.
-      ...((context.specialization || context.config?.specialization || 'Core') === 'Core'
-        ? [preStealResourceView(state.storedStolenSkillCount || 0)]
-        : []),
+      ...(specialization === 'Core' ? [preStealResourceView(state.storedStolenSkillCount || 0)] : []),
       // Reuse the starting-resource editor; the active-state bar already displays the live axe count.
       ...([
         context.build?.weapons?.[0],

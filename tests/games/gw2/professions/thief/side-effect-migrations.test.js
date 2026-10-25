@@ -383,7 +383,7 @@ test('Distracting Throw does not apply its new damage window to its granting str
     { primaryWeapon: 'Spear', secondaryWeapon: '' },
     {
       initialize(runtime) {
-        runtime.profession.core.spearLastWasFinisher = true;
+        runtime.profession.core.spearPreviousSkillId = ID.FALLING_SPIDER;
       },
       extend: (native) => ({
         reactions: {

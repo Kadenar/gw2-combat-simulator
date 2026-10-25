@@ -3,10 +3,7 @@ import { THIEF_SKILL_IDS as SKILL } from '#gw2/professions/thief/data/ids.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import {
-  createProfessionBuildCodec,
-  normalizeProfessionBuildAssumptions
-} from '#gw2/professions/shared/build-codec.js';
+import { createProfessionBuildCodec, createProfessionAssumptionDefaults } from '#gw2/professions/shared/build-codec.js';
 import { createProfessionAssumptionControls } from '#gw2/platform/builds/assumptions.js';
 import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
@@ -65,7 +62,7 @@ export function createThiefBuildDefaults(): ThiefCanonicalBuild {
     },
     selectedDodge: 'Dodge',
     ...createCommonBuildDefaults({
-      assumptions: normalizeProfessionBuildAssumptions({}, THIEF_ASSUMPTION_CONTROLS)
+      assumptions: createProfessionAssumptionDefaults(THIEF_ASSUMPTION_CONTROLS)
     }),
     initialInitiative: 12,
     initialSpinningAxes: 0,

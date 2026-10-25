@@ -1,10 +1,7 @@
 import { WEAPON } from '#gw2/platform/constants.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import {
-  createProfessionBuildCodec,
-  normalizeProfessionBuildAssumptions
-} from '#gw2/professions/shared/build-codec.js';
+import { createProfessionBuildCodec, createProfessionAssumptionDefaults } from '#gw2/professions/shared/build-codec.js';
 import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/professions/ranger/build/assumptions.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { isRangerPetName, RANGER_DEFAULT_PET_NAMES } from '#gw2/professions/ranger/data/pets.js';
@@ -76,7 +73,7 @@ export function createRangerBuildDefaults(): RangerCanonicalBuild {
     ],
     initialUntamedState: 'Pet',
     ...createCommonBuildDefaults({
-      assumptions: normalizeProfessionBuildAssumptions({}, RANGER_ASSUMPTION_CONTROLS)
+      assumptions: createProfessionAssumptionDefaults(RANGER_ASSUMPTION_CONTROLS)
     }),
     initialAstralForce: 100,
     initialArrows: 8

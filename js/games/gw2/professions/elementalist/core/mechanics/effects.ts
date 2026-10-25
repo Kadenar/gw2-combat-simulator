@@ -88,7 +88,7 @@ export function elementalistProfiledBuffRequest(
   };
 }
 
-/** Select the optional condition payload without manufacturing removed balance effects. */
+/** Select the optional condition payload and retain its source and cast ownership without inventing removed effects. */
 export function elementalistProfiledConditionRequest(
   context: ElementalistRuntime,
   at: number,
@@ -96,7 +96,6 @@ export function elementalistProfiledConditionRequest(
   effectName: string,
   source: string,
   sourceId: Skill['id'],
-  triggeredBy = '',
   emissionCast?: EffectDelivery['cast']
 ): ProfileEmission {
   const profile = requireBalanceProfileFromContext(context, profileId);
@@ -109,7 +108,7 @@ export function elementalistProfiledConditionRequest(
     at,
     fullEnd: at,
     cast: emissionCast,
-    attribution: { source, sourceId, actorType: ACTOR.PLAYER, skillId: skill.id, skillName: source, triggeredBy },
+    attribution: { source, sourceId, actorType: ACTOR.PLAYER, skillId: skill.id, skillName: source },
     transform: (event) => ({ ...event, name: source + ' — ' + event.condition })
   };
 }

@@ -212,9 +212,11 @@ export function runRuntime<T extends object>(
     engagement: engagementController.query,
     config,
     traits: normalizeSelectedTraitIds(config.selectedTraitIds),
-    reporting: output !== 'score',
+    output,
+    ownsEffect,
     effectRecorder,
-    procRecorder: output === 'score' ? null : new ProcStepRecorder(effectRecorder),
+    // Damage measurements retain packets, but only detailed reports consume proc rows and aggregate breakdowns.
+    procRecorder: output === 'detailed' ? new ProcStepRecorder(effectRecorder) : null,
     damageDiagnostics: output === 'damage' || damageDiagnostics,
     horizon: policy.kind === 'absolute' ? canonicalTime(policy.endTimeMs / 1000) : null,
     query,
@@ -519,7 +521,6 @@ export function runRuntime<T extends object>(
   const result = projectRuntimeResult(runtime, profession, execution, {
     output,
     executed,
-    ownsEffect,
     damageCompletionTime
   });
   onPhase?.('reporting', performance.now() - reportingStarted);
