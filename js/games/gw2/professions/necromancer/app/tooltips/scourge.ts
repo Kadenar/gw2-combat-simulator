@@ -26,7 +26,7 @@ const shadeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const description = (
     {
       [ID.MANIFEST_SAND_SHADE]:
-        'Manifest a timed shade and strike your target. Shade skills share this strike and Torment application. Sand Savant replaces the ordinary shade limit and lifetime with its greater-shade values.',
+        'Manifest a sand shade, striking your target and inflicting torment. Using a shade skill repeats this attack. Sand Savant replaces normal shades with a greater shade.',
       [ID.NEFARIOUS_FAVOR]:
         'Trigger the shared shade attack and remove an active self-condition type. Sadistic Searing adds its Burning effect.',
       [ID.SAND_CASCADE]:
@@ -50,7 +50,7 @@ const shadeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   )[id];
   const shared = simulationEffectFacts(
     tooltipProfile(balanceContext, SCOURGE.shade).effects?.filter((effect) => effect.type !== 'buff'),
-    'shared shade attack'
+    id === ID.MANIFEST_SAND_SHADE ? '' : 'shared shade attack'
   );
   return {
     description,
@@ -58,18 +58,26 @@ const shadeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
       ...shared.facts,
       ...(profileId ? simulationEffectFacts(tooltipProfile(balanceContext, profileId).effects).facts : []),
       ...(id === ID.MANIFEST_SAND_SHADE
-        ? [
-            profileFact(balanceContext, SCOURGE.shade, 'maximumStacks', 'Maximum ordinary shades'),
-            ...simulationEffectFacts(
-              tooltipProfile(balanceContext, SCOURGE.shade).effects?.filter((effect) => effect.type === 'buff'),
-              'ordinary shade'
-            ).facts,
-            profileFact(balanceContext, TRAIT.SAND_SAVANT, 'maximumStacks', 'Maximum shades with Sand Savant'),
-            ...simulationEffectFacts(
-              tooltipProfile(balanceContext, TRAIT.SAND_SAVANT).effects,
-              'with Sand Savant; replaces ordinary shade'
-            ).facts
-          ]
+        ? (
+            [
+              [SCOURGE.shade, 'Sand shades'],
+              [TRAIT.SAND_SAVANT, 'With Sand Savant']
+            ] as const
+          ).map(([profile, name]) => {
+            // Pair each shade limit with its own lifetime so alternative values stay compact and distinct.
+            const capacity = profileFact(balanceContext, profile, 'maximumStacks', name);
+            const lifetime = simulationEffectFacts(
+              tooltipProfile(balanceContext, profile).effects?.filter(
+                (effect) => effect.type === 'buff' && effect.kind === 'active-shade'
+              )
+            );
+            return {
+              ...capacity,
+              detail: [`${capacity.detail} maximum`, ...lifetime.facts.map((fact) => `${fact.detail} duration`)].join(
+                ' · '
+              )
+            };
+          })
         : [])
     ]
   };

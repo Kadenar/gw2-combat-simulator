@@ -158,6 +158,7 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Condition Threshold': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   'Conditions Transferred': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   Blight: 'https://render.guildwars2.com/file/6B797B70EF545937F677BCD463BD23DC749B0801/2479350.png',
+  "Death's Carapace": 'https://render.guildwars2.com/file/DC38F4623BFE773E681E37A0EAE11A364D52AACE/1012567.png',
   Meltdown: 'https://render.guildwars2.com/file/03291423C8D1BE039F100726B40BC218F021EFEF/3790487.png',
   Power: 'https://render.guildwars2.com/file/D6CAECEA0FD5FADE04DD6970384ADC5DE309C506/2229322.png',
   Precision: 'https://render.guildwars2.com/file/C2CEA567E0C43C199C782809544721AA12A6DF0A/2229323.png',
@@ -231,6 +232,9 @@ export function tooltipFactIcon(name: string): string | undefined {
   if (/\bboon duration\b/.test(label)) return MODIFIER_EFFECT_ICONS.Concentration;
 
   if (/\battributes?\b/.test(label)) return MODIFIER_EFFECT_ICONS['Attribute increase'];
+
+  // Carapace grants, durations, and per-stack rewards share the effect's official CDN icon.
+  if (/\bcarapace\b/.test(label)) return MODIFIER_EFFECT_ICONS["Death's Carapace"];
 
   const match = tooltipIconNames.find(({ pattern }) => pattern.test(label));
   return (

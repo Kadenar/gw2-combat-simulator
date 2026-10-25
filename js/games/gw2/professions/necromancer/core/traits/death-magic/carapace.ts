@@ -1,6 +1,8 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { activeStackCount, addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { timedEffectState, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { purgeTimedState } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
@@ -32,17 +34,44 @@ export function addCarapace(
 }
 
 /** Count active and minion-backed Carapace without mutating either lifetime owner. */
-export function deathCarapaceStacks(context: unknown, state: Partial<NecromancerCoreState>, at: number): number {
+export function deathCarapaceStacks(
+  context: unknown,
+  state: ReadonlyMechanicState<Partial<NecromancerCoreState>>,
+  at: number
+): number {
   // Attribute reads count live stacks without rebuilding or mutating the runtime pool.
   const timedCarapace = activeStackCount(state.carapaceExpiries || [], at);
-  const minionCarapace = hasTrait(context, TRAIT.FLESH_OF_THE_MASTER)
+  return Math.min(carapaceCapacity(context), timedCarapace + minionCarapaceStacks(context, state));
+}
+
+/** Analysis observes the combat-owned deadlines and living minions, so reporting never grants extra Carapace. */
+export function deathCarapaceEffectState(
+  context: unknown,
+  state: ReadonlyMechanicState<Partial<NecromancerCoreState>>
+): EffectState {
+  return timedEffectState(
+    'necromancer-deaths-carapace',
+    [
+      ...(state.carapaceExpiries || []).map((expiresAt) => ({
+        stacks: 1,
+        expiresAt: Number.isFinite(expiresAt) ? expiresAt : null
+      })),
+      { stacks: minionCarapaceStacks(context, state), expiresAt: null }
+    ],
+    carapaceCapacity(context),
+    { name: "Death's Carapace" }
+  );
+}
+
+/** Persistent stacks follow the live minion count for both gameplay and analysis. */
+function minionCarapaceStacks(context: unknown, state: ReadonlyMechanicState<Partial<NecromancerCoreState>>): number {
+  return hasTrait(context, TRAIT.FLESH_OF_THE_MASTER)
     ? Object.values(state.activeMinions || {}).reduce(
         (total: number, count: number) =>
           total + (count || 0) * balanceNumberFromContext(context, TRAIT.FLESH_OF_THE_MASTER, 'resourceGain'),
         0
       )
     : 0;
-  return Math.min(carapaceCapacity(context), timedCarapace + minionCarapace);
 }
 
 /** Minion-owned strikes sample Necromantic Corruption before applying other creature multipliers. */

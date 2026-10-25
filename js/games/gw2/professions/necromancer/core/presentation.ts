@@ -33,6 +33,11 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
 const HALF_HEALTH_TRAITS = new Set(['Siphoned Power', 'Spiteful Fortitude', 'Chill of Death', 'Close to Death']);
 const NECROMANCER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
   {
+    id: 'necromancer-deaths-carapace',
+    kind: 'necromancer-deaths-carapace',
+    name: "Death's Carapace"
+  },
+  {
     id: 'necromancer-taste-for-blood',
     kind: 'taste-for-blood',
     name: 'Taste for Blood'

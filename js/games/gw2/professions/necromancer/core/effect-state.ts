@@ -2,6 +2,7 @@ import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
+import { deathCarapaceEffectState } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
 
 import type { NecromancerRuntimeState, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
@@ -32,6 +33,8 @@ export function necromancerEffectStates(
 
   if (!effects.some((effect) => effect.recipient === RECIPIENT.SELF))
     effects.push(timedEffectState('taste-for-blood', []));
+
+  effects.push(deathCarapaceEffectState(runtime, core));
 
   return effects;
 }
