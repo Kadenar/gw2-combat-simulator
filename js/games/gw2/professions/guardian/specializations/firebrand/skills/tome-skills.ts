@@ -1,4 +1,5 @@
-import { COMBO_FIELD, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { triggeredVirtueEffects } from '#gw2/professions/guardian/core/skills/virtue-payloads.js';
+import { ACTOR, COMBO_FIELD, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -167,6 +168,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: []
   },
   [ID.TOME_OF_RESOLVE]: {
+    dormantCooldown: 30,
     // Reopening preserves the shared dormancy and session controller.
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-resolve' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
@@ -257,12 +259,26 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.TOME_OF_COURAGE]: {
+    dormantCooldown: 45,
     // Reopening preserves the shared dormancy and session controller.
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-courage' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     canCastConcurrently: true,
     castTimeMs: 0,
-    effects: []
+    passiveInterval: 40,
+    effectVariants: [triggeredVirtueEffects],
+    effects: [
+      {
+        type: 'boon',
+        name: 'aegis',
+        boon: BOON.AEGIS,
+        stacks: 1,
+        duration: 40,
+        metadata: {
+          trigger: 'virtue'
+        }
+      }
+    ]
   },
   [ID.TOME_OF_COURAGE_ID_42371]: {
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
@@ -290,7 +306,34 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   },
   [ID.ASHES_OF_THE_JUST]: {
     // Accepted casts schedule the party grant at its application boundary during the animation.
-    sideEffects: [{ on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-ashes' } }],
+    sideEffects: [
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        do: {
+          type: 'guardian.start-ashes',
+          id: 'grant',
+          effects: [
+            {
+              type: 'buff',
+              name: 'ashes-of-the-just',
+              kind: 'ashes-of-the-just',
+              stacks: 2,
+              duration: 10,
+              actorType: ACTOR.PLAYER
+            },
+            {
+              type: 'boon',
+              name: 'might',
+              boon: BOON.MIGHT,
+              stacks: 8,
+              duration: 10,
+              actorType: ACTOR.PLAYER
+            }
+          ]
+        }
+      }
+    ],
     // Debit on commitment before the earned Swift Scholar refund.
     resourceCost: 1,
     cost: { resource: 'tomePages', spendOn: 'castCommit' },
@@ -327,6 +370,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.TOME_OF_JUSTICE]: {
+    dormantCooldown: 20,
     // Reopening preserves the shared dormancy and session controller.
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-justice' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.

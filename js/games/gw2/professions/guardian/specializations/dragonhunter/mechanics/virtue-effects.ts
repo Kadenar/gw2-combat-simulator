@@ -7,9 +7,9 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
-  balanceProfileNumber,
+  skillNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
@@ -25,7 +25,6 @@ import {
 import { indomitableCourageInterval } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { dragonhunterCastCompleted } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/trigger-points.js';
-import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 import { bigGameHunterTetherDuration } from '#gw2/professions/guardian/specializations/dragonhunter/traits/behavior.js';
 import type {
@@ -50,8 +49,8 @@ function reactToDragonhunterJusticeHit(
 
   // Only this hit's emitted passive Burning grants Crippled, after Burning's immediate reactions have settled.
   if (outcome === 'passive') {
-    const tetherProfile = requireBalanceProfileFromContext(context, PROFILE.tether);
-    const crippled = requireEffect(tetherProfile, 'condition', 'Crippled (passive)');
+    const skill = requireSkillFromContext(context, ID.SPEAR_OF_JUSTICE);
+    const crippled = requireEffect(skill, 'condition', 'Crippled (passive)');
 
     if (crippled) {
       context.effects.emit({
@@ -69,8 +68,8 @@ function reactToDragonhunterJusticeHit(
           skillName: 'Spear of Justice',
           name: 'Spear of Justice — Passive Crippled',
           condition: String(crippled.condition),
-          stacks: effectNumber(tetherProfile, crippled, 'stacks'),
-          duration: effectNumber(tetherProfile, crippled, 'duration')
+          stacks: effectNumber(skill, crippled, 'stacks'),
+          duration: effectNumber(skill, crippled, 'duration')
         })
       });
     }
@@ -90,13 +89,13 @@ const EXPIRY = 'guardian.dragonhunter.tether-expiry';
 /** Dragonhunter gates its attributed Aegis packet on actual recharge and retains Indomitable Courage tuning. */
 const couragePulse = createPassiveCourageTask({
   taskId: COURAGE,
-  profileId: PROFILE.passiveCourage,
+  skillId: ID.SHIELD_OF_COURAGE,
   interval: indomitableCourageInterval,
   ready(runtime) {
     refreshGuardianVirtues(runtime);
     return runtime.profession.core.virtueReadyAt.courage <= runtime.time;
   },
-  deliver(runtime, profile, effect) {
+  deliver(runtime, owner, effect) {
     const skill = runtime.helpers.skillsById.get(ID.SHIELD_OF_COURAGE)!;
     runtime.effects.emit({
       kind: 'packet',
@@ -110,8 +109,8 @@ const couragePulse = createPassiveCourageTask({
         skillName: skill.name,
         name: 'Shield of Courage — Passive Aegis',
         kind: boonKey(BOON.AEGIS),
-        duration: effectNumber(profile, effect, 'duration'),
-        stacks: effectNumber(profile, effect, 'stacks')
+        duration: effectNumber(owner, effect, 'duration'),
+        stacks: effectNumber(owner, effect, 'stacks')
       }
     });
   }
@@ -126,7 +125,10 @@ function attachTether(runtime: GuardianRuntime, data: unknown): void {
 
   if (state.tetherActivationId === event.activationId) return;
 
-  const duration = bigGameHunterTetherDuration(runtime, 6);
+  const duration = bigGameHunterTetherDuration(
+    runtime,
+    skillNumber(requireSkillFromContext(runtime, ID.SPEAR_OF_JUSTICE), 'duration')
+  );
 
   if (!(duration > 0)) return;
 
@@ -155,8 +157,8 @@ function tetherBurn(runtime: GuardianRuntime, data: unknown): void {
   )
     return;
 
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.tether);
-  const effect = requireEffect(profile, 'condition', CONDITION.BURNING);
+  const owner = requireSkillFromContext(runtime, ID.SPEAR_OF_JUSTICE);
+  const effect = requireEffect(owner, 'condition', CONDITION.BURNING);
 
   if (!effect) return;
 
@@ -172,11 +174,11 @@ function tetherBurn(runtime: GuardianRuntime, data: unknown): void {
       skillName: 'Spear of Justice',
       name: 'Spear of Justice — Active Burning',
       condition: String(effect.condition),
-      stacks: effectNumber(profile, effect, 'stacks'),
-      duration: effectNumber(profile, effect, 'duration')
+      stacks: effectNumber(owner, effect, 'stacks'),
+      duration: effectNumber(owner, effect, 'duration')
     })
   });
-  const interval = balanceProfileNumber(profile, 'pulseInterval');
+  const interval = skillNumber(owner, 'tetherInterval');
   const next = canonicalTime(runtime.time + interval);
 
   if (interval > 0 && next < pulse.deadline) runtime.schedule(BURN, next, data);

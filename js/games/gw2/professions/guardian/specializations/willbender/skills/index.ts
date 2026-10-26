@@ -1,7 +1,20 @@
-import { CONTROL, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, CONTROL, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+
+// Each recorded flame identity owns a separately patchable projection of the same authored trail.
+const flameEffects = [
+  {
+    type: 'strike',
+    name: 'Strike',
+    ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: (index + 1) * 1000, coefficient: 0.22 })),
+    timingAnchor: 'castEnd',
+    timingScale: 'fixed',
+    actorType: ACTOR.PLAYER
+  }
+] satisfies readonly SkillEffect[];
 
 /**
  * Owns Willbender virtue and physical skill fragments.
@@ -9,6 +22,13 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
  */
 
 export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  // This combat-log identity is absent from API metadata, so its canonical fragment supplies its identity too.
+  [ID.WILLBENDER_FLAMES_COURAGE]: {
+    id: ID.WILLBENDER_FLAMES_COURAGE,
+    name: 'Willbender Flames',
+    castTimeMs: 0,
+    effects: flameEffects
+  },
   [ID.ROILING_LIGHT]: {
     // Expose the follow-up on commitment; its declaration owns the window.
     sideEffects: [
@@ -34,12 +54,42 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   },
   [ID.WILLBENDER_FLAMES]: {
     castTimeMs: 0,
-    effects: []
+    effects: flameEffects
   },
   [ID.CRASHING_COURAGE]: {
     // Accepted activations launch the self window and autonomous flame group.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-courage' } }
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        do: {
+          type: 'guardian.start-courage',
+          id: 'virtue',
+          effects: [
+            {
+              type: 'buff',
+              name: 'courage',
+              kind: 'courage',
+              stacks: 1,
+              duration: 6
+            },
+            {
+              type: 'boon',
+              name: 'aegis',
+              boon: 'Aegis',
+              stacks: 1,
+              duration: 4
+            },
+            {
+              type: 'boon',
+              name: 'stability',
+              boon: 'Stability',
+              stacks: 1,
+              duration: 4
+            }
+          ]
+        }
+      }
     ],
     castTimeMs: 680,
     // Grant the virtue's defensive boons with its initial strike.
@@ -138,7 +188,23 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   [ID.FLOWING_RESOLVE]: {
     // Accepted activations launch the self window and autonomous flame group.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-resolve' } }
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        do: {
+          type: 'guardian.start-resolve',
+          id: 'virtue',
+          effects: [
+            {
+              type: 'buff',
+              name: 'resolve',
+              kind: 'resolve',
+              stacks: 1,
+              duration: 6
+            }
+          ]
+        }
+      }
     ],
     castTimeMs: 520,
 
@@ -164,7 +230,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   },
   [ID.WILLBENDER_FLAMES_ID_62618]: {
     castTimeMs: 0,
-    effects: []
+    effects: flameEffects
   },
   [ID.REVERSAL_OF_FORTUNE]: {
     castTimeMs: 680,
@@ -173,7 +239,23 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   [ID.RUSHING_JUSTICE]: {
     // Accepted activations launch the self window and autonomous flame group.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-justice' } }
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        do: {
+          type: 'guardian.start-justice',
+          id: 'virtue',
+          effects: [
+            {
+              type: 'buff',
+              name: 'justice',
+              kind: 'justice',
+              stacks: 1,
+              duration: 8
+            }
+          ]
+        }
+      }
     ],
     castTimeMs: 480,
     rechargeAnchor: 'castStart',

@@ -1,3 +1,4 @@
+import { triggeredVirtueEffects } from '#gw2/professions/guardian/core/skills/virtue-payloads.js';
 import { ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -11,11 +12,38 @@ import { soaringDevastationEffects } from '#gw2/professions/guardian/specializat
 
 export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SPEAR_OF_JUSTICE]: {
+    // The landed tether owns these deferred condition templates and its cadence.
+    duration: 6,
+    tetherInterval: 1,
+    effectVariants: [triggeredVirtueEffects],
     castTimeMs: 560,
     // The virtue commits at 520 ms, allowing the remaining animation to be cancelled.
     interruptCommitMs: 520,
     cooldown: 20,
     effects: [
+      {
+        type: 'condition',
+        name: 'Burning',
+        condition: CONDITION.BURNING,
+        stacks: 1,
+        duration: 2,
+        actorType: ACTOR.PLAYER,
+        metadata: {
+          trigger: 'virtue'
+        }
+      },
+      {
+        type: 'condition',
+        name: 'Crippled (passive)',
+        condition: CONDITION.CRIPPLED,
+        stacks: 1,
+        duration: 1.5,
+        actorType: ACTOR.PLAYER,
+        packetLabel: 'passive',
+        metadata: {
+          trigger: 'virtue'
+        }
+      },
       {
         type: 'strike',
         // The landed spear owns attachment; the tether controller retains commitment and replacement lifetime.
@@ -57,8 +85,22 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ])
   },
   [ID.SHIELD_OF_COURAGE]: {
+    // Passive Aegis is delivered only by the readiness-aware scheduler.
+    passiveInterval: 40,
+    effectVariants: [triggeredVirtueEffects],
     castTimeMs: 0,
-    effects: []
+    effects: [
+      {
+        type: 'boon',
+        name: 'aegis',
+        boon: BOON.AEGIS,
+        stacks: 1,
+        duration: 20,
+        metadata: {
+          trigger: 'virtue'
+        }
+      }
+    ]
   },
   [ID.WINGS_OF_RESOLVE]: {
     // The added strike and condition keep the weapon wielded at acceptance and the base virtue's effects.

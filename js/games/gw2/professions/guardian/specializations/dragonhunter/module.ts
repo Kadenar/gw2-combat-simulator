@@ -2,7 +2,6 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { dragonhunterHooks } from '#gw2/professions/guardian/specializations/dragonhunter/hooks.js';
 import { bindDragonhunterUi } from '#gw2/professions/guardian/specializations/dragonhunter/presentation.js';
-import { DRAGONHUNTER_BALANCE_PROFILES } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 import { DRAGONHUNTER_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/dragonhunter/skills/index.js';
 import {
   dragonhunterState,
@@ -14,9 +13,7 @@ import { dragonhunterTraits } from '#gw2/professions/guardian/specializations/dr
 export const dragonhunterModule = defineNativeModule({
   id: 'Dragonhunter',
   data: createGuardianModuleData('Dragonhunter', {
-    skillMechanics: DRAGONHUNTER_SKILL_MECHANICS,
-
-    balanceProfiles: DRAGONHUNTER_BALANCE_PROFILES
+    skillMechanics: DRAGONHUNTER_SKILL_MECHANICS
   }),
   state: {
     create: dragonhunterState.create,

@@ -1,8 +1,6 @@
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { DRAGONHUNTER_BALANCE_PROFILE_IDS as DH_PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as FB_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { runGuardian as run } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
@@ -10,35 +8,22 @@ import test from 'node:test';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const owners = [
-  { specialization: 'Dragonhunter', skillId: ID.SHIELD_OF_COURAGE, profileId: DH_PROFILE.passiveCourage },
-  { specialization: 'Firebrand', skillId: ID.TOME_OF_COURAGE, profileId: FB_PROFILE.passiveCourage }
+  { specialization: 'Dragonhunter', skillId: ID.SHIELD_OF_COURAGE },
+  { specialization: 'Firebrand', skillId: ID.TOME_OF_COURAGE }
 ];
 
 /** Short authored recharge windows expose dormancy transitions without depending on benchmark rotations. */
 function fixture(owner, { cooldown = 5.3, interval = 2, removed = false, selectedTraitIds = [] } = {}) {
-  const catalog = guardianProfession.catalog;
   const balanceProfiles = {
-    [owner.profileId]: {
-      fields: { pulseInterval: { from: catalog.balanceProfilesById.get(owner.profileId).pulseInterval, to: interval } },
+    [TRAIT.INDOMITABLE_COURAGE]: { fields: { pulseInterval: 4 } }
+  };
+  const cooldownField = owner.specialization === 'Firebrand' ? 'dormantCooldown' : 'cooldown';
+  const skills = {
+    [owner.skillId]: {
+      fields: { passiveInterval: interval, [cooldownField]: cooldown },
       ...(removed ? { removeEffects: [{ type: 'boon', name: 'aegis' }] } : {})
-    },
-    [TRAIT.INDOMITABLE_COURAGE]: {
-      fields: {
-        pulseInterval: { from: catalog.balanceProfilesById.get(TRAIT.INDOMITABLE_COURAGE).pulseInterval, to: 4 }
-      }
     }
   };
-  const skills = {};
-
-  if (owner.specialization === 'Firebrand') {
-    balanceProfiles[FB_PROFILE.tomeCourage] = {
-      fields: { cooldown: { from: catalog.balanceProfilesById.get(FB_PROFILE.tomeCourage).cooldown, to: cooldown } }
-    };
-  } else {
-    skills[owner.skillId] = {
-      fields: { cooldown: { from: catalog.skillsById.get(owner.skillId).cooldown, to: cooldown } }
-    };
-  }
 
   const profession = withPatchPreview(guardianProfession, {
     id: 'passive-courage-contract',

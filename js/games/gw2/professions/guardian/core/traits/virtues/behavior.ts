@@ -1,12 +1,8 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SelectedContentContext } from '#gw2/platform/profession-definition/runtime-context.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
-import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import { balanceNumberFromContext, balanceProfileNumber, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianResolverContext, GuardianVirtue, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
@@ -21,7 +17,7 @@ export function guardianResolutionMultiplier(context: SelectedContentContext): n
 export function permeatingWrathThreshold(
   context: GuardianResolverContext,
   virtue: GuardianVirtue,
-  baseProfile: string
+  baseProfile: SkillId
 ): number {
   return balanceNumberFromContext(
     context,
@@ -33,13 +29,10 @@ export function permeatingWrathThreshold(
 }
 
 /** Dragonhunter keeps pulse scheduling and passive readiness while this owner selects its interval. */
-export function indomitableCourageInterval(runtime: GuardianRuntime, baseProfile: BalanceProfile): number {
-  return balanceProfileNumber(
-    hasTrait(runtime, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)
-      ? requireBalanceProfileFromContext(runtime, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)
-      : baseProfile,
-    'pulseInterval'
-  );
+export function indomitableCourageInterval(runtime: GuardianRuntime, skill: Skill): number {
+  return hasTrait(runtime, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)
+    ? balanceNumberFromContext(runtime, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE, 'pulseInterval')
+    : skillNumber(skill, 'passiveInterval');
 }
 
 /** Ordinary virtue recharge and Firebrand dormancy share the current trait multiplier. */

@@ -14,7 +14,6 @@ import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { swiftScholar } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { willbenderHooks } from '#gw2/professions/guardian/specializations/willbender/hooks.js';
-import { WILLBENDER_BALANCE_PROFILE_IDS as WB_PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 
@@ -171,7 +170,7 @@ test('Willbender resets independent open virtues before rewards while expired vi
   const observations = [];
   const context = {
     helpers: applyBalanceProfilePatch(guardianCatalog, {
-      balanceProfiles: { [WB_PROFILE.virtueWindows]: { fields: { threshold: { from: 5, to: 2.5 } } } }
+      balanceProfiles: { [TRAIT.WILLBENDER_TRAINING]: { fields: { threshold: { from: 5, to: 2.5 } } } }
     }),
     time: 1,
     traits: new Set(),

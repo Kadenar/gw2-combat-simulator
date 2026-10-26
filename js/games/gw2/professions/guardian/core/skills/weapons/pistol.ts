@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { CONTROL, COMBO_FIELD, RECIPIENT, COMBO_FINISHER, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -6,12 +7,12 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import {
   effectNumber,
-  requireBalanceProfileFromContext,
+  skillNumber,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type {
   GuardianResolverContext,
@@ -115,10 +116,37 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.SYMBOL_OF_IGNITION]: {
+    internalCooldown: 0.24,
     // Author symbol identity independently of the skill's display text.
     tags: ['symbol'],
     // Placement opens the shared ignition observer only after commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.place-ignition' } }],
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'guardian.place-ignition',
+          id: 'ignition',
+          effects: [
+            {
+              type: 'condition',
+              name: 'Burning',
+              condition: CONDITION.BURNING,
+              stacks: 1,
+              duration: 1,
+              actorType: ACTOR.PLAYER
+            },
+            {
+              type: 'buff',
+              name: 'guardian-symbol-of-ignition-field',
+              kind: 'guardian-symbol-of-ignition-field',
+              stacks: 1,
+              duration: 4,
+              actorType: ACTOR.EFFECT
+            }
+          ]
+        }
+      }
+    ],
     castTimeMs: 360,
     interruptCommitMs: 320,
     comboFields: [
@@ -179,14 +207,23 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
 
 /** Selected field duration is shared by placement and the public combo field. */
 export function guardianIgnitionFields(runtime: MechanicQueriesOf<GuardianRuntime>): Skill['comboFields'] {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.symbolOfIgnition);
-  const field = requireEffect(profile, 'buff', 'guardian-symbol-of-ignition-field');
+  const skill = requireSkillFromContext(runtime, ID.SYMBOL_OF_IGNITION);
+
+  // Removing the activation declaration disables its field as well as its placement transition.
+  if (!skill.sideEffects?.some(({ do: action }) => 'id' in action && action.id === 'ignition')) return [];
+
+  const field = requireEffect(
+    skill,
+    'buff',
+    'guardian-symbol-of-ignition-field',
+    requireSkillAction(skill, 'ignition')
+  );
   return field
     ? [
         {
           ownerId: 'guardian',
           fieldType: COMBO_FIELD.LIGHT,
-          duration: effectNumber(profile, field, 'duration'),
+          duration: effectNumber(skill, field, 'duration'),
           startAnchor: 'castEnd'
         }
       ]
@@ -195,15 +232,18 @@ export function guardianIgnitionFields(runtime: MechanicQueriesOf<GuardianRuntim
 
 const guardianIgnitionActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.place-ignition'(runtime) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.symbolOfIgnition);
-    const field = requireEffect(profile, 'buff', 'guardian-symbol-of-ignition-field');
+    const skill = requireSkillFromContext(runtime, ID.SYMBOL_OF_IGNITION);
+    const field = requireEffect(
+      skill,
+      'buff',
+      'guardian-symbol-of-ignition-field',
+      requireSkillAction(skill, 'ignition')
+    );
 
     if (!field) return;
 
     runtime.profession.core.symbolIgnitionStartsAt = runtime.time;
-    runtime.profession.core.symbolIgnitionUntil = canonicalTime(
-      runtime.time + effectNumber(profile, field, 'duration')
-    );
+    runtime.profession.core.symbolIgnitionUntil = canonicalTime(runtime.time + effectNumber(skill, field, 'duration'));
   }
 };
 
@@ -215,8 +255,16 @@ export const guardianIgnitionLifecycle = {
 // Symbol hits and projectile hits have independent ignition cooldowns. Torch pulses
 // and fire-whirl bolts also ignite, but ordinary conditions and ignition itself do not.
 export function reactToSymbolOfIgnition(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  const symbolOfIgnitionProfile = requireBalanceProfileFromContext(context, PROFILE.symbolOfIgnition);
-  const burning = requireEffect(symbolOfIgnitionProfile, 'condition', CONDITION.BURNING);
+  const ignitionSkill = requireSkillFromContext(context, ID.SYMBOL_OF_IGNITION);
+
+  if (!ignitionSkill.sideEffects?.some(({ do: action }) => 'id' in action && action.id === 'ignition')) return;
+
+  const burning = requireEffect(
+    ignitionSkill,
+    'condition',
+    CONDITION.BURNING,
+    requireSkillAction(ignitionSkill, 'ignition')
+  );
 
   if (!burning) return;
 
@@ -252,7 +300,7 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
   const cooldownKey = projectile ? 'guardian.core.symbolProjectileIgnition' : 'guardian.core.symbolIgnition';
 
   // Match gw2combat's end-of-tick cooldown removal: the deadline itself is still blocked.
-  if (!context.procs.claim(PROFILE.symbolOfIgnition, cooldownKey, event.at)) return;
+  if (!context.procs.claimCooldown(cooldownKey, event.at, skillNumber(ignitionSkill, 'internalCooldown'))) return;
 
   context.effects.emit({
     kind: 'packet',
@@ -269,8 +317,8 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
       skillName: 'Symbol of Ignition',
       name: 'Symbol of Ignition — Ignition',
       condition: String(burning.condition),
-      stacks: effectNumber(symbolOfIgnitionProfile, burning, 'stacks'),
-      duration: effectNumber(symbolOfIgnitionProfile, burning, 'duration'),
+      stacks: effectNumber(ignitionSkill, burning, 'stacks'),
+      duration: effectNumber(ignitionSkill, burning, 'duration'),
       triggeredBy: event.skillName,
       projectile
     })

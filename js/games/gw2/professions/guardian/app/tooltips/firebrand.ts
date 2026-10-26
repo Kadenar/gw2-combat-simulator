@@ -1,4 +1,5 @@
-import { ASHES_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { resolveAshes, type ResolvedAshes } from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
@@ -17,7 +18,6 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as FIREBRAND } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { virtueBoons } from '#gw2/professions/guardian/app/tooltips/shared.js';
 import { FIREBRAND_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
 
@@ -73,20 +73,19 @@ export const firebrandTooltips = {
       ].map((id) => [id, tomePageTooltip])
     ),
     ...Object.fromEntries(
-      [
-        [ID.TOME_OF_JUSTICE, FIREBRAND.tomeJustice],
-        [ID.TOME_OF_RESOLVE, FIREBRAND.tomeResolve],
-        [ID.TOME_OF_COURAGE, FIREBRAND.tomeCourage]
-      ].map(([id, profile]) => [
+      [ID.TOME_OF_JUSTICE, ID.TOME_OF_RESOLVE, ID.TOME_OF_COURAGE].map((id) => [
         id,
         skillTooltip(
           'Open this tome and replace your weapon bar with its pages. Opening a ready tome starts passive dormancy and grants Swift Scholar quickness. Reopening a dormant tome preserves that timer. Switching tomes resets the consecutive-page refund sequence.',
           (balanceContext) => [
-            profileFact(balanceContext, profile, 'cooldown', 'Base passive dormancy', tooltipSeconds),
-            profileFact(balanceContext, FIREBRAND.resources, 'maximumStacks', 'Base shared page capacity'),
+            {
+              name: 'Base passive dormancy',
+              detail: tooltipSeconds(skillNumberFromContext(balanceContext, id, 'dormantCooldown'))
+            },
+            profileFact(balanceContext, TRAIT.PURITY_OF_WORD, 'maximumStacks', 'Base shared page capacity'),
             profileFact(
               balanceContext,
-              FIREBRAND.resources,
+              TRAIT.PURITY_OF_WORD,
               'pulseInterval',
               'Base page regeneration interval',
               tooltipSeconds
@@ -132,7 +131,7 @@ export const firebrandTooltips = {
         traits: new Set(build ? selectedTraits(context.catalog, build.specializations).map((trait) => trait.id) : [])
       });
       const grant = simulationEffectFacts(
-        tooltipProfile(context, ASHES_PROFILE.epilogueGrant).effects?.map((effect) => ({
+        requireSkillAction(requireSkillFromContext(context, ID.ASHES_OF_THE_JUST), 'grant').effects.map((effect) => ({
           ...effect,
           audience: { recipients: RECIPIENT.PARTY }
         })),
@@ -202,8 +201,8 @@ export const firebrandTooltips = {
 export const firebrandReworkTooltips = {
   traits: {
     [TRAIT.PURITY_OF_WORD]: traitTooltip('Unlock tomes and their shared page resource.', (context) => [
-      profileFact(context, FIREBRAND.resources, 'maximumStacks', 'Shared page capacity'),
-      profileFact(context, FIREBRAND.resources, 'pulseInterval', 'Page regeneration interval', tooltipSeconds)
+      profileFact(context, TRAIT.PURITY_OF_WORD, 'maximumStacks', 'Shared page capacity'),
+      profileFact(context, TRAIT.PURITY_OF_WORD, 'pulseInterval', 'Page regeneration interval', tooltipSeconds)
     ]),
     [TRAIT.IMBUED_HASTE]: traitTooltip(
       'Provisional: assume Quickness still enables increased outgoing condition damage. The percentage is speculative. Healing and incoming damage are outside simulation scope.',

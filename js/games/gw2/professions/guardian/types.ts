@@ -1,3 +1,5 @@
+import type { GUARDIAN_CORE_SKILL_FIELDS } from '#gw2/professions/guardian/core/skill-fields.js';
+import type { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/skill-fields.js';
 import type { SimulationActorType } from '#gw2/platform/constants.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
@@ -83,7 +85,12 @@ export type GuardianResolverEvent = Gw2ResolverEvent & {
 };
 
 /** Numeric tuning fields are typed from the modules' skill-field declarations, which also validate and patch them. */
-export interface GuardianSkill extends Skill, NumericSkillFields<typeof LUMINARY_SKILL_FIELDS> {
+export interface GuardianSkill
+  extends
+    Skill,
+    NumericSkillFields<typeof LUMINARY_SKILL_FIELDS>,
+    NumericSkillFields<typeof GUARDIAN_CORE_SKILL_FIELDS>,
+    NumericSkillFields<typeof FIREBRAND_SKILL_FIELDS> {
   readonly radiantForgeSkill?: boolean;
   readonly radiantWeapon?: string;
   readonly tome?: string;

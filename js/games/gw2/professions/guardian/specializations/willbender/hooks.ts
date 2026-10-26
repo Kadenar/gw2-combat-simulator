@@ -16,6 +16,14 @@ export const willbenderHooks = composeRuntimeHooks<GuardianRuntimeState, Guardia
     buffPolicies: willbenderBuffPolicies,
     observeEffects: willbenderEffectStates,
     availability(runtime, skill) {
+      // Flame identities supply virtue-owned damage; direct casts would bypass the controller's lifetime rules.
+      if (
+        skill.id === ID.WILLBENDER_FLAMES ||
+        skill.id === ID.WILLBENDER_FLAMES_ID_62618 ||
+        skill.id === ID.WILLBENDER_FLAMES_COURAGE
+      )
+        return denySkillCast(skill, 'guardian.flames-autonomous', 'flames are created automatically by virtues.');
+
       return skill.id === ID.REPOSE && !skillFlipReady(runtime.profession.core.availableFlips[ID.REPOSE], runtime.time)
         ? denySkillCast(skill, 'guardian.flip-not-armed', 'not currently armed.')
         : { ready: true };

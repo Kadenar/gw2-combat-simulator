@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ASHES_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
 import { resolveAshes } from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
 import { emitAshesForInspection } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
@@ -31,12 +32,8 @@ const run = (rotation, overrides = {}, options = {}) =>
 
 // Validate real composition, including traits absent from the current ruleset, before any browser starts.
 test('Firebrand preview uses selected page tuning and removes old resource trait bonuses', () => {
-  const previewPages = profession
-    .resolvePatch({ id: patchId })
-    .catalog.balanceProfilesById.get('guardian.firebrand.tome-pages');
-  const livePages = profession
-    .resolvePatch({ id: 'current' })
-    .catalog.balanceProfilesById.get('guardian.firebrand.tome-pages');
+  const previewPages = profession.resolvePatch({ id: patchId }).catalog.balanceProfilesById.get(TRAIT.PURITY_OF_WORD);
+  const livePages = profession.resolvePatch({ id: 'current' }).catalog.balanceProfilesById.get(TRAIT.PURITY_OF_WORD);
   for (const selectedTraitIds of [[], [REWORK.BASTION], [REWORK.DELIVERANCE]]) {
     const result = run([wait(1)], { selectedTraitIds });
     assert.deepEqual(result.warnings, []);
@@ -49,10 +46,7 @@ test('Firebrand preview uses selected page tuning and removes old resource trait
   assert.equal(run([wait(1)], { initialTomePages: 3 }).planningState.profession.tomePages.value, 3);
   const live = runGuardian([wait(1)], { specialization: 'Firebrand' });
   assert.equal(live.planningState.profession.tomePages.maximum, livePages.maximumStacks);
-  assert.equal(
-    profession.catalog.balanceProfilesById.get('guardian.firebrand.tome-pages').maximumStacks,
-    livePages.maximumStacks
-  );
+  assert.equal(profession.catalog.balanceProfilesById.get(TRAIT.PURITY_OF_WORD).maximumStacks, livePages.maximumStacks);
 });
 
 test('starting page limits follow current build traits and patch without requiring simulation state', () => {
@@ -292,8 +286,9 @@ test('Righteous Flames tunes self and allied Burning per charge only when select
     const grant = result.events.find((event) => event.kind === 'ashes-of-the-just');
     assert.equal(
       grant.stacks,
-      catalog.balanceProfilesById.get(ASHES_PROFILE.epilogueGrant).effects.find((effect) => effect.type === 'buff')
-        .stacks
+      requireSkillAction(catalog.skillsById.get(SKILL.ASHES_OF_THE_JUST), 'grant').effects.find(
+        (effect) => effect.type === 'buff'
+      ).stacks
     );
   }
 });
@@ -672,8 +667,12 @@ test('Ashes Burning edits remain relevant to a grant-trait build without an Epil
     professions: {
       guardian: {
         balanceProfiles: {
-          [ASHES_PROFILE.mechanic]: { effects: [{ type: 'condition', name: 'Burning', duration: 4 }] },
-          [ASHES_PROFILE.epilogueGrant]: { effects: [{ type: 'buff', name: 'ashes-of-the-just', duration: 7 }] }
+          [ASHES_PROFILE.mechanic]: { effects: [{ type: 'condition', name: 'Burning', duration: 4 }] }
+        },
+        skills: {
+          [SKILL.ASHES_OF_THE_JUST]: {
+            sideEffects: { grant: { effects: [{ type: 'buff', name: 'ashes-of-the-just', duration: 7 }] } }
+          }
         }
       }
     }
@@ -688,8 +687,6 @@ test('Ashes Burning edits remain relevant to a grant-trait build without an Epil
     )
   );
   assert.ok(
-    !notes.some(
-      (entry) => entry.subject === guardianProfession.catalog.balanceProfilesById.get(ASHES_PROFILE.epilogueGrant).name
-    )
+    !notes.some((entry) => entry.subject === guardianProfession.catalog.skillsById.get(SKILL.ASHES_OF_THE_JUST).name)
   );
 });

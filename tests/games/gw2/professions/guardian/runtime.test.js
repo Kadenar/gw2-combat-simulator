@@ -7,9 +7,6 @@ import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { DRAGONHUNTER_BALANCE_PROFILE_IDS as DH_PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as FB_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import { WILLBENDER_BALANCE_PROFILE_IDS as WB_PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runGuardian as run } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -484,7 +481,9 @@ test('removed Willbender window components preserve independent fields and activ
     label: 'No Justice window',
     professions: {
       guardian: {
-        balanceProfiles: { [WB_PROFILE.virtueWindows]: { removeEffects: [{ type: 'buff', name: 'justice' }] } }
+        skills: {
+          [ID.RUSHING_JUSTICE]: { sideEffects: { virtue: { removeEffects: [{ type: 'buff', name: 'justice' }] } } }
+        }
       }
     }
   });
@@ -558,7 +557,7 @@ test('Firebrand page exhaustion waits on the selected recovery policy and disabl
     id: 'no-pages',
     label: 'No page regeneration',
     professions: {
-      guardian: { balanceProfiles: { [FB_PROFILE.resources]: { fields: { pulseInterval: { from: 8, to: 0 } } } } }
+      guardian: { balanceProfiles: { [TRAIT.PURITY_OF_WORD]: { fields: { pulseInterval: { from: 8, to: 0 } } } } }
     }
   });
   const result = run(
@@ -1090,7 +1089,11 @@ test('spear filler preserves an armed charge and removed grant components cannot
     id: 'no-illumination-grants',
     label: 'No illumination grants',
     professions: {
-      guardian: { balanceProfiles: { [PROFILE.spearLuminance]: { removeEffects: [{ type: 'buff', all: true }] } } }
+      guardian: {
+        skills: {
+          [ID.SYMBOL_OF_LUMINANCE]: { sideEffects: { illumination: { removeEffects: [{ type: 'buff', all: true }] } } }
+        }
+      }
     }
   });
   for (const symbol of [false, true]) {
@@ -1141,8 +1144,10 @@ test('spear selects remaining projectile components', () => {
     label: 'Remaining illuminated projectile',
     professions: {
       guardian: {
-        balanceProfiles: {
-          [PROFILE.spearSolarStorm]: { removeEffects: [{ type: 'strike', name: 'Fourth projectile' }] }
+        skills: {
+          [ID.SOLAR_STORM]: {
+            sideEffects: { illumination: { removeEffects: [{ type: 'strike', name: 'Fourth projectile' }] } }
+          }
         }
       }
     }
@@ -1625,11 +1630,11 @@ test('Dragonhunter passive Courage preserves its cadence while actual recharge s
         skills: {
           [ID.SHIELD_OF_COURAGE]: {
             fields: {
-              cooldown: { from: guardianProfession.catalog.skillsById.get(ID.SHIELD_OF_COURAGE).cooldown, to: 3 }
+              cooldown: { from: guardianProfession.catalog.skillsById.get(ID.SHIELD_OF_COURAGE).cooldown, to: 3 },
+              passiveInterval: { from: 40, to: 1 }
             }
           }
-        },
-        balanceProfiles: { [DH_PROFILE.passiveCourage]: { fields: { pulseInterval: { from: 40, to: 1 } } } }
+        }
       }
     }
   });
@@ -1770,9 +1775,9 @@ test('removed Dragonhunter burn and passive packets leave no recurring effects w
     label: 'Dragonhunter no pulses',
     professions: {
       guardian: {
-        balanceProfiles: {
-          [DH_PROFILE.tether]: { removeEffects: [{ type: 'condition', name: 'Burning' }] },
-          [DH_PROFILE.passiveCourage]: { removeEffects: [{ type: 'boon', all: true }] }
+        skills: {
+          [ID.SPEAR_OF_JUSTICE]: { removeEffects: [{ type: 'condition', name: 'Burning' }] },
+          [ID.SHIELD_OF_COURAGE]: { removeEffects: [{ type: 'boon', all: true }] }
         }
       }
     }

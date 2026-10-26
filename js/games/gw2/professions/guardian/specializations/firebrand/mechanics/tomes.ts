@@ -8,7 +8,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { balanceNumberFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumberFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
 import {
@@ -22,7 +22,6 @@ import {
   tomeOpened,
   tomeStowed
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import {
   quickfireRetainsTomePassive,
@@ -56,7 +55,7 @@ export function reactToTomeJusticeHit(
 
 const COURAGE = 'guardian.firebrand.courage';
 
-const DORMANCY = { justice: PROFILE.tomeJustice, resolve: PROFILE.tomeResolve, courage: PROFILE.tomeCourage };
+const TOMES = { justice: ID.TOME_OF_JUSTICE, resolve: ID.TOME_OF_RESOLVE, courage: ID.TOME_OF_COURAGE };
 
 /** Tome reopening changes only the current bar; it cannot restart a dormant passive or duplicate its activation traits. */
 function openTome(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, virtue: GuardianVirtue): void {
@@ -69,7 +68,7 @@ function openTome(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, vi
   if (ready) {
     const multiplier = powerOfTheVirtuousRechargeMultiplier(runtime);
     readyAt[virtue] = canonicalTime(
-      runtime.time + balanceNumberFromContext(runtime, DORMANCY[virtue], 'cooldown') * multiplier
+      runtime.time + skillNumberFromContext(runtime, TOMES[virtue], 'dormantCooldown') * multiplier
     );
     runtime.fireTrigger(virtueActivated, { cast, virtue });
 
@@ -88,14 +87,14 @@ function openTome(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, vi
   });
 }
 
-/** Firebrand retains its passive during Stoic Demeanor and delivers the authored profile only to self. */
+/** Firebrand retains its passive during Stoic Demeanor and delivers the skill-owned payload only to self. */
 const courage = createPassiveCourageTask({
   taskId: COURAGE,
-  profileId: PROFILE.passiveCourage,
-  interval: (_runtime, profile) => balanceProfileNumber(profile, 'pulseInterval'),
+  skillId: ID.TOME_OF_COURAGE,
+  interval: (_runtime, skill) => skillNumber(skill, 'passiveInterval'),
   ready: (runtime) =>
     runtime.profession.core.virtueReadyAt.courage <= runtime.time || stoicDemeanorRetainsCourage(runtime),
-  deliver(runtime, profile, effect) {
+  deliver(runtime, skill, effect) {
     const boonCause: Gw2ResolverEvent = {
       type: 'buff',
       at: runtime.time,
@@ -108,11 +107,11 @@ const courage = createPassiveCourageTask({
     };
     runtime.effects.emit({
       kind: 'profile',
-      profile,
+      profile: skill,
       effects: [effect],
       attribution: boonCause,
       cause: boonCause,
-      transform: (event) => ({ ...boonCause, ...event, audience: { recipients: RECIPIENT.SELF } })
+      transform: (event) => ({ ...boonCause, ...event, name: boonCause.name, audience: { recipients: RECIPIENT.SELF } })
     });
   }
 });

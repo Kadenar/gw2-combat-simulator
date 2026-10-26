@@ -1,5 +1,7 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
-  fromProfile,
+  fromSkill,
   profileFact,
   simulationEffectFacts,
   skillTooltip,
@@ -36,14 +38,14 @@ export const guardianCoreTooltips = {
     [SHARED_SKILL_IDS.SWAP_WEAPONS]: weaponSwapTooltip,
     [ID.HELIO_RUSH]: skillTooltip(
       'Rush through your target and strike. An Illuminated charge or an active Symbol of Luminance empowers the impact. The attack then arms a new Illuminated charge for another eligible spear attack.',
-      [fromProfile(CORE.spearHelioRush, 'damageMultiplier', 'Strike damage while Illuminated', tooltipFactorChange)]
+      [fromSkill(ID.HELIO_RUSH, 'illuminatedDamageMultiplier', 'Strike damage while Illuminated', tooltipFactorChange)]
     ),
     [ID.GLEAMING_DISC]: skillTooltip(
       'Strike with a disc and its shockwave. Illumination increases the shockwave damage by the listed share of the base total coefficient. The attack then arms a new Illuminated charge for another eligible spear attack.',
       [
-        fromProfile(
-          CORE.spearGleamingDisc,
-          'damageMultiplier',
+        fromSkill(
+          ID.GLEAMING_DISC,
+          'illuminatedDamageMultiplier',
           'Additional share of base total coefficient while Illuminated',
           tooltipFactorChange
         )
@@ -53,43 +55,48 @@ export const guardianCoreTooltips = {
       'Strike with a volley of projectiles. Illumination adds the extra projectiles listed separately. The attack then arms a new Illuminated charge for another eligible spear attack.',
       (balanceContext) =>
         simulationEffectFacts(
-          tooltipProfile(balanceContext, CORE.spearSolarStorm).effects,
+          requireSkillAction(requireSkillFromContext(balanceContext, ID.SOLAR_STORM), 'illumination').effects,
           'additional while Illuminated'
         ).facts
     ),
     [ID.SYMBOL_OF_LUMINANCE]: skillTooltip(
       'Create a damaging symbol. During its luminance window, eligible spear attacks receive their Illuminated effects without spending an armed charge.',
-      (balanceContext) => simulationEffectFacts(tooltipProfile(balanceContext, CORE.spearLuminance).effects).facts
+      (balanceContext) =>
+        simulationEffectFacts(
+          requireSkillAction(requireSkillFromContext(balanceContext, ID.SYMBOL_OF_LUMINANCE), 'illumination').effects
+        ).facts
     ),
     [ID.SYMBOL_OF_IGNITION]: skillTooltip(
       'Create a damaging symbol and an ignition field. Other qualifying player strikes, torch pulses, and fire-whirl bolts trigger additional Burning while the field is active. Projectile and nonprojectile triggers have independent cooldowns.',
       (balanceContext) => [
         ...simulationEffectFacts(
-          tooltipProfile(balanceContext, CORE.symbolOfIgnition).effects,
+          requireSkillAction(requireSkillFromContext(balanceContext, ID.SYMBOL_OF_IGNITION), 'ignition').effects,
           'ignition field; Burning is per trigger'
         ).facts,
-        profileFact(
-          balanceContext,
-          CORE.symbolOfIgnition,
-          'internalCooldown',
-          'Ignition interval per trigger group',
-          tooltipSeconds
-        )
+        {
+          name: 'Ignition interval per trigger group',
+          detail: tooltipSeconds(skillNumberFromContext(balanceContext, ID.SYMBOL_OF_IGNITION, 'internalCooldown'))
+        }
       ]
     ),
     [ID.BANE_SIGNET]: skillTooltip(
       'Passively gain power while this signet is ready. Activate to knock down the target. Perfect Inscriptions strengthens the passive and keeps it active during recharge.',
-      [fromProfile('guardian.core.bane-signet-passive', 'attributeBonus', 'Base passive power', tooltipDecimal)]
+      (context) => [
+        {
+          name: 'Base passive power',
+          detail: tooltipDecimal(skillNumberFromContext(context, ID.BANE_SIGNET, 'attributeBonuses.power'))
+        }
+      ]
     ),
     [ID.SIGNET_OF_WRATH]: skillTooltip(
       'Passively gain condition damage while this signet is ready. Activate to immobilize the target. Perfect Inscriptions strengthens the passive and keeps it active during recharge.',
-      [
-        fromProfile(
-          'guardian.core.signet-of-wrath-passive',
-          'attributeBonus',
-          'Base passive condition damage',
-          tooltipDecimal
-        )
+      (context) => [
+        {
+          name: 'Base passive condition damage',
+          detail: tooltipDecimal(
+            skillNumberFromContext(context, ID.SIGNET_OF_WRATH, 'attributeBonuses.conditionDamage')
+          )
+        }
       ]
     ),
     [ID.ZEALOTS_FLAME]: skillTooltip(

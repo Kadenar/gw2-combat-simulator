@@ -6,7 +6,6 @@ import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js'
 import { GUARDIAN_SKILL_IDS as G, GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as FB } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
@@ -87,7 +86,7 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
     professions: {
       guardian: {
         balanceProfiles: {
-          [FB.resources]: { fields: { maximumStacks: 6, pulseInterval: 2 } },
+          [GT.PURITY_OF_WORD]: { fields: { maximumStacks: 6, pulseInterval: 2 } },
           [GT.ARCHIVIST_OF_WHISPERS]: { fields: { maximumStacks: 10 } }
         }
       }

@@ -1,4 +1,5 @@
-import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import { requireSkillAction, type CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
+import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { AlliedStrikeOpportunity } from '#gw2/platform/combat/state/allied-strikes.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -18,18 +19,13 @@ import {
   grantCharges,
   type ChargeGrant
 } from '#gw2/platform/combat/resources/charges.js';
-import {
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { ASHES_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianSkill, GuardianRuntime, GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -54,9 +50,10 @@ interface AshesGrantRequest {
 /** Admission requires both the buff and a deliverable payload before proc claims; each spend resolves it again. */
 export function resolveAshesGrantData(
   selection: AshesSelection,
-  profile: BalanceProfile
+  owner: BalanceProfile | Skill,
+  action?: CustomSideEffectAction
 ): AshesGrantAdmission | undefined {
-  const buff = requireEffect(profile, 'buff', 'ashes-of-the-just');
+  const buff = requireEffect(owner, 'buff', 'ashes-of-the-just', action);
   const ashes = resolveAshes(selection);
   return buff && ashes ? { buff } : undefined;
 }
@@ -253,8 +250,9 @@ function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<Guardia
     skillName: cast.skill.name,
     activationId: cast.id
   };
-  const profile = requireBalanceProfileFromContext(runtime, ASHES_PROFILE.epilogueGrant);
-  const might = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
+  const owner = requireSkillFromContext(runtime, ID.ASHES_OF_THE_JUST);
+  const action = requireSkillAction(owner, 'grant');
+  const might = requireEffect(owner, 'boon', boonKey(BOON.MIGHT), action);
 
   if (might)
     runtime.effects.emit({
@@ -263,18 +261,18 @@ function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<Guardia
         ...event,
         at: runtime.time,
         kind: boonKey(BOON.MIGHT),
-        stacks: effectNumber(profile, might, 'stacks'),
-        duration: effectNumber(profile, might, 'duration'),
+        stacks: effectNumber(owner, might, 'stacks'),
+        duration: effectNumber(owner, might, 'duration'),
         audience: { recipients: RECIPIENT.PARTY }
       }
     });
 
-  const admission = resolveAshesGrantData(runtime, profile);
+  const admission = resolveAshesGrantData(runtime, owner, action);
 
   if (!admission) return;
 
-  const duration = effectNumber(profile, admission.buff, 'duration');
-  const charges = effectNumber(profile, admission.buff, 'stacks');
+  const duration = effectNumber(owner, admission.buff, 'duration');
+  const charges = effectNumber(owner, admission.buff, 'stacks');
   grantAshes(runtime, {
     source: 'epilogue',
     cause: event,

@@ -313,7 +313,15 @@ const searingPact = defineTrait({
   ])
 });
 
+/** Training owns the common trigger threshold; each virtue retains its independent live counter. */
+export const willbenderTraining = defineTrait({
+  id: TRAIT.WILLBENDER_TRAINING,
+  name: 'Willbender Training',
+  balance: { threshold: 5 }
+});
+
 export const willbenderTraits = [
+  willbenderTraining,
   lethalTempo,
   tyrantsMomentum,
   restorativeVirtues,

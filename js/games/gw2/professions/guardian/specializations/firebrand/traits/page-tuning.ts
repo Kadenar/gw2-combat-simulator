@@ -1,3 +1,4 @@
+import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
   balanceNumberFromContext,
@@ -5,12 +6,11 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
 
 /** Traits choose capacity, initial default, and cadence; the resource controller owns page accounting. */
 export function firebrandPageTuning(context: { readonly config: GuardianConfig }) {
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const resourcesProfile = requireBalanceProfileFromContext(context, TRAIT.PURITY_OF_WORD);
   const capacityTrait = resourcesProfile.capacityTrait as SkillId | undefined;
   const intervalTrait = resourcesProfile.intervalTrait as SkillId | undefined;
   const enhancedCapacity = capacityTrait !== undefined && hasTrait(context, capacityTrait);

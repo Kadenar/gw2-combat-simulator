@@ -1,4 +1,3 @@
-import { ASHES_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
@@ -6,10 +5,7 @@ import { SPECIALIZATIONS } from '#gw2/professions/guardian/data/guardian-api-met
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { firebrandHooks } from '#gw2/professions/guardian/specializations/firebrand/hooks.js';
 import { bindFirebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
-import {
-  FIREBRAND_BALANCE_PROFILES,
-  FIREBRAND_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
+import { ashesMechanic } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
 import { FIREBRAND_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/firebrand/skills/index.js';
 import { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/skill-fields.js';
 import {
@@ -86,20 +82,14 @@ export const firebrandReworkModule = defineNativeModule({
     }),
     traits: [...specialization.minorTraits, ...specialization.majorTraits.flat()],
     specializations: [specialization],
-    balanceProfiles: FIREBRAND_BALANCE_PROFILES.map((profile) => {
-      // Only the reworked ruleset selects Righteous Flames; live Quickfire shares its numeric identity.
-      if (profile.id === ASHES_PROFILE.mechanic)
-        return {
-          ...profile,
-          name: 'Ashes of the Just: Burning per charge (replaced when Righteous Flames is selected)',
-          burningOverrideTrait: REWORK.RIGHTEOUS_FLAMES
-        };
-
-      if (profile.id !== PROFILE.resources) return profile;
-
-      const { capacityTrait: _capacity, intervalTrait: _interval, ...baseline } = profile;
-      return baseline;
-    })
+    // Only the reworked ruleset selects Righteous Flames; live Quickfire shares its numeric identity.
+    balanceProfiles: [
+      {
+        ...ashesMechanic,
+        name: 'Ashes of the Just: Burning per charge (replaced when Righteous Flames is selected)',
+        burningOverrideTrait: REWORK.RIGHTEOUS_FLAMES
+      }
+    ]
   },
   state: {
     create: (config, { balanceContext }) =>

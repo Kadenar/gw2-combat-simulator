@@ -1,11 +1,12 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR, RECIPIENT, COMBO_FIELD, CONTROL, WEAPON, BOON } from '#gw2/platform/constants.js';
 import { strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import {
-  balanceProfileNumber,
+  skillNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -17,7 +18,6 @@ import {
   grantCharges,
   type ChargeGrant
 } from '#gw2/platform/combat/resources/charges.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
@@ -36,11 +36,11 @@ function spearIlluminated(runtime: { readonly profession: GuardianRuntime['profe
   return state.spearLuminanceUntil > at || activeChargeCount(state.spearIlluminated, at) > 0;
 }
 
-/** Illuminated spear skills select their patchable bonus profile once, at acceptance. */
-function illuminatedSpearVariant(profileId: string): NonNullable<Skill['effectVariants']>[number] {
+/** Illuminated spear skills select their patchable skill components once, at acceptance. */
+function illuminatedSpearVariant(): NonNullable<Skill['effectVariants']>[number] {
   return {
     when: (runtime, cast) => spearIlluminated(runtime, cast.start),
-    transform: (runtime, cast, effects) => illuminatedSpearEffects(runtime, cast, profileId, effects)
+    transform: (runtime, cast, effects) => illuminatedSpearEffects(runtime, cast, effects)
   };
 }
 
@@ -48,13 +48,12 @@ function illuminatedSpearVariant(profileId: string): NonNullable<Skill['effectVa
 function illuminatedSpearEffects(
   runtime: GuardianRuntime,
   cast: RuntimeCast<GuardianSkill>,
-  profileId: string,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   const state = runtime.profession.core;
   const luminance = state.spearLuminanceUntil > cast.start;
-  const profile = requireBalanceProfileFromContext(runtime, profileId);
-  const multiplier = balanceProfileNumber(profile, 'damageMultiplier');
+  const skill = requireSkillFromContext(runtime, cast.skill.id);
+  const multiplier = skillNumber(skill, 'illuminatedDamageMultiplier');
 
   if (!(multiplier > 1)) return effects;
 
@@ -69,7 +68,7 @@ function illuminatedSpearEffects(
       ['Fourth projectile', 4],
       ['Fifth projectile', 5]
     ] as const) {
-      const effect = requireEffect(profile, 'strike', name);
+      const effect = requireEffect(skill, 'strike', name, requireSkillAction(skill, 'illumination'));
 
       if (!effect) continue;
 
@@ -143,12 +142,17 @@ function completeSpearIllumination(runtime: GuardianRuntime, cast: RuntimeCast<G
   // Settle only the captured grant, leaving any replacement entitled even when its deadline matches.
   if (consumedCharges.get(cast) === state.spearIlluminated) consumeCharge(state.spearIlluminated, cast.start);
 
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.spearLuminance);
-  const effect = requireEffect(profile, 'buff', symbol ? 'guardian-spear-luminance' : 'illuminated');
+  const skill = requireSkillFromContext(runtime, ID.SYMBOL_OF_LUMINANCE);
+  const effect = requireEffect(
+    skill,
+    'buff',
+    symbol ? 'guardian-spear-luminance' : 'illuminated',
+    requireSkillAction(skill, 'illumination')
+  );
 
   if (!effect) return;
 
-  const duration = effectNumber(profile, effect, 'duration');
+  const duration = effectNumber(skill, effect, 'duration');
 
   if (!(duration > 0)) return;
 
@@ -193,9 +197,10 @@ function completeSpearIllumination(runtime: GuardianRuntime, cast: RuntimeCast<G
 
 export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.HELIO_RUSH]: {
+    illuminatedDamageMultiplier: 1.5,
     // Capture illumination at acceptance and settle only that captured charge on commitment.
     effectVariants: [
-      illuminatedSpearVariant(PROFILE.spearHelioRush),
+      illuminatedSpearVariant(),
       // Only an illuminated charge grants Resolution.
       { when: () => true, transform: (_runtime, _cast, effects) => effects.filter((effect) => effect.type !== 'boon') }
     ],
@@ -224,8 +229,9 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.GLEAMING_DISC]: {
+    illuminatedDamageMultiplier: 1.25,
     // Capture illumination at acceptance and settle only that captured charge on commitment.
-    effectVariants: [illuminatedSpearVariant(PROFILE.spearGleamingDisc)],
+    effectVariants: [illuminatedSpearVariant()],
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.spear-illumination' } }],
     castTimeMs: 560,
     // The disc commits at 520 ms, allowing a queued cancel to release the remaining animation.
@@ -259,9 +265,40 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.SOLAR_STORM]: {
+    illuminatedDamageMultiplier: 1.25,
     // Capture illumination at acceptance and settle only that captured charge on commitment.
-    effectVariants: [illuminatedSpearVariant(PROFILE.spearSolarStorm)],
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.spear-illumination' } }],
+    effectVariants: [illuminatedSpearVariant()],
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'guardian.spear-illumination',
+          id: 'illumination',
+          effects: [
+            {
+              type: 'strike',
+              name: 'Fourth projectile',
+              coefficient: 0.6,
+              hits: 1,
+              atMs: 1720,
+              timingAnchor: 'castStart',
+              timingScale: 'fixed',
+              actorType: ACTOR.PLAYER
+            },
+            {
+              type: 'strike',
+              name: 'Fifth projectile',
+              coefficient: 0.3,
+              hits: 1,
+              atMs: 1920,
+              timingAnchor: 'castStart',
+              timingScale: 'fixed',
+              actorType: ACTOR.PLAYER
+            }
+          ]
+        }
+      }
+    ],
     castTimeMs: 560,
 
     // The volley commits before impact; cancelling the remaining animation preserves its delayed strikes.
@@ -299,7 +336,32 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     // Author symbol identity independently of the skill's display text.
     tags: ['symbol'],
     // The symbol grants an independent window from semantic completion.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.spear-luminance' } }],
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'guardian.spear-luminance',
+          id: 'illumination',
+          effects: [
+            {
+              type: 'buff',
+              name: 'illuminated',
+              kind: 'illuminated',
+              stacks: 1,
+              duration: 5
+            },
+            {
+              type: 'buff',
+              name: 'guardian-spear-luminance',
+              kind: 'guardian-spear-luminance',
+              stacks: 1,
+              duration: 5,
+              actorType: ACTOR.PLAYER
+            }
+          ]
+        }
+      }
+    ],
     castTimeMs: 440,
 
     cooldown: 20,
@@ -346,16 +408,16 @@ const guardianSpearActions: RuntimeProfession<GuardianRuntimeState, GuardianSkil
 /** Registers spear actions with the Core hook assembly. */
 export const guardianSpearLifecycle = {
   // Seed the native charge before an isolated spear activation so its normal effect selection owns the bonus.
-  prepareDamageState(runtime, skill, inputs) {
-    if (skill?.weapon !== WEAPON.SPEAR || !inputs.illuminated) return;
+  prepareDamageState(runtime, selectedSkill, inputs) {
+    if (selectedSkill?.weapon !== WEAPON.SPEAR || !inputs.illuminated) return;
 
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.spearLuminance);
-    const effect = requireEffect(profile, 'buff', 'illuminated');
+    const skill = requireSkillFromContext(runtime, ID.SYMBOL_OF_LUMINANCE);
+    const effect = requireEffect(skill, 'buff', 'illuminated', requireSkillAction(skill, 'illumination'));
 
     if (!effect) return;
 
     // The isolated cast starts now, so the authored finite lifetime is sufficient to select its bonus.
-    const duration = effectNumber(profile, effect, 'duration');
+    const duration = effectNumber(skill, effect, 'duration');
     runtime.profession.core.spearIlluminated = grantCharges(
       duration > 0 ? 1 : 0,
       gw2EffectExpiresAt(runtime.time, duration)

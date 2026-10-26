@@ -1,6 +1,6 @@
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTraitProfile } from '#gw2/platform/profession-definition/profile-authoring.js';
-import { FIREBRAND_BALANCE_PROFILES } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
+import { ashesMechanic } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { firebrandTraits } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
 import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
@@ -11,7 +11,7 @@ let defaultCatalog: ReturnType<typeof createCanonicalCatalog> | undefined;
 export function createFirebrandState(config: GuardianConfig = {}) {
   const catalog = (defaultCatalog ??= createCanonicalCatalog({
     balanceProfiles: [
-      ...FIREBRAND_BALANCE_PROFILES,
+      ashesMechanic,
       ...firebrandTraits.map((trait) => defineTraitProfile(trait.id, trait.name, trait.balance))
     ]
   }));

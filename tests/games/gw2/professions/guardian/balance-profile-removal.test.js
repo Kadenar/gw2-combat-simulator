@@ -2,7 +2,6 @@ import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { captureTriggerPoint } from '#tests/helpers/trigger-points.js';
 import { willbenderVirtueTriggered } from '#gw2/professions/guardian/specializations/willbender/mechanics/trigger-points.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
-import { DRAGONHUNTER_BALANCE_PROFILE_IDS as DH_PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 import { willbenderBuffPolicies } from '#gw2/professions/guardian/specializations/willbender/effect-state.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -40,15 +39,17 @@ const has = (result, type, field, value) =>
 
 test('Willbender window removal preserves sibling durations, flames, and activation boons', () => {
   const result = run(
-    {
-      'guardian.willbender.virtue-windows': {
-        ...remove('buff', 'justice'),
-        effects: [{ type: 'buff', name: 'resolve', duration: { from: 6, to: 2 } }]
-      }
-    },
+    {},
     'Willbender',
     ['Rushing Justice', 'Flowing Resolve', { type: 'wait', durationMs: 1500 }],
-    [TRAIT.HOLY_RECKONING]
+    [TRAIT.HOLY_RECKONING],
+    {},
+    {
+      [SKILL.RUSHING_JUSTICE]: { sideEffects: { virtue: remove('buff', 'justice') } },
+      [SKILL.FLOWING_RESOLVE]: {
+        sideEffects: { virtue: { effects: [{ type: 'buff', name: 'resolve', duration: 2 }] } }
+      }
+    }
   );
   assert.equal(result.planningState.profession.justiceUntil, 0);
   assert.equal(has(result, 'buff', 'kind', 'willbender-justice'), false);
@@ -97,10 +98,12 @@ test('Phoenix activation removal cannot select triggered Alacrity', () => {
 
 test('removed Willbender Flames schedules no strike or Searing Pact reaction', () => {
   const result = run(
-    { 'guardian.willbender.flames': remove('strike', 'Strike') },
+    {},
     'Willbender',
     ['Rushing Justice', { type: 'wait', durationMs: 5000 }],
-    [TRAIT.SEARING_PACT]
+    [TRAIT.SEARING_PACT],
+    {},
+    { [SKILL.WILLBENDER_FLAMES_ID_62618]: remove('strike', 'Strike') }
   );
   assert.equal(has(result, 'damage', 'skillName', 'Willbender Flames'), false);
   assert.equal(has(result, 'condition', 'skillName', 'Searing Pact'), false);
@@ -181,12 +184,12 @@ for (const [type, name] of [
 ]) {
   test(`Ashes ${type} removal preserves Might and page spending without granting charges`, () => {
     const result = run(
-      {
-        [type === 'condition' ? 'guardian.firebrand.ashes-of-the-just' : 'guardian.firebrand.epilogue-ashes-grant']:
-          remove(type, name)
-      },
+      type === 'condition' ? { 'guardian.firebrand.ashes-of-the-just': remove(type, name) } : {},
       'Firebrand',
-      ['Tome of Justice', 'Epilogue: Ashes of the Just']
+      ['Tome of Justice', 'Epilogue: Ashes of the Just'],
+      [],
+      {},
+      type === 'buff' ? { [SKILL.ASHES_OF_THE_JUST]: { sideEffects: { grant: remove(type, name) } } } : {}
     );
     assert.equal(has(result, 'buff', 'kind', 'ashes-of-the-just'), false);
     assert.equal(result.planningState.profession.ashes.charges, 0);
@@ -285,7 +288,7 @@ test('required profile fields fail contextually and selected catalogs cannot fal
 
 test('patched resource caps and zero recurrence survive initialization and presentation', () => {
   const edits = {
-    'guardian.firebrand.tome-pages': {
+    [TRAIT.PURITY_OF_WORD]: {
       fields: { maximumStacks: { from: 5, to: 2 }, pulseInterval: { from: 8, to: 0 } }
     }
   };
@@ -415,15 +418,13 @@ test('Dragonhunter passive Crippled depends on emitted Burning and each survivin
   // Cross one passive threshold with a single accepted hit to isolate the dependency between the two payloads.
   for (const removed of ['none', 'burning', 'crippled']) {
     const balanceProfiles =
-      removed === 'burning'
-        ? { [CORE_PROFILE.justice]: remove('condition', 'Burning (passive)') }
-        : removed === 'crippled'
-          ? { [DH_PROFILE.tether]: remove('condition', 'Crippled (passive)') }
-          : {};
+      removed === 'burning' ? { [CORE_PROFILE.justice]: remove('condition', 'Burning (passive)') } : {};
+    const skills =
+      removed === 'crippled' ? { [SKILL.SPEAR_OF_JUSTICE]: remove('condition', 'Crippled (passive)') } : {};
     const profession = withPatchPreview(guardianProfession, {
       id: 'passive-removal',
       label: 'Passive removal',
-      professions: { guardian: { balanceProfiles } }
+      professions: { guardian: { balanceProfiles, skills } }
     });
     const result = runGuardian(
       [{ type: 'wait', durationMs: 2000 }],

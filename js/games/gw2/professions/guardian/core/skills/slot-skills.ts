@@ -35,6 +35,8 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     effects: []
   },
   [ID.BANE_SIGNET]: {
+    // Passive grants stay with their skill and obey readiness in the attribute reader.
+    attributeBonuses: { power: 180 },
     // Use the reviewed activation duration so damage and control resolve at cast completion.
     castTimeMs: 880,
     effects: [
@@ -72,6 +74,7 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     effects: []
   },
   [ID.SIGNET_OF_WRATH]: {
+    attributeBonuses: { conditionDamage: 180 },
     // The active commits before the Quickness cast finishes, allowing the remaining recovery to be canceled.
     castTimeMs: 880,
     interruptCommitMs: 820,

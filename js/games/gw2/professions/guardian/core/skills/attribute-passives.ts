@@ -3,7 +3,7 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
-import { passiveAttribute } from '#gw2/platform/attributes/passives.js';
+import { passiveSkillAttributes } from '#gw2/platform/attributes/passives.js';
 import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
@@ -11,21 +11,15 @@ import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/prof
 export const guardianPassiveAttributes: Gw2AttributeContributionCalculator = (context) => [
   {
     attributeEffects: [
-      passiveAttribute(
+      ...passiveSkillAttributes(
         context,
         ID.BANE_SIGNET,
-        'guardian.core.bane-signet-passive',
-        'Power',
-        'attributeBonus',
         () => guardianSignetPassiveActive(context, ID.BANE_SIGNET),
         perfectInscriptionsMultiplier(context)
       ),
-      passiveAttribute(
+      ...passiveSkillAttributes(
         context,
         ID.SIGNET_OF_WRATH,
-        'guardian.core.signet-of-wrath-passive',
-        'Condition Damage',
-        'attributeBonus',
         () => guardianSignetPassiveActive(context, ID.SIGNET_OF_WRATH),
         perfectInscriptionsMultiplier(context)
       )

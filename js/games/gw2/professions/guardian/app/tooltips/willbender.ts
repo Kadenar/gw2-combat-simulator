@@ -1,3 +1,5 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   fromProfile,
   outsideScopeTooltip,
@@ -6,14 +8,12 @@ import {
   skillTooltip,
   tooltipFactorChange,
   tooltipPercent,
-  tooltipProfile,
   tooltipSeconds,
   traitTooltip,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { WILLBENDER_BALANCE_PROFILE_IDS as WILLBENDER } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 
 const willbenderVirtueTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id);
@@ -27,14 +27,20 @@ const willbenderVirtueTooltip: DescribeSimulationTooltip = (balanceContext, enti
     facts: [
       ...simulationEffectFacts(selected.effects).facts,
       ...simulationEffectFacts(
-        tooltipProfile(balanceContext, WILLBENDER.virtueWindows).effects?.slice(index, index + 1),
+        requireSkillAction(selected, 'virtue').effects.filter((effect) => effect.type === 'buff'),
         'base active window'
       ).facts,
-      ...simulationEffectFacts(tooltipProfile(balanceContext, WILLBENDER.flames).effects, 'full flame trail').facts,
-      profileFact(balanceContext, WILLBENDER.virtueWindows, 'threshold', 'Base eligible hits per trigger'),
+      ...simulationEffectFacts(
+        requireSkillFromContext(
+          balanceContext,
+          [ID.WILLBENDER_FLAMES_ID_62618, ID.WILLBENDER_FLAMES, ID.WILLBENDER_FLAMES_COURAGE][index]
+        ).effects,
+        'full flame trail'
+      ).facts,
+      profileFact(balanceContext, TRAIT.WILLBENDER_TRAINING, 'threshold', 'Base eligible hits per trigger'),
       ...(index === 2
         ? simulationEffectFacts(
-            tooltipProfile(balanceContext, WILLBENDER.courageTrigger).effects,
+            requireSkillAction(selected, 'virtue').effects.filter((effect) => effect.type === 'boon'),
             'per Courage trigger'
           ).facts
         : [])

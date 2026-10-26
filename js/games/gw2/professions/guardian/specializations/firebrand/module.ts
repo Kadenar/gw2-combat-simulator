@@ -3,7 +3,7 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { firebrandHooks } from '#gw2/professions/guardian/specializations/firebrand/hooks.js';
 import { bindFirebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
-import { FIREBRAND_BALANCE_PROFILES } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
+import { ashesMechanic } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
 import { FIREBRAND_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/firebrand/skills/index.js';
 import { FIREBRAND_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { firebrandTraits } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
@@ -17,7 +17,7 @@ export const firebrandModule = defineNativeModule({
     skillFields: FIREBRAND_SKILL_FIELDS,
     skillMechanics: FIREBRAND_SKILL_MECHANICS,
 
-    balanceProfiles: FIREBRAND_BALANCE_PROFILES
+    balanceProfiles: [ashesMechanic]
   }),
   state: { create: createFirebrandState, project: createPublicStateProjector(FIREBRAND_PUBLIC_STATE_PROJECTION) },
   traitDefinitions: firebrandTraits,

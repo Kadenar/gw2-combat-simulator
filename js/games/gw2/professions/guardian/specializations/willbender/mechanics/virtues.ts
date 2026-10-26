@@ -1,3 +1,5 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { RECIPIENT, ACTOR, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
@@ -19,14 +21,13 @@ import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/even
 import { admitVirtueActivation, completeVirtueActivation } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { permeatingWrathThreshold } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import {
   willbenderVirtueOpened,
   willbenderVirtueTriggered
 } from '#gw2/professions/guardian/specializations/willbender/mechanics/trigger-points.js';
-import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
-import { willbenderVirtueWindowProfile } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
+import { willbenderVirtueWindow } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
 import type {
   GuardianRuntime,
   GuardianRuntimeState,
@@ -54,8 +55,7 @@ const flameOwner = (generation: number) => ({ id: 'willbender-flames', generatio
 /** Windows open at their authored boundary without predicting hits or resetting partial hit progress. */
 function activate(runtime: GuardianRuntime, data: unknown): void {
   const { cast, virtue } = data as { cast: RuntimeCast<GuardianSkill>; virtue: GuardianVirtue };
-  const profile = willbenderVirtueWindowProfile(runtime, virtue);
-  const window = requireEffect(profile, 'buff', virtue);
+  const { owner: profile, effect: window } = willbenderVirtueWindow(runtime, virtue);
   const state = willbenderState.from(runtime);
   const cause = guardianCastCause(runtime, cast);
   state[`${virtue}Until`] = window ? gw2EffectExpiresAt(runtime.time, effectNumber(profile, window, 'duration')) : 0;
@@ -78,7 +78,7 @@ function activate(runtime: GuardianRuntime, data: unknown): void {
 /** Same-virtue fields overlap; a different virtue retires all pending work from the prior flame group. */
 function flames(runtime: GuardianRuntime, data: unknown): void {
   const { cast, virtue } = data as { cast: RuntimeCast<GuardianSkill>; virtue: GuardianVirtue };
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.flames);
+  const profile = requireSkillFromContext(runtime, FLAME_IDS[virtue]);
   const strike = requireEffect(profile, 'strike', 'Strike');
 
   if (!strike) return;
@@ -135,7 +135,7 @@ function reactToWillbenderHit(
 
     if (!(until > 0) || runtime.time > until) continue;
 
-    const threshold = permeatingWrathThreshold(runtime, virtue, PROFILE.virtueWindows);
+    const threshold = permeatingWrathThreshold(runtime, virtue, TRAIT.WILLBENDER_TRAINING);
     // Each open virtue owns its cycle; reset it before traits and virtue rewards react to completion.
     const progress = advanceCounter(state.virtueHitCounts[virtue], 1, threshold, 'reset');
     state.virtueHitCounts[virtue] = progress.value;
@@ -175,13 +175,13 @@ function reactToWillbenderHit(
 
     if (virtue === 'courage')
       for (const name of [boonKey(BOON.AEGIS), boonKey(BOON.STABILITY)]) {
-        const profile = requireBalanceProfileFromContext(runtime, PROFILE.courageTrigger);
-        const effect = requireEffect(profile, 'boon', name);
+        const profile = requireSkillFromContext(runtime, ID.CRASHING_COURAGE);
+        const effect = requireEffect(profile, 'boon', name, requireSkillAction(profile, 'virtue'));
 
         if (effect) {
           runtime.effects.emit({
             kind: 'profile',
-            profile: profile,
+            profile,
             effects: [effect],
             attribution: {
               source: 'guardian',

@@ -58,6 +58,18 @@ function attribution(event: Gw2ResolverEvent) {
 
 const refundByCast = new WeakMap<RuntimeCast<GuardianSkill>, number>();
 
+/** Purity of Word introduces the shared page pool; the resource controller retains its accounting. */
+export const purityOfWord = defineTrait({
+  id: TRAIT.PURITY_OF_WORD,
+  name: 'Purity of Word',
+  balance: {
+    maximumStacks: 5,
+    pulseInterval: 8,
+    capacityTrait: TRAIT.ARCHIVIST_OF_WHISPERS,
+    intervalTrait: TRAIT.LOREMASTER
+  }
+});
+
 /** Counts accepted pages and grants earned refunds even after the tome session ends. */
 export const swiftScholar = defineTrait({
   id: TRAIT.SWIFT_SCHOLAR,
@@ -385,6 +397,7 @@ const loremaster = defineTrait({
 });
 
 export const firebrandTraits = [
+  purityOfWord,
   archivistOfWhispers,
   loremaster,
   swiftScholar,

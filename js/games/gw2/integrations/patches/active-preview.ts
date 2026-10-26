@@ -812,7 +812,7 @@ export const activePatchPreview: PatchPreview = {
       ],
       balanceProfiles: {
         // Purity of Word increases capacity in PvE; the six-second interval is PvP-only.
-        'guardian.firebrand.tome-pages': { fields: { maximumStacks: { from: 5, to: 8 } } },
+        2089: { fields: { maximumStacks: { from: 5, to: 8 } } },
         '2075': {
           // Use illustrative condition-specific bonuses until the published values are available.
           assumption:

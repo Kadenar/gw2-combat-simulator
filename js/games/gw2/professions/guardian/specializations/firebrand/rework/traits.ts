@@ -214,6 +214,8 @@ const righteousFlames = defineTrait({
 
 // Support-only traits own no damage effects; replacing their old definitions removes page-capacity and cadence bonuses.
 export const firebrandReworkTraits = [
+  // The rework removes the capacity/cadence selectors together with their replaced traits.
+  defineTrait({ id: TRAIT.PURITY_OF_WORD, name: 'Purity of Word', balance: { maximumStacks: 5, pulseInterval: 8 } }),
   swiftScholar,
   ...firebrandTraits.filter((trait) => trait.id === TRAIT.LEGENDARY_LORE),
   unrelentingCriticism,
