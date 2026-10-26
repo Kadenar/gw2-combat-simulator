@@ -29,7 +29,7 @@ test('Blast Zone grants fire-field Might from healing toolbelts and first mech c
     ['Mechanist', 'Rectifier Signet', 'Spark Revolver', TRAIT.MECH_ARMS_JADE_CANNONS]
   ]) {
     const result = simulate(specialization, [...fireField, skill, { type: 'wait', durationMs: 2000 }], {
-      selectedSkillIds: [engineerCatalog.skillsByName.get(heal).id, 5812],
+      selectedSkillIds: [engineerCatalog.skills.find((candidate) => candidate.name === heal).id, 5812],
       selectedTraitIds: [TRAIT.BLAST_ZONE, ...(commandTrait ? [commandTrait] : [])]
     });
     assert.deepEqual(result.warnings, [], skill);

@@ -3,7 +3,10 @@ import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { balanceProfilePatchableNumericFields } from '#gw2/integrations/patches/authoring/fields.js';
+import {
+  balanceProfilePatchableNumericFields,
+  skillPatchableNumericFields
+} from '#gw2/integrations/patches/authoring/fields.js';
 import { authoringNumericFieldLabel } from '#gw2/integrations/patches/app/model.js';
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
@@ -13,7 +16,7 @@ import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thie
 import { VENOMS, activateVenom } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { prepareTrap, thiefTrapAvailability } from '#gw2/professions/thief/core/mechanics/preparations.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/core/profile-ids.js';
+import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
 
 // Profile lifetime controls charge entitlement, independently of the duration on each triggered condition.
 test('patched venom duration owns personal and allied charge expiry and tooltip facts', () => {
@@ -91,27 +94,45 @@ test('patched preparation duration governs recharge-scaled availability without 
 
 // Authoring must expose the canonical unit and reject retired spellings, even alongside a valid edit.
 test('duration and flip patches reject obsolete names while real multipliers remain patchable', () => {
-  for (const [catalog, id, field] of [
-    [thiefCatalog, PROFILE.spiderVenomProc, 'duration'],
-    [elementalistCatalog, ELEMENTALIST.rockBarrier, 'flipDuration']
+  for (const [catalog, id, field, collection, patchKey, patch, fields] of [
+    [
+      thiefCatalog,
+      PROFILE.spiderVenomProc,
+      'duration',
+      'balanceProfilesById',
+      'balanceProfiles',
+      applyBalanceProfilePatch,
+      balanceProfilePatchableNumericFields
+    ],
+    [
+      elementalistCatalog,
+      ELEMENTALIST.ROCK_BARRIER,
+      'flipDuration',
+      'skillsById',
+      'skills',
+      applySkillPatch,
+      (skill) => skillPatchableNumericFields(skill, elementalistCatalog.skillFields)
+    ]
   ]) {
-    const profile = catalog.balanceProfilesById.get(id);
-    assert.equal(balanceProfilePatchableNumericFields(profile)[field], profile[field]);
-    assert.equal(balanceProfilePatchableNumericFields(profile).durationMultiplier, undefined);
-    const patched = applyBalanceProfilePatch(catalog, { balanceProfiles: { [id]: { fields: { [field]: 7 } } } });
-    assert.equal(patched.balanceProfilesById.get(id)[field], 7);
+    // Follow the canonical owner: Rock Barrier's flip lifetime now belongs to its skill.
+    const owner = catalog[collection].get(id);
+    assert.equal(fields(owner)[field], owner[field]);
+    assert.equal(fields(owner).durationMultiplier, undefined);
+    const patched = patch(catalog, { [patchKey]: { [id]: { fields: { [field]: 7 } } } });
+    assert.equal(patched[collection].get(id)[field], 7);
     assert.throws(
       () =>
-        applyBalanceProfilePatch(catalog, {
-          balanceProfiles: { [id]: { fields: { [field]: 7, durationMultiplier: 7 } } }
+        patch(catalog, {
+          [patchKey]: { [id]: { fields: { [field]: 7, durationMultiplier: 7 } } }
         }),
-      /does not expose durationMultiplier/
+      // Profiles know the factor but this owner lacks it; no skill declares it, so it is unsupported there.
+      patchKey === 'skills' ? /unsupported patch field durationMultiplier/ : /does not expose durationMultiplier/
     );
   }
 
   assert.throws(
     () => applySkillPatch(thiefCatalog, { skills: { [ID.PREPARE_PITFALL]: { fields: { durationMultiplier: 7 } } } }),
-    /does not expose durationMultiplier/
+    /unsupported patch field durationMultiplier/
   );
   assert.throws(
     () => createCanonicalCatalog({ generated: [{ id: 1, name: 'Retired', durationMultiplier: 3 }] }),

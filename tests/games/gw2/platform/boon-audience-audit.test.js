@@ -36,7 +36,7 @@ const run = (family, rotation, config = {}) =>
     selectedSkillIds: rotation.flatMap((entry) => {
       const skill =
         typeof entry === 'string'
-          ? families[family].catalog.skillsByName.get(entry)
+          ? families[family].catalog.skills.find((candidate) => candidate.name === entry)
           : families[family].catalog.skillsById.get(entry);
       return skill && ['Heal', 'Utility', 'Elite'].includes(skill.type) ? [skill.id] : [];
     }),
@@ -78,21 +78,15 @@ const cases = [
   ['guardian', 'Symbol of Vengeance', ['fury'], { specialization: 'Firebrand', primaryWeapon: 'Axe' }],
   ['guardian', 'Chapter 3: Azure Sun', ['vigor'], { specialization: 'Firebrand' }, ['Tome of Resolve']],
   ['guardian', 'Chapter 4: Shining River', ['swiftness'], { specialization: 'Firebrand' }, ['Tome of Resolve']],
-  [
-    'guardian',
-    'Chapter 1: Unflinching Charge',
-    ['protection', 'swiftness'],
-    { specialization: 'Firebrand' },
-    ['Tome of Courage']
-  ],
-  ['guardian', 'Chapter 2: Daring Challenge', ['resolution'], { specialization: 'Firebrand' }, ['Tome of Courage']],
-  ['guardian', 'Chapter 4: Stalwart Stand', ['resistance'], { specialization: 'Firebrand' }, ['Tome of Courage']],
+  ['guardian', 'Chapter 1: Unflinching Charge', ['protection', 'swiftness'], { specialization: 'Firebrand' }, [42259]],
+  ['guardian', 'Chapter 2: Daring Challenge', ['resolution'], { specialization: 'Firebrand' }, [42259]],
+  ['guardian', 'Chapter 4: Stalwart Stand', ['resistance'], { specialization: 'Firebrand' }, [42259]],
   [
     'guardian',
     'Epilogue: Unbroken Lines',
     ['protection', 'stability', 'aegis'],
     { specialization: 'Firebrand' },
-    ['Tome of Courage']
+    [42259]
   ],
   ['warrior', 'Charge', ['swiftness'], { primaryWeapon: 'Axe', secondaryWeapon: 'Warhorn' }],
   ['warrior', 'Call of Valor', ['vigor'], { primaryWeapon: 'Axe', secondaryWeapon: 'Warhorn' }],
@@ -146,7 +140,13 @@ const cases = [
 for (const [family, name, kinds, config, setup = []] of cases) {
   test(`${family} ${name} delivers its shared boons and projects four allied players`, () => {
     for (const count of [0, 4]) {
-      const result = run(family, [...setup, name], { ...config, allies: { count } });
+      const result = run(
+        family,
+        [...setup, name].map(
+          (label) => families[family].catalog.skills.find((skill) => skill.id === label || skill.name === label).id
+        ),
+        { ...config, allies: { count } }
+      );
       assert.deepEqual(result.warnings, []);
       for (const kind of kinds) {
         const events = grants(result, name, kind);
@@ -281,7 +281,9 @@ test('Ancestral Grace grants protection exclusively to the active pet', () => {
 });
 
 test('steal traits and the assumed Specter tether share their boon grants', () => {
-  const steal = run('thief', ['Steal'], { selectedTraitIds: [TT.THRILL_OF_THE_CRIME, TT.BOUNTIFUL_THEFT] });
+  const steal = run('thief', [{ type: 'cast', skillId: 13014 }], {
+    selectedTraitIds: [TT.THRILL_OF_THE_CRIME, TT.BOUNTIFUL_THEFT]
+  });
   assert.deepEqual(steal.warnings, []);
   const shared = steal.resolvedEvents.filter(
     (event) => event.type === 'buff' && [TT.THRILL_OF_THE_CRIME, TT.BOUNTIFUL_THEFT].includes(event.sourceId)
@@ -331,10 +333,14 @@ test('Indomitable Courage and Stoic Demeanor share their triggered boons', () =>
     ['Core', 'Virtue of Courage', GT.INDOMITABLE_COURAGE],
     ['Firebrand', 'Chapter 2: Daring Challenge', GT.STOIC_DEMEANOR]
   ]) {
-    const result = run('guardian', [...(specialization === 'Firebrand' ? ['Tome of Courage'] : []), skill], {
-      specialization,
-      selectedTraitIds: [trait]
-    });
+    const result = run(
+      'guardian',
+      [...(specialization === 'Firebrand' ? [{ type: 'cast', skillId: 42259 }] : []), skill],
+      {
+        specialization,
+        selectedTraitIds: [trait]
+      }
+    );
     assert.deepEqual(result.warnings, []);
     const events = result.resolvedEvents.filter((event) => event.type === 'buff' && event.sourceId === trait);
     assert.ok(events.length);
@@ -434,7 +440,7 @@ test('No Scope and New Genes share trait boons while Mass Momentum keeps its per
 
 test('Stalwart Speed and Luminous Staff grant their boons to allies', () => {
   for (const [specialization, rotation, trait, name, kind] of [
-    ['Firebrand', ['Tome of Courage', 'Epilogue: Unbroken Lines'], GT.STALWART_SPEED, 'Stalwart Speed', 'quickness'],
+    ['Firebrand', [42259, 'Epilogue: Unbroken Lines'], GT.STALWART_SPEED, 'Stalwart Speed', 'quickness'],
     ['Luminary', ['Enter Radiant Forge', 'Luminous Staff'], undefined, 'Luminous Staff', 'resolution']
   ]) {
     const result = run('guardian', rotation, { specialization, selectedTraitIds: trait ? [trait] : [] });
@@ -469,7 +475,7 @@ test('engineer bounce, projectile, and pad grants preserve their distinct audien
       'Particle Accelerator',
       true,
       4,
-      { selectedSkillIds: [engineerProfession.catalog.skillsByName.get('Photon Wall').id] }
+      { selectedSkillIds: [engineerProfession.catalog.skillsById.get(43739).id] }
     ],
     ['Holosmith', ['Engage Photon Forge', 'Holo Leap'], 'Holo Leap', true, 2, {}]
   ]) {
@@ -533,7 +539,7 @@ test('Heroic Command preserves the shared audience through both live Fervor prof
 test('Spirit Boon and Song of Arboreum retain shared recipients after trait emission', () => {
   for (const [specialization, skill, trait] of [
     ['Core', 'Swap Legends', VT.SPIRIT_BOON],
-    ['Vindicator', 'Energy Meld', VT.SONG_OF_ARBOREUM]
+    ['Vindicator', 62757, VT.SONG_OF_ARBOREUM]
   ]) {
     const result = run('revenant', [skill], {
       specialization,

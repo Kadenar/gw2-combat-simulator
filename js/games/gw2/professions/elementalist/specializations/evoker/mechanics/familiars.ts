@@ -1,5 +1,5 @@
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
-import type { ActionContext, SideEffectAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillAction, type ActionContext, type SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import {
@@ -18,15 +18,10 @@ import {
  * meditation payloads.
  */
 import { GW2_QUICKNESS_ACTION_RATE, castRelativeEffectTimingScale } from '#gw2/platform/execution/cast-timing.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import { elementalProcessionEffects } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiar-projection.js';
 import {
@@ -113,42 +108,42 @@ const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistRuntimeS
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const at = cast.effectiveEnd;
-    {
-      const profile = requireBalanceProfileFromContext(context, PROFILE.lightningBlitz);
-      const stacks = balanceProfileNumber(profile, 'resourceGain');
-      const enchantment = requireEffect(profile, 'buff', 'Lightning Blitz Enchantment');
+    // The selected skill owns the grant; shared enchantment state still owns expiry and consumption.
+    const action = requireSkillAction(skill, 'electric-enchantment');
+    const enchantment = requireEffect(skill, 'buff', 'Lightning Blitz Enchantment', action);
 
-      if (enchantment) {
-        grantElectricEnchantments(context, { at, stacks, duration: enchantment.duration, skill });
-      }
-    }
+    if (enchantment)
+      grantElectricEnchantments(context, {
+        at,
+        stacks: effectNumber(skill, enchantment, 'stacks'),
+        duration: enchantment.duration,
+        skill
+      });
   },
   'elementalist.evoker.zap'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const at = cast.effectiveEnd;
-    {
-      const profile = requireBalanceProfileFromContext(context, PROFILE.zap);
-      const zap = requireEffect(profile, 'buff', 'Zap Window');
+    const action = requireSkillAction(skill, 'zap-window');
+    const zap = requireEffect(skill, 'buff', 'Zap Window', action);
 
-      if (zap) {
-        context.effects.emit(
-          elementalistBuffRequest(
-            {
-              at,
-              source: skill.name,
-              sourceId: skill.id,
-              actorType: ACTOR.PLAYER,
-              skillName: skill.name,
-              // Use the declared identity so the policy and damage modifier observe this same window.
-              kind: String(zap.kind),
-              stacks: Number(zap.stacks),
-              duration: zap.duration
-            },
-            { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-          )
-        );
-      }
+    if (zap) {
+      context.effects.emit(
+        elementalistBuffRequest(
+          {
+            at,
+            source: skill.name,
+            sourceId: skill.id,
+            actorType: ACTOR.PLAYER,
+            skillName: skill.name,
+            // Use the declared identity so the policy and damage modifier observe this same window.
+            kind: String(zap.kind),
+            stacks: Number(zap.stacks),
+            duration: zap.duration
+          },
+          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+        )
+      );
     }
   },
   'elementalist.evoker.settle-basic-familiar'(context, data) {
@@ -175,85 +170,82 @@ const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistRuntimeS
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const at = cast.effectiveEnd;
-    {
-      const profile = requireBalanceProfileFromContext(context, PROFILE.haresAgility);
-      const stacks = balanceProfileNumber(profile, 'playerStacks');
-      const enchantment = requireEffect(profile, 'buff', 'Hare Enchantment');
+    // Read charges from the selected buff, independently of this meditation's endurance grant.
+    const action = requireSkillAction(skill, 'electric-enchantment');
+    const enchantment = requireEffect(skill, 'buff', 'Hare Enchantment', action);
 
-      if (enchantment) {
-        grantElectricEnchantments(context, { at, stacks, duration: enchantment.duration, skill });
-      }
-    }
+    if (enchantment)
+      grantElectricEnchantments(context, {
+        at,
+        stacks: effectNumber(skill, enchantment, 'stacks'),
+        duration: enchantment.duration,
+        skill
+      });
   },
   'elementalist.evoker.toads-fortitude'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const at = cast.effectiveEnd;
-    {
-      const profile = requireBalanceProfileFromContext(context, PROFILE.toadsFortitude);
-      const resistance = requireEffect(profile, 'boon', 'Toad Resistance');
+    // Read the accepted skill's selected payload without changing the deferred meditation ordering.
+    const action = requireSkillAction(skill, 'earth-resistance');
+    const resistance = requireEffect(skill, 'boon', 'Toad Resistance', action);
 
-      if (resistance) {
-        context.effects.emit(
-          elementalistBuffRequest(
-            {
-              skill: skill,
-              at,
-              source: skill.name,
-              sourceId: skill.id,
-              actorType: ACTOR.PLAYER,
-              kind: String(resistance.boon).toLowerCase(),
-              stacks: Number(resistance.stacks),
-              duration: resistance.duration,
-              // Preserve the profile's allied recipients when constructing the Earth-specialized grant.
-              audience: resistance.audience,
-              skillName: skill.name
-            },
-            { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-          )
-        );
-      }
-    }
+    if (resistance)
+      context.effects.emit(
+        elementalistBuffRequest(
+          {
+            skill,
+            at,
+            source: skill.name,
+            sourceId: skill.id,
+            actorType: ACTOR.PLAYER,
+            kind: String(resistance.boon).toLowerCase(),
+            stacks: Number(resistance.stacks),
+            duration: resistance.duration,
+            audience: resistance.audience,
+            skillName: skill.name
+          },
+          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+        )
+      );
   },
   'elementalist.evoker.foxs-fury'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const state = evokerState.from(context);
     const at = cast.effectiveEnd;
-    {
-      const profile = requireBalanceProfileFromContext(context, PROFILE.foxsFury);
-      const might = requireEffect(profile, 'boon', 'Fox Might');
-      const fireMight = requireEffect(profile, 'boon', 'Fox Fire Bonus');
-      const fury = requireEffect(profile, 'boon', 'Fox Fury');
-      const fireBonus = state.element === 'Fire' ? fireMight : undefined;
-      const combinedMight =
-        might && fireBonus && might.boon === fireBonus.boon && might.duration === fireBonus.duration
-          ? { ...might, stacks: Number(might.stacks) + Number(fireBonus.stacks) }
-          : undefined;
-      for (const effect of [...(combinedMight ? [combinedMight] : [might, fireBonus]), fury]) {
-        if (!effect) continue;
+    const action = requireSkillAction(skill, 'boons');
+    const might = requireEffect(skill, 'boon', 'Fox Might', action);
+    const fireMight = requireEffect(skill, 'boon', 'Fox Fire Bonus', action);
+    const fury = requireEffect(skill, 'boon', 'Fox Fury', action);
+    const fireBonus = state.element === 'Fire' ? fireMight : undefined;
+    const combinedMight =
+      might && fireBonus && might.boon === fireBonus.boon && might.duration === fireBonus.duration
+        ? { ...might, stacks: Number(might.stacks) + Number(fireBonus.stacks) }
+        : undefined;
+    for (const effect of [...(combinedMight ? [combinedMight] : [might, fireBonus]), fury]) {
+      if (!effect) continue;
 
-        const boon = {
-          kind: String(effect.boon).toLowerCase(),
-          stacks: Number(effect.stacks),
-          duration: effect.duration
-        };
-        context.effects.emit(
-          elementalistBuffRequest(
-            {
-              skill: skill,
-              at,
-              source: skill.name,
-              sourceId: skill.id,
-              actorType: ACTOR.PLAYER,
-              skillName: skill.name,
-              audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-              ...boon
-            },
-            { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-          )
-        );
-      }
+      const boon = {
+        kind: String(effect.boon).toLowerCase(),
+        stacks: Number(effect.stacks),
+        duration: effect.duration
+      };
+      context.effects.emit(
+        elementalistBuffRequest(
+          {
+            skill: skill,
+            at,
+            source: skill.name,
+            sourceId: skill.id,
+            actorType: ACTOR.PLAYER,
+            skillName: skill.name,
+            audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+            ...boon
+          },
+          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+        )
+      );
     }
   }
 };

@@ -6,6 +6,7 @@ import type { ProfessionFamilyContract } from '#gw2/platform/profession-definiti
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { ProfessionModifierDefinition } from '#gw2/platform/profession-definition/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
+import type { SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
@@ -27,13 +28,13 @@ export interface NativeModuleCatalogData<TSkill extends Skill = Skill> {
   readonly skillOverrides?: Readonly<Record<string, Partial<TSkill>>>;
   readonly extraSkills?: readonly TSkill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
+  /** Skill fields read only by this module's profession code; assembly gives each field one owning module. */
+  readonly skillFields?: SkillFieldSpecs;
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
   readonly weapons?: readonly string[];
   readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
   readonly autoattackChains?: AutoattackChainOptions;
-  /** Runtime-local name selections for identities that collide with Core skills. */
-  readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
   /**
    * Skills that look like ordinary weapon or Core skills in API metadata but
    * must only exist when this specialization is active.
@@ -102,11 +103,6 @@ export interface NativeModule<
   readonly modifiers: ProfessionModifierDefinition;
 }
 
-export interface NativeCatalogOptions {
-  readonly skillNameCollision?: 'first' | 'last';
-  readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
-}
-
 // Heterogeneous registries erase the skill parameter; concrete module factories retain their inferred subtype.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyNativeModule<TId extends string = string, TSkill extends Skill = any> = NativeModule<
@@ -163,7 +159,6 @@ export interface NativeProfessionDefinition<
   readonly build?: ProfessionBuildDefinition<TBuild>;
   /** Family presentation factories receive the same assembled catalog as module presentation factories. */
   readonly presentation?: TPresentation | ((catalog: Readonly<CanonicalCatalog<TSkill>>) => TPresentation);
-  readonly catalog?: NativeCatalogOptions;
   /** Profession-specific exceptions and observers for the automatically installed GW2 chain controller. */
   readonly autoattackChains?: Gw2AutoattackChainOptions;
   /** Equipment eligibility is shared by every runtime and the application adapter. */

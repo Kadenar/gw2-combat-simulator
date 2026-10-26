@@ -99,8 +99,10 @@ test('Zap emits the canonical buff consumed by its policy and damage modifier', 
     label: 'Without Zap window',
     professions: {
       elementalist: {
-        balanceProfiles: {
-          'elementalist.evoker.zap': { removeEffects: [{ type: 'buff', name: 'Zap Window' }] }
+        skills: {
+          [elementalistProfession.catalog.skillsById.get(77370).id]: {
+            sideEffects: { 'zap-window': { removeEffects: [{ type: 'buff', name: 'Zap Window' }] } }
+          }
         }
       }
     }
@@ -116,7 +118,7 @@ test('Zap emits the canonical buff consumed by its policy and damage modifier', 
   });
   const rotation = ['Zap', 'Charged Strike'].map((name) => ({
     type: 'cast',
-    skillId: elementalistProfession.catalog.skillsByName.get(name).id
+    skillId: elementalistProfession.catalog.skills.find((candidate) => candidate.name === name).id
   }));
   const live = simulate('Evoker', rotation, { patchId: 'current' });
   const removed = simulate('Evoker', rotation, { patchId: 'without-zap-window' });

@@ -258,7 +258,9 @@ test('requested weapon flips require and consume their parent sequence skill', (
       flip
     );
     assert.equal(
-      result.planningState.profession.availableFlips[mesmerCatalog.skillsByName.get(flip).id],
+      result.planningState.profession.availableFlips[
+        mesmerCatalog.skills.find((candidate) => candidate.name === flip).id
+      ],
       undefined,
       flip
     );

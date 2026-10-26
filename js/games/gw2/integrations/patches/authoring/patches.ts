@@ -1,6 +1,7 @@
+import { hasActionEffects } from '#gw2/platform/effects/actions.js';
+import { snapshotActionDeclaration } from '#gw2/platform/effects/action-declarations.js';
 import { validateActionIds } from '#gw2/platform/effects/action-validation.js';
 import {
-  PATCHABLE_SKILL_NUMERIC_FIELDS,
   PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS,
   PATCHABLE_EFFECT_NUMERIC_FIELDS,
   effectNumericFieldIsPatchable
@@ -8,6 +9,8 @@ import {
 import { deepFreeze, cloneCatalogData } from '#gw2/integrations/patches/authoring/immutable.js';
 import { normalizeSkillEffects, requireBalanceNumber, skillEffectKey } from '#gw2/platform/effects/validation.js';
 import { validateCanonicalCatalog, validateDurationFields } from '#gw2/platform/skills/validation.js';
+import type { SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
 import type { NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
 import type { BalanceProfile, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type {
@@ -65,7 +68,11 @@ export interface EffectPatch extends EffectSelector {
   };
 }
 
+export type ActionEffectPatchEdit = Pick<SkillPatchEdit, 'effects' | 'removeEffects'>;
+
 export interface SkillPatchEdit {
+  /** Select one existing cast action by its stable id; predicates and execution order stay authored. */
+  readonly sideEffects?: Readonly<Record<string, ActionEffectPatchEdit>>;
   /** Keep provisional balance assumptions attached to their canonical skill or trait profile edit. */
   readonly assumption?: string;
   /** Reclassify a skill in the preview while retaining its identity and mechanics. */
@@ -146,7 +153,6 @@ export interface PatchPreview {
   readonly professions?: Readonly<Record<string, ProfessionPatchPreview>>;
 }
 
-const SKILL_NUMERIC_FIELDS = new Set(PATCHABLE_SKILL_NUMERIC_FIELDS);
 const BALANCE_PROFILE_NUMERIC_FIELDS = new Set(PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS);
 const EFFECT_NUMERIC_FIELDS = PATCHABLE_EFFECT_NUMERIC_FIELDS;
 
@@ -210,7 +216,7 @@ function resourceGrantChanges(
 }
 
 /** Retain only removed identities, so callbacks and successive catalog overlays cannot resurrect deleted packets. */
-function patchEffects(owner: Skill | BalanceProfile, edit: SkillPatchEdit, label: string) {
+function patchEffects(owner: Pick<Skill, 'effects' | 'removedEffectKeys'>, edit: SkillPatchEdit, label: string) {
   const effects = [...(owner.effects || [])];
   for (const effectPatch of shorthandEffects(edit)) {
     for (const { index } of selectedEffects(effects, effectPatch, label)) {
@@ -238,6 +244,35 @@ function patchEffects(owner: Skill | BalanceProfile, edit: SkillPatchEdit, label
   }
 
   return { effects: retained, removedEffectKeys: Object.freeze([...removedKeys]) };
+}
+
+/** Resolve a unique payload action and reject unsupported edits instead of silently dropping them. */
+function actionEffectEdits(source: Skill | BalanceProfile, edit: SkillPatchEdit) {
+  if (edit.sideEffects === undefined) return [];
+
+  if (!edit.sideEffects || typeof edit.sideEffects !== 'object' || Array.isArray(edit.sideEffects))
+    throw new TypeError(`${source.name} sideEffects edits must be an object.`);
+
+  const actions = ((source as Skill).sideEffects ?? []).map((rule) => rule.do);
+  validateActionIds(actions, source.name);
+  return Object.entries(edit.sideEffects).map(([id, changes]) => {
+    const action = actions.find((action) => 'id' in action && action.id === id);
+
+    if (!hasActionEffects(action)) throw new TypeError(`${source.name} has no payload action ${id}.`);
+
+    if (
+      !changes ||
+      typeof changes !== 'object' ||
+      Array.isArray(changes) ||
+      Object.keys(changes).some((key) => !['effects', 'removeEffects'].includes(key))
+    )
+      throw new TypeError(`${source.name} action ${id} supports only effects and removeEffects edits.`);
+
+    for (const key of ['effects', 'removeEffects'] as const)
+      if (changes[key] !== undefined && !Array.isArray(changes[key]))
+        throw new TypeError(`${source.name} action ${id} ${key} must be an array.`);
+    return { action, changes };
+  });
 }
 
 /** Applies one numeric edit at a validated direct or dotted path on a cloned catalog record. */
@@ -616,6 +651,22 @@ export function normalizeAuthoringSkillEdit(source: Skill | BalanceProfile, edit
   if (castChanges) normalized.resourceGrants = castChanges;
   else delete normalized.resourceGrants;
 
+  // Normalize each action independently so overlapping effect names never cross trigger boundaries.
+  if (edit.sideEffects !== undefined)
+    normalized.sideEffects = Object.fromEntries(
+      actionEffectEdits(source, edit).map(({ action, changes }) => [
+        action.id!,
+        normalizeEffectEdits({ name: `${source.name} action=${action.id}`, effects: action.effects }, changes)
+      ])
+    );
+
+  return normalizeEffectEdits(source, normalized);
+}
+
+/** Effect selectors use the same grammar whether their owner is a skill, profile, or cast action. */
+function normalizeEffectEdits(source: Pick<Skill, 'name' | 'effects'>, edit: SkillPatchEdit): SkillPatchEdit {
+  const normalized = { ...edit };
+
   if (edit.cooldown != null) normalized.fields = { ...edit.fields, cooldown: edit.cooldown };
 
   delete normalized.cooldown;
@@ -678,9 +729,11 @@ export function normalizeAuthoringSkillEdit(source: Skill | BalanceProfile, edit
 }
 
 /** Produces an immutable patched skill without mutating the live catalog record. */
-function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string): Skill {
+function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string, skillFields: SkillFieldSpecs): Skill {
   const ownerLabel = `${label} skill=${skill.id} (${skill.name})`;
   const clone = cloneCatalogData(skill);
+  for (const { action, changes } of actionEffectEdits(clone, edit))
+    Object.assign(action, patchEffects(action, changes, `${ownerLabel} action=${action.id}`));
   patchResourceGrants(castResourceGrants(clone), edit.resourceGrants, ownerLabel);
   const mutable = clone as unknown as Record<string, unknown>;
 
@@ -709,7 +762,10 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string): Skill {
     ...(edit.cooldown == null ? {} : { cooldown: edit.cooldown })
   };
   for (const [field, numericEdit] of Object.entries(fields)) {
-    if (!SKILL_NUMERIC_FIELDS.has(field)) {
+    // The selected catalog's declarations decide patchability, including fields owned by this profession.
+    const spec = Object.hasOwn(skillFields, field) ? skillFields[field] : undefined;
+
+    if (spec?.kind !== 'number' || !spec.patch) {
       throw new TypeError(`${ownerLabel} has unsupported patch field ${field}.`);
     }
 
@@ -717,6 +773,10 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string): Skill {
   }
 
   Object.assign(mutable, patchEffects(clone, edit, ownerLabel));
+
+  // Finish all reward edits before freezing and normalizing the cloned action declarations.
+  if (clone.sideEffects) mutable.sideEffects = snapshotActionDeclaration(clone.sideEffects);
+
   validateDurationFields(mutable, ownerLabel);
   return deepFreeze(clone);
 }
@@ -729,6 +789,8 @@ function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit, labe
     throw new TypeError(`${ownerLabel} assumption must be a nonempty string.`);
 
   if (edit.placement != null) throw new TypeError(`${ownerLabel} cannot change skill placement.`);
+
+  if (edit.sideEffects !== undefined) throw new TypeError(`${ownerLabel} cannot edit cast actions.`);
 
   const clone = cloneCatalogData(profile);
   patchResourceGrants(castResourceGrants(clone), edit.resourceGrants, ownerLabel);
@@ -750,12 +812,12 @@ function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit, labe
   return deepFreeze(clone);
 }
 
-/** Resolves a skill patch key by stable string ID, numeric ID, or canonical name. */
+/** Resolves a skill patch key by stable string or numeric ID. */
 function findSkill(catalog: Readonly<CanonicalCatalog>, key: string): Skill | undefined {
   const numericId = /^-?\d+$/.test(key) ? Number(key) : null;
   const byId =
     catalog.skillsById.get(key as SkillId) || (numericId == null ? undefined : catalog.skillsById.get(numericId));
-  return byId || catalog.skillsByName.get(key);
+  return byId;
 }
 
 export interface ApplySkillPatchOptions {
@@ -791,7 +853,7 @@ export function applySkillPatch(
       throw new TypeError(`Patch edits skill ${skill.name} more than once.`);
     }
 
-    replacements.set(skill, patchSkill(skill, edit, catalogPatchLabel(catalog)));
+    replacements.set(skill, patchSkill(skill, edit, catalogPatchLabel(catalog), catalogSkillFields(catalog)));
   }
 
   if (!replacements.size) return catalog;
@@ -799,12 +861,10 @@ export function applySkillPatch(
   const replacementFor = (skill: Skill): Skill => replacements.get(skill) || skill;
   const skills = Object.freeze(catalog.skills.map(replacementFor));
   const skillsById = new Map([...catalog.skillsById].map(([id, skill]) => [id, replacementFor(skill)]));
-  const skillsByName = new Map([...catalog.skillsByName].map(([name, skill]) => [name, replacementFor(skill)]));
   const result = Object.freeze({
     ...catalog,
     skills,
-    skillsById,
-    skillsByName
+    skillsById
   });
   // Added or patched reactions must satisfy the same grant and trigger contracts as the live catalog.
   validateCanonicalCatalog(result);
@@ -832,9 +892,6 @@ export function applyBalanceProfilePatch(
       balanceProfiles: Object.freeze(catalog.balanceProfiles.map((profile) => profiles.get(profile)!)),
       balanceProfilesById: new Map(
         [...catalog.balanceProfilesById].map(([id, profile]) => [id, profiles.get(profile)!])
-      ),
-      balanceProfilesByName: new Map(
-        [...catalog.balanceProfilesByName].map(([name, profile]) => [name, profiles.get(profile)!])
       )
     });
   }
@@ -848,8 +905,7 @@ export function applyBalanceProfilePatch(
     const numericId = /^-?\d+$/.test(key) ? Number(key) : null;
     const profile =
       catalog.balanceProfilesById.get(key) ||
-      (numericId == null ? undefined : catalog.balanceProfilesById.get(numericId)) ||
-      catalog.balanceProfilesByName.get(key);
+      (numericId == null ? undefined : catalog.balanceProfilesById.get(numericId));
 
     if (!profile) {
       if (options.unknownProfiles === 'ignore') continue;
@@ -871,12 +927,7 @@ export function applyBalanceProfilePatch(
   return Object.freeze({
     ...catalog,
     balanceProfiles,
-    balanceProfilesById: new Map(
-      [...catalog.balanceProfilesById].map(([id, profile]) => [id, replacementFor(profile)])
-    ),
-    balanceProfilesByName: new Map(
-      [...catalog.balanceProfilesByName].map(([name, profile]) => [name, replacementFor(profile)])
-    )
+    balanceProfilesById: new Map([...catalog.balanceProfilesById].map(([id, profile]) => [id, replacementFor(profile)]))
   });
 }
 

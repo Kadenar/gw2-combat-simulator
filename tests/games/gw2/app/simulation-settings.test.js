@@ -76,7 +76,7 @@ test('simulation config snapshots preferences without adding them to imported or
 
 test('optimizer workers retain a snapshot of simulation preferences outside the build', () => {
   const build = createDefaultBuild(mesmerAppAdapter);
-  build.rotation = [{ type: 'cast', skillId: mesmerAppAdapter.profession.catalog.skillsByName.get('Swap Weapons').id }];
+  build.rotation = [{ type: 'cast', skillId: mesmerAppAdapter.profession.catalog.skillsById.get(-3).id }];
   const app = {
     adapter: mesmerAppAdapter,
     build,

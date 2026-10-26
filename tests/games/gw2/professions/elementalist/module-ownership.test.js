@@ -7,7 +7,6 @@ import { applyShatteringStoneBuff } from '#gw2/professions/elementalist/core/ski
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
 import { evokerModule } from '#gw2/professions/elementalist/specializations/evoker/module.js';
-import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
 import { weaverDualAttunements } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
 import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
 
@@ -55,25 +54,12 @@ test('Elementalist resolver buffs update only the owned Core state', () => {
   }
 });
 
-test('elite modifier and dual-pistol profiles are declared by their owners', () => {
+test('elite modifiers are declared by their owners', () => {
   const coreModifiers = modifierIds(elementalistCoreModule);
   assert.equal(coreModifiers.has('elementalist.empowering-auras-strike'), false);
   assert.equal(coreModifiers.has('elementalist.fiery-might'), false);
   assert.equal(modifierIds(catalystModule).has('elementalist.empowering-auras-strike'), true);
   assert.equal(modifierIds(evokerModule).has('elementalist.fiery-might'), true);
-
-  const coreProfiles = new Set(elementalistCoreModule.data.balanceProfiles.map((profile) => profile.id));
-  const weaverProfiles = new Set(weaverModule.data.balanceProfiles.map((profile) => profile.id));
-  for (const id of [
-    'elementalist.weaver.frostfire-flurry-bullets',
-    'elementalist.weaver.purblinding-plasma-bullet',
-    'elementalist.weaver.molten-meteor-bullet',
-    'elementalist.weaver.flowing-finesse-bullets',
-    'elementalist.weaver.enervating-earth-bullet'
-  ]) {
-    assert.equal(coreProfiles.has(id), false, id);
-    assert.equal(weaverProfiles.has(id), true, id);
-  }
 });
 
 test('Weaver dual-attunement mechanics parse their elements from skill metadata', () => {

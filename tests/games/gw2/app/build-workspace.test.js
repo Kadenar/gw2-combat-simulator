@@ -58,9 +58,9 @@ test('saved legacy rotations load canonically from every persistence boundary', 
     'warrior'
   ]) {
     const adapter = await loadProfessionAppAdapter(profession);
-    const skill = adapter.profession.catalog.skillsByName.values().next().value;
+    const skill = adapter.profession.catalog.skills[0];
     const rotation = [
-      { name: skill.name, offset: 120, interruptMs: 80 },
+      { skillId: skill.id, offset: 120, interruptMs: 80 },
       { name: '__wait', waitMs: 250 },
       { name: '__combat_start', offset: -40 },
       { name: '__cooldown_reset' }
@@ -126,7 +126,7 @@ function build(marker = 'default') {
   return { profession: 'mesmer', gear: { Helm: marker }, selectedSkillIds: {}, rotation: [] };
 }
 
-const catalog = { skills: [], skillsByName: new Map(), skillsById: new Map() };
+const catalog = { skills: [], skillsById: new Map() };
 const adapter = {
   id: 'mesmer',
   storageKey: 'workspace-test',
@@ -408,10 +408,7 @@ test('switching tabs uses each patch catalog for skill lists and lookups', (t) =
   const catalogs = Object.fromEntries(
     ['current', 'preview'].map((id) => {
       const skill = { id: 1, name: 'Utility', type: 'Utility', description: id };
-      return [
-        id,
-        { skills: [skill], skillsById: new Map([[skill.id, skill]]), skillsByName: new Map([[skill.name, skill]]) }
-      ];
+      return [id, { skills: [skill], skillsById: new Map([[skill.id, skill]]) }];
     })
   );
   app.profession = {
@@ -440,7 +437,7 @@ test('switching tabs uses each patch catalog for skill lists and lookups', (t) =
     const skill = catalogs[patch].skills[0];
     assert.deepEqual(availableSlotSkills(app, 'Utility'), [skill]);
     assert.equal(resolveEntrySkill(app, { type: 'cast', skillId: 1 }), skill);
-    assert.equal(resolveEntrySkill(app, { name: 'Utility' }), skill);
+    assert.equal(resolveEntrySkill(app, { type: 'cast', skillId: 1 }), skill);
   }
 });
 

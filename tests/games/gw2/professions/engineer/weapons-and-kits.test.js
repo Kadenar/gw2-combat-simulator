@@ -40,12 +40,22 @@ test('Refraction Cutter blades retain their parent skill and expose a separate d
     ['Holosmith', 60],
     ['Holosmith', 110]
   ]) {
-    const result = simulate(specialization, ['Refraction Cutter', { type: 'wait', durationMs: 1000 }], {
-      primaryWeapon: 'Sword',
-      secondaryWeapon: 'Pistol',
-      initialHeat,
-      selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
-    });
+    const result = simulate(
+      specialization,
+      [
+        {
+          type: 'cast',
+          skillId: specialization === 'Holosmith' ? ID.REFRACTION_CUTTER : ID.REFRACTION_CUTTER_NON_HOLOSMITH
+        },
+        { type: 'wait', durationMs: 1000 }
+      ],
+      {
+        primaryWeapon: 'Sword',
+        secondaryWeapon: 'Pistol',
+        initialHeat,
+        selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+      }
+    );
     assert.deepEqual(result.warnings, []);
     const primary = result.resolvedEvents.find(
       (event) =>
@@ -84,10 +94,17 @@ test('Refraction Cutter Blade rejects standalone names and IDs while parent blad
   }
 
   for (const initialHeat of [0, 60]) {
-    const result = simulate('Holosmith', ['Refraction Cutter', { type: 'wait', durationMs: 1000 }], {
-      ...config,
-      initialHeat
-    });
+    const result = simulate(
+      'Holosmith',
+      [
+        { type: 'cast', skillId: 44110 },
+        { type: 'wait', durationMs: 1000 }
+      ],
+      {
+        ...config,
+        initialHeat
+      }
+    );
     assert.deepEqual(result.warnings, []);
     assert.ok(result.resolvedEvents.some((event) => event.name === blade.name && event.damage > 0));
   }
@@ -177,15 +194,24 @@ test('Mechanist commands are selected by traits and mech attacks persist', () =>
 });
 
 test('Mechanist commands use a serial mech lane without reserving the engineer lane', () => {
-  const result = simulate('Mechanist', ['Refraction Cutter', 'Spark Revolver', 'Radiant Arc', 'Core Reactor Shot'], {
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Pistol',
-    selectedTraitIds: [
-      TRAIT.MECH_ARMS_JADE_CANNONS,
-      TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
-      TRAIT.MECH_CORE_JADE_DYNAMO
-    ]
-  });
+  const result = simulate(
+    'Mechanist',
+    [
+      { type: 'cast', skillId: ID.REFRACTION_CUTTER_NON_HOLOSMITH },
+      'Spark Revolver',
+      { type: 'cast', skillId: 69565 },
+      'Core Reactor Shot'
+    ],
+    {
+      primaryWeapon: 'Sword',
+      secondaryWeapon: 'Pistol',
+      selectedTraitIds: [
+        TRAIT.MECH_ARMS_JADE_CANNONS,
+        TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
+        TRAIT.MECH_CORE_JADE_DYNAMO
+      ]
+    }
+  );
   const refraction = result.steps.find((step) => step.skill === 'Refraction Cutter');
   const spark = result.steps.find((step) => step.skill === 'Spark Revolver');
   const radiant = result.steps.find((step) => step.skill === 'Radiant Arc');
@@ -355,14 +381,14 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
   assert.match(replaced.warnings[0].message, /Holosmith replaces this sword skill/);
 
   const quicknessDurations = [
-    simulate('Holosmith', ['Radiant Arc'], { initialHeat: 0 }),
-    simulate('Holosmith', ['Radiant Arc'], { initialHeat: 60 }),
-    simulate('Holosmith', ['Radiant Arc'], { initialHeat: 101 }),
-    simulate('Holosmith', ['Radiant Arc'], {
+    simulate('Holosmith', [ID.RADIANT_ARC], { initialHeat: 0 }),
+    simulate('Holosmith', [ID.RADIANT_ARC], { initialHeat: 60 }),
+    simulate('Holosmith', [ID.RADIANT_ARC], { initialHeat: 101 }),
+    simulate('Holosmith', [ID.RADIANT_ARC], {
       initialHeat: 100,
       selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
     }),
-    simulate('Holosmith', ['Radiant Arc'], {
+    simulate('Holosmith', [ID.RADIANT_ARC], {
       initialHeat: 101,
       selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
     })
@@ -475,8 +501,8 @@ test('Bomb Kit effects retain explosion ownership, cancellation behavior, and co
   });
   const bombHit = bomb.events.find((event) => event.type === 'damage' && event.name === 'Bomb');
   assert.equal(bombHit.damageKind, 'explosion');
-  assert.equal(engineerCatalog.skillsByName.get('Fire Bomb').comboFields[0].fieldType, 'Fire');
-  assert.equal(engineerCatalog.skillsByName.get('Fire Bomb').comboFields[0].duration, 3);
+  assert.equal(engineerCatalog.skillsById.get(5823).comboFields[0].fieldType, 'Fire');
+  assert.equal(engineerCatalog.skillsById.get(5823).comboFields[0].duration, 3);
 
   const galvanic = simulate('Core', ['Bomb Kit', 'Galvanic Bomb', waitForBombPackets()], { selectedSkillIds });
 
@@ -488,9 +514,9 @@ test('Bomb Kit effects retain explosion ownership, cancellation behavior, and co
     )
   );
   assert.ok(galvanic.events.some((event) => event.type === 'control' && event.controlKind === 'daze'));
-  assert.equal(engineerCatalog.skillsByName.get('Galvanic Bomb').comboFinishers[0].finisherType, 'Blast');
+  assert.equal(engineerCatalog.skillsById.get(5822).comboFinishers[0].finisherType, 'Blast');
 
-  const magnetic = engineerCatalog.skillsByName.get('Magnetic Bomb');
+  const magnetic = engineerCatalog.skillsById.get(76530);
 
   assert.equal(strikeEffectCoefficient(magnetic.effects[0]), 1.5);
   assert.equal(magnetic.effects[1].controlKind, 'pull');
@@ -506,7 +532,7 @@ test('Bomb Kit effects retain explosion ownership, cancellation behavior, and co
 
   assert.ok(big.events.some((event) => event.type === 'damage'));
   assert.ok(big.events.some((event) => event.type === 'control' && event.controlKind === 'knockdown'));
-  assert.equal(engineerCatalog.skillsByName.get("Big Ol' Bomb").comboFinishers[0].successfulCombos, 2);
+  assert.equal(engineerCatalog.skillsById.get(5813).comboFinishers[0].successfulCombos, 2);
 
   const doubleBlast = simulate(
     'Core',
@@ -548,7 +574,7 @@ test('Bomb Kit effects retain explosion ownership, cancellation behavior, and co
 });
 
 test('Shred fires three Burning Bolts through Stoke the Flames', () => {
-  const stoke = engineerCatalog.skillsByName.get('Stoke the Flames');
+  const stoke = engineerCatalog.skillsById.get(76493);
   const shred = engineerCatalog.skillsById.get(77103);
 
   assert.equal(stoke.comboFields[0].fieldType, 'Fire');
@@ -698,8 +724,8 @@ test('Lightning Rod exposes Electric Artillery after charging', () => {
   const charged = simulate('Amalgam', ['Lightning Rod', { type: 'wait', durationMs: 4000 }], {
     selectedMorphSkillIds: [77103, 77104, 76705]
   });
-  const rod = engineerCatalog.skillsByName.get('Lightning Rod');
-  const artillery = engineerCatalog.skillsByName.get('Electric Artillery');
+  const rod = engineerCatalog.skillsById.get(73002);
+  const artillery = engineerCatalog.skillsById.get(73143);
 
   assert.equal(charging.planningState.availability[rod.id].ready, false);
   assert.equal(charging.planningState.availability[artillery.id].ready, false);
@@ -799,7 +825,7 @@ test('Focused Devastation keeps its own activation and weapon-strength ownership
 
 // Resolve the kit and tool-belt catalog entries exercised below.
 function mechanic(name) {
-  return engineerCatalog.skillsByName.get(name);
+  return engineerCatalog.skills.find((candidate) => candidate.name === name);
 }
 
 test('Mine Field detonation respects combat entry and retains toolbelt ownership', () => {

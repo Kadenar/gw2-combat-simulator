@@ -24,7 +24,7 @@ for (const [id, name, primaryWeapon, specialization = 'Core'] of [
     const profession = await loadProfession(id);
     const options = {
       profession,
-      rotation: [{ type: 'cast', skillId: profession.catalog.skillsByName.get(name).id }],
+      rotation: [{ type: 'cast', skillId: profession.catalog.skills.find((candidate) => candidate.name === name).id }],
       config: {
         specialization,
         primaryWeapon,

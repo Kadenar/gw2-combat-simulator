@@ -612,7 +612,7 @@ test('shroud and forge transitions start a new row on the current weapon set', (
         startingWeaponSet: 2,
         // Profession transitions retain their boundaries when display names change.
         weaponLineTransition: (entry, current) => {
-          const skill = profession.catalog.skillsByName.get(entry.skillId);
+          const skill = profession.catalog.skills.find((candidate) => candidate.name === entry.skillId);
           return profession.ui.timelineWeaponLineTransition({
             specialization,
             ...current,

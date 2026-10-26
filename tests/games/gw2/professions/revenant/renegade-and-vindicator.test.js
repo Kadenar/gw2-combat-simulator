@@ -251,7 +251,12 @@ test('Dwarf upkeep stops dealing damage when released', () => {
   // Releasing an upkeep cancels future pulses, independently of its hit rate or coefficients.
   const result = simulate(
     'Core',
-    ['Vengeful Hammers', { type: 'wait', durationMs: 1100 }, 'Release Hammers', { type: 'wait', durationMs: 1000 }],
+    [
+      { type: 'cast', skillId: 26557 },
+      { type: 'wait', durationMs: 1100 },
+      'Release Hammers',
+      { type: 'wait', durationMs: 1000 }
+    ],
     {
       selectedLegends: [LEGEND.DWARF, LEGEND.ASSASSIN],
       startingLegend: LEGEND.DWARF,
@@ -270,7 +275,7 @@ test('Dwarf upkeep stops dealing damage when released', () => {
 test('Impossible Odds follows Shackles damage while its upkeep is active', () => {
   const result = simulate(
     'Renegade',
-    ["Icerazor's Ire", 'Swap Legends', 'Impossible Odds', { type: 'wait', durationMs: 7000 }],
+    [{ type: 'cast', skillId: 40485 }, 'Swap Legends', 'Impossible Odds', { type: 'wait', durationMs: 7000 }],
     {
       selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
       startingLegend: LEGEND.RENEGADE,
@@ -290,12 +295,19 @@ test('Impossible Odds follows Shackles damage while its upkeep is active', () =>
 });
 
 test('Icerazor packets use player ownership and trigger player equipment', () => {
-  const result = simulate('Renegade', ["Icerazor's Ire", { type: 'wait', durationMs: 6000 }], {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE,
-    initialEnergy: 100,
-    relic: 'Shackles'
-  });
+  const result = simulate(
+    'Renegade',
+    [
+      { type: 'cast', skillId: 40485 },
+      { type: 'wait', durationMs: 6000 }
+    ],
+    {
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      initialEnergy: 100,
+      relic: 'Shackles'
+    }
+  );
 
   assert.ok(result.totalDamage > 0);
   assert.ok(
@@ -328,13 +340,21 @@ test('Icerazor packets use player ownership and trigger player equipment', () =>
 });
 
 test('enhanced Icerazor hit traits use its replaced packet timestamps', () => {
-  const result = simulate('Renegade', ["Breakrazor's Bastion", "Icerazor's Ire", { type: 'wait', durationMs: 1000 }], {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE,
-    selectedTraitIds: [TRAIT.AMBUSH_COMMANDER, TRAIT.LASTING_LEGACY],
-    target: { defiant: true },
-    initialEnergy: 100
-  });
+  const result = simulate(
+    'Renegade',
+    [
+      { type: 'cast', skillId: 45686 },
+      { type: 'cast', skillId: 40485 },
+      { type: 'wait', durationMs: 1000 }
+    ],
+    {
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      selectedTraitIds: [TRAIT.AMBUSH_COMMANDER, TRAIT.LASTING_LEGACY],
+      target: { defiant: true },
+      initialEnergy: 100
+    }
+  );
   const hitTimes = result.events
     .filter((event) => event.type === 'damage' && event.skillName === "Icerazor's Ire")
     .map((event) => event.at);
@@ -355,8 +375,15 @@ test('Icerazor grants Fervor only after its projectiles land', () => {
     target: { defiant: true }
   };
   // Summoning reserves future impacts; it must not grant their stacks during the cast.
-  const pending = simulate('Renegade', ["Icerazor's Ire"], config);
-  const landed = simulate('Renegade', ["Icerazor's Ire", { type: 'wait', durationMs: 1000 }], config);
+  const pending = simulate('Renegade', [{ type: 'cast', skillId: 40485 }], config);
+  const landed = simulate(
+    'Renegade',
+    [
+      { type: 'cast', skillId: 40485 },
+      { type: 'wait', durationMs: 1000 }
+    ],
+    config
+  );
   assert.equal(pending.planningState.profession.kallasFervor.length, 0);
   assert.equal(landed.planningState.profession.kallasFervor.length, 3);
 });
@@ -416,7 +443,7 @@ test('Righteous Rebel extends Orders from Above and Bold Reversal adds Protectio
 test('Ashen Demeanor grants self Fervor, Might, and Resistance on its healing-skill ICD', () => {
   const result = simulate(
     'Renegade',
-    ["Breakrazor's Bastion", 'Swap Legends', 'Enchanted Daggers'],
+    [{ type: 'cast', skillId: 45686 }, 'Swap Legends', 'Enchanted Daggers'],
     {
       selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
       startingLegend: LEGEND.RENEGADE,
@@ -428,7 +455,7 @@ test('Ashen Demeanor grants self Fervor, Might, and Resistance on its healing-sk
   const ashen = result.events.filter((event) => event.skillName === 'Ashen Demeanor');
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(revenantCatalog.balanceProfilesByName.get('Ashen Demeanor').cooldown, 10);
+  assert.equal(revenantCatalog.balanceProfilesById.get('revenant.renegade.ashen-demeanor').cooldown, 10);
   assert.deepEqual(
     ashen
       .filter((event) => event.kind === 'kallas-fervor')
@@ -733,7 +760,7 @@ describe('Band Together summon enhancement', () => {
     // The summon owns player effects, with party stability and control arriving on impact.
     const result = simulate(
       'Renegade',
-      ["Darkrazor's Daring"],
+      [41220],
       {
         selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
         startingLegend: LEGEND.RENEGADE,
@@ -757,7 +784,11 @@ describe('Band Together summon enhancement', () => {
   test('attributes enhanced Razorclaw torment to the player', () => {
     const enhancedRazorclaw = simulate(
       'Renegade',
-      ["Icerazor's Ire", "Razorclaw's Rage", { type: 'wait', durationMs: 1000 }],
+      [
+        { type: 'cast', skillId: 40485 },
+        { type: 'cast', skillId: 42949 },
+        { type: 'wait', durationMs: 1000 }
+      ],
       {
         selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
         startingLegend: LEGEND.RENEGADE,
@@ -776,7 +807,7 @@ describe('Band Together summon enhancement', () => {
   test('enhances only the next summon', () => {
     const enhanced = simulate(
       'Renegade',
-      ["Razorclaw's Rage", "Icerazor's Ire", "Darkrazor's Daring", { type: 'wait', durationMs: 1100 }],
+      [{ type: 'cast', skillId: 42949 }, { type: 'cast', skillId: 40485 }, 41220, { type: 'wait', durationMs: 1100 }],
       {
         selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
         startingLegend: LEGEND.RENEGADE,
@@ -793,7 +824,11 @@ describe('Band Together summon enhancement', () => {
   test('enhanced Icerazor delays its hits and applies chill on each impact', () => {
     const quickEnhanced = simulate(
       'Renegade',
-      ["Razorclaw's Rage", "Icerazor's Ire", { type: 'wait', durationMs: 1000 }],
+      [
+        { type: 'cast', skillId: 42949 },
+        { type: 'cast', skillId: 40485 },
+        { type: 'wait', durationMs: 1000 }
+      ],
       {
         selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
         startingLegend: LEGEND.RENEGADE,
@@ -832,7 +867,7 @@ describe('Band Together summon enhancement', () => {
   test('adds the enhanced Darkrazor control and party boons', () => {
     const enhancedDarkrazor = simulate(
       'Renegade',
-      ["Icerazor's Ire", "Darkrazor's Daring", { type: 'wait', durationMs: 1100 }],
+      [{ type: 'cast', skillId: 40485 }, 41220, { type: 'wait', durationMs: 1100 }],
       {
         selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
         startingLegend: LEGEND.RENEGADE,
@@ -861,7 +896,10 @@ describe('Band Together summon enhancement', () => {
   test('applies Razorclaw charges to concurrent summon hits', () => {
     const concurrent = simulate(
       'Renegade',
-      ["Icerazor's Ire", { name: "Razorclaw's Rage", offset: 100 }],
+      [
+        { type: 'cast', skillId: 40485 },
+        { skillId: 42949, offset: 100 }
+      ],
       {
         selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
         startingLegend: LEGEND.RENEGADE,
@@ -891,7 +929,10 @@ describe('Band Together summon enhancement', () => {
 
 test('All for One refunds Energy and halves only enhanced-skill recharge', () => {
   // Compare identical casts so passive regeneration and authored cooldown changes cancel out.
-  const rotation = ["Razorclaw's Rage", "Icerazor's Ire"];
+  const rotation = [
+    { type: 'cast', skillId: 42949 },
+    { type: 'cast', skillId: 40485 }
+  ];
   const config = {
     selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
     startingLegend: LEGEND.RENEGADE,
@@ -919,7 +960,7 @@ test('All for One refunds Energy and halves only enhanced-skill recharge', () =>
 test("Razorclaw models party procs with the Revenant's condition stats", () => {
   const result = simulate(
     'Renegade',
-    ["Razorclaw's Rage"],
+    [{ type: 'cast', skillId: 42949 }],
     {
       selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
       startingLegend: LEGEND.RENEGADE,
@@ -961,7 +1002,7 @@ test('Soulcleave procs both damage packets and recharges from dismissal', () => 
     'Renegade',
     [
       "Soulcleave's Summit",
-      "Icerazor's Ire",
+      { type: 'cast', skillId: 40485 },
       { type: 'wait', durationMs: 1100 },
       'Dismiss Lieutenant Soulcleave',
       "Soulcleave's Summit"
@@ -983,9 +1024,7 @@ test('Soulcleave procs both damage packets and recharges from dismissal', () => 
 
   assert.equal(
     result.steps.at(-1).start,
-    Math.ceil(
-      (dismiss.end + (revenantCatalog.skillsByName.get("Soulcleave's Summit").manualReleaseCooldown * 1000) / 1.25) / 40
-    ) * 40
+    Math.ceil((dismiss.end + (revenantCatalog.skillsById.get(45773).manualReleaseCooldown * 1000) / 1.25) / 40) * 40
   );
 });
 
@@ -1016,7 +1055,7 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
   const release = odds.steps.find((step) => step.skill === 'Relinquish Power');
   assert.equal(
     odds.steps.at(-1).start,
-    release.end + (revenantCatalog.skillsByName.get('Impossible Odds').manualReleaseCooldown * 1000) / 1.25
+    release.end + (revenantCatalog.skillsById.get(27107).manualReleaseCooldown * 1000) / 1.25
   );
   assert.ok(
     odds.resolvedEvents.some(
@@ -1056,7 +1095,7 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
     startingLegend: LEGEND.ASSASSIN,
     initialEnergy: 6
   });
-  const impossible = revenantCatalog.skillsByName.get('Impossible Odds');
+  const impossible = revenantCatalog.skillsById.get(27107);
 
   // Starvation at one second starts the authored starvation cooldown from that boundary.
   assert.equal(
@@ -1095,7 +1134,7 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
     initialEnergy: 100,
     boons: { quickness: true, alacrity: true, vigor: true }
   };
-  const result = simulate('Vindicator', ['Dodge', 'Energy Meld', 'Dodge', 'Dodge'], config);
+  const result = simulate('Vindicator', ['Dodge', { type: 'cast', skillId: 62757 }, 'Dodge', 'Dodge'], config);
   const dodges = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Death Drop');
   const meld = result.steps.find((step) => step.skill === 'Energy Meld');
 
@@ -1124,7 +1163,10 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
     ),
     1.35
   );
-  const baseline = simulate('Vindicator', ['Dodge', 'Energy Meld'], { ...config, selectedTraitIds: [] });
+  const baseline = simulate('Vindicator', ['Dodge', { type: 'cast', skillId: 62757 }], {
+    ...config,
+    selectedTraitIds: []
+  });
   assert.ok(
     result.planningState.cooldowns[SKILL.ENERGY_MELD].readyAt - meld.end <
       baseline.planningState.cooldowns[SKILL.ENERGY_MELD].readyAt - baseline.steps.at(-1).end
@@ -1487,10 +1529,7 @@ test('Imperial Guard exposes True Strike after cancellation or completion', () =
 
   const completedChannel = simulate(
     'Vindicator',
-    [
-      { name: 'Imperial Guard', interruptMs: revenantCatalog.skillsByName.get('Imperial Guard').castTimeMs },
-      'True Strike'
-    ],
+    [{ name: 'Imperial Guard', interruptMs: revenantCatalog.skillsById.get(62921).castTimeMs }, 'True Strike'],
     config
   );
 

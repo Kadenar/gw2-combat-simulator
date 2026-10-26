@@ -65,7 +65,7 @@ test('Flame Wheel is disabled for the shared active-orb window', () => {
           runtime.profession.core.hammerOrbs[element] = expiry;
         }
       );
-      const verdict = state.availability[elementalistCatalog.skillsByName.get(name).id];
+      const verdict = state.availability[elementalistCatalog.skills.find((candidate) => candidate.name === name).id];
       assert.equal(verdict.ready, expiry < 0);
 
       if (!verdict.ready) assert.equal(verdict.code, 'elementalist.hammer-orb-active');
@@ -82,6 +82,6 @@ test('Grand Finale requires at least one active hammer orb', () => {
         runtime.profession.core.hammerOrbs.Fire = expiry;
       }
     );
-    assert.equal(state.availability[elementalistCatalog.skillsByName.get('Grand Finale').id].ready, expiry === 15);
+    assert.equal(state.availability[elementalistCatalog.skillsById.get(62876).id].ready, expiry === 15);
   }
 });

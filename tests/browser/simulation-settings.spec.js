@@ -14,11 +14,11 @@ test('weapon-swap line breaks survive settings that end combat before the remain
       targetHealth: 0,
       rotation: [
         { type: 'combat-start' },
-        { type: 'cast', skillId: app.activeCatalog.skillsByName.get('Chop').id },
+        { type: 'cast', skillId: app.activeCatalog.skillsById.get(14369).id },
         { type: 'wait', durationMs: 1000 },
-        { type: 'cast', skillId: app.activeCatalog.skillsByName.get('Swap Weapons').id },
+        { type: 'cast', skillId: app.activeCatalog.skillsById.get(-3).id },
         { type: 'wait', durationMs: 10000 },
-        { type: 'cast', skillId: app.activeCatalog.skillsByName.get('Swap Weapons').id },
+        { type: 'cast', skillId: app.activeCatalog.skillsById.get(-3).id },
         { type: 'wait', durationMs: 1000 }
       ]
     });

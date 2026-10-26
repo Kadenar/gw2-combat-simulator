@@ -42,7 +42,7 @@ test('Mesmer build migrations produce validated schema version 3 data', () => {
   assert.equal(migrated.assumptions.targetConditions.Slow, true);
   assert.deepEqual(migrated.rotation[0], {
     type: 'cast',
-    skillId: mesmerCatalog.skillsByName.get('Mind Stab').id
+    skillId: mesmerCatalog.skillsById.get(10218).id
   });
   assert.equal(validateMesmerBuild(migrated).valid, true);
   assert.equal(migrateMesmerBuild({ targetStartingHealthPercent: 150 }).targetStartingHealthPercent, 100);
@@ -52,7 +52,7 @@ test('Mesmer build migrations produce validated schema version 3 data', () => {
 // Saved impact delays belong to casts that land; waits and off-target casts cannot carry one.
 test('build validation limits impact delays to landing casts', () => {
   const build = migrateMesmerBuild({ rotation: ['Mind Stab'] });
-  const skillId = mesmerCatalog.skillsByName.get('Mind Stab').id;
+  const skillId = mesmerCatalog.skillsById.get(10218).id;
   const validate = (command) => validateMesmerBuild({ ...build, rotation: [command] });
 
   assert.equal(validate({ type: 'cast', skillId, impactDelayMs: 1500 }).valid, true);

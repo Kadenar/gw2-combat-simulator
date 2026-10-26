@@ -88,7 +88,7 @@ function editableDraft(preview: PatchPreview, professions: readonly NativePatchA
       const edits = patch[section] as Record<string, SkillPatchEdit> | undefined;
       const sources = section === 'skills' ? skills : profiles;
       for (const [key, edit] of Object.entries(edits || {})) {
-        const source = sources.find((entry) => String(entry.id) === key) || sources.find((entry) => entry.name === key);
+        const source = sources.find((entry) => String(entry.id) === key);
 
         if (!source) continue;
 
@@ -373,6 +373,7 @@ export interface NumericEditInput {
   readonly field: string;
   readonly current: number;
   readonly next: number;
+  readonly actionId?: string;
   readonly effectIndex?: number;
   readonly tickIndex?: number;
   readonly grantId?: string;
@@ -501,6 +502,29 @@ export function setNumericEdit(input: NumericEditInput): void {
 
     if (!edit) return;
 
+    // Action edits reuse the existing effect editor under the selected trigger's stable identity.
+    if (input.actionId && skill) {
+      const actions = numericEdit ? ensureRecord(edit, 'sideEffects') : asRecord(edit.sideEffects);
+      const action =
+        actions && (numericEdit ? ensureRecord(actions, input.actionId) : asRecord(actions[input.actionId]));
+
+      if (!actions || !action) return;
+
+      setEffectNumericEdit(
+        input,
+        action,
+        () => {
+          delete actions[input.actionId!];
+        },
+        numericEdit
+      );
+      removeEmptyRecord(edit, 'sideEffects');
+
+      if (!Object.keys(edit).some((key) => key !== 'assumption')) deleteSkillEdit(input.id);
+
+      return;
+    }
+
     setEffectNumericEdit(
       input,
       edit,
@@ -511,8 +535,10 @@ export function setNumericEdit(input: NumericEditInput): void {
 }
 
 /** Toggles preview removal for one existing skill effect without deleting live metadata. */
-export function toggleEffect(skillId: string, effectIndex: number): void {
-  const edit = skillEdit(skillId, true)!;
+export function toggleEffect(skillId: string, effectIndex: number, actionId?: string): void {
+  const skill = skillEdit(skillId, true)!;
+  const actions = actionId ? ensureRecord(skill, 'sideEffects') : undefined;
+  const edit = actions ? ensureRecord(actions, actionId!) : skill;
   const removals = Array.isArray(edit.removeEffects) ? (edit.removeEffects as EffectSelector[]) : [];
   const removed = removals.some((selector) => selector.effectIndex === effectIndex);
   const next = removed
@@ -522,7 +548,12 @@ export function toggleEffect(skillId: string, effectIndex: number): void {
   if (next.length) edit.removeEffects = next;
   else delete edit.removeEffects;
 
-  if (!Object.keys(edit).length) deleteSkillEdit(skillId);
+  if (actions) {
+    removeEmptyRecord(actions, actionId!);
+    removeEmptyRecord(skill, 'sideEffects');
+  }
+
+  if (!Object.keys(skill).some((key) => key !== 'assumption')) deleteSkillEdit(skillId);
 }
 
 /** Appends a valid starter effect of the selected type to a skill draft. */

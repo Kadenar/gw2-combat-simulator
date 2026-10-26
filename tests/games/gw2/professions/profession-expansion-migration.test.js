@@ -560,7 +560,7 @@ describe('native build codecs', () => {
       const firstSkill = profession.catalog.skills[0];
       const cast = { type: 'cast', skillId: firstSkill.id };
 
-      assert.deepEqual(profession.migrateBuild({ ...defaults, rotation: [firstSkill.name] }).rotation, [cast]);
+      assert.deepEqual(profession.migrateBuild({ ...defaults, rotation: [firstSkill.id] }).rotation, [cast]);
       assert.deepEqual(adapter.toApplicationBuild({ ...defaults, rotation: [cast] }).rotation[0], cast);
     });
   }

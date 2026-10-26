@@ -4,20 +4,25 @@ import { wieldedConjure } from '#gw2/professions/elementalist/core/mechanics/mod
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { CONJURE_PICKUP_WEAPONS, CONJURE_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
 import { conjureEquipped } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+
+// Ground copies and pickup actions resolve the same selected conjuring skill's lifetime.
+const conjureSkillIds = new Map(Object.entries(CONJURE_SKILLS).map(([id, weapon]) => [weapon, Number(id)]));
+
+function conjureDuration(context: ElementalistRuntime, weapon: string): number {
+  return skillNumberFromContext(context, conjureSkillIds.get(weapon)!, 'duration');
+}
 
 /** A conjure creates independent equipped and one-use ground copies before its trait and swap events. */
 export function equipConjure(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const state = professionCoreState(context);
   const weapon = CONJURE_SKILLS[Number(skill.id)];
   state.conjureEquipped = weapon;
-  state.conjurePickups[weapon] =
-    cast.effectiveEnd + balanceNumberFromContext(context, PROFILE.conjurePickups, 'duration');
+  state.conjurePickups[weapon] = cast.effectiveEnd + conjureDuration(context, weapon);
   context.fireTrigger(conjureEquipped, { cast });
   finishConjureSwap(context, cast, skill);
 }
@@ -49,9 +54,7 @@ export function pickUpConjure(context: ElementalistRuntime, cast: RuntimeCast<El
 function finishConjureSwap(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const state = professionCoreState(context);
   const at = cast.effectiveEnd;
-  state.conjureExpiresAt = state.conjureEquipped
-    ? at + balanceNumberFromContext(context, PROFILE.conjurePickups, 'duration')
-    : 0;
+  state.conjureExpiresAt = state.conjureEquipped ? at + conjureDuration(context, state.conjureEquipped) : 0;
   context.schedule('elementalist.expire-state', state.conjureExpiresAt || at, null);
   for (const deadline of Object.values(state.conjurePickups))
     context.schedule('elementalist.expire-state', deadline, null);

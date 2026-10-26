@@ -12,8 +12,7 @@ import { THIEF_SKILL_IDS } from '#gw2/professions/thief/data/ids.js';
 function activationApp(skills) {
   const catalog = {
     skills,
-    skillsById: new Map(skills.map((skill) => [skill.id, skill])),
-    skillsByName: new Map(skills.map((skill) => [skill.name, skill]))
+    skillsById: new Map(skills.map((skill) => [skill.id, skill]))
   };
   const added = [];
   let professionAction;

@@ -1,5 +1,6 @@
+import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { SideEffectAction } from '#gw2/platform/effects/actions.js';
+import { isCustomSideEffectAction, type SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { EffectReaction } from '#gw2/platform/effects/reactions.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 
@@ -20,7 +21,15 @@ export function snapshotActionDeclaration<T>(value: T): T {
 
   const snapshot = Array.isArray(value)
     ? value.map(snapshotActionDeclaration)
-    : Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, snapshotActionDeclaration(entry)]));
+    : Object.fromEntries(
+        Object.entries(value).map(([key, entry]) => [
+          key,
+          // Inline action payloads are canonical effects, not a second execution path.
+          key === 'effects' && isCustomSideEffectAction(value)
+            ? normalizeSkillEffects(entry, `action=${value.id ?? value.type}`)
+            : snapshotActionDeclaration(entry)
+        ])
+      );
 
   declarationSnapshots.add(snapshot);
 
@@ -73,7 +82,7 @@ function readRequirements(catalog: CanonicalCatalog): ActionRequirements {
       if (action.type === 'resourceGrant')
         grants.push({ resource: action.resource, owner: `${owner.name} (${owner.id})` });
 
-      if (action.type.includes('.')) handlers.push({ type: action.type, ownerId: owner.id });
+      if (isCustomSideEffectAction(action)) handlers.push({ type: action.type, ownerId: owner.id });
     }
   }
 

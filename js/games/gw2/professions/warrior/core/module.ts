@@ -16,6 +16,7 @@ import { signetActiveAttributeEffects } from '#gw2/professions/warrior/core/skil
 import { createWarriorCoreState, WARRIOR_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/warrior/core/state.js';
 import { warriorCoreTraits } from '#gw2/professions/warrior/core/traits/index.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
+import { WARRIOR_CORE_SKILL_FIELDS } from '#gw2/professions/warrior/core/skill-fields.js';
 
 export const warriorCoreModule = defineNativeModule({
   attributes: (context) => [
@@ -24,6 +25,7 @@ export const warriorCoreModule = defineNativeModule({
   ],
   id: 'Core',
   data: createWarriorModuleData('Core', {
+    skillFields: WARRIOR_CORE_SKILL_FIELDS,
     skillMechanics: WARRIOR_CORE_SKILL_MECHANICS,
     balanceProfiles: WARRIOR_CORE_BALANCE_PROFILES,
     extraSkills: [WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS, ...WARRIOR_CORE_TRAIT_SKILLS]

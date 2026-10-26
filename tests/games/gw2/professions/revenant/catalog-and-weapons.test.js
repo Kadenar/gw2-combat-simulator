@@ -731,7 +731,7 @@ test('Revenant scepter follow-ups replace and restore weapon slots 2 and 3', () 
 
     return displayedSkillTiles(
       app,
-      names.map((name) => revenantCatalog.skillsByName.get(name))
+      names.map((name) => revenantCatalog.skills.find((candidate) => candidate.name === name))
     ).map((skill) => skill.name);
   };
 
@@ -792,13 +792,17 @@ test('Temporal Rift preserves the Sword autoattack chain until its delayed hit',
 });
 
 test('Beguiling Haze resets the Sword autoattack chain', () => {
-  const result = simulate('Conduit', ['Preparation Thrust', 'Brutal Blade', 'Beguiling Haze', 'Preparation Thrust'], {
-    selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.ENTITY,
-    initialEnergy: 100,
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Sword'
-  });
+  const result = simulate(
+    'Conduit',
+    ['Preparation Thrust', 'Brutal Blade', { type: 'cast', skillId: 77141 }, 'Preparation Thrust'],
+    {
+      selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.ENTITY,
+      initialEnergy: 100,
+      primaryWeapon: 'Sword',
+      secondaryWeapon: 'Sword'
+    }
+  );
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
@@ -893,7 +897,7 @@ test('Searing Fissure enables Fire whirl combos only while its field is present'
 
   assert.equal(result.warnings.length, 0);
 
-  const combo = simulate('Conduit', ['Searing Fissure', 'Twin Moon Sweep'], {
+  const combo = simulate('Conduit', ['Searing Fissure', { type: 'cast', skillId: 76968 }], {
     selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
     startingLegend: LEGEND.ENTITY,
     primaryWeapon: 'Mace',
@@ -914,7 +918,7 @@ test('Searing Fissure enables Fire whirl combos only while its field is present'
     [[1.52, 2, 1, 1]]
   );
 
-  const noField = simulate('Conduit', ['Twin Moon Sweep'], {
+  const noField = simulate('Conduit', [{ type: 'cast', skillId: 76968 }], {
     selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
     startingLegend: LEGEND.ENTITY,
     initialEnergy: 100

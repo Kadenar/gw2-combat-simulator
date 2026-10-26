@@ -65,7 +65,9 @@ const strikes = (events, id) => events.filter((event) => event.type === 'damage'
 
 /** Evaluate the real triggering skill with the same explicit starting counter as the combat fixture. */
 function previewTrait(profession, config, entry) {
-  const skill = profession.runtimeFor(config).catalog.skillsByName.get(entry.rotation.at(-1));
+  const skill = profession
+    .runtimeFor(config)
+    .catalog.skills.find((candidate) => candidate.name === entry.rotation.at(-1));
   const source = {
     ...profession,
     runtimeFor(config, options) {

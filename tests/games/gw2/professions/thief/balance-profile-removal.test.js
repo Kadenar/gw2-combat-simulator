@@ -161,7 +161,7 @@ test('core steal removals preserve sibling conditions, boons, and initiative', (
       [TRAIT.SLEIGHT_OF_HAND]: remove('control', 'daze')
     },
     'Core',
-    ['Steal'],
+    [{ type: 'cast', skillId: 13014 }],
     {
       initialInitiative: 0,
       selectedTraitIds: [
@@ -277,7 +277,7 @@ for (const type of ['strike', 'condition']) {
     const result = run(
       { [ANTIQUARY.cannonSuccess]: remove(type, type === 'strike' ? 'Stone Summit Cannon - Success' : 'Burning') },
       'Antiquary',
-      ['Stone Summit Cannon'],
+      [{ type: 'cast', skillId: 76725 }],
       {
         selectedSkillIds: [76725]
       }
@@ -343,7 +343,7 @@ test('required Thief tuning fails contextually and accepts a real zero', () => {
     assert.throws(
       () =>
         runThief(
-          ['Steal'],
+          [{ type: 'cast', skillId: 13014 }],
           { selectedTraitIds: [TRAIT.MUG] },
           {
             catalog: (live) =>

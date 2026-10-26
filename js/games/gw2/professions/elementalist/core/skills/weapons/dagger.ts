@@ -464,6 +464,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     )
   },
   [ID.RIDE_THE_LIGHTNING]: {
+    // Recharge policy applies this intrinsic on-hit reduction; the simulated target is always hit.
+    rechargeMultiplier: 0.5,
     name: 'Ride the Lightning',
     type: 'Weapon',
     slot: 'Weapon_4',

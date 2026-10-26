@@ -49,11 +49,7 @@ import {
   skillIdentity,
   type RotationCatalog
 } from '#gw2/integrations/logs/shared/rotation/catalog.js';
-import {
-  createStrikePacketMatcher,
-  missingInterruptCommitWarnings,
-  referenceCastTimeMs
-} from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import { createStrikePacketMatcher, referenceCastTimeMs } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { evtcRotationProfile } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
@@ -257,30 +253,12 @@ function buildRotation(
 }
 
 function warningList(actions: readonly EvtcRotationAction[]): string[] {
-  // Local evidence rules retain their own provenance instead of being attributed to Elite Insights.
-  const inferred = actions.filter(
-    (action) => (action.evidence === 'effect' || action.evidence === 'missile') && action.eiRule
-  );
-  const localInferred = actions.filter(
-    (action) => (action.evidence === 'effect' || action.evidence === 'missile') && !action.eiRule
-  );
+  // Import notices identify missing or incomplete input that the user may need to correct.
   const unsupported = actions.filter(
     (action) => !action.supportedByCatalog && !isMushroomKingsBlessing(action) && !isWeaponStow(action)
   );
   const unfinished = actions.filter((action) => action.status === 'unknown');
   const warnings: string[] = [LOG_OPENER_WARNING];
-
-  if (inferred.length) {
-    warnings.push(
-      `${inferred.length} instant cast${inferred.length === 1 ? ' was' : 's were'} inferred using explicit Elite Insights rules.`
-    );
-  }
-
-  if (localInferred.length) {
-    warnings.push(
-      `${localInferred.length} cast${localInferred.length === 1 ? ' was' : 's were'} inferred using corroborated profession-specific EVTC evidence.`
-    );
-  }
 
   if (unsupported.length) {
     warnings.push(
@@ -414,7 +392,6 @@ function reconstructWithProfile(
     rotation: buildRotation(resolved, origin, combatStart),
     warnings: [
       ...warningList(actions),
-      ...missingInterruptCommitWarnings(timingContext, resolved),
       // A Gaze snapshot proves an existing mark, but cannot reconstruct the missing opener or its stored resources.
       ...(profile.specializationId === 'deadeye' &&
       log.events.some(

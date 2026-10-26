@@ -1,3 +1,5 @@
+import type { NumericSkillFieldSpec } from '#gw2/platform/skills/field-specs.js';
+import { SHARED_SKILL_FIELDS } from '#gw2/platform/skills/shared-fields.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { NativePatchAuthoringMetadata } from '#gw2/integrations/patches/authoring/module-types.js';
 import type {
@@ -16,28 +18,31 @@ export interface PatchOverviewEntry {
   readonly source: 'skill-diff' | 'profile-diff' | 'modifier-diff';
 }
 
-const FIELD_LABELS: Readonly<Record<string, string>> = Object.freeze({
-  ammoCastLockout: 'ammo cast lockout',
-  ammoRecharge: 'ammo recharge',
-  applications: 'applications',
+// Effect fields whose concise label differs from their split storage key; skill fields declare their own labels.
+const EFFECT_FIELD_LABELS: Readonly<Record<string, string>> = Object.freeze({
   atMs: 'timing',
-  castTimeMs: 'cast time',
-  coefficient: 'coefficient',
-  cooldown: 'cooldown',
-  duration: 'duration',
-  energyCost: 'energy cost',
-  hits: 'hits',
-  initiativeCost: 'initiative cost',
-  intervalMs: 'interval',
-  quicknessCastTimeMs: 'Summon Quickness cast time',
-  recharge: 'recharge',
-  resourceCost: 'resource cost',
-  stacks: 'stacks'
+  intervalMs: 'interval'
 });
 
-/** Converts stable storage keys into concise labels shared by generated overview prose and editor field labels. */
-export function patchFieldLabel(field: string): string {
-  return FIELD_LABELS[field] || field.replaceAll(/([a-z])([A-Z])/g, '$1 $2').toLocaleLowerCase();
+/** A skill field's own declaration, or the shared declaration for profile and effect fields of the same name. */
+export function numericFieldSpec(
+  field: string,
+  spec?: Pick<NumericSkillFieldSpec, 'label' | 'unit'>
+): Pick<NumericSkillFieldSpec, 'label' | 'unit'> | undefined {
+  const shared = Object.hasOwn(SHARED_SKILL_FIELDS, field) ? SHARED_SKILL_FIELDS[field] : undefined;
+  return spec ?? (shared?.kind === 'number' ? shared : undefined);
+}
+
+/**
+ * Converts stable storage keys into concise labels shared by generated overview prose and editor field labels.
+ * Profession-owned skill fields pass their declaration, because only the selected profession knows them.
+ */
+export function patchFieldLabel(field: string, spec?: Pick<NumericSkillFieldSpec, 'label' | 'unit'>): string {
+  return (
+    numericFieldSpec(field, spec)?.label ||
+    EFFECT_FIELD_LABELS[field] ||
+    field.replaceAll(/([a-z])([A-Z])/g, '$1 $2').toLocaleLowerCase()
+  );
 }
 
 /** Keeps generated numeric summaries compact while avoiding floating-point noise. */
@@ -46,8 +51,8 @@ function formatNumber(value: number): string {
 }
 
 /** Describes one numeric edit in human-readable patch-note language. */
-function describeNumEdit(field: string, edit: NumEdit): string {
-  const label = patchFieldLabel(field);
+function describeNumEdit(field: string, edit: NumEdit, spec?: Pick<NumericSkillFieldSpec, 'label'>): string {
+  const label = patchFieldLabel(field, spec);
 
   if (typeof edit === 'number') return `${label} set to ${formatNumber(edit)}`;
 
@@ -79,7 +84,10 @@ function effectIdentity(effect: Readonly<SkillEffect>): string {
 }
 
 /** Collapses every skill-style field and effect edit into one generated sentence. */
-function skillPatchSummary(edit: SkillPatchEdit): string {
+function skillPatchSummary(
+  edit: SkillPatchEdit,
+  skillFields: Readonly<Record<string, Pick<NumericSkillFieldSpec, 'label' | 'unit'>>> = {}
+): string {
   const changes = new Set<string>();
   // Grant summaries use the same stable ids as their authoring controls, including conditional rewards.
   const describeGrants = (grants: SkillPatchEdit['resourceGrants'], prefix: string) => {
@@ -89,6 +97,9 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
   };
 
   describeGrants(edit.resourceGrants, '');
+  // Inline rewards retain their action identity in generated patch notes.
+  for (const [id, changesForAction] of Object.entries(edit.sideEffects ?? {}))
+    changes.add(`${id}: ${skillPatchSummary(changesForAction)}`);
 
   // Explain slot reworks alongside numeric changes when displaying the structured preview.
   if (edit.placement) {
@@ -100,7 +111,7 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
   }
 
   for (const [field, numericEdit] of Object.entries(edit.fields || {})) {
-    changes.add(describeNumEdit(field, numericEdit));
+    changes.add(describeNumEdit(field, numericEdit, skillFields[field]));
   }
 
   for (const [field, numericEdit] of [
@@ -172,7 +183,7 @@ function generatedSkillOverview(
 
   return Object.entries(skills).map(([key, edit]) => ({
     subject: names.get(key) || key,
-    text: skillPatchSummary(edit),
+    text: skillPatchSummary(edit, metadata?.skillFields),
     source: 'skill-diff'
   }));
 }

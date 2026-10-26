@@ -53,7 +53,7 @@ test('Elementalist Energy makes the next dodge affordable on attunement swap', a
     { type: 'combat-start' },
     ...['Dodge', 'Dodge', 'Air Attunement', 'Dodge'].map((name) => ({
       type: 'cast',
-      skillId: profession.catalog.skillsByName.get(name).id
+      skillId: profession.catalog.skills.find((candidate) => candidate.name === name).id
     }))
   ];
   const result = runElementalist(

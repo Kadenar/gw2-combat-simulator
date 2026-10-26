@@ -40,19 +40,29 @@ test('ground axes accumulate per emitted projectile, cap at six, and expire inde
   assert.equal(landed['thief-outbound-axes'], undefined);
   assert.equal(
     activeState(
-      simulate('Core', ['Venomous Volley', 'Venomous Volley', 'Spinning Axe', { type: 'wait', durationMs: 1000 }])
+      simulate('Core', [
+        'Venomous Volley',
+        'Venomous Volley',
+        { type: 'cast', skillId: 71967 },
+        { type: 'wait', durationMs: 1000 }
+      ])
     )['thief-spinning-axes'],
     '6/6'
   );
   const expired = simulate('Core', [
-    'Spinning Axe',
+    { type: 'cast', skillId: 71967 },
     { type: 'wait', durationMs: 11000 },
     { type: 'cast', skillId: ID.SPINNING_AXE },
     { type: 'wait', durationMs: 1000 }
   ]);
   assert.equal(activeState(expired)['thief-spinning-axes'], '1/6');
   assert.equal(
-    activeState(simulate('Core', ['Spinning Axe', { type: 'wait', durationMs: 11000 }]))['thief-spinning-axes'],
+    activeState(
+      simulate('Core', [
+        { type: 'cast', skillId: 71967 },
+        { type: 'wait', durationMs: 11000 }
+      ])
+    )['thief-spinning-axes'],
     '0/6'
   );
   const interrupted = simulate('Core', [{ name: 'Venomous Volley', interruptMs: 300 }]);
@@ -130,8 +140,8 @@ test('Distracting Throw stays visible alongside Revealed and disappears at expir
   const professionState = {
     revealedUntil: 8,
     spinningAxes: [
-      { skillId: 71854, expiresAt: 5 },
-      { skillId: 71854, expiresAt: 9 }
+      { skillId: 71967, expiresAt: 5 },
+      { skillId: 71967, expiresAt: 9 }
     ]
   };
   const values = (atSeconds) =>

@@ -17,6 +17,8 @@ import type { AntiquaryState } from '#gw2/professions/thief/specializations/anti
 import type { DaredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import type { SpecterState } from '#gw2/professions/thief/specializations/specter/state.js';
+import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
+import type { THIEF_CORE_SKILL_FIELDS } from '#gw2/professions/thief/core/skill-fields.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 export type ThiefDodge = 'Dodge' | 'Lotus Training' | 'Bounding Dodger' | 'Unhindered Combatant';
@@ -97,11 +99,11 @@ interface ThiefSummonAttack {
   readonly summons: readonly ThiefSummonDefinition[];
 }
 
-export interface ThiefSkill extends Skill {
+/** Numeric tuning fields are typed from the modules' skill-field declarations, which also validate and patch them. */
+export interface ThiefSkill extends Skill, NumericSkillFields<typeof THIEF_CORE_SKILL_FIELDS> {
   readonly artifactKind?: ThiefArtifactKind;
   readonly backfire?: boolean;
   readonly dualWieldOpener?: boolean;
-  readonly initiativeCost?: number;
   readonly kneelSkill?: boolean;
   readonly malicious?: boolean;
   readonly movementSkill?: boolean;

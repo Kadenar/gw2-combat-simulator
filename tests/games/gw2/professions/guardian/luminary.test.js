@@ -811,7 +811,11 @@ test('Radiant weapon equips replace the prior flip and preserve its parent coold
 
     assert.equal(result.planningState.profession.availableFlips[flip], undefined, parent);
     assert.ok(result.planningState.profession.availableFlips[nextFlip], nextParent);
-    assert.ok(result.planningState.cooldowns[guardianCatalog.skillsByName.get(parent).id].remaining > 0, parent);
+    assert.ok(
+      result.planningState.cooldowns[guardianCatalog.skills.find((candidate) => candidate.name === parent).id]
+        .remaining > 0,
+      parent
+    );
   }
 
   const glaringBurst = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(

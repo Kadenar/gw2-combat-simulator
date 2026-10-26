@@ -1,3 +1,4 @@
+import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';
@@ -49,7 +50,7 @@ test('Phase Retreat imports owned missile creations across Mesmer specialization
   );
   const imported = reconstructEvtcRotation(fixture, mesmerCatalog);
   assert.equal(imported.rotation.filter((command) => command.skillId === ID.PHASE_RETREAT).length, 1);
-  assert.match(imported.warnings.join('\n'), /profession-specific EVTC evidence/);
+  assert.deepEqual(imported.warnings, [LOG_OPENER_WARNING]);
 });
 
 /** The player's opening impact must enter combat and retain its burning before the cast's recovery completes. */

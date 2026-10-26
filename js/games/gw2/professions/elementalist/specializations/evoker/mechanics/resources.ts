@@ -1,3 +1,4 @@
+import { ELEMENTALIST_TRAIT_IDS as EVOKER_TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { ACTOR, WEAPON } from '#gw2/platform/constants.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
@@ -13,26 +14,12 @@ import { evokerChargeProfile } from '#gw2/professions/elementalist/specializatio
  * familiar handlers; this module only accrues and reports them.
  */
 import { balanceNumberFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
-import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 // Use Core's bundle names so conjure availability and familiar-charge exclusions agree.
 import { CONJURED_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState, type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-
-/** Charge capacity and gains belong to the resource policies while remaining patchable for every consumer. */
-export const evokerResourceProfile: BalanceProfile = Object.freeze({
-  id: PROFILE.resources,
-  name: 'Evoker Familiar Charges',
-  profileKind: 'mechanic',
-  maximumStacks: 6,
-  minimumStacks: 3,
-  playerStacks: 2,
-  allyStacks: 1,
-  recharge: 1.5,
-  effects: []
-});
 
 /** Weapon skills exempted from familiar charge generation despite sitting in slots 2-5. */
 const EVOKER_NO_CHARGE_SKILLS: ReadonlySet<SkillId> = new Set([
@@ -69,7 +56,7 @@ export const familiarChargePolicy: ResourcePolicy<ElementalistRuntime> = {
 export const empoweredChargePolicy: ResourcePolicy<ElementalistRuntime> = {
   kind: 'continuous',
   state: (context) => evokerState.from(context).empoweredCharges,
-  maximum: (context) => balanceNumberFromContext(context, PROFILE.resources, 'minimumStacks'),
+  maximum: (context) => balanceNumberFromContext(context, EVOKER_TRAIT.EVOCATION, 'minimumStacks'),
   initial: (context, maximum) => boundedNumber(context.config.initialEvokerEmpowered ?? 0, 0, 0, maximum),
   recovery: () => 0
 };
@@ -125,7 +112,7 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pic
     .split('+')
     .includes(state.element)
     ? balanceProfileNumber(evokerChargeProfile(context), 'playerStacks')
-    : balanceNumberFromContext(context, PROFILE.resources, 'allyStacks');
+    : balanceNumberFromContext(context, EVOKER_TRAIT.EVOCATION, 'allyStacks');
 }
 
 // Commit at the live flush time, clamped to capacity, so deferred grants follow the familiar's reset.

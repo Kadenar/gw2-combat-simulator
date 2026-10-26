@@ -362,7 +362,10 @@ test('a surviving Shredding note is independent of the removed Lute attack', () 
   const result = run(
     { 'mesmer.troubadour.lively-lute': { removeEffects: [{ type: 'strike', name: 'Strike' }] } },
     'Troubadour',
-    ['Lively Lute', { type: 'wait', durationMs: 1000 }],
+    [
+      { type: 'cast', skillId: 76552 },
+      { type: 'wait', durationMs: 1000 }
+    ],
     { selectedTraitIds: [TRAIT.SHREDDING] }
   );
   assert.ok(result.events.some((event) => event.type === 'damage' && event.skillId === ID.LIVELY_LUTE));

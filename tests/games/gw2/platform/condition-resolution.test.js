@@ -105,7 +105,7 @@ test('condition applications shorter than one second deal fractional damage', ()
     },
     helpers: {
       conditionName: (name) => name,
-      skillsByName: new Map(),
+      skills: [],
       weaponStrength: () => 1000
     }
   });
@@ -171,7 +171,7 @@ test('staggered condition applications preserve fractional stack-seconds', () =>
     },
     helpers: {
       conditionName: (name) => name,
-      skillsByName: new Map(),
+      skills: [],
       weaponStrength: () => 1000
     }
   });
@@ -240,7 +240,7 @@ function resolveBleedThrough(
     },
     helpers: {
       conditionName: (name) => name,
-      skillsByName: new Map(),
+      skills: [],
       weaponStrength: () => 1000
     }
   });
@@ -380,7 +380,7 @@ test('precombat target conditions are rejected rather than carried into combat',
     },
     helpers: {
       conditionName: (name) => name,
-      skillsByName: new Map(),
+      skills: [],
       weaponStrength: () => 1000
     }
   });
@@ -439,7 +439,7 @@ function resolveEnvironmentConditions({
     },
     helpers: {
       conditionName: (name) => name,
-      skillsByName: new Map(),
+      skills: [],
       weaponStrength: () => 1000
     }
   });
@@ -691,7 +691,7 @@ test('an explicit empty target condition map does not restore default conditions
   const defaults = defaultSimulationConfig();
   const run = (conditions) =>
     simulateMesmer(
-      ['Bladecall'],
+      [{ type: 'cast', skillId: 69311 }],
       defaultSimulationConfig({
         target: {
           ...defaults.target,

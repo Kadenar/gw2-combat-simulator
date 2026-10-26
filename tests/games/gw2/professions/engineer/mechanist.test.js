@@ -48,7 +48,7 @@ test('Jade Mortar does not inherit Force or lose part of its signet bonus', () =
 });
 
 function mechanic(name) {
-  return engineerCatalog.skillsByName.get(name);
+  return engineerCatalog.skills.find((candidate) => candidate.name === name);
 }
 
 for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
@@ -86,7 +86,9 @@ for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
             catalog: engineerCatalog,
             config: {
               specialization: 'Mechanist',
-              selectedSkillIds: selected ? [engineerCatalog.skillsByName.get(signet).id] : [],
+              selectedSkillIds: selected
+                ? [engineerCatalog.skills.find((candidate) => candidate.name === signet).id]
+                : [],
               selectedTraitIds: traits
             },
             timeline,

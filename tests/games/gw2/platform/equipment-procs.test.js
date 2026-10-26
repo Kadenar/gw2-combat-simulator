@@ -155,7 +155,7 @@ test('a damage packet removed before resolution cannot trigger critical sigils',
     },
     helpers: {
       conditionName: (name) => name,
-      skillsByName: new Map(),
+      skills: [],
       weaponStrength: () => 1_000
     }
   });
@@ -170,7 +170,7 @@ test('a damage packet removed before resolution cannot trigger critical sigils',
 test('critical sigils enqueue and resolve their own proc event', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
-    ['Bladecall'],
+    [{ type: 'cast', skillId: 69311 }],
     defaultSimulationConfig({
       attributeInputs: baseAttributeInputs({
         ...defaults.attributeInputs.weaponSets[0].commonTotals,
@@ -350,7 +350,7 @@ test('critical-strike food procs remain unmodified without profession effects', 
 
 test('weapon-swap sigils resolve locally on the destination weapon set', () => {
   const result = simulateMesmer(
-    ['Bladecall', 'Swap Weapons', 'Psycut', { name: '__wait', waitMs: 2000 }],
+    [{ type: 'cast', skillId: 69311 }, 'Swap Weapons', 'Psycut', { name: '__wait', waitMs: 2000 }],
     defaultSimulationConfig({
       primaryWeapon: 'Dagger',
       secondaryWeapon: 'Sword',
@@ -453,12 +453,12 @@ test('Severance affects strikes after its control trigger', () => {
 
 test('sigil and relic damage modifiers affect the queued rotation result', () => {
   const config = defaultSimulationConfig();
-  const base = simulateMesmer(['Bladecall', 'Unstable Bladestorm'], {
+  const base = simulateMesmer([{ type: 'cast', skillId: 69311 }, 'Unstable Bladestorm'], {
     ...config,
     relic: '',
     modifiers: { strike: 1, condition: 1 }
   });
-  const equipped = simulateMesmer(['Bladecall', 'Unstable Bladestorm'], {
+  const equipped = simulateMesmer([{ type: 'cast', skillId: 69311 }, 'Unstable Bladestorm'], {
     ...config,
     relic: 'Thief',
     modifiers: { strike: 1.05, condition: 1 }
@@ -476,7 +476,7 @@ test('weapon swaps activate only the equipped set damage sigils', () => {
     weaponSet2Secondary: '',
     modifiers: { strike: 1, condition: 1 }
   });
-  const rotation = ['Bladecall', 'Swap Weapons', 'Psycut'];
+  const rotation = [{ type: 'cast', skillId: 69311 }, 'Swap Weapons', 'Psycut'];
   const base = simulateMesmer(rotation, config);
   const equipped = simulateMesmer(rotation, {
     ...config,
@@ -627,7 +627,7 @@ test('Relic of Fireworks ignores non-weapon skills with qualifying cooldowns', (
 
 test('Relic of Akeem triggers on control against five confusion stacks', () => {
   const result = simulateMesmer(
-    ['Bladesong Sorrow', 'Bladecall', 'Bladesong Dissonance', { name: '__wait', waitMs: 12000 }],
+    ['Bladesong Sorrow', { type: 'cast', skillId: 69311 }, 'Bladesong Dissonance', { name: '__wait', waitMs: 12000 }],
     defaultSimulationConfig({
       relic: 'Akeem',
       initialResource: 5,
@@ -653,7 +653,7 @@ test('Relic of Akeem triggers on control against five confusion stacks', () => {
 
 test('condition-only relic rows report their recorded activations as hits', () => {
   const akeem = simulateMesmer(
-    ['Bladesong Sorrow', 'Bladecall', 'Bladesong Dissonance', { name: '__wait', waitMs: 12000 }],
+    ['Bladesong Sorrow', { type: 'cast', skillId: 69311 }, 'Bladesong Dissonance', { name: '__wait', waitMs: 12000 }],
     defaultSimulationConfig({
       relic: 'Akeem',
       initialResource: 5,
@@ -696,7 +696,7 @@ test('sigil rows report their recorded activations for hit counts and averages',
     })
   );
   const doom = simulateMesmer(
-    ['Bladecall', 'Swap Weapons', 'Psycut', { name: '__wait', waitMs: 9000 }],
+    [{ type: 'cast', skillId: 69311 }, 'Swap Weapons', 'Psycut', { name: '__wait', waitMs: 9000 }],
     defaultSimulationConfig({
       primaryWeapon: 'Dagger',
       secondaryWeapon: 'Sword',
@@ -726,7 +726,7 @@ test('sigil rows report their recorded activations for hit counts and averages',
 
 test('Relic of Akeem is reported when its trigger ends the rotation', () => {
   const result = simulateMesmer(
-    ['Bladesong Sorrow', 'Bladecall', 'Bladesong Dissonance'],
+    ['Bladesong Sorrow', { type: 'cast', skillId: 69311 }, 'Bladesong Dissonance'],
     defaultSimulationConfig({
       relic: 'Akeem',
       initialResource: 5
@@ -746,7 +746,7 @@ test('Relic of the Eagle activates after runtime damage drops the target below 5
     relic: '',
     modifiers: { strike: 1, condition: 1 }
   });
-  const probe = simulateMesmer(['Bladecall'], config);
+  const probe = simulateMesmer([{ type: 'cast', skillId: 69311 }], config);
   const firstHitDamage = probe.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillName === 'Bladecall'
   ).damage;
@@ -754,15 +754,27 @@ test('Relic of the Eagle activates after runtime damage drops the target below 5
     ...config.target,
     health: firstHitDamage * 1.5
   };
-  const base = simulateMesmer(['Bladecall', 'Bladecall'], {
-    ...config,
-    target
-  });
-  const eagle = simulateMesmer(['Bladecall', 'Bladecall'], {
-    ...config,
-    relic: 'Eagle',
-    target
-  });
+  const base = simulateMesmer(
+    [
+      { type: 'cast', skillId: 69311 },
+      { type: 'cast', skillId: 69311 }
+    ],
+    {
+      ...config,
+      target
+    }
+  );
+  const eagle = simulateMesmer(
+    [
+      { type: 'cast', skillId: 69311 },
+      { type: 'cast', skillId: 69311 }
+    ],
+    {
+      ...config,
+      relic: 'Eagle',
+      target
+    }
+  );
   const hits = (result) =>
     result.resolvedEvents
       .filter((event) => event.type === 'damage' && event.skillName === 'Bladecall')

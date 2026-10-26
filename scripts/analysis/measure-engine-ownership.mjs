@@ -98,7 +98,7 @@ for (const definition of definitions) {
     if (typeof command !== 'string' && !command.name) return command;
 
     const { name, ...options } = typeof command === 'string' ? { name: command } : command;
-    const skill = catalog.skillsByName.get(name);
+    const skill = catalog.skills.find((candidate) => candidate.name === name);
 
     if (!skill) throw new Error(`Unknown performance skill: ${name}`);
 
@@ -117,7 +117,7 @@ for (const definition of definitions) {
   };
 
   if (definition.isolated) {
-    const skill = catalog.skillsByName.get(definition.isolated);
+    const skill = catalog.skills.find((candidate) => candidate.name === definition.isolated);
     const occurrence = {
       id: String(skill.id),
       effect: { kind: 'skill', id: skill.id },

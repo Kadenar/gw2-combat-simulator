@@ -1,22 +1,16 @@
-import { ACTOR, BOON, CONTROL } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  balanceNumberFromContext,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber, requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import {
-  PRIMORDIAL_STANCE_EFFECTS,
-  WEAVER_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import type {
   ElementalistRuntime,
@@ -24,7 +18,16 @@ import type {
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 
-/** Shares stance timing while retaining independent effect arrays and stable patch selectors for each variant. */
+// One authored payload supplies the canonical action and the variants' non-emitting timing templates.
+const PRIMORDIAL_STANCE_EFFECTS = {
+  strike: { type: 'strike', name: 'Primordial Stance', coefficient: 0.33, hits: 1 },
+  Fire: { type: 'condition', name: 'Fire', condition: CONDITION.BURNING, stacks: 1, duration: 2 },
+  Water: { type: 'condition', name: 'Water', condition: CONDITION.CHILLED, stacks: 1, duration: 1 },
+  Air: { type: 'condition', name: 'Air', condition: CONDITION.VULNERABILITY, stacks: 8, duration: 3 },
+  Earth: { type: 'condition', name: 'Earth', condition: CONDITION.BLEEDING, stacks: 2, duration: 6 }
+} satisfies Record<string, SkillEffect>;
+
+/** Shares stance timing while retaining independent timing edits for each casting variant. */
 function primordialStance(attunement: ElementalistAttunement): Partial<Skill> {
   const offsets = [0, 1000, 2000, 3000, 4000, 5000];
   const { condition, stacks, duration } = PRIMORDIAL_STANCE_EFFECTS[attunement];
@@ -34,7 +37,15 @@ function primordialStance(attunement: ElementalistAttunement): Partial<Skill> {
       {
         on: 'castStart',
         when: (_runtime, cast) => !cast.cancelled,
-        do: { type: 'elementalist.weaver.start-primordial-stance' }
+        // Every variant reads the selected Fire skill's payload, so balance edits have one owner.
+        do:
+          attunement === 'Fire'
+            ? {
+                type: 'elementalist.weaver.start-primordial-stance',
+                id: 'pulses',
+                effects: Object.values(PRIMORDIAL_STANCE_EFFECTS)
+              }
+            : { type: 'elementalist.weaver.start-primordial-stance' }
       }
     ],
     name: `Primordial Stance (${attunement})`,
@@ -49,6 +60,10 @@ function primordialStance(attunement: ElementalistAttunement): Partial<Skill> {
     ammoRecharge: 20,
     skillFamily: 'Stance',
 
+    // Timing-only templates: `when: () => false` keeps them from emitting. The condition ticks set the pulse times
+    // and the strike ticks describe expected hit times for readers of authored strikes, such as log import. Their
+    // coefficient, stacks, and duration copy the defaults and are never read for output: pulse amounts come from the
+    // Fire variant's `pulses` action, so patches that change pulse output edit that action, not these effects.
     effects: [
       {
         type: 'strike',
@@ -98,7 +113,12 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
   // Weave Self and Tailored Victory chain into each other: completing Weave Self
   // opens the Perfect Weave flipover, and Tailored Victory consumes it.
   [ID.WEAVE_SELF]: {
-    // Schedule the profiled mid-cast activation; interruption before it grants no window.
+    // Weave Self lasts `duration`; completing every attunement opens Tailored Victory for `flipDuration`.
+    duration: 20,
+    flipDuration: 10,
+    // The form activates, and recharge starts, at this fraction of the cast.
+    rechargeProgress: 0.65,
+    // Schedule the mid-cast activation at the recharge point; interruption before it grants no window.
     sideEffects: [{ on: 'castStart', do: { type: 'elementalist.weaver.start-weave-self' } }],
     name: 'Weave Self',
     type: 'Elite',
@@ -136,8 +156,23 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     ])
   },
   [ID.UNRAVEL]: {
+    duration: 5,
     // After completion traits, unify the live hands, clear attunement recharge, and grant the current element's boon.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.unravel' } }],
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.weaver.unravel',
+          id: 'unravel',
+          effects: [
+            { type: 'boon', name: 'Fire', boon: BOON.MIGHT, stacks: 5, duration: 5 },
+            { type: 'boon', name: 'Water', boon: BOON.VIGOR, stacks: 1, duration: 5 },
+            { type: 'boon', name: 'Air', boon: BOON.FURY, stacks: 1, duration: 5 },
+            { type: 'boon', name: 'Earth', boon: BOON.PROTECTION, stacks: 1, duration: 5 }
+          ]
+        }
+      }
+    ],
     name: 'Unravel',
     type: 'Profession',
     slot: 'Profession_5',
@@ -150,6 +185,8 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     effects: []
   },
   [ID.FERVENT_STANCE]: {
+    // The committed stance arms this window; later dual attacks read the action's Might reward.
+    duration: 8,
     name: 'Fervent Stance',
     type: 'Utility',
     slot: 'Utility',
@@ -159,10 +196,14 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     cooldown: 20,
     skillFamily: 'Stance',
     // Fervent Stance arms its dual-attack might window after completion.
-    tasks: [
+    sideEffects: [
       {
-        type: 'elementalist.weaver.arm-fervent-stance',
-        timingAnchor: 'castCommit'
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.weaver.arm-fervent-stance',
+          id: 'dual-attack-might',
+          effects: [{ type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 3, duration: 8 }]
+        }
       }
     ],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -172,6 +213,12 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     ])
   }
 });
+
+/** Runtime and tooltips share the selected canonical payload while casts retain their own variant identity. */
+export function primordialStancePayload(context: unknown) {
+  const skill = requireSkillFromContext(context, ID.PRIMORDIAL_STANCE_FIRE);
+  return { skill, action: requireSkillAction(skill, 'pulses') };
+}
 
 /** Weave Self buffs later attacks while its elemental windows remain active. */
 export const weaveSelfModifiers: readonly Gw2ModifierRule[] = Object.freeze([
@@ -205,8 +252,8 @@ export function applyFerventStance(
   // Dual attacks claim Superior Elements at completion, before attempting its Weakness packet.
   // Dual attacks grant Might only while the stance is armed and strictly unexpired.
   if (dualAttunements && state.ferventStanceUntil > 0 && state.ferventStanceUntil > at) {
-    const ferventStanceProfile = requireBalanceProfileFromContext(context, PROFILE.ferventStance);
-    const might = requireEffect(ferventStanceProfile, 'boon', BOON.MIGHT);
+    const stance = requireSkillFromContext(context, ID.FERVENT_STANCE);
+    const might = requireEffect(stance, 'boon', BOON.MIGHT, requireSkillAction(stance, 'dual-attack-might'));
 
     if (might) {
       context.effects.emit(
@@ -229,15 +276,15 @@ export function applyFerventStance(
   }
 }
 
-/** Fervent Stance activation and its dual-attack reward share the same expiry state. */
-const ferventStanceTasks = {
-  'elementalist.weaver.arm-fervent-stance'(runtime) {
-    weaverState.from(runtime).ferventStanceUntil =
-      runtime.time + balanceNumberFromContext(runtime, PROFILE.ferventStance, 'duration');
-  }
-} satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['tasks']>;
-
-/** Registers Fervent Stance tasks with the Weaver hook assembly. */
+/** Fervent Stance's commit action arms the window that later dual attacks read for its Might reward. */
 export const ferventStanceLifecycle = {
-  tasks: ferventStanceTasks
+  sideEffectHandlers: {
+    'elementalist.weaver.arm-fervent-stance'(runtime, trigger) {
+      if (trigger.kind !== 'cast') throw new TypeError('Fervent Stance requires a cast trigger.');
+
+      // Arm directly at commitment: only later dual-attack completions read this window, and the stance itself is
+      // not a dual attack, so deferring past this cast's completion traits would change nothing.
+      weaverState.from(runtime).ferventStanceUntil = runtime.time + skillNumber(trigger.skill, 'duration');
+    }
+  }
 } satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;

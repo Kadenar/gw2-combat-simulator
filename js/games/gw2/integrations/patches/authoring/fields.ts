@@ -1,31 +1,55 @@
+import { hasActionEffects } from '#gw2/platform/effects/actions.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
+import { patchableSkillFields, type SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import { SHARED_SKILL_FIELDS } from '#gw2/platform/skills/shared-fields.js';
 /** Owns editable-field metadata and sanitized authoring references without applying patches. */
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { deepFreeze } from '#gw2/integrations/patches/authoring/immutable.js';
 
-/** Numeric balance fields accepted by both the authoring API and sparse patch validation. */
-export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
-  // Published activation changes use the canonical cast duration; internal packet timing stays private.
-  'castTimeMs',
-  // Recharge and ammo.
-  'cooldown',
-  'rechargeMultiplier', // fraction of recharge duration retained
-  'rechargeReduction', // flat seconds removed from recharge
-  'rechargePenalty',
-  'ammo',
-  'ammoRecharge',
+// Effect and profile timing internals stay out of authoring references; skill fields declare their own visibility.
+const EFFECT_RUNTIME_ONLY_NUMERIC_FIELDS = [
+  'alternateEvery',
+  'atMs',
+  'firstPacketRatio',
+  'initialDelay',
+  'interruptCommitMs',
+  'packetIntervalRatio',
+  'quicknessCastMultiplier'
+];
 
-  // Resource costs, gains, regeneration, and upkeep.
+/** Names hidden at every nesting level of an authoring reference, including the skill fields declared runtime-only. */
+function runtimeOnlyAuthoringFields(fields: SkillFieldSpecs): ReadonlySet<string> {
+  return new Set([
+    ...EFFECT_RUNTIME_ONLY_NUMERIC_FIELDS,
+    ...Object.entries(fields).flatMap(([field, spec]) => (spec.kind === 'number' && spec.runtimeOnly ? [field] : []))
+  ]);
+}
+
+const PROFILE_RUNTIME_ONLY_NUMERIC_FIELDS = runtimeOnlyAuthoringFields(SHARED_SKILL_FIELDS);
+
+/**
+ * Numeric fields that trait, mechanic, and variant profiles may patch. Skill fields are declared by the platform or
+ * the owning profession and read from the selected catalog instead.
+ */
+export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
+  // Recharge, ammo, resource costs, and regeneration.
+  'castTimeMs',
+  'cooldown',
+  'recharge',
+  'rechargeMultiplier',
+  'rechargeReduction',
+  'rechargePenalty',
+  'empoweredRechargeMultiplier',
+  'maximumAmmo',
   'resourceCost',
+  'resourceCostMultiplier',
   'resourceGain',
+  'entryResourceGain',
   'energyCost',
-  'initiativeCost',
-  'upkeepCost',
-  'upkeepPulse.duration',
-  'upkeepPulse.stacks',
   'energyRegenerationPerSecond',
   'enduranceRegenerationPerSecond',
+  'enduranceRegenerationMultiplier',
   'kneelingInitiativeRegenerationBonus',
   'astralForceRetentionMultiplier',
   'vigorRegenerationMultiplier',
@@ -42,100 +66,6 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   'enhancedConditionBaseDurationFactor',
   'lifeSiphonDamagePerStack',
   'weaponStrength',
-
-  // Attributes and critical-hit scaling.
-  'attributeBonus',
-  'attributeMultiplier',
-  'attributeConversion',
-  'attributePerStack',
-  'conditionDamageBonus',
-  'concentrationBonus',
-  'expertiseBonus',
-  'vitalityConversion',
-  'criticalChance',
-  'criticalDamage',
-  'weaponAttributeBonus',
-
-  // Stacks, durations, targeting, and proc gates.
-  'stackMultiplier', // scales authored boon stacks without changing their duration
-  'maximumStacks',
-  'conditionsTransferred',
-  'minimumStacks',
-  'playerStacks',
-  'charges',
-  'allyStacks',
-  'threshold',
-  // Skill-owned state lifetimes use duration, independently of durations on their individual effects.
-  'duration',
-  // Follow-up availability is a lifetime in seconds, independently patchable from effect durations.
-  'flipDuration',
-  'durationPerTier',
-  'durationMultiplier',
-  'durationExtension',
-  'immobilizeDurationExtension',
-  'baseDuration',
-  'highDuration',
-  'enhancedDuration',
-  'internalCooldown',
-  'maximumTargets',
-  'procChance',
-  // Specialization-specific Dhuumfire burning duration, shared by skill and shade profile overrides.
-  'dhuumfireDuration',
-
-  // Recurring and spawned effects.
-  'pulseInterval',
-  'packetInterval',
-  'basePacketCount',
-  'highPacketCount',
-  'packetCount',
-  'baseExtraBlades',
-  'highExtraBlades',
-  'enhancedExtraBlades',
-  RECIPIENT.SUMMONS,
-  'summonInterval',
-  'minionCount',
-
-  // Profession-specific resources and state transitions.
-  'arrowCost',
-  'arrowsRestored',
-  'blightCost',
-  'blightGain',
-  'bladeswornResourceGain',
-  'lifeForceDrain',
-  'heatLoss',
-  'windForceApplyMs',
-  'windForceGain'
-]);
-
-// Packet timing and interrupt mechanics remain runtime-only authoring inputs.
-const AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS = new Set([
-  'alternateEvery',
-  'ammoCastLockout',
-  'atMs',
-  'firstPacketRatio',
-  'initialDelay',
-  'interruptCommitMs',
-  'packetIntervalRatio',
-  'quicknessCastMultiplier',
-  'quicknessCastTimeMs',
-  'rechargeOffsetMs',
-  'rechargeProgress',
-  'selfStunMs'
-]);
-
-/** Trait and mechanic profiles extend shared skill fields with their own independently patchable tuning. */
-export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
-  ...PATCHABLE_SKILL_NUMERIC_FIELDS,
-
-  // Recharge, ammo, resource costs, and regeneration.
-  'recharge',
-  'empoweredRechargeMultiplier',
-  'maximumAmmo',
-  'resourceCostMultiplier',
-  'entryResourceGain',
-  'enduranceRegenerationMultiplier',
-
-  // Strike, condition, and general damage scaling.
   'conditionDamageMultiplier',
   'conditionDamageIncrease',
   'conditionDamageIncreasePerStack',
@@ -176,12 +106,23 @@ export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   'conditionHigh',
 
   // Attributes, summon inheritance, and critical-hit scaling.
+  'attributeBonus',
+  'attributeMultiplier',
+  'attributeConversion',
+  'attributePerStack',
+  'conditionDamageBonus',
+  'concentrationBonus',
+  'expertiseBonus',
+  'vitalityConversion',
+  'weaponAttributeBonus',
   'baseAttribute',
   'inheritanceRatio',
   'secondaryAttributeCap',
   'powerCap',
   'precisionCap',
   'basePrecision',
+  'criticalChance',
+  'criticalDamage',
   'criticalChanceBonus',
   'phantasmCriticalChance',
   'lowHealthCriticalDamage',
@@ -195,24 +136,57 @@ export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   'dwarfAttributeBonus',
   'entityAttributeBonus',
 
-  // Stacks, durations, and proc gates.
+  // Stacks, durations, targeting, and proc gates.
+  'internalCooldown',
+  'stackMultiplier', // scales authored boon stacks without changing their duration
+  'maximumStacks',
+  'minimumStacks',
+  'playerStacks',
+  'charges',
+  'allyStacks',
+  'threshold',
   'maximumDamageStacks',
   'maximumBoons',
   'maximumConditions',
-  'boonStacks',
-  'boonDuration',
+  'duration',
+  'flipDuration',
+  'durationPerTier',
+  'durationMultiplier',
+  'durationExtension',
+  'immobilizeDurationExtension',
+  'baseDuration',
+  'highDuration',
+  'enhancedDuration',
   'boonDurationBonus',
   'sharedDurationMultiplier',
   'conditionDurationMultiplier',
   'conditionDurationBonus',
+  'maximumTargets',
+  'procChance',
   'weaponProcChanceMultiplier',
+  // Specialization-specific Dhuumfire burning duration, shared by skill and shade profile overrides.
+  'dhuumfireDuration',
 
-  // Recurring effects and trait-specific pulse gates.
+  // Recurring, spawned, and trait-specific pulse effects.
+  'pulseInterval',
+  'packetInterval',
   'auraPulseInterval',
   'interval',
   'dhuumfireInterval',
+  'basePacketCount',
+  'highPacketCount',
+  'packetCount',
+  'baseExtraBlades',
+  'highExtraBlades',
+  'enhancedExtraBlades',
+  RECIPIENT.SUMMONS,
+  'minionCount',
 
   // Profession-specific resource grants and capacity.
+  'blightCost',
+  'blightGain',
+  'bladeswornResourceGain',
+  'lifeForceDrain',
   'fervorStacks',
   'lifeForceGain',
   'lifeForcePerStack',
@@ -340,11 +314,14 @@ function valueAtPath(root: unknown, path: string): unknown {
   return value;
 }
 
-/** Returns only the numeric skill fields deliberately exposed by the authoring API. */
-export function skillPatchableNumericFields(skill: Readonly<Skill | BalanceProfile>): Readonly<Record<string, number>> {
+/** Returns the skill's numeric values whose declarations in the selected catalog permit patch edits. */
+export function skillPatchableNumericFields(
+  skill: Readonly<Skill>,
+  fields: SkillFieldSpecs
+): Readonly<Record<string, number>> {
   return Object.freeze(
     Object.fromEntries(
-      PATCHABLE_SKILL_NUMERIC_FIELDS.flatMap((field) => {
+      patchableSkillFields(fields).flatMap(([field]) => {
         const value = valueAtPath(skill, field);
         return typeof value === 'number' ? [[field, value]] : [];
       })
@@ -353,8 +330,12 @@ export function skillPatchableNumericFields(skill: Readonly<Skill | BalanceProfi
 }
 
 /** Runtime predicates and activation declarations stay in the executable catalog, never in editor JSON. */
-function withoutRuntimeOnlyAuthoringFields(value: unknown, parent?: Readonly<Record<string, unknown>>): unknown {
-  if (Array.isArray(value)) return value.map((entry) => withoutRuntimeOnlyAuthoringFields(entry, parent));
+function withoutRuntimeOnlyAuthoringFields(
+  value: unknown,
+  runtimeOnly: ReadonlySet<string>,
+  parent?: Readonly<Record<string, unknown>>
+): unknown {
+  if (Array.isArray(value)) return value.map((entry) => withoutRuntimeOnlyAuthoringFields(entry, runtimeOnly, parent));
 
   if (typeof value === 'function') return undefined;
 
@@ -362,22 +343,22 @@ function withoutRuntimeOnlyAuthoringFields(value: unknown, parent?: Readonly<Rec
 
   return Object.fromEntries(
     Object.entries(value as Readonly<Record<string, unknown>>).flatMap(([field, nested]) =>
-      // Cast grant amounts remain editable, while executable cast handlers and predicates stay private.
+      // Cast grants and inline payloads remain editable; executable predicates stay private.
       field === 'sideEffects' && Array.isArray(nested)
-        ? nested.some((rule) => rule.do?.type === 'resourceGrant' && rule.do?.id)
+        ? nested.some((rule) => (rule.do?.type === 'resourceGrant' && rule.do?.id) || hasActionEffects(rule.do))
           ? [
               [
                 field,
                 nested
-                  .filter((rule) => rule.do?.type === 'resourceGrant' && rule.do?.id)
-                  .map((rule) => withoutRuntimeOnlyAuthoringFields(rule))
+                  .filter((rule) => (rule.do?.type === 'resourceGrant' && rule.do?.id) || hasActionEffects(rule.do))
+                  .map((rule) => withoutRuntimeOnlyAuthoringFields(rule, runtimeOnly))
               ]
             ]
           : []
         : (field === 'coefficient' &&
               !effectNumericFieldIsPatchable(field, value as Record<string, unknown>, parent)) ||
             typeof nested === 'function' ||
-            AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS.has(field) ||
+            runtimeOnly.has(field) ||
             ['effectVariants', 'when'].includes(field)
           ? []
           : [
@@ -385,6 +366,7 @@ function withoutRuntimeOnlyAuthoringFields(value: unknown, parent?: Readonly<Rec
                 field,
                 withoutRuntimeOnlyAuthoringFields(
                   nested,
+                  runtimeOnly,
                   field === 'ticks' ? (value as Record<string, unknown>) : undefined
                 )
               ]
@@ -393,9 +375,12 @@ function withoutRuntimeOnlyAuthoringFields(value: unknown, parent?: Readonly<Rec
   );
 }
 
-/** Builds a skill reference for the editor while retaining complete timing data in the runtime catalog. */
-export function skillAuthoringReference(skill: Readonly<Skill>): Readonly<Skill> {
-  return deepFreeze(withoutRuntimeOnlyAuthoringFields(skill) as Skill);
+/**
+ * Builds a skill reference for the editor while retaining complete timing data in the runtime catalog. The selected
+ * catalog's field table decides which skill fields are runtime-only.
+ */
+export function skillAuthoringReference(skill: Readonly<Skill>, fields: SkillFieldSpecs): Readonly<Skill> {
+  return deepFreeze(withoutRuntimeOnlyAuthoringFields(skill, runtimeOnlyAuthoringFields(fields)) as Skill);
 }
 
 /** Returns the numeric balance-profile fields supported by patch authoring. */
@@ -442,7 +427,7 @@ function balanceProfileEffectAuthoringReference(
 
       if (typeof value === 'number' && !effectNumericFieldIsPatchable(field, record, parent)) return [];
 
-      return [[field, withoutRuntimeOnlyAuthoringFields(value)]];
+      return [[field, withoutRuntimeOnlyAuthoringFields(value, PROFILE_RUNTIME_ONLY_NUMERIC_FIELDS)]];
     })
   );
 }

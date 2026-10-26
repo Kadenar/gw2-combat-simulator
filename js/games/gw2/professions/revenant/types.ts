@@ -12,26 +12,21 @@ import type { RenegadeState } from '#gw2/professions/revenant/specializations/re
 import type { VindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
-export interface RevenantSkill extends Skill {
+/** Numeric tuning fields are typed from the modules' skill-field declarations, which also validate and patch them. */
+export interface RevenantSkill extends Skill, NumericSkillFields<typeof REVENANT_CORE_SKILL_FIELDS> {
   readonly affinityOnHit?: boolean;
   readonly consume?: boolean;
   readonly duration?: number;
   readonly displayName?: string;
-  readonly energyCost?: number;
   readonly facet?: boolean;
   readonly legendId?: string;
-  readonly manualReleaseCooldown?: number;
   readonly paletteLegendId?: string;
-  readonly starvationCooldown?: number;
-  readonly triggerIntervalMs?: number;
-  readonly upkeepCost?: number;
   readonly upkeepConsumeByLegendId?: Readonly<Record<string, SkillId>>;
   readonly upkeepPulse?: {
     readonly kind: string;
     readonly duration: number;
     readonly stacks: number;
   };
-  readonly pulseInterval?: number;
 }
 
 export interface RevenantBuild extends Gw2Build {
@@ -101,3 +96,5 @@ export interface RevenantUiContext extends Omit<
 /** UI slice whose callbacks read Revenant end-state projections. */
 export type RevenantUiSlice = Partial<ProfessionUiContract<Partial<RevenantState>>>;
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
+import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
+import type { REVENANT_CORE_SKILL_FIELDS } from '#gw2/professions/revenant/core/skill-fields.js';

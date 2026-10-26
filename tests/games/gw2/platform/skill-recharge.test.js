@@ -167,7 +167,7 @@ test('GW2 base recharge accepts finite cooldowns and defaults missing or invalid
 test('Warrior ammo preserves serial charge recovery', () => {
   const config = { selectedSkillIds: [14354] };
   const native = warriorProfession.runtimeFor(config);
-  const skill = native.catalog.skillsByName.get('Throw Bolas');
+  const skill = native.catalog.skillsById.get(14354);
   const seen = [];
   const result = simulateGw2({
     profession: {

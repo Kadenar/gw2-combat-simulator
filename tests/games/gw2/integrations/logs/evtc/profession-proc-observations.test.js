@@ -150,9 +150,7 @@ function catalog(profiles) {
   return {
     skills,
     skillsById: new Map(skills.map((skill) => [skill.id, skill])),
-    skillsByName: new Map(skills.map((skill) => [skill.name, skill])),
-    balanceProfilesById: new Map(profiles.map((profile) => [profile.id, profile])),
-    balanceProfilesByName: new Map(profiles.map((profile) => [profile.name, profile]))
+    balanceProfilesById: new Map(profiles.map((profile) => [profile.id, profile]))
   };
 }
 

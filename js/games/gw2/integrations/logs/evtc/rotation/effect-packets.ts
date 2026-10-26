@@ -18,7 +18,6 @@ export interface StrikePacketValidation {
   readonly allObserved: boolean;
   readonly allObservedTimingExplicit: boolean;
   readonly observedCommittedDelayedPacket: boolean;
-  readonly observedPostInterruptWithoutCommit: boolean;
 }
 
 interface ExpectedStrikePacket {
@@ -101,7 +100,6 @@ export function createStrikePacketMatcher(
     // Used events count matched packets; explicit timing is checked only for those matches.
     let matchedTimingsExplicit = true;
     let observedCommittedDelayedPacket = false;
-    let observedPostInterruptWithoutCommit = false;
     for (const packet of packets) {
       const expectedTime = action.start + packet.offsetMs;
       const match = directEvents
@@ -129,46 +127,17 @@ export function createStrikePacketMatcher(
         observedOffset >= Math.max(0, action.end - action.start) &&
         packet.interruptMode !== 'per-packet';
 
-      if (observedAfterInterrupt) {
-        if (packet.persistsAfterInterrupt && packet.interruptCommitMs != null) {
-          observedCommittedDelayedPacket = true;
-        } else if (packet.interruptCommitMs == null) {
-          observedPostInterruptWithoutCommit = true;
-        }
-      }
+      // Retain positive packet evidence for reconstruction without producing metadata diagnostics for import users.
+      if (observedAfterInterrupt && packet.persistsAfterInterrupt && packet.interruptCommitMs != null)
+        observedCommittedDelayedPacket = true;
     }
 
     const validation = {
       allObserved: packets.length > 0 && used.size === packets.length,
       allObservedTimingExplicit: used.size > 0 && matchedTimingsExplicit,
-      observedCommittedDelayedPacket,
-      observedPostInterruptWithoutCommit
+      observedCommittedDelayedPacket
     };
     cache.set(action, validation);
     return validation;
   };
-}
-
-/** Warns when an EVTC proves post-interrupt damage that static simulator metadata cannot retain. */
-export function missingInterruptCommitWarnings(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
-): string[] {
-  const validatePackets = createStrikePacketMatcher(context);
-  const missingBySkill = new Map<string, number>();
-  for (const action of actions) {
-    // Only a cancellation retained in the replay can discard damage; raw reduced markers may replay to completion.
-    if (action.replayInterruptMs == null) continue;
-
-    if (!validatePackets(action).observedPostInterruptWithoutCommit) continue;
-
-    const skill = skillForAction(context, action);
-    const name = skill?.name || action.canonicalName || action.rawName;
-    missingBySkill.set(name, (missingBySkill.get(name) || 0) + 1);
-  }
-
-  return [...missingBySkill.entries()].map(
-    ([name, count]) =>
-      `EVTC observed ${count} interrupted ${name} cast${count === 1 ? '' : 's'} dealing damage at or after the interrupt marker, but the simulator catalog has no interruptCommitMs cutoff; reconstruction preserves the cancellation and omits that damage.`
-  );
 }

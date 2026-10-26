@@ -281,7 +281,7 @@ test('Bladesworn Gunsaber transitions omit EI swaps and Dragon Trigger charge wa
   );
   const triggerIndex = result.rotation.findIndex((command) => command.skillId === 62803);
   assert.equal(result.rotation[triggerIndex + 1].releaseAtCharges, 10);
-  assert.equal(result.rotation[triggerIndex + 1].skillId, warriorCatalog.skillsByName.get('Dragon Slash—Force').id);
+  assert.equal(result.rotation[triggerIndex + 1].skillId, warriorCatalog.skillsById.get(62797).id);
 });
 
 test('Firebrand resolves complete Solace charge bursts while preserving ambiguous sparse casts', () => {

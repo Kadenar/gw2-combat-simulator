@@ -34,11 +34,11 @@ export type RangerSkillFlowAssertions = [
 export function rangerHookSkillReads(runtime: RangerRuntime, cast: Parameters<EliteCast>[1]): void {
   const cost: number | undefined = cast.skill.arrowCost;
   const flag: readonly string[] | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.petNames;
-  const named: number | undefined = runtime.helpers.skillsByName.get(cast.skill.name)?.arrowCost;
+  const indexed: number | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.arrowCost;
   const listed: boolean | undefined = runtime.helpers.skills[0]?.petSkill;
   // @ts-expect-error Numeric mechanics must not lose their type at runtime.
   const invalid: string = cast.skill.arrowCost;
-  void [cost, flag, named, listed, invalid];
+  void [cost, flag, indexed, listed, invalid];
 }
 
 createRangerModuleData('Core', {

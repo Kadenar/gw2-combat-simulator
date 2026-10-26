@@ -123,8 +123,7 @@ test('same-named trait applications do not lend a skill ID or icon to another tr
       results: result,
       activeCatalog: {
         skills: [],
-        skillsById: new Map([[SKILL.FIRE_BOMB, { icon: 'fire-bomb.png' }]]),
-        skillsByName: new Map()
+        skillsById: new Map([[SKILL.FIRE_BOMB, { icon: 'fire-bomb.png' }]])
       },
       attributeData: { activeTraits: [{ name: 'Photonic Blasting Module', icon: 'photonic-blasting-module.png' }] }
     };

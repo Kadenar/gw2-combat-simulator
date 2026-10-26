@@ -527,7 +527,7 @@ test('Mesmer browser simulations allow weapons from other specializations', () =
   build.rotation = [
     ID.FLYING_CUTTER,
     ID.UNSTABLE_BLADESTORM,
-    mesmerAppAdapter.profession.catalog.skillsByName.get('Swap Weapons').id,
+    mesmerAppAdapter.profession.catalog.skillsById.get(-3).id,
     ID.LINGERING_THOUGHTS,
     ID.AXES_OF_SYMMETRY
   ].map(cast);
@@ -637,7 +637,9 @@ test('modifier contributions compare the active build against each modifier remo
     build,
     attributeData: calcAttributes(build, []),
     attributeWeaponSet: 1,
-    activeCatalog: { skillsByName: new Map() }
+    activeCatalog: {
+      skills: []
+    }
   };
   const contributions = mesmerAppAdapter.calculateModifierContributions(
     modifierContributionRequest(app, mesmerAppAdapter)
@@ -668,7 +670,9 @@ test('Accuracy comparisons remove its attribute and one-strike critical chance b
     build,
     attributeData,
     attributeWeaponSet: 1,
-    activeCatalog: { skillsByName: new Map() }
+    activeCatalog: {
+      skills: []
+    }
   };
   const request = modifierContributionRequest(app, mesmerAppAdapter);
   const comparison = request.comparisons.find(({ modifier }) => modifier.id === 'Sigil:Accuracy');
@@ -696,7 +700,9 @@ test('food comparisons remove both nourishment procs and attribute bonuses', () 
     build,
     attributeData: calcAttributes(build, []),
     attributeWeaponSet: 1,
-    activeCatalog: { skillsByName: new Map() }
+    activeCatalog: {
+      skills: []
+    }
   };
   const request = modifierContributionRequest(app, mesmerAppAdapter);
   const comparison = request.comparisons.find(({ modifier }) => modifier.id === `Food:${build.food}`);
@@ -724,7 +730,9 @@ test('interactive simulation leaves contribution passes to the background worker
     build,
     attributeData: calcAttributes(build, []),
     attributeWeaponSet: 1,
-    activeCatalog: { skillsByName: new Map() }
+    activeCatalog: {
+      skills: []
+    }
   };
 
   const { result } = mesmerAppAdapter.calculateBaselineSimulation(mesmerAppAdapter.baselineSimulationRequest(app));

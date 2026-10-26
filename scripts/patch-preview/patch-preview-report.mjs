@@ -70,8 +70,7 @@ for (const [professionId, patch] of Object.entries(activePatchPreview.profession
     const numericId = /^\d+$/.test(key) ? Number(key) : null;
     const skill =
       profession.catalog.skillsById.get(key) ||
-      (numericId == null ? null : profession.catalog.skillsById.get(numericId)) ||
-      profession.catalog.skillsByName.get(key);
+      (numericId == null ? null : profession.catalog.skillsById.get(numericId));
 
     if (!skill) throw new Error(`Unknown ${profession.name} skill ${key}.`);
 

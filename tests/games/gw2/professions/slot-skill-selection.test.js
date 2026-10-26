@@ -23,7 +23,7 @@ const simulateRuntime = ({ profession, config, rotation }) =>
 // Public and direct entry points share strict ID validation and explicit empty-loadout semantics.
 test('simulation entry points validate IDs before running selected skills', () => {
   const profession = warriorProfession;
-  const skill = profession.catalog.skillsByName.get('Healing Signet');
+  const skill = profession.catalog.skillsById.get(14389);
   for (const simulate of [simulateGw2, simulateRuntime]) {
     for (const selection of [{ Heal: skill.id }, [skill.name], [null], [99999999]]) {
       assert.throws(
@@ -59,12 +59,17 @@ for (const [profession, names, simulate = simulateGw2] of [
 ]) {
   test(`${profession.id} rejects removed heal, utility, and elite skills before emitting effects`, () => {
     for (const name of names) {
-      const skill = profession.catalog.skillsByName.get(name);
-      const other = profession.catalog.skillsByName.get(names.find((candidate) => candidate !== name)).id;
+      const skill = profession.catalog.skills.find((candidate) => candidate.name === name);
+      const other = profession.catalog.skills.find(
+        (candidate) => candidate.name === names.find((candidate) => candidate !== name)
+      ).id;
       for (const selectedSkillIds of [[], [other]]) {
         const result = simulate({
           profession,
-          rotation: [name, { type: 'wait', durationMs: 5000 }],
+          rotation: [
+            { type: 'cast', skillId: skill.id },
+            { type: 'wait', durationMs: 5000 }
+          ],
           config: { ...config, selectedSkillIds }
         });
         assert.equal(result.steps[0].invalid, true, name);
@@ -77,7 +82,11 @@ for (const [profession, names, simulate = simulateGw2] of [
       }
 
       for (const selectedSkillIds of [undefined, [skill.id]]) {
-        const result = simulate({ profession, rotation: [name], config: { ...config, selectedSkillIds } });
+        const result = simulate({
+          profession,
+          rotation: [{ type: 'cast', skillId: profession.catalog.skills.find((skill) => skill.name === name).id }],
+          config: { ...config, selectedSkillIds }
+        });
         assert.deepEqual(result.warnings, [], name);
         assert.equal(Boolean(result.steps[0].invalid), false, name);
       }
@@ -106,7 +115,11 @@ for (const [profession, parent, child, specialization = 'Core', simulate = simul
     const result = simulate({
       profession,
       rotation: [...opening, { type: 'wait', durationMs: 3000 }, child],
-      config: { ...config, specialization, selectedSkillIds: [profession.catalog.skillsByName.get(parent).id] }
+      config: {
+        ...config,
+        specialization,
+        selectedSkillIds: [profession.catalog.skills.find((candidate) => candidate.name === parent).id]
+      }
     });
     assert.deepEqual(result.warnings, []);
     assert.equal(Boolean(result.steps.at(-1).invalid), false);

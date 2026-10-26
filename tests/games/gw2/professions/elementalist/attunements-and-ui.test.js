@@ -65,7 +65,7 @@ test('Fresh Air keeps only future strike wakes for selected builds', () => {
 
 test('all native Elementalist specializations retain two equipped sets without combat swapping', () => {
   assert.equal(elementalistProfession.resolveProfession().canSwapWeaponSetsInCombat, false);
-  assert.equal(elementalistCatalog.skillsByName.has('Swap Weapons'), true);
+  assert.equal(elementalistCatalog.skillsById.has(-3), true);
 
   for (const specialization of ['Core', 'Tempest', 'Weaver', 'Catalyst', 'Evoker']) {
     const build = elementalistAppAdapter.toApplicationBuild({
@@ -344,7 +344,7 @@ test('Core mechanics execute through native hooks', () => {
 
   assert.ok(proc);
   assert.equal(
-    observedRuntime(result).cooldownController.readyAt(elementalistCatalog.skillsByName.get('Air Attunement').id),
+    observedRuntime(result).cooldownController.readyAt(elementalistCatalog.skillsById.get(5494).id),
     undefined
   );
 });
@@ -359,7 +359,7 @@ test('Fresh Air resets both Air Attunement and Overload Air', () => {
 
   assert.ok(proc);
   assert.equal(
-    observedRuntime(result).cooldownController.readyAt(elementalistCatalog.skillsByName.get('Air Attunement').id),
+    observedRuntime(result).cooldownController.readyAt(elementalistCatalog.skillsById.get(5494).id),
     undefined
   );
   assert.equal(result.planningState.cooldowns[5494], undefined);
@@ -396,7 +396,7 @@ test('Fresh Air consumes sampled criticals after scheduled strikes in RNG mode',
   }
 
   assert.equal(
-    observedRuntime(result).cooldownController.readyAt(elementalistCatalog.skillsByName.get('Air Attunement').id),
+    observedRuntime(result).cooldownController.readyAt(elementalistCatalog.skillsById.get(5494).id),
     undefined
   );
   assert.equal(result.planningState.cooldowns[5494], undefined);
@@ -439,7 +439,7 @@ test('attunement swaps start labeled rotation timeline rows', () => {
 
       return transition({
         entry: { name },
-        skill: elementalistCatalog.skillsByName.get(name),
+        skill: elementalistCatalog.skills.find((candidate) => candidate.name === name),
         specialization: 'Core',
         build,
         ...current
@@ -471,7 +471,7 @@ test('Weaver attunement transitions split timeline rows', () => {
 
       return transition({
         entry: { name },
-        skill: elementalistCatalog.skillsByName.get(name),
+        skill: elementalistCatalog.skills.find((candidate) => candidate.name === name),
         specialization: 'Weaver',
         build,
         ...current
@@ -504,7 +504,7 @@ test('Unravel starts a fully attuned Weaver timeline row', () => {
 
       return transition({
         entry: { name },
-        skill: elementalistCatalog.skillsByName.get(name),
+        skill: elementalistCatalog.skills.find((candidate) => candidate.name === name),
         specialization: 'Weaver',
         build,
         ...current
@@ -601,7 +601,7 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
         activeWeaponSet: 1,
         atSeconds: 0,
         cooldowns: {
-          [elementalistCatalog.skillsByName.get('Pyro Vortex').id]: { remaining: 3400, readyAt: 3400 }
+          [elementalistCatalog.skillsById.get(43074).id]: { remaining: 3400, readyAt: 3400 }
         },
         // Cooldown-only fixtures still provide the canonical empty ammo projection.
         ammoBySkillId: {},
@@ -678,7 +678,7 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
 });
 
 test('weapon bar excludes dual attacks outside Weaver', () => {
-  const dual = elementalistCatalog.skillsByName.get('Twin Strike');
+  const dual = elementalistCatalog.skillsById.get(42271);
   const matches = elementalistProfession.weaponSkillMatchesSet;
 
   assert.equal(
@@ -818,15 +818,15 @@ test('Evoker derives F5 from the selected familiar', () => {
       .find((group) => group.id === 'elementalist-evoker-familiars');
 
   assert.deepEqual(f5({ element: 'Air', empoweredCharges: { value: 0, maximum: 3, rate: 0, updatedAt: 0 } }).skillIds, [
-    elementalistCatalog.skillsByName.get('Zap').id
+    elementalistCatalog.skillsById.get(77370).id
   ]);
   assert.deepEqual(f5({ element: 'Air', empoweredCharges: { value: 3, maximum: 3, rate: 0, updatedAt: 0 } }).skillIds, [
-    elementalistCatalog.skillsByName.get('Lightning Blitz').id
+    elementalistCatalog.skillsById.get(77089).id
   ]);
 
   // Before a result exists, the F5 palette follows the build's configured familiar.
   build.evokerElement = 'Earth';
-  assert.deepEqual(f5({}).skillIds, [elementalistCatalog.skillsByName.get('Calcify').id]);
+  assert.deepEqual(f5({}).skillIds, [elementalistCatalog.skillsById.get(77226).id]);
   assert.equal(
     elementalistProfession.ui.startControls(context).some((control) => control.label === 'Familiar'),
     false
@@ -864,7 +864,7 @@ test('Evoker skill selections update the configured familiar independently of si
 });
 
 test('Evoker familiar palette availability follows current charges', () => {
-  const skill = elementalistCatalog.skillsByName.get('Ignite');
+  const skill = elementalistCatalog.skillsById.get(76643);
   for (const charges of [5, 6]) {
     const state = planningFixture(
       elementalistProfession,
@@ -1028,7 +1028,7 @@ test('Evoker renders stacked starting controls for basic and empowered charges',
 });
 
 test('Evoker familiar stays available when its element differs from the active attunement', () => {
-  const skill = elementalistCatalog.skillsByName.get('Zap');
+  const skill = elementalistCatalog.skillsById.get(77370);
   for (const charges of [5, 6]) {
     const state = planningFixture(
       elementalistProfession,
@@ -1062,8 +1062,7 @@ test('core attunements enforce and report their individual recharge', () => {
   assert.equal(result.planningState.profession.primaryAttunement, 'Fire');
   assert.ok(result.planningState.cooldowns[5494].remaining > 1000);
   assert.ok(result.planningState.cooldowns[5493].remaining > 1000);
-  const waterAvailability =
-    result.planningState.availability[elementalistCatalog.skillsByName.get('Water Attunement').id];
+  const waterAvailability = result.planningState.availability[elementalistCatalog.skillsById.get(5493).id];
 
   assert.equal(waterAvailability.ready, false);
   assert.equal(waterAvailability.code, 'elementalist.attunement-recharge');
@@ -1077,7 +1076,7 @@ test('core attunements enforce and report their individual recharge', () => {
       activeCatalog: elementalistProfession.catalog,
       results: result
     },
-    elementalistCatalog.skillsByName.get('Water Attunement')
+    elementalistCatalog.skillsById.get(5493)
   );
 
   assert.equal(waterView.disabled, true);

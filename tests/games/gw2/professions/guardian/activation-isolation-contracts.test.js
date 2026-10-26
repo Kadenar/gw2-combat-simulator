@@ -11,7 +11,7 @@ import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
-const cast = (name) => guardianCatalog.skillsByName.get(name).id;
+const cast = (name) => guardianCatalog.skills.find((candidate) => candidate.name === name).id;
 const state = (runtime) => runtime.profession.specialization.state;
 const buffs = (result, name) => result.resolvedEvents.filter((event) => event.type === 'buff' && event.name === name);
 const cause = (at, extra = {}) => ({

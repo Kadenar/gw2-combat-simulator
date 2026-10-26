@@ -11,6 +11,8 @@ import type { DruidState } from '#gw2/professions/ranger/specializations/druid/s
 import type { GaleshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import type { SoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import type { RangerInitialUntamedState, UntamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
+import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
+import type { GALESHOT_SKILL_FIELDS } from '#gw2/professions/ranger/specializations/galeshot/skill-fields.js';
 
 export interface RangerBuild extends Gw2Build {
   specializations?: ProfessionTraitSelection[];
@@ -80,7 +82,8 @@ export type RangerResolverContext = MechanicCombatContext &
 /** Live Ranger owners share one combat state and retain Ranger skill fields in casts and catalog lookups. */
 export type RangerRuntime = MechanicContext<RangerRuntimeState, RangerSkill> & { readonly config: RangerConfig };
 
-export interface RangerSkill extends Skill {
+/** Numeric tuning fields are typed from the modules' skill-field declarations, which also validate and patch them. */
+export interface RangerSkill extends Skill, NumericSkillFields<typeof GALESHOT_SKILL_FIELDS> {
   readonly petSkill?: boolean;
   readonly petFamilySkill?: boolean;
   readonly petAutonomousSkill?: boolean;
@@ -89,10 +92,6 @@ export interface RangerSkill extends Skill {
   readonly unleashedPetSkill?: boolean;
   readonly unleashedAmbushSkill?: boolean;
   readonly cycloneBowSkill?: boolean;
-  readonly arrowCost?: number;
-  readonly arrowsRestored?: number;
-  readonly windForceGain?: number;
-  readonly windForceApplyMs?: number;
   readonly petNames?: readonly string[];
 }
 

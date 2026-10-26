@@ -2,12 +2,9 @@ import { createCanonicalCatalog, type AutoattackChainOptions } from '#gw2/platfo
 import { toEntries } from '#kernel/core/collections.js';
 import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
-import type {
-  AnyNativeModule,
-  NativeCatalogOptions,
-  NativeModuleCatalogData
-} from '#gw2/platform/profession-definition/module-types.js';
+import type { AnyNativeModule, NativeModuleCatalogData } from '#gw2/platform/profession-definition/module-types.js';
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
+import { combineSkillFields, type SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
 
 /** Selects a module from shared input using the same catalog fields as its output. */
 export interface NativeModuleDataSelection<TSkill extends Skill = Skill> extends NativeModuleCatalogData<TSkill> {
@@ -35,12 +32,12 @@ export function createNativeModuleData<TSkill extends Skill = Skill>({
   skillOverrides = {},
   extraSkills = [],
   balanceProfiles = [],
+  skillFields,
   traits = [],
   specializations = [],
   weapons = [],
   weaponHands = {},
   autoattackChains,
-  skillNameOverrides,
   specializationOnlySkillIds = []
 }: NativeModuleDataSelection<TSkill>): NativeModuleCatalogData<TSkill> {
   // Treat authored mechanics as the support allowlist so raw API metadata cannot
@@ -63,6 +60,7 @@ export function createNativeModuleData<TSkill extends Skill = Skill>({
     skillOverrides: Object.freeze(localOverrides),
     extraSkills: Object.freeze([...sharedExtra, ...extraSkills]),
     balanceProfiles: Object.freeze([...balanceProfiles]),
+    ...(skillFields == null ? {} : { skillFields }),
     sharedExtraSkillOrder: new Map(sharedExtra.map((skill) => [skill.id, sharedExtraSkills.indexOf(skill)])),
     traits: Object.freeze(traits.filter((trait) => canonicalModuleName(trait, specializations) === id)),
     specializations: Object.freeze(
@@ -71,7 +69,6 @@ export function createNativeModuleData<TSkill extends Skill = Skill>({
     ...(weapons.length ? { weapons: Object.freeze([...weapons]) } : {}),
     ...(weaponHands instanceof Map || Object.keys(weaponHands).length ? { weaponHands } : {}),
     ...(autoattackChains == null ? {} : { autoattackChains }),
-    ...(skillNameOverrides == null ? {} : { skillNameOverrides: Object.freeze({ ...skillNameOverrides }) }),
     ...(specializationOnlySkillIds.length
       ? {
           specializationOnlySkillIds: Object.freeze([...specializationOnlySkillIds])
@@ -87,7 +84,6 @@ interface AssembledNativeCatalog<TSkill extends Skill = Skill> {
 
 interface AssemblyCacheEntry {
   readonly modules: readonly object[];
-  readonly options: NativeCatalogOptions | undefined;
   readonly assembly: AssembledNativeCatalog;
 }
 
@@ -116,30 +112,6 @@ function mergeEntityArrays<T extends CatalogEntity, TSkill extends Skill>(
   return { values, owners };
 }
 
-// Mutates skillsByName after the catalog is otherwise frozen. This is a
-// controlled exception: name overrides must be applied post-assembly because
-// they depend on the canonical skill objects the assembly produced.
-// Validates that the override key matches the skill's actual name to prevent
-// remapping to unrelated skills.
-function applySkillNameOverrides(
-  catalog: Readonly<CanonicalCatalog>,
-  overrides: Readonly<Record<string, SkillId>> | undefined
-): void {
-  for (const [name, skillId] of Object.entries(overrides || {})) {
-    const skill = catalog.skillsById.get(skillId);
-
-    if (!skill) {
-      throw new TypeError(`Unknown skill-name override ${name}: ${String(skillId)}.`);
-    }
-
-    if (skill.name !== name) {
-      throw new TypeError(`Skill-name override ${name} points to ${skill.name} (${String(skillId)}).`);
-    }
-
-    (catalog.skillsByName as Map<string, Skill>).set(name, skill);
-  }
-}
-
 // After merging entity arrays from multiple modules, the insertion order is
 // per-module rather than per-position in the original shared array. This restores
 // the original position ordering so that catalog.skills has a stable, predictable
@@ -163,8 +135,7 @@ function restoreSharedSourceOrder<TSkill extends Skill>(
 }
 
 function composeNativeCatalog<TSkill extends Skill>(
-  modules: readonly AnyNativeModule<string, TSkill>[],
-  options: NativeCatalogOptions | undefined
+  modules: readonly AnyNativeModule<string, TSkill>[]
 ): AssembledNativeCatalog<TSkill> {
   const moduleIds = new Set(modules.map((module) => module.id));
 
@@ -186,6 +157,10 @@ function composeNativeCatalog<TSkill extends Skill>(
   restoreSharedSourceOrder(generated.values, modules, (module) => module.data.generatedSkillOrder);
   restoreSharedSourceOrder(extras.values, modules, (module) => module.data.sharedExtraSkillOrder);
   const traits = mergeEntityArrays(modules, (module) => module.data.traits || [], 'trait id');
+  // A profession field has one declaring module; the combined table validates every module's skills.
+  const skillFields: SkillFieldSpecs = combineSkillFields(
+    modules.map((module) => ({ owner: module.id, fields: module.data.skillFields }))
+  );
   const specializations = mergeEntityArrays(
     modules,
     (module) => module.data.specializations || [],
@@ -271,10 +246,9 @@ function composeNativeCatalog<TSkill extends Skill>(
       additional: additionalChains.map((entry) => entry.chain),
       excludeSkillIds: excludedChains
     },
-    skillNameCollision: options?.skillNameCollision,
-    skillNormalizer: normalizeGw2ComboCatalogSkill
+    skillNormalizer: normalizeGw2ComboCatalogSkill,
+    skillFields
   });
-  applySkillNameOverrides(catalog, options?.skillNameOverrides);
 
   const eliteNames = new Map(
     catalog.specializations
@@ -353,15 +327,11 @@ function composeNativeCatalog<TSkill extends Skill>(
   for (const module of modules) {
     const hands = new Map([...weaponHands].filter(([weapon]) => weaponHandOwners.get(weapon) === module.id));
     const chains = chainContributions.get(module.id)!;
-    // Module-local selections resolve active specialization collisions; global overrides remain Core-owned.
-    const skillNameOverrides = {
-      ...(module.data.skillNameOverrides || {}),
-      ...(module.id === 'Core' ? options?.skillNameOverrides || {} : {})
-    };
     fragments.set(
       module.id,
       Object.freeze({
         skills: Object.freeze(catalog.skills.filter((skill) => skillOwners.get(skill.id) === module.id)),
+        skillFields,
         balanceProfiles: Object.freeze(
           catalog.balanceProfiles.filter((profile) => balanceProfiles.owners.get(profile.id) === module.id)
         ),
@@ -373,13 +343,7 @@ function composeNativeCatalog<TSkill extends Skill>(
         ),
         weapons: Object.freeze([...weapons].filter((weapon) => module.data.weapons?.includes(weapon))),
         weaponHands: hands,
-        autoattackChains: Object.freeze(chains),
-        ...(Object.keys(skillNameOverrides).length ? { skillNameOverrides: Object.freeze(skillNameOverrides) } : {}),
-        ...(module.id === 'Core'
-          ? {
-              skillNameCollision: options?.skillNameCollision
-            }
-          : {})
+        autoattackChains: Object.freeze(chains)
       } satisfies ProfessionModuleCatalogFragment<TSkill>)
     );
   }
@@ -388,13 +352,12 @@ function composeNativeCatalog<TSkill extends Skill>(
 }
 
 // Caches assembled catalogs keyed by the first (Core) module so the expensive
-// composition step is only run once per unique combination of modules+options.
+// composition step is only run once per unique module selection.
 // The WeakMap entry is tied to the Core module's lifetime, so cache entries are
 // automatically freed when the profession is garbage collected.
 /** Assembles and caches the validated catalog and skill ownership for a native module set. */
 export function getNativeCatalogAssembly<TSkill extends Skill>(
-  modules: readonly AnyNativeModule<string, TSkill>[],
-  options: NativeCatalogOptions | undefined
+  modules: readonly AnyNativeModule<string, TSkill>[]
 ): AssembledNativeCatalog<TSkill> {
   const first = modules[0];
 
@@ -403,43 +366,34 @@ export function getNativeCatalogAssembly<TSkill extends Skill>(
   const cached = assemblyCache.get(first) || [];
   const match = cached.find(
     (entry) =>
-      entry.options === options &&
-      entry.modules.length === modules.length &&
-      entry.modules.every((module, index) => module === modules[index])
+      entry.modules.length === modules.length && entry.modules.every((module, index) => module === modules[index])
   );
 
-  // Identity-matched modules and options retain the skill type used when this cache entry was assembled.
+  // Identity-matched modules retain the skill type used when this cache entry was assembled.
   if (match) return match.assembly as AssembledNativeCatalog<TSkill>;
 
-  const assembly = composeNativeCatalog(modules, options);
-  cached.push({ modules: [...modules], options, assembly });
+  const assembly = composeNativeCatalog(modules);
+  cached.push({ modules: [...modules], assembly });
   assemblyCache.set(first, cached);
   return assembly;
 }
 
 /** Derives the complete application catalog from module contributions. */
 export function assembleNativeApplicationCatalog<TSkill extends Skill>(
-  modules: readonly AnyNativeModule<string, TSkill>[],
-  options?: NativeCatalogOptions
+  modules: readonly AnyNativeModule<string, TSkill>[]
 ): Readonly<CanonicalCatalog<TSkill>> {
-  return getNativeCatalogAssembly(modules, options).catalog;
+  return getNativeCatalogAssembly(modules).catalog;
 }
 
 /** Builds the active catalog from validated ownership fragments, retaining shared elite-authored weapon skills. */
 export function assembleNativeRuntimeCatalog<TSkill extends Skill>(
   fragments: readonly Readonly<ProfessionModuleCatalogFragment<TSkill>>[]
 ): Readonly<CanonicalCatalog<TSkill>> {
-  const overrides = new Map<string, SkillId>();
-  for (const fragment of fragments) {
-    for (const [name, skillId] of Object.entries(fragment.skillNameOverrides || {})) {
-      // Fragments are ordered Core then elite, so specialization replacements supersede default names.
-      overrides.set(name, skillId);
-    }
-  }
-
   // Entity and weapon-hand ownership was validated once during full application assembly.
   const catalog = createCanonicalCatalog({
     generated: fragments.flatMap((fragment) => fragment.skills || []),
+    // Fragments share one profession-wide table; any fragment supplies it.
+    skillFields: fragments.find((fragment) => fragment.skillFields)?.skillFields,
     balanceProfiles: fragments.flatMap((fragment) => fragment.balanceProfiles || []),
     traits: fragments.flatMap((fragment) => fragment.traits || []),
     specializations: fragments.flatMap((fragment) => fragment.specializations || []),
@@ -448,11 +402,7 @@ export function assembleNativeRuntimeCatalog<TSkill extends Skill>(
     autoattackChains: {
       additional: fragments.flatMap((fragment) => fragment.autoattackChains?.additional || []),
       excludeSkillIds: [...new Set(fragments.flatMap((fragment) => fragment.autoattackChains?.excludeSkillIds || []))]
-    },
-    skillNameCollision:
-      [...fragments].reverse().find((fragment) => fragment.skillNameCollision != null)?.skillNameCollision ?? 'first'
+    }
   });
-  // Global name overrides may target an inactive elite; apply only identities present in this runtime.
-  applySkillNameOverrides(catalog, Object.fromEntries([...overrides].filter(([, id]) => catalog.skillsById.has(id))));
   return catalog;
 }

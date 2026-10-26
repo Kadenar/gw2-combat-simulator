@@ -1,3 +1,4 @@
+import { skillAuthoringReference } from '#gw2/integrations/patches/authoring/fields.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
@@ -6,7 +7,8 @@ import {
   acceptSavedDraft,
   editorState,
   loadEditorPayload,
-  setNumericEdit
+  setNumericEdit,
+  toggleEffect
 } from '#gw2/integrations/patches/app/editor-state.js';
 import { bindPatchAuthoringView, renderPatchAuthoring } from '#gw2/integrations/patches/app/render.js';
 
@@ -69,7 +71,11 @@ for (const section of ['skills', 'balanceProfiles']) {
             }
           : {})
       };
-      const preview = { id: 'fixture', label: 'Fixture', professions: { warrior: { [section]: { Fixture: edit } } } };
+      const preview = {
+        id: 'fixture',
+        label: 'Fixture',
+        professions: { warrior: { [section]: { [source.id]: edit } } }
+      };
       const original = structuredClone(preview);
       const entry = {
         id: source.id,
@@ -85,6 +91,7 @@ for (const section of ['skills', 'balanceProfiles']) {
           {
             professionId: 'warrior',
             professionName: 'Warrior',
+            skillFields: {},
             modules: [
               {
                 id: 'Core',
@@ -165,3 +172,106 @@ for (const section of ['skills', 'balanceProfiles']) {
     });
   }
 }
+
+// Reopening an action edit must preserve its scope even when sibling actions reuse the same effect identity.
+test('inline action rewards round-trip through authoring without editing native or sibling effects', () => {
+  const effect = { type: 'boon', name: 'Reward', boon: 'might', stacks: 1, duration: 5 };
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 1,
+        name: 'Fixture',
+        effects: [effect],
+        sideEffects: [
+          { on: 'castCommit', when: () => true, do: { type: 'fixture.reward', id: 'first', effects: [effect] } },
+          { on: 'castCommit', do: { type: 'fixture.reward', id: 'second', effects: [effect] } }
+        ]
+      }
+    ]
+  });
+  const source = skillAuthoringReference(catalog.skills[0], catalog.skillFields);
+  assert.equal(source.sideEffects[0].when, undefined);
+  const payload = {
+    preview: {
+      id: 'fixture',
+      label: 'Fixture',
+      professions: {
+        warrior: {
+          skills: {
+            1: {
+              assumption: 'Fixture tuning assumption',
+              sideEffects: { first: { effects: [{ type: 'boon', name: 'Reward', stacks: 3 }] } }
+            }
+          }
+        }
+      }
+    },
+    sourceFile: 'active-preview.ts',
+    professions: [
+      {
+        professionId: 'warrior',
+        professionName: 'Warrior',
+        skillFields: {},
+        modules: [
+          {
+            id: 'Core',
+            traits: [],
+            modifierRules: [],
+            balanceProfiles: [],
+            skillVariants: [],
+            skills: [{ id: 1, name: source.name, moduleId: 'Core', skill: source, patchableFields: {} }]
+          }
+        ]
+      }
+    ]
+  };
+  loadEditorPayload(payload);
+  editorState.selectedSection = 'skills';
+  editorState.selectedSkillId = '1';
+  const root = { innerHTML: '', addEventListener() {} };
+  bindPatchAuthoringView(root, { onSave() {}, onReset() {} });
+  renderPatchAuthoring();
+  assert.match(root.innerHTML, /data-action-id="first"/);
+  const apply = () => applySkillPatch(catalog, editorState.draft.professions?.warrior).skills[0];
+  assert.equal(apply().sideEffects[0].do.effects[0].stacks, 3);
+  setNumericEdit({
+    entity: 'effect',
+    id: '1',
+    actionId: 'first',
+    effectIndex: 0,
+    field: 'duration',
+    current: 5,
+    next: 7
+  });
+  toggleEffect('1', 0, 'second');
+  acceptSavedDraft(editorState.draft);
+  loadEditorPayload({ ...payload, preview: editorState.draft });
+  const patched = apply();
+  assert.equal(patched.effects[0].stacks, 1);
+  assert.equal(patched.effects[0].duration, 5);
+  assert.equal(patched.sideEffects[0].do.effects[0].stacks, 3);
+  assert.equal(patched.sideEffects[0].do.effects[0].duration, 7);
+  assert.equal(patched.sideEffects[1].do.effects.length, 0);
+  assert.equal(catalog.skills[0].sideEffects[1].do.effects.length, 1);
+  toggleEffect('1', 0, 'second');
+  assert.equal(apply().sideEffects[1].do.effects.length, 1);
+  setNumericEdit({
+    entity: 'effect',
+    id: '1',
+    actionId: 'first',
+    effectIndex: 0,
+    field: 'duration',
+    current: 5,
+    next: 5
+  });
+  setNumericEdit({
+    entity: 'effect',
+    id: '1',
+    actionId: 'first',
+    effectIndex: 0,
+    field: 'stacks',
+    current: 1,
+    next: 1
+  });
+  assert.equal(editorState.draft.professions, undefined);
+});

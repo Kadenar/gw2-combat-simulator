@@ -108,7 +108,7 @@ test('Band Together observation disappears when its enhancement is consumed or e
   const band = idle.planningState.effects.find(({ kind }) => kind === 'band-together');
   assert.equal(effectStateValue(band, 1).count, 1);
   assert.equal(effectStateValue(band, 2).count, 0);
-  const consumed = runRevenant(["Icerazor's Ire"], config, options);
+  const consumed = runRevenant([{ type: 'cast', skillId: 40485 }], config, options);
   assert.deepEqual(consumed.warnings, []);
   assert.equal(
     effectStateValue(

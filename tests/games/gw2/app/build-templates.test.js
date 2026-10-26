@@ -188,7 +188,7 @@ test('template actions load paired or partial state and support undo', async (t)
   assert.deepEqual(rotationOnlyApp.changedCalls, [[false, false, { deferRotationRender: true }]]);
 });
 
-test('template loading resolves duplicate Mesmer skill names before the first simulation', async (t) => {
+test('template loading preserves explicit Mesmer variant IDs before the first simulation', async (t) => {
   // Only weapon selection is needed to disambiguate the imported axe skill; preset gear is irrelevant.
   const buildData = {
     ...mesmerAppAdapter.profession.createBuildDefaults(),
@@ -203,10 +203,7 @@ test('template loading resolves duplicate Mesmer skill names before the first si
   };
   const payloads = new Map([
     ['data/gw2/builds/mesmer/ambiguous-mirage.json', buildData],
-    [
-      'data/gw2/rotations/mesmer/ambiguous-mirage.json',
-      { rotation: [{ name: 'Swap Weapons' }, { name: 'Lingering Thoughts' }] }
-    ]
+    ['data/gw2/rotations/mesmer/ambiguous-mirage.json', { rotation: [{ name: 'Swap Weapons' }, { skillId: 45243 }] }]
   ]);
 
   t.mock.method(globalThis, 'fetch', async (url) => {

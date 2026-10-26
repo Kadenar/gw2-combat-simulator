@@ -158,17 +158,6 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
   });
   const playerAddress = BigInt(selected.address);
   const observations: RotationImportObservation[] = [];
-  // Surface damage-proven dodge autos without turning supported bugged rotations into import warnings.
-  const dodgeAutos = result.actions.filter((action) => action.vindicatorDodgeAuto);
-
-  if (dodgeAutos.length) {
-    observations.push({
-      title: 'Vindicator Dodge + Auto bug',
-      summary: `Detected ${dodgeAutos.length} autoattacks during Dodge: ${[...new Set(dodgeAutos.map((action) => action.name))].join(', ')}.`,
-      detail:
-        'Damage confirms these autos executed before Death Drop landed. Dodge spends endurance at takeoff and lands after the airborne autos.'
-    });
-  }
 
   // Load optional diagnostics only for this player; each analyzer depends on its profession's attribute rules.
   if (selected.professionId === 'warrior') {

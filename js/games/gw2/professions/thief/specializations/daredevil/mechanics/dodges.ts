@@ -3,7 +3,7 @@ import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-p
 import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_TRAIT_IDS as TRAIT, THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import type { ThiefDodge, ThiefSkill } from '#gw2/professions/thief/types.js';
 
@@ -55,7 +55,13 @@ export function queueDodgePackets(runtime: ThiefRuntime, cast: RuntimeCast<Thief
     transform: (event, effect) => ({
       ...event,
       traitId: profile.id,
-      icon: runtime.helpers.skillsByName.get(name)?.icon,
+      icon: runtime.helpers.skillsById.get(
+        profile.id === TRAIT.BOUNDING_DODGER
+          ? ID.BOUND
+          : profile.id === TRAIT.LOTUS_TRAINING
+            ? ID.IMPALING_LOTUS
+            : skill.id
+      )?.icon,
       name:
         effect.type === 'condition'
           ? `${name} — ${effect.condition}`

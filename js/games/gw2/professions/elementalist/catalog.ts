@@ -21,20 +21,8 @@ export const elementalistNativeModules = Object.freeze([
 ] as const);
 
 /**
- * Catalog assembly policy shared by the runtime and application catalogs: when two
- * modules declare skills with the same name, the first module in order keeps the
- * name lookup so elite variants cannot shadow the core identity.
- */
-export const ELEMENTALIST_NATIVE_CATALOG_OPTIONS = Object.freeze({
-  skillNameCollision: 'first' as const
-});
-
-/**
  * The application-side Elementalist catalog: every module's skills, traits, and weapon
  * data merged into one lookup for the build editor and rotation UI, assembled once at
  * import time and independent of the runtime catalog the simulation uses.
  */
-export const elementalistCatalog = assembleNativeApplicationCatalog(
-  elementalistNativeModules,
-  ELEMENTALIST_NATIVE_CATALOG_OPTIONS
-);
+export const elementalistCatalog = assembleNativeApplicationCatalog(elementalistNativeModules);

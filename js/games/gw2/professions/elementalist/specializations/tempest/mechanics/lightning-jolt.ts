@@ -2,11 +2,7 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
@@ -14,19 +10,12 @@ import {
   type ElementalStrikeBoundary
 } from '#gw2/professions/elementalist/core/mechanics/elementals/lifecycle.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
 import type {
   ElementalistRuntime,
   ElementalistSkill,
   ElementalistRuntimeState
 } from '#gw2/professions/elementalist/types.js';
-
-/** Allied Jolt uses its own fixed damage scale, without inheriting player attributes or modifiers. */
-const ELEMENTAL_LIGHTNING_JOLT_PROFILE = Object.freeze({
-  weaponStrengthProfileId: 'nonweapon.unequipped',
-  basePower: (2500 * STANDARD_TARGET_ARMOR) / 690.5
-});
 
 /** A represented live elemental receives one replaceable charge tied to its current lifetime. */
 export function armElementalLightningJolt(
@@ -68,10 +57,11 @@ function consumeElementalLightningJolt(context: ElementalistRuntime, strike: Ele
       hits: 1,
       canCrit: false,
       skillWeapon: 'Unequipped',
-      weaponStrengthProfileId: ELEMENTAL_LIGHTNING_JOLT_PROFILE.weaponStrengthProfileId,
+      weaponStrengthProfileId: 'nonweapon.unequipped',
       independentSummonStrike: true,
       summonInheritsAttributes: false,
-      summonBasePower: ELEMENTAL_LIGHTNING_JOLT_PROFILE.basePower,
+      // Allied Jolt uses its own fixed damage scale, without inheriting player attributes or modifiers.
+      summonBasePower: (2500 * STANDARD_TARGET_ARMOR) / 690.5,
       summonBasePrecision: 1000,
       summonBaseFerocity: 0,
       summonUsesMight: false,
@@ -94,55 +84,44 @@ export function registerTempestLightningJolt(context: ElementalistRuntime): void
   });
 }
 
-/** Lightning Jolt emits the player strike and arms its elemental charge from the same selected profile. */
+/** Lightning Jolt emits the player strike and arms its elemental charge from the same selected skill action. */
 const tempestLightningJoltActions = {
-  'elementalist.tempest.lightning-jolt'(context, trigger) {
+  'elementalist.tempest.lightning-jolt'(context, trigger, action) {
     if (trigger.kind !== 'cast') throw new TypeError('Lightning Jolt requires a cast trigger.');
 
     const { cast, skill } = trigger;
-    {
-      const lightningJoltProfile = requireBalanceProfileFromContext(context, PROFILE.lightningJolt);
-      const lightningJoltOverloadAirLightningJoltStrike = requireEffect(
-        lightningJoltProfile,
-        'strike',
-        'Overload Air - Lightning Jolt'
-      );
+    const strike = requireEffect(skill, 'strike', 'Overload Air - Lightning Jolt', action);
 
-      if (lightningJoltOverloadAirLightningJoltStrike) {
-        const coefficient = effectNumber(
-          lightningJoltProfile,
-          lightningJoltOverloadAirLightningJoltStrike,
-          'coefficient'
-        );
-        context.effects.emit(
-          elementalistStrikeRequest(
-            context,
-            {
-              at: cast.effectiveEnd,
-              source: 'Lightning Jolt',
-              sourceId: ID.LIGHTNING_JOLT,
-              actorType: ACTOR.EFFECT,
-              ownerActorType: ACTOR.PLAYER,
-              skillId: ID.LIGHTNING_JOLT,
-              skillName: 'Lightning Jolt',
-              coefficient,
-              skillWeapon: 'Unequipped',
-              canCrit: false
-            },
-            { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-          )
-        );
-        armElementalLightningJolt(context, cast, ID.LIGHTNING_JOLT, coefficient);
-        context.effects.emit(
-          elementalistAnnouncement({
+    if (strike) {
+      const coefficient = effectNumber(skill, strike, 'coefficient');
+      context.effects.emit(
+        elementalistStrikeRequest(
+          context,
+          {
             at: cast.effectiveEnd,
-            name: 'Lightning Jolt',
-            procType: 'skill',
+            source: 'Lightning Jolt',
             sourceId: ID.LIGHTNING_JOLT,
-            sourceSkill: skill.name
-          })
-        );
-      }
+            actorType: ACTOR.EFFECT,
+            ownerActorType: ACTOR.PLAYER,
+            skillId: ID.LIGHTNING_JOLT,
+            skillName: 'Lightning Jolt',
+            coefficient,
+            skillWeapon: 'Unequipped',
+            canCrit: false
+          },
+          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+        )
+      );
+      armElementalLightningJolt(context, cast, ID.LIGHTNING_JOLT, coefficient);
+      context.effects.emit(
+        elementalistAnnouncement({
+          at: cast.effectiveEnd,
+          name: 'Lightning Jolt',
+          procType: 'skill',
+          sourceId: ID.LIGHTNING_JOLT,
+          sourceSkill: skill.name
+        })
+      );
     }
   }
 } satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['sideEffectHandlers']>;

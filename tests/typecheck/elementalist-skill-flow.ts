@@ -37,11 +37,11 @@ export function elementalistHookSkillReads(runtime: ElementalistRuntime, cast: P
   const flag: AuraEffect | undefined = runtime.helpers.skillsById
     .get(cast.skill.id)
     ?.effects?.find((effect) => effect.type === 'aura');
-  const named: string | undefined = runtime.helpers.skillsByName.get(cast.skill.name)?.attunement;
+  const indexed: string | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.attunement;
   const listed: boolean | undefined = runtime.helpers.skills[0]?.overload;
   // @ts-expect-error Attunement must retain its string type at runtime.
   const invalid: number = cast.skill.attunement;
-  void [cost, flag, named, listed, invalid];
+  void [cost, flag, indexed, listed, invalid];
 }
 
 createElementalistModuleData('Core', {

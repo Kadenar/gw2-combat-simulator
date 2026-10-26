@@ -3,7 +3,7 @@ import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import {
   interruptCurrentAction,
@@ -29,7 +29,6 @@ import {
   elementalForGlyphId,
   glyphSkillForElement
 } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type {
   ElementalistRuntime,
@@ -133,11 +132,7 @@ function expireElemental(
   const glyph = glyphSkillForElement(context, element);
 
   if (glyph) {
-    context.cooldownController.startRecharge(
-      glyph,
-      at,
-      balanceNumberFromContext(context, PROFILE.summonedElemental, 'recharge')
-    );
+    context.cooldownController.startRecharge(glyph, at, skillNumber(glyph, 'rechargeAfterExpiry'));
   }
 }
 
@@ -155,7 +150,8 @@ function startElemental(context: ElementalistRuntime, at: number): void {
     return;
   }
 
-  const delay = balanceNumberFromContext(context, PROFILE.summonedElemental, 'initialDelay');
+  const glyph = glyphSkillForElement(context, elemental.element)!;
+  const delay = skillNumber(glyph, 'summonStartupDelay');
   scheduleElementalDecision(context, Math.max(at + delay, elemental.busyUntil));
 }
 
@@ -164,6 +160,8 @@ function startElemental(context: ElementalistRuntime, at: number): void {
 // the command flip. Optionally starts the attack loop immediately.
 function summonElemental(context: ElementalistRuntime, at: number, element: ElementalKind): void {
   const state = professionCoreState(context);
+  // Explicit casts and configured openers share the selected glyph's lifecycle tuning.
+  const glyph = glyphSkillForElement(context, element)!;
   // Replacement ends the old action and flip together with its queued work.
   interruptCurrentAction(context, at);
   const previousElement = state.summonedElemental.element;
@@ -183,7 +181,7 @@ function summonElemental(context: ElementalistRuntime, at: number, element: Elem
     element,
     summonGeneration,
     actionGeneration: 0,
-    activeUntil: canonicalTime(at + balanceNumberFromContext(context, PROFILE.summonedElemental, 'duration')),
+    activeUntil: canonicalTime(at + skillNumber(glyph, 'duration')),
     busyUntil: at,
     secondaryAttackReadyAt: at,
     currentActivationId: null,

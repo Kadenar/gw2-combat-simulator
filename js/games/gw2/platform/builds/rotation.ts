@@ -133,11 +133,30 @@ export function validateRotationCommand(
   return errors;
 }
 
+/** Lazily index names once per import; ID-only rotations skip it and duplicate labels still require explicit IDs. */
+function rotationNameResolver(catalog: CatalogLookup | null): (name: string) => SkillId | undefined {
+  let names: Map<string, SkillId | null> | undefined;
+
+  return (name) => {
+    if (!names) {
+      names = new Map();
+      for (const skill of catalog?.skillsById?.values() ?? [])
+        names.set(skill.name, names.has(skill.name) ? null : skill.id);
+    }
+
+    const id = names.get(name);
+
+    if (id === null) throw new TypeError(`Ambiguous skill name "${name}"; supply skillId.`);
+
+    return id;
+  };
+}
+
 /** Decode existing shorthand without dropping fields that the canonical validator must inspect. */
-function decodeRotationCommand(entry: unknown, catalog: CatalogLookup | null): unknown {
+function decodeRotationCommand(entry: unknown, namedSkillId: (name: string) => SkillId | undefined): unknown {
   if (typeof entry === 'number') return { type: 'cast', skillId: canonicalGw2SkillId(entry) };
 
-  if (typeof entry === 'string') return decodeRotationCommand({ name: entry }, catalog);
+  if (typeof entry === 'string') return decodeRotationCommand({ name: entry }, namedSkillId);
 
   if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return entry;
 
@@ -154,7 +173,7 @@ function decodeRotationCommand(entry: unknown, catalog: CatalogLookup | null): u
   const skillId =
     candidate.skillId ??
     candidate.id ??
-    (typeof candidate.name === 'string' ? catalog?.skillsByName?.get(candidate.name)?.id : undefined) ??
+    (typeof candidate.name === 'string' ? namedSkillId(candidate.name) : undefined) ??
     candidate.name;
   return {
     ...candidate,
@@ -169,8 +188,12 @@ function decodeRotationCommand(entry: unknown, catalog: CatalogLookup | null): u
 }
 
 /** Shared validation precedes numeric conversion and removal of redundant optional fields. */
-function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup | null): RotationCommand {
-  const decoded = decodeRotationCommand(entry, catalog);
+function normalizeRotationCommand(
+  entry: unknown,
+  catalog: CatalogLookup | null,
+  namedSkillId: (name: string) => SkillId | undefined
+): RotationCommand {
+  const decoded = decodeRotationCommand(entry, namedSkillId);
   const errors = validateRotationCommand(decoded, catalog);
 
   if (errors.length) throw new TypeError(errors[0]);
@@ -215,9 +238,10 @@ export function normalizeRotation(
   }
 
   const commands: RotationCommand[] = [];
+  const namedSkillId = rotationNameResolver(catalog);
   for (const entry of rotation) {
     try {
-      commands.push(normalizeRotationCommand(entry, catalog));
+      commands.push(normalizeRotationCommand(entry, catalog, namedSkillId));
     } catch (error) {
       if (strict) throw error;
     }

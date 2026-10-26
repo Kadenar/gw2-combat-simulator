@@ -855,8 +855,8 @@ test('Luminary UI excludes virtue aliases and lists the forge exit once', () => 
 });
 
 test('elite specializations expose their profession mechanics', () => {
-  const spear = guardianCatalog.skillsByName.get('Spear of Justice');
-  const verdict = guardianCatalog.skillsByName.get("Hunter's Verdict");
+  const spear = guardianCatalog.skillsById.get(29887);
+  const verdict = guardianCatalog.skillsById.get(33134);
   const dragonhunter = guardianProfession.ui.paletteGroups({
     specialization: 'Dragonhunter'
   })[0].skillIds;

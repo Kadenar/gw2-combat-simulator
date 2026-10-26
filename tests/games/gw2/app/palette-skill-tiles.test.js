@@ -56,7 +56,7 @@ test('Mirage dodge markup exposes projected endurance instead of ammo', async ()
     specialization: 'Mirage',
     professionState: { endurance: { value: 7.5, maximum: 100, updatedAt: 0, rate: 0 } }
   });
-  const skill = profession.catalog.skillsByName.get('Dodge / Mirage Cloak');
+  const skill = profession.catalog.skillsById.get(-1);
   const markup = paletteSkillHtml(paletteSkillView(app, skill));
   assert.match(markup, /class="pal-skill-resource" data-resource-id="endurance"/);
   assert.match(markup, /aria-valuenow="7\.5"/);
@@ -94,8 +94,7 @@ test('a used 20-second skill displays 16 seconds under Alacrity', () => {
 function catalogApp(skills, professionState = {}) {
   const catalog = {
     skills,
-    skillsById: new Map(skills.map((skill) => [skill.id, skill])),
-    skillsByName: new Map(skills.map((skill) => [skill.name, skill]))
+    skillsById: new Map(skills.map((skill) => [skill.id, skill]))
   };
   return projectionApp({ catalog }, { professionState, useProfessionUi: false });
 }
@@ -187,7 +186,7 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
       },
       results: simulateGw2({ profession, config: { specialization, ...config }, rotation })
     };
-    const skill = app.activeCatalog.skillsByName.get(name);
+    const skill = app.activeCatalog.skills.find((candidate) => candidate.name === name);
     const verdict = app.results.planningState.availability[skill.id];
     assert.equal(verdict.ready, false, name);
     assert.ok(verdict.retryAt > app.results.planningState.atSeconds, name);
@@ -236,8 +235,8 @@ test('a denied follow-up stays in the shared palette slot', () => {
 test('Dodge + Auto derives availability from its unchanged command expansion', async () => {
   const profession = await loadProfession('revenant');
   const app = projectionApp(profession, { specialization: 'Vindicator' });
-  const opener = profession.catalog.skillsByName.get('Preparation Thrust');
-  const followup = profession.catalog.skillsByName.get('Brutal Blade');
+  const opener = profession.catalog.skillsById.get(29057);
+  const followup = profession.catalog.skillsById.get(29256);
   const context = { specialization: 'Vindicator', activeAutoattack: followup };
   const skill = profession.ui.paletteActionSkills(context, []).find((entry) => entry.id === '__vindicator_dodge_auto');
   const availability = app.results.planningState.availability;
@@ -566,20 +565,16 @@ test('stateful transforms select one live tile across professions', async () => 
     app.activeCatalog = {
       ...app.activeCatalog,
       skills: renamedSkills,
-      skillsById: new Map(renamedSkills.map((skill) => [skill.id, skill])),
-      skillsByName: new Map(
-        [...app.activeCatalog.skillsByName.values()].map((skill) => {
-          const renamed = renamedSkills.find((candidate) => candidate.id === skill.id);
-          return [renamed.name, renamed];
-        })
-      )
+      skillsById: new Map(renamedSkills.map((skill) => [skill.id, skill]))
     };
     const skills = names.map((name) =>
-      app.activeCatalog.skills.find((skill) => skill.id === profession.catalog.skillsByName.get(name).id)
+      app.activeCatalog.skills.find(
+        (skill) => skill.id === profession.catalog.skills.find((candidate) => candidate.name === name).id
+      )
     );
     assert.deepEqual(
       displayedSkillTiles(app, skills).map((skill) => skill.id),
-      [profession.catalog.skillsByName.get(expected).id],
+      [profession.catalog.skills.find((candidate) => candidate.name === expected).id],
       `${professionId}: ${expected}`
     );
   }
@@ -588,7 +583,7 @@ test('stateful transforms select one live tile across professions', async () => 
 test('Untamed ambush tiles glow only while their window is open and recharge is ready', async () => {
   const profession = await loadProfession('ranger');
   for (const name of ['Relentless Whirl', 'Deft Strike']) {
-    const skill = profession.catalog.skillsByName.get(name);
+    const skill = profession.catalog.skills.find((candidate) => candidate.name === name);
     for (const [time, rangerUnleashed, remaining, expected] of [
       [3.999, true, 0, true],
       [4, true, 0, false],
@@ -617,7 +612,7 @@ test('Gunsaber tile shows the shared cooldown after direct or Dragon Trigger ent
     });
     const app = projectionApp(profession, { specialization: 'Bladesworn' });
     app.results = result;
-    const [skill] = displayedSkillTiles(app, [profession.catalog.skillsByName.get('Unsheathe Gunsaber')]);
+    const [skill] = displayedSkillTiles(app, [profession.catalog.skillsById.get(62745)]);
     const view = paletteSkillView(app, skill);
 
     assert.deepEqual(result.warnings, []);
@@ -634,10 +629,10 @@ test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', a
     professionState: { availableFlips: {} },
     time: 1,
     cooldowns: {
-      [profession.catalog.skillsByName.get('Rock Barrier').id]: { remaining: 8000, readyAt: 9000 }
+      [profession.catalog.skillsById.get(5695).id]: { remaining: 8000, readyAt: 9000 }
     }
   });
-  const [skill] = displayedSkillTiles(app, [profession.catalog.skillsByName.get('Rock Barrier')]);
+  const [skill] = displayedSkillTiles(app, [profession.catalog.skillsById.get(5695)]);
   const view = paletteSkillView(app, skill, true);
 
   assert.equal(skill.name, 'Rock Barrier');
@@ -648,7 +643,7 @@ test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', a
 
 test('cooldown tooltip reports availability relative to combat start', async () => {
   const profession = await loadProfession('necromancer');
-  const skill = profession.catalog.skillsByName.get('Wanderlust');
+  const skill = profession.catalog.skillsById.get(76961);
   const app = projectionApp(profession, {
     time: 14.84,
     cooldowns: {

@@ -1,6 +1,6 @@
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 import {
-  WEAVER_SPEAR_FOLLOWUPS,
+  WEAVER_SPEAR_BUFFS,
   WEAVER_SPEAR_SKILL_MECHANICS
 } from '#gw2/professions/elementalist/specializations/weaver/skills/weapons/spear.js';
 
@@ -14,7 +14,7 @@ export function weaverBuffPolicies(): BuffStatePolicy[] {
     { kind: 'weave self earth', maximumStacks: 1 },
     { kind: 'elements of rage', maximumStacks: 1 },
     // Each spear dual holds one charge; reapplication refreshes it without adding another strike.
-    ...Object.entries(WEAVER_SPEAR_FOLLOWUPS).map(([id, kind]) => ({
+    ...Object.entries(WEAVER_SPEAR_BUFFS).map(([id, kind]) => ({
       kind,
       name: WEAVER_SPEAR_SKILL_MECHANICS[Number(id)].name,
       maximumStacks: 1

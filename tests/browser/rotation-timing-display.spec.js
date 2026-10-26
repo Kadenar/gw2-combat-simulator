@@ -10,10 +10,10 @@ test('concurrent precast landing updates while editing timing', async ({ page })
     app.build.selectedSkillIds.Elite = 10245;
     app.build.targetHealth = 0;
     app.build.rotation = [
-      { type: 'cast', skillId: app.activeCatalog.skillsByName.get('Mass Invisibility').id },
+      { type: 'cast', skillId: app.activeCatalog.skillsById.get(10245).id },
       {
         type: 'cast',
-        skillId: app.activeCatalog.skillsByName.get('Signet of Midnight').id,
+        skillId: app.activeCatalog.skillsById.get(10234).id,
         concurrentOffsetMs: 80,
         impactDelayMs: 1000
       },

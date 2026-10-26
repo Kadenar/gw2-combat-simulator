@@ -1,3 +1,4 @@
+import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
@@ -340,7 +341,7 @@ test('EI missile finders preserve creation evidence and suppress duplicate proje
   );
   assert.ok(imported.rotation.some((command) => command.skillId === 42163));
   assert.ok(imported.rotation.some((command) => command.skillId === 45732));
-  assert.ok(imported.warnings.some((warning) => warning.includes('3 instant casts')));
+  assert.deepEqual(imported.warnings, [LOG_OPENER_WARNING]);
 });
 
 test('Hurl missile inference uses a sliding 900 ms window for every Elementalist specialization', () => {

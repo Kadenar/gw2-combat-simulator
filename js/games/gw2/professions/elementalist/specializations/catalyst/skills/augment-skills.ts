@@ -1,4 +1,4 @@
-import { RECIPIENT, ACTOR, BOON } from '#gw2/platform/constants.js';
+import { RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
@@ -58,7 +58,21 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
     cooldown: 20,
     skillFamily: 'Augment',
     // Select the authored window from live sphere state when the cast commits.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.catalyst.augment-window' } }],
+    internalCooldown: 1,
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.catalyst.augment-window',
+          id: 'triggered-packet',
+          // These rewards apply only to qualifying hits during the accepted window.
+          effects: [
+            { name: 'Shattering Ice - Triggered Packet', type: 'strike', coefficient: 0.6, hits: 1 },
+            { name: CONDITION.CHILLED, type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 1 }
+          ]
+        }
+      }
+    ],
     effects: [
       {
         type: 'buff',

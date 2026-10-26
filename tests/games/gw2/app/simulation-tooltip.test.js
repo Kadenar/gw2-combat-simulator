@@ -73,11 +73,7 @@ test('Combustive Shot tooltip tabs own their patched field durations', async () 
       warrior: { balanceProfiles: { [profiles.combustiveShot]: { fields: { durationPerTier: 4 } } } }
     }
   }).resolvePatch({ id: 'burst-field-preview' }).balanceContext;
-  const tooltip = describeSimulationSkill(
-    context,
-    context.catalog.skillsByName.get('Combustive Shot'),
-    warriorTooltips
-  );
+  const tooltip = describeSimulationSkill(context, context.catalog.skillsById.get(14506), warriorTooltips);
   assert.equal(
     tooltip.facts.some(({ name }) => name === 'Combo field'),
     false
@@ -745,7 +741,7 @@ test('Soulbeast condition triggers preserve the same patched stack count shown i
     attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000 }),
     target: { armor: 2597 }
   });
-  const result = simulate('Soulbeast', ['Vulture Stance', 'Maul'], {
+  const result = simulate('Soulbeast', ['Vulture Stance', { type: 'cast', skillId: 12525 }], {
     patchId: 'stance-tooltip',
     primaryWeapon: 'Greatsword',
     selectedSkillIds: [40498]
@@ -804,7 +800,7 @@ test('Engineer spear resolver and tooltip use the same selected packet profile',
     }
   });
   const selected = profession.resolvePatch({ id: 'spear-tooltip' }).balanceContext;
-  const skill = selected.catalog.skillsByName.get('Electric Artillery');
+  const skill = selected.catalog.skillsById.get(73143);
   const model = describeSimulationSkill(selected, skill, engineerTooltips);
   assert.ok(
     model.facts.some((fact) => fact.name === 'Strike damage' && /2 coefficient.*while Focused/.test(fact.detail))

@@ -11,11 +11,10 @@ import {
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createHammerOrbs } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
-import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import {
   schedulePrimordialStance,
   primordialStancePulse
@@ -23,8 +22,8 @@ import {
 
 // Switching orb creators must refresh the original buff and transfer only the recast elements' ownership.
 test('Core and Weaver orb creation refresh existing buffs without duplicating them', () => {
-  const single = elementalistCatalog.skillsByName.get('Flame Wheel');
-  const dual = elementalistCatalog.skillsByName.get('Dual Orbits: Fire and Air');
+  const single = elementalistCatalog.skillsById.get(62758);
+  const dual = elementalistCatalog.skillsById.get(69341);
   let originalExpiry;
   runElementalist(
     [{ type: 'wait', durationMs: 3000 }],
@@ -141,7 +140,7 @@ test('Unravel requires Elements of Rage and disables new dual attacks without ca
   );
   assert.match(dualAttack.warnings[0].message, /while Unravel is active/i);
 
-  const unravel = elementalistCatalog.skillsByName.get('Unravel');
+  const unravel = elementalistCatalog.skillsById.get(80231);
   const queuedDualAttack = runNative({
     lines: [['Fire'], ['Air'], ['Weaver', '1-1-1']],
     rotation: [
@@ -172,9 +171,9 @@ test('Unravel requires Elements of Rage and disables new dual attacks without ca
 });
 
 test('Weaver can cancel a carried autoattack by starting the current primary chain', () => {
-  const airRoot = elementalistCatalog.skillsByName.get('Charged Strike').id;
-  const fireRoot = elementalistCatalog.skillsByName.get('Fire Strike').id;
-  const fireSecond = elementalistCatalog.skillsByName.get('Fire Swipe').id;
+  const airRoot = elementalistCatalog.skillsById.get(44681).id;
+  const fireRoot = elementalistCatalog.skillsById.get(39964).id;
+  const fireSecond = elementalistCatalog.skillsById.get(40326).id;
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Weaver', '1-1-1']],
     rotation: ['Charged Strike', 'Fire Attunement', 'Fire Strike'],
@@ -218,19 +217,23 @@ test('Primordial Stance schedules unique authored pulse times without emitting p
   }
 });
 
-test('Primordial Stance retains dynamic profile patches and activation ownership within the observation window', () => {
+test('Primordial Stance retains shared skill payload patches and activation ownership within the observation window', () => {
   // A short tail includes the first pulse but must not resolve the following pulse or an activation-time strike.
   const profession = withPatchPreview(elementalistProfession, {
     id: 'stance-preview',
     label: 'Stance Preview',
     professions: {
       elementalist: {
-        balanceProfiles: {
-          [WEAVER_BALANCE_PROFILE_IDS.primordialStance]: {
-            effects: [
-              { type: 'strike', coefficient: { from: 0.33, to: 0.5 } },
-              { type: 'condition', name: 'Fire', stacks: { from: 1, to: 3 }, duration: { from: 2, to: 4 } }
-            ]
+        skills: {
+          [ID.PRIMORDIAL_STANCE_FIRE]: {
+            sideEffects: {
+              pulses: {
+                effects: [
+                  { type: 'strike', coefficient: { from: 0.33, to: 0.5 } },
+                  { type: 'condition', name: 'Fire', stacks: { from: 1, to: 3 }, duration: { from: 2, to: 4 } }
+                ]
+              }
+            }
           }
         }
       }
@@ -265,13 +268,13 @@ test('Primordial Stance retains dynamic profile patches and activation ownership
   assert.ok(result.events.every((event) => event.cancelled !== true));
 });
 
-test('Primordial Stance does not restore removed profile effects through fallback values', () => {
+test('Primordial Stance does not restore removed action effects through fallback values', () => {
   // Removing the active attunement's condition and strike leaves this pulse with nothing to emit.
   const context = {
-    helpers: applyBalanceProfilePatch(elementalistCatalog, {
-      balanceProfiles: {
-        [WEAVER_BALANCE_PROFILE_IDS.primordialStance]: {
-          removeEffects: [{ type: 'strike' }, { type: 'condition', name: 'Fire' }]
+    helpers: applySkillPatch(elementalistCatalog, {
+      skills: {
+        [ID.PRIMORDIAL_STANCE_FIRE]: {
+          sideEffects: { pulses: { removeEffects: [{ type: 'strike' }, { type: 'condition', name: 'Fire' }] } }
         }
       }
     }),
@@ -281,7 +284,7 @@ test('Primordial Stance does not restore removed profile effects through fallbac
       specialization: { kind: 'Weaver', state: { secondaryAttunement: 'Fire' } }
     },
     tasks: { schedule: () => 'pulse', cancel: () => {} },
-    effects: captureEffectEmissions({ submit: () => assert.fail('Removed profile effects must not emit') }).effects
+    effects: captureEffectEmissions({ submit: () => assert.fail('Removed action effects must not emit') }).effects
   };
   primordialStancePulse(context, {
     cast: {
@@ -311,7 +314,7 @@ test('Primordial Stance variants share charges and count recharge', () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(casts.length, 3);
   // The first two variants spend the shared pool; the third waits for a charge.
-  const recharge = (elementalistCatalog.skillsByName.get('Primordial Stance (Fire)').ammoRecharge * 1000) / 1.25;
+  const recharge = (elementalistCatalog.skillsById.get(40183).ammoRecharge * 1000) / 1.25;
   assert.ok(casts[1].start - casts[0].start < recharge);
   assert.ok(casts[2].start - casts[0].start >= recharge);
 });
@@ -423,6 +426,6 @@ test('Weaver mechanics execute through native hooks', () => {
   assert.ok(weaveSelfFire.at < weaveSelf.endsAt);
   assert.equal(
     observedRuntime(result).cooldownController.readyAt(weaveSelf.skillId) - weaveSelfFire.at,
-    elementalistCatalog.skillsByName.get('Weave Self').cooldown / 1.25
+    elementalistCatalog.skillsById.get(43638).cooldown / 1.25
   );
 });

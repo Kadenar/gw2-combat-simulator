@@ -25,7 +25,6 @@ export function analyzeWarriorBloodlustObservation(
     catalog,
     config,
     TRAIT.BLOODLUST,
-    'Bloodlust',
     observationAttributeSets(config, catalog, warriorProfession.attributeContributions)
   );
 }

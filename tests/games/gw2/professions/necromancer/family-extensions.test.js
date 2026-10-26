@@ -83,7 +83,7 @@ test('shroud observers see committed Core transitions and remain isolated across
 
 // Summon points settle resource rewards before the explosion, with selection isolated per runtime.
 test('creature summon listeners preserve reward order, captured attribution, and selection isolation', () => {
-  const skill = necromancerProfession.catalog.skillsByName.get('Summon Blood Fiend');
+  const skill = necromancerProfession.catalog.skillsById.get(10547);
   for (const selected of [true, false]) {
     const observed = [];
     let lifeForce = 0;

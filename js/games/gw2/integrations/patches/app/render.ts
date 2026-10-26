@@ -1,3 +1,4 @@
+import { hasActionEffects } from '#gw2/platform/effects/actions.js';
 import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import {
@@ -337,12 +338,31 @@ function effectNumericRows(
 /** Renders live skill effects with edit and preview-removal controls. */
 function effectCards(skill: NativePatchAuthoringSkill): string {
   const edit = skillEdit(skill.id.toString()) as SkillPatchEdit | null;
-  const effects = (skill.skill.effects || []) as readonly SkillEffect[];
+  // Actions may own rewards, templates, or timelines; the heading must not imply immediate emission.
+  return (
+    effectGroupCards(skill, skill.skill.effects ?? [], edit) +
+    (skill.skill.sideEffects ?? [])
+      .map(({ do: action }) =>
+        hasActionEffects(action)
+          ? `<section><h4>Action effects</h4>${effectGroupCards(skill, action.effects, edit?.sideEffects?.[action.id!] ?? null, action.id)}</section>`
+          : ''
+      )
+      .join('')
+  );
+}
+
+/** Action scope keeps identically indexed ordinary and conditional rewards independent. */
+function effectGroupCards(
+  skill: NativePatchAuthoringSkill,
+  effects: readonly SkillEffect[],
+  edit: SkillPatchEdit | null,
+  actionId?: string
+): string {
   return effects
     .map((effect, effectIndex) => {
       const removed = effectRemoved(edit, effectIndex);
       const detail = effectDetail(effect);
-      return `<article class="patch-effect${removed ? ' is-removed' : ''}">
+      return `<article class="patch-effect${removed ? ' is-removed' : ''}"${actionId ? ` data-action-id="${escapeHtml(actionId)}"` : ''}>
         <header>
           <div><span class="patch-effect-index">${effectIndex}</span><strong>${escapeHtml(effect.type)}</strong> ${escapeHtml(detail)}</div>
           <button type="button" class="patch-effect-action" data-toggle-effect="${effectIndex}" data-skill-id="${escapeHtml(skill.id)}">
@@ -407,6 +427,8 @@ function skillDetail(
                   entity: 'skill',
                   id: skill.id.toString(),
                   field,
+                  // Profession-owned fields carry their label and unit in the selected profession's declarations.
+                  label: authoringNumericFieldLabel(field, selectedProfession()?.skillFields[field]),
                   current,
                   edit: edit?.fields?.[field]
                 })
@@ -944,7 +966,11 @@ export function bindPatchAuthoringView(root: HTMLElement, actions: PatchAuthorin
       deleteBalanceProfileEdit(button.dataset.clearProfile);
       markDirty();
     } else if (button.dataset.toggleEffect != null) {
-      toggleEffect(button.dataset.skillId || '', Number(button.dataset.toggleEffect));
+      toggleEffect(
+        button.dataset.skillId || '',
+        Number(button.dataset.toggleEffect),
+        button.closest<HTMLElement>('[data-action-id]')?.dataset.actionId
+      );
       markDirty();
     } else if (button.dataset.addEffect) {
       const type = app.querySelector<HTMLSelectElement>('[data-new-effect-type]')?.value || 'strike';
@@ -989,6 +1015,7 @@ export function bindPatchAuthoringView(root: HTMLElement, actions: PatchAuthorin
           next: Number(target.value),
           effectIndex: effectIndex == null ? undefined : Number(effectIndex),
           tickIndex: target.dataset.tickIndex == null ? undefined : Number(target.dataset.tickIndex),
+          actionId: target.closest<HTMLElement>('[data-action-id]')?.dataset.actionId,
           grantId: target.dataset.grantId
         });
         markDirty();

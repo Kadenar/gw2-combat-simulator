@@ -83,7 +83,7 @@ test('Elementalist pistol palette distinguishes starting and current bullets', (
   assert.match(html, /currently stocked; starts not stocked/);
   assert.match(html, /not currently stocked; starts stocked/);
   assert.match(html, /class="pal-control-badge"[^>]*>S<\/span>/);
-  assert.match(html, new RegExp(elementalistCatalog.skillsByName.get('Scorching Shot').icon));
+  assert.match(html, new RegExp(elementalistCatalog.skillsById.get(71929).icon));
 });
 
 test('Elementalist pistol palette toggles the selected starting bullet', () => {

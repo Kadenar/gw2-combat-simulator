@@ -2,10 +2,19 @@ import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { combineSkillFields } from '#gw2/platform/skills/field-specs.js';
+import { ENGINEER_CORE_SKILL_FIELDS } from '#gw2/professions/engineer/core/skill-fields.js';
+import { HOLOSMITH_SKILL_FIELDS } from '#gw2/professions/engineer/specializations/holosmith/skill-fields.js';
+import { RANGER_CORE_SKILL_FIELDS } from '#gw2/professions/ranger/core/skill-fields.js';
+import { DRUID_SKILL_FIELDS } from '#gw2/professions/ranger/specializations/druid/skill-fields.js';
+import { GALESHOT_SKILL_FIELDS } from '#gw2/professions/ranger/specializations/galeshot/skill-fields.js';
+import { LUMINARY_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/luminary/skill-fields.js';
+import { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/skill-fields.js';
+import { NECROMANCER_CORE_SKILL_FIELDS } from '#gw2/professions/necromancer/core/skill-fields.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { bindElementalistCoreUi } from '#gw2/professions/elementalist/core/presentation.js';
 import { bindElementalistFamilyUi } from '#gw2/professions/elementalist/family-presentation.js';
-import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS, ELEMENTALIST_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { bindEngineerCoreUi } from '#gw2/professions/engineer/core/presentation.js';
 import { ENGINEER_SKILL_IDS as ENGINEER_ID } from '#gw2/professions/engineer/data/ids.js';
 import { bindHolosmithUi } from '#gw2/professions/engineer/specializations/holosmith/presentation.js';
@@ -27,7 +36,20 @@ import { bindHarbingerUi } from '#gw2/professions/necromancer/specializations/ha
 import { bindRitualistUi } from '#gw2/professions/necromancer/specializations/ritualist/presentation.js';
 
 const skill = (id, name, fields = {}) => ({ id, name, castTimeMs: 0, effects: [], ...fields });
-const catalog = (...skills) => createCanonicalCatalog({ extraSkills: skills });
+// Fixture catalogs accept the same profession-owned fields as the real modules whose presentation they bind.
+const FIXTURE_SKILL_FIELDS = combineSkillFields(
+  Object.entries({
+    ENGINEER_CORE_SKILL_FIELDS,
+    HOLOSMITH_SKILL_FIELDS,
+    RANGER_CORE_SKILL_FIELDS,
+    DRUID_SKILL_FIELDS,
+    GALESHOT_SKILL_FIELDS,
+    LUMINARY_SKILL_FIELDS,
+    FIREBRAND_SKILL_FIELDS,
+    NECROMANCER_CORE_SKILL_FIELDS
+  }).map(([owner, fields]) => ({ owner, fields }))
+);
+const catalog = (...skills) => createCanonicalCatalog({ extraSkills: skills, skillFields: FIXTURE_SKILL_FIELDS });
 const groupIds = (ui, context, id) => ui.paletteGroups(context).find((group) => group.id === id).skillIds;
 
 // Read each instance with its selected catalog before and after binding another, in both initialization orders.
@@ -155,7 +177,7 @@ test('Necromancer transform palettes do not depend on the last Core catalog boun
 test('Elementalist family and Core factories receive their own assembled catalog', () => {
   const skills = (icon) => [
     skill(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Fire, 'Fire Attunement', { icon }),
-    skill(1, 'Scorching Shot', { icon })
+    skill(ELEMENTALIST_SKILL_IDS.SCORCHING_SHOT, 'Scorching Shot', { icon })
   ];
   // Family controls must work even when Core presentation has never been initialized.
   assertIsolated(

@@ -45,6 +45,13 @@ import type {
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 
+// Singularity is intrinsic to Tempest; overload readiness reads its selected dwell even without an explicit minor ID.
+const singularity = defineTrait({
+  id: TRAIT.SINGULARITY,
+  name: 'Singularity',
+  balance: { duration: 6, effects: [] }
+});
+
 const galeSong = defineTrait({
   triggers: [
     onTriggerPoint(tempestCastCompleting, {
@@ -282,6 +289,8 @@ const transcendentTempest = defineTrait({
   id: TRAIT.TRANSCENDENT_TEMPEST,
   name: 'Transcendent Tempest',
   balance: {
+    // Shortened singularity dwell, separate from the damage buff's seven-second lifetime.
+    duration: 4,
     damageIncrease: 0.25,
     conditionDamageIncrease: 0.2,
     // Completion grants the timed damage-bonus status from this profile.
@@ -359,6 +368,7 @@ const lucidSingularity = defineTrait({
 
 /** Register tempest traits in their existing execution order. */
 export const tempestTraits = [
+  singularity,
   galeSong,
   latentStamina,
   unstableConduit,

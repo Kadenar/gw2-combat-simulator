@@ -904,6 +904,16 @@ export const activePatchPreview: PatchPreview = {
     },
     elementalist: {
       skills: {
+        // Deferred spear rewards are patched through their owning skill actions.
+        '72906': {
+          sideEffects: { 'additional-strike': { effects: [{ type: 'strike', coefficient: { from: 1.5, to: 2 } }] } }
+        },
+        '72914': {
+          sideEffects: { 'additional-strike': { effects: [{ type: 'strike', coefficient: { from: 1.75, to: 2.25 } }] } }
+        },
+        '73104': {
+          sideEffects: { 'additional-strike': { effects: [{ type: 'strike', coefficient: { from: 2.6, to: 3.1 } }] } }
+        },
         '30336': {
           // Replace the overlapping offensive pulses while retaining the independent Resistance grant.
           removeEffects: [
@@ -991,40 +1001,6 @@ export const activePatchPreview: PatchPreview = {
         // Focus owns the Air bonus that replaces Prowess's base damage increase.
         '2342': {
           fields: { damageIncrease: { from: 0.1, to: 0.12 } }
-        },
-        // Spear dual skills arm buffs; patch the profiles that supply their deferred strikes.
-        'elementalist.weaver.spear.shale-storm': {
-          effects: [
-            {
-              type: 'strike',
-              coefficient: {
-                from: 1.5,
-                to: 2
-              }
-            }
-          ]
-        },
-        'elementalist.weaver.spear.fiery-impact': {
-          effects: [
-            {
-              type: 'strike',
-              coefficient: {
-                from: 1.75,
-                to: 2.25
-              }
-            }
-          ]
-        },
-        'elementalist.weaver.spear.galvanize': {
-          effects: [
-            {
-              type: 'strike',
-              coefficient: {
-                from: 2.6,
-                to: 3.1
-              }
-            }
-          ]
         },
         '2437': {
           fields: {

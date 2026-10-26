@@ -84,8 +84,8 @@ test('slot selection admits authored attunement variants and follow-ups before c
   context.config.selectedSkillIds = [];
   assert.equal(elementalistCoreAvailability(context, air).code, 'elementalist.not-equipped');
 
-  const root = elementalistCatalog.skillsByName.get('Weave Self');
-  const followUp = elementalistCatalog.skillsByName.get('Tailored Victory');
+  const root = elementalistCatalog.skillsById.get(43638);
+  const followUp = elementalistCatalog.skillsById.get(44637);
   context.config.selectedSkillIds = [root.id];
   assert.equal(elementalistCoreAvailability(context, followUp).ready, true);
   context.config.selectedSkillIds = [];
@@ -107,7 +107,7 @@ test('only the selected Weaver delegates weapon eligibility and supplies a secon
     assert.equal(elementalistAttunementPolicy(context).secondaryAttunement, kind === 'Weaver' ? 'Air' : null);
 
     if (kind !== 'Weaver') {
-      const attunement = elementalistCatalog.skillsByName.get('Fire Attunement');
+      const attunement = elementalistCatalog.skillsById.get(5492);
       assert.equal(elementalistCoreAvailability(context, attunement).code, 'elementalist.same-attunement');
     } else {
       context.profession.specialization.state.secondaryAttunement = null;
@@ -165,8 +165,8 @@ function arcaneEchoContext(rate = 1) {
 }
 
 test('Arcane Echo accepts weapon starts through its ten-second deadline and consumes the buff once', () => {
-  const echo = elementalistCatalog.skillsByName.get('Arcane Echo');
-  const weapon = elementalistCatalog.skillsByName.get('Lightning Strike');
+  const echo = elementalistCatalog.skillsById.get(5635);
+  const weapon = elementalistCatalog.skillsById.get(5561);
   // A weapon started in the window remains eligible when its completion follows expiry.
   for (const [armed, start, active] of [
     [false, 0, false],
@@ -180,7 +180,7 @@ test('Arcane Echo accepts weapon starts through its ten-second deadline and cons
     context.cooldownController.startRecharge(echo, 0);
 
     if (armed) {
-      armArcaneEcho(context, { effectiveEnd: 0 });
+      armArcaneEcho(context, { effectiveEnd: 0, skill: context.helpers.skillsById.get(ID.ARCANE_ECHO) });
       assert.equal(context.profession.core.arcaneEchoUntil, 10);
     }
 
@@ -207,7 +207,7 @@ test('Arcane Echo adds original weapon recharge to its 15-second base and grants
   for (const rate of [1, 1.25]) {
     const context = arcaneEchoContext(rate);
     context.cooldownController.startRecharge(echo, 0);
-    armArcaneEcho(context, { effectiveEnd: 0 });
+    armArcaneEcho(context, { effectiveEnd: 0, skill: context.helpers.skillsById.get(ID.ARCANE_ECHO) });
     context.time = 5;
     context.cooldownController.startRecharge(weapon, 5, 7);
     completeArcaneEcho(context, { start: 4, effectiveEnd: 5, rechargeWork: 7 }, weapon);
@@ -234,7 +234,7 @@ test('Arcane Echo ignores autoattacks, non-weapons, follow-ups, zero recharge, a
     const echo = elementalistCatalog.skillsById.get(ID.ARCANE_ECHO);
     context.cooldownController.startRecharge(echo, 0);
     context.cooldownController.setReadyAt(weapon.id, 20);
-    armArcaneEcho(context, { effectiveEnd: 0 });
+    armArcaneEcho(context, { effectiveEnd: 0, skill: context.helpers.skillsById.get(ID.ARCANE_ECHO) });
     context.time = 2;
     completeArcaneEcho(context, { start: 1, effectiveEnd: 2, cancelled }, { ...weapon, ...patch });
     assert.equal(context.profession.core.arcaneEchoUntil, 10);
@@ -251,7 +251,7 @@ test('Arcane Echo preserves spent ammunition and adds its original count recharg
   const echo = elementalistCatalog.skillsById.get(ID.ARCANE_ECHO);
   const weapon = elementalistCatalog.skillsById.get(ID.WATER_TRIDENT);
   context.cooldownController.startRecharge(echo, 0);
-  armArcaneEcho(context, { effectiveEnd: 0 });
+  armArcaneEcho(context, { effectiveEnd: 0, skill: context.helpers.skillsById.get(ID.ARCANE_ECHO) });
   context.time = 2;
   context.cooldownController.spendAmmo(weapon, 2, 7);
   completeArcaneEcho(context, { start: 1, effectiveEnd: 2, rechargeWork: 7 }, weapon);
@@ -300,7 +300,7 @@ test('Arcane Echo transfers original Ride the Lightning recharge and schedules i
 });
 
 test('Fervent Stance grants dual-attack Might only inside an armed window', () => {
-  const skill = elementalistCatalog.skillsByName.get('Galvanize');
+  const skill = elementalistCatalog.skillsById.get(73104);
   // Exercise the real arming handler and completion hook at both window boundaries.
   for (const [armed, at, active] of [
     [false, 0, false],
@@ -325,7 +325,15 @@ test('Fervent Stance grants dual-attack Might only inside an armed window', () =
     };
     bindTriggerPoints(context, elementalistProfession, { specialization: 'Weaver' });
 
-    if (armed) weaverHooks.tasks['elementalist.weaver.arm-fervent-stance'](context);
+    if (armed) {
+      // The commit action reads the accepted stance's selected duration, as real activations do.
+      const stance = elementalistCatalog.skillsById.get(44612);
+      weaverHooks.sideEffectHandlers['elementalist.weaver.arm-fervent-stance'](context, {
+        kind: 'cast',
+        skill: stance,
+        cast: { skill: stance }
+      });
+    }
 
     context.time = at;
     weaverHooks.onCastCommit(context, { skill, command: {}, effectiveEnd: at, fullEnd: at, start: at });
@@ -342,7 +350,7 @@ test('elemental glyphs require equipment while matching command flips and summon
     ['Glyph of Elementals', 'Fire', 'Flame Barrage'],
     ['Glyph of Elementals (Earth)', 'Earth', 'Stomp']
   ]) {
-    const skill = elementalistCatalog.skillsByName.get(name);
+    const skill = elementalistCatalog.skills.find((candidate) => candidate.name === name);
     const core = createElementalistCoreState();
     const context = {
       profession: { core },
@@ -366,7 +374,7 @@ test('elemental glyphs require equipment while matching command flips and summon
     context.config.selectedSkillIds = [skill.id];
     core.summonedElemental.activeUntil = 0;
     assert.equal(elementalistCoreAvailability(context, skill).ready, true);
-    const flip = elementalistCatalog.skillsByName.get(command);
+    const flip = elementalistCatalog.skills.find((candidate) => candidate.name === command);
     assert.equal(elementalistCoreAvailability(context, flip).ready, true);
     Object.assign(core.summonedElemental, { element, activeUntil: 10 });
     const occupied = elementalistCoreAvailability(context, skill);
@@ -390,7 +398,7 @@ test('elemental glyphs require equipment while matching command flips and summon
     assert.equal(rejected.planningState.profession.summonedElemental.element, null);
     const summoned = runNative({
       lines: [['Fire'], ['Air'], ['Arcane']],
-      selectedSkillIds: { Elite: elementalistCatalog.skillsByName.get(name).id },
+      selectedSkillIds: { Elite: elementalistCatalog.skills.find((candidate) => candidate.name === name).id },
       rotation: [name, command]
     });
     assert.deepEqual(summoned.warnings, []);
@@ -485,8 +493,8 @@ test('Weaver autoattack roots require the primary attunement, even when the off 
 
 test('Weaver preserves the next autoattack link across completed and concurrent attunement swaps', () => {
   // Both swap paths must retain earned chain progress and clear it after the finisher.
-  const airAttunement = elementalistCatalog.skillsByName.get('Air Attunement');
-  const root = elementalistCatalog.skillsByName.get('Fire Strike').id;
+  const airAttunement = elementalistCatalog.skillsById.get(5494);
+  const root = elementalistCatalog.skillsById.get(39964).id;
   for (const swap of ['Air Attunement', { type: 'cast', skillId: airAttunement.id, concurrentOffsetMs: 100 }]) {
     const result = runNative({
       lines: [['Fire'], ['Air'], ['Weaver']],

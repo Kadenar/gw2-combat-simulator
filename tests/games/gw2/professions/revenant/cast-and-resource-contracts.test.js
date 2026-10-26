@@ -216,11 +216,19 @@ for (const [spec, name, legend, config = {}] of [
   ['Vindicator', 'Dodge', LEGEND.ASSASSIN]
 ]) {
   test(`Canceled ${name} does not commit its effect package`, () => {
-    const result = simulate(spec, ['__combat_start', { name, interruptAfterMs: 100 }, wait(2000)], {
-      ...config,
-      selectedLegends: [legend, legend === LEGEND.ASSASSIN ? LEGEND.DEMON : LEGEND.ASSASSIN],
-      startingLegend: legend
-    });
+    const result = simulate(
+      spec,
+      [
+        '__combat_start',
+        { skillId: revenantCatalog.skills.find((skill) => skill.name === name).id, interruptAfterMs: 100 },
+        wait(2000)
+      ],
+      {
+        ...config,
+        selectedLegends: [legend, legend === LEGEND.ASSASSIN ? LEGEND.DEMON : LEGEND.ASSASSIN],
+        startingLegend: legend
+      }
+    );
     assert.deepEqual(result.warnings, []);
     assert.equal(result.events.find((event) => event.type === 'action' && event.name === name).cancelled, true);
     assert.equal(
@@ -328,7 +336,7 @@ for (const [name, skillId, cooldown] of [
 }
 
 test("Razorclaw's Rage arms its charges and assumed allies' Bleeding at completion", () => {
-  const result = simulate('Renegade', ["Razorclaw's Rage", wait(3000)], {
+  const result = simulate('Renegade', [{ type: 'cast', skillId: 42949 }, wait(3000)], {
     selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
     startingLegend: LEGEND.RENEGADE,
     allies: { count: 2, strikesPerSecond: 2 }
@@ -574,12 +582,18 @@ test('upkeep manual release cooldowns scale with Alacrity', () => {
     ['Renegade', LEGEND.RENEGADE, "Soulcleave's Summit", 'Dismiss Lieutenant Soulcleave', 3]
   ]) {
     for (const alacrity of [false, true]) {
-      const result = simulate(spec, [parentName, wait(1000), releaseName, parentName], {
-        selectedLegends: [legend, LEGEND.DEMON],
-        startingLegend: legend,
-        initialEnergy: 100,
-        boons: { alacrity }
-      });
+      const result = simulate(
+        spec,
+        [parentName, releaseName, parentName]
+          .map((name) => revenantCatalog.skills.find((skill) => skill.name === name).id)
+          .flatMap((id, index) => (index === 1 ? [wait(1000), id] : [id])),
+        {
+          selectedLegends: [legend, LEGEND.DEMON],
+          startingLegend: legend,
+          initialEnergy: 100,
+          boons: { alacrity }
+        }
+      );
       const release = result.steps.find((step) => step.skill === releaseName);
       assert.deepEqual(result.warnings, []);
       assert.equal(result.steps.at(-1).start, release.end + (cooldown / 1.25) * 1000);
@@ -600,7 +614,7 @@ test('upkeep starvation cooldowns scale with Alacrity', () => {
 
 test('Diminish Solace stops upkeep drain, retires its follow-up, and starts the parent cooldown', () => {
   const config = { selectedLegends: [LEGEND.CENTAUR, LEGEND.ASSASSIN], startingLegend: LEGEND.CENTAUR };
-  const rotation = ['__combat_start', 'Protective Solace', wait(1000), 'Diminish Solace'];
+  const rotation = ['__combat_start', { type: 'cast', skillId: 26821 }, wait(1000), 'Diminish Solace'];
   const released = simulate('Core', rotation, config);
   const recovered = simulate('Core', [...rotation, wait(2000)], config);
   assert.deepEqual(recovered.warnings, []);

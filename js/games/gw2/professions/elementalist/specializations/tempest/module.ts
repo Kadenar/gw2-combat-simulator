@@ -9,21 +9,20 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import { tempestHooks } from '#gw2/professions/elementalist/specializations/tempest/hooks.js';
 import { tempestUi } from '#gw2/professions/elementalist/specializations/tempest/presentation.js';
-import { TEMPEST_BALANCE_PROFILES } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
+import { TEMPEST_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/tempest/skill-fields.js';
 import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
 import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
+import { tempestTraits } from '#gw2/professions/elementalist/specializations/tempest/traits/index.js';
 
 /** The Tempest specialization module consumed by the elementalist module registry. */
 export const tempestModule = defineNativeModule({
   id: 'Tempest',
   data: createElementalistModuleData('Tempest', {
-    skillMechanics: TEMPEST_SKILL_MECHANICS,
-    balanceProfiles: TEMPEST_BALANCE_PROFILES
+    skillFields: TEMPEST_SKILL_FIELDS,
+    skillMechanics: TEMPEST_SKILL_MECHANICS
   }),
   state: { create: tempestState.create },
   traitDefinitions: tempestTraits,
   hooks: tempestHooks,
   presentation: tempestUi
 });
-
-import { tempestTraits } from '#gw2/professions/elementalist/specializations/tempest/traits/index.js';

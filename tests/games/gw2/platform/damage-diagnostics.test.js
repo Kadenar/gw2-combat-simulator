@@ -68,7 +68,7 @@ function resolveHits(damageDiagnostics, output = 'detailed', target = { health: 
         return 1.2;
       }
     },
-    helpers: { conditionName: canonicalTargetConditionName, skillsByName: new Map() },
+    helpers: { conditionName: canonicalTargetConditionName, skills: [] },
     engineReactions: {
       'damage.resolved': (ctx) => {
         rolls.push(
@@ -162,7 +162,7 @@ test('diagnostics capture settlement and environment health before the following
       conditionMultiplier: () => 1,
       vulnerabilityStacksAt: () => 0
     },
-    helpers: { conditionName: canonicalTargetConditionName, skillsByName: new Map() }
+    helpers: { conditionName: canonicalTargetConditionName, skills: [] }
   });
   const calculation = result.resolvedEvents.find((event) => event.type === 'damage').damageCalculation;
   assert.equal(result.environmentDamage, 22);

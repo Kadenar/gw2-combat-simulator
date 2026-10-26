@@ -1,3 +1,4 @@
+import { ELEMENTALIST_TRAIT_IDS as CATALYST_TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { RECIPIENT, COMBO_FIELD, ACTOR, BOON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -11,7 +12,6 @@ import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { sphereDeployed } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/trigger-points.js';
-import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { applySphereSpecialistDurations } from '#gw2/professions/elementalist/specializations/catalyst/traits/spheres.js';
 import type {
@@ -168,7 +168,7 @@ function catalystSphereAvailability(context: MechanicQueriesOf<ElementalistRunti
     );
   }
 
-  const sphereCost = balanceNumberFromContext(context, PROFILE.resources, 'resourceCost');
+  const sphereCost = balanceNumberFromContext(context, CATALYST_TRAIT.DEPTH_OF_ELEMENTS, 'resourceCost');
   return context.resourceController.readyAt('catalystEnergy', sphereCost) === context.time
     ? { ready: true }
     : denyCast('elementalist.catalyst-energy', `${skill.name} is unavailable - requires ${sphereCost} energy.`);
@@ -178,7 +178,7 @@ function catalystSphereAvailability(context: MechanicQueriesOf<ElementalistRunti
 // boons from cast start so later attunement swaps cannot change the sphere.
 function deployJadeSphere(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const state = catalystState.from(context);
-  const sphereCost = balanceNumberFromContext(context, PROFILE.resources, 'resourceCost');
+  const sphereCost = balanceNumberFromContext(context, CATALYST_TRAIT.DEPTH_OF_ELEMENTS, 'resourceCost');
   // Keep spending at deployment, before sphere traits and fields, rather than moving it to cast acceptance.
   context.resourceController.spend('catalystEnergy', sphereCost);
   // The sphere field owns its active window; removing it leaves the energy cost intact.

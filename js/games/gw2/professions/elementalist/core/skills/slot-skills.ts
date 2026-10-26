@@ -116,7 +116,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.ARCANE_ECHO]: {
-    // Arm the profiled window; the next recharging weapon completion consumes it.
+    // The skill owns its window; like Mimic, the consuming weapon skill's recharge becomes one base second.
+    duration: 10,
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.arm-arcane-echo' } }],
     name: 'Arcane Echo',
     type: 'Utility',
@@ -159,6 +160,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
   // the ground pickup in core/mechanics/conjures.ts, and the bundle's weapon skills live in
   // conjure-skills.ts. (Conjure Fiery Greatsword, below, is the exception — it also strikes.)
   [ID.CONJURE_FROST_BOW]: {
+    // The equipped bundle and its ground copy share this skill-owned lifetime.
+    duration: 30,
     // Equip this bundle and create its one-use ground copy on commitment, then emit the weapon-swap event.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.equip-conjure' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
@@ -172,6 +175,10 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     effects: []
   },
   [ID.CONJURE_LIGHTNING_HAMMER]: {
+    // The equipped bundle and its ground copy share this skill-owned lifetime.
+    duration: 30,
+    // Wielding the conjure grants these attributes, including when acquiring its ground copy.
+    attributeBonuses: { ferocity: 75, precision: 180 },
     // Equip this bundle and create its one-use ground copy on commitment, then emit the weapon-swap event.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.equip-conjure' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
@@ -450,6 +457,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
   // --- Signets ------------------------------------------------------------------
   // Active effects are authored here; the attribute modifier reads recharge for Signet of Fire's passive precision.
   [ID.SIGNET_OF_FIRE]: {
+    // Readiness and Written in Stone gate this skill-owned passive precision bonus.
+    attributeBonuses: { precision: 180 },
     name: 'Signet of Fire',
     type: 'Utility',
     slot: 'Utility',
@@ -488,6 +497,10 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
   // --- Elites --------------------------------------------------------------------
   // Unlike the utility conjures this one also strikes, and its hit lands after the cast ends.
   [ID.CONJURE_FIERY_GREATSWORD]: {
+    // The equipped bundle and its ground copy share this skill-owned lifetime.
+    duration: 30,
+    // Wielding the conjure grants these attributes, including when acquiring its ground copy.
+    attributeBonuses: { conditionDamage: 180, power: 260 },
     // Equip this bundle and create its one-use ground copy on commitment, then emit the weapon-swap event.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.equip-conjure' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
@@ -508,6 +521,10 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
   // core/mechanics/elementals/ owns the summon's lifetime, attack loop, and post-expiry recharge;
   // it also blocks a recast while the elemental is alive and re-arms the cooldown on expiry.
   [ID.GLYPH_OF_ELEMENTALS]: {
+    // Companion lifecycle tuning is independent of the glyph's API activation cooldown.
+    duration: 120,
+    rechargeAfterExpiry: 40,
+    summonStartupDelay: 0.16,
     // Summon on commitment; the companion owns its attacks, command flip, lifetime, and held recharge.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.summon-elemental' } }],
     name: 'Glyph of Elementals',
@@ -523,6 +540,10 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     effects: []
   },
   [ID.GLYPH_OF_ELEMENTALS_EARTH]: {
+    // Companion lifecycle tuning is independent of the glyph's API activation cooldown.
+    duration: 120,
+    rechargeAfterExpiry: 40,
+    summonStartupDelay: 0.16,
     // Summon on commitment; the companion owns its attacks, command flip, lifetime, and held recharge.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.summon-elemental' } }],
     name: 'Glyph of Elementals (Earth)',

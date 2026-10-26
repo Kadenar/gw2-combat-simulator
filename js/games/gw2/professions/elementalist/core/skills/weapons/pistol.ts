@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { WEAPON, COMBO_FINISHER, COMBO_FIELD, ACTOR, AURA, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type {
@@ -7,26 +8,23 @@ import type {
   ElementalistResolverContext
 } from '#gw2/professions/elementalist/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
+  skillNumber,
+  skillNumberFromContext,
+  requireSkillFromContext,
   effectNumber,
-  requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import { elementalistBuffRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import {
-  elementalistProfiledBuffRequest,
-  elementalistProfiledConditionRequest,
+  elementalistBuffEffectRequest,
+  elementalistConditionEffectRequest,
   skillWeapon
 } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import {
   allPistolBulletsLoaded,
@@ -45,7 +43,7 @@ import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains
  * Covers slots 1-3 in all four attunements plus the attunement-independent
  * Elemental Explosion. Most slot-2 and slot-3 skills either stock or spend an
  * elemental bullet. Shared bullet bookkeeping lives in `core/mechanics/pistol-bullets.ts`;
- * this module owns the enhanced payloads, profiles, and cross-cast pistol rewards.
+ * this module owns the enhanced payloads and cross-cast pistol rewards.
  */
 
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -89,7 +87,15 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   [ID.RAGING_RICOCHET]: {
     // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
     sideEffects: [
-      { on: 'castCommit', when: hasPistolBullet, do: { type: 'elementalist.pistol.raging-ricochet' } },
+      {
+        on: 'castCommit',
+        when: hasPistolBullet,
+        do: {
+          type: 'elementalist.pistol.raging-ricochet',
+          id: 'fire-bullet',
+          effects: [{ type: 'boon', name: 'Fire', boon: BOON.MIGHT, stacks: 1, duration: 10 }]
+        }
+      },
       { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
     ],
     name: 'Raging Ricochet',
@@ -116,7 +122,15 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   [ID.SEARING_SALVO]: {
     // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
     sideEffects: [
-      { on: 'castCommit', when: hasPistolBullet, do: { type: 'elementalist.pistol.searing-salvo' } },
+      {
+        on: 'castCommit',
+        when: hasPistolBullet,
+        do: {
+          type: 'elementalist.pistol.searing-salvo',
+          id: 'fire-bullet',
+          effects: [{ type: 'aura', name: 'Fire', aura: AURA.FIRE, duration: 4 }]
+        }
+      },
       { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
     ],
     name: 'Searing Salvo',
@@ -235,9 +249,22 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   // The released shot starts a four-second ice field. Its enhanced detonation
   // follows that field's expiry, independently of the remaining aftercast.
   [ID.FROZEN_FUSILLADE]: {
+    // The enhanced detonation waits this long after release, independently of ordinary packets.
+    detonationDelay: 4,
     // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
     sideEffects: [
-      { on: 'castCommit', when: hasPistolBullet, do: { type: 'elementalist.pistol.frozen-fusillade' } },
+      {
+        on: 'castCommit',
+        when: hasPistolBullet,
+        do: {
+          type: 'elementalist.pistol.frozen-fusillade',
+          id: 'water-bullet',
+          effects: [
+            { type: 'strike', name: 'Water Bullet', coefficient: 0.75, hits: 1 },
+            { type: 'condition', name: 'Water Bullet', condition: CONDITION.BLEEDING, stacks: 5, duration: 8 }
+          ]
+        }
+      },
       { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
     ],
     name: 'Frozen Fusillade',
@@ -292,6 +319,9 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   // Strike plus crowd control; spending an Air bullet opens the Dazing Discharge window tracked in
   // profession state rather than adding packets here.
   [ID.DAZING_DISCHARGE]: {
+    // A consumed Air bullet arms one next-pistol recharge reduction for this window.
+    duration: 5,
+    nextSkillRechargeMultiplier: 0.67,
     // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
     sideEffects: [
       { on: 'castCommit', when: hasPistolBullet, do: { type: 'elementalist.pistol.dazing-discharge' } },
@@ -421,9 +451,22 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     )
   },
   [ID.SHATTERING_STONE]: {
+    // The self buff arms these charges; impacts consume them until the window expires.
+    maximumStacks: 3,
+    duration: 10,
     // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
     sideEffects: [
-      { on: 'castCommit', when: hasPistolBullet, do: { type: 'elementalist.pistol.shattering-stone' } },
+      {
+        on: 'castCommit',
+        when: hasPistolBullet,
+        do: {
+          type: 'elementalist.pistol.shattering-stone',
+          id: 'earth-bullet',
+          effects: [
+            { type: 'condition', name: 'Triggered Bleeding', condition: CONDITION.BLEEDING, stacks: 1, duration: 5 }
+          ]
+        }
+      },
       { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
     ],
     name: 'Shattering Stone',
@@ -489,10 +532,19 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     cooldown: 0,
     skillFamily: 'Weapon skill',
     // Elemental Explosion consumes every stored bullet and grants the current attunement's aura.
-    tasks: [
+    sideEffects: [
       {
-        type: 'elementalist.core.consume-elemental-explosion',
-        timingAnchor: 'castCommit'
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.core.consume-elemental-explosion',
+          id: 'attunement-aura',
+          effects: [
+            { type: 'aura', name: 'Fire', aura: AURA.FIRE, duration: 4 },
+            { type: 'aura', name: 'Water', aura: AURA.FROST, duration: 4 },
+            { type: 'aura', name: 'Air', aura: AURA.SHOCKING, duration: 3 },
+            { type: 'aura', name: 'Earth', aura: AURA.MAGNETIC, duration: 3 }
+          ]
+        }
       }
     ],
     effects: [
@@ -527,87 +579,91 @@ export const pistolSideEffectHandlers: RuntimeProfession<
   ElementalistSkill
 >['sideEffectHandlers'] = {
   ...pistolBulletSideEffectHandlers,
-  'elementalist.pistol.raging-ricochet'(context, trigger) {
+  'elementalist.core.consume-elemental-explosion'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Elemental Explosion requires a cast trigger.');
+
+    // Retain ordinary task priority: later deliveries and aura reactions must keep their existing ordering.
+    context.scheduleForCast('elementalist.core.consume-elemental-explosion', context.time, trigger.cast, {});
+  },
+  'elementalist.pistol.raging-ricochet'(context, trigger, action) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
 
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
 
     context.effects.emit(
-      elementalistProfiledBuffRequest(context, at, PROFILE.ragingRicochet, 'Fire', skill.name, skill.id, {
+      elementalistBuffEffectRequest(context, at, { skill, action }, 'Fire', skill.name, skill.id, {
         activationId: cast.id,
         skillId: cast.skill.id,
         offTarget: cast.command.offTarget
       })
     );
   },
-  'elementalist.pistol.searing-salvo'(context, trigger) {
+  'elementalist.pistol.searing-salvo'(context, trigger, action) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
 
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
-    {
-      const searingSalvoProfile = requireBalanceProfileFromContext(context, PROFILE.searingSalvo);
-      const aura = requireEffect(searingSalvoProfile, 'aura', 'Fire');
+    const aura = requireEffect(skill, 'aura', 'Fire', action);
 
-      if (aura) {
-        applyElementalistAura(context, {
-          at,
-          aura: aura.aura,
-          duration: aura.duration,
-          skillName: skill.name,
-          sourceId: skill.id
-        });
-      }
+    if (aura) {
+      applyElementalistAura(context, {
+        at,
+        aura: aura.aura,
+        duration: aura.duration,
+        skillName: skill.name,
+        sourceId: skill.id
+      });
     }
   },
-  'elementalist.pistol.frozen-fusillade'(context, trigger) {
+  'elementalist.pistol.frozen-fusillade'(context, trigger, action) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
 
     const { cast, skill } = trigger;
-    {
-      const frozenFusilladeProfile = requireBalanceProfileFromContext(context, PROFILE.frozenFusillade);
-      // The field's four-second lifetime starts at projectile release, so
-      // aftercast length and cancellation cannot move its enhanced detonation.
-      const delay = balanceProfileNumber(frozenFusilladeProfile, 'initialDelay');
-      const detonationAt =
-        cast.start +
-        projectCastRelativeEffectTimingMs(skill, (cast.fullEnd - cast.start) * 1000, Number(skill.interruptCommitMs)) /
-          1000 +
-        delay;
-      const frozenFusilladeWaterBulletStrike = requireEffect(frozenFusilladeProfile, 'strike', 'Water Bullet');
+    // Anchor the selected detonation delay to release so aftercast length and
+    // cancellation cannot move the enhanced reward.
+    const delay = skillNumber(skill, 'detonationDelay');
+    const detonationAt =
+      cast.start +
+      projectCastRelativeEffectTimingMs(skill, (cast.fullEnd - cast.start) * 1000, Number(skill.interruptCommitMs)) /
+        1000 +
+      delay;
+    const frozenFusilladeWaterBulletStrike = requireEffect(skill, 'strike', 'Water Bullet', action);
 
-      if (frozenFusilladeWaterBulletStrike) {
-        context.effects.emit(
-          elementalistStrikeRequest(
-            context,
-            {
-              at: detonationAt,
-              source: skill.name,
-              sourceId: skill.id,
-              actorType: ACTOR.PLAYER,
-              skillName: skill.name,
-              skillId: skill.id,
-              coefficient: effectNumber(frozenFusilladeProfile, frozenFusilladeWaterBulletStrike, 'coefficient'),
-              skillWeapon: WEAPON.PISTOL
-            },
-            { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-          )
-        );
-      }
-
+    if (frozenFusilladeWaterBulletStrike) {
       context.effects.emit(
-        elementalistProfiledConditionRequest(
+        elementalistStrikeRequest(
           context,
-          detonationAt,
-          PROFILE.frozenFusillade,
-          'Water Bullet',
-          skill.name,
-          skill.id,
+          {
+            at: detonationAt,
+            source: skill.name,
+            sourceId: skill.id,
+            actorType: ACTOR.PLAYER,
+            skillName: skill.name,
+            skillId: skill.id,
+            coefficient: effectNumber(skill, frozenFusilladeWaterBulletStrike, 'coefficient'),
+            skillWeapon: WEAPON.PISTOL
+          },
           { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
         )
       );
     }
+
+    context.effects.emit(
+      elementalistConditionEffectRequest(
+        context,
+        detonationAt,
+        { skill, action },
+        'Water Bullet',
+        skill.name,
+        skill.id,
+        {
+          activationId: cast.id,
+          skillId: cast.skill.id,
+          offTarget: cast.command.offTarget
+        }
+      )
+    );
   },
   'elementalist.pistol.dazing-discharge'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
@@ -617,32 +673,28 @@ export const pistolSideEffectHandlers: RuntimeProfession<
 
     // Arms a window that shortens the next pistol skill's recharge; the
     // reduction is consumed by this weapon's recharge reservation.
-    professionCoreState(context).dazingDischargeUntil =
-      at + balanceNumberFromContext(context, PROFILE.dazingDischarge, 'duration');
+    professionCoreState(context).dazingDischargeUntil = at + skillNumber(cast.skill, 'duration');
   },
   'elementalist.pistol.shattering-stone'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
 
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
-    {
-      const shatteringStoneProfile = requireBalanceProfileFromContext(context, PROFILE.shatteringStone);
-      // Arm the buff on the event timeline so the resolver consumes its charges
-      // in impact order, including attacks scheduled before this cast.
-      context.effects.emit(
-        elementalistBuffRequest(
-          {
-            skill: skill,
-            at,
-            source: skill.name,
-            kind: 'shattering stone',
-            stacks: balanceProfileNumber(shatteringStoneProfile, 'maximumStacks'),
-            duration: balanceProfileNumber(shatteringStoneProfile, 'duration')
-          },
-          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-        )
-      );
-    }
+    // Arm the buff on the event timeline so the resolver consumes its charges
+    // in impact order, including attacks scheduled before this cast.
+    context.effects.emit(
+      elementalistBuffRequest(
+        {
+          skill: skill,
+          at,
+          source: skill.name,
+          kind: 'shattering stone',
+          stacks: skillNumber(skill, 'maximumStacks'),
+          duration: skillNumber(skill, 'duration')
+        },
+        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+      )
+    );
   },
   'elementalist.pistol.boulder-blast'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
@@ -678,32 +730,6 @@ export const pistolSideEffectHandlers: RuntimeProfession<
   }
 };
 
-/** Bullet enhancements retain independent patchable profiles beside their owning skills. */
-export const pistolBalanceProfiles: readonly BalanceProfile[] = Object.freeze([
-  variant(PROFILE.ragingRicochet, ID.RAGING_RICOCHET, 'Raging Ricochet - Fire Bullet', {
-    effects: [{ type: 'boon', name: 'Fire', boon: BOON.MIGHT, stacks: 1, duration: 10 }]
-  }),
-  variant(PROFILE.searingSalvo, ID.SEARING_SALVO, 'Searing Salvo - Fire Bullet', {
-    effects: [{ type: 'aura', name: 'Fire', aura: AURA.FIRE, duration: 4 }]
-  }),
-  variant(PROFILE.frozenFusillade, ID.FROZEN_FUSILLADE, 'Frozen Fusillade - Water Bullet', {
-    initialDelay: 4,
-    effects: [
-      { type: 'strike', name: 'Water Bullet', coefficient: 0.75, hits: 1 },
-      { type: 'condition', name: 'Water Bullet', condition: CONDITION.BLEEDING, stacks: 5, duration: 8 }
-    ]
-  }),
-  variant(PROFILE.dazingDischarge, ID.DAZING_DISCHARGE, 'Dazing Discharge - Air Bullet', {
-    duration: 5,
-    rechargeMultiplier: 0.67
-  }),
-  variant(PROFILE.shatteringStone, ID.SHATTERING_STONE, 'Shattering Stone - Earth Bullet', {
-    maximumStacks: 3,
-    duration: 10,
-    effects: [{ type: 'condition', name: 'Triggered Bleeding', condition: CONDITION.BLEEDING, stacks: 1, duration: 5 }]
-  })
-]);
-
 /** Arms Shattering Stone only when its self buff reaches the resolver timeline. */
 export function applyShatteringStoneBuff(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (event.kind !== 'shattering stone' || !event.resolvedAudience?.includesSelf) return;
@@ -721,8 +747,9 @@ export function triggerShatteringStone(context: ElementalistResolverContext, eve
     Number(event.coefficient) > 0 &&
     consumeCharge(core.shatteringStone, event.at)
   ) {
-    const shatteringStoneProfile = requireBalanceProfileFromContext(context, PROFILE.shatteringStone);
-    const bleeding = requireEffect(shatteringStoneProfile, 'condition', 'Triggered Bleeding');
+    // Follow-up hits read the same patched action that armed the charges, without emitting its payload on cast.
+    const skill = requireSkillFromContext(context, ID.SHATTERING_STONE);
+    const bleeding = requireEffect(skill, 'condition', 'Triggered Bleeding', requireSkillAction(skill, 'earth-bullet'));
 
     if (bleeding) {
       context.effects.emit({
@@ -792,9 +819,10 @@ export const elementalistPistolLifecycle = {
     'elementalist.core.consume-elemental-explosion'(runtime, data) {
       const { cast } = data as SkillTaskData<ElementalistSkill>;
       const effect = requireEffect(
-        requireBalanceProfileFromContext(runtime, PROFILE.elementalExplosion),
+        cast.skill,
         'aura',
-        runtime.profession.core.primaryAttunement
+        runtime.profession.core.primaryAttunement,
+        requireSkillAction(cast.skill, 'attunement-aura')
       );
 
       if (effect)
@@ -819,7 +847,7 @@ export function reservePistolRecharge(context: ElementalistRuntime, skill: Skill
 
   if (state.dazingDischargeUntil > context.time && skillWeapon(skill) === WEAPON.PISTOL) {
     state.dazingDischargeUntil = 0;
-    return duration * balanceNumberFromContext(context, PROFILE.dazingDischarge, 'rechargeMultiplier');
+    return duration * skillNumberFromContext(context, ID.DAZING_DISCHARGE, 'nextSkillRechargeMultiplier');
   }
 
   return duration;

@@ -1,35 +1,19 @@
-import { WEAPON, ACTOR, CONTROL } from '#gw2/platform/constants.js';
+import { WEAPON } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 /**
- * Owns Weaver dual-weapon state behavior for hammer orbs and pistol bullets.
+ * Owns shared Weaver hand availability and hammer orb restrictions.
  * The cataloged weapon fragments live in
  * `skills/weapons/hammer.ts`.
  */
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { denyCast, retryCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import {
-  balanceNumberFromContext,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { elementalistBuffRequest, elementalistControlRequest } from '#gw2/professions/elementalist/core/events.js';
-import {
-  elementalistProfiledConditionRequest,
-  skillWeapon
-} from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { isElementalistAttunement, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
-import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
-import type {
-  ElementalistRuntime,
-  ElementalistRuntimeState,
-  ElementalistSkill
-} from '#gw2/professions/elementalist/types.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Parses canonical skill metadata for a valid pair of distinct Weaver attunements. */
 export function weaverDualAttunements(skill: Skill): readonly [ElementalistAttunement, ElementalistAttunement] | null {
@@ -103,164 +87,3 @@ export function weaverHammerAvailability(
   // The shared Weaver availability ladder validates the hands and Unravel after these resource checks.
   return { ready: true };
 }
-
-/** Payload declarations run before this shared all-matching-bullets settlement. */
-const weaverPistolSideEffects: RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>['sideEffectHandlers'] = {
-  'elementalist.weaver.pistol.settle'(context, trigger) {
-    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol settlement requires a cast trigger.');
-
-    const state = professionCoreState(context);
-    const active = weaverDualAttunements(trigger.skill)!.filter((element) => state.pistolBullets[element]);
-
-    if (!active.length) state.pistolBullets[state.primaryAttunement] = true;
-    else for (const element of active) state.pistolBullets[element] = false;
-  },
-  'elementalist.weaver.pistol.frostfire-fire'(context, trigger) {
-    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
-
-    const { cast, skill } = trigger;
-    const at = cast.effectiveEnd;
-    {
-      const frostfireFlurryProfile = requireBalanceProfileFromContext(context, PROFILE.frostfireFlurry);
-      const aura = requireEffect(frostfireFlurryProfile, 'aura', 'Fire');
-
-      if (aura) {
-        applyElementalistAura(context, {
-          at,
-          aura: aura.aura,
-          duration: aura.duration,
-          skillName: skill.name,
-          sourceId: skill.id
-        });
-      }
-    }
-  },
-  'elementalist.weaver.pistol.frostfire-water'(context, trigger) {
-    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
-
-    const { cast, skill } = trigger;
-    const at = cast.effectiveEnd;
-
-    context.effects.emit(
-      elementalistProfiledConditionRequest(context, at, PROFILE.frostfireFlurry, 'Water', skill.name, skill.id, {
-        activationId: cast.id,
-        skillId: cast.skill.id,
-        offTarget: cast.command.offTarget
-      })
-    );
-  },
-  'elementalist.weaver.pistol.plasma-fire'(context, trigger) {
-    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
-
-    const { cast, skill } = trigger;
-    const at = cast.effectiveEnd;
-
-    context.effects.emit(
-      elementalistProfiledConditionRequest(context, at, PROFILE.purblindingPlasma, 'Fire', skill.name, skill.id, {
-        activationId: cast.id,
-        skillId: cast.skill.id,
-        offTarget: cast.command.offTarget
-      })
-    );
-  },
-  'elementalist.weaver.pistol.meteor-earth'(context, trigger) {
-    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
-
-    const { cast, skill } = trigger;
-    const at = cast.effectiveEnd;
-
-    context.effects.emit(
-      elementalistProfiledConditionRequest(context, at, PROFILE.moltenMeteor, 'Earth', skill.name, skill.id, {
-        activationId: cast.id,
-        skillId: cast.skill.id,
-        offTarget: cast.command.offTarget
-      })
-    );
-  },
-  'elementalist.weaver.pistol.finesse-water'(context, trigger) {
-    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
-
-    const { cast, skill } = trigger;
-    const at = cast.effectiveEnd;
-    {
-      const flowingFinesseProfile = requireBalanceProfileFromContext(context, PROFILE.flowingFinesse);
-      const aura = requireEffect(flowingFinesseProfile, 'aura', 'Water');
-
-      if (aura) {
-        applyElementalistAura(context, {
-          at,
-          aura: aura.aura,
-          duration: aura.duration,
-          skillName: skill.name,
-          sourceId: skill.id
-        });
-      }
-    }
-  },
-  'elementalist.weaver.pistol.finesse-air'(context, trigger) {
-    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
-
-    const { cast, skill } = trigger;
-    const at = cast.effectiveEnd;
-    {
-      // Superspeed is a buff, so resolve its authored kind without treating it as a boon.
-      const effect = requireEffect(requireBalanceProfileFromContext(context, PROFILE.flowingFinesse), 'buff', 'Air');
-
-      if (effect)
-        context.effects.emit(
-          elementalistBuffRequest(
-            {
-              skill,
-              at,
-              source: skill.name,
-              sourceId: skill.id,
-              kind: String(effect.kind),
-              stacks: Number(effect.stacks),
-              duration: effect.duration
-            },
-            { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-          )
-        );
-    }
-  },
-  'elementalist.weaver.pistol.enervating-air'(context, trigger) {
-    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
-
-    const { cast, skill } = trigger;
-    const at = cast.effectiveEnd;
-
-    context.effects.emit(
-      elementalistControlRequest(
-        {
-          at,
-          source: skill.name,
-          sourceId: skill.id,
-          actorType: ACTOR.PLAYER,
-          skillName: skill.name,
-          skillId: skill.id,
-          controlKind: CONTROL.DAZE
-        },
-        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-      )
-    );
-  },
-  'elementalist.weaver.pistol.enervating-earth'(context, trigger) {
-    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
-
-    const { cast, skill } = trigger;
-    const at = cast.effectiveEnd;
-
-    context.effects.emit(
-      elementalistProfiledConditionRequest(context, at, PROFILE.enervatingEarth, 'Earth', skill.name, skill.id, {
-        activationId: cast.id,
-        skillId: cast.skill.id,
-        offTarget: cast.command.offTarget
-      })
-    );
-  }
-};
-
-/** Registers dual-attunement pistol bullet actions with the Weaver hook assembly. */
-export const weaverPistolLifecycle = {
-  sideEffectHandlers: weaverPistolSideEffects
-} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;

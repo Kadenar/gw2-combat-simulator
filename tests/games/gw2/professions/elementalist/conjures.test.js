@@ -25,15 +25,9 @@ test('Lightning Hammer keeps normal weapon skills visible but unavailable across
           runtime.profession.core.conjureEquipped = conjureEquipped;
         }
       );
-      assert.equal(
-        state.availability[elementalistCatalog.skillsByName.get('Flame Uprising').id].ready,
-        !conjureEquipped
-      );
-      assert.equal(
-        state.availability[elementalistCatalog.skillsByName.get('Lightning Swing').id].ready,
-        Boolean(conjureEquipped)
-      );
-      assert.equal(state.availability[elementalistCatalog.skillsByName.get('Frost Volley').id].ready, false);
+      assert.equal(state.availability[elementalistCatalog.skillsById.get(45313).id].ready, !conjureEquipped);
+      assert.equal(state.availability[elementalistCatalog.skillsById.get(5726).id].ready, Boolean(conjureEquipped));
+      assert.equal(state.availability[elementalistCatalog.skillsById.get(5720).id].ready, false);
       const groups = elementalistProfession.ui.paletteGroups({
         catalog: elementalistCatalog,
         specialization,
@@ -52,7 +46,9 @@ test('conjures expire their equipped and ground copies and restore the normal we
     const result = runNative({
       ...hammerOptions,
       selectedSkillIds: {
-        [weapon === 'Fiery Greatsword' ? 'Elite' : 'Utility1']: elementalistCatalog.skillsByName.get(conjure).id
+        [weapon === 'Fiery Greatsword' ? 'Elite' : 'Utility1']: elementalistCatalog.skills.find(
+          (candidate) => candidate.name === conjure
+        ).id
       },
       rotation: [conjure, 30000, 'Flame Uprising']
     });
@@ -172,7 +168,7 @@ test('Lightning Hammer attributes follow the wielder through utility hits, drop,
 });
 
 test('Invoke Lightning uses linear per-hit falloff with the requested hitbox midpoint', () => {
-  const skill = elementalistCatalog.skillsByName.get('Invoke Lightning');
+  const skill = elementalistCatalog.skillsById.get(5725);
   const ticks = skill.effects[0].ticks;
   ticks.forEach((tick, index) => {
     assert.ok(Math.abs(tick.coefficient - Math.max(0.24, 0.825 * (1 - index * 0.1))) < 1e-9);

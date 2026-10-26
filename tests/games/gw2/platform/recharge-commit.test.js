@@ -19,7 +19,7 @@ test('Elementalist queries preserve Core and Evoker benefits; an eligible cast c
     selectedTraitIds: [ELEMENTALIST_TRAIT_IDS.ELEMENTAL_BALANCE]
   };
   const native = elementalistProfession.runtimeFor(config),
-    skill = native.catalog.skillsByName.get('Raging Ricochet');
+    skill = native.catalog.skillsById.get(71828);
   const result = runElementalist([skill.id], config, {
     initialize: (r) => {
       Object.assign(r.profession.core, { spearNextRechargeReduction: true, dazingDischargeUntil: 10 });
@@ -53,7 +53,7 @@ test('Elementalist queries preserve Core and Evoker benefits; an eligible cast c
 });
 
 test('spear recharge empowerment survives an autoattack and belongs to the next non-autoattack cast', () => {
-  const skill = elementalistProfession.catalog.skillsByName.get('Blazing Barrage');
+  const skill = elementalistProfession.catalog.skillsById.get(73080);
   const auto = runElementalist(
     ['Flame Spear'],
     { primaryWeapon: 'Spear' },
@@ -84,7 +84,7 @@ test('spear recharge empowerment survives an autoattack and belongs to the next 
 });
 
 test('expired pistol and Elemental Balance windows cannot discount a new cast', () => {
-  const skill = elementalistProfession.catalog.skillsByName.get('Raging Ricochet');
+  const skill = elementalistProfession.catalog.skillsById.get(71828);
   const result = runElementalist(
     [{ type: 'wait', durationMs: 1000 }, skill.id],
     {
@@ -110,7 +110,7 @@ test('expired pistol and Elemental Balance windows cannot discount a new cast', 
 test('Antiquary preserves charges across queries and consumes FIFO once per utility, including preparation arming', () => {
   const config = { specialization: 'Antiquary', selectedSkillIds: [13026, 13057] };
   const native = thiefProfession.runtimeFor(config);
-  const placement = thiefProfession.catalog.skillsByName.get('Prepare Thousand Needles');
+  const placement = thiefProfession.catalog.skillsById.get(13026);
   const rotation = [{ type: 'wait', durationMs: 1000 }, 'Prepare Thousand Needles', 'Prepare Pitfall'];
   const holo = (runtime) => runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations;
   const projected = (runtime) =>
@@ -136,7 +136,7 @@ test('Antiquary preserves charges across queries and consumes FIFO once per util
           // Recharge queries are pure; only an accepted cast reserves an entitlement.
           const before = structuredClone(holo(runtime));
           native.rechargeWork(runtime, placement, 10);
-          native.rechargeWork(runtime, thiefProfession.catalog.skillsByName.get('Backstab'), 10);
+          native.rechargeWork(runtime, thiefProfession.catalog.skillsById.get(13005), 10);
           observed.afterQueries = [...holo(runtime)];
           observed.before = before;
         }
@@ -161,7 +161,7 @@ test('rejected and cancelled Elementalist casts preserve empowerments for the ne
     primaryWeapon: 'Pistol',
     selectedTraitIds: [ELEMENTALIST_TRAIT_IDS.ELEMENTAL_BALANCE]
   };
-  const ricochet = elementalistProfession.catalog.skillsByName.get('Raging Ricochet');
+  const ricochet = elementalistProfession.catalog.skillsById.get(71828);
   const rotation = ['Elemental Explosion', { type: 'cast', skillId: ricochet.id, interruptAfterMs: 0 }];
   const initialize = (r) => {
     r.profession.core.dazingDischargeUntil = 10;
@@ -184,7 +184,7 @@ test('Holo-Dancer charges survive healing, unavailable utilities, and cancellati
     specialization: 'Antiquary',
     selectedSkillIds: [13027, 13026, 13057]
   };
-  const needles = thiefProfession.catalog.skillsByName.get('Prepare Thousand Needles');
+  const needles = thiefProfession.catalog.skillsById.get(13026);
   const holo = (runtime) => [...runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations];
   const projected = (runtime, time = runtime.time) =>
     projectObservedState(thiefProfession, { profession: runtime.profession, time })

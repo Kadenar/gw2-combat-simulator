@@ -6,7 +6,6 @@ import { profession, createBuildContext, toApplicationBuild } from '#gw2/profess
 
 import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
 import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
-import { getMesmerBuildRotationLookup } from '#gw2/professions/mesmer/catalog.js';
 
 // Exposes Mesmer only through the shared browser application contract.
 export const mesmerAppAdapter = defineProfessionApp({
@@ -14,13 +13,6 @@ export const mesmerAppAdapter = defineProfessionApp({
   profession,
   createBuildContext,
   toApplicationBuild,
-  // Reuse selected-elite name resolution while validating explicit commands against the active patch catalog.
-  rotationImportLookup(app) {
-    return {
-      skillsByName: getMesmerBuildRotationLookup(app.adapter.eliteSpecialization(app.build)).skillsByName,
-      skillsById: app.activeCatalog.skillsById
-    };
-  },
   storageVersion: 2,
   isSkillAvailable(skill, { specialization }) {
     return !skill.ambush || specialization === 'Mirage';

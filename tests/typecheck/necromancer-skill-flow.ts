@@ -34,11 +34,11 @@ export type NecromancerSkillFlowAssertions = [
 export function necromancerHookSkillReads(runtime: NecromancerRuntime, cast: Parameters<EliteCast>[1]): void {
   const cost: number | undefined = cast.skill.lifeForceCost;
   const flag: string | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.shroud;
-  const named: number | undefined = runtime.helpers.skillsByName.get(cast.skill.name)?.lifeForceCost;
+  const indexed: number | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.lifeForceCost;
   const listed: boolean | undefined = runtime.helpers.skills[0]?.usableInShroud;
   // @ts-expect-error Numeric mechanics must not lose their type at runtime.
   const invalid: string = cast.skill.lifeForceCost;
-  void [cost, flag, named, listed, invalid];
+  void [cost, flag, indexed, listed, invalid];
 }
 
 createNecromancerModuleData('Core', {

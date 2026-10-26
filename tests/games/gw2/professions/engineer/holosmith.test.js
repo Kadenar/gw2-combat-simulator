@@ -122,7 +122,13 @@ test('Solar Focusing Lens respects expiry and refreshes on Forge exit', () => {
   );
   const refreshed = simulate(
     'Holosmith',
-    ['Engage Photon Forge', 'Light Strike', 'Bright Slash', 'Deactivate Photon Forge', 'Sun Edge'],
+    [
+      'Engage Photon Forge',
+      'Light Strike',
+      'Bright Slash',
+      'Deactivate Photon Forge',
+      { type: 'cast', skillId: 43476 }
+    ],
     config
   );
   assert.deepEqual(refreshed.warnings, []);
@@ -524,7 +530,7 @@ test('an overheated Forge lane stays open until its authored exit', () => {
       const name = typeof entry === 'string' ? entry : entry.name;
       return transition({
         entry: { name },
-        skill: engineerCatalog.skillsByName.get(name),
+        skill: engineerCatalog.skills.find((candidate) => candidate.name === name),
         specialization: 'Holosmith',
         ...current
       });
@@ -688,7 +694,7 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
   assert.equal(mightPulses.length, 3);
   assert.ok(mightPulses.every((event) => event.stacks === 2 && event.duration === 6));
 
-  const swordChain = ['Sun Edge', 'Sun Ripper', 'Gleam Saber'];
+  const swordChain = [ID.SUN_EDGE, ID.SUN_RIPPER, ID.GLEAM_SABER];
   const tierBase = simulate('Holosmith', swordChain, {
     initialHeat: 50,
     attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 })
@@ -709,7 +715,7 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
   const swordDamage = (result, name) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.name === name).damage;
 
-  for (const name of swordChain) {
+  for (const name of swordChain.map((id) => engineerCatalog.skillsById.get(id).name)) {
     assertFlooredDamageMultiplier(swordDamage(tiered, name), swordDamage(tierBase, name), 1.2);
   }
 
@@ -861,7 +867,14 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
   );
 
   const blades = (initialHeat, selectedTraitIds = []) =>
-    run(['Refraction Cutter', { type: 'wait', durationMs: 1000 }], initialHeat, selectedTraitIds);
+    run(
+      [
+        { type: 'cast', skillId: 44110 },
+        { type: 'wait', durationMs: 1000 }
+      ],
+      initialHeat,
+      selectedTraitIds
+    );
 
   for (const [label, heat, selectedTraitIds, expectedBlades] of [
     ['cold', 0, [], 1],

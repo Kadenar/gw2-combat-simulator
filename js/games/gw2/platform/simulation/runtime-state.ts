@@ -16,8 +16,7 @@ import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/type
 /** The single mutable context contains both command control and actual combat state. */
 export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Skill> extends Gw2ResolverRuntime {
   /** Live skill lookups retain the profession type while unrelated resolver helpers stay shared. */
-  readonly helpers: Omit<Gw2ResolverRuntime['helpers'], 'skills' | 'skillsById' | 'skillsByName'> &
-    CanonicalCatalog<TSkill>;
+  readonly helpers: Omit<Gw2ResolverRuntime['helpers'], 'skills' | 'skillsById'> & CanonicalCatalog<TSkill>;
   profession: T;
   time: number;
   inputReadyAt: number;

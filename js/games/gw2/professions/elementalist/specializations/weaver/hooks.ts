@@ -6,10 +6,9 @@ import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effect
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { weaverBuffPolicies } from '#gw2/professions/elementalist/specializations/weaver/effect-state.js';
 import { weaverAttunementLifecycle } from '#gw2/professions/elementalist/specializations/weaver/mechanics/attunements.js';
-import {
-  weaverDualAttunements,
-  weaverPistolLifecycle
-} from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
+import { weaverDualAttunements } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
+import { weaverPistolLifecycle } from '#gw2/professions/elementalist/specializations/weaver/skills/weapons/pistol.js';
+import { weaverSpearLifecycle } from '#gw2/professions/elementalist/specializations/weaver/skills/weapons/spear.js';
 import {
   primordialStancePulse,
   schedulePrimordialStance
@@ -20,7 +19,6 @@ import {
   startWeaveSelfCast,
   weaveSelfLifecycle
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
-import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import {
   applyFerventStance,
   ferventStanceLifecycle
@@ -31,6 +29,7 @@ import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professio
 export const weaverHooks = composeRuntimeHooks<ElementalistRuntimeState, ElementalistSkill>([
   weaverAttunementLifecycle,
   weaverPistolLifecycle,
+  weaverSpearLifecycle,
   weaveSelfLifecycle,
   ferventStanceLifecycle,
   {
@@ -40,7 +39,7 @@ export const weaverHooks = composeRuntimeHooks<ElementalistRuntimeState, Element
     rechargeRules: [
       {
         when: (context, skill) => skill.id === ID.PURBLINDING_PLASMA && professionCoreState(context).pistolBullets.Air,
-        multiplier: { profile: PROFILE.purblindingPlasma, field: 'rechargeMultiplier' }
+        multiplier: { skillField: 'airBulletRechargeMultiplier' }
       }
     ],
     // Dual orbs share their cast lifetime so Grand Finale retires both hands' pending contacts.

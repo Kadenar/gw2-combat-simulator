@@ -12,7 +12,9 @@ function brawlersTenacityEnduranceGain(rotation) {
       specialization: 'Daredevil',
       initialEndurance: 0,
       selectedTraitIds,
-      selectedSkillIds: rotation.slice(0, 1).map((name) => thiefCatalog.skillsByName.get(name).id)
+      selectedSkillIds: rotation
+        .slice(0, 1)
+        .map((name) => thiefCatalog.skills.find((candidate) => candidate.name === name).id)
     });
     assert.deepEqual(result.warnings, []);
     return result.planningState.profession.endurance.value;

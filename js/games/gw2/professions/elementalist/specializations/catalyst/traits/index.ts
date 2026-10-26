@@ -201,10 +201,11 @@ export const viciousEmpowerment = defineTrait({
     ]
   }
 });
-/** Unlocks Catalyst; the energy resource profile owns its capacity. */
+/** Unlocks spheres and owns their shared energy capacity, cost, and accepted-hit generation. */
 const depthOfElements = defineTrait({
   id: TRAIT.DEPTH_OF_ELEMENTS,
-  name: 'Depth of Elements'
+  name: 'Depth of Elements',
+  balance: { maximumStacks: 30, resourceCost: 10, resourceGain: 1 }
 });
 /** Owns Energized Elements tuning and its existing execution behavior. */
 const energizedElements = defineTrait({

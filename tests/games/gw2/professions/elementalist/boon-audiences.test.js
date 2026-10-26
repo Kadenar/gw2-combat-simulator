@@ -170,7 +170,7 @@ test('personal boons remain personal and Toad resistance still requires speciali
     ['Glyph of Elemental Harmony', { specialization: 'Tempest', selectedTraitIds: [TRAIT.GALE_SONG] }, 'might'],
     ["Toad's Fortitude", { specialization: 'Evoker', evokerElement: 'Fire' }, 'resistance']
   ]) {
-    const skill = elementalistCatalog.skillsByName.get(name);
+    const skill = elementalistCatalog.skills.find((candidate) => candidate.name === name);
     const result = runElementalist(
       [{ type: 'combat-start' }, { type: 'cast', skillId: skill.id }, { type: 'wait', durationMs: 6000 }],
       { selectedTraitIds: [], selectedSkillIds: [skill.id], startAttunement: 'Fire', allies: { count: 4 }, ...config }

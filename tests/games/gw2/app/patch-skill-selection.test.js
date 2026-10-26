@@ -61,7 +61,7 @@ test('patch switching only remaps a unique reciprocal placement swap', () => {
 });
 
 // Remap selections against the outgoing catalog before refresh consumers read the incoming patch.
-test('patch selection refreshes skill lists and both lookups from the new catalog', () => {
+test('patch selection refreshes skill lists and ID lookups from the new catalog', () => {
   const catalogs = Object.fromEntries(
     [
       ['current', live],
@@ -72,8 +72,7 @@ test('patch selection refreshes skill lists and both lookups from the new catalo
         id,
         {
           skills,
-          skillsById: new Map(skills.map((skill) => [skill.id, skill])),
-          skillsByName: new Map(skills.map((skill) => [skill.name, skill]))
+          skillsById: new Map(skills.map((skill) => [skill.id, skill]))
         }
       ];
     })
@@ -102,7 +101,6 @@ test('patch selection refreshes skill lists and both lookups from the new catalo
     changed() {
       const selected = this.activeCatalog.skillsById.get(this.build.selectedSkillIds.Utility1);
       assert.equal(resolveEntrySkill(this, { type: 'cast', skillId: selected.id }), selected);
-      assert.equal(resolveEntrySkill(this, { name: selected.name }), selected);
       assert.deepEqual(
         availableSlotSkills(this, 'Utility'),
         this.activeCatalog.skills.filter((skill) => skill.type === 'Utility')

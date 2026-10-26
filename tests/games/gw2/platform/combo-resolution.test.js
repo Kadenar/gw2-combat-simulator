@@ -33,7 +33,7 @@ const query = {
 
 const helpers = {
   conditionName: (name) => name,
-  skillsByName: new Map(),
+  skills: [],
   skillsById: new Map(),
   weaponStrength: () => 1000
 };

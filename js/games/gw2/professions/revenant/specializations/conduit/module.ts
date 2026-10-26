@@ -9,12 +9,14 @@ import { conduitUi } from '#gw2/professions/revenant/specializations/conduit/pre
 import { CONDUIT_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/conduit/skills/index.js';
 import { CONDUIT_BALANCE_PROFILES } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitHooks } from '#gw2/professions/revenant/specializations/conduit/hooks.js';
+import { CONDUIT_SKILL_FIELDS } from '#gw2/professions/revenant/specializations/conduit/skill-fields.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const conduitModule = defineNativeModule({
   traitDefinitions,
   id: 'Conduit',
   data: createRevenantModuleData('Conduit', {
+    skillFields: CONDUIT_SKILL_FIELDS,
     skillMechanics: CONDUIT_BASE_SKILL_MECHANICS,
     balanceProfiles: CONDUIT_BALANCE_PROFILES
   }),

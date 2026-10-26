@@ -10,6 +10,9 @@ import type { BerserkerState } from '#gw2/professions/warrior/specializations/be
 import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import type { BladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
+import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
+import type { WARRIOR_CORE_SKILL_FIELDS } from '#gw2/professions/warrior/core/skill-fields.js';
+import type { BLADESWORN_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/bladesworn/skill-fields.js';
 
 interface WarriorBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
@@ -37,7 +40,9 @@ export interface WarriorRuntimeState {
     | { kind: 'Paragon'; state: ParagonState };
 }
 
-export interface WarriorSkill extends Skill {
+/** Numeric tuning fields are typed from the modules' skill-field declarations, which also validate and patch them. */
+export interface WarriorSkill
+  extends Skill, NumericSkillFields<typeof WARRIOR_CORE_SKILL_FIELDS & typeof BLADESWORN_SKILL_FIELDS> {
   /**
    * Measured cast duration (ms) while Dual Wielding and Quickness are active.
    * Only skills with this value receive a Dual Wielding cast-time adjustment.
@@ -47,19 +52,12 @@ export interface WarriorSkill extends Skill {
   readonly dualWieldInterruptCommitMs?: number;
   /** Measured cast-start packet offsets keyed by authored offset; replaces proportional scaling for this skill. */
   readonly dualWieldEffectOffsetsMs?: Readonly<Record<number, number>>;
-  readonly adrenalineCost?: number;
   readonly burst?: boolean;
   readonly primalBurst?: boolean;
   readonly gunsaberSkill?: boolean;
   readonly dragonTriggerSkill?: boolean;
   readonly movementSkill?: boolean;
   readonly dragonSlash?: boolean;
-  /** Fixed impact offset from release; slashes without an offset hit at cast end. */
-  readonly dragonSlashImpactOffsetMs?: number;
-  readonly dragonSlashMinimumCoefficient?: number;
-  readonly dragonSlashMaximumCoefficient?: number;
-  readonly dragonSlashMinimumBurningDuration?: number;
-  readonly dragonSlashMaximumBurningDuration?: number;
 }
 
 /** Shared full mechanic context; read-only and resolver consumers retain their narrower capabilities. */

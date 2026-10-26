@@ -12,6 +12,8 @@ import type { GuardianDragonhunterState } from '#gw2/professions/guardian/specia
 import type { GuardianFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianLuminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
+import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
+import type { LUMINARY_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/luminary/skill-fields.js';
 
 export interface GuardianCanonicalBuild extends Gw2CanonicalBuild {
   initialTomePages: number;
@@ -80,7 +82,8 @@ export type GuardianResolverEvent = Gw2ResolverEvent & {
   readonly automatic?: boolean;
 };
 
-export interface GuardianSkill extends Skill {
+/** Numeric tuning fields are typed from the modules' skill-field declarations, which also validate and patch them. */
+export interface GuardianSkill extends Skill, NumericSkillFields<typeof LUMINARY_SKILL_FIELDS> {
   readonly radiantForgeSkill?: boolean;
   readonly radiantWeapon?: string;
   readonly tome?: string;

@@ -304,7 +304,10 @@ test('THF-001: Hidden Killer requires stealth and lingers after either natural e
 
 test('THF-002: Signet of Shadows is excluded from the simulator', () => {
   assert.equal(thiefCatalog.skillsById.has(13060), false);
-  assert.equal(thiefCatalog.skillsByName.has('Signet of Shadows'), false);
+  assert.equal(
+    thiefCatalog.skills.some((candidate) => candidate.name === 'Signet of Shadows'),
+    false
+  );
 });
 
 test('THF-003: cancelled activations preserve persistent state while successful casts commit it', () => {
@@ -402,7 +405,7 @@ test('THF-007: Sun Crystal enhances base Burning once and preserves already-enha
   for (const expertise of [0, 750]) {
     const result = simulate(
       'Antiquary',
-      ['Skritt Swipe', 'Zephyrite Sun Crystal'],
+      ['Skritt Swipe', { type: 'cast', skillId: 76895 }],
       { selectedTraitIds: [TRAIT.METICULOUS_CUSTODIAN], attributeInputs: baseAttributeInputs({ expertise }) },
       { kind: 'tail', durationMs: 1000 }
     );

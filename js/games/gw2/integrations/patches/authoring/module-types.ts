@@ -3,6 +3,7 @@ import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/ove
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { PatchSelection, ResolvedPatch } from '#gw2/integrations/patches/selection.js';
 import type { BalanceProfile, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { NumericSkillFieldSpec } from '#gw2/platform/skills/field-specs.js';
 import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
 import type { PatchPreview, ProfessionPatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 
@@ -61,6 +62,8 @@ export interface NativePatchAuthoringModule {
 export interface NativePatchAuthoringMetadata {
   readonly professionId: string;
   readonly professionName: string;
+  /** Labels and units of patchable skill fields, shared and profession-owned, as plain serializable data. */
+  readonly skillFields: Readonly<Record<string, Pick<NumericSkillFieldSpec, 'label' | 'unit'>>>;
   readonly modules: readonly NativePatchAuthoringModule[];
 }
 

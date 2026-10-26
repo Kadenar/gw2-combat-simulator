@@ -135,7 +135,7 @@ test('Gunsaber transitions start separate rotation lines', () => {
 
       return transition({
         entry: { name },
-        skill: warriorCatalog.skillsByName.get(name),
+        skill: warriorCatalog.skills.find((candidate) => candidate.name === name),
         specialization: 'Bladesworn',
         ...current
       });
@@ -157,7 +157,7 @@ test('Gunsaber transitions start separate rotation lines', () => {
 
         return transition({
           entry: { name },
-          skill: warriorCatalog.skillsByName.get(name),
+          skill: warriorCatalog.skills.find((candidate) => candidate.name === name),
           specialization: 'Bladesworn',
           ...current
         });

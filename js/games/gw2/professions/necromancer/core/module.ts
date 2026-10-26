@@ -14,12 +14,14 @@ import { projectNecromancerPlanningState } from '#gw2/professions/necromancer/co
 import { necromancerCoreTraits } from '#gw2/professions/necromancer/core/traits/index.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
+import { NECROMANCER_CORE_SKILL_FIELDS } from '#gw2/professions/necromancer/core/skill-fields.js';
 
 export const necromancerCoreModule = defineNativeModule({
   attributes: necromancerPassiveAttributes,
   traitDefinitions: necromancerCoreTraits,
   id: 'Core',
   data: createNecromancerModuleData('Core', {
+    skillFields: NECROMANCER_CORE_SKILL_FIELDS,
     skillMechanics: NECROMANCER_CORE_BASE_SKILL_MECHANICS,
     extraSkills: NECROMANCER_CORE_EXTRA_SKILLS,
     balanceProfiles: NECROMANCER_CORE_BALANCE_PROFILES,

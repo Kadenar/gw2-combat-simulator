@@ -24,6 +24,7 @@ import { rangerShortbowConditionDurationModifier } from '#gw2/professions/ranger
 import { createRangerCoreState, projectRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { rangerCoreTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
+import { RANGER_CORE_SKILL_FIELDS } from '#gw2/professions/ranger/core/skill-fields.js';
 
 /** The module registers one live mechanic owner beside its existing data and modifier formulas. */
 export const rangerCoreModule = defineNativeModule({
@@ -31,6 +32,7 @@ export const rangerCoreModule = defineNativeModule({
   id: 'Core',
   traitDefinitions: rangerCoreTraits,
   data: createRangerModuleData('Core', {
+    skillFields: RANGER_CORE_SKILL_FIELDS,
     skillMechanics: RANGER_CORE_BASE_SKILL_MECHANICS,
     balanceProfiles: RANGER_CORE_BALANCE_PROFILES,
     extraSkills: RANGER_CORE_EXTRA_SKILLS

@@ -14,11 +14,13 @@ import {
   berserkerState
 } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import { warriorBerserkerTraits } from '#gw2/professions/warrior/specializations/berserker/traits/index.js';
+import { BERSERKER_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/berserker/skill-fields.js';
 
 export const berserkerModule = defineNativeModule({
   traitDefinitions: warriorBerserkerTraits,
   id: 'Berserker',
   data: createWarriorModuleData('Berserker', {
+    skillFields: BERSERKER_SKILL_FIELDS,
     skillMechanics: BERSERKER_SKILL_MECHANICS,
     balanceProfiles: BERSERKER_BALANCE_PROFILES
   }),

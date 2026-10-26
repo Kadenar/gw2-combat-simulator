@@ -1,4 +1,5 @@
 import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import {
   createNativeModuleData,
@@ -9,16 +10,15 @@ export interface ProfessionModuleDataOptions<TSkill extends Skill = Skill> {
   readonly skillMechanics: Readonly<Record<string, Partial<TSkill>>>;
   readonly extraSkills?: readonly TSkill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
+  /** Skill fields read only by this module's code, declared beside the skills that use them. */
+  readonly skillFields?: SkillFieldSpecs;
 }
 
 interface ProfessionModuleDataFamily<TSkill extends Skill> extends Pick<
   NativeModuleDataSelection<TSkill>,
   'generatedSkills' | 'sharedExtraSkills' | 'traits' | 'specializations'
 > {
-  readonly core?: Pick<
-    NativeModuleDataSelection<TSkill>,
-    'weapons' | 'weaponHands' | 'autoattackChains' | 'skillNameOverrides'
-  >;
+  readonly core?: Pick<NativeModuleDataSelection<TSkill>, 'weapons' | 'weaponHands' | 'autoattackChains'>;
   readonly specializationOnlySkills?: Readonly<Record<string, readonly SkillId[]>>;
 }
 
@@ -31,10 +31,7 @@ export function createProfessionModuleDataFactory<TSkill extends Skill = Skill>(
   return (
     id: string,
     options: ProfessionModuleDataOptions<TSkill> &
-      Pick<
-        NativeModuleDataSelection<TSkill>,
-        'skillOverrides' | 'autoattackChains' | 'skillNameOverrides' | 'specializationOnlySkillIds'
-      >
+      Pick<NativeModuleDataSelection<TSkill>, 'skillOverrides' | 'autoattackChains' | 'specializationOnlySkillIds'>
   ) => {
     const defaults = id === 'Core' ? core : undefined;
 
@@ -45,7 +42,6 @@ export function createProfessionModuleDataFactory<TSkill extends Skill = Skill>(
       ...options,
       id,
       autoattackChains: options.autoattackChains ?? defaults?.autoattackChains,
-      skillNameOverrides: options.skillNameOverrides ?? defaults?.skillNameOverrides,
       specializationOnlySkillIds: options.specializationOnlySkillIds ?? specializationOnlySkills[id]
     });
   };

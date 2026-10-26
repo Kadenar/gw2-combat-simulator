@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-// Native file input and manifest selection must deliver the same specialization-aware preview to each destination.
+// Native file input and manifest selection resolve unique authored names to the same identity at each destination.
 test('named rotations import through the Current file dialog and Reference manifest dialog', async ({ page }) => {
   await page.goto('/mesmer.html');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
@@ -13,19 +13,19 @@ test('named rotations import through the Current file dialog and Reference manif
     return app.build;
   });
   await page.route('**/bug-002-build.json*', (route) => route.fulfill({ json: build }));
-  await page.route('**/bug-002-rotation.json*', (route) => route.fulfill({ json: ['Bladecall'] }));
+  await page.route('**/bug-002-rotation.json*', (route) => route.fulfill({ json: ['Bladesong Harmony'] }));
   await page.locator('#btn-import-rotation').click();
   const current = page.locator('.rotation-import-dialog[data-rotation-import-destination="current"]');
   await page.locator('#rotation-file-input').setInputFiles({
     name: 'rotation.json',
     mimeType: 'application/json',
-    buffer: Buffer.from(JSON.stringify(['Bladecall']))
+    buffer: Buffer.from(JSON.stringify(['Bladesong Harmony']))
   });
   await expect(current.getByRole('button', { name: 'Apply rotation', exact: true })).toBeEnabled();
   await current.getByRole('button', { name: 'Apply rotation', exact: true }).click();
   await expect(current).toBeHidden();
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-  expect(await page.evaluate(() => window.professionApp.build.rotation)).toEqual([{ type: 'cast', skillId: 69311 }]);
+  expect(await page.evaluate(() => window.professionApp.build.rotation)).toEqual([{ type: 'cast', skillId: 62617 }]);
   await page.getByRole('button', { name: 'Compare', exact: true }).click();
   await page.locator('[data-comparison-empty-load]').click();
   const reference = page.locator('.rotation-import-dialog[data-rotation-import-destination="reference"]');
@@ -38,7 +38,7 @@ test('named rotations import through the Current file dialog and Reference manif
   await expect(reference).toBeHidden();
   await page.waitForFunction(() => window.professionApp.rotationComparison?.referenceStatus === 'fresh');
   expect(await page.evaluate(() => window.professionApp.rotationComparison.referenceRotation)).toEqual([
-    { type: 'cast', skillId: 69311 }
+    { type: 'cast', skillId: 62617 }
   ]);
 });
 

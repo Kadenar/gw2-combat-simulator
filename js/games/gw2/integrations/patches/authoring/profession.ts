@@ -41,6 +41,8 @@ import { defineNativeProfession as defineStableNativeProfession } from '#gw2/pla
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { CanonicalCatalog, CatalogEntity } from '#gw2/platform/skills/types.js';
+import { patchableSkillFields, type SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
 
 function assertObject(value: object | null | undefined, label: string): void {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -65,11 +67,21 @@ function createPatchAuthoringMetadata(
   professionId: string,
   professionName: string,
   modules: readonly AnyNativeModule[],
-  fragments: ReadonlyMap<string, Readonly<ProfessionModuleCatalogFragment>>
+  fragments: ReadonlyMap<string, Readonly<ProfessionModuleCatalogFragment>>,
+  skillFields: SkillFieldSpecs
 ): NativePatchAuthoringMetadata {
   return Object.freeze({
     professionId,
     professionName,
+    // The editor labels skill controls from the same declarations that decide their patchability.
+    skillFields: Object.freeze(
+      Object.fromEntries(
+        patchableSkillFields(skillFields).map(([field, { label, unit }]) => [
+          field,
+          Object.freeze({ ...(label ? { label } : {}), ...(unit ? { unit } : {}) })
+        ])
+      )
+    ),
     modules: Object.freeze(
       modules.map((module) => {
         const fragment = fragments.get(module.id)!;
@@ -93,8 +105,8 @@ function createPatchAuthoringMetadata(
                   id: skill.id,
                   name: skill.name,
                   moduleId: module.id,
-                  skill: skillAuthoringReference(skill),
-                  patchableFields: skillPatchableNumericFields(skill)
+                  skill: skillAuthoringReference(skill, skillFields),
+                  patchableFields: skillPatchableNumericFields(skill, skillFields)
                 })
               )
           ),
@@ -327,9 +339,15 @@ export function withPatchPreview<
         TBuild
       >)
     : family;
-  const assembly = getNativeCatalogAssembly(modules, definition.catalog);
+  const assembly = getNativeCatalogAssembly(modules);
   const modifierRules = modules.flatMap((module) => [...(module.modifiers.modifierRules ?? [])]);
-  const patchAuthoring = createPatchAuthoringMetadata(definition.id, definition.name, modules, assembly.fragments);
+  const patchAuthoring = createPatchAuthoringMetadata(
+    definition.id,
+    definition.name,
+    modules,
+    assembly.fragments,
+    catalogSkillFields(assembly.catalog)
+  );
   const previewModifierRules = preparePreviewModifierRules(modules, professionPatch?.modifierRules);
   let previewFamily: NativeProfessionContract<TModules, TPresentation, TBuild> | null = null;
   const familyForPreview = () => {
@@ -433,7 +451,7 @@ export function withPatchPreview<
 
     assertProfessionPatchShape(definition.id, candidate);
     const candidateModules = selectReworkedModules(liveModules, definition.moduleVariants ?? {}, candidate);
-    const catalog = previewCatalogSource(getNativeCatalogAssembly(candidateModules, definition.catalog).catalog);
+    const catalog = previewCatalogSource(getNativeCatalogAssembly(candidateModules).catalog);
     const patchedCatalog = applyBalanceProfilePatch(applySkillPatch(catalog, candidate), candidate);
     applyModifierRulePatch(
       candidateModules.flatMap((module) => [...(module.modifiers.modifierRules ?? [])]),

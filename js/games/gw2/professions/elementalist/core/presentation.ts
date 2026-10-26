@@ -65,22 +65,22 @@ const PISTOL_BULLETS = Object.freeze([
   {
     element: 'Fire',
     label: 'Fire Bullet',
-    skillName: 'Scorching Shot'
+    skillId: ID.SCORCHING_SHOT
   },
   {
     element: 'Water',
     label: 'Ice Bullet',
-    skillName: 'Soothing Splash'
+    skillId: ID.SOOTHING_SPLASH
   },
   {
     element: 'Air',
     label: 'Air Bullet',
-    skillName: 'Electric Exposure'
+    skillId: ID.ELECTRIC_EXPOSURE
   },
   {
     element: 'Earth',
     label: 'Earth Bullet',
-    skillName: 'Piercing Pebble'
+    skillId: ID.PIERCING_PEBBLE
   }
 ] as const);
 
@@ -135,14 +135,14 @@ function pistolBulletPaletteGroup(
     // not split the active weapon's elemental rows.
     placement: 'active-weapon',
     weaponRowLabel: 'Earth',
-    controls: PISTOL_BULLETS.map(({ element, label, skillName }) => {
+    controls: PISTOL_BULLETS.map(({ element, label, skillId }) => {
       const currentStocked = Boolean(displayed[element]);
       const startsStocked = Boolean(configured[element]);
       const offAttunement = Boolean(live) && !activeAttunements.has(element);
       return {
         id: `${PISTOL_BULLET_CONTROL_PREFIX}${element}`,
         label,
-        icon: catalog.skillsByName.get(skillName)?.icon,
+        icon: catalog.skillsById.get(skillId)?.icon,
         title: `${label}: ${currentStocked ? 'currently stocked' : 'not currently stocked'}; starts ${startsStocked ? 'stocked' : 'not stocked'}. Click to toggle starting stock.`,
         color: ATTUNEMENT_COLORS[element],
         className: 'pistol-bullet',

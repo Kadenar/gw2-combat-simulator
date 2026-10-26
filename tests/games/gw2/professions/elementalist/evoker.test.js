@@ -1,7 +1,7 @@
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { GW2_ALACRITY_RECHARGE_RATE, gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
@@ -20,18 +20,22 @@ import test from 'node:test';
 
 test('familiar replacement honors patched cancellation windows and preserves the boundary', () => {
   // Exercise owner cancellation and replacement suppression without depending on native impact schedules.
-  for (const [basicName, empoweredName, profileId] of [
-    ['Ignite', 'Conflagration', 'elementalist.evoker.ignite'],
-    ['Splash', 'Buoyant Deluge', 'elementalist.evoker.splash'],
-    ['Zap', 'Lightning Blitz', 'elementalist.evoker.zap'],
-    ['Calcify', 'Seismic Impact', 'elementalist.evoker.calcify']
+  for (const [basicName, empoweredName] of [
+    ['Ignite', 'Conflagration'],
+    ['Splash', 'Buoyant Deluge'],
+    ['Zap', 'Lightning Blitz'],
+    ['Calcify', 'Seismic Impact']
   ]) {
     for (const window of [0.5, 4]) {
-      const catalog = applyBalanceProfilePatch(elementalistCatalog, {
-        balanceProfiles: { [profileId]: { fields: { duration: window } } }
+      const catalog = applySkillPatch(elementalistCatalog, {
+        skills: {
+          [elementalistCatalog.skills.find((candidate) => candidate.name === basicName).id]: {
+            fields: { duration: window }
+          }
+        }
       });
-      const basic = catalog.skillsByName.get(basicName);
-      const empowered = catalog.skillsByName.get(empoweredName);
+      const basic = catalog.skills.find((candidate) => candidate.name === basicName);
+      const empowered = catalog.skills.find((candidate) => candidate.name === empoweredName);
       for (const elapsed of [window - 0.01, window]) {
         const state = evokerState.create();
         const cancelled = [];
@@ -64,7 +68,7 @@ test('Altruistic Aspect grants its meditation boon only when selected and the ca
       [
         {
           type: 'cast',
-          skillId: elementalistCatalog.skillsByName.get("Fox's Fury").id,
+          skillId: elementalistCatalog.skillsById.get(76711).id,
           ...(interrupted ? { interruptAfterMs: 0 } : {})
         }
       ],
@@ -86,7 +90,7 @@ test('Altruistic Aspect grants its meditation boon only when selected and the ca
 test('Ignite retains its final burning tier until the inactivity window expires', () => {
   // Exercise the familiar state transition independently of weapon recharge and rotation timing.
   const state = evokerState.create();
-  const skill = elementalistCatalog.skillsByName.get('Ignite');
+  const skill = elementalistCatalog.skillsById.get(76643);
   const context = { helpers: elementalistCatalog, profession: { specialization: { kind: 'Evoker', state } } };
   for (const [start, duration] of [
     [0, 2],
@@ -468,7 +472,7 @@ test('Specialized Elements familiar casts reduce active weapon recharge', () => 
   for (const alacrity of [false, true]) {
     const baseline = simulate('1-1-1', alacrity);
     const specialized = simulate('1-1-3', alacrity);
-    const weaponSkill = elementalistCatalog.skillsByName.get('Flame Uprising');
+    const weaponSkill = elementalistCatalog.skillsById.get(45313);
     const reduction = (gw2BaseRecharge(weaponSkill) * 1000 * 0.1) / GW2_ALACRITY_RECHARGE_RATE;
 
     assert.deepEqual(baseline.warnings, []);
@@ -525,7 +529,7 @@ test('Evoker preserves off-attunement recharge while waiting for a swap', () => 
 });
 
 test('Evoker concurrent actions wait for an active familiar cast', () => {
-  const earthAttunement = elementalistCatalog.skillsByName.get('Earth Attunement');
+  const earthAttunement = elementalistCatalog.skillsById.get(5495);
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Evoker']],
     rotation: [
@@ -548,7 +552,7 @@ test('Evoker concurrent actions wait for an active familiar cast', () => {
 });
 
 test('Evoker does not award a completed parent charge grant twice', () => {
-  const calcify = elementalistCatalog.skillsByName.get('Calcify');
+  const calcify = elementalistCatalog.skillsById.get(77226);
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Evoker']],
     rotation: [
@@ -571,7 +575,7 @@ test('Evoker does not award a completed parent charge grant twice', () => {
 });
 
 test('Evoker spends a completed Rejuvenate refill only once', () => {
-  const calcify = elementalistCatalog.skillsByName.get('Calcify');
+  const calcify = elementalistCatalog.skillsById.get(77226);
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Evoker']],
     rotation: [

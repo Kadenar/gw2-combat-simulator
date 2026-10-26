@@ -1,4 +1,3 @@
-import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
 import { INPUT_CONTROL_IDS } from '#gw2/platform/skills/input-controls.js';
 import { snapshotActionDeclaration } from '#gw2/platform/effects/action-declarations.js';
@@ -9,201 +8,12 @@ import {
 } from '#gw2/platform/effects/action-validation.js';
 import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import { normalizeSkillDamageModifiers } from '#gw2/platform/skills/modifiers.js';
+import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
+import { validateSkillFieldValues, type SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import { catalogSkillFields, SHARED_SKILL_FIELDS } from '#gw2/platform/skills/shared-fields.js';
 import type { CanonicalCatalog, Skill, SkillId, SkillLockout } from '#gw2/platform/skills/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 /** Validate skill declarations and cross-catalog references before runtime selection. */
-
-/** Reject retired or misspelled skill fields at the catalog boundary, including profession-owned authoring. */
-const SKILL_FIELDS = new Set([
-  // Form skills own their eligible attribute scaling.
-  'attributeMultiplier',
-  'modifiers',
-  'adrenalineCost',
-  'affinityOnHit',
-  'ambush',
-  'ammo',
-  'ammoCastLockout',
-  'ammoRecharge',
-  'armedAtStart',
-  'arrowCost',
-  'arrowsRestored',
-  'artifactKind',
-  'attunement',
-  'autoattack',
-  'backfire',
-  'beastmodeSkill',
-  'blade',
-  'blightGain',
-  'burst',
-  'canCastConcurrently',
-  'castTimeMs',
-  'categories',
-  'celestialAvatarSkill',
-  'chainRoot',
-  'chainStep',
-  'clone',
-  'comboFields',
-  'comboFinishers',
-  'conditionsTransferred',
-  'consume',
-  'consumes',
-  'cooldown',
-  'cost',
-  'countsAsToolbeltSkill',
-  'cycloneBowSkill',
-  'damageAtMs',
-  // Delayed skill detonations can scale their owned payload by a capped hit count.
-  'damageIncreasePerStack',
-  'defaultInterruptMs',
-  'description',
-  'dhuumfireDuration',
-  'displayName',
-  'dragonSlash',
-  'dragonSlashImpactOffsetMs',
-  'dragonSlashMaximumBurningDuration',
-  'dragonSlashMaximumCoefficient',
-  'dragonSlashMinimumBurningDuration',
-  'dragonSlashMinimumCoefficient',
-  'dragonTriggerSkill',
-  'dualWieldCastTimeMs',
-  'dualWieldEffectOffsetsMs',
-  'dualWieldInterruptCommitMs',
-  'dualWieldOpener',
-  'duration',
-  'effectVariants',
-  'effects',
-  'energyCost',
-  'evades',
-  'facet',
-  'flipDuration',
-  'flipParentId',
-  'requiresArmedFlip',
-  'flipSkillId',
-  'forgeSkill',
-  'gunsaberSkill',
-  'heatGain',
-  'heatLoss',
-  'icon',
-  'id',
-  'impactDelay',
-  'independentCast',
-  'independentCastCanOverlap',
-  'initiativeCost',
-  'inputCategory',
-  'inputControl',
-  'instrument',
-  'interruptCommitMs',
-  'interruptMode',
-  'kitId',
-  'kitTransition',
-  'kneelSkill',
-  'legendId',
-  'lifeForceCost',
-  'loadoutSkillId',
-  'lockouts',
-  'malicious',
-  'manualReleaseCooldown',
-  'maximumConditions',
-  'maximumStacks',
-  'mechanicSlot',
-  // Mesmer skills own intrinsic summon, shatter, flip, and performance recipes.
-  'flipArm',
-  'phantasmTiming',
-  'shatter',
-  'mirrorPayload',
-  'crescendoProfileId',
-  'tale',
-  'minimumShroudLifeForcePercent',
-  'minionKey',
-  'movementSkill',
-  'name',
-  'nextChainId',
-  'overload',
-  'paletteFlip',
-  'paletteTileId',
-  'weaponVariantRootId',
-  'paletteTileOrder',
-  'parentCooldownIncrease',
-  'parentId',
-  'patchAuthoringExcluded',
-  'peithaImpactAnchor',
-  'peithaImpactDelayMs',
-  'petAutonomousSkill',
-  'petFamilySkill',
-  'petNames',
-  'petSkill',
-  'phantasm',
-  'phantasmSummonProgress',
-  ACTOR.PLAYER,
-  'preservesStealth',
-  'primalBurst',
-  'pulseInterval',
-  'quicknessCastTimeMs',
-  'radiantForgeSkill',
-  'radiantWeapon',
-  'rechargeAnchor',
-  'rechargeOwner',
-  'rechargeBuffAudience',
-  'rechargeIgnoresAlacrity',
-  'rechargeOffsetMs',
-  'rechargeProgress',
-  'rechargeOnMinionDeath',
-  'rechargeReduction',
-  'removedEffectKeys',
-  'requiredMainHand',
-  'requiredOffHand',
-  'resource',
-  'resourceCost',
-  'resourceGain',
-  'retainsCastLockoutAfterInterrupt',
-  'selfStunMs',
-  'shadowShroudSkill',
-  'shadowShroudTransition',
-  'shadowstepSkill',
-  'shroud',
-  'shroudEntry',
-  'shroudExit',
-  'shroudProfileId',
-  'shroudSlot',
-  'sideEffects',
-  'simulatorExcluded',
-  'skillFamily',
-  'skillWeapon',
-  'slot',
-  'slotSelectable',
-  'spearStealthAttack',
-  'specialization',
-  'starvationCooldown',
-  'stealRechargeMode',
-  'stealTraitSkill',
-  'stealthAttack',
-  'stunbreak',
-  'summonAttack',
-  'summonDuration',
-  'summonInterval',
-  RECIPIENT.SUMMONS,
-  'tags',
-  'tasks',
-  'tome',
-  'toolbeltParentId',
-  'trackedHitDamage',
-  'triggerIntervalMs',
-  'type',
-  'unleashedAmbushSkill',
-  'unleashedPetSkill',
-  'upkeepConsumeByLegendId',
-  'upkeepCost',
-  'upkeepPulse',
-  'usableInShroud',
-  'usableWhileRecharging',
-  'variantBadge',
-  CONDITION.VULNERABILITY.toLowerCase(),
-  'weapon',
-  'weaponBarChainRootId',
-  'weaponBarChainStep',
-  'windForceApplyMs',
-  'windForceGain'
-]);
 
 const RECHARGE_ANCHORS = new Set(['castStart', 'castEnd']);
 
@@ -252,6 +62,7 @@ function normalizeLockouts(lockouts: unknown, skillId: SkillId): readonly SkillL
 
 /** References can cross module contributions, so validate after the complete catalog exists. */
 function validateSkillDeclarations(catalog: CanonicalCatalog, skill: Skill): void {
+  validateSkillTuning(skill, catalogSkillFields(catalog), `skill=${skill.id}`);
   // Stable cast action identities and owner validators use the actual authored execution stage.
   validateActionIds(
     (skill.sideEffects ?? []).map((rule) => rule.do),
@@ -277,6 +88,26 @@ export function validateDurationFields(owner: Readonly<Record<string, unknown>>,
     if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
       throw new TypeError(`${label} field=${field} expected=finite nonnegative seconds.`);
   }
+}
+
+/**
+ * Patched catalogs skip normalization, so declared numeric fields are checked with the other declarations against the
+ * catalog's own field table. Attribute grants are closed to canonical attributes, so a misspelled grant fails instead
+ * of silently granting nothing; each attribute amount is then bounded by its own numeric declaration.
+ */
+function validateSkillTuning(skill: Skill, fields: SkillFieldSpecs, label: string): void {
+  if (skill.attributeBonuses !== undefined) {
+    const bonuses: unknown = skill.attributeBonuses;
+
+    if (!bonuses || typeof bonuses !== 'object' || Array.isArray(bonuses))
+      throw new TypeError(`${label} field=attributeBonuses must be an object.`);
+
+    for (const attribute of Object.keys(bonuses))
+      if (!Object.hasOwn(ATTRIBUTE_NAMES, attribute))
+        throw new TypeError(`${label} field=attributeBonuses unsupported attribute: ${attribute}.`);
+  }
+
+  validateSkillFieldValues(skill, fields, label);
 }
 
 /**
@@ -359,14 +190,18 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
   }
 }
 
-/** Validate and normalize one merged skill before immutable catalog indexing. */
+/**
+ * Validate and normalize one merged skill before immutable catalog indexing. Only fields declared by the platform or
+ * the owning profession are accepted, so a retired or misspelled field fails instead of being silently ignored.
+ */
 export function normalizeSkill<TSkill extends Skill>(
   id: SkillId,
   mergedSource: Partial<TSkill>,
-  skillNormalizer?: (skill: Partial<TSkill>) => Partial<TSkill>
+  skillNormalizer?: (skill: Partial<TSkill>) => Partial<TSkill>,
+  fields: SkillFieldSpecs = SHARED_SKILL_FIELDS
 ): TSkill {
   for (const field of Object.keys(mergedSource)) {
-    if (!SKILL_FIELDS.has(field)) throw new TypeError(`Skill ${id} has unsupported field: ${field}.`);
+    if (!Object.hasOwn(fields, field)) throw new TypeError(`Skill ${id} has unsupported field: ${field}.`);
   }
 
   const merged = skillNormalizer ? skillNormalizer(mergedSource) : mergedSource;
@@ -454,7 +289,7 @@ export function normalizeSkill<TSkill extends Skill>(
     if (
       merged.cost.profileAmount != null ||
       typeof field !== 'string' ||
-      !SKILL_FIELDS.has(field) ||
+      fields[field]?.kind !== 'number' ||
       !Object.hasOwn(merged, field) ||
       typeof merged[field] !== 'number' ||
       !Number.isFinite(merged[field]) ||

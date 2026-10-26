@@ -11,7 +11,6 @@ import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { TRAITS } from '#gw2/professions/mesmer/data/traits-data.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { NativeCatalogOptions } from '#gw2/platform/profession-definition/module-types.js';
 
 const allSkills: readonly MesmerSkill[] = [...SKILLS, ...MESMER_SUPPLEMENTAL_SKILLS];
 
@@ -80,18 +79,6 @@ const WEAPON_DATA = defineProfessionWeapons({
   Staff: '2h',
   Sword: 'mh+oh',
   Torch: 'oh'
-});
-
-export const MESMER_NATIVE_CATALOG_OPTIONS: NativeCatalogOptions = Object.freeze({
-  skillNameCollision: 'first',
-  // Application-wide names use Core defaults; active modules override their replacements.
-  skillNameOverrides: Object.freeze({
-    'Axes of Symmetry': ID.AXES_OF_SYMMETRY_NON_MIRAGE,
-    'Lingering Thoughts': ID.LINGERING_THOUGHTS_NON_MIRAGE,
-    Bladecall: ID.BLADECALL_NON_VIRTUOSO,
-    'Lively Lute': ID.LIVELY_LUTE,
-    'Harmonious Harp': ID.HARMONIOUS_HARP_ALTERNATE
-  })
 });
 
 // Preserve Mesmer fields through module assembly and runtime catalog lookups.

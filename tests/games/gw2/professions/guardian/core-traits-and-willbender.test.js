@@ -826,14 +826,20 @@ for (const [name, recharge, boons, duration] of [
     const defaults = createGuardianBuildDefaults();
     const migrated = migrateGuardianBuild({
       ...defaults,
-      selectedSkillIds: { ...defaults.selectedSkillIds, Utility1: guardianCatalog.skillsByName.get(name).id }
+      selectedSkillIds: {
+        ...defaults.selectedSkillIds,
+        Utility1: guardianCatalog.skills.find((candidate) => candidate.name === name).id
+      }
     });
-    assert.equal(migrated.selectedSkillIds.Utility1, guardianCatalog.skillsByName.get(name).id);
+    assert.equal(
+      migrated.selectedSkillIds.Utility1,
+      guardianCatalog.skills.find((candidate) => candidate.name === name).id
+    );
 
     for (const alacrity of [false, true]) {
       const result = createObservedProfessionSimulator(guardianProfession, {
         ...config,
-        selectedSkillIds: [guardianCatalog.skillsByName.get(name).id],
+        selectedSkillIds: [guardianCatalog.skills.find((candidate) => candidate.name === name).id],
         boons: { alacrity },
         attributeInputs: baseAttributeInputs({
           ...config.attributeInputs.weaponSets[0].commonTotals,
@@ -848,7 +854,11 @@ for (const [name, recharge, boons, duration] of [
         [0, 5000 / rate, (recharge * 1000) / rate]
       );
       assert.ok(result.steps.every((step) => step.end === step.start));
-      assert.equal(result.planningState.ammoBySkillId[guardianCatalog.skillsByName.get(name).id].charges, 0);
+      assert.equal(
+        result.planningState.ammoBySkillId[guardianCatalog.skills.find((candidate) => candidate.name === name).id]
+          .charges,
+        0
+      );
       const buffs = result.events.filter(
         (event) => event.type === 'buff' && event.skillName === name && event.at === 0
       );
@@ -880,11 +890,15 @@ test('out-of-scope Guardian slot skills are absent and migrate out of saved buil
   ];
 
   for (const name of excludedNames) {
-    assert.equal(guardianCatalog.skillsByName.has(name), false, name);
+    assert.equal(
+      guardianCatalog.skills.some((candidate) => candidate.name === name),
+      false,
+      name
+    );
   }
 
   // Valorous Stance has simulated boons, so only its loadout selection is hidden.
-  const valorousStance = guardianCatalog.skillsByName.get('Valorous Stance');
+  const valorousStance = guardianCatalog.skillsById.get(77300);
   assert.equal(valorousStance.simulatorExcluded, false);
   assert.equal(valorousStance.slotSelectable, false);
 

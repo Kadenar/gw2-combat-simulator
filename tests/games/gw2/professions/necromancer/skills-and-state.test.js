@@ -260,7 +260,7 @@ test('core heals remain selectable and castable without requiring damage effects
 
   // Heal slots remain usable even when their healing is outside the damage model.
   for (const name of ['Well of Blood', 'Consume Conditions']) {
-    const skill = necromancerCatalog.skillsByName.get(name);
+    const skill = necromancerCatalog.skills.find((candidate) => candidate.name === name);
     assert.equal(skill.type, 'Heal', name);
     assert.equal(isSlotSkillSelectable(app, skill, 'Core'), true, name);
     assert.equal(

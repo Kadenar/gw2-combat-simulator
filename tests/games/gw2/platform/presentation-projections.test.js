@@ -34,7 +34,7 @@ test('presentation selection resolves direct and config inputs consistently', ()
 
 // Derived elite selections must not expose Core's profession controls alongside the elite's own bar.
 test('profession presentation slices honor normalized elite selection from every supported source', () => {
-  const catalog = { skills: [], skillsById: new Map(), skillsByName: new Map() };
+  const catalog = { skills: [], skillsById: new Map() };
   for (const [ui, elite] of [
     [warriorCoreUi, 'Berserker'],
     [mesmerCoreUi, 'Mirage'],
@@ -95,11 +95,7 @@ test('Weaver single dual group is authoritative and utility variants follow live
   const water = { id: 34772, name: 'Renamed water utility', attunement: 'Water' };
   const build = { startAttunement: 'Fire' };
   const catalog = {
-    skills: [fire, water],
-    skillsByName: new Map([
-      [fire.name, fire],
-      [water.name, water]
-    ])
+    skills: [fire, water]
   };
   assert.deepEqual(
     ui.paletteSelectedSlotSkills(

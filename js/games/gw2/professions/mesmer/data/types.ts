@@ -110,6 +110,7 @@ export interface MesmerSkill extends Skill {
     readonly delay?: number;
     readonly anchor?: 'castStart' | 'castCommit';
   };
+  // The data layer cannot import module declarations, so these Core skill-field types are written here as well.
   readonly parentCooldownIncrease?: number;
   readonly phantasmSummonProgress?: number;
   readonly trackedHitDamage?: MesmerTrackedHitDamage;

@@ -140,7 +140,7 @@ test('interrupting a familiar releases deferred weapon charges once', () => {
         state.pendingWeaponChargeGains = [{ activationId: 'weapon', source: 'Weapon', sourceId: 42, gain: 2 }];
         const cast = {
           id: 'familiar',
-          skill: elementalistCatalog.skillsByName.get('Ignite'),
+          skill: elementalistCatalog.skillsById.get(76643),
           start: 0,
           fullEnd: 1,
           effectiveEnd: 0,

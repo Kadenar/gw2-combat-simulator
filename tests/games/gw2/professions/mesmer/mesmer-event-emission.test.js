@@ -13,7 +13,7 @@ function createFixture() {
     context: {
       config: { primaryWeapon: 'Sword' },
       activeWeaponSet: 1,
-      helpers: { skillsById: new Map(), skillsByName: new Map() }
+      helpers: { skillsById: new Map(), skills: [] }
     }
   };
 }

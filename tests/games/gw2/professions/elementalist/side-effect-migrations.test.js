@@ -1,10 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { withSkill, withProfile } from '#tests/helpers/catalog-overrides.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { EVOKER_BALANCE_PROFILE_IDS as EVOKER } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 // Live skill fields remain the one amount source; eligibility is commitment, and the shared pool still caps rewards.
@@ -57,14 +56,14 @@ test('Elementalist endurance declarations retain patched amounts and committed-c
 });
 
 // Build a minimal meditation with selected live tuning, keeping all registered familiar and completion owners.
-function fox({ might = 0, command = {}, profile = {}, skill = {}, timeline = [] } = {}) {
+function fox({ might = 0, command = {}, skill = {}, timeline = [] } = {}) {
   const profession = {
     ...elementalistProfession,
     runtimeFor(config) {
       const native = elementalistProfession.runtimeFor(config);
       return {
         ...native,
-        catalog: withSkill(withProfile(native.catalog, EVOKER.foxsFury, profile), ID.FOXS_FURY, skill)
+        catalog: withSkill(native.catalog, ID.FOXS_FURY, skill)
       };
     }
   };
@@ -96,7 +95,7 @@ test("Fox's Fury selects one live Might tier and does not resample it at impact"
     [13, 2.25],
     [14, 3]
   ]) {
-    const result = fox({ might, profile: { threshold: 7 } });
+    const result = fox({ might, skill: { mightTierThreshold: 7 } });
     assert.deepEqual(result.warnings, []);
     assert.equal(foxPackets(result).find((event) => event.type === 'damage').coefficient, coefficient);
   }
@@ -133,11 +132,13 @@ test("Fox's Fury retains fractional Burning and independent component removal", 
       { type: 'strike', name: 'Tier 3', coefficient: 4 },
       { type: 'condition', name: 'Tier 3', condition: 'Burning', stacks: 2.5, duration: 7 }
     ].filter((effect) => effect.type !== removed);
-    // This fixture replaces damage tiers while retaining the same profile's independently committed boons.
-    const boons = elementalistProfession.catalog.balanceProfilesById
-      .get(EVOKER.foxsFury)
-      .effects.filter((effect) => effect.type === 'boon');
-    const result = fox({ might: 25, profile: { effects: [...boons, ...effects] } });
+    // Replacing ordinary damage tiers leaves independently committed boon actions intact.
+    const result = fox({
+      might: 25,
+      skill: {
+        effects: effects.map((effect) => ({ ...effect, atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }))
+      }
+    });
     assert.deepEqual(result.warnings, []);
     const packets = foxPackets(result);
     const hit = packets.find((event) => event.type === 'damage');

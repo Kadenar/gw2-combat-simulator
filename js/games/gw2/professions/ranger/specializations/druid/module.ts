@@ -7,12 +7,14 @@ import { DRUID_BALANCE_PROFILES } from '#gw2/professions/ranger/specializations/
 import { DRUID_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/druid/skills/index.js';
 import { DRUID_PUBLIC_STATE_PROJECTION, druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 import { druidTraits } from '#gw2/professions/ranger/specializations/druid/traits/index.js';
+import { DRUID_SKILL_FIELDS } from '#gw2/professions/ranger/specializations/druid/skill-fields.js';
 
 /** The module registers one live mechanic owner beside its existing data and modifier formulas. */
 export const druidModule = defineNativeModule({
   id: 'Druid',
   traitDefinitions: druidTraits,
   data: createRangerModuleData('Druid', {
+    skillFields: DRUID_SKILL_FIELDS,
     skillMechanics: DRUID_BASE_SKILL_MECHANICS,
     balanceProfiles: DRUID_BALANCE_PROFILES
   }),

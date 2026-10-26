@@ -11,11 +11,13 @@ import {
   scourgeState
 } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import { necromancerScourgeTraits } from '#gw2/professions/necromancer/specializations/scourge/traits/index.js';
+import { SCOURGE_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/scourge/skill-fields.js';
 
 export const scourgeModule = defineNativeModule({
   traitDefinitions: necromancerScourgeTraits,
   id: 'Scourge',
   data: createNecromancerModuleData('Scourge', {
+    skillFields: SCOURGE_SKILL_FIELDS,
     skillMechanics: SCOURGE_BASE_SKILL_MECHANICS,
     balanceProfiles: SCOURGE_BALANCE_PROFILES
   }),

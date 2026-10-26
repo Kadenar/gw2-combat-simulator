@@ -26,7 +26,13 @@ test('interrupt timeline badges show both interrupt delay and cast timestamp', (
 });
 
 test('queueing a cooling-down icon waits until it is available', () => {
-  const result = simulateMesmer(['Bladecall', 'Bladecall'], defaultSimulationConfig());
+  const result = simulateMesmer(
+    [
+      { type: 'cast', skillId: 69311 },
+      { type: 'cast', skillId: 69311 }
+    ],
+    defaultSimulationConfig()
+  );
 
   assert.equal(result.steps[0].start, 0);
   assert.equal(result.steps[1].start, 4440);
@@ -217,7 +223,13 @@ test('clone resource pips render without a redundant numeric count', () => {
 });
 
 test('non-Chronomancer alacrity starts the reduced cooldown after the cast', () => {
-  const result = simulateMesmer(['Bladecall', 'Bladecall'], defaultSimulationConfig({ specialization: 'Core' }));
+  const result = simulateMesmer(
+    [
+      { type: 'cast', skillId: 62560 },
+      { type: 'cast', skillId: 62560 }
+    ],
+    defaultSimulationConfig({ specialization: 'Core' })
+  );
 
   assert.equal(result.steps[1].start, 4440);
 });
@@ -432,7 +444,10 @@ test('clones do not inherit permanent Might while phantasms remain player-owned'
 
 test('Shift+click timeline form schedules a concurrent instant skill on the next action tick', () => {
   const result = simulateMesmer(
-    ['Bladecall', { name: 'Bladesong Distortion', offset: 100 }],
+    [
+      { type: 'cast', skillId: 69311 },
+      { name: 'Bladesong Distortion', offset: 100 }
+    ],
     defaultSimulationConfig()
   );
 
@@ -443,7 +458,12 @@ test('Shift+click timeline form schedules a concurrent instant skill on the next
 
 test('shift-queued Rewinder waits past its parent cast for cooldown expiry', () => {
   const result = simulateMesmer(
-    ['Rewinder', { name: '__wait', waitMs: 10000 }, 'Bladecall', { name: 'Rewinder', offset: 100 }],
+    [
+      'Rewinder',
+      { name: '__wait', waitMs: 10000 },
+      { type: 'cast', skillId: 62560 },
+      { name: 'Rewinder', offset: 100 }
+    ],
     defaultSimulationConfig({
       specialization: 'Chronomancer',
       initialResource: 3
@@ -611,7 +631,7 @@ test('Vicious Expression and Empowered Illusions respect illusion ownership', ()
     ).damage;
   const simulateTroubadour = (selectedTraitIds) =>
     simulateMesmer(
-      ['Phantasmal Swordsman', 'Lively Lute', { name: '__wait', waitMs: 4000 }],
+      ['Phantasmal Swordsman', { type: 'cast', skillId: 76552 }, { name: '__wait', waitMs: 4000 }],
       defaultSimulationConfig({
         specialization: 'Troubadour',
         selectedTraitIds,

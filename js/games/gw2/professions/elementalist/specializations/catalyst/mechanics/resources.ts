@@ -1,8 +1,8 @@
+import { ELEMENTALIST_TRAIT_IDS as CATALYST_TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { sphereSpecialistAllowsEnergy } from '#gw2/professions/elementalist/specializations/catalyst/traits/spheres.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
@@ -11,7 +11,7 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 export const catalystEnergyPolicy: ResourcePolicy<ElementalistRuntime> = {
   kind: 'continuous',
   state: (runtime) => catalystState.from(runtime).catalystEnergy,
-  maximum: (runtime) => balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks'),
+  maximum: (runtime) => balanceNumberFromContext(runtime, CATALYST_TRAIT.DEPTH_OF_ELEMENTS, 'maximumStacks'),
   initial: (runtime, maximum) => runtime.config.initialCatalystEnergy ?? maximum,
   recovery: () => 0
 };
@@ -30,7 +30,7 @@ export function gainCatalystEnergy(runtime: ElementalistRuntime, event: Simulati
   const before = runtime.resourceController.value('catalystEnergy');
   runtime.resourceController.grant(
     'catalystEnergy',
-    balanceNumberFromContext(runtime, PROFILE.resources, 'resourceGain')
+    balanceNumberFromContext(runtime, CATALYST_TRAIT.DEPTH_OF_ELEMENTS, 'resourceGain')
   );
   const after = runtime.resourceController.value('catalystEnergy');
 

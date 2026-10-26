@@ -166,7 +166,7 @@ for (const [profession, baseConfig, name] of cases.slice(0, 3)) {
     const config = { ...baseConfig, allies: { count: 2, strikesPerSecond: 2 } };
     const rotation = [
       ...(profession === guardianProfession ? ['Tome of Justice'] : []),
-      name,
+      { type: 'cast', skillId: profession.catalog.skills.find((skill) => skill.name === name).id },
       { type: 'wait', durationMs: 5000 }
     ];
     const results = [null, 0].map((combatStartTime) =>

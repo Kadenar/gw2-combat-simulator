@@ -122,10 +122,13 @@ test('Signet of Might grants might before the next action without delaying it', 
 
 test('Warrior catalog normalizes authored skills and reviewed aliases', () => {
   // Weapon stow occupies a wait in rotations and must not return as a selectable skill.
-  assert.equal(warriorCatalog.skillsByName.has('Weapon Stow'), false);
+  assert.equal(
+    warriorCatalog.skills.some((candidate) => candidate.name === 'Weapon Stow'),
+    false
+  );
   assert.equal(warriorCatalog.skillsById.has(-6), false);
-  assert.equal(warriorCatalog.skillsByName.get('Path to Victory').id, ID.PATH_TO_VICTORY_ID_71932);
-  assert.equal(warriorCatalog.skillsByName.get("Harrier's Toss").id, ID.HARRIERS_TOSS);
+  assert.equal(warriorCatalog.skillsById.get(71932).id, ID.PATH_TO_VICTORY_ID_71932);
+  assert.equal(warriorCatalog.skillsById.get(73024).id, ID.HARRIERS_TOSS);
   assert.equal(
     warriorCatalog.skills.every((skill) => !Object.hasOwn(skill, 'recharge')),
     true
@@ -144,7 +147,7 @@ test('Warrior catalog normalizes authored skills and reviewed aliases', () => {
 // Dragon Slash release charges are a Warrior rotation field that both migration and validation must preserve.
 test('Warrior builds keep and validate Dragon Slash release charges', () => {
   const chargedRelease = migrateWarriorBuild({
-    rotation: [{ name: 'Dragon Slash—Force', releaseAtCharges: 3 }]
+    rotation: [{ skillId: 62797, releaseAtCharges: 3 }]
   });
 
   assert.equal(chargedRelease.rotation[0].releaseAtCharges, 3);
@@ -301,7 +304,7 @@ test('Bladesworn palette availability follows gunsaber and Dragon Trigger state'
 });
 
 test('Dragon Trigger charge time is excluded from timeline dead time', () => {
-  const result = simulate('Bladesworn', ['Dragon Trigger', { name: 'Dragon Slash—Force', releaseAtCharges: 5 }], {
+  const result = simulate('Bladesworn', ['Dragon Trigger', { skillId: 62797, releaseAtCharges: 5 }], {
     initialResource: 100
   });
   const dragonSlashStep = result.steps.find((step) => step.skill === 'Dragon Slash—Force' && !step.invalid);
@@ -370,24 +373,32 @@ test('Bladesworn gunsaber autos follow the standard autoattack chain display', (
   };
 
   assert.deepEqual(displayedSteps([]), [true, false, false]);
-  assert.deepEqual(displayedSteps(['Swift Cut']), [false, true, false]);
-  assert.deepEqual(displayedSteps(['Swift Cut', 'Steel Divide']), [false, false, true]);
-  assert.deepEqual(displayedSteps(['Swift Cut', 'Steel Divide', 'Explosive Thrust']), [true, false, false]);
-  assert.deepEqual(displayedSteps(['Swift Cut', 'Blooming Fire']), [true, false, false]);
+  assert.deepEqual(displayedSteps([62966]), [false, true, false]);
+  assert.deepEqual(displayedSteps([ID.SWIFT_CUT, ID.STEEL_DIVIDE]), [false, false, true]);
+  assert.deepEqual(displayedSteps([ID.SWIFT_CUT, ID.STEEL_DIVIDE, ID.EXPLOSIVE_THRUST]), [true, false, false]);
+  assert.deepEqual(displayedSteps([ID.SWIFT_CUT, ID.BLOOMING_FIRE]), [true, false, false]);
 
-  const skippedFirstStep = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Steel Divide'], { initialResource: 100 });
+  const skippedFirstStep = simulate('Bladesworn', ['Unsheathe Gunsaber', ID.STEEL_DIVIDE], { initialResource: 100 });
 
   assert.match(skippedFirstStep.warnings[0].message, /cast Swift Cut first/);
 
-  const skippedSecondStep = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Swift Cut', 'Explosive Thrust'], {
-    initialResource: 100
-  });
+  const skippedSecondStep = simulate(
+    'Bladesworn',
+    ['Unsheathe Gunsaber', { type: 'cast', skillId: 62966 }, ID.EXPLOSIVE_THRUST],
+    {
+      initialResource: 100
+    }
+  );
 
   assert.match(skippedSecondStep.warnings[0].message, /cast Steel Divide first/);
 
-  const resetChain = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Swift Cut', 'Blooming Fire', 'Steel Divide'], {
-    initialResource: 100
-  });
+  const resetChain = simulate(
+    'Bladesworn',
+    ['Unsheathe Gunsaber', { type: 'cast', skillId: 62966 }, { type: 'cast', skillId: 62930 }, ID.STEEL_DIVIDE],
+    {
+      initialResource: 100
+    }
+  );
 
   assert.match(resetChain.warnings[0].message, /cast Swift Cut first/);
 });

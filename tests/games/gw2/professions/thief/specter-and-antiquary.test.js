@@ -848,7 +848,7 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
     'Unsuspecting Strike',
     'Vampiric Slash',
     'Shattering Assault'
-  ].map((name) => thiefCatalog.skillsByName.get(name));
+  ].map((name) => thiefCatalog.skills.find((candidate) => candidate.name === name));
   const visibleAtStage = (stage) =>
     chainSkills
       .filter((skill) =>
@@ -906,14 +906,13 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
   assert.deepEqual(paletteAtStage(1), ['Entangling Asp', 'Vampiric Slash']);
   assert.deepEqual(paletteAtStage(2), ['Falling Spider', 'Shattering Assault']);
   assert.equal(
-    simulate('Core', [], { primaryWeapon: 'Spear' }).planningState.availability[
-      thiefCatalog.skillsByName.get('Entangling Asp').id
-    ].ready,
+    simulate('Core', [], { primaryWeapon: 'Spear' }).planningState.availability[thiefCatalog.skillsById.get(72896).id]
+      .ready,
     false
   );
   assert.equal(
     simulate('Core', ['Mantis Sting'], { primaryWeapon: 'Spear' }).planningState.availability[
-      thiefCatalog.skillsByName.get('Entangling Asp').id
+      thiefCatalog.skillsById.get(72896).id
     ].ready,
     true
   );
@@ -1096,9 +1095,9 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
   const doubleEdge = simulate(
     'Antiquary',
     [
-      'Stone Summit Cannon',
+      { type: 'cast', skillId: 76725 },
       {
-        name: 'Stone Summit Cannon',
+        skillId: 76725,
         doubleEdgeOutcome: 'backfire'
       }
     ],
@@ -1115,9 +1114,9 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
   const doubleEdgeSuccess = simulate(
     'Antiquary',
     [
-      'Stone Summit Cannon',
+      { type: 'cast', skillId: 76725 },
       {
-        name: 'Stone Summit Cannon',
+        skillId: 76725,
         doubleEdgeOutcome: 'success'
       }
     ],
@@ -1408,10 +1407,14 @@ test('Meticulous Custodian upgrades artifact packets and effect durations', () =
     secondaryWeapon: 'Pistol'
   };
   const artifact = (name, meticulous = false) =>
-    simulate('Antiquary', ['Skritt Swipe', name, { type: 'wait', durationMs: 6000 }], {
-      ...config,
-      selectedTraitIds: meticulous ? [TRAIT.METICULOUS_CUSTODIAN] : []
-    });
+    simulate(
+      'Antiquary',
+      ['Skritt Swipe', thiefCatalog.skills.find((skill) => skill.name === name).id, { type: 'wait', durationMs: 6000 }],
+      {
+        ...config,
+        selectedTraitIds: meticulous ? [TRAIT.METICULOUS_CUSTODIAN] : []
+      }
+    );
   const damage = (result, match) =>
     result.breakdown.find((entry) => (typeof match === 'function' ? match(entry) : entry.name === match));
   const assertMultiplier = (name, multiplier, rowName = name) => {

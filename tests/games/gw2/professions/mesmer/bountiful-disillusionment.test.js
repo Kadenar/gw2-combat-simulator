@@ -1,3 +1,4 @@
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
@@ -29,7 +30,10 @@ test('Bountiful Disillusionment maps shatters and instruments to the correct boo
     ['Troubadour', ['Lively Lute', 'Flustering Flute', 'Deafening Drum', 'Harmonious Harp']]
   ]) {
     for (const [slot, skill] of skills.entries()) {
-      const result = simulate(specialization, [skill, { type: 'wait', durationMs: 6000 }]);
+      const result = simulate(specialization, [
+        skill === 'Harmonious Harp' ? 77077 : mesmerCatalog.skills.find((candidate) => candidate.name === skill).id,
+        { type: 'wait', durationMs: 6000 }
+      ]);
       assert.deepEqual(result.warnings, [], skill);
       const boons = rewards(result);
       assert.deepEqual(

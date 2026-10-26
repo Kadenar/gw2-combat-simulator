@@ -1,3 +1,5 @@
+import type { CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -5,11 +7,11 @@ import type { AnnouncementEmission, EffectDelivery, ProfileEmission } from '#gw2
 /**
  * Elementalist payload selection and attribution for the shared emission service.
  *
- * Balance-profile-driven buff, condition, and announcement request builders plus the small
+ * Skill-action and balance-profile buff, condition, and announcement request builders plus the small
  * catalog and state lookups they depend on. Skill and trait handlers depend on
  * this module; it must not depend on them.
  */
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import type { ElementalistAuraState, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
@@ -52,19 +54,24 @@ export function elementalistEventSkill(
   return context.helpers.skillsById.get(sourceId) || { id: sourceId, name: source };
 }
 
-/** Select a surviving profile boon at ordinary priority; retain its authored audience and cast context. */
-export function elementalistProfiledBuffRequest(
+/** Payload ownership is explicit and independent of the packet's combat attribution. */
+type ElementalistEffectOwner =
+  { readonly profile: BalanceProfile } | { readonly skill: Skill; readonly action: CustomSideEffectAction };
+
+/** Select a surviving skill-action or profile boon at ordinary priority; retain its authored audience and cast context. */
+export function elementalistBuffEffectRequest(
   context: ElementalistRuntime,
   at: number,
-  profileId: Skill['id'],
+  owner: ElementalistEffectOwner,
   effectName: string,
   source: string,
   sourceId: Skill['id'],
   emissionCast?: EffectDelivery['cast']
 ): ProfileEmission {
-  const profile = requireBalanceProfileFromContext(context, profileId);
-  const effect = requireEffect(profile, 'boon', effectName);
   const skill = elementalistEventSkill(context, source, sourceId);
+  const action = 'skill' in owner ? owner.action : undefined;
+  const profile = 'skill' in owner ? owner.skill : owner.profile;
+  const effect = requireEffect(profile, 'boon', effectName, action);
   return {
     kind: 'profile',
     profile,
@@ -89,18 +96,19 @@ export function elementalistProfiledBuffRequest(
 }
 
 /** Select the optional condition payload and retain its source and cast ownership without inventing removed effects. */
-export function elementalistProfiledConditionRequest(
+export function elementalistConditionEffectRequest(
   context: ElementalistRuntime,
   at: number,
-  profileId: Skill['id'],
+  owner: ElementalistEffectOwner,
   effectName: string,
   source: string,
   sourceId: Skill['id'],
   emissionCast?: EffectDelivery['cast']
 ): ProfileEmission {
-  const profile = requireBalanceProfileFromContext(context, profileId);
-  const effect = requireEffect(profile, 'condition', effectName);
   const skill = elementalistEventSkill(context, source, sourceId);
+  const action = 'skill' in owner ? owner.action : undefined;
+  const profile = 'skill' in owner ? owner.skill : owner.profile;
+  const effect = requireEffect(profile, 'condition', effectName, action);
   return {
     kind: 'profile',
     profile,

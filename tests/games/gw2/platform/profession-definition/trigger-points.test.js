@@ -1,7 +1,8 @@
 import {
   onTriggerPoint,
   compileTriggerPoints,
-  compileProfessionRules
+  compileProfessionRules,
+  compileRechargeRules
 } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -483,5 +484,28 @@ test('trait boon duration hooks validate and compose in Core then elite order', 
   assert.throws(
     () => defineTrait({ id: 104, name: 'Invalid duration', hooks: { boonDuration: 3 } }),
     /boonDuration must be a function/
+  );
+});
+
+// Skill-field recharge tuning composes with other rules and always follows the selected skill.
+test('recharge rules resolve selected skill fields and reject invalid tuning', () => {
+  const recharge = compileRechargeRules([
+    { when: (_runtime, skill) => skill.id === 1, multiplier: { skillField: 'rechargeMultiplier' } },
+    { when: () => true, multiplier: 0.5 }
+  ]);
+  for (const [factor, expected] of [
+    [0.8, 4],
+    [0.25, 1.25],
+    [0, 0]
+  ])
+    assert.equal(recharge({}, { id: 1, rechargeMultiplier: factor }, 10), expected);
+  assert.equal(recharge({}, { id: 2 }, 10), 5);
+  for (const factor of [undefined, NaN, -1, '0.5'])
+    assert.throws(() => recharge({}, { id: 1, rechargeMultiplier: factor }, 10), /skill=1 field=rechargeMultiplier/);
+
+  // Live predicates cannot be evaluated at assembly, but a reference absent from the whole catalog is always invalid.
+  assert.throws(
+    () => family([], [], { rechargeRules: [{ when: () => true, multiplier: { skillField: 'typo' } }] }),
+    /Unknown recharge skill field=typo/
   );
 });

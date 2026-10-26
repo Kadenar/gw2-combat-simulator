@@ -43,7 +43,7 @@ function resolve(events, { power = 1300, multiplier = 1, health = 0, output = 'd
       conditionDurationMultiplier: () => 1,
       activeWeaponSetAt: () => 1
     },
-    helpers: { conditionName: (name) => name, skillsByName: new Map(), weaponStrength: () => 922.5 }
+    helpers: { conditionName: (name) => name, skills: [], weaponStrength: () => 922.5 }
   });
 }
 

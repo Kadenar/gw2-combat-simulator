@@ -1,14 +1,14 @@
-import { zapModifiers } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
-import { meditationBalanceProfiles } from '#gw2/professions/elementalist/specializations/evoker/skills/meditation-skills.js';
-import { evokerResourceProfile } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
-import { familiarBalanceProfiles } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
+import {
+  EVOKER_FAMILIAR_SKILL_MECHANICS,
+  zapModifiers
+} from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import { evokerHooks } from '#gw2/professions/elementalist/specializations/evoker/hooks.js';
 
 import { evokerUi } from '#gw2/professions/elementalist/specializations/evoker/presentation.js';
-import { EVOKER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/index.js';
+import { EVOKER_MEDITATION_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/meditation-skills.js';
 import {
   EVOKER_PUBLIC_STATE_PROJECTION,
   evokerState
@@ -16,15 +16,19 @@ import {
 
 /**
  * The Evoker elite specialization module: catalog contributions (skill
- * mechanics + balance profiles), live state factory, execution
+ * mechanics and traits), live state factory, execution
  * mechanics, and the build-editor UI contract.
  */
 export const evokerModule = defineNativeModule({
   id: 'Evoker',
   traitDefinitions: evokerTraits,
   data: createElementalistModuleData('Evoker', {
-    skillMechanics: EVOKER_SKILL_MECHANICS,
-    balanceProfiles: [evokerResourceProfile, ...meditationBalanceProfiles, ...familiarBalanceProfiles]
+    skillFields: EVOKER_SKILL_FIELDS,
+    // Assemble both skill families at the module boundary in familiar-first order.
+    skillMechanics: {
+      ...EVOKER_FAMILIAR_SKILL_MECHANICS,
+      ...EVOKER_MEDITATION_SKILL_MECHANICS
+    }
   }),
   state: { create: evokerState.create, project: createPublicStateProjector(EVOKER_PUBLIC_STATE_PROJECTION) },
   // Register the skill/mechanic-owned rules alongside trait declarations.
@@ -34,3 +38,4 @@ export const evokerModule = defineNativeModule({
 });
 
 import { evokerTraits } from '#gw2/professions/elementalist/specializations/evoker/traits/index.js';
+import { EVOKER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/evoker/skill-fields.js';

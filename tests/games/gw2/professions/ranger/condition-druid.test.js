@@ -767,7 +767,7 @@ test('Celestial Avatar transitions trigger swap mechanics and weapon lines', () 
 
       return transition({
         entry: { name },
-        skill: rangerCatalog.skillsByName.get(name),
+        skill: rangerCatalog.skills.find((candidate) => candidate.name === name),
         specialization: 'Druid',
         ...current
       });

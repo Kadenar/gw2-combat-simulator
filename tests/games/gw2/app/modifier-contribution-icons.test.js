@@ -11,7 +11,7 @@ import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 const app = {
   attributeData: { activeTraits: [] },
   results: { procSteps: [] },
-  activeCatalog: { skillsByName: new Map(), skills: [] }
+  activeCatalog: { skills: [] }
 };
 
 const SIMULATION_EFFECTS = [

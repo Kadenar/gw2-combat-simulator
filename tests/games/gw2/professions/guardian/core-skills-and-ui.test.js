@@ -661,7 +661,7 @@ test('Guardian palette availability follows the active tome or forge', () => {
     const state = planningFixture(guardianProfession, { specialization: 'Firebrand' }, (runtime) => {
       runtime.profession.specialization.state.activeTome = activeTome;
     });
-    assert.equal(state.availability[guardianCatalog.skillsByName.get('True Strike').id].ready, !activeTome);
+    assert.equal(state.availability[guardianCatalog.skillsById.get(9109).id].ready, !activeTome);
     assert.equal(state.availability[GUARDIAN_SKILL_IDS.SEARING_SPELL].ready, Boolean(activeTome));
     assert.equal(state.availability[GUARDIAN_SKILL_IDS.DESERT_BLOOM].ready, false);
   }
@@ -670,7 +670,7 @@ test('Guardian palette availability follows the active tome or forge', () => {
     const state = planningFixture(guardianProfession, { specialization: 'Luminary' }, (runtime) => {
       runtime.profession.specialization.state.radiantForge = radiantForge;
     });
-    assert.equal(state.availability[guardianCatalog.skillsByName.get('True Strike').id].ready, !radiantForge);
+    assert.equal(state.availability[guardianCatalog.skillsById.get(9109).id].ready, !radiantForge);
     assert.equal(state.availability[GUARDIAN_SKILL_IDS.DAZZLING_HAMMER].ready, radiantForge);
   }
 });

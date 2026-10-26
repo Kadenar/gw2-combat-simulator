@@ -4,8 +4,6 @@ import { procChanceFromContext } from '#gw2/platform/skills/balance-profiles.js'
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { ELEMENTALIST_TRAIT_IDS as ELE } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { CATALYST_BALANCE_PROFILE_IDS as CATALYST } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
-import { EVOKER_BALANCE_PROFILE_IDS as EVOKER } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as ENGINEER } from '#gw2/professions/engineer/core/profiles.js';
 import { ENGINEER_TRAIT_IDS as ENG, ENGINEER_SKILL_IDS as ENG_SKILL } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -22,7 +20,9 @@ function run(profession, balanceProfiles, specialization, rotation, config = {},
       professions: { [profession.id]: { balanceProfiles, skills } }
     }),
     rotation: rotation.map((entry) =>
-      typeof entry === 'string' ? { type: 'cast', skillId: profession.catalog.skillsByName.get(entry).id } : entry
+      typeof entry === 'string'
+        ? { type: 'cast', skillId: profession.catalog.skills.find((candidate) => candidate.name === entry).id }
+        : entry
     ),
     config: {
       patchId: 'removal-contract',
@@ -174,15 +174,20 @@ test('empty Sunspot effects emit neither an aura nor a proc marker', () => {
 test('removed Ignite tier stays empty while the next named tier retains its duration edit', () => {
   const result = run(
     elementalistProfession,
-    {
-      [EVOKER.ignite]: {
-        removeEffects: [{ type: 'condition', name: 'Tier 1' }],
-        effects: [{ type: 'condition', name: 'Tier 2', duration: { from: 0.5, to: 9 } }]
-      }
-    },
+    {},
     'Evoker',
     ['Ignite', 'Rejuvenate', 'Ignite', { type: 'wait', durationMs: 1000 }],
-    { selectedSkillIds: [76634] }
+    { selectedSkillIds: [76634] },
+    {
+      [elementalistProfession.catalog.skillsById.get(76643).id]: {
+        sideEffects: {
+          'burning-tiers': {
+            removeEffects: [{ type: 'condition', name: 'Tier 1' }],
+            effects: [{ type: 'condition', name: 'Tier 2', duration: { from: 0.5, to: 9 } }]
+          }
+        }
+      }
+    }
   );
   const burns = result.events.filter(
     (event) => event.type === 'condition' && event.skillName === 'Ignite' && !event.cancelled
@@ -213,8 +218,8 @@ test('Rocket Punch keeps Burning and stun when its strike is removed', () => {
 test('patched resource capacities seed simulation and presentation from the same catalog', () => {
   // Resource clocks and the separate endurance service expose their own canonical projected balances.
   for (const [profession, specialization, profile, balance] of [
-    [elementalistProfession, 'Catalyst', CATALYST.resources, (state) => state.catalystEnergy.value],
-    [elementalistProfession, 'Evoker', EVOKER.resources, (state) => state.familiarCharges.value],
+    [elementalistProfession, 'Catalyst', ELE.DEPTH_OF_ELEMENTS, (state) => state.catalystEnergy.value],
+    [elementalistProfession, 'Evoker', ELE.EVOCATION, (state) => state.familiarCharges.value],
     [engineerProfession, 'Core', ENGINEER.resources, (state) => state.endurance.value]
   ]) {
     const balanceProfiles = { [profile]: { fields: { maximumStacks: 12 } } };
@@ -255,7 +260,7 @@ test('patched resource capacities seed simulation and presentation from the same
 });
 
 test('removing Cleansing Burst boons preserves its water field', () => {
-  const id = engineerProfession.catalog.skillsByName.get('Cleansing Burst').id;
+  const id = engineerProfession.catalog.skillsById.get(5980).id;
   const result = run(
     engineerProfession,
     {},

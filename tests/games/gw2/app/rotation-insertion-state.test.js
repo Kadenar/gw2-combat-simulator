@@ -91,7 +91,10 @@ test('precombat insertion previews preserve Flow and the boundary inside an unfi
   build.specializations = [{ name: 'Bladesworn', traits: '1-2-2' }];
   build.assumptions.fury = false;
   build.selectedSkillIds.Utility2 = 62967;
-  const cast = (name) => ({ type: 'cast', skillId: adapter.profession.catalog.skillsByName.get(name).id });
+  const cast = (name) => ({
+    type: 'cast',
+    skillId: adapter.profession.catalog.skills.find((candidate) => candidate.name === name).id
+  });
 
   // Both a serial marker and one inside Chop must preserve prepull regeneration without counting prepull hits.
   for (const marker of [{ type: 'combat-start' }, { type: 'combat-start', concurrentOffsetMs: 200 }]) {
@@ -138,7 +141,7 @@ test('Ranger prefix simulations keep precast traps armed until the inherited bou
   const build = createDefaultBuild(adapter);
   build.selectedSkillIds.Utility1 = 12492;
   build.rotation = [
-    { type: 'cast', skillId: adapter.profession.catalog.skillsByName.get('Frost Trap').id },
+    { type: 'cast', skillId: adapter.profession.catalog.skillsById.get(12492).id },
     { type: 'wait', durationMs: 1000 },
     { type: 'combat-start' },
     { type: 'wait', durationMs: 1000 }
@@ -195,7 +198,7 @@ test('native insertion previews project weapon set and cooldown state', async ()
   build.startingWeaponSet = 1;
   build.rotation = ['Phantasmal Berserker', 'Swap Weapons', 'Blurred Frenzy'].map((name) => ({
     type: 'cast',
-    skillId: adapter.profession.catalog.skillsByName.get(name).id
+    skillId: adapter.profession.catalog.skills.find((candidate) => candidate.name === name).id
   }));
   const app = {
     patch: adapter.profession.resolvePatch({ id: 'current' }),

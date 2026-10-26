@@ -402,8 +402,7 @@ test('skill lookup shares event, application, and explicit context identity prec
     { id: 'generated', name: 'Generated' }
   ];
   const catalog = {
-    skillsById: new Map(skills.map((skill) => [skill.id, skill])),
-    skillsByName: new Map(skills.map((skill) => [skill.name, skill]))
+    skillsById: new Map(skills.map((skill) => [skill.id, skill]))
   };
   assert.equal(skillForEvent(catalog, { skillId: 1, application: { skillId: 2 } }, 3), skills[0]);
   assert.equal(skillForEvent(catalog, { application: { skillId: 2 } }, 3), skills[1]);

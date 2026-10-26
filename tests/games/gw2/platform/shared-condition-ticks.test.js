@@ -118,7 +118,7 @@ function resolve(
       strikeMultiplier: () => 1,
       ...query
     },
-    helpers: { conditionName: canonicalTargetConditionName, skillsByName: new Map() }
+    helpers: { conditionName: canonicalTargetConditionName, skills: [] }
   });
 }
 

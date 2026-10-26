@@ -20,10 +20,7 @@ const RANGER_PROFESSION_ID = 'ranger';
 function keepRangerRotationCommand(command: RangerCanonicalBuild['rotation'][number], untamed: boolean): boolean {
   if (command.type !== 'cast') return true;
 
-  const numericId = Number(command.skillId);
-  const skill = Number.isFinite(numericId)
-    ? rangerCatalog.skillsById.get(numericId)
-    : rangerCatalog.skillsByName.get(String(command.skillId));
+  const skill = rangerCatalog.skillsById.get(command.skillId);
   // Preserve Untamed's explicit natural pet commands when loading saved rotations.
   return skill?.petAutonomousSkill !== true || (untamed && rangerPetSkillCommandable(skill, 'Untamed'));
 }

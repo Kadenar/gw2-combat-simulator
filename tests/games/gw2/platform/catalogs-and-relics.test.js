@@ -36,8 +36,8 @@ test('Mesmer test scenarios use the registered live runtime', () => {
       health: 0
     }
   };
-  const canonical = runMesmer(['Bladecall'], config, { profession: mesmerProfession });
-  const fixture = simulateMesmer(['Bladecall'], config);
+  const canonical = runMesmer([{ type: 'cast', skillId: 69311 }], config, { profession: mesmerProfession });
+  const fixture = simulateMesmer([{ type: 'cast', skillId: 69311 }], config);
 
   assert.equal(canonical.totalDamage, fixture.totalDamage);
   assert.equal(canonical.strikeDamage, fixture.strikeDamage);
@@ -73,16 +73,16 @@ test('canonical catalog validation rejects duplicate ids', () => {
     /Duplicate/
   );
   assert.equal(mesmerCatalog.skillsById.size, mesmerCatalog.skills.length);
-  const lastNameWins = createCanonicalCatalog({
+  const namedVariants = createCanonicalCatalog({
     generated: [
       { id: 1, name: 'Variant', effects: [] },
       { id: 2, name: 'Variant', effects: [] }
-    ],
-    skillNameCollision: 'last'
+    ]
   });
 
-  assert.equal(lastNameWins.skillsByName.get('Variant').id, 2);
-  assert.throws(() => createCanonicalCatalog({ skillNameCollision: 'invalid' }), /collision policy/);
+  // Repeated display labels retain distinct canonical identities in both catalog views.
+  assert.equal(namedVariants.skillsById.get(1), namedVariants.skills[0]);
+  assert.equal(namedVariants.skillsById.get(2), namedVariants.skills[1]);
 });
 
 test('canonical catalogs carry validated traits and specializations', () => {

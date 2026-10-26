@@ -35,7 +35,7 @@ export function guardianHookSkillReads(
 ): void {
   const forge: boolean | undefined = cast.skill.radiantForgeSkill;
   const weapon: string | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.radiantWeapon;
-  const tome: string | undefined = runtime.helpers.skillsByName.get(cast.skill.name)?.tome;
+  const tome: string | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.tome;
   const listed: boolean | undefined = runtime.helpers.skills[0]?.radiantForgeSkill;
   // @ts-expect-error Guardian's tome field is a string, not a number.
   const invalid: number = cast.skill.tome;

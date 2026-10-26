@@ -85,8 +85,19 @@ test('instrument commitment requires a performance that was not cancelled', () =
     ['Flustering Flute', 'Flute']
   ]) {
     const config = { specialization: 'Troubadour', initialResource: 3 };
-    const cancelled = simulateMesmer([{ name, interruptMs: 100 }], config);
-    const completed = simulateMesmer([name], config);
+    const cancelled = simulateMesmer(
+      [
+        {
+          skillId: name === 'Harmonious Harp' ? 77077 : mesmerCatalog.skills.find((skill) => skill.name === name).id,
+          interruptMs: 100
+        }
+      ],
+      config
+    );
+    const completed = simulateMesmer(
+      [name === 'Harmonious Harp' ? 77077 : mesmerCatalog.skills.find((skill) => skill.name === name).id],
+      config
+    );
 
     assert.equal(cancelled.events.find((event) => event.type === 'action').cancelled, true);
     assert.deepEqual(cancelled.warnings, []);
@@ -142,7 +153,7 @@ test('core control events are owned by skill definitions across ordinary and rep
       secondaryWeapon: 'Pistol',
       initialResource: 0
     };
-    const rotation = [skill.name, { type: 'wait', durationMs: 1000 }];
+    const rotation = [skill.id, { type: 'wait', durationMs: 1000 }];
     const base = simulateMesmer(rotation, config);
     const profession = {
       runtimeFor(runtimeConfig) {

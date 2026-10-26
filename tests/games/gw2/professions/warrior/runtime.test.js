@@ -479,7 +479,11 @@ test('weapon recharge resets belong to completed activations independently of ho
         secondaryWeapon
       });
       assert.deepEqual(result.warnings, []);
-      assert.equal(result.planningState.cooldowns[warriorCatalog.skillsByName.get(first).id] != null, cancelled, reset);
+      assert.equal(
+        result.planningState.cooldowns[warriorCatalog.skills.find((candidate) => candidate.name === first).id] != null,
+        cancelled,
+        reset
+      );
     }
   }
 });

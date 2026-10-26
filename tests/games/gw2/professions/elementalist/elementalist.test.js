@@ -66,7 +66,7 @@ test('Elementalist build defaults and canonical builds normalize explicitly', ()
   assert.equal(defaults.startingWeaponSet, 1);
   assert.equal(defaults.assumptions.hitboxSize, 'small');
   assert.equal(validateElementalistBuild(defaults).valid, true);
-  assert.equal(elementalistCatalog.skillsByName.has('Swap Weapons'), true);
+  assert.equal(elementalistCatalog.skillsById.has(-3), true);
 
   const migrated = migrateElementalistBuild({
     weapons: ['Scepter', 'Warhorn'],

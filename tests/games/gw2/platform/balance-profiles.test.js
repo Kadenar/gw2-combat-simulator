@@ -83,8 +83,7 @@ test('balance-profile numeric lookup returns patched values and rejects invalid 
   const profile = defineTraitProfile(101, 'Patchable', { threshold: 3 });
   const catalog = {
     balanceProfiles: [profile],
-    balanceProfilesById: new Map([[101, profile]]),
-    balanceProfilesByName: new Map([[profile.name, profile]])
+    balanceProfilesById: new Map([[101, profile]])
   };
   const patched = applyBalanceProfilePatch(catalog, {
     balanceProfiles: { 101: { fields: { threshold: 7 } } }

@@ -1,13 +1,15 @@
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
   fromProfile,
+  skillFact,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
   skillTooltip,
   tooltipFactorChange,
   tooltipPercent,
-  tooltipProfile,
   tooltipSeconds,
   traitTooltip,
   type ProfessionTooltips
@@ -27,7 +29,6 @@ import {
   BASIC_FAMILIARS,
   FAMILIAR_ELEMENTS
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
-import { EVOKER_BALANCE_PROFILE_IDS as EVOKER } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 
 /** Describe evoker tooltips from the selected balance data. */
 export const evokerTooltips = {
@@ -41,7 +42,7 @@ export const evokerTooltips = {
             : 'Release the empowered familiar and spend your empowered stacks. Its effects and eligible familiar traits apply while its sequence runs.',
           [
             fromProfile(
-              EVOKER.resources,
+              TRAIT.EVOCATION,
               BASIC_FAMILIARS.has(id) ? 'maximumStacks' : 'minimumStacks',
               BASIC_FAMILIARS.has(id) ? 'Familiar charges required' : 'Empowered stacks required'
             )
@@ -50,44 +51,39 @@ export const evokerTooltips = {
       ])
     ),
     [ID.REJUVENATE]: skillTooltip('Refill the familiar charge bar. Healing is outside combat simulation scope.', [
-      fromProfile(EVOKER.resources, 'maximumStacks', 'Base charges after use')
+      fromProfile(TRAIT.EVOCATION, 'maximumStacks', 'Base charges after use')
     ]),
-    [ID.FOXS_FURY]: skillTooltip(
-      'Grant party might and Fury, with additional might while attuned to Fire. Also strike and burn your target using the tier selected by your might at cast start. Altruistic Aspect can add its meditation boon.',
-      (balanceContext) => [
-        profileFact(balanceContext, EVOKER.foxsFury, 'threshold', 'Might stacks per additional tier'),
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, EVOKER.foxsFury).effects?.filter((effect) => effect.name?.startsWith('Tier ')),
-          'mutually exclusive might tiers'
-        ).facts,
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, EVOKER.foxsFury)
-            .effects?.filter((effect) => effect.name?.startsWith('Fox'))
-            .map((effect) => ({ ...effect, audience: { recipients: RECIPIENT.PARTY } })),
-          'Fire Bonus is additional only in Fire'
-        ).facts
-      ]
-    ),
+    [ID.FOXS_FURY]: (balanceContext, entity) => {
+      const skill = requireSkillFromContext(balanceContext, entity.id);
+      // Present tiers as alternatives, without duplicating them as unconditional ordinary effects.
+      return {
+        description:
+          'Grant party might and Fury, with additional might while attuned to Fire. Strike and burn using the tier selected by your might at cast start. Altruistic Aspect can add its meditation boon.',
+        facts: [
+          skillFact(balanceContext, ID.FOXS_FURY, 'mightTierThreshold', 'Might stacks per additional tier'),
+          ...simulationEffectFacts(skill.effects, 'mutually exclusive might tiers').facts,
+          ...simulationEffectFacts(
+            requireSkillAction(skill, 'boons').effects.map((effect) => ({
+              ...effect,
+              audience: { recipients: RECIPIENT.PARTY }
+            })),
+            'Fire Bonus is additional only in Fire'
+          ).facts
+        ]
+      };
+    },
     [ID.HARES_AGILITY]: skillTooltip(
       'Gain Electric Enchantment charges that add strikes to familiar attacks. Trigger Altruistic Aspect when selected.',
-      (balanceContext) => [
-        profileFact(balanceContext, EVOKER.haresAgility, 'playerStacks', 'Electric Enchantment charges'),
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, EVOKER.haresAgility).effects?.filter(
-            (effect) => effect.name === 'Hare Enchantment'
-          )
-        ).facts
-      ]
+      // The buff's stack count and duration describe the same charge batch granted in combat.
+      (_balanceContext, skill) =>
+        simulationEffectFacts(requireSkillAction(skill, 'electric-enchantment').effects, 'Electric Enchantment charges')
+          .facts
     ),
     [ID.TOADS_FORTITUDE]: skillTooltip(
-      "Apply the meditation's effects. While attuned to Earth, additionally gain resistance. Trigger Altruistic Aspect when selected.",
-      (balanceContext) =>
-        simulationEffectFacts(
-          tooltipProfile(balanceContext, EVOKER.toadsFortitude).effects?.filter(
-            (effect) => effect.name === 'Toad Resistance'
-          ),
-          'only in Earth'
-        ).facts
+      "Apply the meditation's effects. While attuned to Earth, additionally grant party resistance. Trigger Altruistic Aspect when selected.",
+      // Runtime and tooltip share the selected Earth-gated action, including explicit payload removal.
+      (_balanceContext, skill) =>
+        simulationEffectFacts(requireSkillAction(skill, 'earth-resistance').effects, 'only in Earth').facts
     ),
     [ID.ELEMENTAL_PROCESSION]: skillTooltip(
       'Release the direct effects of all four empowered familiars as independent sequences. Trigger Altruistic Aspect when selected.',
@@ -112,8 +108,8 @@ export const evokerTooltips = {
         description:
           "Spend the full familiar charge bar and add an empowered stack. Ignite's Burning duration advances through consecutive-use tiers and resets after inactivity. The last tier repeats until reset. Each listed duration replaces the native Burning duration.",
         facts: [
-          profileFact(balanceContext, EVOKER.ignite, 'threshold', 'Inactivity before tier reset', tooltipSeconds),
-          profileFact(balanceContext, EVOKER.resources, 'maximumStacks', 'Familiar charges required')
+          skillFact(balanceContext, ID.IGNITE, 'tierResetDuration', 'Inactivity before tier reset', tooltipSeconds),
+          profileFact(balanceContext, TRAIT.EVOCATION, 'maximumStacks', 'Familiar charges required')
         ],
         factTabs: tiers.map(({ label, model }) => ({ label, facts: model.facts })),
         incomplete: tiers.some(({ model }) => model.incomplete)
@@ -121,28 +117,20 @@ export const evokerTooltips = {
     },
     [ID.CALCIFY]: skillTooltip(
       'While the Earth familiar is selected, disabling an enemy grants Protection to yourself. The active familiar blast can trigger this passive.',
-      (balanceContext) => [
-        ...simulationEffectFacts(tooltipProfile(balanceContext, EVOKER.calcify).effects, 'on disabling an enemy').facts,
-        profileFact(balanceContext, EVOKER.calcify, 'internalCooldown', 'Protection interval', tooltipSeconds)
+      (balanceContext, skill) => [
+        ...simulationEffectFacts(requireSkillAction(skill, 'protection').effects, 'on disabling an enemy').facts,
+        skillFact(balanceContext, ID.CALCIFY, 'internalCooldown', 'Protection interval', tooltipSeconds)
       ]
     ),
     [ID.ZAP]: skillTooltip(
       'Spend the full familiar charge bar, add an empowered stack, and strike with your familiar. Gain the Zap buff for eligible follow-up effects.',
-      (balanceContext) =>
-        simulationEffectFacts(
-          tooltipProfile(balanceContext, EVOKER.zap).effects?.filter((effect) => effect.name === 'Zap Window')
-        ).facts
+      (_balanceContext, skill) => simulationEffectFacts(requireSkillAction(skill, 'zap-window').effects).facts
     ),
     [ID.LIGHTNING_BLITZ]: skillTooltip(
       'Spend your empowered familiar stacks and release the attack sequence. Gain an Electric Enchantment charge for additional familiar strikes.',
-      (balanceContext) => [
-        profileFact(balanceContext, EVOKER.lightningBlitz, 'resourceGain', 'Electric Enchantment charges'),
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, EVOKER.lightningBlitz).effects?.filter(
-            (effect) => effect.name === 'Lightning Blitz Enchantment'
-          )
-        ).facts
-      ]
+      (_balanceContext, skill) =>
+        simulationEffectFacts(requireSkillAction(skill, 'electric-enchantment').effects, 'Electric Enchantment charges')
+          .facts
     )
   },
   traits: {
@@ -155,7 +143,7 @@ export const evokerTooltips = {
           "Attunement-entry trait cooldown (Sunspot, Pyromancer's Puissance, Earthen Blast, Rock Solid)",
           tooltipSeconds
         ],
-        fromProfile(EVOKER.ignite, 'pulseInterval', 'Fire-familiar might cooldown', tooltipSeconds)
+        fromProfile(TRAIT.EVOCATION, 'pulseInterval', 'Fire-familiar might cooldown', tooltipSeconds)
       ]
     ),
     [TRAIT.ENHANCED_POTENCY]: traitTooltip(

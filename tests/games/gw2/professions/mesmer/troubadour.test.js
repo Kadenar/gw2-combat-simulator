@@ -63,7 +63,13 @@ test('Troubadour instruments and Syncopate use independent weapon-strength owner
     selectedTraitIds: [TRAIT.SYNCOPATE, TRAIT.SHREDDING, TRAIT.FORTISSIMO],
     boons: { ...defaults.boons, quickness: true, alacrity: true }
   });
-  const lute = simulateMesmer(['Lively Lute', { name: '__wait', waitMs: 1000 }], config);
+  const lute = simulateMesmer(
+    [
+      { type: 'cast', skillId: 76552 },
+      { name: '__wait', waitMs: 1000 }
+    ],
+    config
+  );
   const luteHits = lute.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === ID.LIVELY_LUTE);
   assert.ok(luteHits.length > 0);
   assert.ok(luteHits.every((event) => event.weaponStrengthProfileId === 'nonweapon.profession-mechanic'));
@@ -108,7 +114,10 @@ test('Troubadour performance packets register before later overlapping actions',
     ['Lively Lute', 500],
     ['Crescendo', 900]
   ]) {
-    const result = simulateMesmer([skillName, { name: 'Signet of Midnight', offset }], config);
+    const result = simulateMesmer(
+      [mesmerCatalog.skills.find((skill) => skill.name === skillName).id, { name: 'Signet of Midnight', offset }],
+      config
+    );
     const hit = result.events.find((event) => event.type === 'damage' && event.skillName === skillName);
     const overlappingAction = result.events.find(
       (event) => event.type === 'action' && event.skillName === 'Signet of Midnight'
@@ -151,7 +160,13 @@ const maimProcs = (result) =>
 test('Maim the Disillusioned procs on each player instrument and Crescendo hit', () => {
   const run = (selectedTraitIds) =>
     simulateMesmer(
-      ['Lively Lute', 'Flustering Flute', 'Deafening Drum', 'Harmonious Harp', 'Crescendo'],
+      [
+        { type: 'cast', skillId: 76552 },
+        'Flustering Flute',
+        'Deafening Drum',
+        ID.HARMONIOUS_HARP_ALTERNATE,
+        'Crescendo'
+      ],
       defaultSimulationConfig({ specialization: 'Troubadour', initialResource: 0, selectedTraitIds })
     );
 
@@ -185,7 +200,7 @@ test('Maim the Disillusioned procs on each player instrument and Crescendo hit',
 
 const callAndResponse = (instrument, selectedTraitIds) =>
   simulateMesmer(
-    [instrument, { name: '__wait', waitMs: 2500 }],
+    [mesmerCatalog.skills.find((skill) => skill.name === instrument).id, { name: '__wait', waitMs: 2500 }],
     defaultSimulationConfig({
       specialization: 'Troubadour',
       initialResource: 3,
@@ -280,9 +295,21 @@ test('Shatter Storm gives Lively Lute a second charge without a full cooldown', 
       initialResource: 3,
       selectedTraitIds
     });
-  const ordinary = simulateMesmer(['Lively Lute', 'Lively Lute'], config([]));
-  const shatterStorm = simulateMesmer(['Lively Lute', 'Lively Lute'], config([TRAIT.SHATTER_STORM]));
-  const shatterStormAfterOne = simulateMesmer(['Lively Lute'], config([TRAIT.SHATTER_STORM]));
+  const ordinary = simulateMesmer(
+    [
+      { type: 'cast', skillId: 76552 },
+      { type: 'cast', skillId: 76552 }
+    ],
+    config([])
+  );
+  const shatterStorm = simulateMesmer(
+    [
+      { type: 'cast', skillId: 76552 },
+      { type: 'cast', skillId: 76552 }
+    ],
+    config([TRAIT.SHATTER_STORM])
+  );
+  const shatterStormAfterOne = simulateMesmer([{ type: 'cast', skillId: 76552 }], config([TRAIT.SHATTER_STORM]));
   const shatterStormBeforeUse = simulateMesmer([], config([TRAIT.SHATTER_STORM]));
   const livelyLute = mesmerCatalog.skillsById.get(ID.LIVELY_LUTE);
   const paletteApp = (results) => ({
@@ -354,7 +381,13 @@ test('Troubadour tales grant their boons and instrument-specific notes', () => {
 
   for (const [instrument, tale, expectedNotes, expectedBoons] of cases) {
     const result = simulateMesmer(
-      [instrument, tale, { name: '__wait', waitMs: 100 }],
+      [
+        instrument === 'Harmonious Harp'
+          ? ID.HARMONIOUS_HARP_ALTERNATE
+          : mesmerCatalog.skills.find((skill) => skill.name === instrument).id,
+        tale,
+        { name: '__wait', waitMs: 100 }
+      ],
       defaultSimulationConfig({
         specialization: 'Troubadour',
         initialResource: 3,
@@ -394,7 +427,7 @@ test('Troubadour tales grant their boons and instrument-specific notes', () => {
 
 // Background playing windows feed instrument queries without performing attacks or spending notes.
 test('August Queen starts all instruments with duration based on the previously playing count', () => {
-  const instruments = ['Lively Lute', 'Flustering Flute', 'Deafening Drum', 'Harmonious Harp'];
+  const instruments = [ID.LIVELY_LUTE, ID.FLUSTERING_FLUTE, ID.DEAFENING_DRUM, ID.HARMONIOUS_HARP_ALTERNATE];
   const config = defaultSimulationConfig({ specialization: 'Troubadour', initialResource: 0, selectedTraitIds: [] });
   for (let count = 0; count <= 4; count++) {
     const result = simulateMesmer(
@@ -464,11 +497,18 @@ test('Tortured Mastermind and Soulkeeper require their matching instrument for n
     ['Lively Lute', 'Tale of the Tortured Mastermind'],
     ['Flustering Flute', 'Tale of the Soulkeeper']
   ]) {
-    const result = simulateMesmer([wrong, tale, { type: 'wait', durationMs: 100 }], {
-      specialization: 'Troubadour',
-      initialResource: 0,
-      selectedTraitIds: []
-    });
+    const result = simulateMesmer(
+      [
+        wrong === 'Harmonious Harp' ? 77077 : mesmerCatalog.skills.find((skill) => skill.name === wrong).id,
+        tale,
+        { type: 'wait', durationMs: 100 }
+      ],
+      {
+        specialization: 'Troubadour',
+        initialResource: 0,
+        selectedTraitIds: []
+      }
+    );
     assert.deepEqual(result.warnings, []);
     assert.equal(result.planningState.profession.notes.value, 0);
   }
@@ -476,7 +516,7 @@ test('Tortured Mastermind and Soulkeeper require their matching instrument for n
 
 // Second Scion rewards the count of distinct playing instruments, regardless of their identities.
 test('Second Scion grants one note with at least two playing instruments', () => {
-  const instruments = ['Lively Lute', 'Flustering Flute', 'Deafening Drum', 'Harmonious Harp'];
+  const instruments = [ID.LIVELY_LUTE, ID.FLUSTERING_FLUTE, ID.DEAFENING_DRUM, ID.HARMONIOUS_HARP_ALTERNATE];
   const config = defaultSimulationConfig({ specialization: 'Troubadour', initialResource: 0, selectedTraitIds: [] });
   const cases = [[], ...instruments.map((instrument) => [instrument]), instruments.slice(0, 3), instruments];
   for (let first = 0; first < instruments.length; first++) {
@@ -494,7 +534,7 @@ test('Second Scion grants one note with at least two playing instruments', () =>
 // Eligibility is captured before recitation; expired instruments cannot qualify a later cast.
 test('Second Scion snapshots its performance requirement at cast acceptance', () => {
   const config = defaultSimulationConfig({ specialization: 'Troubadour', initialResource: 0, selectedTraitIds: [] });
-  const opening = ['Lively Lute', 'Flustering Flute'];
+  const opening = [ID.LIVELY_LUTE, ID.FLUSTERING_FLUTE];
   const probe = simulateMesmer(opening, config);
   const expiryMs = Math.min(
     ...probe.events.filter((event) => event.type === 'mesmer.instrument').map((event) => event.expiresAt * 1000)
@@ -522,13 +562,13 @@ test('Second Scion snapshots its performance requirement at cast acceptance', ()
 test('Second Scion respects cancellation and the note cap', () => {
   const config = defaultSimulationConfig({ specialization: 'Troubadour', initialResource: 0, selectedTraitIds: [] });
   const canceled = simulateMesmer(
-    ['Lively Lute', 'Flustering Flute', { name: 'Tale of the Second Scion', interruptMs: 0 }],
+    [{ type: 'cast', skillId: 76552 }, 'Flustering Flute', { name: 'Tale of the Second Scion', interruptMs: 0 }],
     config
   );
   assert.equal(canceled.planningState.profession.notes.value, 0);
   const capped = simulateMesmer(
     [
-      'Lively Lute',
+      { type: 'cast', skillId: 76552 },
       'Deafening Drum',
       'Tale of the Soulkeeper',
       'Tale of the Honorable Rogue',
@@ -645,7 +685,7 @@ test('Troubadour uses initial endurance and Energy grants through the shared poo
 
 test('Troubadour instrument note spends retain rotation timeline metadata', () => {
   const result = simulateMesmer(
-    ['Lively Lute', 'Tale of the Soulkeeper', 'Flustering Flute'],
+    [{ type: 'cast', skillId: 76552 }, 'Tale of the Soulkeeper', 'Flustering Flute'],
     defaultSimulationConfig({
       specialization: 'Troubadour',
       initialResource: 3
@@ -797,7 +837,7 @@ test('Troubadour adept and support traits emit their modeled effects', () => {
   );
 
   const party = simulateMesmer(
-    ['Lively Lute', 'Crescendo'],
+    [{ type: 'cast', skillId: 76552 }, 'Crescendo'],
     defaultSimulationConfig({
       specialization: 'Troubadour',
       initialResource: 1,
@@ -841,7 +881,10 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
   assert.equal(harmonize.planningState.profession.notes.value, 2);
 
   const response = simulateMesmer(
-    ['Lively Lute', { name: '__wait', waitMs: 2500 }],
+    [
+      { type: 'cast', skillId: 76552 },
+      { name: '__wait', waitMs: 2500 }
+    ],
     defaultSimulationConfig({
       specialization: 'Troubadour',
       initialResource: 3,
@@ -875,7 +918,7 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
   assert.ok(altered.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Crescendo'));
 
   const luteSpotlight = simulateMesmer(
-    ['Lively Lute', 'Crescendo'],
+    [{ type: 'cast', skillId: 76552 }, 'Crescendo'],
     defaultSimulationConfig({
       specialization: 'Troubadour',
       initialResource: 1,
@@ -915,7 +958,7 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
 
   const crescendoReadyAt = (initialResource) =>
     simulateMesmer(
-      ['Crescendo', 'Lively Lute'],
+      ['Crescendo', { type: 'cast', skillId: 76552 }],
       defaultSimulationConfig({
         specialization: 'Troubadour',
         initialResource,

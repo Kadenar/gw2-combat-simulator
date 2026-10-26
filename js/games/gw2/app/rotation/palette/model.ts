@@ -225,7 +225,7 @@ interface PaletteFlipFamilies {
 
 function paletteFlipFamilies(
   catalogSkills: readonly Skill[],
-  skillById: ReadonlyMap<number, Skill>
+  skillById: ReadonlyMap<SkillId, Skill>
 ): PaletteFlipFamilies {
   const neighborsBySkillId = new Map<number, Set<number>>();
   const catalogOrder = new Map(catalogSkills.map((skill, index) => [Number(skill.id), index]));
@@ -457,8 +457,8 @@ export function displayedSkillTiles(
       : {};
   const at = Number(planningState?.atSeconds || 0);
   const catalogSkills = app.activeCatalog.skills;
-  const skillById = new Map<number, Skill>(catalogSkills.map((skill) => [Number(skill.id), skill]));
-  const { familyIdBySkillId, membersByFamilyId } = paletteFlipFamilies(catalogSkills, skillById);
+  // Resolve flip links through the catalog's existing index instead of rebuilding it for each palette projection.
+  const { familyIdBySkillId, membersByFamilyId } = paletteFlipFamilies(catalogSkills, app.activeCatalog.skillsById);
   const autoattackChains =
     professionState.autoattackChains && typeof professionState.autoattackChains === 'object'
       ? professionState.autoattackChains

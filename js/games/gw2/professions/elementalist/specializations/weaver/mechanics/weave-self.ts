@@ -6,13 +6,12 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceNumberFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumberFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import type {
   ElementalistRuntime,
@@ -23,31 +22,21 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 const WEAVE_SELF_ACTIVATION_TASK = 'elementalist.weave-self-activation';
 
-/** Schedules Weave Self at its profiled mid-cast activation point. */
+/**
+ * Schedules Weave Self's activation at the same partial-cast point where the platform starts its recharge
+ * (`rechargeProgress`), so the form and its cooldown share one authored boundary.
+ */
 export function startWeaveSelfCast(
   context: ElementalistRuntime,
   cast: RuntimeCast<ElementalistSkill>,
   skill: Skill
 ): void {
-  const at =
-    cast.start + (cast.fullEnd - cast.start) * balanceNumberFromContext(context, PROFILE.resources, 'firstPacketRatio');
+  const at = cast.start + (cast.fullEnd - cast.start) * skillNumber(skill, 'rechargeProgress');
 
   // Activation must occur within the cast lifetime, including its exact final instant.
   if (canonicalTime(at) > cast.effectiveEnd) return;
 
   context.schedule(WEAVE_SELF_ACTIVATION_TASK, at, skill.id, { id: cast.id, generation: 0 });
-}
-
-/** Starts Weave Self's recharge at the same partial-cast point as its activation. */
-function modifyWeaveSelfRechargeStart(
-  context: import('#gw2/platform/profession-definition/runtime-context.js').RechargeStartContext,
-  cast: Pick<RuntimeCast<ElementalistSkill>, 'skill' | 'start' | 'fullEnd' | 'effectiveEnd'>,
-  rechargeStart: number
-): number {
-  if (cast.skill.id !== ID.WEAVE_SELF) return rechargeStart;
-
-  const resourcesProfile = context.requireBalanceProfile(PROFILE.resources);
-  return context.time + (rechargeStart - context.time) * balanceProfileNumber(resourcesProfile, 'firstPacketRatio');
 }
 
 /** Opens the Weave Self window and seeds it with the current attunement. */
@@ -60,7 +49,7 @@ function handleWeaveSelfActivation(
   const core = professionCoreState(context);
   const at = context.time;
   const sourceId = data as Skill['id'];
-  const duration = balanceNumberFromContext(context, PROFILE.resources, 'duration');
+  const duration = skillNumberFromContext(context, ID.WEAVE_SELF, 'duration');
   // Availability and emitted temporary buffs expire on the same combat tick.
   state.weaveSelfUntil = gw2EffectExpiresAt(at, duration);
   state.weaveSelfVisited = [core.primaryAttunement];
@@ -124,7 +113,8 @@ export function applyWeaveSelfAttunement(
 
   state.weaveSelfUntil = 0;
   state.weaveSelfVisited = [];
-  const perfectWeaveDuration = balanceNumberFromContext(context, PROFILE.resources, 'recharge');
+  // Perfect Weave is Weave Self's follow-up window: Tailored Victory stays available for its flip duration.
+  const perfectWeaveDuration = skillNumberFromContext(context, ID.WEAVE_SELF, 'flipDuration');
   state.perfectWeaveUntil = gw2EffectExpiresAt(at, perfectWeaveDuration);
   for (const kind of ['perfect weave', 'weave self fire', 'weave self air']) {
     context.effects.emit(
@@ -166,8 +156,7 @@ const weaveSelfTasks = {
   }
 } satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['tasks']>;
 
-/** Weave Self expiry, Perfect Weave work, and its recharge anchor share one owner. */
+/** Weave Self activation and Perfect Weave work share one owner; the skill's data anchors its recharge. */
 export const weaveSelfLifecycle = {
-  tasks: weaveSelfTasks,
-  rechargeStart: modifyWeaveSelfRechargeStart
+  tasks: weaveSelfTasks
 } satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;

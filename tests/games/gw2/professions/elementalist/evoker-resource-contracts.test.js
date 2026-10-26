@@ -7,7 +7,6 @@ import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerUi } from '#gw2/professions/elementalist/specializations/evoker/presentation.js';
 import { evokerHooks } from '#gw2/professions/elementalist/specializations/evoker/hooks.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -48,7 +47,7 @@ test('Evoker policies seed both clocks from isolated caps and project detached v
       [],
       { initialEvokerCharges: 99, initialEvokerEmpowered: 99 },
       {
-        [PROFILE.resources]: { maximumStacks, minimumStacks }
+        [TRAIT.EVOCATION]: { maximumStacks, minimumStacks }
       }
     );
     assert.deepEqual(result.warnings, []);
@@ -85,7 +84,7 @@ test('Specialized Elements selects the charge policy before locking attunement',
       startAttunement: 'Fire',
       selectedTraitIds: [TRAIT.SPECIALIZED_ELEMENTS]
     },
-    { [PROFILE.resources]: { maximumStacks: 7 }, [TRAIT.SPECIALIZED_ELEMENTS]: { maximumStacks: 9.5 } }
+    { [TRAIT.EVOCATION]: { maximumStacks: 7 }, [TRAIT.SPECIALIZED_ELEMENTS]: { maximumStacks: 9.5 } }
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.familiarCharges.value, 9.5);
@@ -94,7 +93,7 @@ test('Specialized Elements selects the charge policy before locking attunement',
 });
 
 test('basic conversion publishes both final pools together and cancellation earns no empowered progress', () => {
-  const profiles = { [PROFILE.resources]: { maximumStacks: 7.5, minimumStacks: 2.5 } };
+  const profiles = { [TRAIT.EVOCATION]: { maximumStacks: 7.5, minimumStacks: 2.5 } };
   const config = { initialEvokerEmpowered: 2 };
   const completed = run([ID.IGNITE], config, profiles).result;
   assert.deepEqual(completed.warnings, []);
@@ -115,17 +114,18 @@ test('basic conversion publishes both final pools together and cancellation earn
 
 test('basic familiar completion gates its empowered flip using the patched profile delay', () => {
   // A profile override must reach the cooldown controller after the basic charge conversion commits.
-  for (const [basic, empowered, element, profile] of [
-    [ID.IGNITE, ID.CONFLAGRATION, 'Fire', PROFILE.ignite],
-    [ID.SPLASH, ID.BUOYANT_DELUGE, 'Water', PROFILE.splash],
-    [ID.ZAP, ID.LIGHTNING_BLITZ, 'Air', PROFILE.zap],
-    [ID.CALCIFY, ID.SEISMIC_IMPACT, 'Earth', PROFILE.calcify]
+  for (const [basic, empowered, element] of [
+    [ID.IGNITE, ID.CONFLAGRATION, 'Fire'],
+    [ID.SPLASH, ID.BUOYANT_DELUGE, 'Water'],
+    [ID.ZAP, ID.LIGHTNING_BLITZ, 'Air'],
+    [ID.CALCIFY, ID.SEISMIC_IMPACT, 'Earth']
   ]) {
     const delay = 5;
     const { result, runtime } = run(
       [basic],
       { evokerElement: element, startAttunement: element, initialEvokerEmpowered: 2 },
-      { [profile]: { initialDelay: delay } }
+      {},
+      { [basic]: { empoweredUnlockDelay: delay } }
     );
     assert.deepEqual(result.warnings, []);
     const conversion = result.events.find((event) => event.kind === 'evoker-charges');
@@ -139,7 +139,7 @@ test('overlapping weapon completion flushes its fractional reward after the fami
     [ID.SAND_SQUALL, { skillId: ID.CALCIFY, concurrentOffsetMs: 100 }],
     { evokerElement: 'Earth', startAttunement: 'Earth', primaryWeapon: 'Pistol', secondaryWeapon: 'Warhorn' },
     {
-      [PROFILE.resources]: { maximumStacks: 7.5, playerStacks: 2.75 }
+      [TRAIT.EVOCATION]: { maximumStacks: 7.5, playerStacks: 2.75 }
     },
     { [ID.CALCIFY]: { castTimeMs: 1000 } }
   );
@@ -170,7 +170,7 @@ test('Elemental Dynamo grants at attunement and caps the reported pool without a
       selectedTraitIds: [TRAIT.ELEMENTAL_DYNAMO]
     },
     {
-      [PROFILE.resources]: { maximumStacks: 5.5 },
+      [TRAIT.EVOCATION]: { maximumStacks: 5.5 },
       [TRAIT.ELEMENTAL_DYNAMO]: { resourceGain: 1.25 }
     }
   );
@@ -185,7 +185,7 @@ test('Elemental Dynamo grants at attunement and caps the reported pool without a
 
 // A pending provider is a retry opportunity, while its charges remain absent until successful completion.
 test('pending familiar readiness never credits a speculative grant and cancellation removes its retry', () => {
-  const { runtime, catalog } = run([], { initialEvokerCharges: 4 }, { [PROFILE.resources]: { maximumStacks: 7.5 } });
+  const { runtime, catalog } = run([], { initialEvokerCharges: 4 }, { [TRAIT.EVOCATION]: { maximumStacks: 7.5 } });
   const state = runtime.profession.specialization.state;
   state.pendingWeaponCompletions = [{ activationId: 'weapon', at: 2, gain: 3.5 }];
   const skill = catalog.skillsById.get(ID.IGNITE);
@@ -198,7 +198,7 @@ test('pending familiar readiness never credits a speculative grant and cancellat
 
 test('Rejuvenate refills the patched familiar capacity without changing empowered progress', () => {
   const config = { selectedSkillIds: [ID.REJUVENATE], initialEvokerCharges: 0.25, initialEvokerEmpowered: 1.5 };
-  const profiles = { [PROFILE.resources]: { maximumStacks: 7.5 } };
+  const profiles = { [TRAIT.EVOCATION]: { maximumStacks: 7.5 } };
   for (const canceled of [false, true]) {
     const { result } = run(
       [{ skillId: ID.REJUVENATE, ...(canceled ? { interruptAfterMs: 1 } : {}) }],

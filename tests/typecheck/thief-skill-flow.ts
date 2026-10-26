@@ -36,7 +36,7 @@ export type ThiefSkillFlowAssertions = [
 export function thiefHookSkillReads(runtime: ThiefRuntime, cast: Parameters<AntiquaryCastStart>[1]): void {
   const cost: number | undefined = cast.skill.initiativeCost;
   const artifact: ThiefArtifactKind | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.artifactKind;
-  const shroud: boolean | undefined = runtime.helpers.skillsByName.get(cast.skill.name)?.shadowShroudSkill;
+  const shroud: boolean | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.shadowShroudSkill;
   const listed: boolean | undefined = runtime.helpers.skills[0]?.stealthAttack;
   // @ts-expect-error Initiative costs retain their numeric type.
   const invalid: string = cast.skill.initiativeCost;

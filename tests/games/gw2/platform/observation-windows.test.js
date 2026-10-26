@@ -220,7 +220,7 @@ test('DPS excludes elapsed time before the first hit', () => {
 test('target death finishes the lethal activation and stops future events', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
-    ['Bladecall', { name: '__wait', waitMs: 5000 }, 'Unstable Bladestorm'],
+    [{ type: 'cast', skillId: 69311 }, { name: '__wait', waitMs: 5000 }, 'Unstable Bladestorm'],
     defaultSimulationConfig({
       target: {
         ...defaults.target,
@@ -309,7 +309,7 @@ test('target death finishes explicitly owned multi-hit siblings', () => {
     },
     helpers: {
       conditionName: (name) => name,
-      skillsByName: new Map(),
+      skills: [],
       weaponStrength: () => 1_000
     }
   });
@@ -382,7 +382,7 @@ test('pending damage can kill mid-cast and suppress the current skill packet', (
     },
     helpers: {
       conditionName: (name) => name,
-      skillsByName: new Map(),
+      skills: [],
       weaponStrength: () => 1_000
     }
   });
@@ -398,7 +398,7 @@ test('pending damage can kill mid-cast and suppress the current skill packet', (
 test('explicit combat start keeps precombat projectiles that land afterward', () => {
   const result = simulateMesmer(
     [
-      'Bladecall',
+      { type: 'cast', skillId: 69311 },
       { name: '__wait', waitMs: 1000 },
       { name: '__combat_start' },
       'Unstable Bladestorm',

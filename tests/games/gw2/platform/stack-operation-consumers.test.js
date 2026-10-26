@@ -18,7 +18,7 @@ import { WARRIOR_SKILL_IDS, WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/d
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 
 test('axe materialization replaces the oldest grant without mutating earlier state or snapshots', () => {
-  const prior = Object.freeze([1, 30, 31, 32, 33, 34, 35].map((expiresAt) => ({ skillId: 71854, expiresAt })));
+  const prior = Object.freeze([1, 30, 31, 32, 33, 34, 35].map((expiresAt) => ({ skillId: 71967, expiresAt })));
   let snapshot;
   const result = runThief(
     [{ type: 'wait', durationMs: 1000 }],
@@ -26,7 +26,7 @@ test('axe materialization replaces the oldest grant without mutating earlier sta
     {
       initialize(runtime) {
         runtime.profession.core.spinningAxes = prior;
-        runtime.profession.core.outboundAxes = [{ id: 'landing-axe', skillId: 71854 }];
+        runtime.profession.core.outboundAxes = [{ id: 'landing-axe', skillId: 71967 }];
         snapshot = snapshotProfessionState(runtime.profession);
       },
       // Exercise landing directly: pending flight cannot mutate the earlier grounded snapshot.
@@ -35,12 +35,12 @@ test('axe materialization replaces the oldest grant without mutating earlier sta
   );
   assert.deepEqual(
     observedRuntime(result).profession.core.spinningAxes,
-    [31, 32, 33, 34, 35, 11].map((expiresAt) => ({ skillId: 71854, expiresAt }))
+    [31, 32, 33, 34, 35, 11].map((expiresAt) => ({ skillId: 71967, expiresAt }))
   );
   assert.deepEqual(snapshot.spinningAxes, prior);
 
   // A cast cancelled before its commit point never lands a strike, so it cannot grant axes.
-  const cancelled = runThief([{ name: 'Spinning Axe', interruptMs: 1 }], { primaryWeapon: 'Axe' });
+  const cancelled = runThief([{ skillId: 71967, interruptMs: 1 }], { primaryWeapon: 'Axe' });
   assert.deepEqual(cancelled.warnings, []);
   assert.deepEqual(observedRuntime(cancelled).profession.core.spinningAxes, []);
 });
@@ -49,7 +49,7 @@ test('Holo-Dancer commits spend grant order even when the newest charge expires 
   const prior = Object.freeze([0, 30, 5]);
   let snapshot;
   const config = { specialization: 'Antiquary', selectedSkillIds: [13057] };
-  const skill = thiefCatalog.skillsByName.get('Prepare Pitfall');
+  const skill = thiefCatalog.skillsById.get(13057);
   const result = runThief(['Prepare Pitfall'], config, {
     initialize(runtime) {
       runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations = prior;

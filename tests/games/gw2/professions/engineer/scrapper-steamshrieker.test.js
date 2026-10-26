@@ -58,7 +58,9 @@ test('Steamshrieker burns once for each affected Engineer blast or leap', () => 
 test('Steamshrieker proc rows use the relic icon before the triggering skill icon', () => {
   const app = {
     attributeData: { activeTraits: [] },
-    activeCatalog: { skillsByName: new Map([['Devastator', { icon: 'wrong-trigger-icon.png' }]]) }
+    activeCatalog: {
+      skills: [{ name: 'Devastator', ...{ icon: 'wrong-trigger-icon.png' } }]
+    }
   };
 
   assert.ok(RELIC_DATA.Steamshrieker.icon);

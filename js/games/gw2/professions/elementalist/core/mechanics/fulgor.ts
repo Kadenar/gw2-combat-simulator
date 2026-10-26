@@ -1,10 +1,10 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import type { CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { empowerElementalistSpearPacket } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import type {
   ElementalistRuntime,
@@ -25,9 +25,13 @@ function scheduleNextPulse(context: ElementalistRuntime, sequence: FulgorSequenc
 }
 
 /** A committed recast replaces only the procedural stream; ordinary strikes keep their existing lifetime. */
-export function replaceFulgor(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
-  const profile = requireBalanceProfileFromContext(context, PROFILE.fulgor);
-  const pulse = requireEffect(profile, 'strike', 'Fulgor');
+export function replaceFulgor(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  action: CustomSideEffectAction
+): void {
+  // Snapshot the accepted skill's selected action while retaining its existing sequence lifetime.
+  const pulse = requireEffect(cast.skill, 'strike', 'Fulgor', action);
 
   if (!pulse?.ticks?.length) throw new TypeError('Fulgor requires an explicit strike timeline.');
 

@@ -1,16 +1,17 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 
 /** Stable tier identities keep removed Burning durations from shifting later consecutive-use choices. */
 export const IGNITE_TIERS = Object.freeze(['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4']);
 
-/** Select duration tuning by stable tier name so deleted profile effects cannot renumber the sequence. */
+/** Select duration tuning by stable tier name so removed templates cannot renumber the sequence. */
 export function igniteTierEffect(context: unknown, tier: number) {
-  return requireEffect(requireBalanceProfileFromContext(context, PROFILE.ignite), 'condition', IGNITE_TIERS[tier]);
+  const skill = requireSkillFromContext(context, ID.IGNITE);
+  return requireEffect(skill, 'condition', IGNITE_TIERS[tier], requireSkillAction(skill, 'burning-tiers'));
 }
 
 /** Replace only native Burning durations; removed packets stay absent and other conditions retain their tuning. */

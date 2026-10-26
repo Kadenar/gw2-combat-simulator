@@ -1,14 +1,16 @@
+import { ARCANE_ECHO_REPLACEMENT_RECHARGE_SECONDS } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
+import { skillActionEffects } from '#gw2/platform/effects/actions.js';
 import { WEAPON, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import {
   fromProfile,
+  fromSkill,
+  skillFact,
   modifierFact,
-  profileFact,
   simulationEffectFacts,
   skillTooltip,
   tooltipDecimal,
   tooltipFactorChange,
   tooltipNumber,
-  tooltipProfile,
   tooltipSeconds,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
@@ -70,14 +72,24 @@ export const elementalistCoreTooltips = {
       : []),
     ...((CONJURE_SKILLS[Number(entity.id)] || CONJURE_PICKUP_WEAPONS[Number(entity.id)]) === 'Fiery Greatsword'
       ? [
-          profileFact(balanceContext, CORE.fieryGreatsword, 'weaponAttributeBonus', 'Power while wielded'),
-          profileFact(balanceContext, CORE.fieryGreatsword, 'attributeBonus', 'Condition damage while wielded')
+          skillFact(balanceContext, ID.CONJURE_FIERY_GREATSWORD, 'attributeBonuses.power', 'Power while wielded'),
+          skillFact(
+            balanceContext,
+            ID.CONJURE_FIERY_GREATSWORD,
+            'attributeBonuses.conditionDamage',
+            'Condition damage while wielded'
+          )
         ]
       : []),
     ...((CONJURE_SKILLS[Number(entity.id)] || CONJURE_PICKUP_WEAPONS[Number(entity.id)]) === 'Lightning Hammer'
       ? [
-          profileFact(balanceContext, CORE.lightningHammer, 'weaponAttributeBonus', 'Precision while wielded'),
-          profileFact(balanceContext, CORE.lightningHammer, 'attributeBonus', 'Ferocity while wielded')
+          skillFact(
+            balanceContext,
+            ID.CONJURE_LIGHTNING_HAMMER,
+            'attributeBonuses.precision',
+            'Precision while wielded'
+          ),
+          skillFact(balanceContext, ID.CONJURE_LIGHTNING_HAMMER, 'attributeBonuses.ferocity', 'Ferocity while wielded')
         ]
       : []),
     ...((CONJURE_SKILLS[Number(entity.id)] || CONJURE_PICKUP_WEAPONS[Number(entity.id)]) === 'Frost Bow'
@@ -125,7 +137,7 @@ export const elementalistCoreTooltips = {
         id,
         skillTooltip(
           `Conjure and equip ${weapon}, replacing your weapon bar. Leave a second weapon available for a later pickup. Dropping the bundle restores your normal skills.`,
-          [fromProfile(CORE.conjurePickups, 'duration', 'Ground pickup lifetime', tooltipSeconds)]
+          [fromSkill(Number(id), 'duration', 'Ground pickup lifetime', tooltipSeconds)]
         )
       ])
     ),
@@ -149,7 +161,7 @@ export const elementalistCoreTooltips = {
           chain.etchingId,
           skillTooltip(
             'Create an etching and unlock its lesser release while the field lasts. Completing other actions, including attunement swaps, upgrades it to the full release. Releasing either version consumes the etching.',
-            [fromProfile(CORE.spearEmpowerments, 'maximumStacks', 'Completed actions to fully charge')]
+            [fromSkill(chain.etchingId, 'etchingCompletionThreshold', 'Completed actions to fully charge')]
           )
         ],
         [
@@ -173,31 +185,28 @@ export const elementalistCoreTooltips = {
     [ID.DROP_BUNDLE]: skillTooltip('Drop the conjured weapon and restore your normal weapon skills.'),
     [ID.ROCK_BARRIER]: skillTooltip(
       'Arm Hurl for the barrier window. Rock Barrier begins recharging when Hurl consumes it or the window expires.',
-      [fromProfile(CORE.rockBarrier, 'flipDuration', 'Hurl window', tooltipSeconds)]
+      [fromSkill(ID.ROCK_BARRIER, 'flipDuration', 'Hurl window', tooltipSeconds)]
     ),
     [ID.HURL]: skillTooltip(
       "Release the stored Rock Barrier as projectiles, consume the follow-up, and begin Rock Barrier's recharge."
     ),
     [ID.SIGNET_OF_FIRE]: skillTooltip(
       'Passively gain precision while the signet is ready. Activate to burn your target; the passive is disabled during recharge unless Written in Stone is selected.',
-      [fromProfile(CORE.signetOfFire, 'attributeBonus', 'Passive precision')]
+      [fromSkill(ID.SIGNET_OF_FIRE, 'attributeBonuses.precision', 'Passive precision')]
     ),
     [ID.ARCANE_ECHO]: skillTooltip(
-      "Arm a window for the next completed weapon skill with a recharge. If its cast begins within the window, it receives the short base recharge below, and its original recharge is added to Arcane Echo's base 15-second recharge, before Alacrity. Autoattacks and follow-up skills do not consume the effect; ammunition charges are not replenished.",
-      [
-        fromProfile(CORE.arcaneEcho, 'duration', 'Window', tooltipSeconds),
-        fromProfile(CORE.arcaneEcho, 'recharge', 'Weapon recharge after triggering', tooltipSeconds)
-      ]
+      `Arm a window for the next completed weapon skill with a recharge. If its cast begins within the window, reduce its recharge to ${ARCANE_ECHO_REPLACEMENT_RECHARGE_SECONDS} second and add its original recharge to Arcane Echo's base 15-second recharge, before Alacrity. Autoattacks and follow-up skills do not consume the effect; ammunition charges are not replenished.`,
+      [fromSkill(ID.ARCANE_ECHO, 'duration', 'Window', tooltipSeconds)]
     ),
     [ID.RIDE_THE_LIGHTNING]: skillTooltip(
       "Strike your target. The simulator applies this skill's hit recharge reduction.",
-      [fromProfile(CORE.rideTheLightning, 'rechargeMultiplier', 'Recharge on hit', tooltipFactorChange)]
+      [fromSkill(ID.RIDE_THE_LIGHTNING, 'rechargeMultiplier', 'Recharge on hit', tooltipFactorChange)]
     ),
     [ID.FULGOR]: skillTooltip(
       "Strike and create an additional repeating damage sequence that cannot critically strike. Recasting replaces the previous sequence's remaining pulses.",
-      (balanceContext) =>
+      (_balanceContext, skill) =>
         simulationEffectFacts(
-          tooltipProfile(balanceContext, CORE.fulgor).effects?.flatMap((effect) =>
+          skillActionEffects(skill).flatMap((effect) =>
             effect.type === 'strike'
               ? (effect.ticks || []).map((tick) => ({ ...tick, type: 'strike' as const, canCrit: false }))
               : []
@@ -206,47 +215,35 @@ export const elementalistCoreTooltips = {
         ).facts
     ),
     [ID.SEETHE]: skillTooltip("Empower the next non-autoattack spear skill's strike damage.", [
-      fromProfile(
-        CORE.spearEmpowerments,
-        'damageMultiplier',
-        "Next eligible skill's strike damage",
-        tooltipFactorChange
-      )
+      fromSkill(ID.SEETHE, 'nextSkillDamageMultiplier', "Next eligible skill's strike damage", tooltipFactorChange)
     ]),
     [ID.RIPPLE]: skillTooltip('Reduce the recharge of the next eligible non-autoattack spear skill.', [
-      fromProfile(CORE.spearEmpowerments, 'rechargeMultiplier', "Next eligible skill's recharge", tooltipFactorChange)
+      fromSkill(ID.RIPPLE, 'nextSkillRechargeMultiplier', "Next eligible skill's recharge", tooltipFactorChange)
     ]),
     [ID.ENERGIZE]: skillTooltip("Make the next non-autoattack spear skill's strikes critically hit."),
     [ID.HARDEN]: skillTooltip('Add a control effect to the first strike of the next non-autoattack spear skill.'),
     [ID.ELEMENTAL_EXPLOSION]: skillTooltip(
       'Consume all stocked elemental bullets and apply the explosion effects. Gain the aura matching your primary attunement.',
-      (balanceContext) =>
-        simulationEffectFacts(
-          tooltipProfile(balanceContext, CORE.elementalExplosion).effects,
-          'primary attunement alternative'
-        ).facts
+      (_balanceContext, skill) =>
+        simulationEffectFacts(skillActionEffects(skill), 'primary attunement alternative').facts
     ),
     [ID.RAGING_RICOCHET]: skillTooltip(
       'Strike and apply conditions. Stock a Fire bullet if none is loaded; otherwise consume it to gain might.',
-      (balanceContext) =>
-        simulationEffectFacts(
-          tooltipProfile(balanceContext, CORE.ragingRicochet).effects,
-          'when consuming a Fire bullet'
-        ).facts
+      // Show the selected action's reward without presenting it as an unconditional cast effect.
+      (_balanceContext, skill) =>
+        simulationEffectFacts(skillActionEffects(skill).map((effect) => ({ ...effect, name: 'Fire bullet' }))).facts
     ),
     [ID.SEARING_SALVO]: skillTooltip(
       'Strike and apply conditions. Stock a Fire bullet if none is loaded; otherwise consume it to gain Fire Aura.',
-      (balanceContext) =>
-        simulationEffectFacts(tooltipProfile(balanceContext, CORE.searingSalvo).effects, 'when consuming a Fire bullet')
-          .facts
+      (_balanceContext, skill) =>
+        simulationEffectFacts(skillActionEffects(skill).map((effect) => ({ ...effect, name: 'Fire bullet' }))).facts
     ),
     [ID.FROZEN_FUSILLADE]: skillTooltip(
       'Create the damaging field. Stock a Water bullet if none is loaded; otherwise consume it to add a delayed detonation and bleeding.',
-      (balanceContext) =>
-        simulationEffectFacts(
-          tooltipProfile(balanceContext, CORE.frozenFusillade).effects,
-          'additional detonation when consuming a Water bullet'
-        ).facts
+      (balanceContext, skill) => [
+        skillFact(balanceContext, ID.FROZEN_FUSILLADE, 'detonationDelay', 'Enhanced detonation delay', tooltipSeconds),
+        ...simulationEffectFacts(skillActionEffects(skill), 'delayed detonation').facts
+      ]
     ),
     [ID.FRIGID_FLURRY]: skillTooltip(
       "Fire repeated projectiles. Stock a Water bullet if none is loaded; otherwise consume it. The bullet's healing enhancement is outside combat simulation scope. Each shot can act as a projectile finisher."
@@ -254,18 +251,22 @@ export const elementalistCoreTooltips = {
     [ID.DAZING_DISCHARGE]: skillTooltip(
       "Strike and daze your target. Stock an Air bullet if none is loaded; otherwise consume it to shorten the next eligible pistol skill's recharge.",
       [
-        fromProfile(CORE.dazingDischarge, 'duration', 'Recharge bonus window', tooltipSeconds),
-        fromProfile(CORE.dazingDischarge, 'rechargeMultiplier', 'Next eligible pistol recharge', tooltipFactorChange)
+        fromSkill(ID.DAZING_DISCHARGE, 'duration', 'Recharge bonus window', tooltipSeconds),
+        fromSkill(
+          ID.DAZING_DISCHARGE,
+          'nextSkillRechargeMultiplier',
+          'Next eligible pistol recharge',
+          tooltipFactorChange
+        )
       ]
     ),
     [ID.SHATTERING_STONE]: skillTooltip(
       'Strike and apply conditions. Stock an Earth bullet if none is loaded; otherwise consume it to arm bleeding on your next qualifying hits.',
-      (balanceContext) => [
-        profileFact(balanceContext, CORE.shatteringStone, 'maximumStacks', 'Enhanced bleeding charges'),
-        profileFact(balanceContext, CORE.shatteringStone, 'duration', 'Charge window', tooltipSeconds),
+      (balanceContext, skill) => [
+        skillFact(balanceContext, ID.SHATTERING_STONE, 'maximumStacks', 'Enhanced bleeding charges'),
+        skillFact(balanceContext, ID.SHATTERING_STONE, 'duration', 'Charge window', tooltipSeconds),
         ...simulationEffectFacts(
-          tooltipProfile(balanceContext, CORE.shatteringStone).effects,
-          'per enhanced charge consumed'
+          skillActionEffects(skill).map((effect) => ({ ...effect, name: 'Earth bullet charge' }))
         ).facts
       ]
     ),
@@ -284,15 +285,15 @@ export const elementalistCoreTooltips = {
     [ID.GLYPH_OF_ELEMENTALS]: skillTooltip(
       'Summon a Fire Elemental with its own attributes and autonomous Fireball and Flame Burst attacks. Flame Barrage commands it to interrupt its current attack. The glyph recharges after the elemental expires.',
       [
-        fromProfile(CORE.summonedElemental, 'duration', 'Elemental lifetime', tooltipSeconds),
-        fromProfile(CORE.summonedElemental, 'recharge', 'Recharge after expiry', tooltipSeconds)
+        fromSkill(ID.GLYPH_OF_ELEMENTALS, 'duration', 'Elemental lifetime', tooltipSeconds),
+        fromSkill(ID.GLYPH_OF_ELEMENTALS, 'rechargeAfterExpiry', 'Recharge after expiry', tooltipSeconds)
       ]
     ),
     [ID.GLYPH_OF_ELEMENTALS_EARTH]: skillTooltip(
       'Summon an Earth Elemental with its own attributes and autonomous Punch and Enervating Punch attacks. Stomp commands it to interrupt its current attack. The glyph recharges after the elemental expires.',
       [
-        fromProfile(CORE.summonedElemental, 'duration', 'Elemental lifetime', tooltipSeconds),
-        fromProfile(CORE.summonedElemental, 'recharge', 'Recharge after expiry', tooltipSeconds)
+        fromSkill(ID.GLYPH_OF_ELEMENTALS_EARTH, 'duration', 'Elemental lifetime', tooltipSeconds),
+        fromSkill(ID.GLYPH_OF_ELEMENTALS_EARTH, 'rechargeAfterExpiry', 'Recharge after expiry', tooltipSeconds)
       ]
     ),
     [ID.FLAME_BARRAGE_ELEMENTAL_COMMAND]: skillTooltip(

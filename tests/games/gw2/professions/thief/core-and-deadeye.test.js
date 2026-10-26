@@ -194,7 +194,9 @@ test('Silent Scope and Guitar replace bonus stealth attacks with selected counts
       // Runtime admission and the palette must agree before, at, and after the charge expires.
       runtime.time = at;
       assert.equal(thiefBonusStealthAttack(context), at < 9);
-      const skill = runtime.helpers.skillsByName.get(deadeye ? 'Malicious Backstab' : 'Backstab');
+      const skill = runtime.helpers.skills.find(
+        (candidate) => candidate.name === (deadeye ? 'Malicious Backstab' : 'Backstab')
+      );
       assert.equal(
         thiefProfession.ui.paletteOverride(
           {
@@ -223,7 +225,7 @@ test('Endurance Thief is Daredevil-owned and grants its patched endurance with C
     for (const selected of [false, true]) {
       const active = specialization === 'Daredevil';
       const result = runThief(
-        ['Steal'],
+        [{ type: 'cast', skillId: 13014 }],
         {
           ...baseConfig,
           specialization,
@@ -270,9 +272,9 @@ test('Deadeye live runtime and palette enforce the same flip expiry boundary', (
 });
 
 test('Thief catalog retains valid effect schemas and skill metadata', () => {
-  assert.equal(thiefCatalog.skillsByName.get("Death's Advance").id, 40436);
-  assert.equal(thiefCatalog.skillsByName.get('Canach-Coin Toss').id, 77230);
-  assert.equal(thiefCatalog.skillsByName.get('Death Blossom').initiativeCost, 4);
+  assert.equal(thiefCatalog.skillsById.get(40436).id, 40436);
+  assert.equal(thiefCatalog.skillsById.get(77230).id, 77230);
+  assert.equal(thiefCatalog.skillsById.get(13006).initiativeCost, 4);
 
   // Thief strike timelines stay explicit unless every hit shares one timestamp.
   for (const skill of thiefCatalog.skills) {
@@ -553,7 +555,7 @@ test('initiative regenerates at exact boundaries and ignores Alacrity', () => {
 
 test('Unload refunds 2 initiative on completion but not cancellation', () => {
   const config = { initialInitiative: 3, primaryWeapon: 'Pistol', secondaryWeapon: 'Pistol' };
-  const cost = thiefCatalog.skillsByName.get('Unload').initiativeCost;
+  const cost = thiefCatalog.skillsById.get(13011).initiativeCost;
   // Regeneration of one initiative per second through the cast isolates the refund.
   const initiative = (result) => observedRuntime(result).resourceController.value('initiative');
   const completed = simulate('Core', ['Unload'], config);
@@ -779,7 +781,7 @@ test('stealth replaces weapon skill 1 without a separate palette group', () => {
 });
 
 test('Deadeye palette uses malicious stealth attacks and one stateful rifle bar', () => {
-  const deadeyesMark = thiefCatalog.skillsByName.get("Deadeye's Mark");
+  const deadeyesMark = thiefCatalog.skillsById.get(43390);
   const deadeyeStolenSkillIds = [
     ID.STEAL_TIME,
     ID.STEAL_WARMTH,
@@ -969,7 +971,7 @@ test('Steal exposes a choice pool and consumes whichever stolen skill is selecte
   assert.equal(initialProfessionGroup.stackId, initialStolenGroup.stackId);
   assert.equal(simulate('Core', []).planningState.availability[ID.DETONATE_PLASMA].ready, false);
 
-  const stored = simulate('Core', ['Steal']);
+  const stored = simulate('Core', [{ type: 'cast', skillId: 13014 }]);
 
   assert.equal(stored.planningState.profession.storedStolenSkillCount, 1);
   assert.deepEqual(stored.planningState.profession.storedStolenSkillIds, stolenSkillIds);
@@ -980,7 +982,7 @@ test('Steal exposes a choice pool and consumes whichever stolen skill is selecte
 
   assert.deepEqual(storedGroups.find((group) => group.id === 'thief-stolen-skills').skillIds, stolenSkillIds);
   assert.equal(stored.planningState.availability[ID.DETONATE_PLASMA].ready, true);
-  const used = simulate('Core', ['Steal', 'Detonate Plasma']);
+  const used = simulate('Core', [{ type: 'cast', skillId: 13014 }, 'Detonate Plasma']);
 
   assert.equal(used.warnings.length, 0);
   assert.equal(used.planningState.profession.storedStolenSkillCount, 0);
@@ -1009,7 +1011,7 @@ test('Steal exposes a choice pool and consumes whichever stolen skill is selecte
         unavailable.warnings.some(({ message: warning }) => /steal this skill/i.test(warning)),
         name
       );
-      const consumed = simulate(specialization, ['Steal', name]);
+      const consumed = simulate(specialization, [{ type: 'cast', skillId: 13014 }, name]);
       assert.deepEqual(consumed.warnings, [], name);
       assert.equal(consumed.planningState.profession.storedStolenSkillCount, 0, name);
       assert.deepEqual(consumed.planningState.profession.storedStolenSkillIds, [], name);
@@ -1019,11 +1021,11 @@ test('Steal exposes a choice pool and consumes whichever stolen skill is selecte
       );
 
       const config = { selectedTraitIds: [TRAIT.IMPROVISATION] };
-      const retained = simulate(specialization, ['Steal', name], config);
+      const retained = simulate(specialization, [{ type: 'cast', skillId: 13014 }, name], config);
       assert.deepEqual(retained.warnings, [], name);
       assert.equal(retained.planningState.profession.storedStolenSkillCount, 1, name);
       assert.deepEqual(retained.planningState.profession.storedStolenSkillIds, [id], name);
-      const reused = simulate(specialization, ['Steal', name, name], config);
+      const reused = simulate(specialization, [{ type: 'cast', skillId: 13014 }, name, name], config);
       assert.deepEqual(reused.warnings, [], name);
       assert.equal(reused.planningState.profession.storedStolenSkillCount, 0, name);
     }
@@ -1088,7 +1090,7 @@ test('Daredevil capacity and every dodge replacement resolve explicitly', () => 
   // Damage reporting must use the skill's configured artwork, independent of its image host.
   assert.equal(
     skillBreakdownRows(impalingLotus).find((row) => row.name === 'Impaling Lotus')?.icon,
-    thiefCatalog.skillsByName.get('Impaling Lotus').icon
+    thiefCatalog.skillsById.get(31267).icon
   );
 });
 
@@ -1119,8 +1121,8 @@ test('Daredevil follow-ups, delayed impacts, and endurance traits resolve', () =
   assert.ok(pulmonary.length > 0);
   assert.ok(pulmonary.every((event) => event.canCrit === false));
 
-  const withoutSteal = simulate('Daredevil', ['Dodge', 'Dodge', 'Steal']);
-  const withSteal = simulate('Daredevil', ['Dodge', 'Dodge', 'Steal'], {
+  const withoutSteal = simulate('Daredevil', ['Dodge', 'Dodge', { type: 'cast', skillId: 13014 }]);
+  const withSteal = simulate('Daredevil', ['Dodge', 'Dodge', { type: 'cast', skillId: 13014 }], {
     selectedTraitIds: [TRAIT.ENDURANCE_THIEF]
   });
 

@@ -11,11 +11,13 @@ import {
   luminaryState
 } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import { luminaryTraits } from '#gw2/professions/guardian/specializations/luminary/traits/index.js';
+import { LUMINARY_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/luminary/skill-fields.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const luminaryModule = defineNativeModule({
   id: 'Luminary',
   data: createGuardianModuleData('Luminary', {
+    skillFields: LUMINARY_SKILL_FIELDS,
     skillMechanics: LUMINARY_SKILL_MECHANICS
   }),
   state: { create: luminaryState.create, project: createPublicStateProjector(LUMINARY_PUBLIC_STATE_PROJECTION) },

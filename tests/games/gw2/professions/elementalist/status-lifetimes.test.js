@@ -15,7 +15,6 @@ import {
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 
 const config = {
   specialization: 'Core',
@@ -23,8 +22,11 @@ const config = {
   startAttunement: 'Earth'
 };
 const glyphFor = (element) =>
-  elementalistCatalog.skillsByName.get(element === 'Fire' ? 'Glyph of Elementals' : 'Glyph of Elementals (Earth)');
-const commandFor = (element) => elementalistCatalog.skillsByName.get(element === 'Fire' ? 'Flame Barrage' : 'Stomp');
+  elementalistCatalog.skills.find(
+    (candidate) => candidate.name === (element === 'Fire' ? 'Glyph of Elementals' : 'Glyph of Elementals (Earth)')
+  );
+const commandFor = (element) =>
+  elementalistCatalog.skills.find((candidate) => candidate.name === (element === 'Fire' ? 'Flame Barrage' : 'Stomp'));
 const complete = (r, skill, handler) => handler(r, { skill, effectiveEnd: r.time }, skill);
 
 // Advance the native clock through each boundary; expiry and release must share one recharge owner.
@@ -92,7 +94,12 @@ test('an expired automatic elemental stays absent until an explicit glyph clears
     label: 'Elemental lifecycle',
     professions: {
       elementalist: {
-        balanceProfiles: { [PROFILE.summonedElemental]: { fields: { duration: 2, recharge: 5 } } }
+        skills: Object.fromEntries(
+          [ID.GLYPH_OF_ELEMENTALS, ID.GLYPH_OF_ELEMENTALS_EARTH].map((id) => [
+            id,
+            { fields: { duration: 2, rechargeAfterExpiry: 5 } }
+          ])
+        )
       }
     }
   });
@@ -242,7 +249,7 @@ test('the live queue resolves a final elemental command hit before same-time tea
       id: 'short-elemental',
       label: 'Short elemental lifetime',
       professions: {
-        elementalist: { balanceProfiles: { [PROFILE.summonedElemental]: { fields: { duration: lifetime } } } }
+        elementalist: { skills: { [ID.GLYPH_OF_ELEMENTALS]: { fields: { duration: lifetime } } } }
       }
     });
     const result = runElementalist(

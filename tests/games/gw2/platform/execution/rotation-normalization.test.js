@@ -3,22 +3,50 @@ import test from 'node:test';
 import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 
+// Names are input convenience only: ambiguous labels cannot silently choose a different canonical skill.
+test('rotation decoding resolves unique names and requires IDs for duplicate labels', () => {
+  const catalog = {
+    skillsById: new Map([
+      [1, { id: 1, name: 'Unique' }],
+      [2, { id: 2, name: 'Variant' }],
+      ['variant.other', { id: 'variant.other', name: 'Variant' }]
+    ])
+  };
+  assert.deepEqual(normalizeRotation(['Unique'], catalog, { strict: true }), [{ type: 'cast', skillId: 1 }]);
+  assert.throws(
+    () => normalizeRotation(['Variant'], catalog, { strict: true }),
+    /Ambiguous skill name.*supply skillId/
+  );
+  assert.deepEqual(
+    normalizeRotation([{ type: 'cast', skillId: 'variant.other', name: 'Variant' }], catalog, { strict: true }),
+    [{ type: 'cast', skillId: 'variant.other' }]
+  );
+  assert.deepEqual(normalizeRotation(['Unique', 'Variant', 'Unknown', 'Unique'], catalog), [
+    { type: 'cast', skillId: 1 },
+    { type: 'cast', skillId: 'Unknown' },
+    { type: 'cast', skillId: 1 }
+  ]);
+  // Each import resolves against its supplied catalog, even after the same label was previously indexed.
+  const otherCatalog = { skillsById: new Map([[3, { id: 3, name: 'Unique' }]]) };
+  assert.deepEqual(normalizeRotation(['Unique'], otherCatalog, { strict: true }), [{ type: 'cast', skillId: 3 }]);
+});
+
 // Rotation normalization preserves command intent while validating legacy cast options.
 test('normalized commands migrate legacy cast options', () => {
   assert.deepEqual(
     normalizeRotation(
       [
-        'Fixture Slash',
+        900001,
         { name: '__wait', waitMs: 250 },
         {
-          name: 'Fixture Charge',
+          skillId: 900002,
           offset: 100,
           interruptMs: 50,
           offTarget: true,
           releaseAtCharges: 3,
           doubleEdgeOutcome: 'backfire'
         },
-        '__cooldown_reset',
+        { type: 'cooldown-reset' },
         '__combat_start'
       ],
       testProfession.catalog
@@ -40,19 +68,18 @@ test('normalized commands migrate legacy cast options', () => {
     ]
   );
   assert.throws(
-    () =>
-      normalizeRotation([{ name: 'Fixture Charge', releaseAtCharges: 0 }], testProfession.catalog, { strict: true }),
+    () => normalizeRotation([{ skillId: 900002, releaseAtCharges: 0 }], testProfession.catalog, { strict: true }),
     /positive whole number/
   );
   assert.throws(
     () =>
-      normalizeRotation([{ name: 'Fixture Charge', doubleEdgeOutcome: 'random' }], testProfession.catalog, {
+      normalizeRotation([{ skillId: 900002, doubleEdgeOutcome: 'random' }], testProfession.catalog, {
         strict: true
       }),
     /either success or backfire/
   );
   assert.throws(
-    () => normalizeRotation([{ name: 'Fixture Charge', offTarget: 'yes' }], testProfession.catalog, { strict: true }),
+    () => normalizeRotation([{ skillId: 900002, offTarget: 'yes' }], testProfession.catalog, { strict: true }),
     /Off-target cast must be a boolean/
   );
 });
@@ -62,8 +89,8 @@ test('normalized casts keep positive impact delays and reject contradictory targ
   assert.deepEqual(
     normalizeRotation(
       [
-        { name: 'Fixture Slash', impactDelayMs: 1500 },
-        { name: 'Fixture Slash', impactDelayMs: 0 }
+        { skillId: 900001, impactDelayMs: 1500 },
+        { skillId: 900001, impactDelayMs: 0 }
       ],
       testProfession.catalog
     ),
@@ -73,12 +100,12 @@ test('normalized casts keep positive impact delays and reject contradictory targ
     ]
   );
   assert.throws(
-    () => normalizeRotation([{ name: 'Fixture Slash', impactDelayMs: -1 }], testProfession.catalog, { strict: true }),
+    () => normalizeRotation([{ skillId: 900001, impactDelayMs: -1 }], testProfession.catalog, { strict: true }),
     /Impact delay must be a non-negative number/
   );
   assert.throws(
     () =>
-      normalizeRotation([{ name: 'Fixture Slash', offTarget: true, impactDelayMs: 500 }], testProfession.catalog, {
+      normalizeRotation([{ skillId: 900001, offTarget: true, impactDelayMs: 500 }], testProfession.catalog, {
         strict: true
       }),
     /off-target casts cannot contain impactDelayMs/
@@ -87,17 +114,14 @@ test('normalized casts keep positive impact delays and reject contradictory targ
 
 test('normalized commands preserve signed combat-start offsets', () => {
   assert.deepEqual(
-    normalizeRotation(['Fixture Slash', { name: '__combat_start', offset: 100 }], testProfession.catalog),
+    normalizeRotation([900001, { type: 'combat-start', concurrentOffsetMs: 100 }], testProfession.catalog),
     [
       { type: 'cast', skillId: 900001 },
       { type: 'combat-start', concurrentOffsetMs: 100 }
     ]
   );
-  assert.deepEqual(
-    normalizeRotation(['Fixture Slash', { name: '__combat_start', offset: -440 }], testProfession.catalog),
-    [
-      { type: 'cast', skillId: 900001 },
-      { type: 'combat-start', concurrentOffsetMs: -440 }
-    ]
-  );
+  assert.deepEqual(normalizeRotation([900001, { name: '__combat_start', offset: -440 }], testProfession.catalog), [
+    { type: 'cast', skillId: 900001 },
+    { type: 'combat-start', concurrentOffsetMs: -440 }
+  ]);
 });

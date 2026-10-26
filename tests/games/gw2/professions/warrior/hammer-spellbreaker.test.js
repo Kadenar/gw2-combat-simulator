@@ -135,12 +135,16 @@ test('hammer cooldowns, conditional damage, recharge, and Defense traits work', 
     [0, 1760]
   );
 
-  const defense = simulate('Spellbreaker', ['Earthshaker', '__cooldown_reset', 'Earthshaker'], {
-    primaryWeapon: 'Hammer',
-    initialResource: 20,
-    selectedTraitIds: [TRAIT.CULL_THE_WEAK, TRAIT.MERCILESS_HAMMER],
-    target: { defiant: true }
-  });
+  const defense = simulate(
+    'Spellbreaker',
+    [{ type: 'cast', skillId: 14387 }, '__cooldown_reset', { type: 'cast', skillId: 14387 }],
+    {
+      primaryWeapon: 'Hammer',
+      initialResource: 20,
+      selectedTraitIds: [TRAIT.CULL_THE_WEAK, TRAIT.MERCILESS_HAMMER],
+      target: { defiant: true }
+    }
+  );
   const weaknesses = defense.events.filter((event) => event.sourceId === TRAIT.CULL_THE_WEAK);
 
   assert.equal(weaknesses.length, 1);

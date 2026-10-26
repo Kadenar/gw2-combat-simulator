@@ -5,7 +5,6 @@ import {
   validateWarriorBuild
 } from '#gw2/professions/warrior/build/build.js';
 import { warriorNativeModules } from '#gw2/professions/warrior/catalog.js';
-import { WARRIOR_NATIVE_CATALOG_OPTIONS } from '#gw2/professions/warrior/data/module-data.js';
 
 export { warriorCatalog, warriorNativeModules } from '#gw2/professions/warrior/catalog.js';
 
@@ -18,6 +17,5 @@ export const warriorProfession = defineNativeProfession({
     migrateBuild: migrateWarriorBuild,
     validateBuild: validateWarriorBuild
   },
-  modules: warriorNativeModules,
-  catalog: WARRIOR_NATIVE_CATALOG_OPTIONS
+  modules: warriorNativeModules
 });

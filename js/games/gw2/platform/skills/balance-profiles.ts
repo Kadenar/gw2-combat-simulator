@@ -1,3 +1,4 @@
+import type { CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
 import type {
   AuraEffect,
   ConditionEffect,
@@ -68,6 +69,16 @@ function balanceDataLabel(context: unknown, owner: string, profile?: BalanceProf
   return `profession=${metadata?.professionId ?? source?.profession?.id ?? source?.config?.profession ?? '<unknown>'} patch=${metadata?.patchId ?? source?.config?.patchId ?? '<unknown>'} ${owner}`;
 }
 
+/** Owners carry their selected source, so diagnostics never need the runtime context that resolved them. */
+function ownerDataLabel(owner: Skill | BalanceProfile, subject: string): string {
+  const metadata = owner.balanceDataContext as BalanceProfile['balanceDataContext'];
+  return `profession=${metadata?.professionId ?? '<unknown>'} patch=${metadata?.patchId ?? '<unknown>'} ${subject}`;
+}
+
+function effectOwnerLabel(owner: Skill | BalanceProfile): string {
+  return ownerDataLabel(owner, `${'profileKind' in owner ? 'balance-profile' : 'skill'}=${owner.id}`);
+}
+
 /** Resolves patched balance data across scheduler, resolver, profession, and application context shapes. */
 export function balanceProfileFromContext(context: unknown, id: SkillId): BalanceProfile | undefined {
   if (typeof context === 'function') return (context as BalanceProfileLookup)(id);
@@ -89,56 +100,6 @@ export function requireBalanceProfileFromContext(context: unknown, id: SkillId):
     );
 
   return profile;
-}
-
-/** Resolve a required skill from the selected catalog without falling through to another patch on a miss. */
-export function requireSkillFromContext(context: unknown, id: SkillId): Skill {
-  const skill = catalogFromContext(context)?.skillsById?.get(id);
-
-  if (!skill)
-    throw new Error(`Invalid balance data: ${balanceDataLabel(context, `skill=${id}`)} missing required skill/catalog`);
-
-  return skill;
-}
-
-/** Owners carry their selected source, so diagnostics never need the runtime context that resolved them. */
-function ownerDataLabel(owner: Skill | BalanceProfile, subject: string): string {
-  const metadata = owner.balanceDataContext as BalanceProfile['balanceDataContext'];
-  return `profession=${metadata?.professionId ?? '<unknown>'} patch=${metadata?.patchId ?? '<unknown>'} ${subject}`;
-}
-
-function effectOwnerLabel(owner: Skill | BalanceProfile): string {
-  return ownerDataLabel(owner, `${'profileKind' in owner ? 'balance-profile' : 'skill'}=${owner.id}`);
-}
-
-/** Share an owner's canonical effect; construction rejects duplicates and only recorded removals may omit a key. */
-export function requireEffect<TType extends SkillEffect['type']>(
-  owner: Skill | BalanceProfile,
-  type: TType,
-  name: string
-): SkillEffectByType<TType> | undefined {
-  const effect = requireCanonicalSkillEffects(owner).find((effect) => effect.type === type && effect.name === name);
-
-  if (effect) return effect as SkillEffectByType<TType>;
-
-  const key = skillEffectKey(type, name);
-
-  if (owner.removedEffectKeys?.includes(key)) return undefined;
-
-  throw new Error(`Invalid balance data: ${effectOwnerLabel(owner)} effect=${type}/${name} unknown effect key`);
-}
-
-/** Validate a surviving effect's field without looking up its owner again; the owner supplies diagnostics. */
-export function effectNumber(owner: Skill | BalanceProfile, effect: SkillEffect, field: string): number {
-  // Valid hot-path reads need no diagnostic strings; retain the full owner context when validation fails.
-  const value = effect[field];
-
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-
-  return requireBalanceNumber(
-    value,
-    `${effectOwnerLabel(owner)} effect=${effect.type}/${effect.name ?? '<unnamed>'} field=${field}`
-  );
 }
 
 /** Required balance inputs fail visibly instead of silently using unpatched values or producing NaN. */
@@ -175,4 +136,69 @@ export function procChanceFromContext(
     throw new Error(`Invalid balance data: ${label} expected=number in [0, 1]`);
 
   return chance;
+}
+
+/** Resolve a required skill from the selected catalog without falling through to another patch on a miss. */
+export function requireSkillFromContext(context: unknown, id: SkillId): Skill {
+  const skill = catalogFromContext(context)?.skillsById?.get(id);
+
+  if (!skill)
+    throw new Error(`Invalid balance data: ${balanceDataLabel(context, `skill=${id}`)} missing required skill/catalog`);
+
+  return skill;
+}
+
+/** Read direct or grouped skill tuning while retaining the selected owner and full path in diagnostics. */
+export function skillNumber(skill: Skill, field: string): number {
+  let value: unknown = skill;
+  for (const segment of field.split('.')) {
+    value =
+      value && typeof value === 'object' && !Array.isArray(value) && Object.hasOwn(value, segment)
+        ? (value as Readonly<Record<string, unknown>>)[segment]
+        : undefined;
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+
+  return requireBalanceNumber(value, ownerDataLabel(skill, `skill=${skill.id} field=${field}`));
+}
+
+/** Resolve intrinsic skill tuning only from the context's authoritative catalog. */
+export function skillNumberFromContext(context: unknown, id: SkillId, field: string): number {
+  return skillNumber(requireSkillFromContext(context, id), field);
+}
+
+/** Share an owner's canonical effect; construction rejects duplicates and only recorded removals may omit a key. */
+export function requireEffect<TType extends SkillEffect['type']>(
+  owner: Skill | BalanceProfile,
+  type: TType,
+  name: string,
+  action?: CustomSideEffectAction
+): SkillEffectByType<TType> | undefined {
+  const effect = requireCanonicalSkillEffects(owner, action).find(
+    (effect) => effect.type === type && effect.name === name
+  );
+
+  if (effect) return effect as SkillEffectByType<TType>;
+
+  const key = skillEffectKey(type, name);
+
+  if ((action ?? owner).removedEffectKeys?.includes(key)) return undefined;
+
+  throw new Error(
+    `Invalid balance data: ${effectOwnerLabel(owner)}${action ? ` action=${action.id ?? action.type}` : ''} effect=${type}/${name} unknown effect key`
+  );
+}
+
+/** Validate a surviving effect's field without looking up its owner again; the owner supplies diagnostics. */
+export function effectNumber(owner: Skill | BalanceProfile, effect: SkillEffect, field: string): number {
+  // Valid hot-path reads need no diagnostic strings; retain the full owner context when validation fails.
+  const value = effect[field];
+
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+
+  return requireBalanceNumber(
+    value,
+    `${effectOwnerLabel(owner)} effect=${effect.type}/${effect.name ?? '<unnamed>'} field=${field}`
+  );
 }

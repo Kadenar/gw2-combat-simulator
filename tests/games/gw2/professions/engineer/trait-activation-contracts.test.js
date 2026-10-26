@@ -104,7 +104,7 @@ test('dodge recharge rewards settle in order after dodge publication and before 
       return seconds;
     }
   };
-  const dodge = engineerCatalog.skillsByName.get('Dodge');
+  const dodge = engineerCatalog.skillsById.get(-5);
   engineerCoreHooks.onCastStart(runtime, { id: 1, skill: dodge });
   assert.deepEqual(reductions, [3, 1]);
   assert.deepEqual(

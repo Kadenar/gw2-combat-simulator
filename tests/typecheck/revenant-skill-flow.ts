@@ -34,11 +34,11 @@ export type RevenantSkillFlowAssertions = [
 export function revenantHookSkillReads(runtime: RevenantRuntime, cast: Parameters<EliteCast>[1]): void {
   const cost: number | undefined = cast.skill.energyCost;
   const flag: string | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.legendId;
-  const named: number | undefined = runtime.helpers.skillsByName.get(cast.skill.name)?.energyCost;
+  const indexed: number | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.energyCost;
   const listed: boolean | undefined = runtime.helpers.skills[0]?.facet;
   // @ts-expect-error Numeric mechanics must not lose their type at runtime.
   const invalid: string = cast.skill.energyCost;
-  void [cost, flag, named, listed, invalid];
+  void [cost, flag, indexed, listed, invalid];
 }
 
 createRevenantModuleData('Core', {

@@ -64,7 +64,7 @@ function createTempestApp(rotation = [], { tempestTraits = '1-1-2', alacrity = t
       ? { type: 'wait', durationMs: entry }
       : {
           type: 'cast',
-          skillId: catalog.skillsByName.get(entry).id
+          skillId: catalog.skills.find((candidate) => candidate.name === entry).id
         }
   );
   const defaults = elementalistProfession.createBuildDefaults();
@@ -132,8 +132,8 @@ function paletteContext(app) {
 test('Tempest overload palette availability follows the active attunement', () => {
   const app = createTempestApp();
   const context = paletteContext(app);
-  const air = catalog.skillsByName.get('Overload Air');
-  const fire = catalog.skillsByName.get('Overload Fire');
+  const air = catalog.skillsById.get(29719);
+  const fire = catalog.skillsById.get(29706);
 
   assert.deepEqual(paletteAvailability(app, context, air), {
     available: true,
@@ -148,7 +148,7 @@ test('Tempest overload palette availability follows the active attunement', () =
 
 test('Tempest overload singularity delays a newly entered attunement but not the rotation start', () => {
   const startingApp = createTempestApp();
-  const startingAir = catalog.skillsByName.get('Overload Air');
+  const startingAir = catalog.skillsById.get(29719);
 
   assert.deepEqual(paletteAvailability(startingApp, paletteContext(startingApp), startingAir), {
     available: true,
@@ -156,7 +156,7 @@ test('Tempest overload singularity delays a newly entered attunement but not the
   });
 
   const enteredApp = createTempestApp(['Fire Attunement']);
-  const fire = catalog.skillsByName.get('Overload Fire');
+  const fire = catalog.skillsById.get(29706);
   const enteredAvailability = paletteAvailability(enteredApp, paletteContext(enteredApp), fire);
   const enteredView = paletteSkillView(
     enteredApp,
@@ -196,7 +196,7 @@ test('Tempest overload singularity delays a newly entered attunement but not the
 
 test('an overload with 0.1 seconds remaining stays click-queueable and casts when ready', () => {
   const nearlyReadyApp = createTempestApp(['Fire Attunement', 4700]);
-  const fire = catalog.skillsByName.get('Overload Fire');
+  const fire = catalog.skillsById.get(29706);
   const availability = paletteAvailability(nearlyReadyApp, paletteContext(nearlyReadyApp), fire);
   const view = paletteSkillView(
     nearlyReadyApp,
@@ -229,7 +229,7 @@ test('a time-zero attunement swap still enforces overload singularity', () => {
 
 test('Tempest overload palette shows its active cooldown after use', () => {
   const app = createTempestApp(['Overload Air']);
-  const air = catalog.skillsByName.get('Overload Air');
+  const air = catalog.skillsById.get(29719);
   const availability = paletteAvailability(app, paletteContext(app), air);
   const view = paletteSkillView(app, air, availability.available, availability.message);
 

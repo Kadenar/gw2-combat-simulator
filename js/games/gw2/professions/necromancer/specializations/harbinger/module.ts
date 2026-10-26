@@ -9,11 +9,13 @@ import {
   projectHarbingerPlanningState
 } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import { necromancerHarbingerTraits } from '#gw2/professions/necromancer/specializations/harbinger/traits/index.js';
+import { HARBINGER_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/harbinger/skill-fields.js';
 
 export const harbingerModule = defineNativeModule({
   traitDefinitions: necromancerHarbingerTraits,
   id: 'Harbinger',
   data: createNecromancerModuleData('Harbinger', {
+    skillFields: HARBINGER_SKILL_FIELDS,
     skillMechanics: HARBINGER_BASE_SKILL_MECHANICS,
     balanceProfiles: HARBINGER_BALANCE_PROFILES
   }),

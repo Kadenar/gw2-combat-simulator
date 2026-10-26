@@ -1,6 +1,7 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import type {
   ActionContext,
+  CustomSideEffectAction,
   ResourceGrantAmount,
   SideEffectAction,
   SkillSideEffect
@@ -37,8 +38,14 @@ export function sideEffectAmount(
         ? skill?.[amount.skillField]
         : balanceNumberFromContext(runtime, amount.profile, amount.field);
 
-  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
-    throw new RangeError('Side-effect amounts must be finite and non-negative.');
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+    // Name the selected owner and reference so a bad patch can be located without tracing its caller.
+    const reference =
+      typeof amount === 'object' && 'skillField' in amount
+        ? ` skill=${skill?.id ?? '<missing>'} field=${amount.skillField}`
+        : '';
+    throw new RangeError(`Side-effect amounts must be finite and non-negative.${reference}`);
+  }
 
   return value;
 }
@@ -48,7 +55,9 @@ export function applySideEffect<TContext extends SideEffectServices>(
   runtime: TContext,
   context: ActionContext,
   action: SideEffectAction,
-  handlers: Readonly<Record<string, (runtime: TContext, context: ActionContext, action: SideEffectAction) => void>> = {}
+  handlers: Readonly<
+    Record<string, (runtime: TContext, context: ActionContext, action: CustomSideEffectAction) => void>
+  > = {}
 ): void {
   switch (action.type) {
     case 'rechargeReset':
@@ -138,7 +147,7 @@ export function applySkillSideEffects<T extends object>(
   cast: RuntimeCast,
   on: SkillSideEffect['on'],
   handlers?: Readonly<
-    Record<string, (runtime: MechanicContext<T>, context: ActionContext, action: SideEffectAction) => void>
+    Record<string, (runtime: MechanicContext<T>, context: ActionContext, action: CustomSideEffectAction) => void>
   >
 ): void {
   for (const effect of cast.skill.sideEffects ?? []) {

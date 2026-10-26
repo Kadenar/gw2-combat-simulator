@@ -53,7 +53,7 @@ test('a hostile impact locks restricted swaps while a precombat-only rotation le
   assert.deepEqual(prepare.warnings, []);
   assert.equal(prepare.planningState.combatActive, false);
   assert.equal(prepare.planningState.availability[swap.skillId].ready, true);
-  const attack = profession.catalog.skillsByName.get('Blunderbuss');
+  const attack = profession.catalog.skillsById.get(6153);
   const result = runGw2Runtime({
     profession: profession.runtimeFor(config),
     config,
@@ -200,7 +200,10 @@ test('Gunsaber and Photon Forge must exit before changing the underlying equipme
   ]) {
     const profession = await professionRegistry.find((entry) => entry.id === id).loadProfession();
     const config = { specialization, primaryWeapon: 'Rifle', weaponSet2Primary: 'Rifle' };
-    const cast = (name) => ({ type: 'cast', skillId: profession.catalog.skillsByName.get(name).id });
+    const cast = (name) => ({
+      type: 'cast',
+      skillId: profession.catalog.skills.find((candidate) => candidate.name === name).id
+    });
     const blocked = runGw2Runtime({ profession: profession.runtimeFor(config), config, rotation: [cast(enter), swap] });
     assert.equal(blocked.planningState.activeWeaponSet, 1, specialization);
     assert.equal(blocked.planningState.availability[swap.skillId].ready, false, specialization);

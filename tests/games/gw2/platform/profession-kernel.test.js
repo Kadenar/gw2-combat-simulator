@@ -10,10 +10,13 @@ import { testProfessionModifiers } from '#tests/fixtures/profession.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { applySkillPatch, applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { skillAuthoringReference } from '#gw2/integrations/patches/authoring/fields.js';
+import { numberField } from '#gw2/platform/skills/field-specs.js';
 
 // Shared runtime contracts that profession mechanics build on: procedural emission, follow-up windows, declared
 // costs, and authored skill tasks. Each scenario uses a minimal fixture profession rather than a saved rotation.
 const catalog = createCanonicalCatalog({
+  // The fixture profession owns one patchable cost field, as a real profession module would declare it.
+  skillFields: { initiativeCost: numberField({ patch: 'primary' }) },
   generated: [
     { id: 991001, name: 'Trigger', castTimeMs: 0, effects: [] },
     {
@@ -494,7 +497,7 @@ test('patched variants retain executable predicates and snapshot eligibility bef
     patched.skillsById.get(991008).effectVariants[0].when,
     catalog.skillsById.get(991008).effectVariants[0].when
   );
-  assert.equal(skillAuthoringReference(patched.skillsById.get(991008)).effectVariants, undefined);
+  assert.equal(skillAuthoringReference(patched.skillsById.get(991008), patched.skillFields).effectVariants, undefined);
   const result = run(
     {
       catalog: patched,

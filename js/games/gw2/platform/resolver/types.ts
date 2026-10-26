@@ -30,7 +30,6 @@ export interface Gw2ResolverHelpers {
   readonly balanceDataContext?: { readonly professionId: string; readonly patchId: string };
   conditionName(value: unknown): string;
   readonly skillsById?: ReadonlyMap<import('#gw2/platform/skills/types.js').SkillId, Skill>;
-  readonly skillsByName?: ReadonlyMap<string, Skill>;
   readonly balanceProfilesById?: ReadonlyMap<
     import('#gw2/platform/skills/types.js').SkillId,
     import('#gw2/platform/skills/types.js').BalanceProfile

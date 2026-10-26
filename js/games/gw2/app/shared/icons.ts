@@ -3,6 +3,7 @@ import { AURA } from '#gw2/platform/constants.js';
 import type { Gw2ProcStep } from '#gw2/platform/results/types.js';
 import { RELIC_DATA, RELIC_BY_ID } from '#gw2/platform/equipment/relics/data.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 
 const REFRESH_ARROW_ICON =
   'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="6" fill="%23232632"/%3E%3Cpath d="M49 21A20 20 0 1 0 52 39" fill="none" stroke="%23d8c7ff" stroke-width="7" stroke-linecap="round"/%3E%3Cpath d="M49 9v13H36" fill="none" stroke="%23d8c7ff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/%3E%3C/svg%3E';
@@ -107,6 +108,9 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   // Named Elementalist effects use their own icons in both buff rows and qualified facts.
   'Fresh Air': 'https://render.guildwars2.com/file/FA64C9F2750F986E52E8376F22EDBA3844A8C603/1012277.png',
   'Flame Expulsion': 'https://render.guildwars2.com/file/998095CB1FD2CF0164B8A36BABFDB911DF08DB02/1012313.png',
+  // Transcendent Tempest uses its buff artwork; the singularity dwell adjustment uses the duration book glyph.
+  'Transcendent Tempest': 'https://render.guildwars2.com/file/0C79A761B446E53CAB6DA4B320D12D656B5E1151/2207773.png',
+  'Base attunement dwell': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   Superspeed: 'https://render.guildwars2.com/file/E04392C3D8ED985125973AEB99D8460C483263F9/103458.png',
   // Temporary Warrior damage buffs use their granting traits' icons in tooltip facts.
   'Peak Performance': 'https://render.guildwars2.com/file/08F60C11F460F3236DE65A445337290B7AAED96F/1012812.png',
@@ -267,13 +271,39 @@ export function resolveRelicIcon(label: unknown): string {
   return '';
 }
 
+const catalogIconIndexes = new WeakMap<CanonicalCatalog, ReadonlyMap<string, string>>();
+
+/** Cache display artwork per immutable catalog; duplicate labels retain their first icon without selecting skill IDs. */
+export function catalogSkillIcon(catalog: CanonicalCatalog, name: string | undefined): string {
+  if (!name) return '';
+
+  let icons = catalogIconIndexes.get(catalog);
+
+  if (!icons) {
+    const index = new Map<string, string>();
+    for (const skill of catalog.skills) if (!index.has(skill.name)) index.set(skill.name, skill.icon ?? '');
+    catalogIconIndexes.set(catalog, index);
+    icons = index;
+  }
+
+  return icons.get(name) ?? '';
+}
+
+/** Prefer explicit and specialized artwork before consulting the catalog's shared presentation index. */
 export function resolveProcIcon(app: ProfessionAppState, proc: Gw2ProcStep): string {
   if (Number(proc.cooldownReduction) > 0) return REFRESH_ARROW_ICON;
 
+  if (proc.icon) return String(proc.icon);
+
   const traits = app.attributeData?.activeTraits || [];
   const traitIcon = proc.type === 'trait_proc' ? traits.find((trait) => trait.name === proc.skill)?.icon : '';
+
+  if (traitIcon) return String(traitIcon);
+
   const relicIcon = proc.type === 'relic_proc' ? resolveRelicIcon(proc.skill) : '';
-  const procSkillIcon = app.activeCatalog.skillsByName.get(proc.skill)?.icon;
-  const sourceIcon = app.activeCatalog.skillsByName.get(proc.sourceSkill)?.icon;
-  return String(proc.icon || traitIcon || relicIcon || procSkillIcon || sourceIcon || '');
+  return (
+    relicIcon ||
+    catalogSkillIcon(app.activeCatalog, proc.skill) ||
+    catalogSkillIcon(app.activeCatalog, proc.sourceSkill)
+  );
 }

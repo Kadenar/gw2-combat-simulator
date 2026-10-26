@@ -9,7 +9,6 @@ import {
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { acceptIgniteEffects } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { AURA } from '#gw2/platform/constants.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
@@ -17,12 +16,10 @@ import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-const IGNITE_PROFILE = 'elementalist.evoker.ignite';
-
-// The unlock trait describes the actual pool; its old independent cap is no longer an authoring field.
+// The unlock trait owns the same energy policy read by runtime and presentation.
 test('Depth of Elements tooltip shares the selected Catalyst energy capacity', () => {
   const family = preview({
-    balanceProfiles: { 'elementalist.catalyst.resources': { fields: { maximumStacks: 12 } } }
+    balanceProfiles: { [TRAIT.DEPTH_OF_ELEMENTS]: { fields: { maximumStacks: 12 } } }
   });
   for (const [patchId, maximum] of [
     ['current', 30],
@@ -30,7 +27,7 @@ test('Depth of Elements tooltip shares the selected Catalyst energy capacity', (
     ['current', 30]
   ]) {
     const context = family.resolvePatch({ id: patchId }).balanceContext;
-    assert.equal(context.catalog.balanceProfilesById.get(TRAIT.DEPTH_OF_ELEMENTS)?.maximumStacks, undefined);
+    assert.equal(context.catalog.balanceProfilesById.get(TRAIT.DEPTH_OF_ELEMENTS)?.maximumStacks, maximum);
     const trait = context.catalog.traits.find(({ id }) => id === TRAIT.DEPTH_OF_ELEMENTS);
     const model = describeSimulationTrait(context, trait, elementalistTooltips);
     assert.ok(!model.incomplete);
@@ -127,41 +124,24 @@ function simulate(profession, patchId, skillId, config = {}) {
   return result;
 }
 
-test('skill-owned Evoker utility profiles project edits and removals into tooltips and combat', () => {
-  // Each skill owns its conditional reward; editing one profile must leave the other owners untouched.
+test('skill-owned Evoker action payloads project edits and removals into tooltips and combat', () => {
+  // Each selected action owns its reward independently of the other skills.
   const cases = [
-    [PROFILE.foxsFury, ID.FOXS_FURY, 'boon', 'Fox Fury', 'fury', 'Fire'],
-    [PROFILE.toadsFortitude, ID.TOADS_FORTITUDE, 'boon', 'Toad Resistance', 'resistance', 'Earth'],
-    [PROFILE.haresAgility, ID.HARES_AGILITY, 'buff', 'Hare Enchantment', 'hare enchantment', 'Air'],
-    [PROFILE.zap, ID.ZAP, 'buff', 'Zap Window', 'zap buff', 'Air'],
-    [
-      PROFILE.lightningBlitz,
-      ID.LIGHTNING_BLITZ,
-      'buff',
-      'Lightning Blitz Enchantment',
-      'lightning blitz enchantment',
-      'Air'
-    ]
+    ['boons', ID.FOXS_FURY, 'boon', 'Fox Fury', 'fury', 'Fire'],
+    ['zap-window', ID.ZAP, 'buff', 'Zap Window', 'zap buff', 'Air']
   ];
-  for (const [profileId, skillId, type, name, factName, element] of cases) {
+  for (const [actionId, skillId, type, name, factName, element] of cases) {
     for (const removed of [false, true]) {
       const profession = preview({
-        balanceProfiles: {
-          [profileId]: removed ? { removeEffects: [{ type, name }] } : { effects: [{ type, name, duration: 9 }] }
+        skills: {
+          [skillId]: {
+            sideEffects: {
+              [actionId]: removed ? { removeEffects: [{ type, name }] } : { effects: [{ type, name, duration: 9 }] }
+            }
+          }
         }
       });
       const context = profession.resolvePatch({ id: 'tooltip-projection' }).balanceContext;
-      assert.equal(context.catalog.balanceProfilesById.get(profileId).parentId, skillId);
-      for (const [otherProfile] of cases) {
-        if (otherProfile === profileId) continue;
-
-        assert.deepEqual(
-          context.catalog.balanceProfilesById.get(otherProfile).effects,
-          profession.resolvePatch({ id: 'current' }).balanceContext.catalog.balanceProfilesById.get(otherProfile)
-            .effects
-        );
-      }
-
       const facts = skillTooltip(context, skillId).facts.filter((fact) => fact.name.toLowerCase() === factName);
       assert.equal(facts.length, removed ? 0 : 1);
 
@@ -170,25 +150,148 @@ test('skill-owned Evoker utility profiles project edits and removals into toolti
       const result = simulate(profession, 'tooltip-projection', skillId, {
         evokerElement: element,
         startAttunement: element,
-        initialEvokerEmpowered: skillId === ID.LIGHTNING_BLITZ ? 3 : 0,
         selectedSkillIds: [skillId]
       });
 
-      if (skillId === ID.HARES_AGILITY || skillId === ID.LIGHTNING_BLITZ) {
-        assert.equal(
-          result.events.some(
-            (event) => event.type === 'proc' && event.name === 'Electric Enchantment' && event.detail?.startsWith('+')
-          ),
-          !removed
-        );
-      } else {
-        const grants = result.resolvedEvents.filter(
-          (event) => event.type === 'buff' && event.skillId === skillId && event.kind === factName
-        );
-        assert.equal(grants.length, removed ? 0 : 1);
+      const grants = result.resolvedEvents.filter(
+        (event) => event.type === 'buff' && event.skillId === skillId && event.kind === factName
+      );
+      assert.equal(grants.length, removed ? 0 : 1);
 
-        if (!removed) assert.equal(grants[0].duration, 9);
+      if (!removed) assert.equal(grants[0].duration, 9);
+    }
+  }
+});
+
+test('enchantment action patches share charges and lifetime with tooltips and preserve independent skill effects', () => {
+  for (const [skillId, name] of [
+    [ID.HARES_AGILITY, 'Hare Enchantment'],
+    [ID.LIGHTNING_BLITZ, 'Lightning Blitz Enchantment']
+  ]) {
+    for (const removed of [false, true]) {
+      const profession = preview({
+        skills: {
+          [skillId]: {
+            sideEffects: {
+              'electric-enchantment': removed
+                ? { removeEffects: [{ type: 'buff', name }] }
+                : { effects: [{ type: 'buff', name, stacks: 2, duration: 9 }] }
+            }
+          }
+        }
+      });
+      const context = profession.resolvePatch({ id: 'tooltip-projection' }).balanceContext;
+      const facts = skillTooltip(context, skillId).facts.filter((fact) => fact.name === name);
+      assert.equal(facts.length, removed ? 0 : 1);
+
+      if (!removed) {
+        assert.equal(facts[0].stacks, 2);
+        assert.match(facts[0].detail, /^9s/);
+        assert.match(facts[0].detail, /Electric Enchantment charges/);
       }
+
+      const result = simulate(profession, 'tooltip-projection', skillId, {
+        evokerElement: 'Air',
+        initialEndurance: 0,
+        selectedSkillIds: [ID.HARES_AGILITY],
+        initialEvokerEmpowered: skillId === ID.LIGHTNING_BLITZ ? 3 : 0,
+        selectedTraitIds: [TRAIT.ALTRUISTIC_ASPECT]
+      });
+      const grants = result.events.filter(
+        (event) => event.type === 'proc' && event.name === 'Electric Enchantment' && event.detail?.startsWith('+')
+      );
+      assert.equal(grants.length, removed ? 0 : 1);
+
+      if (!removed) {
+        assert.equal(grants[0].detail, '+2 stacks');
+        assert.equal(grants[0].sourceId, skillId);
+      }
+
+      assert.equal(
+        result.resolvedEvents.some((event) => event.skillName === 'Electric Enchantment'),
+        !removed
+      );
+      assert.ok(
+        result.resolvedEvents.some(
+          (event) => event.type === 'damage' && event.skillId === skillId && event.actorType === 'player'
+        )
+      );
+      const state = observedRuntime(result).profession.specialization.state;
+
+      if (skillId === ID.LIGHTNING_BLITZ) {
+        assert.equal(state.empoweredCharges.value, 0);
+      } else {
+        assert.ok(
+          observedRuntime(result).profession.core.endurance.value >= 50,
+          'The independent endurance grant remains active'
+        );
+        assert.ok(result.resolvedEvents.some((event) => event.type === 'buff' && event.kind === 'swiftness'));
+        assert.ok(
+          result.resolvedEvents.some((event) => event.type === 'buff' && event.kind === 'fury'),
+          'Altruistic Aspect remains active'
+        );
+      }
+    }
+  }
+});
+
+test('Toad resistance action patches preserve the Earth gate, party cap, and meditation ordering', () => {
+  for (const removed of [false, true]) {
+    const profession = preview({
+      skills: {
+        [ID.TOADS_FORTITUDE]: {
+          sideEffects: {
+            'earth-resistance': removed
+              ? { removeEffects: [{ type: 'boon', name: 'Toad Resistance' }] }
+              : {
+                  effects: [{ type: 'boon', name: 'Toad Resistance', duration: 9, audience: { maximumRecipients: 3 } }]
+                }
+          }
+        }
+      }
+    });
+    const context = profession.resolvePatch({ id: 'tooltip-projection' }).balanceContext;
+    const facts = skillTooltip(context, ID.TOADS_FORTITUDE).facts.filter((fact) => fact.name === 'Resistance');
+    assert.equal(facts.length, removed ? 0 : 1);
+
+    if (!removed) {
+      assert.match(facts[0].detail, /^9s/);
+      assert.match(facts[0].detail, /only in Earth/);
+      assert.match(facts[0].detail, /party/);
+    }
+
+    for (const element of ['Earth', 'Fire']) {
+      const result = simulate(profession, 'tooltip-projection', ID.TOADS_FORTITUDE, {
+        evokerElement: element,
+        selectedSkillIds: [ID.TOADS_FORTITUDE],
+        selectedTraitIds: [TRAIT.ALTRUISTIC_ASPECT],
+        allies: { count: 4 }
+      });
+      const buffs = result.resolvedEvents.filter((event) => event.type === 'buff');
+      const grants = buffs.filter((event) => event.kind === 'resistance');
+      const stability = buffs.find((event) => event.kind === 'stability');
+      assert.ok(stability, 'Removing the intrinsic reward must preserve Altruistic Aspect');
+      assert.equal(grants.length, !removed && element === 'Earth' ? 1 : 0);
+
+      for (const grant of grants) {
+        assert.equal(grant.duration, 9);
+        assert.equal(grant.audience.recipients, 'party');
+        assert.equal(grant.audience.maximumRecipients, 3);
+        assert.equal(grant.resolvedAudience.includesSelf, true);
+        assert.equal(grant.resolvedAudience.alliedPlayerCount, 2);
+        // The skill reward settles before the trait reward at the same completion boundary.
+        assert.equal(grant.at, stability.at);
+        assert.ok(grant.eventOrder < stability.eventOrder);
+        assert.equal(grant.activationId, stability.activationId);
+      }
+
+      assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.TOADS_FORTITUDE));
+      assert.ok(
+        result.resolvedEvents.some(
+          (event) =>
+            event.type === 'condition' && event.skillId === ID.TOADS_FORTITUDE && event.condition === 'Bleeding'
+        )
+      );
     }
   }
 });
@@ -259,16 +362,16 @@ test('Familiar blessing previews preserve the runtime element choice after remov
   }
 });
 
-// Tier profiles supply duration only; the native skill continues to own stack counts and additional conditions.
+// Tier templates supply duration only; the native skill continues to own stack counts and additional conditions.
 test('Ignite tier facts and combat preserve native stacks and non-Burning conditions', () => {
   const profession = preview({
     skills: {
       [ID.IGNITE]: {
         effects: [{ type: 'condition', condition: 'Burning', stacks: 3 }],
-        addEffects: [{ type: 'condition', condition: 'Poisoned', stacks: 2, duration: 4 }]
+        addEffects: [{ type: 'condition', condition: 'Poisoned', stacks: 2, duration: 4 }],
+        sideEffects: { 'burning-tiers': { effects: [{ type: 'condition', name: 'Tier 1', duration: 7, stacks: 9 }] } }
       }
-    },
-    balanceProfiles: { [IGNITE_PROFILE]: { effects: [{ type: 'condition', name: 'Tier 1', duration: 7, stacks: 9 }] } }
+    }
   });
   for (const patchId of ['current', 'tooltip-projection']) {
     const context = profession.resolvePatch({ id: patchId }).balanceContext;
@@ -299,7 +402,13 @@ test('Ignite removal preserves tier identity and suppresses Burning in both cons
     const profession = preview(
       nativeRemoved
         ? { skills: { [ID.IGNITE]: { removeEffects: [{ type: 'condition', condition: 'Burning' }] } } }
-        : { balanceProfiles: { [IGNITE_PROFILE]: { removeEffects: [{ type: 'condition', name: 'Tier 2' }] } } }
+        : {
+            skills: {
+              [ID.IGNITE]: {
+                sideEffects: { 'burning-tiers': { removeEffects: [{ type: 'condition', name: 'Tier 2' }] } }
+              }
+            }
+          }
     );
     const context = profession.resolvePatch({ id: 'tooltip-projection' }).balanceContext;
     const model = skillTooltip(context, ID.IGNITE);
@@ -345,6 +454,7 @@ test('Ignite mixed condition timelines share tier removal semantics with tooltip
     skills: {
       [ID.IGNITE]: {
         removeEffects: [{ type: 'condition', condition: 'Burning' }],
+        sideEffects: { 'burning-tiers': { removeEffects: [{ type: 'condition', name: 'Tier 1' }] } },
         addEffects: [
           {
             type: 'condition',
@@ -355,8 +465,7 @@ test('Ignite mixed condition timelines share tier removal semantics with tooltip
           }
         ]
       }
-    },
-    balanceProfiles: { [IGNITE_PROFILE]: { removeEffects: [{ type: 'condition', name: 'Tier 1' }] } }
+    }
   });
   const context = profession.resolvePatch({ id: 'tooltip-projection' }).balanceContext;
   const facts = skillTooltip(context, ID.IGNITE).factTabs[0].facts;

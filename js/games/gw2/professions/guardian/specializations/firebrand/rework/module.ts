@@ -11,6 +11,7 @@ import {
   FIREBRAND_BALANCE_PROFILE_IDS as PROFILE
 } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { FIREBRAND_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/firebrand/skills/index.js';
+import { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/skill-fields.js';
 import {
   firebrandState,
   FIREBRAND_PUBLIC_STATE_PROJECTION
@@ -78,7 +79,11 @@ const specialization = {
 export const firebrandReworkModule = defineNativeModule({
   id: 'Firebrand',
   data: {
-    ...createGuardianModuleData('Firebrand', { skillMechanics: FIREBRAND_SKILL_MECHANICS }),
+    // The rework replaces the module as a unit, so it declares the same Firebrand skill fields.
+    ...createGuardianModuleData('Firebrand', {
+      skillMechanics: FIREBRAND_SKILL_MECHANICS,
+      skillFields: FIREBRAND_SKILL_FIELDS
+    }),
     traits: [...specialization.minorTraits, ...specialization.majorTraits.flat()],
     specializations: [specialization],
     balanceProfiles: FIREBRAND_BALANCE_PROFILES.map((profile) => {

@@ -5,12 +5,12 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 /** Owns spear etching progress and one-shot empowerments that survive until a later cast consumes them. */
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import { elementalistControlRequest } from '#gw2/professions/elementalist/core/events.js';
 import { etchingChain, skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type {
   ElementalistRuntime,
   ElementalistSimulationEvent,
@@ -62,7 +62,7 @@ export function empowerElementalistSpearPacket(
     ...(followup.damage
       ? {
           coefficient:
-            Number(event.coefficient) * balanceNumberFromContext(context, PROFILE.spearEmpowerments, 'damageMultiplier')
+            Number(event.coefficient) * skillNumberFromContext(context, ID.SEETHE, 'nextSkillDamageMultiplier')
         }
       : {}),
     ...(followup.critical ? { forceCrit: true } : {})
@@ -97,7 +97,7 @@ export function completeElementalistSpearProgression(context: ElementalistRuntim
     const counter = advanceCounter(
       progress.otherCasts,
       1,
-      balanceNumberFromContext(context, PROFILE.spearEmpowerments, 'maximumStacks'),
+      skillNumberFromContext(context, candidate.etchingId, 'etchingCompletionThreshold'),
       'retain'
     );
     state.etchings[candidate.etching] = {

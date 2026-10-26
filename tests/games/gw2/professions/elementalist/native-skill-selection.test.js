@@ -41,7 +41,7 @@ test('Tailored Victory is a chain skill, not an elite selection', () => {
     elites.some((skill) => skill.name === 'Weave Self'),
     true
   );
-  assert.equal(elementalistCatalog.skillsByName.get('Tailored Victory').slotSelectable, false);
+  assert.equal(elementalistCatalog.skillsById.get(44637).slotSelectable, false);
 });
 
 test('both supported elemental summons are selectable elite skills', () => {

@@ -66,7 +66,7 @@ test('Mirage follows executed rotation dodges with a one-second ICD', () => {
 
 // The real skill metadata must survive scheduling, with one shared ICD across dodges and evade attacks.
 test('Death Blossom is an evade and shares Mirage cooldown with ordinary dodge', () => {
-  assert.equal(thiefProfession.catalog.skillsByName.get('Death Blossom').evades, true);
+  assert.equal(thiefProfession.catalog.skillsById.get(13006).evades, true);
   const config = {
     specialization: 'Core',
     relic: 'Mirage',

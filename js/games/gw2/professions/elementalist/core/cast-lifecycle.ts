@@ -164,9 +164,9 @@ export const elementalistCoreSideEffectHandlers: RuntimeProfession<
 
     completeElementalistElementalCommand(context, trigger.cast, trigger.skill);
   },
-  'elementalist.replace-fulgor'(context, trigger) {
+  'elementalist.replace-fulgor'(context, trigger, action) {
     if (trigger.kind !== 'cast') throw new TypeError('Fulgor requires a cast trigger.');
 
-    replaceFulgor(context, trigger.cast);
+    replaceFulgor(context, trigger.cast, action);
   }
 };

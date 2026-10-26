@@ -47,7 +47,7 @@ const baseConfig = Object.freeze({
 const simulate = createObservedProfessionSimulator(warriorProfession, baseConfig);
 
 test('Bladesworn gates gunsaber and Dragon Slash state', () => {
-  const blocked = simulate('Bladesworn', ['Swift Cut'], {
+  const blocked = simulate('Bladesworn', [{ type: 'cast', skillId: 62966 }], {
     initialResource: 100
   });
 
@@ -62,9 +62,13 @@ test('Bladesworn gates gunsaber and Dragon Slash state', () => {
 
   assert.match(standardWeaponBlocked.warnings[0].message, /Sheathe the gunsaber/);
 
-  const result = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Swift Cut', 'Dragon Trigger', 'Dragon Slash—Force'], {
-    initialResource: 100
-  });
+  const result = simulate(
+    'Bladesworn',
+    ['Unsheathe Gunsaber', { type: 'cast', skillId: 62966 }, 'Dragon Trigger', { type: 'cast', skillId: 62797 }],
+    {
+      initialResource: 100
+    }
+  );
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.gunsaberActive, true);
@@ -326,7 +330,7 @@ test('Dragon Slash charge tiers drive adrenaline-spend traits', () => {
   ]) {
     const result = simulate(
       'Bladesworn',
-      ['Dragon Trigger', { name: 'Dragon Slash—Force', releaseAtCharges: charges }],
+      ['Dragon Trigger', { skillId: 62797, releaseAtCharges: charges }],
       {
         initialResource: 100,
         selectedTraitIds: [TRAIT.BERSERKERS_POWER, TRAIT.BURST_PRECISION]
@@ -399,13 +403,9 @@ test('Bladesworn releases at the requested charge count and clamps to the trait 
 });
 
 test('Dragon Trigger stalls below its Flow cost and resumes after rebuilding', () => {
-  const result = simulate(
-    'Bladesworn',
-    ['__combat_start', 'Dragon Trigger', { name: 'Dragon Slash—Force', releaseAtCharges: 4 }],
-    {
-      initialResource: 15
-    }
-  );
+  const result = simulate('Bladesworn', ['__combat_start', 'Dragon Trigger', { skillId: 62797, releaseAtCharges: 4 }], {
+    initialResource: 15
+  });
 
   assert.deepEqual(result.warnings, []);
   const ticks = result.events.filter(
@@ -465,11 +465,9 @@ test('Flow balance accounts for Stabilizer, entry spending, regeneration, and st
 });
 
 test('Dragon Slash reports unreachable Flow-gated requests', () => {
-  const result = simulate(
-    'Bladesworn',
-    ['Dragon Trigger', { name: 'Dragon Slash—Force', releaseAtCharges: 4 }, '__combat_start'],
-    { initialResource: 15 }
-  );
+  const result = simulate('Bladesworn', ['Dragon Trigger', { skillId: 62797, releaseAtCharges: 4 }, '__combat_start'], {
+    initialResource: 15
+  });
   const slash = result.steps.find((step) => step.skill === 'Dragon Slash—Force');
 
   assert.equal(slash.invalid, true);
@@ -1082,7 +1080,7 @@ test('two-stack Gunsaber traits grant and display their full Positive Flow rate 
 });
 
 test('Bladesworn ammunition and explosion traits retain stack chronology', () => {
-  const result = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Blooming Fire'], {
+  const result = simulate('Bladesworn', ['Unsheathe Gunsaber', { type: 'cast', skillId: 62930 }], {
     initialResource: 100,
     selectedTraitIds: [TRAIT.FIERCE_AS_FIRE, TRAIT.LUSH_FOREST, TRAIT.GUNS_AND_GLORY]
   });

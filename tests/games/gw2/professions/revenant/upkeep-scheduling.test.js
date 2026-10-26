@@ -129,10 +129,14 @@ test('only actual Core pulse producers emit Core upkeep pulses', () => {
     ['Core', 'Embrace the Darkness', LEGEND.DEMON, true],
     ['Core', 'Vengeful Hammers', LEGEND.DWARF, true]
   ]) {
-    const result = simulate(specialization, [name, wait(3000)], {
-      selectedLegends: [legend, LEGEND.CENTAUR],
-      startingLegend: legend
-    });
+    const result = simulate(
+      specialization,
+      [revenantProfession.catalog.skills.find((skill) => skill.name === name).id, wait(3000)],
+      {
+        selectedLegends: [legend, LEGEND.CENTAUR],
+        startingLegend: legend
+      }
+    );
     assert.deepEqual(result.warnings, []);
     const damage = result.events.filter((event) => event.type === 'damage');
     assert.equal(damage.length > 1, pulses, name);

@@ -80,7 +80,7 @@ export function analyzeMesmerSharperImagesObservation(
 ): MesmerSharperImagesObservation | null {
   if (!hasSelectedTrait(config, TRAIT.SHARPER_IMAGES)) return null;
 
-  const profile = traitBalanceProfile(catalog, TRAIT.SHARPER_IMAGES, 'Sharper Images');
+  const profile = traitBalanceProfile(catalog, TRAIT.SHARPER_IMAGES);
 
   if (!profile) return null;
 

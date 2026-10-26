@@ -574,7 +574,7 @@ test('rotation skill highlights group occurrences by displayed skill', () => {
 test('palette additions insert at an armed cursor and advance it', () => {
   const changes = [];
   const app = {
-    patch: patchSelectionFixture({ skillsById: new Map(), skillsByName: new Map() }),
+    patch: patchSelectionFixture({ skillsById: new Map(), skills: [] }),
     build: {
       rotation: [
         { type: 'cast', skillId: 'First' },
@@ -582,7 +582,7 @@ test('palette additions insert at an armed cursor and advance it', () => {
       ]
     },
     rotationInsertionIndex: 1,
-    activeCatalog: { skillsById: new Map(), skillsByName: new Map() },
+    activeCatalog: { skillsById: new Map(), skills: [] },
     changed: (...args) => {
       changes.push(args);
     }
@@ -614,10 +614,10 @@ test('Dragon Slash editor choices execute prefix candidates through the applicat
   build.weapons = ['Sword', 'Pistol'];
   build.initialResource = 100;
   build.specializations = [{ name: 'Bladesworn', traits: '1-2-2' }];
-  const skills = adapter.profession.catalog.skillsByName;
-  const skill = skills.get('Dragon Slash—Force');
+  const skills = adapter.profession.catalog.skills;
+  const skill = skills.find((skill) => skill.name === 'Dragon Slash—Force');
   build.rotation = [
-    { type: 'cast', skillId: skills.get('Dragon Trigger').id },
+    { type: 'cast', skillId: skills.find((skill) => skill.name === 'Dragon Trigger').id },
     { type: 'wait', durationMs: 1000 },
     { type: 'combat-start' }
   ];
@@ -625,7 +625,7 @@ test('Dragon Slash editor choices execute prefix candidates through the applicat
     patch: adapter.profession.resolvePatch({ id: 'current' }),
     adapter,
     build,
-    activeCatalog: { skillsByName: skills },
+    activeCatalog: adapter.profession.catalog,
     attributeWeaponSet: 1,
     results: null
   };
@@ -704,31 +704,41 @@ test('proc visibility remains hidden after its first render', () => {
 });
 
 test('rotation items preserve default interrupts when options contain nullish values', () => {
-  const skill = { name: 'Counter', defaultInterruptMs: 120 };
+  const skill = { id: 1, name: 'Counter', defaultInterruptMs: 120 };
   const app = {
-    patch: patchSelectionFixture({ skillsById: new Map(), skillsByName: new Map([[skill.name, skill]]) }),
-    activeCatalog: { skillsById: new Map(), skillsByName: new Map([[skill.name, skill]]) }
+    build: {},
+    adapter: { createBuildContext: () => ({ simulationConfig: () => ({}) }) },
+    profession: { runtimeFor: () => ({}) },
+    patch: patchSelectionFixture({
+      skillsById: new Map([[skill.id, skill]]),
+      skills: [{ name: skill.name, ...skill }]
+    }),
+    activeCatalog: { skillsById: new Map([[skill.id, skill]]), skills: [{ name: skill.name, ...skill }] }
   };
 
-  assert.deepEqual(createRotationItem(app, skill.name, { interruptAfterMs: undefined }), {
+  assert.deepEqual(createRotationItem(app, skill.name, { skillId: skill.id, interruptAfterMs: undefined }), {
     type: 'cast',
-    skillId: skill.name,
+    skillId: skill.id,
     interruptAfterMs: 120
   });
-  assert.deepEqual(createRotationItem(app, skill.name, { interruptAfterMs: null }), {
+  assert.deepEqual(createRotationItem(app, skill.name, { skillId: skill.id, interruptAfterMs: null }), {
     type: 'cast',
-    skillId: skill.name,
+    skillId: skill.id,
     interruptAfterMs: 120
   });
-  assert.equal(createRotationItem(app, skill.name, { offTarget: true }).offTarget, true);
+  assert.equal(createRotationItem(app, skill.name, { skillId: skill.id, offTarget: true }).offTarget, true);
 });
 
 test('cooldown-reduction procs use a refresh icon and reduction badge', () => {
   const sourceIcon = 'https://example.com/source-skill.png';
   const app = {
-    patch: patchSelectionFixture({ skillsByName: new Map([['Abyssal Strike', { icon: sourceIcon }]]) }),
+    patch: patchSelectionFixture({
+      skills: [{ name: 'Abyssal Strike', ...{ icon: sourceIcon } }]
+    }),
     attributeData: { activeTraits: [] },
-    activeCatalog: { skillsByName: new Map([['Abyssal Strike', { icon: sourceIcon }]]) }
+    activeCatalog: {
+      skills: [{ name: 'Abyssal Strike', ...{ icon: sourceIcon } }]
+    }
   };
   const proc = {
     type: 'skill_proc',
@@ -1266,7 +1276,7 @@ test('Mesmer palette advances through autoattack chain skills', () => {
     secondaryWeapon: 'Focus',
     initialResource: 0
   };
-  const skill = (name) => mesmerProfession.catalog.skillsByName.get(name);
+  const skill = (name) => mesmerProfession.catalog.skills.find((candidate) => candidate.name === name);
   const availabilityAfter = (rotation) => {
     const result = simulateMesmer(rotation, config);
     const chainState = result.planningState.profession.autoattackChains;
@@ -1353,8 +1363,8 @@ test('Mesmer weapon flips replace and restore their parent palette tile', () => 
     secondaryWeapon: 'Sword',
     initialResource: 0
   };
-  const parent = mesmerProfession.catalog.skillsByName.get('Illusionary Counter');
-  const flip = mesmerProfession.catalog.skillsByName.get('Counterspell');
+  const parent = mesmerProfession.catalog.skillsById.get(10276);
+  const flip = mesmerProfession.catalog.skillsById.get(10314);
   const app = {
     patch: patchSelectionFixture(mesmerProfession.catalog),
     build: { rotation: [] },
@@ -1383,7 +1393,6 @@ test('damage result rows reuse the icons shown for generated procs', () => {
   const app = {
     patch: patchSelectionFixture({
       skillsById: new Map([[123, { icon: 'gust.png' }]]),
-      skillsByName: new Map(),
       skills: []
     }),
     attributeData: {
@@ -1430,7 +1439,7 @@ test('damage result rows reuse the icons shown for generated procs', () => {
         }
       ]
     },
-    activeCatalog: { skillsById: new Map([[123, { icon: 'gust.png' }]]), skillsByName: new Map(), skills: [] }
+    activeCatalog: { skillsById: new Map([[123, { icon: 'gust.png' }]]), skills: [] }
   };
 
   assert.equal(resultSkillIcon(app, { name: 'Sigil of Earth' }), earthIcon);
@@ -1446,20 +1455,18 @@ test('clone attack damage rows use their weapon skill icons', () => {
   const etherBoltIcon = 'ether-bolt.png';
   const app = {
     patch: patchSelectionFixture({
-      skillsByName: new Map([
-        ['Winds of Chaos', { icon: windsIcon }],
-        ['Ether Bolt', { icon: etherBoltIcon }]
-      ]),
-      skills: []
+      skills: [
+        { name: 'Winds of Chaos', ...{ icon: windsIcon } },
+        { name: 'Ether Bolt', ...{ icon: etherBoltIcon } }
+      ]
     }),
     attributeData: { activeTraits: [] },
     results: { procSteps: [] },
     activeCatalog: {
-      skillsByName: new Map([
-        ['Winds of Chaos', { icon: windsIcon }],
-        ['Ether Bolt', { icon: etherBoltIcon }]
-      ]),
-      skills: []
+      skills: [
+        { name: 'Winds of Chaos', ...{ icon: windsIcon } },
+        { name: 'Ether Bolt', ...{ icon: etherBoltIcon } }
+      ]
     }
   };
 
@@ -1596,7 +1603,7 @@ test('Engineer swap action changes from precombat equipment swapping to a live k
   const swapWeapons = engineer.activeCatalog.skillsById.get(-3);
 
   assert.equal(
-    engineer.adapter.isSkillAvailable(engineer.activeCatalog.skillsByName.get('Rifle Burst Grenade'), {
+    engineer.adapter.isSkillAvailable(engineer.activeCatalog.skillsById.get(68079), {
       specialization: 'Core'
     }),
     false
@@ -1665,11 +1672,11 @@ test('Engineer swap action changes from precombat equipment swapping to a live k
   };
   assert.equal(
     resultSkillIcon(engineer, { name: 'Orbital Command Strike' }),
-    engineer.activeCatalog.skillsByName.get('Orbital Command Strike').icon
+    engineer.activeCatalog.skillsById.get(41612).icon
   );
   assert.notEqual(
     resultSkillIcon(engineer, { name: 'Orbital Command Strike' }),
-    engineer.activeCatalog.skillsByName.get('Shrapnel Grenade').icon
+    engineer.activeCatalog.skillsById.get(5807).icon
   );
   assert.equal(
     resolveProcIcon(engineer, {
@@ -1684,13 +1691,13 @@ test('Engineer swap action changes from precombat equipment swapping to a live k
     ['Throw Mine', 'Detonate'],
     ['Healing Turret', 'Detonate Healing Turret']
   ]) {
-    const parent = engineer.activeCatalog.skillsByName.get(parentName);
-    const flip = engineer.activeCatalog.skillsByName.get(flipName);
+    const parent = engineer.activeCatalog.skills.find((candidate) => candidate.name === parentName);
+    const flip = engineer.activeCatalog.skills.find((candidate) => candidate.name === flipName);
     engineer.results.planningState.profession.availableFlips = { [flip.id]: armSkillFlip({}, 0, 0) };
     assert.equal(displayedSkillTiles(engineer, [parent])[0]?.name, flipName, parentName);
   }
 
-  const grenadeKit = engineer.activeCatalog.skillsByName.get('Grenade Kit');
+  const grenadeKit = engineer.activeCatalog.skillsById.get(5805);
   engineer.results.planningState.profession.availableFlips = {};
   assert.equal(displayedSkillTiles(engineer, [grenadeKit])[0]?.name, 'Grenade Kit');
 });
@@ -1698,7 +1705,7 @@ test('Engineer swap action changes from precombat equipment swapping to a live k
 test('Engineer kits register distinct weapon lines in the timeline', async () => {
   const adapter = await loadProfessionAppAdapter('engineer');
   const build = createEngineerBuildDefaults();
-  const skillByName = adapter.profession.catalog.skillsByName;
+  const catalogSkills = adapter.profession.catalog.skills;
   const rotationNames = [
     'Grenade Kit',
     'Shrapnel Grenade',
@@ -1707,7 +1714,10 @@ test('Engineer kits register distinct weapon lines in the timeline', async () =>
     'Stow Flamethrower',
     'Blunderbuss'
   ];
-  const rotation = rotationNames.map((name) => ({ type: 'cast', skillId: skillByName.get(name).id }));
+  const rotation = rotationNames.map((name) => ({
+    type: 'cast',
+    skillId: catalogSkills.find((skill) => skill.name === name).id
+  }));
   const rows = timelineWeaponRows(rotation, {
     startingWeaponSet: 1,
     isWeaponSwap: () => false,
@@ -1734,10 +1744,10 @@ test('Engineer kits register distinct weapon lines in the timeline', async () =>
 test('Firebrand mantra flips replace their selected skill-bar parent', async () => {
   const adapter = await loadProfessionAppAdapter('guardian');
   const skillById = adapter.profession.catalog.skillsById;
-  const skillByName = adapter.profession.catalog.skillsByName;
-  const parent = skillByName.get('Mantra of Flame');
-  const normal = skillByName.get('Flame Rush');
-  const final = skillByName.get('Flame Surge');
+  const catalogSkills = adapter.profession.catalog.skills;
+  const parent = catalogSkills.find((skill) => skill.name === 'Mantra of Flame');
+  const normal = catalogSkills.find((skill) => skill.name === 'Flame Rush');
+  const final = catalogSkills.find((skill) => skill.name === 'Flame Surge');
   const app = {
     patch: patchSelectionFixture({ skillsById: skillById }),
     activeCatalog: { skillsById: skillById },

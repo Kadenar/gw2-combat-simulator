@@ -343,6 +343,8 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
   // Rock Barrier and Hurl are a two-state flip pair sharing the Weapon_2 slot: availability
   // gates each on whether a barrier is currently stored (see core/mechanics/availability.ts).
   [ID.ROCK_BARRIER]: {
+    // The stored barrier's availability and held recharge share this skill-owned window.
+    flipDuration: 30,
     name: 'Rock Barrier',
     type: 'Weapon',
     slot: 'Weapon_2',

@@ -12,7 +12,10 @@ import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 
-const cast = (name) => ({ type: 'cast', skillId: engineerCatalog.skillsByName.get(name).id });
+const cast = (name) => ({
+  type: 'cast',
+  skillId: engineerCatalog.skills.find((candidate) => candidate.name === name).id
+});
 const cause = (at, extra = {}) => ({
   at,
   source: 'Fixture',
@@ -406,7 +409,7 @@ test('Kinetic Accelerators isolates the selected Function Gyro finisher and acce
     const { result } = run('Scrapper', {
       traitTriggers,
       selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS],
-      selectedSkillIds: [engineerCatalog.skillsByName.get('Medic Gyro').id],
+      selectedSkillIds: [engineerCatalog.skillsById.get(30357).id],
       rotation: [cast('Medic Gyro'), cast('Function Gyro'), { type: 'wait', durationMs: 1000 }]
     });
     assert.equal(

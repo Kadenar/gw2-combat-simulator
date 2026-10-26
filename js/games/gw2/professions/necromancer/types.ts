@@ -13,6 +13,10 @@ import type { HarbingerState } from '#gw2/professions/necromancer/specialization
 import type { ReaperState } from '#gw2/professions/necromancer/specializations/reaper/state.js';
 import type { RitualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import type { ScourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
+import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
+import type { NECROMANCER_CORE_SKILL_FIELDS } from '#gw2/professions/necromancer/core/skill-fields.js';
+import type { HARBINGER_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/harbinger/skill-fields.js';
+import type { SCOURGE_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/scourge/skill-fields.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 interface NecromancerBuild extends Gw2Build {
@@ -48,15 +52,17 @@ export interface NecromancerRuntimeState {
 /** Actual mechanics share one owned family state and one live clock. */
 export type NecromancerRuntime = MechanicContext<NecromancerRuntimeState, NecromancerSkill>;
 
-export interface NecromancerSkill extends Skill {
-  readonly dhuumfireDuration?: number;
-  /** Fixed life-force points paid by the shared skill-cost lifecycle. */
-  readonly lifeForceCost?: number;
+/** Numeric tuning fields are typed from the modules' skill-field declarations, which also validate and patch them. */
+export interface NecromancerSkill
+  extends
+    Skill,
+    NumericSkillFields<
+      typeof NECROMANCER_CORE_SKILL_FIELDS & typeof HARBINGER_SKILL_FIELDS & typeof SCOURGE_SKILL_FIELDS
+    > {
   readonly shroud?: string;
   readonly shroudEntry?: string;
   readonly shroudExit?: string;
   readonly shroudProfileId?: string;
-  readonly minimumShroudLifeForcePercent?: number;
   readonly usableInShroud?: boolean;
   readonly shroudSlot?: number;
   readonly slotSelectable?: boolean;

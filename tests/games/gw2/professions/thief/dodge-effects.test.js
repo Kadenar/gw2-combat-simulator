@@ -65,7 +65,7 @@ test('cancelling before a hit does not apply poison or consume the dodge proc', 
 });
 
 test('trait conditions carry their own attribution instead of the triggering skill', () => {
-  const result = simulate('Daredevil', ['Steal', 'Dodge', { name: '__wait', waitMs: 1000 }], {
+  const result = simulate('Daredevil', [{ type: 'cast', skillId: 13014 }, 'Dodge', { name: '__wait', waitMs: 1000 }], {
     selectedTraitIds: [TRAIT.UNCATCHABLE, TRAIT.SERPENTS_TOUCH, TRAIT.DEADLY_AMBUSH]
   });
   for (const [sourceId, skillName, triggeredBy] of [

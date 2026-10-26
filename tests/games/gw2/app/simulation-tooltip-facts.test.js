@@ -7,6 +7,7 @@ import {
   simulationEffectFacts,
   skillTooltip,
   tooltipFactorChange,
+  tooltipPercent,
   tooltipSeconds,
   traitTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
@@ -141,4 +142,14 @@ test('declarative facts reject missing profiles, modifiers, and non-finite numer
     () => traitTooltip('Missing', [['value', 'Missing']])(context, { id: 'missing' }),
     /missing required profile/
   );
+});
+
+// Multiplier changes share one signed format; repeating fractions stay legible without rounding fractional bonuses.
+test('percentage formatting preserves fractional bonuses and caps repeating multiplier fractions', () => {
+  assert.equal(tooltipFactorChange(2 / 3), '-33.33%');
+  assert.equal(tooltipFactorChange(1), '0%');
+  assert.equal(tooltipFactorChange(0.75), '-25%');
+  assert.equal(tooltipFactorChange(1.1), '+10%');
+  assert.equal(tooltipPercent(0.0015), '+0.15%');
+  assert.equal(tooltipPercent(0.005), '+0.5%');
 });

@@ -5,9 +5,7 @@ import { createElementalistModuleData } from '#gw2/professions/elementalist/data
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
 
 import { weaverUi } from '#gw2/professions/elementalist/specializations/weaver/presentation.js';
-import { WEAVER_BALANCE_PROFILES } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
-import { WEAVER_SPEAR_BALANCE_PROFILES } from '#gw2/professions/elementalist/specializations/weaver/skills/weapons/spear.js';
 import {
   WEAVER_PUBLIC_STATE_PROJECTION,
   weaverState
@@ -17,14 +15,14 @@ import {
  * Weaver specialization module.
  *
  * Binds the dual-attunement mechanics, scheduler/resolver state factories, skill
- * catalog fragments, balance profiles, and UI contract that the registry layers
+ * catalog fragments and UI contract that the registry layers
  * on top of the shared Elementalist core.
  */
 export const weaverModule = defineNativeModule({
   id: 'Weaver',
   data: createElementalistModuleData('Weaver', {
-    skillMechanics: WEAVER_SKILL_MECHANICS,
-    balanceProfiles: [...WEAVER_BALANCE_PROFILES, ...WEAVER_SPEAR_BALANCE_PROFILES]
+    skillFields: WEAVER_SKILL_FIELDS,
+    skillMechanics: WEAVER_SKILL_MECHANICS
   }),
   state: { create: weaverState.create, project: createPublicStateProjector(WEAVER_PUBLIC_STATE_PROJECTION) },
   traitDefinitions: weaverTraits,
@@ -35,3 +33,4 @@ export const weaverModule = defineNativeModule({
 });
 
 import { weaverTraits } from '#gw2/professions/elementalist/specializations/weaver/traits/index.js';
+import { WEAVER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/weaver/skill-fields.js';

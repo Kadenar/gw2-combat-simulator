@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { numberField } from '#gw2/platform/skills/field-specs.js';
 import {
   deriveAutoattackChains,
   indexAutoattackChains,
@@ -190,8 +191,12 @@ test('resource grants validate current-skill amounts without accepting them for 
 
 // Cost selectors must resolve to one numeric amount before any cast can be admitted or paid.
 test('skill costs validate authored field selectors and reject competing amount sources', () => {
+  // A cost amount must name a declared numeric field; this fixture declares its own, as a profession module would.
   const load = (initiativeCost, cost = { resource: 'initiative', skillAmount: 'initiativeCost' }) =>
-    createCanonicalCatalog({ generated: [{ id: 1, name: 'Paid', initiativeCost, cost }] });
+    createCanonicalCatalog({
+      skillFields: { initiativeCost: numberField() },
+      generated: [{ id: 1, name: 'Paid', initiativeCost, cost }]
+    });
   for (const value of [0, 0.1, 4]) assert.doesNotThrow(() => load(value));
   for (const value of [undefined, -1, Infinity, NaN, '4']) assert.throws(() => load(value), TypeError);
   for (const skillAmount of ['missing', 'name', '', 4])

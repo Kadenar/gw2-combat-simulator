@@ -5,10 +5,7 @@ import {
   migrateElementalistBuild,
   validateElementalistBuild
 } from '#gw2/professions/elementalist/build/build.js';
-import {
-  ELEMENTALIST_NATIVE_CATALOG_OPTIONS,
-  elementalistNativeModules
-} from '#gw2/professions/elementalist/catalog.js';
+import { elementalistNativeModules } from '#gw2/professions/elementalist/catalog.js';
 import { bindElementalistFamilyUi } from '#gw2/professions/elementalist/family-presentation.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
@@ -47,6 +44,5 @@ export const elementalistProfession = defineNativeProfession({
       }
     ]
   },
-  presentation: bindElementalistFamilyUi,
-  catalog: ELEMENTALIST_NATIVE_CATALOG_OPTIONS
+  presentation: bindElementalistFamilyUi
 });

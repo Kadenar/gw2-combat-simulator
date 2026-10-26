@@ -4,7 +4,6 @@ import {
   migrateMesmerBuild,
   validateMesmerBuild
 } from '#gw2/professions/mesmer/build/build.js';
-import { MESMER_NATIVE_CATALOG_OPTIONS } from '#gw2/professions/mesmer/data/module-data.js';
 import { mesmerNativeModules } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerWeaponSkillMatchesSet } from '#gw2/professions/mesmer/build/weapon-matching.js';
@@ -15,7 +14,6 @@ export const mesmerProfession = defineNativeProfession({
   id: 'mesmer',
   name: 'Mesmer',
   requireEquippedSlotSkills: true,
-  catalog: MESMER_NATIVE_CATALOG_OPTIONS,
   build: {
     createBuildDefaults: createMesmerBuildDefaults,
     migrateBuild: migrateMesmerBuild,

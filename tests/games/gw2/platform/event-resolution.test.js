@@ -187,7 +187,7 @@ test('flat and no-crit strikes skip critical queries', () => {
     },
     helpers: {
       conditionName: (name) => name,
-      skillsByName: new Map(),
+      skills: [],
       weaponStrength: () => 1_000
     }
   });

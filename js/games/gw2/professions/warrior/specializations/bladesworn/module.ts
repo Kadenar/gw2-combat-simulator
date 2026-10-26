@@ -15,12 +15,14 @@ import {
   projectBladeswornPlanningState
 } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import { warriorBladeswornTraits } from '#gw2/professions/warrior/specializations/bladesworn/traits/index.js';
+import { BLADESWORN_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/bladesworn/skill-fields.js';
 
 export const bladeswornModule = defineNativeModule({
   canSwapWeaponSetsInCombat: false,
   traitDefinitions: warriorBladeswornTraits,
   id: 'Bladesworn',
   data: createWarriorModuleData('Bladesworn', {
+    skillFields: BLADESWORN_SKILL_FIELDS,
     skillMechanics: BLADESWORN_SKILL_MECHANICS,
     extraSkills: BLADESWORN_SHARP_AS_THE_WIND_SKILLS,
     balanceProfiles: BLADESWORN_BALANCE_PROFILES,

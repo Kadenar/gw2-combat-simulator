@@ -1,6 +1,7 @@
+import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { RESOURCE_KEYS, type ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { SideEffectAction } from '#gw2/platform/effects/actions.js';
+import { isCustomSideEffectAction, type SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
@@ -124,10 +125,18 @@ export function validateSideEffectAction(
       break;
     default:
       // Namespaced profession actions are bound to handlers when the selected runtime modules are assembled.
-      if (!/^[\w-]+(?:\.[\w-]+)+$/.test(action.type))
-        throw new TypeError(`${label} is not a built-in or namespaced action.`);
+      if (!isCustomSideEffectAction(action)) throw new TypeError(`${label} is not a built-in or namespaced action.`);
 
       if (action.amount !== undefined) validateSideEffectAmount(catalog, action.amount, `${label} amount`);
+
+      if (action.effects !== undefined) {
+        // Inline rewards are selected by their handler; nested reaction execution is intentionally unsupported.
+        if (typeof action.id !== 'string' || !action.id.trim())
+          throw new TypeError(`${label} payload requires an action id.`);
+
+        for (const effect of requireCanonicalSkillEffects(skill, action))
+          if (effect.reactions !== undefined) throw new TypeError(`${label} payload cannot declare reactions.`);
+      }
   }
 }
 

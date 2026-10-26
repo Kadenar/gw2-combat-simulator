@@ -431,7 +431,7 @@ test('RNG analysis is available while detailed Engineer results stay determinist
 
   build.rotation = ['Grenade Kit', 'Grenade'].map((name) => ({
     type: 'cast',
-    skillId: engineerProfession.catalog.skillsByName.get(name).id
+    skillId: engineerProfession.catalog.skills.find((candidate) => candidate.name === name).id
   }));
   const app = {
     patch: engineerAppAdapter.profession.resolvePatch({ id: 'current' }),

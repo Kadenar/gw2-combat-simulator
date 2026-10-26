@@ -31,9 +31,7 @@ function selectedSkillId(app: ProfessionAppState, skillId: SkillId): SkillId {
 
 /**
  * Resolves the catalog skill behind a rotation entry or palette item. Non-cast
- * commands (wait, combat-start, …) have no skill and return undefined. Prefers a
- * numeric skillId lookup, resolved to the trait-selected variant; duplicated names
- * select the variant available to the build.
+ * commands have no skill. Explicit identities select the trait-dependent variant without name collisions.
  */
 export function resolveEntrySkill(
   app: ProfessionAppState,
@@ -41,21 +39,12 @@ export function resolveEntrySkill(
 ): Skill | undefined {
   if ('type' in item && item.type !== 'cast') return undefined;
 
-  const identity = 'type' in item ? item.skillId : (item.skillId ?? item.name);
-  const skillId = identity == null ? null : Number(identity);
+  // Palette items and commands carry the canonical identity independently of their display label.
+  const identity = item.skillId;
 
-  if (skillId !== null && Number.isFinite(skillId))
-    return app.activeCatalog.skillsById.get(selectedSkillId(app, skillId));
+  if (typeof identity !== 'string' && typeof identity !== 'number') return undefined;
 
-  const name = String(identity);
-  const skill = app.activeCatalog.skillsByName.get(name);
-
-  if (skill?.type !== 'Weapon') return skill;
-
-  // Runtime catalog overrides already select specialization-specific weapon identities.
-  return app.profession
-    .runtimeFor(app.adapter.createBuildContext(buildContextInput(app)).simulationConfig())
-    .catalog.skillsByName.get(name);
+  return app.activeCatalog.skillsById.get(selectedSkillId(app, identity));
 }
 
 /**

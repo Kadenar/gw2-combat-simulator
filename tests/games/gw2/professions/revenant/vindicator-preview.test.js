@@ -118,10 +118,10 @@ test('Balance in Discord grants selected endurance once per swap and respects th
   const full = run(['Swap Legends'], { selectedTraitIds: [TRAIT.BALANCE_IN_DISCORD] });
   assert.deepEqual(full.warnings, []);
   assert.equal(full.planningState.profession.endurance.value, 100);
-  const noSwap = run(['Dodge', 'Energy Meld'], { selectedTraitIds: [TRAIT.BALANCE_IN_DISCORD] });
+  const noSwap = run(['Dodge', { type: 'cast', skillId: 62757 }], { selectedTraitIds: [TRAIT.BALANCE_IN_DISCORD] });
   assert.equal(
     noSwap.planningState.profession.endurance.value,
-    run(['Dodge', 'Energy Meld']).planningState.profession.endurance.value
+    run(['Dodge', { type: 'cast', skillId: 62757 }]).planningState.profession.endurance.value
   );
 });
 
@@ -159,7 +159,10 @@ test('moved dodge traits and adept Energy Meld traits remain functional in Previ
   ]) {
     const build = { specializations: [{ name: 'Vindicator', traits: '1-1-1', patchTraits: { [patchId]: choices } }] };
     const ids = selectedTraits(preview.catalog, build.specializations).map(({ id }) => id);
-    const result = run(['Dodge', 'Energy Meld', 'Dodge'], { selectedTraitIds: ids, initialEnergy: 100 });
+    const result = run(['Dodge', { type: 'cast', skillId: 62757 }, 'Dodge'], {
+      selectedTraitIds: ids,
+      initialEnergy: 100
+    });
     assert.deepEqual(result.warnings, []);
     const tooltip = revenantAppAdapter.skillTooltip(
       preview.catalog.skillsById.get(SHARED_SKILL_IDS.DODGE),

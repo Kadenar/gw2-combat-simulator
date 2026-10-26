@@ -4,6 +4,7 @@ import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy
 import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SkillDamageModifier } from '#gw2/platform/skills/modifiers.js';
+import type { SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 
@@ -27,7 +28,17 @@ export interface TooltipFact {
   readonly prefix?: { readonly name: string; readonly icon: string };
 }
 
+/** Canonical attribute keys, so skill grants share the attribute pipeline's vocabulary. */
+export type SkillAttributeKey = keyof typeof import('#gw2/platform/attributes/inputs.js').ATTRIBUTE_NAMES;
+
 export interface Skill extends CatalogEntity {
+  /** Seconds between accepted procs owned by this skill; independent of activation recharge. */
+  readonly internalCooldown?: number;
+  /**
+   * Flat attributes this skill grants, such as a signet passive or a wielded conjure. The owning mechanic decides
+   * when the grant applies (readiness, held bundle); the amounts stay with the skill so patches edit one owner.
+   */
+  readonly attributeBonuses?: Readonly<Partial<Record<SkillAttributeKey, number>>>;
   /** Duration in seconds of a skill-owned form or state, including a preparation's arming phase. */
   readonly duration?: number;
   /** Multiplier applied by the skill's mechanic to its eligible attribute pool. */
@@ -259,10 +270,10 @@ export interface CanonicalCatalog<TSkill extends Skill = Skill> {
   };
   readonly skills: readonly TSkill[];
   readonly skillsById: ReadonlyMap<SkillId, TSkill>;
-  readonly skillsByName: ReadonlyMap<string, TSkill>;
+  /** Shared and profession-owned skill fields; validation, patching, and authoring read this one table. */
+  readonly skillFields: SkillFieldSpecs;
   readonly balanceProfiles: readonly BalanceProfile[];
   readonly balanceProfilesById: ReadonlyMap<SkillId, BalanceProfile>;
-  readonly balanceProfilesByName: ReadonlyMap<string, BalanceProfile>;
   readonly autoattackChains: readonly (readonly number[])[];
   readonly autoattackChainPositions: ReadonlyMap<number, AutoattackChainPosition>;
   readonly traits: readonly CatalogEntity[];
@@ -279,7 +290,6 @@ export interface CatalogEntity {
 }
 
 export interface CatalogLookup {
-  readonly skillsByName?: ReadonlyMap<string, CatalogEntity>;
   /** Command validation reads skill capabilities by canonical identity. */
   readonly skillsById?: ReadonlyMap<SkillId, CatalogEntity>;
 }

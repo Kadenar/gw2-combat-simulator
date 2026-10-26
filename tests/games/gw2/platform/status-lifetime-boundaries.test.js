@@ -338,7 +338,7 @@ test('Reavers Curse requires an arm, includes the final landing, and cannot be c
     initialEnergy: 100
   };
   // A completed Energy Meld arms the curse; the probe landings then read that live deadline.
-  const armedState = observedRuntime(runRevenant(['Energy Meld'], config)).profession;
+  const armedState = observedRuntime(runRevenant([{ type: 'cast', skillId: 62757 }], config)).profession;
   const unarmedState = observedRuntime(runRevenant([], config)).profession;
   const deadline = armedState.specialization.state.reaversCurseUntil;
   assert.ok(deadline > 0);
@@ -354,7 +354,7 @@ test('Reavers Curse requires an arm, includes the final landing, and cannot be c
       );
       // The rotation outlasts the probe landings so their queued work executes.
       const wait = { type: 'wait', durationMs: Math.ceil(at * 1000) + 500 };
-      const result = runRevenant(armed ? ['Energy Meld', wait] : [wait], config, {
+      const result = runRevenant(armed ? [62757, wait] : [wait], config, {
         initialize(runtime) {
           // Two same-time landings prove the first consumes the charge.
           for (const activationId of ['landing-1', 'landing-2'])

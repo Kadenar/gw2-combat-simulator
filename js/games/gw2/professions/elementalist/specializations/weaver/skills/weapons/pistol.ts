@@ -1,4 +1,13 @@
-import { WEAPON, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { elementalistBuffRequest, elementalistControlRequest } from '#gw2/professions/elementalist/core/events.js';
+import { elementalistConditionEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
+import { weaverDualAttunements } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
+import { ACTOR, CONTROL, WEAPON, COMBO_FINISHER, BOON, CONDITION, AURA, STATUS } from '#gw2/platform/constants.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 /**
@@ -30,12 +39,28 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       {
         on: 'castCommit',
         when: (runtime) => readProfessionCoreState<ElementalistCoreState>(runtime.profession).pistolBullets!.Fire,
-        do: { type: 'elementalist.weaver.pistol.frostfire-fire' }
+        do: {
+          type: 'elementalist.weaver.pistol.frostfire-fire',
+          id: 'frostfire-fire',
+          effects: [{ type: 'aura', name: 'Fire', aura: AURA.FIRE, duration: 3 }]
+        }
       },
       {
         on: 'castCommit',
         when: (runtime) => readProfessionCoreState<ElementalistCoreState>(runtime.profession).pistolBullets!.Water,
-        do: { type: 'elementalist.weaver.pistol.frostfire-water' }
+        do: {
+          type: 'elementalist.weaver.pistol.frostfire-water',
+          id: 'frostfire-water',
+          effects: [
+            {
+              type: 'condition',
+              name: 'Water',
+              condition: CONDITION.VULNERABILITY,
+              stacks: 4,
+              duration: 8
+            }
+          ]
+        }
       },
       { on: 'castCommit', do: { type: 'elementalist.weaver.pistol.settle' } }
     ],
@@ -72,7 +97,11 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       {
         on: 'castCommit',
         when: (runtime) => readProfessionCoreState<ElementalistCoreState>(runtime.profession).pistolBullets!.Fire,
-        do: { type: 'elementalist.weaver.pistol.plasma-fire' }
+        do: {
+          type: 'elementalist.weaver.pistol.plasma-fire',
+          id: 'plasma-fire',
+          effects: [{ type: 'condition', name: 'Fire', condition: CONDITION.BURNING, stacks: 3, duration: 4 }]
+        }
       },
       { on: 'castCommit', do: { type: 'elementalist.weaver.pistol.settle' } }
     ],
@@ -84,6 +113,8 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     categories: ['Weapon skill'],
     castTimeMs: 640,
     cooldown: 12,
+    // Only a loaded Air bullet applies this factor when recharge work is reserved.
+    airBulletRechargeMultiplier: 2 / 3,
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -114,7 +145,19 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       {
         on: 'castCommit',
         when: (runtime) => readProfessionCoreState<ElementalistCoreState>(runtime.profession).pistolBullets!.Earth,
-        do: { type: 'elementalist.weaver.pistol.meteor-earth' }
+        do: {
+          type: 'elementalist.weaver.pistol.meteor-earth',
+          id: 'meteor-earth',
+          effects: [
+            {
+              type: 'condition',
+              name: 'Earth',
+              condition: CONDITION.BLEEDING,
+              stacks: 3,
+              duration: 8
+            }
+          ]
+        }
       },
       { on: 'castCommit', do: { type: 'elementalist.weaver.pistol.settle' } }
     ],
@@ -142,12 +185,20 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       {
         on: 'castCommit',
         when: (runtime) => readProfessionCoreState<ElementalistCoreState>(runtime.profession).pistolBullets!.Water,
-        do: { type: 'elementalist.weaver.pistol.finesse-water' }
+        do: {
+          type: 'elementalist.weaver.pistol.finesse-water',
+          id: 'finesse-water',
+          effects: [{ type: 'aura', name: 'Water', aura: AURA.FROST, duration: 3 }]
+        }
       },
       {
         on: 'castCommit',
         when: (runtime) => readProfessionCoreState<ElementalistCoreState>(runtime.profession).pistolBullets!.Air,
-        do: { type: 'elementalist.weaver.pistol.finesse-air' }
+        do: {
+          type: 'elementalist.weaver.pistol.finesse-air',
+          id: 'finesse-air',
+          effects: [{ type: 'buff', name: 'Air', kind: STATUS.SUPERSPEED, stacks: 1, duration: 4 }]
+        }
       },
       { on: 'castCommit', do: { type: 'elementalist.weaver.pistol.settle' } }
     ],
@@ -203,7 +254,19 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       {
         on: 'castCommit',
         when: (runtime) => readProfessionCoreState<ElementalistCoreState>(runtime.profession).pistolBullets!.Earth,
-        do: { type: 'elementalist.weaver.pistol.enervating-earth' }
+        do: {
+          type: 'elementalist.weaver.pistol.enervating-earth',
+          id: 'enervating-earth',
+          effects: [
+            {
+              type: 'condition',
+              name: 'Earth',
+              condition: CONDITION.BLEEDING,
+              stacks: 4,
+              duration: 8
+            }
+          ]
+        }
       },
       { on: 'castCommit', do: { type: 'elementalist.weaver.pistol.settle' } }
     ],
@@ -234,3 +297,156 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     specialization: 'Weaver'
   }
 });
+
+/** Payload declarations run before this shared all-matching-bullets settlement. */
+const weaverPistolSideEffects: RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>['sideEffectHandlers'] = {
+  'elementalist.weaver.pistol.settle'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol settlement requires a cast trigger.');
+
+    const state = professionCoreState(context);
+    const active = weaverDualAttunements(trigger.skill)!.filter((element) => state.pistolBullets[element]);
+
+    if (!active.length) state.pistolBullets[state.primaryAttunement] = true;
+    else for (const element of active) state.pistolBullets[element] = false;
+  },
+  'elementalist.weaver.pistol.frostfire-fire'(context, trigger, action) {
+    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
+
+    const { cast, skill } = trigger;
+    const at = cast.effectiveEnd;
+    const aura = requireEffect(skill, 'aura', 'Fire', action);
+
+    if (aura) {
+      applyElementalistAura(context, {
+        at,
+        aura: aura.aura,
+        duration: aura.duration,
+        skillName: skill.name,
+        sourceId: skill.id
+      });
+    }
+  },
+  'elementalist.weaver.pistol.frostfire-water'(context, trigger, action) {
+    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
+
+    const { cast, skill } = trigger;
+    const at = cast.effectiveEnd;
+
+    context.effects.emit(
+      elementalistConditionEffectRequest(context, at, { skill, action }, 'Water', skill.name, skill.id, {
+        activationId: cast.id,
+        skillId: cast.skill.id,
+        offTarget: cast.command.offTarget
+      })
+    );
+  },
+  'elementalist.weaver.pistol.plasma-fire'(context, trigger, action) {
+    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
+
+    const { cast, skill } = trigger;
+    const at = cast.effectiveEnd;
+
+    context.effects.emit(
+      elementalistConditionEffectRequest(context, at, { skill, action }, 'Fire', skill.name, skill.id, {
+        activationId: cast.id,
+        skillId: cast.skill.id,
+        offTarget: cast.command.offTarget
+      })
+    );
+  },
+  'elementalist.weaver.pistol.meteor-earth'(context, trigger, action) {
+    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
+
+    const { cast, skill } = trigger;
+    const at = cast.effectiveEnd;
+
+    context.effects.emit(
+      elementalistConditionEffectRequest(context, at, { skill, action }, 'Earth', skill.name, skill.id, {
+        activationId: cast.id,
+        skillId: cast.skill.id,
+        offTarget: cast.command.offTarget
+      })
+    );
+  },
+  'elementalist.weaver.pistol.finesse-water'(context, trigger, action) {
+    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
+
+    const { cast, skill } = trigger;
+    const at = cast.effectiveEnd;
+    const aura = requireEffect(skill, 'aura', 'Water', action);
+
+    if (aura) {
+      applyElementalistAura(context, {
+        at,
+        aura: aura.aura,
+        duration: aura.duration,
+        skillName: skill.name,
+        sourceId: skill.id
+      });
+    }
+  },
+  'elementalist.weaver.pistol.finesse-air'(context, trigger, action) {
+    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
+
+    const { cast, skill } = trigger;
+    const at = cast.effectiveEnd;
+    // Superspeed is a buff, so resolve its authored kind without treating it as a boon.
+    const effect = requireEffect(skill, 'buff', 'Air', action);
+
+    if (effect)
+      context.effects.emit(
+        elementalistBuffRequest(
+          {
+            skill,
+            at,
+            source: skill.name,
+            sourceId: skill.id,
+            kind: String(effect.kind),
+            stacks: Number(effect.stacks),
+            duration: effect.duration
+          },
+          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+        )
+      );
+  },
+  'elementalist.weaver.pistol.enervating-air'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
+
+    const { cast, skill } = trigger;
+    const at = cast.effectiveEnd;
+
+    context.effects.emit(
+      elementalistControlRequest(
+        {
+          at,
+          source: skill.name,
+          sourceId: skill.id,
+          actorType: ACTOR.PLAYER,
+          skillName: skill.name,
+          skillId: skill.id,
+          controlKind: CONTROL.DAZE
+        },
+        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+      )
+    );
+  },
+  'elementalist.weaver.pistol.enervating-earth'(context, trigger, action) {
+    if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
+
+    const { cast, skill } = trigger;
+    const at = cast.effectiveEnd;
+
+    context.effects.emit(
+      elementalistConditionEffectRequest(context, at, { skill, action }, 'Earth', skill.name, skill.id, {
+        activationId: cast.id,
+        skillId: cast.skill.id,
+        offTarget: cast.command.offTarget
+      })
+    );
+  }
+};
+
+/** Registers dual-attunement pistol bullet actions with the Weaver hook assembly. */
+export const weaverPistolLifecycle = {
+  sideEffectHandlers: weaverPistolSideEffects
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;

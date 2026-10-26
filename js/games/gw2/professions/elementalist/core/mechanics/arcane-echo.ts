@@ -1,19 +1,19 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 /** Owns Arcane Echo's window and the later weapon cast that consumes it. */
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-/** The skill's commit declaration opens the profiled window for the next recharging weapon cast. */
+/** Fixed replacement work is shared by runtime and tooltip; the skill owns only the echo window. */
+export const ARCANE_ECHO_REPLACEMENT_RECHARGE_SECONDS = 1;
+
+/** The skill's commit declaration opens the skill-owned window for the next recharging weapon cast. */
 export function armArcaneEcho(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
-  professionCoreState(context).arcaneEchoUntil = canonicalTime(
-    cast.effectiveEnd + balanceNumberFromContext(context, PROFILE.arcaneEcho, 'duration')
-  );
+  professionCoreState(context).arcaneEchoUntil = canonicalTime(cast.effectiveEnd + skillNumber(cast.skill, 'duration'));
 }
 
 /** Observes weapon completions to consume an armed window and transfer their recharge work. */
@@ -41,21 +41,15 @@ export function completeArcaneEcho(
   const at = canonicalTime(context.time);
   // Use original recharge before trait reductions; the short replacement still benefits from Alacrity.
   const addedWork = gw2BaseRecharge(skill);
-  context.cooldownController.replaceSkillRecharge(
-    skill,
-    balanceNumberFromContext(context, PROFILE.arcaneEcho, 'recharge'),
-    at
-  );
-  const arcaneEcho = context.helpers.skillsById.get(ID.ARCANE_ECHO);
-
-  if (arcaneEcho) {
-    // At weapon-cast completion, add that work to Arcane Echo's remaining base-recharge work.
-    // Project combined work at the permanent recharge rate while preserving progress already earned.
-    const currentReadyAt = context.cooldownController.readyAt(arcaneEcho.id) ?? at;
-    const progress = context.cooldownController.rechargeFor(arcaneEcho.id);
-    const work = progress
-      ? context.cooldownController.remaining(arcaneEcho, progress, at)
-      : Math.max(0, currentReadyAt - at) * context.cooldownController.rate(arcaneEcho);
-    context.cooldownController.startRecharge(arcaneEcho, at, work + addedWork);
-  }
+  // Like Mimic, replace the weapon skill's recharge with one base second without replenishing spent ammunition.
+  context.cooldownController.replaceSkillRecharge(skill, ARCANE_ECHO_REPLACEMENT_RECHARGE_SECONDS, at);
+  const arcaneEcho = requireSkillFromContext(context, ID.ARCANE_ECHO);
+  // At weapon-cast completion, add that work to Arcane Echo's remaining base-recharge work.
+  // Project combined work at the permanent recharge rate while preserving progress already earned.
+  const currentReadyAt = context.cooldownController.readyAt(arcaneEcho.id) ?? at;
+  const progress = context.cooldownController.rechargeFor(arcaneEcho.id);
+  const work = progress
+    ? context.cooldownController.remaining(arcaneEcho, progress, at)
+    : Math.max(0, currentReadyAt - at) * context.cooldownController.rate(arcaneEcho);
+  context.cooldownController.startRecharge(arcaneEcho, at, work + addedWork);
 }

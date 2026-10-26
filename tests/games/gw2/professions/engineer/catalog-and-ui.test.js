@@ -50,7 +50,7 @@ const baseConfig = Object.freeze({
 const simulate = createObservedProfessionSimulator(engineerProfession, baseConfig);
 
 function mechanic(name) {
-  return engineerCatalog.skillsByName.get(name);
+  return engineerCatalog.skills.find((candidate) => candidate.name === name);
 }
 
 const applyEngineerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(engineerCatalog, patch), patch);
@@ -74,7 +74,10 @@ test('Mechanist keeps its mech present and exposes only trait-selected commands'
   }
 
   for (const name of ['Crash Down', 'Recall Mech', 'Mech Support: Depth Charges'])
-    assert.equal(engineerCatalog.skillsByName.has(name), false);
+    assert.equal(
+      engineerCatalog.skills.some((candidate) => candidate.name === name),
+      false
+    );
 
   const result = simulate('Mechanist', ['Overclock Signet', { type: 'wait', durationMs: 6000 }], {
     selectedSkillIds: [...baseConfig.selectedSkillIds.slice(0, 4), 63095]
@@ -562,18 +565,18 @@ test('Amalgam protocol IDs survive application build conversion', () => {
     { type: 'cast', skillId: 76705 }
   ]);
 
-  const legacyApplication = toApplicationBuild({
+  const explicitApplication = toApplicationBuild({
     ...defaults,
     selectedMorphSkillIds: [77103, 77104, 76705],
-    rotation: ['Offensive Protocol: Shred', 'Defensive Protocol: Thorns', 'Offensive Protocol: Obliterate']
+    rotation: [77103, 77104, 76705].map((skillId) => ({ type: 'cast', skillId }))
   });
 
-  assert.deepEqual(legacyApplication.rotation, application.rotation);
+  assert.deepEqual(explicitApplication.rotation, application.rotation);
 
   const malformedPrefix = toApplicationBuild({
     ...defaults,
     selectedMorphSkillIds: [77103, 77104, 76705],
-    rotation: [null, 'Offensive Protocol: Shred']
+    rotation: [null, { type: 'cast', skillId: 77103 }]
   });
 
   assert.deepEqual(malformedPrefix.rotation, [{ type: 'cast', skillId: 77103 }]);
@@ -625,7 +628,7 @@ test('Photon Forge entry and exit start dedicated timeline rows', () => {
   assert.equal(
     transition({
       specialization: 'Holosmith',
-      skill: engineerCatalog.skillsByName.get('Engage Photon Forge'),
+      skill: engineerCatalog.skillsById.get(42938),
       weaponLine: null
     }),
     'Photon Forge'
@@ -633,7 +636,7 @@ test('Photon Forge entry and exit start dedicated timeline rows', () => {
   assert.equal(
     transition({
       specialization: 'Holosmith',
-      skill: engineerCatalog.skillsByName.get('Deactivate Photon Forge'),
+      skill: engineerCatalog.skillsById.get(41123),
       weaponLine: 'Photon Forge'
     }),
     null
@@ -700,7 +703,11 @@ test('Scrapper F skills follow selected skill-slot order', () => {
 });
 
 test('Engineer slot selection excludes contextual and unsupported utilities', () => {
-  const selectable = (name) => engineerProfession.ui.isSlotSkillSelectable({}, engineerCatalog.skillsByName.get(name));
+  const selectable = (name) =>
+    engineerProfession.ui.isSlotSkillSelectable(
+      {},
+      engineerCatalog.skills.find((candidate) => candidate.name === name)
+    );
 
   for (const name of ['Stow Grenade Kit', 'Stow Flamethrower', 'Detonate']) {
     assert.equal(selectable(name), false, name);
@@ -735,16 +742,24 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
     ['Healing Turret', 'Detonate Healing Turret']
   ]) {
     const config = {
-      selectedSkillIds: [...baseConfig.selectedSkillIds, engineerCatalog.skillsByName.get(parent).id]
+      selectedSkillIds: [
+        ...baseConfig.selectedSkillIds,
+        engineerCatalog.skills.find((candidate) => candidate.name === parent).id
+      ]
     };
     const denied = simulate('Core', [flip], config);
 
     assert.match(denied.warnings[0].message, new RegExp(`use ${parent} first`));
 
-    const result = simulate('Core', [parent, flip], config);
+    const result = simulate('Core', [engineerCatalog.skills.find((skill) => skill.name === parent).id, flip], config);
 
     assert.equal(result.warnings.length, 0, `${parent} -> ${flip}`);
-    assert.equal(result.planningState.profession.availableFlips[engineerCatalog.skillsByName.get(flip).id], undefined);
+    assert.equal(
+      result.planningState.profession.availableFlips[
+        engineerCatalog.skills.find((candidate) => candidate.name === flip).id
+      ],
+      undefined
+    );
   }
 
   const healing = simulate('Core', ['Healing Turret']);
@@ -787,18 +802,22 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
       .steps.filter((step) => step.skill === 'Throw Mine')
       .map((step) => step.start);
 
-  assert.equal(engineerCatalog.skillsByName.get('Throw Mine').rechargeAnchor, 'castStart');
-  assert.deepEqual(throwStarts(['Throw Mine', { type: 'wait', durationMs: 8500 }, 'Throw Mine']), [0, 9600]);
+  assert.equal(engineerCatalog.skillsById.get(6161).rechargeAnchor, 'castStart');
+  assert.deepEqual(throwStarts([ID.THROW_MINE, { type: 'wait', durationMs: 8500 }, ID.THROW_MINE]), [0, 9600]);
   assert.deepEqual(
-    throwStarts(['Throw Mine', 'Detonate', { type: 'wait', durationMs: 8500 }, 'Throw Mine']),
+    throwStarts([ID.THROW_MINE, 'Detonate', { type: 'wait', durationMs: 8500 }, ID.THROW_MINE]),
     [0, 9600]
   );
 
   // Gadgeteer's added mine shares the input but produces its own strike and combo attempt.
-  const gadgeteer = simulate('Core', ['Bomb Kit', 'Fire Bomb', 'Stow Bomb Kit', 'Throw Mine', 'Detonate'], {
-    selectedSkillIds: [...baseConfig.selectedSkillIds, 5812],
-    selectedTraitIds: [TRAIT.GADGETEER]
-  });
+  const gadgeteer = simulate(
+    'Core',
+    ['Bomb Kit', 'Fire Bomb', 'Stow Bomb Kit', { type: 'cast', skillId: 6161 }, 'Detonate'],
+    {
+      selectedSkillIds: [...baseConfig.selectedSkillIds, 5812],
+      selectedTraitIds: [TRAIT.GADGETEER]
+    }
+  );
   assert.equal(
     gadgeteer.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Detonate (engineer skill)')
       .length,
@@ -876,7 +895,7 @@ test('Elixir Gun packets, fields, finishers, and HGH use their authored contract
 });
 
 test('Engineer contextual weapon follow-ups are not standalone selections', () => {
-  const rifleGrenade = engineerCatalog.skillsByName.get('Rifle Burst Grenade');
+  const rifleGrenade = engineerCatalog.skillsById.get(68079);
 
   assert.equal(rifleGrenade.simulatorExcluded, true);
   assert.equal(
@@ -905,7 +924,9 @@ test('Engineer contextual weapon follow-ups are not standalone selections', () =
 
     assert.equal(used.warnings.length, 0, flip);
     assert.equal(
-      used.planningState.profession.availableFlips[engineerCatalog.skillsByName.get(flip).id],
+      used.planningState.profession.availableFlips[
+        engineerCatalog.skills.find((candidate) => candidate.name === flip).id
+      ],
       undefined,
       flip
     );

@@ -14,11 +14,13 @@ import {
   troubadourState
 } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import { troubadourTraits } from '#gw2/professions/mesmer/specializations/troubadour/traits/index.js';
+import { TROUBADOUR_SKILL_FIELDS } from '#gw2/professions/mesmer/specializations/troubadour/skill-fields.js';
 
 export const troubadourModule = defineNativeModule({
   id: 'Troubadour',
   traitDefinitions: troubadourTraits,
   data: createMesmerModuleData('Troubadour', {
+    skillFields: TROUBADOUR_SKILL_FIELDS,
     skillMechanics: MESMER_TROUBADOUR_SKILL_MECHANICS,
     extraSkills: MESMER_TROUBADOUR_EXTRA_SKILLS,
     balanceProfiles: TROUBADOUR_BALANCE_PROFILES

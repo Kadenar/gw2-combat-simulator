@@ -410,7 +410,9 @@ for (const name of ['Thief', 'Ranger'])
       const result = run([{ type: 'wait', durationMs: 3500 }], config, {
         initialize(runtime) {
           runtime.effects.emit({ kind: 'packet', event: buff(0, 2) });
-          const skill = runtime.helpers.skillsByName.get(name === 'Thief' ? 'Bola Shot' : 'Long Range Shot');
+          const skill = runtime.helpers.skills.find(
+            (candidate) => candidate.name === (name === 'Thief' ? 'Bola Shot' : 'Long Range Shot')
+          );
           for (const at of [1, 3])
             runtime.effects.emit({
               kind: 'packet',
@@ -454,7 +456,7 @@ test('critical boon grants affect later same-time hits exactly once', () => {
       },
       {
         initialize(runtime) {
-          const skill = runtime.helpers.skillsByName.get('Bola Shot');
+          const skill = runtime.helpers.skillsById.get(13008);
           for (const index of [1, 2, 3])
             runtime.effects.emit({
               kind: 'packet',

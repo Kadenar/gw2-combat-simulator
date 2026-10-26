@@ -1,4 +1,4 @@
-import { AURA, WEAPON, STATUS, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, AURA, WEAPON, STATUS, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Spear weapon-skill mechanics owned by the Weaver module.
  *
@@ -12,13 +12,14 @@ import { AURA, WEAPON, STATUS, COMBO_FINISHER, BOON, CONDITION } from '#gw2/plat
  */
 
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { defineSkillVariantProfile } from '#gw2/platform/profession-definition/profile-authoring.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
-/** Stable buff and payload identities keep six independently armed follow-ups separate. */
-export const WEAVER_SPEAR_FOLLOWUPS: Readonly<Record<number, string>> = Object.freeze({
+/** Stable buff identities keep six independently armed follow-ups separate. */
+export const WEAVER_SPEAR_BUFFS: Readonly<Record<number, string>> = Object.freeze({
   [ID.FROSTFIRE_WARD]: 'elementalist.weaver.spear.frostfire-ward',
   [ID.GALVANIZE]: 'elementalist.weaver.spear.galvanize',
   [ID.FIERY_IMPACT]: 'elementalist.weaver.spear.fiery-impact',
@@ -31,8 +32,8 @@ export const WEAVER_SPEAR_FOLLOWUPS: Readonly<Record<number, string>> = Object.f
  * The six spear dual attacks, keyed by skill id and merged into
  * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair.
  */
-// Shared impact timing keeps companion payloads independent and in their authored order.
-const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+// Ordinary effects apply immediately; each action owns its arming buff and deferred strike/condition payload.
+export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Fire+Water. The only spear dual that grants an aura: its declared effect
   // grants the three-second Fire Aura on cast end.
   [ID.FROSTFIRE_WARD]: {
@@ -46,21 +47,33 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     cooldown: 15,
     skillFamily: 'Weapon skill',
     // Different live hand elements make the current primary immediately re-attunable on commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
-    effects: [
-      { type: 'aura', aura: AURA.FIRE, duration: 3 },
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } },
       {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 0,
-            coefficient: 1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.weaver.arm-spear-followup',
+          id: 'additional-strike',
+          effects: [
+            {
+              type: 'buff',
+              kind: WEAVER_SPEAR_BUFFS[ID.FROSTFIRE_WARD],
+              name: 'Frostfire Ward',
+              stacks: 1,
+              duration: 5
+            },
+            {
+              type: 'strike',
+              name: 'Frostfire Ward - Additional Strike',
+              ticks: [{ atMs: 0, coefficient: 1 }],
+              timingAnchor: 'castStart',
+              timingScale: 'cast'
+            }
+          ]
+        }
       }
     ],
+    effects: [{ type: 'aura', aura: AURA.FIRE, duration: 3 }],
     specialization: 'Weaver'
   },
   // Fire+Air. Heaviest single spear packet, paired with self superspeed and
@@ -76,9 +89,29 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     cooldown: 12,
     skillFamily: 'Weapon skill',
     // Different live hand elements make the current primary immediately re-attunable on commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } },
+      {
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.weaver.arm-spear-followup',
+          id: 'additional-strike',
+          effects: [
+            {
+              type: 'buff',
+              kind: WEAVER_SPEAR_BUFFS[ID.GALVANIZE],
+              name: 'Galvanize',
+              stacks: 1,
+              duration: 5
+            },
+            ...impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+              { type: 'strike', name: 'Galvanize - Additional Strike', coefficient: 2.6 }
+            ])
+          ]
+        }
+      }
+    ],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 2.6 },
       { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3 },
       { type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 6 }
     ]),
@@ -97,22 +130,50 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     cooldown: 15,
     skillFamily: 'Weapon skill',
     // Different live hand elements make the current primary immediately re-attunable on commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } },
       {
-        type: 'strike',
-        coefficient: 1.75,
-        comboFinishers: [
-          {
-            attemptGroup: 'effect:1:tick:1',
-            ownerId: 'elementalist',
-            finisherType: COMBO_FINISHER.BLAST
-          }
-        ]
-      },
-      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5 },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 6 }
-    ]),
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.weaver.arm-spear-followup',
+          id: 'additional-strike',
+          effects: [
+            {
+              type: 'buff',
+              kind: WEAVER_SPEAR_BUFFS[ID.FIERY_IMPACT],
+              name: 'Fiery Impact',
+              stacks: 1,
+              duration: 5
+            },
+            ...impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+              {
+                type: 'strike',
+                name: 'Fiery Impact - Additional Strike',
+                coefficient: 1.75,
+                comboFinishers: [
+                  { attemptGroup: 'effect:1:tick:1', ownerId: 'elementalist', finisherType: COMBO_FINISHER.BLAST }
+                ]
+              },
+              {
+                type: 'condition',
+                name: 'Fiery Impact - Additional Strike — Burning',
+                condition: CONDITION.BURNING,
+                stacks: 1,
+                duration: 5
+              },
+              {
+                type: 'condition',
+                name: 'Fiery Impact - Additional Strike — Bleeding',
+                condition: CONDITION.BLEEDING,
+                stacks: 3,
+                duration: 6
+              }
+            ])
+          ]
+        }
+      }
+    ],
+    effects: [],
     specialization: 'Weaver'
   },
   [ID.ELUTRIATE]: {
@@ -126,12 +187,43 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     cooldown: 20,
     skillFamily: 'Weapon skill',
     // Different live hand elements make the current primary immediately re-attunable on commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 1.25 },
-      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 8 },
-      { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 4 }
-    ]),
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } },
+      {
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.weaver.arm-spear-followup',
+          id: 'additional-strike',
+          effects: [
+            {
+              type: 'buff',
+              kind: WEAVER_SPEAR_BUFFS[ID.ELUTRIATE],
+              name: 'Elutriate',
+              stacks: 1,
+              duration: 5
+            },
+            ...impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+              { type: 'strike', name: 'Elutriate - Additional Strike', coefficient: 1.25 },
+              {
+                type: 'condition',
+                name: 'Elutriate - Additional Strike — Vulnerability',
+                condition: CONDITION.VULNERABILITY,
+                stacks: 5,
+                duration: 8
+              },
+              {
+                type: 'condition',
+                name: 'Elutriate - Additional Strike — Chilled',
+                condition: CONDITION.CHILLED,
+                stacks: 1,
+                duration: 4
+              }
+            ])
+          ]
+        }
+      }
+    ],
+    effects: [],
     specialization: 'Weaver'
   },
   // Water+Earth. Modelled purely as a Blast finisher: one strike, no conditions
@@ -147,26 +239,39 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     cooldown: 20,
     skillFamily: 'Weapon skill',
     // Different live hand elements make the current primary immediately re-attunable on commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
-    effects: [
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } },
       {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 0,
-            coefficient: 1,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: COMBO_FINISHER.BLAST
-              }
-            ]
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.weaver.arm-spear-followup',
+          id: 'additional-strike',
+          effects: [
+            {
+              type: 'buff',
+              kind: WEAVER_SPEAR_BUFFS[ID.SOOTHING_BURST],
+              name: 'Soothing Burst',
+              stacks: 1,
+              duration: 5
+            },
+            {
+              type: 'strike',
+              name: 'Soothing Burst - Additional Strike',
+              ticks: [
+                {
+                  atMs: 0,
+                  coefficient: 1,
+                  comboFinishers: [{ ownerId: 'elementalist', finisherType: COMBO_FINISHER.BLAST }]
+                }
+              ],
+              timingAnchor: 'castStart',
+              timingScale: 'cast'
+            }
+          ]
+        }
       }
     ],
+    effects: [],
     specialization: 'Weaver'
   },
   [ID.SHALE_STORM]: {
@@ -180,48 +285,73 @@ const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.
     cooldown: 18,
     skillFamily: 'Weapon skill',
     // Different live hand elements make the current primary immediately re-attunable on commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 1.5 },
-      { type: 'condition', condition: CONDITION.BLINDNESS, stacks: 1, duration: 3 },
-      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 5 }
-    ]),
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } },
+      {
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.weaver.arm-spear-followup',
+          id: 'additional-strike',
+          effects: [
+            {
+              type: 'buff',
+              kind: WEAVER_SPEAR_BUFFS[ID.SHALE_STORM],
+              name: 'Shale Storm',
+              stacks: 1,
+              duration: 5
+            },
+            ...impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+              { type: 'strike', name: 'Shale Storm - Additional Strike', coefficient: 1.5 },
+              {
+                type: 'condition',
+                name: 'Shale Storm - Additional Strike — Blindness',
+                condition: CONDITION.BLINDNESS,
+                stacks: 1,
+                duration: 3
+              },
+              {
+                type: 'condition',
+                name: 'Shale Storm - Additional Strike — Crippled',
+                condition: CONDITION.CRIPPLED,
+                stacks: 1,
+                duration: 5
+              }
+            ])
+          ]
+        }
+      }
+    ],
+    effects: [],
     specialization: 'Weaver'
   }
 });
 
-/** Hostile payloads belong to the armed buff; activation-time boons and auras remain on the skill. */
-function followupEffect(effect: SkillEffect): boolean {
-  return effect.type === 'strike' || effect.type === 'condition';
-}
+/** Activation grants only the arming buff; the next qualifying hit emits the action's hostile payload. */
+export const weaverSpearLifecycle = {
+  sideEffectHandlers: {
+    'elementalist.weaver.arm-spear-followup'(context, trigger, action) {
+      if (trigger.kind !== 'cast') throw new TypeError('Spear follow-ups require a cast trigger.');
 
-export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze(
-  Object.fromEntries(
-    Object.entries(SPEAR_DUAL_DEFINITIONS).map(([id, skill]) => [
-      id,
-      {
-        ...skill,
-        effects: [
-          ...(skill.effects ?? []).filter((effect) => !followupEffect(effect)),
-          {
-            type: 'buff',
-            kind: WEAVER_SPEAR_FOLLOWUPS[Number(id)],
-            name: skill.name,
-            stacks: 1,
-            duration: 5
-          }
-        ]
-      } satisfies Partial<Skill>
-    ])
-  )
-);
+      const { cast, skill } = trigger;
+      const grant = requireEffect(skill, 'buff', skill.name, action);
 
-/** Keep follow-up coefficients, conditions, and finishers patchable independently of the buff grant. */
-export const WEAVER_SPEAR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
-  Object.entries(SPEAR_DUAL_DEFINITIONS).map(([id, skill]) =>
-    defineSkillVariantProfile(WEAVER_SPEAR_FOLLOWUPS[Number(id)], Number(id), `${skill.name} - Additional Strike`, {
-      weapon: WEAPON.SPEAR,
-      effects: (skill.effects ?? []).filter(followupEffect)
-    })
-  )
-);
+      if (!grant) return;
+
+      context.effects.emit({
+        kind: 'profile',
+        profile: skill,
+        effects: [grant],
+        at: cast.effectiveEnd,
+        fullEnd: cast.effectiveEnd,
+        cast: { activationId: cast.id, skillId: skill.id, offTarget: cast.command.offTarget },
+        attribution: {
+          source: 'elementalist',
+          sourceId: skill.id,
+          actorType: ACTOR.PLAYER,
+          skillId: skill.id,
+          skillName: skill.name
+        }
+      });
+    }
+  }
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;

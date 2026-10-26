@@ -313,22 +313,16 @@ function buildRotation(
   });
 }
 
+/** Report unmatched input; successfully reconstructed interruptions need no user action. */
 function warningList(actions: readonly DpsReportRotationAction[]): string[] {
   const warnings = [LOG_OPENER_WARNING];
   const unsupported = actions.filter(
     (action) => !action.supportedByCatalog && !isMushroomKingsBlessing(action) && !isWeaponStow(action)
   );
-  const interrupted = actions.filter((action) => action.status === 'interrupted');
 
   if (unsupported.length) {
     warnings.push(
       `Needs review: ${unsupported.length} report action${unsupported.length === 1 ? '' : 's'} could not be matched and ${unsupported.length === 1 ? 'was' : 'were'} preserved as timing waits.`
-    );
-  }
-
-  if (interrupted.length) {
-    warnings.push(
-      `Interrupted cast: ${interrupted.length} cast${interrupted.length === 1 ? ' was' : 's were'} kept at the recorded shortened duration.`
     );
   }
 

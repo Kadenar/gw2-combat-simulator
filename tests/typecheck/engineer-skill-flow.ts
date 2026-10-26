@@ -43,11 +43,11 @@ export type EngineerSkillFlowAssertions = [
 export function engineerHookSkillReads(runtime: EngineerRuntime, cast: Parameters<EliteCast>[1]): void {
   const cost: number | undefined = cast.skill.mechanicSlot;
   const flag: string | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.kitTransition;
-  const named: number | undefined = runtime.helpers.skillsByName.get(cast.skill.name)?.mechanicSlot;
+  const indexed: number | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.mechanicSlot;
   const listed: boolean | undefined = runtime.helpers.skills[0]?.countsAsToolbeltSkill;
   // @ts-expect-error Numeric mechanics must not lose their type at runtime.
   const invalid: string = cast.skill.mechanicSlot;
-  void [cost, flag, named, listed, invalid];
+  void [cost, flag, indexed, listed, invalid];
 }
 
 createEngineerModuleData('Core', {

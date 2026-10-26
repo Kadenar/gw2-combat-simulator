@@ -54,7 +54,7 @@ interface RotationImportDialogElements {
   readonly closeButton: HTMLButtonElement;
 }
 
-/** Resolve build-specific names during strict validation without migrating or dropping explicit commands. */
+/** Validate imported command identities against the active catalog before applying the rotation. */
 function normalizeImportedRotation(items: readonly unknown[], app: ProfessionAppState): RotationCommand[] {
   return normalizeRotation(items, app.adapter.rotationImportLookup(app), { strict: true });
 }
@@ -66,7 +66,7 @@ export async function previewRotationFile(file: File, app: ProfessionAppState): 
     const rotation = getRotationItems(imported);
 
     if (rotation) {
-      // JSON rotations may use any historical interchange shape; app state stays canonical.
+      // Unique authored names are decoded at this boundary; ambiguous variants require explicit IDs.
       return {
         rotation: normalizeImportedRotation(rotation, app),
         actionCount: rotation.length,

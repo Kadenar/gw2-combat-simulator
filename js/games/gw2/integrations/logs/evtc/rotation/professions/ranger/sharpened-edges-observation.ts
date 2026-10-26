@@ -87,7 +87,7 @@ export function analyzeRangerSharpenedEdgesObservation(
 ): RangerSharpenedEdgesObservation | null {
   if (!hasSelectedTrait(config, TRAIT.SHARPENED_EDGES)) return null;
 
-  const profile = traitBalanceProfile(catalog, TRAIT.SHARPENED_EDGES, 'Sharpened Edges');
+  const profile = traitBalanceProfile(catalog, TRAIT.SHARPENED_EDGES);
 
   if (!profile) return null;
 

@@ -70,7 +70,9 @@ test('sword follow-ups retain their casting skill while exposing separate damage
   ]) {
     const result = simulate(
       'Renegade',
-      skillName === 'Rift Slash' ? ['Preparation Thrust', 'Brutal Blade', skillName] : [skillName],
+      skillName === 'Rift Slash'
+        ? ['Preparation Thrust', 'Brutal Blade', skillName]
+        : [revenantCatalog.skills.find((skill) => skill.name === skillName).id],
       { primaryWeapon: 'Sword', secondaryWeapon: 'Sword' },
       observationTail(2000)
     );
@@ -108,7 +110,7 @@ describe('Power Conduit skill profiles', () => {
       .map((event) => [Math.round(event.at * 1000), event.name, event.coefficient]);
 
   test('Deathstrike exposes its cooldown after execution', () => {
-    const deathstrike = simulate('Conduit', ['Deathstrike'], config);
+    const deathstrike = simulate('Conduit', [{ type: 'cast', skillId: 27074 }], config);
     assert.deepEqual(deathstrike.planningState.cooldowns[SKILL.DEATHSTRIKE], {
       readyAt: 12440,
       remaining: 11720
@@ -116,7 +118,7 @@ describe('Power Conduit skill profiles', () => {
   });
 
   test('Phantom Onslaught recharges from dash completion', () => {
-    const onslaught = simulate('Vindicator', ["Phantom's Onslaught"], {
+    const onslaught = simulate('Vindicator', [SKILL.PHANTOMS_ONSLAUGHT], {
       ...config,
       specialization: 'Vindicator',
       selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
@@ -132,7 +134,7 @@ describe('Power Conduit skill profiles', () => {
 
   test('Phantom Onslaught can repeat after its dash cooldown without delaying the rotation', () => {
     // The follow-up strike occupies the cast lane but must not postpone the next dash's recharge.
-    const result = simulate('Renegade', ["Phantom's Onslaught", "Phantom's Onslaught"], {
+    const result = simulate('Renegade', [SKILL.PHANTOMS_ONSLAUGHT, SKILL.PHANTOMS_ONSLAUGHT], {
       ...config,
       selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
       startingLegend: LEGEND.RENEGADE,
@@ -276,11 +278,15 @@ test('Conduit affinity scales Release Potential and Cosmic Wisdom state', () => 
     [LEGEND.CENTAUR, 'Natural Harmony', 'Release Potential: Monk', 1],
     [LEGEND.DWARF, 'Inspiring Reinforcement', 'Release Potential: Warrior', 2]
   ]) {
-    const variant = simulate('Conduit', [generator, release], {
-      selectedLegends: [legend, LEGEND.ENTITY],
-      startingLegend: legend,
-      initialEnergy: 100
-    });
+    const variant = simulate(
+      'Conduit',
+      [revenantCatalog.skills.find((skill) => skill.name === generator).id, release],
+      {
+        selectedLegends: [legend, LEGEND.ENTITY],
+        startingLegend: legend,
+        initialEnergy: 100
+      }
+    );
 
     assert.equal(variant.warnings.length, 0, release);
     assert.equal(variant.planningState.profession.affinity.value, expectedAffinity, release);
@@ -559,11 +565,15 @@ test('Lesser Enchanted Daggers scales life siphon with Power independently of ar
 });
 
 test('Form of the Dervish follows every Entity skill and doubles Twin Moon', () => {
-  const result = simulate('Conduit', ['Cosmic Wisdom', 'Shielding Hands', 'Hex-Eater Vortex', 'Twin Moon Sweep'], {
-    selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.ENTITY,
-    initialEnergy: 100
-  });
+  const result = simulate(
+    'Conduit',
+    ['Cosmic Wisdom', 'Shielding Hands', 'Hex-Eater Vortex', { type: 'cast', skillId: 76968 }],
+    {
+      selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.ENTITY,
+      initialEnergy: 100
+    }
+  );
 
   assert.equal(result.warnings.length, 0);
   const scythes = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Form of the Dervish');
@@ -580,7 +590,7 @@ test('Dervish casts retain their scythes through form expiry and concurrent lege
   for (const swap of [[], [{ type: 'cast', skillId: SKILL.SWAP_LEGENDS, concurrentOffsetMs: 640 }]]) {
     const result = simulate(
       'Conduit',
-      ['Cosmic Wisdom', { type: 'wait', durationMs: 6500 }, 'Twin Moon Sweep', ...swap],
+      ['Cosmic Wisdom', { type: 'wait', durationMs: 6500 }, { type: 'cast', skillId: 76968 }, ...swap],
       {
         selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
         startingLegend: LEGEND.ENTITY,
@@ -596,11 +606,15 @@ test('Dervish casts retain their scythes through form expiry and concurrent lege
     assert.equal(scythes.length, 2);
   }
 
-  const expired = simulate('Conduit', ['Cosmic Wisdom', { type: 'wait', durationMs: 7000 }, 'Twin Moon Sweep'], {
-    selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.ENTITY,
-    initialEnergy: 100
-  });
+  const expired = simulate(
+    'Conduit',
+    ['Cosmic Wisdom', { type: 'wait', durationMs: 7000 }, { type: 'cast', skillId: 76968 }],
+    {
+      selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.ENTITY,
+      initialEnergy: 100
+    }
+  );
   assert.equal(
     expired.events.some((event) => event.skillName === 'Form of the Dervish'),
     false
@@ -630,7 +644,7 @@ test('Release Potential strength is independent of the equipped weapon set', () 
     for (const primaryWeapon of ['Sword', 'Greatsword']) {
       const result = simulate(
         'Conduit',
-        [name],
+        [revenantCatalog.skills.find((skill) => skill.name === name).id],
         {
           selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
           startingLegend: legend,
@@ -657,8 +671,8 @@ test('Beguiling Haze main recharge ignores transient Alacrity after its follow-u
     startingLegend: LEGEND.ENTITY,
     initialEnergy: 100
   };
-  const rotation = Array(4).fill('Beguiling Haze');
-  const skill = revenantCatalog.skillsByName.get('Beguiling Haze');
+  const rotation = Array(4).fill(77141);
+  const skill = revenantCatalog.skillsById.get(77141);
   const originalReadyAt = observedRuntime(runRevenant(rotation.slice(0, 3), config)).cooldownController.readAmmo(
     skill.id
   ).nextRechargeAt;
@@ -684,17 +698,25 @@ test('Beguiling Haze main recharge ignores transient Alacrity after its follow-u
 });
 
 test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
-  const beguiling = simulate('Conduit', ['Beguiling Haze', 'Beguiling Haze', 'Beguiling Haze'], {
-    selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.ENTITY,
-    initialEnergy: 100,
-    selectedTraitIds: [TRAIT.SHARED_WISDOM]
-  });
+  const beguiling = simulate(
+    'Conduit',
+    [
+      { type: 'cast', skillId: 77141 },
+      { type: 'cast', skillId: 77141 },
+      { type: 'cast', skillId: 77141 }
+    ],
+    {
+      selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.ENTITY,
+      initialEnergy: 100,
+      selectedTraitIds: [TRAIT.SHARED_WISDOM]
+    }
+  );
 
   assert.equal(beguiling.warnings.length, 0);
   assert.equal(beguiling.planningState.profession.beguilingHazeCharges, 0);
   const beguilingAmmo = observedRuntime(beguiling).cooldownController.readAmmo(
-    revenantCatalog.skillsByName.get('Beguiling Haze').id
+    revenantCatalog.skillsById.get(77141).id
   );
 
   assert.equal(beguilingAmmo.maximum, 1);
@@ -706,7 +728,12 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
 
   const recharged = simulate(
     'Conduit',
-    ['Beguiling Haze', 'Beguiling Haze', 'Beguiling Haze', { type: 'wait', durationMs: 20000 }],
+    [
+      { type: 'cast', skillId: 77141 },
+      { type: 'cast', skillId: 77141 },
+      { type: 'cast', skillId: 77141 },
+      { type: 'wait', durationMs: 20000 }
+    ],
     {
       selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
       startingLegend: LEGEND.ENTITY,
@@ -714,7 +741,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
     }
   );
   const rechargedAmmo = observedRuntime(recharged).cooldownController.readAmmo(
-    revenantCatalog.skillsByName.get('Beguiling Haze').id
+    revenantCatalog.skillsById.get(77141).id
   );
 
   assert.equal(recharged.planningState.profession.beguilingHazeCharges, 0);
@@ -763,7 +790,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
 });
 
 test('Twin Moon Sweep resolves both attackers and legend resonance', () => {
-  const assassin = simulate('Conduit', ['Twin Moon Sweep'], {
+  const assassin = simulate('Conduit', [{ type: 'cast', skillId: 76968 }], {
     selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
     startingLegend: LEGEND.ENTITY,
     initialEnergy: 100
@@ -787,7 +814,7 @@ test('Twin Moon Sweep resolves both attackers and legend resonance', () => {
 
   const demon = simulate(
     'Conduit',
-    ['Twin Moon Sweep'],
+    [{ type: 'cast', skillId: 76968 }],
     {
       selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
       startingLegend: LEGEND.ENTITY,
@@ -800,12 +827,19 @@ test('Twin Moon Sweep resolves both attackers and legend resonance', () => {
     6
   );
 
-  const swappedBeforeImpact = simulate('Conduit', ['Twin Moon Sweep', { name: 'Swap Legends', offset: 100 }], {
-    selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.ENTITY,
-    initialEnergy: 100,
-    boons: { quickness: true }
-  });
+  const swappedBeforeImpact = simulate(
+    'Conduit',
+    [
+      { type: 'cast', skillId: 76968 },
+      { name: 'Swap Legends', offset: 100 }
+    ],
+    {
+      selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.ENTITY,
+      initialEnergy: 100,
+      boons: { quickness: true }
+    }
+  );
 
   assert.equal(swappedBeforeImpact.steps[1].start, 120);
   assert.equal(swappedBeforeImpact.planningState.profession.affinity.value, 2);
@@ -816,14 +850,20 @@ test('Revenant shadowsteps own Peitha buff and Torment applications', () => {
   for (const { specialization, rotation, selectedLegends, startingLegend, sourceSkill, weapons = {} } of [
     {
       specialization: 'Conduit',
-      rotation: ['Deathstrike', { name: '__wait', waitMs: 1000 }],
+      rotation: [
+        { type: 'cast', skillId: 27074 },
+        { name: '__wait', waitMs: 1000 }
+      ],
       selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
       startingLegend: LEGEND.ASSASSIN,
       sourceSkill: 'Deathstrike'
     },
     {
       specialization: 'Conduit',
-      rotation: ['Beguiling Haze', { name: '__wait', waitMs: 1000 }],
+      rotation: [
+        { type: 'cast', skillId: 77141 },
+        { name: '__wait', waitMs: 1000 }
+      ],
       selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
       startingLegend: LEGEND.ENTITY,
       sourceSkill: 'Beguiling Haze'
@@ -937,7 +977,7 @@ test('Release Potential variants use affinity and equipped-legend effects', () =
 
   const dervishAllEffects = simulate(
     'Conduit',
-    ['Twin Moon Sweep', "Gladiator's Defense", 'Release Potential: Dervish'],
+    [{ type: 'cast', skillId: 76968 }, "Gladiator's Defense", 'Release Potential: Dervish'],
     {
       selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
       startingLegend: LEGEND.ENTITY,
@@ -1037,7 +1077,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
 
   assert.equal(upkeep.planningState.profession.affinity.value, 2);
 
-  const expandedRotation = ['Phase Traversal', 'Jade Winds', 'Impossible Odds'];
+  const expandedRotation = ['Phase Traversal', 28406, 'Impossible Odds'];
   const ordinary = simulate('Conduit', expandedRotation, {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
     startingLegend: LEGEND.ASSASSIN,
@@ -1084,9 +1124,7 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
   });
 
   assert.equal(
-    observedRuntime(kinetic).cooldownController.readyAt(
-      revenantCatalog.skillsByName.get('Release Potential: Warrior').id
-    ),
+    observedRuntime(kinetic).cooldownController.readyAt(revenantCatalog.skillsById.get(78895).id),
     kinetic.steps[0].end / 1000 + 6.4
   );
 

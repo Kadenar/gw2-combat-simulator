@@ -95,12 +95,12 @@ for (const [name, id, charges] of [
 
   test(`${name} preserves spent charges across recasts and expires each grant separately`, () => {
     const result = thief('Core', [name, 'Heartseeker', '__cooldown_reset', name, 'Heartseeker'], {
-      selectedSkillIds: [thiefProfession.catalog.skillsByName.get(name).id]
+      selectedSkillIds: [thiefProfession.catalog.skills.find((candidate) => candidate.name === name).id]
     });
     assert.deepEqual(result.warnings, []);
     assert.equal(liveVenomCharges(result, id), charges * 2 - 2);
     const expired = thief('Core', [name, wait(10000), '__cooldown_reset', name, wait(14000), 'Heartseeker'], {
-      selectedSkillIds: [thiefProfession.catalog.skillsByName.get(name).id]
+      selectedSkillIds: [thiefProfession.catalog.skills.find((candidate) => candidate.name === name).id]
     });
     assert.deepEqual(expired.warnings, []);
     assert.equal(liveVenomCharges(expired, id), charges - 1);

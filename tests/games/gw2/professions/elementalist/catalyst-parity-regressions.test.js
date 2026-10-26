@@ -138,7 +138,7 @@ test('Frozen Fusillade detonates at field expiry', () => {
     weapons: ['Pistol', 'Dagger'],
     startAttunement: 'Water',
     pistolBullets: { Fire: false, Water: true, Air: false, Earth: false },
-    rotation: [{ type: 'cast', skillId: elementalistCatalog.skillsByName.get('Frozen Fusillade').id }, 5000]
+    rotation: [{ type: 'cast', skillId: elementalistCatalog.skillsById.get(71935).id }, 5000]
   });
   const field = result.events.find((event) => event.type === 'combo_field' && event.fieldType === 'Ice');
   const bleeding = result.resolvedEvents.find(
@@ -379,8 +379,8 @@ test('Relentless Fire exposes separate strike and condition modifiers for its ac
 test('Catalyst zero-damage finishers preserve combo metadata', () => {
   // Finishers may live on a singleton impact or a timeline packet.
   const zeroCoefficientFinisher = (name, finisherType) =>
-    elementalistCatalog.skillsByName
-      .get(name)
+    elementalistCatalog.skills
+      .find((candidate) => candidate.name === name)
       .effects.flatMap((effect) => effect.ticks ?? [effect])
       .some(
         (tick) =>
@@ -393,7 +393,7 @@ test('Catalyst zero-damage finishers preserve combo metadata', () => {
 });
 
 test('Shattering Ice is proc-only and accepts player-owned effect and field attacks after its interval boundary', () => {
-  const skill = elementalistCatalog.skillsByName.get('Shattering Ice');
+  const skill = elementalistCatalog.skillsById.get(62698);
   const state = catalystState.create();
   const context = {
     procs: createProcRegistry(() => context),

@@ -86,7 +86,12 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       },
       {
         on: 'castCommit',
-        do: { type: 'elementalist.tempest.lightning-jolt' }
+        do: {
+          type: 'elementalist.tempest.lightning-jolt',
+          id: 'lightning-jolt',
+          // Completion and the active elemental's next attack share this selected coefficient.
+          effects: [{ name: 'Overload Air - Lightning Jolt', type: 'strike', coefficient: 1.32, hits: 1 }]
+        }
       },
       {
         on: 'castCommit',

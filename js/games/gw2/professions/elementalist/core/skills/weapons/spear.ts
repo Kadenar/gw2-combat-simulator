@@ -77,6 +77,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.SEETHE]: {
+    nextSkillDamageMultiplier: 1.2,
     name: 'Seethe',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -137,6 +138,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
   // Etching root: lays the fire field and arms the Volcano chain at its `lesser` stage; the
   // payoff skills below occupy the same slot and are gated on that stage.
   [ID.ETCHING_VOLCANO]: {
+    // Other completed actions upgrade only this root's live etching.
+    etchingCompletionThreshold: 3,
     // Open a field-length etching; the completion observer excludes this root from its own credits.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }],
     name: 'Etching: Volcano',
@@ -342,6 +345,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.RIPPLE]: {
+    nextSkillRechargeMultiplier: 0.67,
     name: 'Ripple',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -376,6 +380,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.ETCHING_JO_KULHLAUP]: {
+    // Other completed actions upgrade only this root's live etching.
+    etchingCompletionThreshold: 3,
     // Roots open their field-length window; releases consume only their own etching.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }],
     name: 'Etching: Jökulhlaup',
@@ -476,7 +482,28 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
   // so most of the damage lands well after the 560ms cast.
   [ID.FULGOR]: {
     // Replace the previous noncritical pulse stream while retaining the ordinary strike and Vulnerability.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.replace-fulgor' } }],
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.replace-fulgor',
+          id: 'pulses',
+          // The replaceable sequence owns this timeline independently of the ordinary attacks below.
+          effects: [
+            {
+              type: 'strike',
+              name: 'Fulgor',
+              ticks: Array.from({ length: 6 }, (_, index) => ({
+                atMs: 320 + index * 1000,
+                coefficient: 0,
+                flatStrikeBase: 200,
+                flatStrikePowerCoeff: 0.4
+              }))
+            }
+          ]
+        }
+      }
+    ],
     name: 'Fulgor',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -567,6 +594,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.ETCHING_DERECHO]: {
+    // Other completed actions upgrade only this root's live etching.
+    etchingCompletionThreshold: 3,
     // Roots open their field-length window; releases consume only their own etching.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }],
     name: 'Etching: Derecho',
@@ -716,6 +745,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   // Earth's etching root is the odd one out: it lays a Dark field rather than an elemental one.
   [ID.ETCHING_HABOOB]: {
+    // Other completed actions upgrade only this root's live etching.
+    etchingCompletionThreshold: 3,
     // Roots open their field-length window; releases consume only their own etching.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }],
     name: 'Etching: Haboob',

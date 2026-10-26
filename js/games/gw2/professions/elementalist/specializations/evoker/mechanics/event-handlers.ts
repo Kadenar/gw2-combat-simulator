@@ -5,15 +5,11 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
 /** Evoker trait and enchantment reactions consume actual transitions and accepted impacts. */
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
-import { elementalistProfiledBuffRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { skillNumber, requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { elementalistBuffEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { applyEvokerAttunementRechargePolicy } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { consumeElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
@@ -23,21 +19,18 @@ export function applyCalcifyProtection(context: ElementalistRuntime, event: Simu
   if (event.type !== 'control' || event.actorType !== ACTOR.PLAYER || evokerState.from(context).element !== 'Earth')
     return;
 
-  const profile = requireBalanceProfileFromContext(context, PROFILE.calcify);
+  const skill = requireSkillFromContext(context, ID.CALCIFY);
+  const action = requireSkillAction(skill, 'protection');
 
-  if (!requireEffect(profile, 'boon', BOON.PROTECTION)) return;
+  if (!requireEffect(skill, 'boon', BOON.PROTECTION, action)) return;
 
   if (
-    !context.procs.claimCooldown(
-      'elementalist.evoker.calcifyPassive',
-      event.at,
-      balanceProfileNumber(profile, 'internalCooldown')
-    )
+    !context.procs.claimCooldown('elementalist.evoker.calcifyPassive', event.at, skillNumber(skill, 'internalCooldown'))
   )
     return;
 
   context.effects.emit(
-    elementalistProfiledBuffRequest(context, event.at, PROFILE.calcify, BOON.PROTECTION, 'Calcify', ID.CALCIFY)
+    elementalistBuffEffectRequest(context, event.at, { skill, action }, BOON.PROTECTION, 'Calcify', ID.CALCIFY)
   );
 }
 

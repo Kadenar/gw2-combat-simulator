@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
@@ -12,7 +12,6 @@ import {
   consumeElectricEnchantment,
   grantElectricEnchantments
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { evokerCastCompleted } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
@@ -44,21 +43,29 @@ function fixture(catalog = native.catalog, traits = []) {
 }
 
 test('skill and trait providers share grant announcements while retaining patched lifetimes and attribution', () => {
-  const catalog = applyBalanceProfilePatch(native.catalog, {
-    balanceProfiles: {
-      [PROFILE.haresAgility]: {
-        fields: { playerStacks: 2 },
-        effects: [{ type: 'buff', name: 'Hare Enchantment', duration: 9 }]
-      },
-      [PROFILE.lightningBlitz]: {
-        fields: { resourceGain: 1 },
-        effects: [{ type: 'buff', name: 'Lightning Blitz Enchantment', duration: 3 }]
-      },
-      [TRAIT.GALVANIC_ENCHANTMENT]: { fields: { playerStacks: 4, duration: 6 } }
+  const catalog = applySkillPatch(
+    applyBalanceProfilePatch(native.catalog, {
+      balanceProfiles: { [TRAIT.GALVANIC_ENCHANTMENT]: { fields: { playerStacks: 4, duration: 6 } } }
+    }),
+    {
+      skills: {
+        [ID.HARES_AGILITY]: {
+          sideEffects: {
+            'electric-enchantment': { effects: [{ type: 'buff', name: 'Hare Enchantment', stacks: 2, duration: 9 }] }
+          }
+        },
+        [ID.LIGHTNING_BLITZ]: {
+          sideEffects: {
+            'electric-enchantment': {
+              effects: [{ type: 'buff', name: 'Lightning Blitz Enchantment', stacks: 1, duration: 3 }]
+            }
+          }
+        }
+      }
     }
-  });
+  );
   // The build selects Galvanic Enchantment throughout; the skill providers grant independently of it.
-  const { context, state, announcements } = fixture(catalog, [TRAIT.GALVANIC_ENCHANTMENT]);
+  const { context, state, announcements, events: emittedEvents } = fixture(catalog, [TRAIT.GALVANIC_ENCHANTMENT]);
   const providers = [
     [ID.HARES_AGILITY, 'elementalist.evoker.hares-agility', 2, 11, 'skill'],
     [ID.LIGHTNING_BLITZ, 'elementalist.evoker.lightning-blitz', 1, 5, 'skill'],
@@ -95,6 +102,32 @@ test('skill and trait providers share grant announcements while retaining patche
     assert.equal(announcement.sourceSkill, catalog.skillsById.get(id).name);
     assert.equal(announcement.type, procType);
     assert.equal(announcement.detail, `+${stacks} ${stacks === 1 ? 'stack' : 'stacks'}`);
+  }
+
+  // Earliest expiry wins without transferring trait ownership or refreshing a sibling batch.
+  for (const [at, expectedTrait, remaining] of [
+    [2, undefined, 6],
+    [5, TRAIT.GALVANIC_ENCHANTMENT, 5],
+    [8, undefined, 1],
+    [11, undefined, 0]
+  ]) {
+    context.time = at;
+    const before = emittedEvents.length;
+    consumeElectricEnchantment(context, {
+      type: 'damage',
+      at,
+      actorType: 'player',
+      sourceId: ID.ZAP,
+      skillId: ID.ZAP,
+      skillName: 'Zap'
+    });
+    assert.equal(
+      state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
+      remaining
+    );
+    const packets = emittedEvents.slice(before);
+    assert.equal(packets.length > 0, at < 11);
+    assert.ok(packets.every((event) => event.traitId === expectedTrait));
   }
 });
 

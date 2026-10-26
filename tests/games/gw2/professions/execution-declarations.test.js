@@ -69,7 +69,7 @@ test('GW2 catalogs separate standard boons from generic timed buffs', async () =
 test('native profession weapon swaps share the cast-start recharge policy', async () => {
   for (const entry of professionRegistry) {
     const catalog = (await entry.loadProfession()).catalog;
-    const skill = catalog.skillsByName.get('Swap Weapons');
+    const skill = catalog.skillsById.get(-3);
 
     assert.ok(skill, entry.id);
     assert.equal(skill.rechargeAnchor, 'castStart', entry.id);

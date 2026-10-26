@@ -42,11 +42,11 @@ export type MesmerSkillFlowAssertions = [
 export function mesmerHookSkillReads(runtime: MesmerRuntime, cast: Parameters<EliteCast>[1]): void {
   const cost: number | undefined = cast.skill.parentCooldownIncrease;
   const flag: string | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.crescendoProfileId;
-  const named: number | undefined = runtime.helpers.skillsByName.get(cast.skill.name)?.parentCooldownIncrease;
+  const indexed: number | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.parentCooldownIncrease;
   const listed: boolean | undefined = runtime.helpers.skills[0]?.phantasm;
   // @ts-expect-error Numeric mechanics must not lose their type at runtime.
   const invalid: string = cast.skill.parentCooldownIncrease;
-  void [cost, flag, named, listed, invalid];
+  void [cost, flag, indexed, listed, invalid];
 }
 
 createMesmerModuleData('Core', {

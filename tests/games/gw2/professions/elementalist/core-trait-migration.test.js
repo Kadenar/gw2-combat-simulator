@@ -12,7 +12,7 @@ function canonicalRotation(rotation) {
   return rotation.map((entry) =>
     typeof entry === 'number'
       ? { type: 'wait', durationMs: entry }
-      : { type: 'cast', skillId: elementalistCatalog.skillsByName.get(entry).id }
+      : { type: 'cast', skillId: elementalistCatalog.skills.find((candidate) => candidate.name === entry).id }
   );
 }
 

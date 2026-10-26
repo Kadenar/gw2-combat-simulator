@@ -119,7 +119,8 @@ test('axe weapon cooldowns begin at completed cast recharge anchors', () => {
   ]) {
     const result = simulate('Core', [name]);
     assert.equal(
-      result.planningState.cooldowns[necromancerCatalog.skillsByName.get(name).id].readyAt - result.steps[0].end,
+      result.planningState.cooldowns[necromancerCatalog.skills.find((candidate) => candidate.name === name).id]
+        .readyAt - result.steps[0].end,
       (seconds * 1000) / 1.25
     );
     assert.deepEqual(result.warnings, []);

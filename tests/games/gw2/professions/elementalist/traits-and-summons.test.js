@@ -31,7 +31,7 @@ test('Gale Song and Bolstered Elements expand their selected boon profile at com
   ]) {
     const config = {
       specialization,
-      selectedSkillIds: [elementalistCatalog.skillsByName.get(name).id],
+      selectedSkillIds: [elementalistCatalog.skills.find((candidate) => candidate.name === name).id],
       selectedTraitIds: [trait],
       target: { armor: 2597 }
     };
@@ -663,7 +663,7 @@ test('Fire Elemental resumes autonomous attacks after Flame Burst recovery', () 
   assert.notEqual(flameBurst.summonUsesMight, false);
   assert.notEqual(fireball.summonUsesEquipmentModifiers, false);
   assert.equal(
-    result.planningState.profession.availableFlips[elementalistCatalog.skillsByName.get('Flame Barrage').id]?.expiresAt,
+    result.planningState.profession.availableFlips[elementalistCatalog.skillsById.get(2662).id]?.expiresAt,
     result.planningState.profession.summonedElemental.activeUntil
   );
   assert.equal(result.planningState.cooldowns[25488], undefined);
@@ -735,7 +735,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   );
 
   assert.equal(
-    result.planningState.profession.availableFlips[elementalistCatalog.skillsByName.get('Flame Barrage').id]?.expiresAt,
+    result.planningState.profession.availableFlips[elementalistCatalog.skillsById.get(2662).id]?.expiresAt,
     result.planningState.profession.summonedElemental.activeUntil
   );
 
@@ -777,7 +777,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   assert.doesNotMatch(palette.innerHTML, /data-skill="Glyph of Elementals"/);
   assert.match(palette.innerHTML, /class="pal-skill" data-skill="Flame Barrage"[\s\S]*?draggable="true"/);
   // The palette renders the selected skill's configured artwork without pinning an asset URL.
-  assert.ok(palette.innerHTML.includes(elementalistCatalog.skillsByName.get('Flame Barrage').icon));
+  assert.ok(palette.innerHTML.includes(elementalistCatalog.skillsById.get(2662).icon));
 });
 
 test('Flame Barrage cannot apply future projectile burns outside the observation window', () => {
@@ -821,7 +821,7 @@ test('combat start preserves an elemental command already in progress', () => {
         rotation: [command, ...(explicit ? [500, { type: 'combat-start' }] : []), 6000],
         selectedSkillIds: {
           ...elementalistProfession.createBuildDefaults().selectedSkillIds,
-          Elite: elementalistCatalog.skillsByName.get(elite).id
+          Elite: elementalistCatalog.skills.find((candidate) => candidate.name === elite).id
         }
       });
       assert.deepEqual(result.warnings, []);
@@ -895,11 +895,11 @@ test('selected Earth Elemental auto-summons, attacks, and executes Stomp', () =>
     true
   );
   assert.equal(
-    result.planningState.profession.availableFlips[elementalistCatalog.skillsByName.get('Stomp').id]?.expiresAt,
+    result.planningState.profession.availableFlips[elementalistCatalog.skillsById.get(2666).id]?.expiresAt,
     result.planningState.profession.summonedElemental.activeUntil
   );
   assert.equal(
-    result.planningState.profession.availableFlips[elementalistCatalog.skillsByName.get('Flame Barrage').id]?.expiresAt,
+    result.planningState.profession.availableFlips[elementalistCatalog.skillsById.get(2662).id]?.expiresAt,
     undefined
   );
 });
@@ -973,7 +973,11 @@ test('Elementalist small-hitbox caps exclude only excess multi-hit packets', () 
       const selectedSkillIds = {
         ...elementalistProfession.createBuildDefaults().selectedSkillIds,
         ...(entry.selectedSkill
-          ? { [entry.selectedSlot || 'Utility1']: elementalistCatalog.skillsByName.get(entry.selectedSkill).id }
+          ? {
+              [entry.selectedSlot || 'Utility1']: elementalistCatalog.skills.find(
+                (candidate) => candidate.name === entry.selectedSkill
+              ).id
+            }
           : {})
       };
       const result = runNative({

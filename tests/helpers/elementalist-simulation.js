@@ -14,7 +14,7 @@ function canonicalRotation(rotation) {
 
     return {
       type: 'cast',
-      skillId: elementalistCatalog.skillsByName.get(entry).id
+      skillId: elementalistCatalog.skills.find((candidate) => candidate.name === entry).id
     };
   });
 }

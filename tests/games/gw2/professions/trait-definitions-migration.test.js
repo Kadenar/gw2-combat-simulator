@@ -529,8 +529,8 @@ test('Versatile Power adjusts selected burst and Dragon Trigger recharge using t
       ['Bladesworn', 'Dragon Trigger']
     ]) {
       const runtime = family.runtimeFor({ patchId, specialization });
-      const skill = runtime.catalog.skillsByName.get(skillName);
-      const weapon = runtime.catalog.skillsByName.get('Cyclone Axe');
+      const skill = runtime.catalog.skills.find((candidate) => candidate.name === skillName);
+      const weapon = runtime.catalog.skillsById.get(14421);
       assert.ok(skill && weapon);
       const context = { helpers: runtime.catalog, config: { selectedTraitIds: [WARRIOR.VERSATILE_POWER] } };
       assert.equal(runtime.rechargeWork(context, skill, 10), 10 * factor);

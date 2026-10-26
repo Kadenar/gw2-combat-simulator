@@ -12,7 +12,6 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import type {
   ElementalistSkill,
   ElementalistUiContext,
@@ -70,7 +69,7 @@ function familiarSkillId(context: ElementalistUiContext): number {
   const state = uiState(context);
   const build = context.build;
   const empoweredMaximum =
-    state.empoweredCharges?.maximum ?? balanceNumberFromContext(context, PROFILE.resources, 'minimumStacks');
+    state.empoweredCharges?.maximum ?? balanceNumberFromContext(context, TRAIT.EVOCATION, 'minimumStacks');
   const empowered = state.empoweredCharges?.value ?? build?.initialEvokerEmpowered ?? 0;
   const name = FAMILIAR_SKILL_NAMES[element][empowered >= empoweredMaximum ? 'empowered' : 'basic'];
   return ELEMENTALIST_FAMILIAR_SKILL_IDS[name];
@@ -92,7 +91,7 @@ function evokerSkillDamageOccurrence(context: SkillDamagePreviewContext, skill: 
 
   if (skill.id !== basic && skill.id !== empowered) return null;
 
-  const resources = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const resources = requireBalanceProfileFromContext(context, TRAIT.EVOCATION);
   // Each row starts from its own legal form using the simulation's existing initial resource fields.
   return {
     // Familiar completion may arm enchantments for a subsequent player hit.
@@ -224,11 +223,11 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
           (trait) => trait.id === TRAIT.SPECIALIZED_ELEMENTS
         )
           ? TRAIT.SPECIALIZED_ELEMENTS
-          : PROFILE.resources,
+          : TRAIT.EVOCATION,
         'maximumStacks'
       );
     const empoweredMaximum =
-      state.empoweredCharges?.maximum ?? balanceNumberFromContext(context, PROFILE.resources, 'minimumStacks');
+      state.empoweredCharges?.maximum ?? balanceNumberFromContext(context, TRAIT.EVOCATION, 'minimumStacks');
     // Keep fractional patched progress in the reading; only the decorative wedge class uses whole stacks.
     const empowered = boundedNumber(
       state.empoweredCharges?.value ?? build?.initialEvokerEmpowered ?? 0,

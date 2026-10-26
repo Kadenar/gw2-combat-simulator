@@ -18,7 +18,7 @@ import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 const config = { specialization: 'Core', selectedTraitIds: [TRAIT.ELECTRIC_DISCHARGE] };
 const native = elementalistProfession.runtimeFor(config);
-const skill = native.catalog.skillsByName.get('Air Attunement');
+const skill = native.catalog.skillsById.get(5494);
 const occurrence = {
   id: String(skill.id),
   name: skill.name,

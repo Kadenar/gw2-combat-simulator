@@ -41,7 +41,7 @@ function run(
     specialization: 'Core',
     initialResource: 100,
     selectedSkillIds: names.map((name) => {
-      const skill = entry.family.catalog.skillsByName.get(name);
+      const skill = entry.family.catalog.skills.find((candidate) => candidate.name === name);
       assert.ok(skill, name);
       return skill.id;
     }),
@@ -55,7 +55,10 @@ function run(
     output,
     combatStartTime: marker || boundary == null ? undefined : boundary,
     rotation: [
-      ...names.map((name) => ({ type: 'cast', skillId: entry.family.catalog.skillsByName.get(name).id })),
+      ...names.map((name) => ({
+        type: 'cast',
+        skillId: entry.family.catalog.skills.find((candidate) => candidate.name === name).id
+      })),
       ...(marker ? [wait(boundary * 1000), { type: 'combat-start' }] : []),
       wait(Math.max(16000, (boundary ?? 0) * 1000 + 8000))
     ],

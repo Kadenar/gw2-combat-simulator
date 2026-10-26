@@ -1,31 +1,17 @@
 import { WEAPON } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumberFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { elementalForGlyphId } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { reservePistolRecharge } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { aeromancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/air/index.js';
 import { geomancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/earth/index.js';
 import { pyromancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/fire/index.js';
 import { aquamancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/water/index.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type {
-  ElementalistRuntime,
-  ElementalistRuntimeState,
-  ElementalistSkill
-} from '#gw2/professions/elementalist/types.js';
-
-// Weapon-only reductions share the compiler; delayed recharge and one-use reservations retain their owners.
-const weaponRecharge = compileRechargeRules<ElementalistRuntimeState, ElementalistSkill>([
-  {
-    when: (_context, skill) => skill.id === ID.RIDE_THE_LIGHTNING,
-    multiplier: { profile: PROFILE.rideTheLightning, field: 'rechargeMultiplier' }
-  }
-]);
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /**
  * Calculates persistent attunement and skill recharge rules without spending
@@ -52,7 +38,9 @@ export function elementalistRechargeWork(
     return duration;
   }
 
-  let adjusted = weaponRecharge(context, skill, duration);
+  // A skill that declares its own recharge factor applies it before trait rules, from the selected (patched) skill.
+  let adjusted =
+    skill.rechargeMultiplier === undefined ? duration : duration * skillNumber(skill, 'rechargeMultiplier');
   adjusted = pyromancersTrainingRecharge(context, skill, adjusted);
   adjusted = aeromancersTrainingRecharge(context, skill, adjusted);
   adjusted = geomancersTrainingRecharge(context, skill, adjusted);
@@ -67,7 +55,7 @@ export function reserveElementalistRecharge(context: ElementalistRuntime, skill:
 
   if (state.spearNextRechargeReduction && skillWeapon(skill) === WEAPON.SPEAR) {
     state.spearNextRechargeReduction = false;
-    return duration * balanceNumberFromContext(context, PROFILE.spearEmpowerments, 'rechargeMultiplier');
+    return duration * skillNumberFromContext(context, ID.RIPPLE, 'nextSkillRechargeMultiplier');
   }
 
   return reservePistolRecharge(context, skill, duration);

@@ -9,6 +9,10 @@ import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profe
  */
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
+import type { ELEMENTALIST_CORE_SKILL_FIELDS } from '#gw2/professions/elementalist/core/skill-fields.js';
+import type { WEAVER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/weaver/skill-fields.js';
+import type { EVOKER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/evoker/skill-fields.js';
 
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
@@ -64,8 +68,16 @@ export interface ElementalistUiContext extends Omit<
 /** UI slice whose callbacks read Elementalist end-state projections. */
 export type ElementalistUiSlice = Partial<ProfessionUiContract<Partial<ElementalistState>>>;
 
-/** A catalog skill carrying the Elementalist-specific identity fields the modules read. */
-export interface ElementalistSkill extends Skill {
+/**
+ * A catalog skill carrying the Elementalist-specific identity fields the modules read. Numeric tuning fields are
+ * typed from the modules' skill-field declarations, which also validate and expose them for patching.
+ */
+export interface ElementalistSkill
+  extends
+    Skill,
+    NumericSkillFields<
+      typeof ELEMENTALIST_CORE_SKILL_FIELDS & typeof WEAVER_SKILL_FIELDS & typeof EVOKER_SKILL_FIELDS
+    > {
   readonly attunement?: string;
   readonly chainRoot?: SkillId;
   readonly overload?: boolean;

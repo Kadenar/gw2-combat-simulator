@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withSkill, withProfile } from '#tests/helpers/catalog-overrides.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
@@ -168,19 +168,28 @@ test('Fulgor keeps spear bonuses through the final procedural packet and consume
       const native = base.runtimeFor(config);
       return {
         ...native,
-        catalog: withProfile(native.catalog, PROFILE.fulgor, {
-          effects: [
-            {
-              type: 'strike',
-              name: 'Fulgor',
-              ticks: [1000, 2000, 2000].map((atMs) => ({
-                atMs,
-                coefficient: 2,
-                flatStrikeBase: 0,
-                flatStrikePowerCoeff: 0
-              }))
+        catalog: withSkill(native.catalog, ID.FULGOR, {
+          sideEffects: native.catalog.skillsById.get(ID.FULGOR).sideEffects.map((rule) => ({
+            ...rule,
+            do: {
+              ...rule.do,
+              effects: normalizeSkillEffects(
+                [
+                  {
+                    type: 'strike',
+                    name: 'Fulgor',
+                    ticks: [1000, 2000, 2000].map((atMs) => ({
+                      atMs,
+                      coefficient: 2,
+                      flatStrikeBase: 0,
+                      flatStrikePowerCoeff: 0
+                    }))
+                  }
+                ],
+                'Fulgor snapshot fixture'
+              )
             }
-          ]
+          }))
         })
       };
     }
@@ -868,8 +877,9 @@ test('familiar declarations reset their pools before deferred grants and the nex
           selectedTraitIds: []
         },
         {
-          profession: patchedProfession([[id, removed ? { sideEffects: [] } : {}]], (runtime) =>
-            runtime.schedule('test.timeline', runtime.time, 0, undefined, -100)
+          profession: patchedProfession(
+            [[id, removed ? { sideEffects: skill.sideEffects.map((entry) => ({ ...entry, when: () => false })) } : {}]],
+            (runtime) => runtime.schedule('test.timeline', runtime.time, 0, undefined, -100)
           ),
           initialize(runtime) {
             runtime.profession.specialization.state.pendingWeaponChargeGains = [

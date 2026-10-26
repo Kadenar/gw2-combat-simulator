@@ -441,7 +441,7 @@ test('weapon-set labels stay centered in groups and visible while scrolling', as
         'Feast of Corruption'
       ];
       const names = Array.from({ length: cycleCount }, () => cycle).flat();
-      const skills = names.map((name) => app.activeCatalog.skillsByName.get(name));
+      const skills = names.map((name) => app.activeCatalog.skills.find((candidate) => candidate.name === name));
 
       if (skills.some((skill) => !skill)) return false;
 
@@ -548,7 +548,7 @@ test('rotation comparison keeps editable and read-only timelines stacked without
     .toBe(true);
   await page.evaluate(() => {
     const app = window.professionApp;
-    const bladecall = app.activeCatalog.skillsByName.get('Bladecall');
+    const bladecall = app.activeCatalog.skillsById.get(62560);
     app.build.rotation = [
       { type: 'cast', skillId: bladecall.id },
       { type: 'wait', durationMs: 1000 }
@@ -605,7 +605,7 @@ test('rotation comparison keeps editable and read-only timelines stacked without
 
   const updatingStatus = await page.evaluate(() => {
     const app = window.professionApp;
-    app.build.rotation.push({ type: 'cast', skillId: app.activeCatalog.skillsByName.get('Mirror Blade').id });
+    app.build.rotation.push({ type: 'cast', skillId: app.activeCatalog.skillsById.get(10333).id });
     app.changed(false);
     return {
       status: document.querySelector('[data-comparison-status]')?.textContent,

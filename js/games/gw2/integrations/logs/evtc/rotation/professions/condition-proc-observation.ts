@@ -37,12 +37,12 @@ export function hasSelectedTrait(config: Gw2Config, traitId: string | number): b
   return Boolean(config.selectedTraitIds?.some((id) => String(id) === String(traitId)));
 }
 
+/** Trait observations read their declared profile identity, independent of display labels. */
 export function traitBalanceProfile(
   catalog: Readonly<CanonicalCatalog>,
-  traitId: string | number,
-  traitName: string
+  traitId: string | number
 ): BalanceProfile | null {
-  return catalog.balanceProfilesById?.get(traitId) || catalog.balanceProfilesByName?.get(traitName) || null;
+  return catalog.balanceProfilesById.get(traitId) ?? null;
 }
 
 /** Missing Bleeding is optional discovery; a present packet must carry its authored duration. */
@@ -161,12 +161,11 @@ export function analyzeCriticalBleedingProcObservation(
   catalog: Readonly<CanonicalCatalog>,
   config: Gw2Config,
   traitId: string | number,
-  traitName: string,
   attributes: readonly Gw2Stats[]
 ): CriticalBleedingProcObservation | null {
   if (!hasSelectedTrait(config, traitId)) return null;
 
-  const profile = traitBalanceProfile(catalog, traitId, traitName);
+  const profile = traitBalanceProfile(catalog, traitId);
 
   if (!profile) return null;
 

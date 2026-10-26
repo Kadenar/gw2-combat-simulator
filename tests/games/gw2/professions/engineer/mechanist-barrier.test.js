@@ -50,7 +50,7 @@ test('Barrier Burst grants its barrier and boons to the party and retains a 30-s
     selectedTraitIds: [TRAIT.MECH_CORE_BARRIER_ENGINE],
     attributeInputs: baseAttributeInputs({ concentration: 0 })
   });
-  assert.equal(engineerCatalog.skillsByName.get('Barrier Burst').cooldown, 30);
+  assert.equal(engineerCatalog.skillsById.get(63141).cooldown, 30);
   const packets = result.events.filter((event) => event.skillName === 'Barrier Burst' && event.type === 'buff');
   for (const [kind, duration, stacks] of [
     ['barrier', 5, 1],

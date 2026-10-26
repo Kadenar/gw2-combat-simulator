@@ -9,7 +9,6 @@ import {
   type ElementalistAttunementTraitTrigger
 } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
@@ -38,7 +37,7 @@ export function commitRechargeDuration(context: ElementalistRuntime, skill: Skil
 export function evokerChargeProfile(context: unknown) {
   return requireBalanceProfileFromContext(
     context,
-    hasTrait(context, TRAIT.SPECIALIZED_ELEMENTS) ? TRAIT.SPECIALIZED_ELEMENTS : PROFILE.resources
+    hasTrait(context, TRAIT.SPECIALIZED_ELEMENTS) ? TRAIT.SPECIALIZED_ELEMENTS : TRAIT.EVOCATION
   );
 }
 

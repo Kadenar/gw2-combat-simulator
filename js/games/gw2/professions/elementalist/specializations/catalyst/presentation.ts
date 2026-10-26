@@ -16,7 +16,6 @@ import {
   ELEMENTALIST_SKILL_IDS,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { type CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { ElementalistUiContext, ElementalistUiSlice } from '#gw2/professions/elementalist/types.js';
 
@@ -159,7 +158,7 @@ export const catalystUi: ElementalistUiSlice = Object.freeze({
     const build = context.build;
     // Observed clocks carry their selected cap; the build-only view uses the active profile before simulation.
     const maximum =
-      state.catalystEnergy?.maximum ?? balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks');
+      state.catalystEnergy?.maximum ?? balanceNumberFromContext(context, TRAIT.DEPTH_OF_ELEMENTS, 'maximumStacks');
     return [
       {
         id: 'catalyst-energy',

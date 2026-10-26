@@ -10,11 +10,13 @@ import { antiquaryUi } from '#gw2/professions/thief/specializations/antiquary/pr
 import { ANTIQUARY_BALANCE_PROFILES } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { ANTIQUARY_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/antiquary/skills/index.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
+import { ANTIQUARY_SKILL_FIELDS } from '#gw2/professions/thief/specializations/antiquary/skill-fields.js';
 
 export const antiquaryModule = defineNativeModule({
   traitDefinitions: antiquaryTraits,
   id: 'Antiquary',
   data: createThiefModuleData('Antiquary', {
+    skillFields: ANTIQUARY_SKILL_FIELDS,
     skillMechanics: ANTIQUARY_SKILL_MECHANICS,
     balanceProfiles: ANTIQUARY_BALANCE_PROFILES
   }),

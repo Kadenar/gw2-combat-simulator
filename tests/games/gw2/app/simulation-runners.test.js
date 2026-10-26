@@ -214,7 +214,7 @@ test('build edits cancel prior analysis even when browser storage rejects writes
   // Supply normalized build inputs and a real tab so the edit reaches the failing storage write.
   const tab = createBuildTab({ rotation: [{ type: 'wait', durationMs: 1000 }], selectedSkillIds: {}, infusions: [] });
   const app = Object.assign(Object.create(ProfessionApp.prototype), {
-    patch: { id: 'current', catalog: { skills: [], skillsByName: new Map(), skillsById: new Map() } },
+    patch: { id: 'current', catalog: { skills: [], skillsById: new Map() } },
     initialRenderGeneration: 0,
     deferredRotationRenderRevision: null,
     build: tab.build,

@@ -6,7 +6,7 @@ import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 
 export interface SimulationTooltip {
   readonly description: string;
@@ -65,9 +65,15 @@ export function resolveTooltips(context: ProfessionBalanceContext, tooltips: Pro
   return selected;
 }
 
-/** Tuples read the described profile; named sources keep cross-profile and modifier facts explicit. */
+/** Tuples read the described profile; named sources keep skill, profile, and modifier ownership explicit. */
 export type FactSpec =
   | readonly [field: string, name: string, format?: (value: number) => string]
+  | {
+      readonly skill: SkillId;
+      readonly field: string;
+      readonly name: string;
+      readonly format?: (value: number) => string;
+    }
   | {
       readonly profile: SkillId;
       readonly field: string;
@@ -92,6 +98,14 @@ export const fromProfile = (
   format?: (value: number) => string
 ): FactSpec => ({ profile, field, name, format });
 
+/** Skill-owned tuning can describe the skill itself or another action such as a conjure pickup. */
+export const fromSkill = (
+  skill: SkillId,
+  field: string,
+  name: string,
+  format?: (value: number) => string
+): FactSpec => ({ skill, field, name, format });
+
 /** Modifier facts retain their percentage default and may read named rule parameters. */
 export const fromModifier = (
   modifier: string,
@@ -107,6 +121,8 @@ function resolveFacts(
   facts: readonly FactSpec[]
 ): readonly TooltipFact[] {
   return facts.map((fact) => {
+    if ('skill' in fact) return skillFact(context, fact.skill, fact.field, fact.name, fact.format);
+
     if ('profile' in fact) return profileFact(context, fact.profile, fact.field, fact.name, fact.format);
 
     if ('modifier' in fact) return modifierFact(context, fact.modifier, fact.field, fact.name, fact.format);
@@ -131,6 +147,8 @@ effectNames.set('berserkers-power', "Berserker's Power");
 effectNames.set('overcharged-cartridges', 'Overcharged Cartridges');
 effectNames.set('supercharged-cartridges', 'Supercharged Cartridges');
 effectNames.set('fresh-air', 'Fresh Air');
+// Resolve the Tempest buff kind to its display name so the tooltip uses the buff icon.
+effectNames.set('transcendent-tempest', 'Transcendent Tempest');
 // Match named buff IDs to their display names so generated facts keep the granting skill or trait icon.
 effectNames.set('fierce-as-fire', 'Fierce as Fire');
 effectNames.set('signet-mastery', 'Signet Mastery');
@@ -168,12 +186,23 @@ export function tooltipNumber(source: object | undefined, field: string): number
 // Keep small nonzero coefficients visible without displaying floating-point arithmetic noise.
 export const tooltipDecimal = (value: number): string => String(Number(value.toPrecision(8)));
 
-export const tooltipPercent = (value: number): string => `${value > 0 ? '+' : ''}${tooltipDecimal(value * 100)}%`;
+/** Share percentage precision and signs while callers retain the meaning of the displayed quantity. */
+export const tooltipPercent = (value: number, options: { maximumFractionDigits?: number } = {}): string => {
+  const percent =
+    options.maximumFractionDigits === undefined
+      ? tooltipDecimal(value * 100)
+      : String(Number((value * 100).toFixed(options.maximumFractionDigits)));
+  return `${Number(percent) > 0 ? '+' : ''}${percent}%`;
+};
 
 // Keep duration units and signed multiplier changes consistent across professions.
 export const tooltipSeconds = (value: number): string => `${tooltipDecimal(value)}s`;
 
-export const tooltipFactorChange = (factor: number): string => tooltipPercent(factor - 1);
+/**
+ * One signed format for every multiplier, so sibling recharge facts read alike. Two decimals keep repeating
+ * fractions such as 2/3 legible without changing the runtime factor.
+ */
+export const tooltipFactorChange = (factor: number): string => tooltipPercent(factor - 1, { maximumFractionDigits: 2 });
 
 /** Required IDs are checked at the presentation boundary without executing any combat callbacks. */
 export function tooltipProfile(context: ProfessionBalanceContext, id: SkillId): BalanceProfile {
@@ -276,6 +305,17 @@ export function profileFact(
   format: (value: number) => string = tooltipDecimal
 ): TooltipFact {
   return { name, detail: format(balanceNumberFromContext(context, id, field)) };
+}
+
+/** Resolve a skill fact from the same patched owner used by combat and attribute calculations. */
+export function skillFact(
+  context: ProfessionBalanceContext,
+  id: SkillId,
+  field: string,
+  name: string,
+  format: (value: number) => string = tooltipDecimal
+): TooltipFact {
+  return { name, detail: format(skillNumberFromContext(context, id, field)) };
 }
 
 /** Scalar rules and their named parameters remain the sole owners of patchable modifier inputs. */

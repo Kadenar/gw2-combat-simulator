@@ -132,7 +132,13 @@ test('removing Positive Flow suppresses regeneration independently of the condit
 });
 
 test('Gunsaber transitions share recharge, reset chains, and retain the configured weapon set', () => {
-  const result = run(['Chop', 'Unsheathe Gunsaber', 'Swift Cut', 'Sheathe Gunsaber', 'Unsheathe Gunsaber']);
+  const result = run([
+    'Chop',
+    'Unsheathe Gunsaber',
+    { type: 'cast', skillId: 62966 },
+    'Sheathe Gunsaber',
+    'Unsheathe Gunsaber'
+  ]);
   assert.deepEqual(result.warnings, []);
   const owner = observedRuntime(result);
   const swaps = result.events.filter((event) => event.type === 'sigil_swap');
@@ -150,7 +156,7 @@ test('Gunsaber transitions share recharge, reset chains, and retain the configur
 
 test('Gunsaber gates standard weapons, ordinary swaps, weapon bursts, and unavailable bundle actions', () => {
   for (const rotation of [
-    ['Swift Cut'],
+    [62966],
     ['Sheathe Gunsaber'],
     ['Unsheathe Gunsaber', 'Chop'],
     ['Unsheathe Gunsaber', 'Unsheathe Gunsaber'],
@@ -562,7 +568,7 @@ test('Tactical Reload clears full Cartridges recharge and restores the longest t
 
 // Spending a magazine reserves recharge work for every consumed round in the sequential queue.
 test('Artillery Slash queues recharge for all rounds spent together', () => {
-  const result = run(['Unsheathe Gunsaber', 'Artillery Slash']);
+  const result = run(['Unsheathe Gunsaber', { type: 'cast', skillId: 62732 }]);
   const ammo = observedRuntime(result).cooldownController.readAmmo(ID.ARTILLERY_SLASH);
   assert.deepEqual(result.warnings, []);
   assert.equal(ammo.charges, 0);
@@ -606,7 +612,7 @@ test('Tactical Reload can be consumed before expiry and closes exactly at its de
 
 test('Artillery Slash spends captured rounds once and successful ammunition traits use the same count', () => {
   for (const sharp of [false, true]) {
-    const result = run(['Unsheathe Gunsaber', 'Artillery Slash'], {
+    const result = run(['Unsheathe Gunsaber', { type: 'cast', skillId: 62732 }], {
       selectedTraitIds: [TRAIT.FIERCE_AS_FIRE, ...(sharp ? [TRAIT.SHARP_AS_THE_WIND] : [])]
     });
     assert.deepEqual(result.warnings, []);
@@ -620,7 +626,7 @@ test('Artillery Slash spends captured rounds once and successful ammunition trai
     );
   }
 
-  const canceled = run(['Unsheathe Gunsaber', { name: 'Artillery Slash', interruptAfterMs: 1 }], {
+  const canceled = run(['Unsheathe Gunsaber', { skillId: 62732, interruptAfterMs: 1 }], {
     selectedTraitIds: [TRAIT.FIERCE_AS_FIRE]
   });
   assert.deepEqual(canceled.warnings, []);
@@ -664,7 +670,9 @@ test('Lush Forest reduces current-bar recharge only and preserves the normal Art
     );
   }
 
-  const excluded = run(['Unsheathe Gunsaber', 'Artillery Slash'], { selectedTraitIds: [TRAIT.LUSH_FOREST] });
+  const excluded = run(['Unsheathe Gunsaber', { type: 'cast', skillId: 62732 }], {
+    selectedTraitIds: [TRAIT.LUSH_FOREST]
+  });
   assert.equal(
     excluded.procSteps.some((proc) => proc.skill === 'Lush Forest'),
     false
@@ -695,7 +703,7 @@ test('cartridges activate on the queue, upgrade once, and expire without another
 
 test('only accepted explosions apply cartridge Burning and extend Guns and Glory after the triggering damage', () => {
   const config = { selectedSkillIds: [68085], selectedTraitIds: [TRAIT.GUNS_AND_GLORY] };
-  const result = run(['Overcharged Cartridges', 'Unsheathe Gunsaber', 'Artillery Slash'], config);
+  const result = run(['Overcharged Cartridges', 'Unsheathe Gunsaber', { type: 'cast', skillId: 62732 }], config);
   assert.deepEqual(result.warnings, []);
   assert.ok(state(result).gunsAndGloryUntil > observedRuntime(result).time);
   const burning = result.events.find(
@@ -703,23 +711,20 @@ test('only accepted explosions apply cartridge Burning and extend Guns and Glory
   );
   assert.equal(burning.ownerActorType, 'player');
   assert.equal(burning.actorType, 'effect');
-  const bare = run(['Overcharged Cartridges', 'Unsheathe Gunsaber', 'Artillery Slash'], {
+  const bare = run(['Overcharged Cartridges', 'Unsheathe Gunsaber', { type: 'cast', skillId: 62732 }], {
     selectedSkillIds: [68085]
   });
   close(
     result.resolvedEvents.find((event) => event.type === 'damage').damage,
     bare.resolvedEvents.find((event) => event.type === 'damage').damage
   );
-  const missed = run(
-    ['Overcharged Cartridges', 'Unsheathe Gunsaber', { name: 'Artillery Slash', offTarget: true }],
-    config
-  );
+  const missed = run(['Overcharged Cartridges', 'Unsheathe Gunsaber', { skillId: 62732, offTarget: true }], config);
   assert.equal(state(missed).gunsAndGloryUntil, 0);
   assert.equal(
     missed.events.some((event) => event.type === 'condition' && event.sourceId === ID.OVERCHARGED_CARTRIDGES),
     false
   );
-  const expired = run(['Unsheathe Gunsaber', 'Artillery Slash', wait(13000)], config);
+  const expired = run(['Unsheathe Gunsaber', { type: 'cast', skillId: 62732 }, wait(13000)], config);
   assert.ok(state(expired).gunsAndGloryUntil <= observedRuntime(expired).time);
 });
 
@@ -735,14 +740,18 @@ test('cartridge component removal separates its bonus and Burning and a removed 
       }
     });
     const config = { patchId: `cartridge-${removed}`, selectedSkillIds: [68085] };
-    const result = run(['Overcharged Cartridges', 'Unsheathe Gunsaber', 'Artillery Slash'], config, patched);
+    const result = run(
+      ['Overcharged Cartridges', 'Unsheathe Gunsaber', { type: 'cast', skillId: 62732 }],
+      config,
+      patched
+    );
     assert.deepEqual(result.warnings, []);
     assert.equal(state(result).overchargedCartridgeWindows.length > 0, removed === 'condition');
     assert.equal(
       result.events.some((event) => event.type === 'condition' && event.sourceId === ID.OVERCHARGED_CARTRIDGES),
       false
     );
-    const bare = run([wait(600), 'Unsheathe Gunsaber', 'Artillery Slash']);
+    const bare = run([wait(600), 'Unsheathe Gunsaber', { type: 'cast', skillId: 62732 }]);
     const damage = (value) =>
       value.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.ARTILLERY_SLASH).damage;
     assert.ok(Math.abs(damage(result) - damage(bare) * (removed === 'condition' ? 1.15 : 1)) <= 1);
@@ -760,7 +769,7 @@ test('cartridge component removal separates its bonus and Burning and a removed 
     }
   });
   const result = run(
-    ['Overcharged Cartridges', 'Overcharged Cartridges', 'Unsheathe Gunsaber', 'Artillery Slash'],
+    ['Overcharged Cartridges', 'Overcharged Cartridges', 'Unsheathe Gunsaber', { type: 'cast', skillId: 62732 }],
     { patchId: 'upgrade-removed', selectedSkillIds: [68085] },
     patched
   );
@@ -877,7 +886,7 @@ test('Fierce as Fire scales its authored grant by committed ammunition', () => {
     }
   });
   const result = run(
-    ['Unsheathe Gunsaber', 'Artillery Slash'],
+    ['Unsheathe Gunsaber', { type: 'cast', skillId: 62732 }],
     {
       patchId: 'fierce-count',
       selectedTraitIds: [TRAIT.FIERCE_AS_FIRE]

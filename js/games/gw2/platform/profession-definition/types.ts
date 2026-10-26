@@ -5,7 +5,8 @@ import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/type
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
-import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill } from '#gw2/platform/skills/types.js';
 
 /** Defines runtime capabilities and composition inputs; display and build callback types have separate owners. */
 
@@ -67,14 +68,17 @@ export interface ProfessionDefinition<TProfessionState extends object = object, 
 
 export interface ProfessionModuleCatalogFragment<TSkill extends Skill = Skill> {
   readonly skills?: readonly TSkill[];
+  /**
+   * The profession-wide table of profession-owned skill fields. Every fragment carries all of it, because shared
+   * weapon skills authored by an elite can resolve to the Core fragment of a runtime without that elite.
+   */
+  readonly skillFields?: SkillFieldSpecs;
   readonly balanceProfiles?: readonly BalanceProfile[];
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
   readonly weapons?: readonly string[];
   readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
   readonly autoattackChains?: AutoattackChainOptions;
-  readonly skillNameCollision?: 'first' | 'last';
-  readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
 }
 
 /** Keeps scheduler contracts resolver-neutral while typed resolver layers supply their own registries. */

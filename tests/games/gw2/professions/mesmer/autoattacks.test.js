@@ -332,7 +332,7 @@ test('Imaginary Axes preserves the axe auto chain but other skills reset it', ()
   );
   assert.equal(preserved.planningState.profession.autoattackChains[ID.LACERATING_CHOP], ID.MIRROR_STRIKES);
 
-  const interrupted = simulateMesmer(['Lacerating Chop', 'Lingering Thoughts', 'Ethereal Chop'], config);
+  const interrupted = simulateMesmer(['Lacerating Chop', { type: 'cast', skillId: 45243 }, 'Ethereal Chop'], config);
 
   assert.deepEqual(
     interrupted.steps.filter((step) => !step.invalid).map((step) => step.skill),
@@ -483,7 +483,7 @@ test('clone attack selection returns the next cadence and ignores destroyed clon
   const state = {
     config: { primaryWeapon: 'Sword' },
     activeWeaponSet: 1,
-    helpers: { skillsById: new Map(), skillsByName: new Map() },
+    helpers: { skillsById: new Map(), skills: [] },
     profession: { core: { clones: [] } }
   };
   const damage = [];

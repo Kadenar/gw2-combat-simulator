@@ -21,7 +21,7 @@ for (const [profession, skillId, grantId, resource, from, to, effectIndex] of [
     const skill = profession.catalog.skillsById.get(skillId);
     const resourceGrants = { [grantId]: { amount: { from, to } } };
     const edit = effectIndex == null ? { resourceGrants } : { effects: [{ effectIndex, resourceGrants }] };
-    const reference = structuredClone(skillAuthoringReference(skill));
+    const reference = structuredClone(skillAuthoringReference(skill, profession.catalog.skillFields));
     assert.deepEqual(normalizeAuthoringSkillEdit(reference, edit), edit);
     const catalog = applySkillPatch(profession.catalog, { skills: { [skillId]: edit } });
     const patched = catalog.skillsById.get(skillId);

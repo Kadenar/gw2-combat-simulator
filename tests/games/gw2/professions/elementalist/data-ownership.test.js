@@ -10,7 +10,8 @@ import { TRAITS } from '#gw2/professions/elementalist/data/traits-data.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
 import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/catalyst/skills/index.js';
 import { evokerModule } from '#gw2/professions/elementalist/specializations/evoker/module.js';
-import { EVOKER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/index.js';
+import { EVOKER_FAMILIAR_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
+import { EVOKER_MEDITATION_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/meditation-skills.js';
 import { tempestModule } from '#gw2/professions/elementalist/specializations/tempest/module.js';
 import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
 import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
@@ -25,7 +26,14 @@ const slices = [
   ['specializations/tempest', tempestModule, TEMPEST_SKILL_MECHANICS],
   ['specializations/weaver', weaverModule, WEAVER_SKILL_MECHANICS],
   ['specializations/catalyst', catalystModule, CATALYST_SKILL_MECHANICS],
-  ['specializations/evoker', evokerModule, EVOKER_SKILL_MECHANICS]
+  [
+    'specializations/evoker',
+    evokerModule,
+    {
+      ...EVOKER_FAMILIAR_SKILL_MECHANICS,
+      ...EVOKER_MEDITATION_SKILL_MECHANICS
+    }
+  ]
 ];
 
 const ELEMENTALIST_SKILL_MECHANICS = composeSkillMechanics(
@@ -121,7 +129,7 @@ test('Elementalist family order determines name collisions independently of modu
       catalog.skills.map((skill) => skill.id),
       [firstId, secondId]
     );
-    assert.equal(catalog.skillsByName.get('Shared fixture').id, firstId);
+    assert.equal(catalog.skills.find((candidate) => candidate.name === 'Shared fixture').id, firstId);
   }
 });
 

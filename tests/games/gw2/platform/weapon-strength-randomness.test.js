@@ -402,7 +402,7 @@ test('weapon resolution uses the canonical skill ID when names and sources confl
         [1, sword],
         [2, rifle]
       ]),
-      skillsByName: new Map([['Shared name', rifle]])
+      skills: [{ name: 'Shared name', ...rifle }]
     },
     random: { mode: 'deterministic' }
   };

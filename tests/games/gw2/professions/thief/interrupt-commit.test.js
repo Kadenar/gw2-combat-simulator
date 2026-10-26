@@ -16,8 +16,8 @@ const simulate = createObservedProfessionSimulator(thiefProfession, {
 test('preparations flip while arming, use Alacrity, and restore placement after activation', () => {
   for (const name of ['Thousand Needles', 'Pitfall']) {
     for (const alacrity of [false, true]) {
-      const prepare = thiefCatalog.skillsByName.get(`Prepare ${name}`);
-      const trigger = thiefCatalog.skillsByName.get(name);
+      const prepare = thiefCatalog.skills.find((candidate) => candidate.name === `Prepare ${name}`);
+      const trigger = thiefCatalog.skills.find((candidate) => candidate.name === name);
       const config = { selectedSkillIds: [prepare.id], boons: { alacrity } };
       const before = simulate('Core', [], config);
       const placed = simulate('Core', [prepare.name], config);

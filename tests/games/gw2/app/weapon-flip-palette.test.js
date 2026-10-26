@@ -37,7 +37,9 @@ const AUDITED_WEAPON_FLIPS = Object.freeze([
 ]);
 
 function catalogSkill(catalog, identity) {
-  return typeof identity === 'number' ? catalog.skillsById.get(identity) : catalog.skillsByName.get(identity);
+  return typeof identity === 'number'
+    ? catalog.skillsById.get(identity)
+    : catalog.skills.find((candidate) => candidate.name === identity);
 }
 
 test('audited weapon flip families project one live palette identity', () => {

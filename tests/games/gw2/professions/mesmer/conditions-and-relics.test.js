@@ -537,7 +537,10 @@ test("Relic of Fireworks triggers on Distortion's 0-damage shatter", () => {
 test('Virtuoso Deadly Blades vulnerability triggers Relic of Aristocracy', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
-    ['Bladecall', { name: '__wait', waitMs: 2000 }],
+    [
+      { type: 'cast', skillId: 69311 },
+      { name: '__wait', waitMs: 2000 }
+    ],
     defaultSimulationConfig({
       specialization: 'Virtuoso',
       selectedTraitIds: [TRAIT.DEADLY_BLADES],
@@ -710,7 +713,7 @@ test('shadowsteps and Deceptions share Peitha cooldown at their execution times'
     [3001, ['Axes of Symmetry', 'Crystal Sands']]
   ]) {
     const result = simulateMesmer(
-      ['Axes of Symmetry', { name: '__wait', waitMs }, 'Crystal Sands', { name: '__wait', waitMs: 1200 }],
+      [{ type: 'cast', skillId: 43761 }, { name: '__wait', waitMs }, 'Crystal Sands', { name: '__wait', waitMs: 1200 }],
       defaultSimulationConfig({
         specialization: 'Mirage',
         selectedSkillIds: [41065],

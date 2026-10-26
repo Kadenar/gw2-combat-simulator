@@ -1,11 +1,12 @@
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkillFromContext, skillNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 
 const SHATTERING_ICE_PACKET = 'elementalist.catalyst.shattering-ice';
@@ -26,7 +27,7 @@ export function applyShatteringIce(context: MechanicCombatContext, event: Gw2Res
  * Spend active Shattering Ice state on player-owned attacks, including fields
  * and effects, while preventing summons and the derived packet from retriggering it.
  *
- * A qualifying hit consumes the profile internal cooldown and queues the strike
+ * A qualifying hit consumes the skill internal cooldown and queues the strike
  * and chill packets that Shattering Ice owns.
  */
 export function applyCatalystResolvedDamage(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
@@ -36,15 +37,26 @@ export function applyCatalystResolvedDamage(context: MechanicCombatContext, even
     (event.actorType !== ACTOR.PLAYER && event.actorType !== ACTOR.EFFECT) ||
     event.metadata?.packetKind === SHATTERING_ICE_PACKET ||
     !(Number(event.coefficient) > 0) ||
-    state.shatteringIceUntil <= event.at ||
-    !context.procs.claim(PROFILE.shatteringIce, 'elementalist.catalyst.shatteringIce', event.at)
+    state.shatteringIceUntil <= event.at
   ) {
     return;
   }
 
-  const shatteringIceProfile = requireBalanceProfileFromContext(context, PROFILE.shatteringIce);
-  const strike = requireEffect(shatteringIceProfile, 'strike', 'Shattering Ice - Triggered Packet');
-  const chilled = requireEffect(shatteringIceProfile, 'condition', CONDITION.CHILLED);
+  const skill = requireSkillFromContext(context, ID.SHATTERING_ICE);
+
+  // A qualifying hit spends its interval even when both rewards have been explicitly removed.
+  if (
+    !context.procs.claimCooldown(
+      'elementalist.catalyst.shatteringIce',
+      event.at,
+      skillNumber(skill, 'internalCooldown')
+    )
+  )
+    return;
+
+  const action = requireSkillAction(skill, 'triggered-packet');
+  const strike = requireEffect(skill, 'strike', 'Shattering Ice - Triggered Packet', action);
+  const chilled = requireEffect(skill, 'condition', CONDITION.CHILLED, action);
 
   if (strike) {
     context.effects.emit({

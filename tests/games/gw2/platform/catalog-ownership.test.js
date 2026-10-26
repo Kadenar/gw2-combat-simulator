@@ -85,37 +85,32 @@ test('profession catalog binding scopes Core defaults and replaces explicit modu
     autoattackChains: Object.freeze({
       additional: Object.freeze([Object.freeze([1, 2])]),
       excludeSkillIds: Object.freeze([3])
-    }),
-    skillNameOverrides: Object.freeze({ Strike: 1, Slash: 2 })
+    })
   });
   const family = Object.freeze({ core });
   const createData = createProfessionModuleDataFactory(family);
   const options = Object.freeze({ skillMechanics: Object.freeze({}) });
   const defaults = createData('Core', options);
-  const omitted = createData('Core', { ...options, autoattackChains: undefined, skillNameOverrides: undefined });
+  const omitted = createData('Core', { ...options, autoattackChains: undefined });
   assert.deepEqual(omitted, defaults);
   assert.deepEqual(defaults.weapons, ['Sword']);
   assert.deepEqual(defaults.weaponHands, { Sword: 'mh' });
   assert.deepEqual(defaults.autoattackChains, core.autoattackChains);
-  assert.deepEqual(defaults.skillNameOverrides, core.skillNameOverrides);
 
   const overrides = Object.freeze({
     ...options,
-    autoattackChains: Object.freeze({ additional: Object.freeze([Object.freeze([4, 5])]) }),
-    skillNameOverrides: Object.freeze({ Strike: 4 })
+    autoattackChains: Object.freeze({ additional: Object.freeze([Object.freeze([4, 5])]) })
   });
   for (const id of ['Core', 'Elite']) {
     const data = createData(id, overrides);
     assert.deepEqual(data.autoattackChains, overrides.autoattackChains);
-    assert.deepEqual(data.skillNameOverrides, overrides.skillNameOverrides);
   }
 
-  const cleared = createData('Core', { ...options, autoattackChains: {}, skillNameOverrides: {} });
+  const cleared = createData('Core', { ...options, autoattackChains: {} });
   assert.deepEqual(cleared.autoattackChains, {});
-  assert.deepEqual(cleared.skillNameOverrides, {});
   assert.deepEqual(createData('Core', options), defaults);
   const elite = createData('Elite', options);
-  for (const field of ['weapons', 'weaponHands', 'autoattackChains', 'skillNameOverrides']) {
+  for (const field of ['weapons', 'weaponHands', 'autoattackChains']) {
     assert.equal(Object.hasOwn(elite, field), false);
   }
 

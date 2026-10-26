@@ -11,7 +11,7 @@ import test from 'node:test';
 
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
-import { elementalistProfiledConditionRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { elementalistConditionEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
@@ -21,6 +21,43 @@ import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { testProfession } from '#tests/fixtures/profession.js';
+
+// A procedural proc may attribute its packet to a different skill while retaining its actual payload owner.
+test('condition action payload ownership is independent of its attributed source', () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 1,
+        name: 'Owner',
+        effects: [],
+        sideEffects: [
+          {
+            on: 'castCommit',
+            do: {
+              type: 'fixture.reward',
+              id: 'reward',
+              effects: [{ type: 'condition', name: 'Fire', condition: 'Burning', stacks: 1, duration: 7 }]
+            }
+          }
+        ]
+      },
+      { id: 2, name: 'Trigger', effects: [] }
+    ]
+  });
+  const skill = catalog.skillsById.get(1);
+  const request = elementalistConditionEffectRequest(
+    { helpers: catalog },
+    0,
+    { skill, action: skill.sideEffects[0].do },
+    'Fire',
+    'Trigger',
+    2
+  );
+  assert.equal(request.profile, skill);
+  assert.equal(request.effects[0].duration, 7);
+  assert.equal(request.attribution.sourceId, 2);
+  assert.equal(request.attribution.skillId, 2);
+});
 
 // Real condition resolution includes direct relic applications, so its own Burning must not feed another Fury cycle.
 function conditionResolver() {
@@ -269,7 +306,16 @@ test('profiled condition procs preserve fractional totals and source attribution
       }),
       effects: captureEffectEmissions({ submit: (event) => events.push(event) }).effects
     };
-    context.effects.emit(elementalistProfiledConditionRequest(context, 3, 'fixture', 'Fire', 'Fixture Proc', 123));
+    context.effects.emit(
+      elementalistConditionEffectRequest(
+        context,
+        3,
+        { profile: context.helpers.balanceProfilesById.get('fixture') },
+        'Fire',
+        'Fixture Proc',
+        123
+      )
+    );
     assert.deepEqual(
       events.map((event) => event.stacks),
       [stacks]

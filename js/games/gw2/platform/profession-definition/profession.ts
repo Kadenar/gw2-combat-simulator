@@ -70,6 +70,7 @@ import {
   validateTriggerPoints
 } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { nativeSkillModifierRules } from '#gw2/platform/skills/modifiers.js';
+import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
 
 /** Policies a family exposes for capacity previews; their maximum reads only configuration and catalog. */
 type ProfessionResourcePreview = ResourcePolicies & { readonly endurance?: EndurancePolicy };
@@ -384,7 +385,7 @@ export function defineNativeProfession<
   // Module data fixes the skill type for both catalog selection and execution callbacks.
   const modules: readonly AnyNativeModule<string, TSkill>[] = definition.modules;
   for (const module of modules) assertNativeModuleDefinition(module);
-  const assembly = getNativeCatalogAssembly(modules, definition.catalog);
+  const assembly = getNativeCatalogAssembly(modules);
   // Ownership and declarative references are checked before lazy runtime compilation, including inactive elites.
   const traitOwners = new Set<string>();
   const ruleOwners = new Set<string>();
@@ -424,6 +425,24 @@ export function defineNativeProfession<
 
     for (const rule of module.hooks?.rechargeRules ?? [])
       if (typeof rule.multiplier === 'object') {
+        // A skill reference is resolved against the skill selected by the rule at runtime.
+        if ('skillField' in rule.multiplier) {
+          if (
+            typeof rule.multiplier.skillField !== 'string' ||
+            !rule.multiplier.skillField.trim() ||
+            Object.keys(rule.multiplier).length !== 1
+          )
+            throw new TypeError(`Invalid recharge skill reference in ${module.id}.`);
+
+          // Predicates may depend on live state, but the reference must name a declared numeric skill field.
+          const field = rule.multiplier.skillField;
+
+          if (catalogSkillFields(assembly.catalog)[field]?.kind !== 'number')
+            throw new TypeError(`Unknown recharge skill field=${field} in ${module.id}.`);
+
+          continue;
+        }
+
         const { profile, field } = rule.multiplier;
 
         if (typeof profiles.get(profile)?.[field] !== 'number')

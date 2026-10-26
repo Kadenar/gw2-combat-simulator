@@ -102,7 +102,7 @@ test('Grenadier triggers the barrage skill effects and registers their effect re
 
 // Removed components must not be reconstructed from sibling effects, even with an eligible legend equipped.
 test('Twin Moon Sweep emits only surviving authored components', () => {
-  const result = runRevenant(['Twin Moon Sweep', wait], conduit, {
+  const result = runRevenant([{ type: 'cast', skillId: 76968 }, wait], conduit, {
     catalog: (catalog) =>
       withSkill(catalog, ID.TWIN_MOON_SWEEP, {
         effects: [

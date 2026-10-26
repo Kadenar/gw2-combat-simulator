@@ -14,7 +14,10 @@ test("skill details group proc counts by trigger and disclose only that skill's 
     const view = createGw2SimulationViewModel({
       profession: { ui: normalizeProfessionUi('fixture') },
       adapter: { eliteSpecialization: () => 'Core' },
-      activeCatalog: { skillsByName: new Map(), skillsById: new Map() },
+      activeCatalog: {
+        skills: [],
+        skillsById: new Map()
+      },
       build: { rotation: [{ type: 'wait', durationMs: 10000 }], targetHealth: 100000 },
       results: {
         rotationEndTime: 10,

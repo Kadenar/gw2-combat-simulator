@@ -1,3 +1,4 @@
+import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
@@ -58,8 +59,7 @@ test('corroborated Steal evidence becomes one owned input without claiming EI pr
   assert.deepEqual(thiefStealActions({ ...ctx, recordedActions: actions }), []);
   const result = reconstructEvtcRotation(ctx.log, thiefCatalog);
   assert.ok(result.rotation.some((command) => command.skillId === STEAL));
-  assert.match(result.warnings.join('\n'), /corroborated profession-specific EVTC evidence/);
-  assert.doesNotMatch(result.warnings.join('\n'), /Elite Insights rules/);
+  assert.deepEqual(result.warnings, [LOG_OPENER_WARNING]);
 });
 
 test('Steal inference rejects incomplete, unrelated, snapshot and wrong-specialization evidence', () => {

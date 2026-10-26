@@ -112,7 +112,7 @@ test('Signet of Illusions does not recharge Continuum Split or Crescendo', () =>
   assert.equal(chronomancer.planningState.cooldowns[ID.SPLIT_SECOND], undefined);
 
   const troubadour = simulateMesmer(
-    ['Lively Lute', 'Crescendo', 'Signet of Illusions'],
+    [{ type: 'cast', skillId: 76552 }, 'Crescendo', 'Signet of Illusions'],
     defaultSimulationConfig({
       specialization: 'Troubadour',
       selectedSkillIds: [10247],
@@ -160,7 +160,13 @@ test('shift-queued Mirror Images after a resource-generating cast grants both cl
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Sword'
   });
-  const result = simulateMesmer(['Bladecall', { name: 'Mirror Images', offset: 100 }], config);
+  const result = simulateMesmer(
+    [
+      { type: 'cast', skillId: 62560 },
+      { name: 'Mirror Images', offset: 100 }
+    ],
+    config
+  );
   const mirrorImagesResource = result.events.find(
     (event) => event.type === 'resource' && event.reason === 'Mirror Images'
   );

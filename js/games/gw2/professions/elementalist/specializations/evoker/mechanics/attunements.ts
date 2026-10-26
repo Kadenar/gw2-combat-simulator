@@ -1,3 +1,4 @@
+import { ELEMENTALIST_TRAIT_IDS as EVOKER_TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -9,7 +10,6 @@ import {
   type ElementalistAttunementTraitTrigger
 } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /**
@@ -91,7 +91,7 @@ export function applyEvokerAttunementRechargePolicy(
           elementalistAttunementRechargeDuration(
             context,
             skill,
-            balanceNumberFromContext(context, PROFILE.resources, 'recharge')
+            balanceNumberFromContext(context, EVOKER_TRAIT.EVOCATION, 'recharge')
           )
       )
     );
@@ -105,7 +105,7 @@ export function applyEvokerAttunementRechargePolicy(
       elementalistAttunementRechargeDuration(
         context,
         skill,
-        balanceNumberFromContext(context, PROFILE.resources, 'recharge')
+        balanceNumberFromContext(context, EVOKER_TRAIT.EVOCATION, 'recharge')
       );
     const existingReadyAt = readyAtBefore[attunement] || 0;
     const preservedRemaining = Math.max(0, existingReadyAt - event.at);

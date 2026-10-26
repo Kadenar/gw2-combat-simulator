@@ -12,7 +12,7 @@ const config = { selectedTraitIds: [TRAIT.QUICK_DRAW], primaryWeapon: 'Greatswor
 test('Quick Draw reserves only one same-time weapon recharge and ignores ineligible skills', () => {
   const runtime = observedRuntime(runRanger([], config));
   const native = rangerProfession.runtimeFor(config);
-  const skill = runtime.helpers.skillsByName.get('Maul');
+  const skill = runtime.helpers.skillsById.get(12525);
   runtime.time = 4;
   const grant = (runtime.profession.core.quickDraw = grantCharges(1, 5));
   for (const ineligible of [
@@ -43,7 +43,7 @@ test('Quick Draw reserves only one same-time weapon recharge and ignores ineligi
 // The execution owner skips reservation for an already-cancelled attempt, preserving the next discount.
 test('a cancelled weapon attempt preserves its unreserved Quick Draw grant', () => {
   let acceptedWork;
-  const result = runRanger([{ name: 'Maul', interruptMs: 1 }], config, {
+  const result = runRanger([{ skillId: 12525, interruptMs: 1 }], config, {
     initialize(runtime) {
       runtime.profession.core.quickDraw = grantCharges(1, 5);
     },
@@ -60,7 +60,7 @@ test('a cancelled weapon attempt preserves its unreserved Quick Draw grant', () 
   const runtime = observedRuntime(result);
   assert.deepEqual(result.warnings, []);
   assert.ok(result.events.some((event) => event.type === 'action' && event.cancelled));
-  assert.equal(acceptedWork, runtime.helpers.skillsByName.get('Maul').cooldown * 0.34);
+  assert.equal(acceptedWork, runtime.helpers.skillsById.get(12525).cooldown * 0.34);
   assert.equal(runtime.profession.core.quickDraw.charges, 1);
   assert.equal(result.planningState.profession.quickDraw.charges, 1);
   result.planningState.profession.quickDraw.charges = 0;

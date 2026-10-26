@@ -418,11 +418,11 @@ test('timeline preserves weapon-swap rows after target death in editable and ref
   const profession = adapter.profession;
   const rotation = [
     { type: 'combat-start' },
-    { type: 'cast', skillId: profession.catalog.skillsByName.get('Chop').id },
+    { type: 'cast', skillId: profession.catalog.skillsById.get(14369).id },
     { type: 'wait', durationMs: 1000 },
-    { type: 'cast', skillId: profession.catalog.skillsByName.get('Swap Weapons').id },
+    { type: 'cast', skillId: profession.catalog.skillsById.get(-3).id },
     { type: 'wait', durationMs: 10000 },
-    { type: 'cast', skillId: profession.catalog.skillsByName.get('Swap Weapons').id },
+    { type: 'cast', skillId: profession.catalog.skillsById.get(-3).id },
     { type: 'wait', durationMs: 1000 }
   ];
   const build = {
@@ -466,7 +466,9 @@ test('timeline keeps tome and kit transitions on their equipped set and follows 
     const adapter = await loadProfessionAppAdapter(id);
     const profession = adapter.profession;
     const rotation = actions.map((action) =>
-      typeof action === 'string' ? { type: 'cast', skillId: profession.catalog.skillsByName.get(action).id } : action
+      typeof action === 'string'
+        ? { type: 'cast', skillId: profession.catalog.skills.find((candidate) => candidate.name === action).id }
+        : action
     );
     const [primary, alternate] = id === 'engineer' ? ['Rifle', 'Pistol'] : ['Scepter', 'Staff'];
     const build = {

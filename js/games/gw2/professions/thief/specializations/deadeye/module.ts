@@ -13,11 +13,13 @@ import { maliciousAttackModifiers } from '#gw2/professions/thief/specializations
 import { deadeyeSlotModifiers } from '#gw2/professions/thief/specializations/deadeye/skills/slot-skills.js';
 import { DEADEYE_PUBLIC_STATE_PROJECTION, deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { deadeyeTraits } from '#gw2/professions/thief/specializations/deadeye/traits/index.js';
+import { DEADEYE_SKILL_FIELDS } from '#gw2/professions/thief/specializations/deadeye/skill-fields.js';
 
 export const deadeyeModule = defineNativeModule({
   traitDefinitions: deadeyeTraits,
   id: 'Deadeye',
   data: createThiefModuleData('Deadeye', {
+    skillFields: DEADEYE_SKILL_FIELDS,
     skillMechanics: DEADEYE_SKILL_MECHANICS,
     balanceProfiles: DEADEYE_BALANCE_PROFILES
   }),

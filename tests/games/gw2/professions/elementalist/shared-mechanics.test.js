@@ -34,8 +34,9 @@ test('every Elementalist specialization can prepare attunements without precomba
         assert.equal(result.planningState.profession.primaryAttunement, 'Fire');
         for (const attunement of ['Fire', 'Water', 'Air', 'Earth']) {
           assert.equal(
-            result.planningState.cooldowns[elementalistCatalog.skillsByName.get(`${attunement} Attunement`).id]
-              ?.remaining ?? 0,
+            result.planningState.cooldowns[
+              elementalistCatalog.skills.find((candidate) => candidate.name === `${attunement} Attunement`).id
+            ]?.remaining ?? 0,
             0,
             specialization
           );
@@ -100,9 +101,9 @@ test('cooldown reset also resets native attunement recharge', () => {
 });
 
 test('autoattack chains carry across attunements until their third strike', () => {
-  const fireRoot = elementalistCatalog.skillsByName.get('Fire Strike').id;
-  const fireSecond = elementalistCatalog.skillsByName.get('Fire Swipe');
-  const airRoot = elementalistCatalog.skillsByName.get('Charged Strike').id;
+  const fireRoot = elementalistCatalog.skillsById.get(39964).id;
+  const fireSecond = elementalistCatalog.skillsById.get(40326);
+  const airRoot = elementalistCatalog.skillsById.get(44681).id;
 
   assert.deepEqual(
     elementalistCatalog.autoattackChains
@@ -137,7 +138,7 @@ test('autoattack chains carry across attunements until their third strike', () =
   assert.equal(completed.planningState.profession.autoattackCarryover, null);
   assert.equal(
     completed.planningState.profession.autoattackChains[airRoot],
-    elementalistCatalog.skillsByName.get('Polaric Slash').id
+    elementalistCatalog.skillsById.get(45259).id
   );
 });
 
@@ -161,7 +162,7 @@ test('a skill in the new attunement interrupts autoattack carryover', () => {
 });
 
 test('a concurrent attunement swap preserves the in-flight auto chain', () => {
-  const airAttunement = elementalistCatalog.skillsByName.get('Air Attunement');
+  const airAttunement = elementalistCatalog.skillsById.get(5494);
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],
     rotation: [
@@ -363,7 +364,7 @@ test('attunement variants of an equipped glyph share their cooldown', () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(casts.length, 2);
   // Switching variants must preserve the first variant's recharge.
-  const recharge = (elementalistCatalog.skillsByName.get('Glyph of Storms (Air)').cooldown * 1000) / 1.25;
+  const recharge = (elementalistCatalog.skillsById.get(5737).cooldown * 1000) / 1.25;
   assert.ok(casts[1].start - casts[0].start >= recharge);
 });
 
@@ -514,7 +515,7 @@ test('Rock Barrier starts its root recharge when Hurl is used', () => {
   const hurl = actions.find((event) => event.skillName === 'Hurl');
 
   assert.equal(barriers.length, 2);
-  assert.equal(barriers[1].at - hurl.endsAt, elementalistCatalog.skillsByName.get('Rock Barrier').cooldown / 1.25);
+  assert.equal(barriers[1].at - hurl.endsAt, elementalistCatalog.skillsById.get(5695).cooldown / 1.25);
 });
 
 test('Pistol bullets grant, consume, and apply their payload', () => {
@@ -737,7 +738,7 @@ test('Tempest overloads retain their full etching charge only within the active 
 
 test('Spear etching stages replace one another in the weapon palette', () => {
   const family = ['Etching: Volcano', 'Lesser Volcano', 'Volcano'].map((name) =>
-    elementalistCatalog.skillsByName.get(name)
+    elementalistCatalog.skills.find((candidate) => candidate.name === name)
   );
   const displayed = (progress) =>
     elementalistProfession.ui

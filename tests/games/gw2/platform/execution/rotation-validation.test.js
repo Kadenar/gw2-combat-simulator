@@ -8,7 +8,7 @@ import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
 const build = createWarriorBuildDefaults();
 const slash = { type: 'cast', skillId: ID.DRAGON_SLASH_FORCE };
-const ordinary = { type: 'cast', skillId: warriorCatalog.skillsByName.get('Chop').id };
+const ordinary = { type: 'cast', skillId: warriorCatalog.skillsById.get(14369).id };
 const validate = (command) => validateWarriorBuild({ ...build, rotation: [command] });
 const normalize = (command) => normalizeRotation([command], warriorCatalog, { strict: true });
 
@@ -88,11 +88,11 @@ test('builds and normalization accept valid canonical controls and Dragon Slash 
   assert.deepEqual(normalize({ ...ordinary, offTarget: false }), [ordinary]);
 });
 
-// Name decoding supplies the capability lookup; best-effort migration drops only invalid entries.
+// Explicit IDs supply the capability lookup; best-effort migration drops only invalid entries.
 test('shorthand release holds use the shared rules without displacing neighboring commands', () => {
-  const namedSlash = { name: warriorCatalog.skillsById.get(slash.skillId).name, releaseDelayMs: 80 };
-  const invalid = { name: warriorCatalog.skillsById.get(ordinary.skillId).name, releaseDelayMs: 0 };
-  assert.deepEqual(normalizeRotation([ordinary, invalid, namedSlash], warriorCatalog), [
+  const heldSlash = { skillId: slash.skillId, releaseDelayMs: 80 };
+  const invalid = { skillId: ordinary.skillId, releaseDelayMs: 0 };
+  assert.deepEqual(normalizeRotation([ordinary, invalid, heldSlash], warriorCatalog), [
     ordinary,
     { ...slash, releaseDelayMs: 80 }
   ]);

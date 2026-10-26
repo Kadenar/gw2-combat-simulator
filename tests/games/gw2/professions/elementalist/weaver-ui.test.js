@@ -102,8 +102,8 @@ test('Weaver current bar exposes a carried autoattack from the previous primary 
     startAttunement: 'Air',
     secondaryAttunement: 'Fire'
   };
-  const airRoot = elementalistCatalog.skillsByName.get('Charged Strike').id;
-  const airFollowup = elementalistCatalog.skillsByName.get('Polaric Slash');
+  const airRoot = elementalistCatalog.skillsById.get(44681).id;
+  const airFollowup = elementalistCatalog.skillsById.get(45259);
   const app = {
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,

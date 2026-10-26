@@ -14,12 +14,14 @@ import {
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
+import { ENGINEER_CORE_SKILL_FIELDS } from '#gw2/professions/engineer/core/skill-fields.js';
 
 export const engineerCoreModule = defineNativeModule({
   canSwapWeaponSetsInCombat: false,
   id: 'Core',
   traitDefinitions: engineerCoreTraits,
   data: createEngineerModuleData('Core', {
+    skillFields: ENGINEER_CORE_SKILL_FIELDS,
     skillMechanics: ENGINEER_CORE_SKILL_MECHANICS,
     balanceProfiles: ENGINEER_CORE_BALANCE_PROFILES,
     extraSkills: ENGINEER_CORE_EXTRA_SKILLS,

@@ -1,6 +1,6 @@
 import type { Gw2QueryProfession } from '#gw2/platform/combat-calculation/combat-query.js';
 import type { EndurancePolicy, ResourceKey, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { ActionContext, SideEffectAction } from '#gw2/platform/effects/actions.js';
+import type { ActionContext, CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -127,7 +127,7 @@ export interface RuntimeProfession<T extends object, TSkill extends Skill = Skil
   readonly sideEffectHandlers?: Readonly<
     Record<
       string,
-      (runtime: MechanicContext<T, TSkill>, context: ActionContext<TSkill>, action: SideEffectAction) => void
+      (runtime: MechanicContext<T, TSkill>, context: ActionContext<TSkill>, action: CustomSideEffectAction) => void
     >
   >;
   readonly autoattackChainOverrides?: readonly AutoattackChainOverride[];

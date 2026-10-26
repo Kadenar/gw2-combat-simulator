@@ -8,6 +8,7 @@ import {
   ACTION_ICONS,
   MODIFIER_EFFECT_ICONS,
   RESULT_PROC_NAMES,
+  catalogSkillIcon,
   resolveProcIcon,
   resolveRelicIcon
 } from '#gw2/app/shared/icons.js';
@@ -127,8 +128,9 @@ export function resultSkillIcon(app: ProfessionAppState, row: ResultIconRow): st
 
   if (relicIcon) return relicIcon;
 
+  // Human-readable breakdown labels may identify an icon without selecting a combat skill.
   for (const name of [row.name, row.sourceSkill, row.parentSkill, breakdownName, cloneAttackName]) {
-    const icon = name ? app.activeCatalog.skillsByName.get(name)?.icon : '';
+    const icon = catalogSkillIcon(app.activeCatalog, name);
 
     if (icon) return icon;
   }

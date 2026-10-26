@@ -337,7 +337,7 @@ test('Nature changes passive with the active legend without adding Concentration
 test('Nature adds outgoing Assassin damage only while its passive is available', () => {
   const enabled = simulate('Herald', ['Facet of Nature', 'Preparation Thrust']);
   const disabled = simulate('Herald', ['Preparation Thrust']);
-  const consumed = simulate('Herald', ['Facet of Nature', 'True Nature', 'Preparation Thrust']);
+  const consumed = simulate('Herald', ['Facet of Nature', { type: 'cast', skillId: 51667 }, 'Preparation Thrust']);
   const swapped = simulate('Herald', ['Facet of Nature', 'Swap Legends', 'Preparation Thrust']);
   const entered = simulate('Herald', ['Facet of Nature', 'Swap Legends', 'Preparation Thrust'], {
     startingLegend: LEGEND.DRAGON

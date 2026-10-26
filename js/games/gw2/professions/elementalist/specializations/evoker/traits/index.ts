@@ -38,8 +38,7 @@ import {
 import { reenterEvokerAttunement } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import {
   BASIC_FAMILIARS,
-  FAMILIAR_ELEMENTS,
-  EVOKER_BALANCE_PROFILE_IDS as PROFILE
+  FAMILIAR_ELEMENTS
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import {
   evokerCastCompleted,
@@ -86,7 +85,15 @@ const evocation = defineTrait({
   id: TRAIT.EVOCATION,
   name: 'Evocation',
   balance: {
+    // Evocation unlocks both charge pools, weapon gains, and the shared attunement lockout.
+    maximumStacks: 6,
+    minimumStacks: 3,
+    playerStacks: 2,
+    allyStacks: 1,
+    recharge: 1.5,
     internalCooldown: 5,
+    // Fire-familiar Might has its own interval, separate from the entry cooldown.
+    pulseInterval: 1,
     effects: [boon('Fire Familiar', boonKey(BOON.MIGHT), 1, 6)]
   }
 });
@@ -361,7 +368,7 @@ export const evokerTraits = [
   specializedElements
 ];
 
-/** Accepted Burning in Fire consumes Ignite's existing pulse interval only when its Might packet survives. */
+/** Accepted Burning in Fire consumes Evocation's Might interval only when its reward survives. */
 function applyEvocationBurning(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = evokerState.from(context);
 
@@ -375,7 +382,7 @@ function applyEvocationBurning(context: ElementalistRuntime, event: SimulationEv
       context.procs.claimCooldown(
         'elementalist.evoker.ignitePassive',
         event.at,
-        balanceNumberFromContext(context, PROFILE.ignite, 'pulseInterval')
+        balanceNumberFromContext(context, TRAIT.EVOCATION, 'pulseInterval')
       )
     ) {
       emitTraitProfile(context, TRAIT.EVOCATION, TRAIT.EVOCATION, undefined, {

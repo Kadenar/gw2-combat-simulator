@@ -68,8 +68,7 @@ const catalog = {
         effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 }]
       }
     ]
-  ]),
-  balanceProfilesByName: new Map()
+  ])
 };
 
 const config = {

@@ -196,7 +196,7 @@ test('result summary hides the internal effect horizon after the target dies', (
 
 test('Combat Start is timeline zero while DPS waits for the first subsequent hit', () => {
   const result = simulateMesmer(
-    ['Phantasmal Swordsman', { name: '__combat_start', offset: 700 }, 'Bladecall'],
+    ['Phantasmal Swordsman', { name: '__combat_start', offset: 700 }, { type: 'cast', skillId: 69311 }],
     defaultSimulationConfig()
   );
 
@@ -214,7 +214,7 @@ test('Combat Start is timeline zero while DPS waits for the first subsequent hit
 });
 
 test('timeline retains simulation time while DPS starts on first damage without Combat Start', () => {
-  const result = simulateMesmer(['Phantasmal Swordsman', 'Bladecall'], defaultSimulationConfig());
+  const result = simulateMesmer(['Phantasmal Swordsman', { type: 'cast', skillId: 69311 }], defaultSimulationConfig());
 
   // Anchor DPS to observed damage while keeping displayed times on the simulation clock.
   assert.deepEqual(result.warnings, []);
@@ -293,7 +293,7 @@ test('event log timestamps use the same explicit Combat Start origin as rotation
 test('result summary includes kill time when target health is exhausted', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
-    ['Bladecall'],
+    [{ type: 'cast', skillId: 69311 }],
     defaultSimulationConfig({
       target: {
         ...defaults.target,
@@ -522,7 +522,7 @@ test('Continuum Shift is available only while Continuum Split is active', () => 
 });
 
 test('expired Continuum Split is injected before the next rotation action', () => {
-  const rotation = ['Continuum Split', 'Bladecall', 'Bladecall', 'Bladecall'];
+  const rotation = ['Continuum Split', 62560, 62560, 62560];
   const result = simulateMesmer(
     rotation,
     defaultSimulationConfig({

@@ -17,8 +17,11 @@ import {
 } from '#gw2/professions/thief/core/rework/state.js';
 import { acrobaticsReworkTraits } from '#gw2/professions/thief/core/rework/traits/acrobatics.js';
 import { twinFangsRework } from '#gw2/professions/thief/core/rework/traits/critical-strikes.js';
+import { THIEF_CORE_SKILL_FIELDS } from '#gw2/professions/thief/core/skill-fields.js';
 
+// The rework replaces Core as a unit, so it declares the same Thief Core skill fields.
 const data = createThiefModuleData('Core', {
+  skillFields: THIEF_CORE_SKILL_FIELDS,
   skillMechanics: THIEF_CORE_SKILL_MECHANICS,
   balanceProfiles: THIEF_CORE_BALANCE_PROFILES,
   extraSkills: THIEF_CORE_EXTRA_SKILLS

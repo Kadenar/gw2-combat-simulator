@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { type AvailabilityResult, denyCast } from '#gw2/platform/execution/availability.js';
@@ -5,12 +6,7 @@ import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-co
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
@@ -38,7 +34,6 @@ import {
   applyWeaveSelfAttunement,
   weaveSelfAvailability
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
-import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import { flowStateAttunementReduction } from '#gw2/professions/elementalist/specializations/weaver/traits/attunements.js';
 import type {
@@ -48,7 +43,11 @@ import type {
 } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
+// Base attunement recharge after a dual swap.
 const WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS = 4;
+
+/** Shorter base attunement recharge while Weave Self is active; exported for its tooltip. */
+export const WEAVE_SELF_ATTUNEMENT_RECHARGE_SECONDS = 2;
 
 // Seed the off-hand element from the build (falling back to the starting
 // attunement) and, when both hands open on the same element, carry Elements of
@@ -159,9 +158,7 @@ function completeDualAttunement(context: ElementalistRuntime, cast: RuntimeCast<
       rechargeDuration: elementalistAttunementRechargeDuration(
         context,
         skill,
-        state.weaveSelfUntil > at
-          ? balanceNumberFromContext(context, PROFILE.resources, 'initialDelay')
-          : WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS,
+        state.weaveSelfUntil > at ? WEAVE_SELF_ATTUNEMENT_RECHARGE_SECONDS : WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS,
         flowStateAttunementReduction(context)
       )
     });
@@ -192,6 +189,8 @@ const weaverAttunementTasks = {
   'elementalist.weaver.unravel'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
+    // Task data is cloned; resolve the immutable payload from this accepted cast's selected skill.
+    const action = requireSkillAction(skill, 'unravel');
     const at = cast.effectiveEnd;
     const core = professionCoreState(context);
     const state = weaverState.from(context);
@@ -199,8 +198,7 @@ const weaverAttunementTasks = {
       const previousPrimary = core.primaryAttunement;
       const previousSecondary = state.secondaryAttunement;
       state.secondaryAttunement = core.primaryAttunement;
-      const unravelProfile = requireBalanceProfileFromContext(context, PROFILE.unravel);
-      state.unravelUntil = at + balanceProfileNumber(unravelProfile, 'duration');
+      state.unravelUntil = at + skillNumber(skill, 'duration');
       core.attunementEnteredAt = at;
       context.effects.emit({
         kind: 'packet',
@@ -223,10 +221,10 @@ const weaverAttunementTasks = {
         setElementalistAttunementReadyAt(context, attunement, at);
       }
 
-      const profiledBoon = requireEffect(unravelProfile, 'boon', previousPrimary);
+      const boon = requireEffect(skill, 'boon', previousPrimary, action);
 
-      if (profiledBoon) {
-        const boonKind = String(profiledBoon.boon).toLowerCase();
+      if (boon) {
+        const boonKind = String(boon.boon).toLowerCase();
         context.effects.emit(
           elementalistBuffRequest(
             {
@@ -237,8 +235,8 @@ const weaverAttunementTasks = {
               actorType: ACTOR.PLAYER,
               name: skill.name,
               kind: boonKind,
-              duration: profiledBoon.duration,
-              stacks: Number(profiledBoon.stacks)
+              duration: boon.duration,
+              stacks: Number(boon.stacks)
             },
             { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
           )

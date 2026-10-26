@@ -4,13 +4,12 @@ import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { catalystHooks } from '#gw2/professions/elementalist/specializations/catalyst/hooks.js';
-import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
-const sphere = elementalistCatalog.skillsByName.get('Deploy Jade Sphere (Fire)');
+const sphere = elementalistCatalog.skillsById.get(62813);
 const cast = (skill) => ({ type: 'cast', skillId: skill.id });
 
 // Policy tuning must come from this invocation's catalog before profession initialization, without passive recovery.
@@ -20,7 +19,7 @@ test('Catalyst initializes one detached clock with the selected cap and seed', (
       const result = runElementalist(
         [{ type: 'wait', durationMs: 5000 }],
         { specialization: 'Catalyst', initialCatalystEnergy },
-        { catalog: (catalog) => withProfile(catalog, PROFILE.resources, { maximumStacks }) }
+        { catalog: (catalog) => withProfile(catalog, TRAIT.DEPTH_OF_ELEMENTS, { maximumStacks }) }
       );
       const runtime = observedRuntime(result);
       const live = catalystState.from(runtime);
@@ -53,7 +52,9 @@ test('Catalyst deployment requires matching attunement and the selected fraction
     const result = runElementalist(
       [cast(sphere)],
       { specialization: 'Catalyst', initialCatalystEnergy, startAttunement },
-      { catalog: (catalog) => withProfile(catalog, PROFILE.resources, { maximumStacks: 12.5, resourceCost: 6.25 }) }
+      {
+        catalog: (catalog) => withProfile(catalog, TRAIT.DEPTH_OF_ELEMENTS, { maximumStacks: 12.5, resourceCost: 6.25 })
+      }
     );
     const runtime = observedRuntime(result);
     const state = catalystState.from(runtime);
@@ -94,7 +95,7 @@ test('Catalyst hit rewards preserve eligibility, sphere suppression, and actual 
         selectedTraitIds: specialist ? [TRAIT.SPHERE_SPECIALIST] : []
       },
       {
-        catalog: (catalog) => withProfile(catalog, PROFILE.resources, { resourceGain: 1.5 }),
+        catalog: (catalog) => withProfile(catalog, TRAIT.DEPTH_OF_ELEMENTS, { resourceGain: 1.5 }),
         initialize(runtime) {
           catalystState.from(runtime).sphereActiveUntil = sphereActive ? 10 : 0;
           catalystHooks.reactions['damage.resolved'](runtime.mechanics, {
@@ -139,7 +140,7 @@ test('Catalyst hit rewards preserve eligibility, sphere suppression, and actual 
 
 // Attunement notifications grant before the next command, with Fury retained even when energy overflows.
 test('Energized Elements immediately funds deployment and reports only actual energy gained', () => {
-  const fire = elementalistCatalog.skillsByName.get('Fire Attunement');
+  const fire = elementalistCatalog.skillsById.get(5492);
   const result = runElementalist(
     [cast(fire), cast(sphere)],
     {
@@ -151,7 +152,7 @@ test('Energized Elements immediately funds deployment and reports only actual en
     {
       catalog: (catalog) =>
         withProfile(
-          withProfile(catalog, PROFILE.resources, { maximumStacks: 8, resourceCost: 8 }),
+          withProfile(catalog, TRAIT.DEPTH_OF_ELEMENTS, { maximumStacks: 8, resourceCost: 8 }),
           TRAIT.ENERGIZED_ELEMENTS,
           { resourceGain: 12 }
         )
@@ -176,7 +177,8 @@ test('Catalyst palette and build-only controls use the selected energy cap and c
       [],
       { specialization: 'Catalyst', startAttunement: 'Fire', initialCatalystEnergy },
       {
-        catalog: (base) => (catalog = withProfile(base, PROFILE.resources, { maximumStacks: 12.5, resourceCost: 8 }))
+        catalog: (base) =>
+          (catalog = withProfile(base, TRAIT.DEPTH_OF_ELEMENTS, { maximumStacks: 12.5, resourceCost: 8 }))
       }
     );
     const [view] = elementalistProfession.ui.resourceViews({

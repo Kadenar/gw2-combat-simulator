@@ -9,10 +9,10 @@ import { canonicalTime } from '#kernel/core/clock.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistConditionRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
-import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
+import { primordialStancePayload } from '#gw2/professions/elementalist/specializations/weaver/skills/slot-skills.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
@@ -60,8 +60,8 @@ function emitPrimordialStancePulse(
   const attunements = state.secondaryAttunement
     ? [core.primaryAttunement, state.secondaryAttunement]
     : [core.primaryAttunement];
-  const primordialStanceProfile = requireBalanceProfileFromContext(context, PROFILE.primordialStance);
-  const strike = requireEffect(primordialStanceProfile, 'strike', 'Primordial Stance');
+  const { skill, action } = primordialStancePayload(context);
+  const strike = requireEffect(skill, 'strike', 'Primordial Stance', action);
 
   if (strike)
     context.effects.emit(
@@ -85,7 +85,7 @@ function emitPrimordialStancePulse(
     );
 
   for (const attunement of attunements) {
-    const effect = requireEffect(primordialStanceProfile, 'condition', attunement);
+    const effect = requireEffect(skill, 'condition', attunement, action);
 
     if (!effect) continue;
 

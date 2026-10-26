@@ -133,10 +133,14 @@ test('Engineer omits obsolete supplemental identities without removing native pr
     'Long-Fused Powder Pack',
     'Throw Junk (Doppelganger)'
   ])
-    assert.equal(engineerCatalog.skillsByName.has(name), false, name);
+    assert.equal(
+      engineerCatalog.skills.some((candidate) => candidate.name === name),
+      false,
+      name
+    );
 
-  assert.equal(engineerCatalog.skillsByName.get('Jump Shot').id, 6005);
+  assert.equal(engineerCatalog.skillsById.get(6005).id, 6005);
   assert.equal(ELEMENTALIST_SKILLS.find((skill) => skill.name === 'Tornado').id, 5534);
-  assert.equal(warriorCatalog.skillsByName.get('Rampage').id, 14483);
-  assert.equal(necromancerCatalog.skillsByName.get('Lich Form').id, 10550);
+  assert.equal(warriorCatalog.skillsById.get(14483).id, 14483);
+  assert.equal(necromancerCatalog.skillsById.get(10550).id, 10550);
 });

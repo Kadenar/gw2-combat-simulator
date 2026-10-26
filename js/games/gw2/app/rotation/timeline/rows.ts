@@ -401,7 +401,10 @@ export function timelineRowsView(
       const highlightKey = rotationSkillHighlightKey(entry);
       const step = steps.get(index);
       // Trait-selected variants can differ from saved commands; display the skill that actually ran.
-      const skill = resolveEntrySkill(app, step?.skillId != null ? { name: step.skillId } : item.command);
+      const skill = resolveEntrySkill(
+        app,
+        step?.skillId != null ? { type: 'cast', skillId: step.skillId } : item.command
+      );
       const invalid = Boolean(step?.invalid);
       const display =
         item.type === 'wait'

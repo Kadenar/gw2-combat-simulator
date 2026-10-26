@@ -2,18 +2,16 @@ import { RECIPIENT, COMBO_FIELD, COMBO_FINISHER, BOON, CONDITION, CONTROL } from
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 /**
  * Owns Evoker familiar basic and empowered skill fragments.
  * Owns their patchable timing, replacement cancellation, tier selection, and basic-to-empowered conversion.
  */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import {
   BASIC_FAMILIARS,
   FAMILIAR_ELEMENTS
@@ -38,9 +36,26 @@ import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/el
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.IGNITE]: {
+    tierResetDuration: 15,
+    empoweredUnlockDelay: 0.96,
+    // A basic cast within this start-to-start window cancels the preceding empowered activation.
+    duration: 2.4,
     // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
     sideEffects: [
-      { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
+      {
+        on: 'castStart',
+        do: {
+          type: 'elementalist.evoker.begin-familiar',
+          id: 'burning-tiers',
+          // Duration templates are selected at acceptance, never emitted by the lifecycle action.
+          effects: [
+            { type: 'condition', name: 'Tier 1', condition: CONDITION.BURNING, stacks: 1, duration: 2 },
+            { type: 'condition', name: 'Tier 2', condition: CONDITION.BURNING, stacks: 1, duration: 0.5 },
+            { type: 'condition', name: 'Tier 3', condition: CONDITION.BURNING, stacks: 1, duration: 1 },
+            { type: 'condition', name: 'Tier 4', condition: CONDITION.BURNING, stacks: 1, duration: 1.5 }
+          ]
+        }
+      },
       { on: 'castCommit', do: { type: 'elementalist.evoker.settle-basic-familiar' } }
     ],
     // Acceptance advances the Burning tier once and selects that tier's packet for this cast.
@@ -96,6 +111,9 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     )
   },
   [ID.SPLASH]: {
+    empoweredUnlockDelay: 0.84,
+    // A basic cast within this start-to-start window cancels the preceding empowered activation.
+    duration: 2.4,
     // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
     sideEffects: [
       { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
@@ -165,10 +183,20 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ]
   },
   [ID.ZAP]: {
+    empoweredUnlockDelay: 0.68,
+    // A basic cast within this start-to-start window cancels the preceding empowered activation.
+    duration: 2.3,
     // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
     sideEffects: [
       { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
-      { on: 'castCommit', do: { type: 'elementalist.evoker.zap' } },
+      {
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.evoker.zap',
+          id: 'zap-window',
+          effects: [{ type: 'buff', name: 'Zap Window', kind: 'zap buff', stacks: 1, duration: 5 }]
+        }
+      },
       { on: 'castCommit', do: { type: 'elementalist.evoker.settle-basic-familiar' } }
     ],
 
@@ -201,7 +229,15 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
     sideEffects: [
       { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
-      { on: 'castCommit', do: { type: 'elementalist.evoker.lightning-blitz' } },
+      {
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.evoker.lightning-blitz',
+          id: 'electric-enchantment',
+          // Keep this charge batch independent of Hare's Agility and trait-granted enchantments.
+          effects: [{ type: 'buff', name: 'Lightning Blitz Enchantment', stacks: 1, duration: 6 }]
+        }
+      },
       { on: 'castCommit', do: { type: 'elementalist.evoker.settle-empowered-familiar' } }
     ],
 
@@ -234,9 +270,30 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ])
   },
   [ID.CALCIFY]: {
+    internalCooldown: 0.25,
+    empoweredUnlockDelay: 0.28,
+    // A basic cast within this start-to-start window cancels the preceding empowered activation.
+    duration: 2.2,
     // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
     sideEffects: [
-      { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
+      {
+        on: 'castStart',
+        do: {
+          type: 'elementalist.evoker.begin-familiar',
+          id: 'protection',
+          // Equipped Earth passively grants Protection on disables; casting does not emit this payload.
+          effects: [
+            {
+              type: 'boon',
+              name: BOON.PROTECTION,
+              boon: BOON.PROTECTION,
+              stacks: 1,
+              duration: 2,
+              audience: { recipients: RECIPIENT.SELF }
+            }
+          ]
+        }
+      },
       { on: 'castCommit', do: { type: 'elementalist.evoker.settle-basic-familiar' } }
     ],
 
@@ -307,95 +364,12 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
   }
 });
 
-/**
- * Familiar tuning remains registered as profiles so patch overrides reach both skills and previews.
- * initialDelay is the flip delay after basic completion; duration is the
- * empowered-to-basic cancellation window measured between cast starts, both in seconds.
- */
-export const familiarBalanceProfiles: readonly BalanceProfile[] = Object.freeze([
-  variant(PROFILE.ignite, ID.IGNITE, 'Ignite - Familiar State', {
-    initialDelay: 0.96,
-    duration: 2.4,
-    threshold: 15,
-    pulseInterval: 1,
-    effects: [
-      {
-        type: 'condition',
-        name: 'Tier 1',
-        condition: CONDITION.BURNING,
-        stacks: 1,
-        duration: 2
-      },
-      {
-        type: 'condition',
-        name: 'Tier 2',
-        condition: CONDITION.BURNING,
-        stacks: 1,
-        duration: 0.5
-      },
-      {
-        type: 'condition',
-        name: 'Tier 3',
-        condition: CONDITION.BURNING,
-        stacks: 1,
-        duration: 1
-      },
-      {
-        type: 'condition',
-        name: 'Tier 4',
-        condition: CONDITION.BURNING,
-        stacks: 1,
-        duration: 1.5
-      }
-    ]
-  }),
-  variant(PROFILE.splash, ID.SPLASH, 'Splash - Familiar State', {
-    initialDelay: 0.84,
-    duration: 2.4
-  }),
-  variant(PROFILE.zap, ID.ZAP, 'Zap - Familiar State', {
-    initialDelay: 0.68,
-    duration: 2.3,
-    // The emitter, policy, and damage modifier share this single buff identity.
-    effects: [{ type: 'buff', name: 'Zap Window', kind: 'zap buff', stacks: 1, duration: 5 }]
-  }),
-  variant(PROFILE.lightningBlitz, ID.LIGHTNING_BLITZ, 'Lightning Blitz - Electric Enchantment', {
-    resourceGain: 1,
-    // This skill's grant has its own lifetime, independent of Galvanic Enchantment and Hare's Agility.
-    effects: [{ type: 'buff', name: 'Lightning Blitz Enchantment', duration: 6 }]
-  }),
-  variant(PROFILE.calcify, ID.CALCIFY, 'Calcify - Familiar State', {
-    initialDelay: 0.28,
-    duration: 2.2,
-    // The equipped Earth familiar grants personal Protection on disables, independently of party pulses.
-    internalCooldown: 0.25,
-    effects: [
-      {
-        type: 'boon',
-        name: BOON.PROTECTION,
-        boon: BOON.PROTECTION,
-        stacks: 1,
-        duration: 2,
-        audience: { recipients: RECIPIENT.SELF }
-      }
-    ]
-  })
-]);
-
-/** Basic-to-empowered identity; delays and interruption windows belong to the profiles. */
+/** Basic-to-empowered identity; delays and replacement windows belong to the basic skills. */
 const FAMILIAR_EMPOWERED_BY_BASIC: ReadonlyMap<SkillId, SkillId> = new Map([
   [ID.IGNITE, ID.CONFLAGRATION],
   [ID.ZAP, ID.LIGHTNING_BLITZ],
   [ID.SPLASH, ID.BUOYANT_DELUGE],
   [ID.CALCIFY, ID.SEISMIC_IMPACT]
-]);
-
-/** Balance profile that owns each basic familiar's timing values. */
-const FAMILIAR_PROFILE_BY_BASIC: ReadonlyMap<SkillId, SkillId> = new Map([
-  [ID.IGNITE, PROFILE.ignite],
-  [ID.SPLASH, PROFILE.splash],
-  [ID.ZAP, PROFILE.zap],
-  [ID.CALCIFY, PROFILE.calcify]
 ]);
 
 /** Reverse index of the flip pairing: empowered familiar ID back to its basic form. */
@@ -425,7 +399,7 @@ export function beginFamiliarCast(
   const empoweredSkill = FAMILIAR_EMPOWERED_BY_BASIC.get(skill.id);
 
   if (empoweredSkill) {
-    const window = balanceNumberFromContext(context, FAMILIAR_PROFILE_BY_BASIC.get(skill.id) ?? skill.id, 'duration');
+    const window = skillNumber(skill, 'duration');
     const basicKey = String(skill.id);
     const recent = state.lastEmpoweredFamiliarByBasic[basicKey];
 
@@ -460,8 +434,7 @@ export function acceptIgniteEffects(
 
   if (state.cancelledFamiliarActivations[cast.id]) return effects;
 
-  if (cast.start - state.igniteLastUsedAt >= balanceNumberFromContext(context, PROFILE.ignite, 'threshold'))
-    state.igniteTier = 0;
+  if (cast.start - state.igniteLastUsedAt >= skillNumber(cast.skill, 'tierResetDuration')) state.igniteTier = 0;
 
   const burning = igniteTierEffect(context, state.igniteTier);
   state.igniteTier = Math.min(state.igniteTier + 1, IGNITE_TIERS.length - 1);
@@ -483,27 +456,21 @@ export function settleBasicFamiliar(context: ElementalistRuntime, cast: RuntimeC
   const skill = cast.skill;
   const state = evokerState.from(context);
   const at = cast.effectiveEnd;
-  {
-    context.resourceController.replace('familiarCharges', 0);
-    // Complete the conversion before publishing its combined reading or flushing deferred rewards.
-    context.resourceController.grant('empoweredCharges', 1);
-    const flip = FAMILIAR_EMPOWERED_BY_BASIC.get(skill.id);
-    const empowered = flip ? context.helpers.skillsById.get(flip) : undefined;
+  context.resourceController.replace('familiarCharges', 0);
+  // Complete the conversion before publishing its combined reading or flushing deferred rewards.
+  context.resourceController.grant('empoweredCharges', 1);
+  const flip = FAMILIAR_EMPOWERED_BY_BASIC.get(skill.id);
+  const empowered = flip ? context.helpers.skillsById.get(flip) : undefined;
 
-    if (flip && empowered) {
-      const delay = balanceNumberFromContext(
-        context,
-        FAMILIAR_PROFILE_BY_BASIC.get(skill.id) ?? skill.id,
-        'initialDelay'
-      );
-      context.cooldownController.setReadyAt(
-        empowered.id,
-        Math.max(context.cooldownController.readyAt(empowered.id) || 0, at + delay)
-      );
-    }
-
-    emitResource(context, cast, skill, state);
+  if (flip && empowered) {
+    const delay = skillNumber(skill, 'empoweredUnlockDelay');
+    context.cooldownController.setReadyAt(
+      empowered.id,
+      Math.max(context.cooldownController.readyAt(empowered.id) || 0, at + delay)
+    );
   }
+
+  emitResource(context, cast, skill, state);
 }
 
 /** Zap grants its strike bonus only to the Air familiar configuration during its buff. */

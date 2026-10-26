@@ -530,7 +530,7 @@ test('Cyclone Bow transitions trigger swap sigils and dedicated weapon lines', (
 
       return transition({
         entry: { name },
-        skill: rangerCatalog.skillsByName.get(name),
+        skill: rangerCatalog.skills.find((candidate) => candidate.name === name),
         specialization: 'Galeshot',
         ...current
       });

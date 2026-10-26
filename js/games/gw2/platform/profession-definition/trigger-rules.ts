@@ -10,7 +10,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { ProfessionRuntimeOptions } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
-import { type ProfileAmount } from '#gw2/platform/effects/actions.js';
+import { type ResourceGrantAmount } from '#gw2/platform/effects/actions.js';
 import { isTriggerPoint, type TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
   emitTraitProfile,
@@ -21,7 +21,7 @@ import {
 export interface RechargeRule<T extends object, TSkill extends Skill = Skill> {
   readonly trait?: SkillId;
   readonly when: (runtime: MechanicQueryContext<T, TSkill>, skill: TSkill) => boolean;
-  readonly multiplier: ProfileAmount;
+  readonly multiplier: ResourceGrantAmount;
   readonly order?: number;
 }
 
@@ -247,7 +247,7 @@ export function assertTraitTrigger(rule: unknown, owner: string): void {
     throw new TypeError(`${owner} trigger on ${trigger.on.id} cannot set order; the point owns it.`);
 }
 
-/** Compile once; declaration order breaks equal-order ties and live profile lookups keep patches authoritative. */
+/** Compile once; preserve rule order and resolve tuning from the selected skill or live profile for each query. */
 export function compileRechargeRules<T extends object, TSkill extends Skill = Skill>(
   rules: readonly RechargeRule<T, TSkill>[]
 ): (runtime: MechanicQueryContext<T, TSkill>, skill: TSkill, work: number) => number {
@@ -255,7 +255,7 @@ export function compileRechargeRules<T extends object, TSkill extends Skill = Sk
   return (runtime, skill, work) => {
     for (const rule of ordered)
       if ((rule.trait == null || hasTrait(runtime, rule.trait)) && rule.when(runtime, skill))
-        work *= sideEffectAmount(runtime, rule.multiplier);
+        work *= sideEffectAmount(runtime, rule.multiplier, skill);
     return work;
   };
 }

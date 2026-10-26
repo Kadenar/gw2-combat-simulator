@@ -95,7 +95,7 @@ export function analyzeEngineerShrapnelObservation(
 ): EngineerShrapnelObservation | null {
   if (!hasSelectedTrait(config, TRAIT.SHRAPNEL)) return null;
 
-  const profile = traitBalanceProfile(catalog, TRAIT.SHRAPNEL, 'Shrapnel');
+  const profile = traitBalanceProfile(catalog, TRAIT.SHRAPNEL);
 
   if (!profile) return null;
 
@@ -173,7 +173,6 @@ export function analyzeEngineerSerratedSteelObservation(
     catalog,
     config,
     TRAIT.SERRATED_STEEL,
-    'Serrated Steel',
     observationAttributeSets(config, catalog, engineerProfession.attributeContributions)
   );
 }

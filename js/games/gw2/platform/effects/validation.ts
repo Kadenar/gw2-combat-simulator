@@ -1,3 +1,4 @@
+import type { CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR, AURA } from '#gw2/platform/constants.js';
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
@@ -148,13 +149,16 @@ function validateEffectNumbers(candidate: UnvalidatedFields, label: string): voi
 }
 
 /** Only construction boundaries may introduce effect lists; readers share their immutable declarations. */
-export function requireCanonicalSkillEffects(owner: Skill | BalanceProfile): readonly SkillEffect[] {
-  const effects = owner.effects;
+export function requireCanonicalSkillEffects(
+  owner: Skill | BalanceProfile,
+  action?: CustomSideEffectAction
+): readonly SkillEffect[] {
+  const effects = (action ?? owner).effects;
 
   if (!effects || !canonicalEffectLists.has(effects)) {
     const metadata = owner.balanceDataContext as BalanceProfile['balanceDataContext'];
     throw new TypeError(
-      `Invalid balance data: profession=${metadata?.professionId ?? '<unknown>'} patch=${metadata?.patchId ?? '<unknown>'} ${'profileKind' in owner ? 'balance-profile' : 'skill'}=${owner.id} effects must be normalized at construction`
+      `Invalid balance data: profession=${metadata?.professionId ?? '<unknown>'} patch=${metadata?.patchId ?? '<unknown>'} ${'profileKind' in owner ? 'balance-profile' : 'skill'}=${owner.id}${action ? ` action=${action.id ?? action.type}` : ''} effects must be normalized at construction`
     );
   }
 

@@ -77,7 +77,14 @@ for (const [skill, startAttunement, controlKind] of [
       [true, true]
     ]) {
       const result = runElementalist(
-        [{ type: 'cast', skillId: elementalistCatalog.skillsByName.get(skill).id, offTarget }, wait],
+        [
+          {
+            type: 'cast',
+            skillId: elementalistCatalog.skills.find((candidate) => candidate.name === skill).id,
+            offTarget
+          },
+          wait
+        ],
         {
           primaryWeapon: WEAPON.STAFF,
           startAttunement,

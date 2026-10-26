@@ -1,10 +1,10 @@
+import { skillActionEffects } from '#gw2/platform/effects/actions.js';
 import {
   fromProfile,
   profileFact,
   simulationEffectFacts,
   skillTooltip,
   tooltipPercent,
-  tooltipProfile,
   tooltipSeconds,
   traitTooltip,
   type ProfessionTooltips
@@ -14,7 +14,6 @@ import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { TEMPEST_BALANCE_PROFILE_IDS as TEMPEST } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 
 /** Describe tempest tooltips from the selected balance data. */
 export const tempestTooltips = {
@@ -32,17 +31,17 @@ export const tempestTooltips = {
         id,
         skillTooltip(
           'Channel the current attunement after its overload has become available. Apply its pulses and eligible overload traits; leaving this attunement afterward incurs its overload recharge. Fire, Air, and Earth overloads fully charge active spear etchings. Air completion adds Lightning Jolt and arms a copy on the active elemental.',
-          (balanceContext) => [
+          (balanceContext, skill) => [
             profileFact(
               balanceContext,
-              TEMPEST.overloads,
-              'initialDelay',
+              TRAIT.SINGULARITY,
+              'duration',
               'Base time in attunement before overload',
               tooltipSeconds
             ),
             ...(id === ID.OVERLOAD_AIR
               ? simulationEffectFacts(
-                  tooltipProfile(balanceContext, TEMPEST.lightningJolt).effects?.map((effect) => ({
+                  skillActionEffects(skill).map((effect) => ({
                     ...effect,
                     canCrit: false
                   })),
@@ -56,7 +55,8 @@ export const tempestTooltips = {
   },
   traits: {
     [TRAIT.SINGULARITY]: traitTooltip(
-      'Unlock Tempest, warhorn, shouts, and overloads. Holding an attunement forms its singularity, making its overload available.'
+      'Unlock Tempest, warhorn, shouts, and overloads. Holding an attunement forms its singularity, making its overload available.',
+      [['duration', 'Base attunement dwell', tooltipSeconds]]
     ),
     [TRAIT.GATHERED_FOCUS]: traitTooltip('Gain concentration.', [['attributeBonus', 'Concentration']]),
     [TRAIT.HARDY_CONDUIT]: traitTooltip('Beginning an overload grants protection.'),
@@ -80,7 +80,7 @@ export const tempestTooltips = {
     [TRAIT.TRANSCENDENT_TEMPEST]: traitTooltip(
       'Singularities form sooner. Completing an overload grants a temporary strike- and condition-damage bonus.',
       [
-        fromProfile(TEMPEST.overloads, 'duration', 'Base attunement dwell', tooltipSeconds),
+        fromProfile(TRAIT.TRANSCENDENT_TEMPEST, 'duration', 'Base attunement dwell', tooltipSeconds),
         fromProfile(TRAIT.TRANSCENDENT_TEMPEST, 'damageIncrease', 'Strike damage', tooltipPercent),
         fromProfile(TRAIT.TRANSCENDENT_TEMPEST, 'conditionDamageIncrease', 'Condition damage', tooltipPercent)
       ]

@@ -114,7 +114,9 @@ test('removed Band Together buff arms no enhancement while the unpatched window 
     [{ [RENEGADE.bandTogether]: remove('buff', 'band-together') }, false],
     [{}, true]
   ]) {
-    const result = runRevenant(["Icerazor's Ire"], RENEGADE_CONFIG, { catalog: patched(balanceProfiles) });
+    const result = runRevenant([{ type: 'cast', skillId: 40485 }], RENEGADE_CONFIG, {
+      catalog: patched(balanceProfiles)
+    });
     assert.deepEqual(result.warnings, []);
     assert.equal(planningBuffStacks(result.planningState, 'band-together'), ready ? 1 : 0);
   }

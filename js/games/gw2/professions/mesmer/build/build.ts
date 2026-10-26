@@ -2,8 +2,7 @@ import { WEAPON } from '#gw2/platform/constants.js';
 import { MESMER_SKILL_IDS as SKILL } from '#gw2/professions/mesmer/data/ids.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
-import { getMesmerBuildRotationLookup, mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import type { MesmerCanonicalBuild } from '#gw2/professions/mesmer/types.js';
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
@@ -14,8 +13,7 @@ import { createCommonBuildDefaults } from '#gw2/professions/shared/build-default
  * This module supplies Mesmer defaults and configures the shared GW2 build
  * codec for migration, normalization, validation, and app-facing conversion.
  * The shared codec handles common persisted fields while this module
- * normalizes simulation randomness, resolves rotation names against the
- * selected specialization, and bounds the initial clone, blade, or note resource.
+ * normalizes simulation randomness and bounds the initial clone, blade, or note resource.
  */
 
 export const BUILD_SCHEMA_VERSION = 4;
@@ -74,21 +72,6 @@ const mesmerBuildCodec = createProfessionBuildCodec<MesmerCanonicalBuild>({
       minimum: 0,
       maximum: 5
     }
-  },
-  normalizeExtra(build, { saved }) {
-    // Re-read the saved rotation: the common pass resolved names against the full catalog, whose shared names pick
-    // non-elite variants such as Bladecall, and a converted command no longer records its authored name. Resolve
-    // names with Core plus the selected elite instead; explicit IDs keep precedence over names.
-    const specialization =
-      saved.specialization ||
-      build.specializations.find(({ name }) =>
-        mesmerCatalog.specializations.some((entry) => entry.elite && entry.name === name)
-      )?.name ||
-      'Core';
-    return {
-      ...build,
-      rotation: normalizeRotation(saved.rotation, getMesmerBuildRotationLookup(specialization))
-    };
   }
 });
 

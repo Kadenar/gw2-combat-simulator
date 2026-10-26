@@ -271,7 +271,7 @@ test('energy accumulates fractionally with elapsed time and skills pay their exp
 
   // Energy accrues at five per second throughout the cast and the explicit wait.
   assert.equal(result.planningState.profession.energy.value, 20 + result.planningState.atSeconds * 5);
-  const denied = simulate('Core', ['Jade Winds'], { initialEnergy: 34 });
+  const denied = simulate('Core', [{ type: 'cast', skillId: 28406 }], { initialEnergy: 34 });
 
   assert.match(denied.warnings[0].message, /requires 35 energy/);
 
@@ -307,7 +307,11 @@ test('Energy affordability rounds up to the absolute action tick regardless of i
   for (const waits of [[], [50], [100], [50, 50, 10], [120], [130]]) {
     const result = simulate(
       'Renegade',
-      ['__combat_start', ...waits.map((durationMs) => ({ type: 'wait', durationMs })), "Razorclaw's Rage"],
+      [
+        '__combat_start',
+        ...waits.map((durationMs) => ({ type: 'wait', durationMs })),
+        { type: 'cast', skillId: 42949 }
+      ],
       {
         initialEnergy: 24.5,
         selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
@@ -326,7 +330,13 @@ test('legend swaps preserve the absolute Energy affordability grid', () => {
   // Swapping at 15 ms resets the pool, but a cost reached at 3015 ms still becomes spendable at 3040 ms.
   const result = simulate(
     'Core',
-    ['__combat_start', { type: 'wait', durationMs: 15 }, 'Swap Legends', 'Phase Traversal', 'Jade Winds'],
+    [
+      '__combat_start',
+      { type: 'wait', durationMs: 15 },
+      'Swap Legends',
+      'Phase Traversal',
+      { type: 'cast', skillId: 28406 }
+    ],
     { startingLegend: LEGEND.DEMON }
   );
   assert.deepEqual(result.warnings, []);
@@ -395,10 +405,17 @@ test('non-damaging Revenant heals do not enter combat', () => {
   assert.equal(buffOnly.planningState.profession.combatBeganAt, null);
   assert.equal(buffOnly.planningState.profession.energy.value, 50);
 
-  const breakrazor = simulate('Renegade', ["Breakrazor's Bastion", { type: 'wait', durationMs: 20000 }], {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE
-  });
+  const breakrazor = simulate(
+    'Renegade',
+    [
+      { type: 'cast', skillId: 45686 },
+      { type: 'wait', durationMs: 20000 }
+    ],
+    {
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE
+    }
+  );
 
   assert.equal(breakrazor.totalDamage, 0);
   assert.equal(breakrazor.firstHitTime, null);
@@ -470,7 +487,7 @@ test('legend swap replaces the fixed bar, resets energy, and triggers sigils', (
 test('legend swaps use the destination legend icon', () => {
   const rotation = ['Phase Traversal', 'Swap Legends', 'Banish Enchantment', 'Swap Legends'].map((name) => ({
     type: 'cast',
-    skillId: revenantCatalog.skillsByName.get(name).id
+    skillId: revenantCatalog.skills.find((candidate) => candidate.name === name).id
   }));
   const build = {
     ...baseConfig,
@@ -1052,10 +1069,17 @@ test('Soulcleave spends Energy at activation completion after out-of-combat rege
 });
 
 test('out-of-combat upkeep drain continues after activation', () => {
-  const result = simulate('Core', ['Protective Solace', { type: 'wait', durationMs: 2000 }], {
-    selectedLegends: [LEGEND.CENTAUR, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.CENTAUR
-  });
+  const result = simulate(
+    'Core',
+    [
+      { type: 'cast', skillId: 26821 },
+      { type: 'wait', durationMs: 2000 }
+    ],
+    {
+      selectedLegends: [LEGEND.CENTAUR, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.CENTAUR
+    }
+  );
 
   // The 5-Energy activation leaves 45; upkeep then drains eight per second against five regeneration.
   assert.deepEqual(result.warnings, []);
@@ -1115,13 +1139,13 @@ test('Revenant palette exposes upkeep releases and enforces Energy costs', () =>
 
   assert.ok(assassin.skillIds.includes(SKILL.RELINQUISH_POWER));
 
-  const impossible = revenantCatalog.skillsByName.get('Impossible Odds');
-  const relinquish = revenantCatalog.skillsByName.get('Relinquish Power');
+  const impossible = revenantCatalog.skillsById.get(27107);
+  const relinquish = revenantCatalog.skillsById.get(28382);
 
   assert.equal(active.planningState.availability[impossible.id].ready, false);
   assert.equal(active.planningState.availability[relinquish.id].ready, true);
 
-  const phase = revenantCatalog.skillsByName.get('Phase Traversal');
+  const phase = revenantCatalog.skillsById.get(28231);
   const low = simulate('Core', [], { initialEnergy: 4.9 });
   assert.equal(low.planningState.availability[phase.id].ready, false);
   assert.equal(low.planningState.availability[SKILL.CHILLING_ISOLATION].ready, false);
@@ -1396,10 +1420,13 @@ test('Herald consume skills apply their cooldown to the parent facet', () => {
     assert.deepEqual(result.warnings, [], facet);
     const readyAt = consumeStep.end + (cooldown * 1000) / 1.25;
 
-    assert.deepEqual(result.planningState.cooldowns[revenantCatalog.skillsByName.get(facet).id], {
-      readyAt,
-      remaining: readyAt - result.planningState.atSeconds * 1000
-    });
+    assert.deepEqual(
+      result.planningState.cooldowns[revenantCatalog.skills.find((candidate) => candidate.name === facet).id],
+      {
+        readyAt,
+        remaining: readyAt - result.planningState.atSeconds * 1000
+      }
+    );
   }
 });
 
@@ -1409,10 +1436,7 @@ test('Herald consume skills apply their full outgoing profiles', () => {
     startingLegend: LEGEND.DRAGON
   });
 
-  assert.equal(
-    observedRuntime(gaze).cooldownController.readyAt(revenantCatalog.skillsByName.get('Gaze of Darkness').id),
-    12
-  );
+  assert.equal(observedRuntime(gaze).cooldownController.readyAt(revenantCatalog.skillsById.get(27080).id), 12);
   assert.ok(
     gaze.events.some(
       (event) =>

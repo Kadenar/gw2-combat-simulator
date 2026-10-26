@@ -195,7 +195,7 @@ test('every Mesmer catalog skill exposes normalized effects', () => {
     mesmerCatalog.skills.every((skill) => Array.isArray(skill.effects)),
     true
   );
-  assert.equal(mesmerCatalog.skillsByName.get('Bladecall').id, ID.BLADECALL_NON_VIRTUOSO);
+  assert.equal(mesmerCatalog.skillsById.get(62560).id, ID.BLADECALL_NON_VIRTUOSO);
 });
 
 test('Mesmer relic options exclude profession-inapplicable relics', () => {
@@ -380,11 +380,11 @@ test('Mesmer supplemental identities and dynamic handler profiles are explicit',
       identityFields.every((field) => !Object.hasOwn(mechanics, field))
     )
   );
-  const shared = mesmerCatalog.skillsByName.get('Mind Stab');
+  const shared = mesmerCatalog.skillsById.get(10218);
 
   assert.equal(shared.handlerId, undefined);
   assert.ok(shared.effects.length > 0);
-  const replacing = mesmerCatalog.skillsByName.get('Phantasmal Swordsman');
+  const replacing = mesmerCatalog.skillsById.get(10174);
 
   assert.equal(replacing.phantasm, true);
   assert.ok(replacing.effects.length > 0);
@@ -399,7 +399,7 @@ test('every Mesmer specialization registers native owners without scheduler hand
   }
 });
 
-test('Mesmer module overrides select weapon replacements for loading, editing, and simulation', () => {
+test('Mesmer explicit variant identities agree across loading, editing, and simulation', () => {
   const specializationCases = [
     ['Axes of Symmetry', 'Core', ID.AXES_OF_SYMMETRY_NON_MIRAGE],
     ['Axes of Symmetry', 'Chronomancer', ID.AXES_OF_SYMMETRY_NON_MIRAGE],
@@ -421,10 +421,14 @@ test('Mesmer module overrides select weapon replacements for loading, editing, a
   ];
 
   for (const [name, specialization, expectedId] of specializationCases) {
-    // Names, loaded rotations, and selectable weapons must agree with the active runtime catalog.
+    // IDs, loaded rotations, and selectable weapons must agree with the active runtime catalog.
     const runtime = mesmerProfession.runtimeFor({ specialization });
-    assert.equal(runtime.catalog.skillsByName.get(name)?.id, expectedId, `${specialization} runtime ${name}`);
-    const loaded = migrateMesmerBuild({ ...createMesmerBuildDefaults(), specialization, rotation: [name] });
+    assert.equal(runtime.catalog.skillsById.get(expectedId).name, name);
+    const loaded = migrateMesmerBuild({
+      ...createMesmerBuildDefaults(),
+      specialization,
+      rotation: [{ type: 'cast', skillId: expectedId }]
+    });
     assert.equal(loaded.rotation[0].skillId, expectedId, `${specialization} loaded ${name}`);
     const app = {
       patch: mesmerAppAdapter.profession.resolvePatch(),
@@ -437,7 +441,11 @@ test('Mesmer module overrides select weapon replacements for loading, editing, a
         weapons: [runtime.catalog.skillsById.get(expectedId).weapon || 'Axe', 'Sword']
       }
     };
-    assert.equal(createRotationItem(app, name).skillId, expectedId, `${specialization} editor ${name}`);
+    assert.equal(
+      createRotationItem(app, name, { skillId: expectedId }).skillId,
+      expectedId,
+      `${specialization} editor ${name}`
+    );
 
     if (runtime.catalog.skillsById.get(expectedId).type === 'Weapon') {
       assert.deepEqual(
@@ -491,8 +499,8 @@ test('Mesmer rejects shared weapon IDs replaced by the active specialization', (
   }
 });
 
-// Legacy strings and named cast objects must load the same Virtuoso Axe skills as stable IDs.
-test('Virtuoso Axe name migration is equivalent to ID migration', () => {
+// Ambiguous Axe labels cannot replace the explicit variant identity.
+test('Virtuoso Axe loading requires explicit IDs for ambiguous labels', () => {
   const build = { ...createMesmerBuildDefaults(), weapons: ['Axe', 'Sword'] };
   for (const [name, skillId] of [
     ['Lingering Thoughts', ID.LINGERING_THOUGHTS_NON_MIRAGE],
@@ -501,7 +509,8 @@ test('Virtuoso Axe name migration is equivalent to ID migration', () => {
     const byId = migrateMesmerBuild({ ...build, rotation: [{ type: 'cast', skillId }] });
     for (const entry of [name, { type: 'cast', name }]) {
       const byName = migrateMesmerBuild({ ...build, rotation: [entry] });
-      assert.deepEqual(byName.rotation, byId.rotation);
+      assert.deepEqual(byName.rotation, []);
+      assert.deepEqual(byId.rotation, [{ type: 'cast', skillId }]);
       assert.equal(validateMesmerBuild(byName).valid, true);
     }
   }

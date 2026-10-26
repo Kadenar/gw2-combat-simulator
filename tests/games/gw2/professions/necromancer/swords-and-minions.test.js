@@ -239,7 +239,9 @@ test('Satiate expires after three seconds and base sword cooldowns continue duri
     const followUpAction = result.events.find((event) => event.type === 'action' && event.skillName === followUp);
 
     assert.deepEqual(result.warnings, [], `${parent} -> ${followUp}`);
-    const readyAt = result.planningState.cooldowns[necromancerCatalog.skillsByName.get(parent).id].readyAt / 1000;
+    const readyAt =
+      result.planningState.cooldowns[necromancerCatalog.skills.find((candidate) => candidate.name === parent).id]
+        .readyAt / 1000;
     assert.ok(Math.abs(readyAt - parentAction.endsAt - cooldown / 1.25) < 1e-9, parent);
     assert.ok(readyAt > followUpAction.at, parent);
   }
@@ -913,7 +915,7 @@ test('Rigor Mortis applies immobilization and projectile finishers', () => {
       event.type === 'damage' && [3633, 3644].includes(event.skillId) && event.at * 1000 > preservedRigorStep.start
   );
 
-  assert.equal(necromancerCatalog.skillsByName.get('Rigor Mortis').cooldown, 50);
+  assert.equal(necromancerCatalog.skillsById.get(10570).cooldown, 50);
   assert.deepEqual(
     attacks.map((event) => [event.coefficient, event.comboFinishers[0].chance]),
     [
@@ -1092,14 +1094,19 @@ test('unequipped Necromancer slot skills cannot execute', () => {
 test('persistent minion summons cannot recharge until their minions die', () => {
   for (const summon of ['Summon Bone Fiend', 'Summon Shadow Fiend', 'Summon Flesh Golem']) {
     const result = simulate('Core', [summon, { type: 'wait', durationMs: 60_000 }, summon], {
-      selectedSkillIds: [necromancerCatalog.skillsByName.get(summon).id]
+      selectedSkillIds: [necromancerCatalog.skills.find((candidate) => candidate.name === summon).id]
     });
 
     assert.equal(result.steps.filter((step) => step.skill === summon && !step.invalid).length, 1, summon);
     assert.match(result.warnings.map(({ message }) => message).join(' '), /summoned minion is still alive/, summon);
-    assert.equal(result.planningState.cooldowns[necromancerCatalog.skillsByName.get(summon).id], undefined, summon);
     assert.equal(
-      result.planningState.availability[necromancerCatalog.skillsByName.get(summon).id].ready,
+      result.planningState.cooldowns[necromancerCatalog.skills.find((candidate) => candidate.name === summon).id],
+      undefined,
+      summon
+    );
+    assert.equal(
+      result.planningState.availability[necromancerCatalog.skills.find((candidate) => candidate.name === summon).id]
+        .ready,
       false,
       summon
     );
@@ -1133,15 +1140,15 @@ test('calibrated minion strikes ignore player Power and Signet of Spite', () => 
         .filter((event) => event.type === 'damage' && event.source === 'Minion')
         .map((event) => event.damage);
     const lowPower = simulate('Core', rotation, {
-      selectedSkillIds: [necromancerCatalog.skillsByName.get(summon).id],
+      selectedSkillIds: [necromancerCatalog.skills.find((candidate) => candidate.name === summon).id],
       attributeInputs: baseAttributeInputs({ power: 1000 })
     });
     const highPower = simulate('Core', rotation, {
-      selectedSkillIds: [necromancerCatalog.skillsByName.get(summon).id],
+      selectedSkillIds: [necromancerCatalog.skills.find((candidate) => candidate.name === summon).id],
       attributeInputs: baseAttributeInputs({ power: 3000 })
     });
     const signet = simulate('Core', rotation, {
-      selectedSkillIds: [necromancerCatalog.skillsByName.get(summon).id, 10622],
+      selectedSkillIds: [necromancerCatalog.skills.find((candidate) => candidate.name === summon).id, 10622],
       attributeInputs: baseAttributeInputs({ power: 1000 })
     });
 

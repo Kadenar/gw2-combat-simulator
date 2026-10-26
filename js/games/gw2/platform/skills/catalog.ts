@@ -10,6 +10,8 @@ import type {
   SkillId
 } from '#gw2/platform/skills/types.js';
 import { normalizeSkill, validateCanonicalCatalog } from '#gw2/platform/skills/validation.js';
+import type { SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import { professionSkillFields } from '#gw2/platform/skills/shared-fields.js';
 
 /**
  * Canonical catalog assembly for profession-neutral skill metadata. This is the
@@ -34,8 +36,9 @@ interface CanonicalCatalogOptions<TSkill extends Skill> {
   readonly specializations?: readonly CatalogEntity[];
   readonly weapons?: readonly string[];
   readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
-  readonly skillNameCollision?: 'first' | 'last';
   readonly skillNormalizer?: (skill: Partial<TSkill>) => Partial<TSkill>;
+  /** Fields only this profession's code reads; the shared vocabulary is always included. */
+  readonly skillFields?: SkillFieldSpecs;
 }
 
 interface NormalizedAutoattackChains {
@@ -107,13 +110,11 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
   specializations = [],
   weapons = [],
   weaponHands = {},
-  skillNameCollision = 'first',
-  skillNormalizer
+  skillNormalizer,
+  skillFields: professionFields
 }: CanonicalCatalogOptions<TSkill> = {}): Readonly<CanonicalCatalog<TSkill>> {
-  if (!['first', 'last'].includes(skillNameCollision)) {
-    throw new TypeError(`Invalid skill name collision policy: ${skillNameCollision}`);
-  }
-
+  // Every merged skill, including patched replacements, is checked against this one profession-wide table.
+  const skillFields = professionSkillFields(professionFields);
   const declared = [...generated, ...extraSkills];
   const declaredIds = new Set();
   for (const skill of declared) {
@@ -140,7 +141,7 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
       ...(overrides[id] || {}),
       ...(extraSkills.find((candidate) => candidate.id === id) || {})
     };
-    return normalizeSkill(id, mergedSource, skillNormalizer);
+    return normalizeSkill(id, mergedSource, skillNormalizer, skillFields);
   });
   const normalizedAutoattacks = normalizeAutoattackChains(normalizedSkills, autoattackChains);
   // Inject chain position data (root id + step index) into each skill after the chain
@@ -154,15 +155,6 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
       chainStep: position ? position.index + 1 : null
     });
   });
-  // skillsByName is used for name-based lookups (e.g. from trait/effect references).
-  // The collision policy controls which skill wins when two share the same name.
-  const skillsByName = new Map<string, TSkill>();
-  for (const skill of skills) {
-    if (skillNameCollision === 'last' || !skillsByName.has(skill.name)) {
-      skillsByName.set(skill.name, skill);
-    }
-  }
-
   const profiles: readonly BalanceProfile[] = balanceProfiles.map((profile) =>
     Object.freeze({
       ...profile,
@@ -208,13 +200,13 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
     }
   }
 
+  // Arrays and ID indexes share the same entities; display labels are never stored as identity indexes.
   const catalog: CanonicalCatalog<TSkill> = {
     skills: Object.freeze(skills),
     skillsById: new Map(skills.map((skill) => [skill.id, skill])),
-    skillsByName,
+    skillFields,
     balanceProfiles: Object.freeze(profiles),
     balanceProfilesById: new Map(profiles.map((profile) => [profile.id, profile])),
-    balanceProfilesByName: new Map(profiles.map((profile) => [profile.name, profile])),
     autoattackChains: normalizedAutoattacks.chains,
     autoattackChainPositions: normalizedAutoattacks.positions,
     traits: Object.freeze(traits.map((trait) => Object.freeze({ ...trait }))),

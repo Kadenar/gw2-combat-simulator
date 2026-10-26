@@ -1,7 +1,6 @@
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { beforeElementalStrike } from '#gw2/professions/elementalist/core/mechanics/elementals/lifecycle.js';
 import { completeElementalistGlyphCast } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { elementalistCastCompleted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
@@ -10,12 +9,12 @@ import {
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { armElementalLightningJolt } from '#gw2/professions/elementalist/specializations/tempest/mechanics/lightning-jolt.js';
 import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-const glyph = elementalistCatalog.skillsByName.get('Glyph of Elementals');
+const glyph = elementalistCatalog.skillsById.get(25488);
 const summon = (runtime) => completeElementalistGlyphCast(runtime.mechanics, { effectiveEnd: runtime.time }, glyph);
 const arm = (runtime, coefficient = 0.5) =>
   armElementalLightningJolt(runtime.mechanics, { effectiveEnd: runtime.time }, ID.LIGHTNING_JOLT, coefficient);
@@ -28,7 +27,7 @@ test('Tempest charges require a live elemental and retire on replacement and nat
     wait(5000),
     { specialization: 'Tempest' },
     {
-      catalog: (catalog) => withProfile(catalog, PROFILE.summonedElemental, { initialDelay: 10, duration: 2 }),
+      catalog: (catalog) => withSkill(catalog, ID.GLYPH_OF_ELEMENTALS, { summonStartupDelay: 10, duration: 2 }),
       timeline: [
         {
           at: 0.1,
@@ -77,7 +76,7 @@ test('Tempest consumes the latest charge once before a current-generation strike
     [{ type: 'combat-start' }, ...wait(8000)],
     { specialization: 'Tempest' },
     {
-      catalog: (catalog) => withProfile(catalog, PROFILE.summonedElemental, { initialDelay: 1 }),
+      catalog: (catalog) => withSkill(catalog, ID.GLYPH_OF_ELEMENTALS, { summonStartupDelay: 1 }),
       timeline: [
         { at: 0.1, run: summon },
         { at: 0.2, run: (runtime) => arm(runtime) },

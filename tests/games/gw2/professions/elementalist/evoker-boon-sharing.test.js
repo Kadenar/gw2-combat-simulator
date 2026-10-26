@@ -23,7 +23,7 @@ for (const [element, skills, boon] of [
       for (const count of [0, 4]) {
         const result = runElementalist(
           [
-            { type: 'cast', skillId: elementalistCatalog.skillsByName.get(skill).id },
+            { type: 'cast', skillId: elementalistCatalog.skills.find((candidate) => candidate.name === skill).id },
             { type: 'wait', durationMs: 6000 }
           ],
           {
@@ -70,7 +70,7 @@ for (const [name, boon] of [
   ['Elemental Procession', 'resistance']
 ]) {
   test(`Altruistic Aspect shares ${name}'s ${boon} with allies only when selected`, () => {
-    const skill = elementalistCatalog.skillsByName.get(name);
+    const skill = elementalistCatalog.skills.find((candidate) => candidate.name === name);
     const profile = elementalistCatalog.balanceProfilesById.get(TRAIT.ALTRUISTIC_ASPECT);
     const effect = requireEffect(profile, 'boon', name);
     const simulate = (selectedTraitIds) =>
@@ -103,7 +103,7 @@ for (const [name, boon] of [
 
 // Protection belongs to Seismic Impact itself and reaches the party even without a target or boon-granting traits.
 test('Seismic Impact exposes and applies its intrinsic party Protection', () => {
-  const skill = elementalistCatalog.skillsByName.get('Seismic Impact');
+  const skill = elementalistCatalog.skillsById.get(76707);
   const context = withPatchPreview(elementalistProfession, null).resolvePatch().balanceContext;
   const tooltip = describeSimulationSkill(context, skill, elementalistTooltips);
   const protection = tooltip.facts.find((fact) => fact.name === 'Protection');
@@ -137,7 +137,7 @@ test('Seismic Impact exposes and applies its intrinsic party Protection', () => 
 
 // Calcify's disable reward must never become party generation, and missing the target must suppress it.
 test('Calcify Protection stays personal and requires an accepted disable', () => {
-  const skill = elementalistCatalog.skillsByName.get('Calcify');
+  const skill = elementalistCatalog.skillsById.get(77226);
   for (const offTarget of [false, true]) {
     const result = runElementalist(
       [

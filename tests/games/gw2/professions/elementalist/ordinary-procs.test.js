@@ -184,7 +184,7 @@ test('Evoker real and synthetic entry share selected profile timers', () => {
     return contextFor('Evoker', state, traits);
   };
 
-  const earth = elementalistCatalog.skillsByName.get('Earth Attunement');
+  const earth = elementalistCatalog.skillsById.get(5495);
   // A real entry on an unselected build claims nothing.
   const unselected = prepare([]).context;
   completeEvokerAttunement(unselected, castFor(unselected, earth), earth);

@@ -43,7 +43,7 @@ test('Speed of Synergy distinguishes healing skills from healing toolbelts', () 
     ['Med Kit', 'Bandage Self', 10]
   ]) {
     const result = simulate('Scrapper', [skill], {
-      selectedSkillIds: [engineerCatalog.skillsByName.get(heal).id],
+      selectedSkillIds: [engineerCatalog.skills.find((candidate) => candidate.name === heal).id],
       selectedTraitIds: [TRAIT.SPEED_OF_SYNERGY]
     });
     assert.deepEqual(result.warnings, [], skill);
@@ -57,7 +57,7 @@ test('Speed of Synergy distinguishes healing skills from healing toolbelts', () 
 });
 
 function mechanic(name) {
-  return engineerCatalog.skillsByName.get(name);
+  return engineerCatalog.skills.find((candidate) => candidate.name === name);
 }
 
 test('Function Gyro aliases share Ex Machina charges and canonical trait effects', () => {

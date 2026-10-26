@@ -70,8 +70,11 @@ test('Firebrand tomes consume shared pages and execute tome damage', () => {
   assert.ok(ashesProc);
   // The proc owns its artwork even when a different skill consumes the charge.
   assert.equal(ashesProc.icon, guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST).icon);
-  assert.ok(guardianCatalog.skillsByName.has(ashesProc.sourceSkill));
-  assert.notEqual(ashesProc.icon, guardianCatalog.skillsByName.get(ashesProc.sourceSkill).icon);
+  assert.ok(guardianCatalog.skills.some((candidate) => candidate.name === ashesProc.sourceSkill));
+  assert.notEqual(
+    ashesProc.icon,
+    guardianCatalog.skills.find((candidate) => candidate.name === ashesProc.sourceSkill).icon
+  );
 });
 
 test('Scorched Aftermath applies Burning with its field strikes', () => {
@@ -353,7 +356,7 @@ test('Firebrand page exhaustion requires an explicit stow before weapon inputs',
 
       return transition({
         entry: { name },
-        skill: guardianCatalog.skillsByName.get(name),
+        skill: guardianCatalog.skills.find((candidate) => candidate.name === name),
         specialization: 'Firebrand',
         ...current
       });
@@ -578,7 +581,7 @@ test('Peacekeeper begins recharge when its cast starts', () => {
   const casts = result.events.filter((event) => event.type === 'action' && event.skillName === 'Peacekeeper');
   // Recharge is anchored to cast start and scales with Alacrity.
   assert.equal(casts.length, 2);
-  assert.equal(casts[1].at - casts[0].at, guardianCatalog.skillsByName.get('Peacekeeper').cooldown / 1.25);
+  assert.equal(casts[1].at - casts[0].at, guardianCatalog.skillsById.get(71968).cooldown / 1.25);
 });
 
 test('Signet of Wrath loses its passive condition damage while recharging', () => {
@@ -608,12 +611,12 @@ test('Signet of Wrath loses its passive condition damage while recharging', () =
 });
 
 test('Firebrand mantras flip to their final charge and rearm after full recharge', () => {
-  const solace = guardianCatalog.skillsByName.get('Mantra of Solace');
-  const reprieve = guardianCatalog.skillsByName.get('Restoring Reprieve');
-  const respite = guardianCatalog.skillsByName.get('Rejuvenating Respite');
-  const flame = guardianCatalog.skillsByName.get('Mantra of Flame');
-  const rush = guardianCatalog.skillsByName.get('Flame Rush');
-  const surge = guardianCatalog.skillsByName.get('Flame Surge');
+  const solace = guardianCatalog.skillsById.get(41714);
+  const reprieve = guardianCatalog.skillsById.get(41475);
+  const respite = guardianCatalog.skillsById.get(42960);
+  const flame = guardianCatalog.skillsById.get(46148);
+  const rush = guardianCatalog.skillsById.get(45082);
+  const surge = guardianCatalog.skillsById.get(42924);
 
   assert.equal(reprieve.flipParentId, solace.id);
   assert.equal(respite.flipParentId, reprieve.id);
@@ -677,7 +680,7 @@ test('mantra charge cooldowns carry across the final flip and scale with Alacrit
       const result = createObservedProfessionSimulator(guardianProfession, {
         ...config,
         specialization: 'Firebrand',
-        selectedSkillIds: [guardianCatalog.skillsByName.get(root).id],
+        selectedSkillIds: [guardianCatalog.skills.find((candidate) => candidate.name === root).id],
         boons: { alacrity }
       })(undefined, [normal, normal, final]);
       assert.deepEqual(result.warnings, []);
@@ -731,7 +734,7 @@ test('Firebrand tome transitions are weapon swaps and timeline row changes', () 
 
       return transition({
         entry: { name },
-        skill: guardianCatalog.skillsByName.get(name),
+        skill: guardianCatalog.skills.find((candidate) => candidate.name === name),
         specialization: 'Firebrand',
         ...current
       });
@@ -863,7 +866,7 @@ test('Power of the Virtuous reduces each Tome dormancy duration', () => {
   const simulate = (selectedTraitIds) =>
     createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Firebrand', selectedTraitIds })(
       undefined,
-      ['Tome of Justice', 'Stow Tome', 'Tome of Resolve', 'Stow Tome', 'Tome of Courage']
+      ['Tome of Justice', 'Stow Tome', 'Tome of Resolve', 'Stow Tome', 42259]
     );
   const baseline = simulate([]).planningState.profession.virtueReadyAt;
   const traited = simulate([GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS]).planningState.profession.virtueReadyAt;
@@ -951,7 +954,7 @@ test('Firebrand grandmaster support traits react to boons and control', () => {
     initialTomePages: 8,
     allies: { count: 1, strikesPerSecond: 1 },
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.STALWART_SPEED, GUARDIAN_TRAIT_IDS.QUICKFIRE]
-  })(undefined, ['Tome of Courage', 'Epilogue: Unbroken Lines', { type: 'wait', durationMs: 2000 }]);
+  })(undefined, [42259, 'Epilogue: Unbroken Lines', { type: 'wait', durationMs: 2000 }]);
 
   assert.equal(
     quickfire.procSteps.some((step) => step.skill === 'Stalwart Speed'),
@@ -965,7 +968,7 @@ test('Firebrand grandmaster support traits react to boons and control', () => {
     ...config,
     specialization: 'Firebrand',
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR]
-  })(undefined, ['Tome of Courage', 'Chapter 2: Daring Challenge']);
+  })(undefined, [42259, 'Chapter 2: Daring Challenge']);
   const stoicBuffs = stoic.events.filter(
     (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR
   );

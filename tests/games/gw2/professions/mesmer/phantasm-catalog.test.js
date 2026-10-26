@@ -79,8 +79,7 @@ function run(timing, specialization = 'Core', selectedTraitIds = []) {
         return {
           ...catalog,
           skills: catalog.skills.map((entry) => (entry.id === skill.id ? skill : entry)),
-          skillsById: new Map(catalog.skillsById).set(skill.id, skill),
-          skillsByName: new Map(catalog.skillsByName).set(skill.name, skill)
+          skillsById: new Map(catalog.skillsById).set(skill.id, skill)
         };
       }
     }

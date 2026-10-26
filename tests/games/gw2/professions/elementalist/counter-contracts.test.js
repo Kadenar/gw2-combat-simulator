@@ -1,12 +1,11 @@
 import { evokerEntryObserved } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { expireElementalistState } from '#gw2/professions/elementalist/core/mechanics/expiry.js';
 import {
   completeElementalistSpearProgression,
   consumeElementalistEtching,
   openElementalistEtching
 } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
@@ -93,8 +92,8 @@ test('Elemental Balance resets its entry cycle and arms before Dynamo grants', (
     ['Elemental Balance', 0, 7],
     ['familiarCharges', 1, 0, 7]
   ]);
-  assert.equal(commitRechargeDuration(context, elementalistCatalog.skillsByName.get('Flame Spear'), 100), 100);
-  const skill = elementalistCatalog.skillsByName.get('Lava Font');
+  assert.equal(commitRechargeDuration(context, elementalistCatalog.skillsById.get(73088), 100), 100);
+  const skill = elementalistCatalog.skillsById.get(5548);
   assert.equal(commitRechargeDuration(context, skill, 100), 34);
   assert.equal(commitRechargeDuration(context, skill, 100), 100);
   assert.equal(state.elementalBalanceProgress, 0);
@@ -158,8 +157,13 @@ test('etching counters retain independent crossing values and reset only with th
   // Real root/release identities protect credit exclusions while a fractional threshold exposes accidental clamping.
   const core = createElementalistCoreState();
   const context = {
-    helpers: applyBalanceProfilePatch(elementalistCatalog, {
-      balanceProfiles: { [PROFILE.spearEmpowerments]: { fields: { maximumStacks: { from: 3, to: 2.5 } } } }
+    helpers: applySkillPatch(elementalistCatalog, {
+      skills: Object.fromEntries(
+        [ID.ETCHING_VOLCANO, ID.ETCHING_DERECHO].map((id) => [
+          id,
+          { fields: { etchingCompletionThreshold: { from: 3, to: 2.5 } } }
+        ])
+      )
     }),
     time: 0,
     profession: { core },
@@ -168,7 +172,7 @@ test('etching counters retain independent crossing values and reset only with th
   const fire = elementalistCatalog.skillsById.get(ID.ETCHING_VOLCANO);
   const air = elementalistCatalog.skillsById.get(ID.ETCHING_DERECHO);
   const release = elementalistCatalog.skillsById.get(ID.VOLCANO);
-  const ordinary = elementalistCatalog.skillsByName.get('Seethe');
+  const ordinary = elementalistCatalog.skillsById.get(73137);
   openElementalistEtching(context, fire);
   completeElementalistSpearProgression(context, fire);
   assert.equal(core.etchings[fire.name].otherCasts, 0);

@@ -34,7 +34,6 @@ export function analyzeNecromancerBarbedPrecisionObservation(
     catalog,
     config,
     TRAIT.BARBED_PRECISION,
-    'Barbed Precision',
     attributes
   );
 }

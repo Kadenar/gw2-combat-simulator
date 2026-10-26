@@ -10,13 +10,13 @@ import {
   ELEMENTALIST_CORE_EXTRA_SKILLS,
   ELEMENTALIST_CORE_SKILL_MECHANICS
 } from '#gw2/professions/elementalist/core/skills/index.js';
-import { pistolBalanceProfiles } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import {
   createElementalistCoreState,
   ELEMENTALIST_CORE_PUBLIC_STATE_PROJECTION
 } from '#gw2/professions/elementalist/core/state.js';
 import { elementalistCoreTraits } from '#gw2/professions/elementalist/core/traits/index.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
+import { ELEMENTALIST_CORE_SKILL_FIELDS } from '#gw2/professions/elementalist/core/skill-fields.js';
 
 /**
  * Core Elementalist module: binds the shared attunement/endurance state, its
@@ -28,9 +28,10 @@ export const elementalistCoreModule = defineNativeModule({
   canSwapWeaponSetsInCombat: false,
   id: 'Core',
   data: createElementalistModuleData('Core', {
+    skillFields: ELEMENTALIST_CORE_SKILL_FIELDS,
     skillMechanics: ELEMENTALIST_CORE_SKILL_MECHANICS,
     extraSkills: ELEMENTALIST_CORE_EXTRA_SKILLS,
-    balanceProfiles: [...ELEMENTALIST_CORE_BALANCE_PROFILES, ...pistolBalanceProfiles]
+    balanceProfiles: ELEMENTALIST_CORE_BALANCE_PROFILES
   }),
   state: {
     create: createElementalistCoreState,

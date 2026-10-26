@@ -7,7 +7,7 @@ test('rotation warnings show each rejected input on the combat-relative timeline
   await page.evaluate(async () => {
     const app = window.professionApp;
     const saved = await (await fetch('/data/gw2/builds/thief/b-condi-antiquary-scepter-dagger.json')).json();
-    const skillId = app.activeCatalog.skillsByName.get('Triple Bolt').id;
+    const skillId = app.activeCatalog.skillsById.get(63134).id;
     app.build = app.adapter.toApplicationBuild({
       ...saved,
       targetHealth: 0,

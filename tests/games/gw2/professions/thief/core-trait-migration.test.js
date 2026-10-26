@@ -96,7 +96,7 @@ for (const [name, traitId, action, catalog, procs] of [
   [
     'Hidden Thief',
     TRAIT.HIDDEN_THIEF,
-    'Steal',
+    { type: 'cast', skillId: 13014 },
     (live) => withSkill(live, ID.STEAL, { cooldown: 0 }),
     (result) =>
       result.events.filter((event) => event.sourceId === TRAIT.HIDDEN_THIEF && event.condition === 'Blindness').length
@@ -150,7 +150,6 @@ function traitContext(selectedTraitIds = [], config = {}) {
     effectiveEnd: 1,
     helpers: {
       skillsById: thiefCatalog.skillsById,
-      skillsByName: thiefCatalog.skillsByName,
       balanceProfilesById: thiefCatalog.balanceProfilesById
     },
     query: {
@@ -299,7 +298,7 @@ test('Lotus Poison grants self Might and target Weakness only for the player poi
 
 /** A lone committed Steal's trait packets; the steal itself authors none. */
 function stealPackets(selectedTraitIds) {
-  const result = runThief(['Steal'], { selectedTraitIds });
+  const result = runThief([{ type: 'cast', skillId: 13014 }], { selectedTraitIds });
   assert.deepEqual(result.warnings, []);
   return result.events.filter((event) => ['damage', 'condition', 'buff', 'control'].includes(event.type));
 }
@@ -373,7 +372,7 @@ test('Kleptomaniac restores initiative on steal completion', () => {
     [[TRAIT.KLEPTOMANIAC], 2],
     [[], 0]
   ]) {
-    const result = runThief(['Steal'], { selectedTraitIds, initialInitiative: 0 });
+    const result = runThief([{ type: 'cast', skillId: 13014 }], { selectedTraitIds, initialInitiative: 0 });
     assert.deepEqual(result.warnings, []);
     assert.equal(observedRuntime(result).resourceController.value('initiative'), expected);
   }

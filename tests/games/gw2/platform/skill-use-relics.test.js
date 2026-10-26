@@ -255,7 +255,11 @@ for (const [relic, skillType, cooldown, delay, multiplier] of [
       profession: slotProfession.runtimeFor(config),
       config,
       rotation: [
-        { type: 'cast', skillId: slotProfession.catalog.skillsByName.get(skillType).id, interruptAfterMs: 0 },
+        {
+          type: 'cast',
+          skillId: slotProfession.catalog.skills.find((candidate) => candidate.name === skillType).id,
+          interruptAfterMs: 0
+        },
         'Instant Utility',
         { type: 'wait', durationMs: 500 },
         skillType,

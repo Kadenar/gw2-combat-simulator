@@ -15,7 +15,7 @@ import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
 
-const assembly = getNativeCatalogAssembly(warriorNativeModules, undefined);
+const assembly = getNativeCatalogAssembly(warriorNativeModules);
 const runtimeCatalog = assembleNativeRuntimeCatalog([...assembly.fragments.values()]);
 const runtime = warriorProfession.runtimeFor({ specialization: 'Bladesworn' });
 const resolved = warriorProfession.resolveProfession({ specialization: 'Bladesworn' });
@@ -53,11 +53,11 @@ const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   onCastStart(context, cast) {
     const slash: boolean | undefined = cast.skill.dragonSlash;
     const cost: number | undefined = context.helpers.skillsById.get(cast.skill.id)?.adrenalineCost;
-    const named: boolean | undefined = context.helpers.skillsByName.get(cast.skill.name)?.burst;
+    const indexed: boolean | undefined = context.helpers.skillsById.get(cast.skill.id)?.burst;
     const listed: boolean | undefined = context.helpers.skills[0]?.gunsaberSkill;
     // @ts-expect-error Warrior flags retain their declared boolean type.
     const invalid: number = cast.skill.dragonSlash;
-    void [slash, cost, named, listed, invalid];
+    void [slash, cost, indexed, listed, invalid];
   },
   sideEffectHandlers: {
     'warrior.typed-skill'(_context, action) {

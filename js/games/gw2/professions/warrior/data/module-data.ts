@@ -16,14 +16,6 @@ const allSkills: readonly WarriorSkill[] = Object.freeze([
   ...WARRIOR_SUPPLEMENTAL_SKILLS
 ]);
 
-// Explicit winners preserve canonical name-based rotations when reviewed variants share a name.
-export const WARRIOR_NATIVE_CATALOG_OPTIONS = Object.freeze({
-  skillNameOverrides: Object.freeze({
-    'Path to Victory': 71932,
-    "Harrier's Toss": 73024
-  })
-});
-
 const flipParentById = createFlipParentMap(allSkills);
 
 const generated: readonly WarriorSkill[] = Object.freeze(
@@ -55,7 +47,7 @@ const createModuleData = createProfessionModuleDataFactory<WarriorSkill>({
   generatedSkills: generated,
   traits: TRAITS,
   specializations: SPECIALIZATIONS,
-  core: { ...WEAPON_DATA, skillNameOverrides: WARRIOR_NATIVE_CATALOG_OPTIONS.skillNameOverrides }
+  core: { ...WEAPON_DATA }
 });
 
 // Normalize generated and supplemental Warrior mechanics into one module with
