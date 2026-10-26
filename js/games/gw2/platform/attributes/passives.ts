@@ -60,5 +60,19 @@ export function passiveSkillAttributes(
   const skill = requireSkillFromContext(context.balanceContext, skillId);
   const enabled =
     typeof active === 'function' ? active() : (active ?? !context.timeline?.skillOnCooldownAt(skillId, context.time));
-  return skillAttributeEffects(skill, multiplier).map((effect) => ({ ...effect, passiveSkillId: skillId, enabled }));
+  const effects: FlatAttributeEffect[] = [];
+
+  // Construct final grants directly to avoid intermediate copies while readiness remains live for each query.
+  for (const [attribute, amount] of Object.entries(skill.attributeBonuses ?? {})) {
+    effects.push({
+      kind: 'flat',
+      to: ATTRIBUTE_NAMES[attribute as SkillAttributeKey],
+      amount: amount * multiplier,
+      feedsConversions: 'none',
+      passiveSkillId: skillId,
+      enabled
+    });
+  }
+
+  return effects;
 }
