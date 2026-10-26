@@ -95,11 +95,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   Record<SkillId, Partial<MesmerSkill> & { readonly instrument?: MesmerInstrument }>
 > = Object.freeze({
   [ID.LIVELY_LUTE]: {
-    sideEffects: LUTE_ACTIONS,
-    effectVariants: instrumentEffects('mesmer.troubadour.lively-lute'),
-    castTimeMs: 560,
-    // The performance launches before recovery ends; later cancellation preserves its notes and waves.
-    interruptCommitMs: 360,
     instrument: {
       slot: 1,
       instrument: 'Lute',
@@ -113,7 +108,12 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
         { atMs: 400, coefficient: 1 }
       ]
     },
-    effects: []
+    castTimeMs: 560,
+    // The performance launches before recovery ends; later cancellation preserves its notes and waves.
+    interruptCommitMs: 360,
+    effects: [],
+    effectVariants: instrumentEffects('mesmer.troubadour.lively-lute'),
+    sideEffects: LUTE_ACTIONS
   },
   [ID.TALE_OF_THE_HONORABLE_ROGUE]: {
     tale: {
@@ -125,17 +125,17 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     },
     // The instant tale refunds endurance at commitment through the shared capped pool.
     resourceGain: 50,
-    sideEffects: [
-      ...TROUBADOUR_TALE_ACTIONS,
-      { on: 'castCommit', do: { type: 'resourceGrant', resource: 'endurance', amount: { skillField: 'resourceGain' } } }
-    ],
-    castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 4,
     ammo: 2,
     ammoRecharge: 25,
     ammoCastLockout: 4,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    sideEffects: [
+      ...TROUBADOUR_TALE_ACTIONS,
+      { on: 'castCommit', do: { type: 'resourceGrant', resource: 'endurance', amount: { skillField: 'resourceGain' } } }
+    ]
   },
   [ID.TALE_OF_THE_SECOND_SCION]: {
     tale: {
@@ -147,17 +147,10 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     },
     // Commit the tale's rewards after its 520 ms base cast.
     castTimeMs: 520,
-    sideEffects: TROUBADOUR_TALE_ACTIONS,
-    effects: []
+    effects: [],
+    sideEffects: TROUBADOUR_TALE_ACTIONS
   },
   [ID.FLUSTERING_FLUTE]: {
-    sideEffects: INSTRUMENT_ACTIONS,
-    // Flute uses the specialization's Cry of Pain bonuses on its native confusion.
-    effectVariants: instrumentEffects(
-      'mesmer.troubadour.flustering-flute',
-      'mesmer.troubadour.flustering-flute-cry-of-pain'
-    ),
-    castTimeMs: 560,
     instrument: {
       slot: 2,
       instrument: 'Flute',
@@ -166,6 +159,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       damageAtMs: 360,
       conditions: [{ type: 'condition', condition: CONDITION.CONFUSION, duration: 4, stacks: 3 }]
     },
+    castTimeMs: 560,
     effects: [
       // Performance and afterimage impacts materialize the same authored control.
       {
@@ -177,7 +171,13 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
-    ]
+    ],
+    // Flute uses the specialization's Cry of Pain bonuses on its native confusion.
+    effectVariants: instrumentEffects(
+      'mesmer.troubadour.flustering-flute',
+      'mesmer.troubadour.flustering-flute-cry-of-pain'
+    ),
+    sideEffects: INSTRUMENT_ACTIONS
   },
   [ID.TALE_OF_THE_SOULKEEPER]: {
     tale: {
@@ -191,20 +191,29 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
         { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 4, stacks: 1 }
       ]
     },
-    castTimeMs: 0,
     rechargeAnchor: 'castStart',
-    sideEffects: TROUBADOUR_TALE_ACTIONS,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    sideEffects: TROUBADOUR_TALE_ACTIONS
   },
   [ID.CRESCENDO]: {
     // Schedule now, but select active instruments at impact rather than acceptance.
     crescendoProfileId: 'mesmer.troubadour.crescendo',
-    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.troubadour.schedule-crescendo' } }],
-    castTimeMs: 1000,
     damageAtMs: 840,
-    effects: []
+    castTimeMs: 1000,
+    effects: [],
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.troubadour.schedule-crescendo' } }]
   },
   [ID.HARMONIOUS_HARP]: {
+    // The damageless pulse reaches nearby foes at the shortest valid performance, where hit traits proc.
+    instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0, damageAtMs: 360 },
+    // Harp packets remain valid independently when the channel is interrupted.
+    castTimeMs: 2000,
+    // Default to a 480ms channel stop while allowing manually shortened 360ms performances.
+    defaultInterruptMs: 480,
+    interruptMode: 'per-packet',
+    effects: [],
+    effectVariants: instrumentEffects('mesmer.troubadour.harmonious-harp'),
     sideEffects: [
       ...INSTRUMENT_ACTIONS,
       {
@@ -217,24 +226,11 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
           attribution: { source: 'Player', sourceId: ID.HARMONIOUS_HARP, actorType: ACTOR.PLAYER }
         }
       }
-    ],
-    effectVariants: instrumentEffects('mesmer.troubadour.harmonious-harp'),
-    // Harp packets remain valid independently when the channel is interrupted.
-    castTimeMs: 2000,
-    // Default to a 480ms channel stop while allowing manually shortened 360ms performances.
-    defaultInterruptMs: 480,
-    interruptMode: 'per-packet',
-    // The damageless pulse reaches nearby foes at the shortest valid performance, where hit traits proc.
-    instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0, damageAtMs: 360 },
-    effects: []
+    ]
   },
   [ID.TALE_OF_THE_AUGUST_QUEEN]: {
     // Commit the tale's rewards after its 840 ms base cast.
     castTimeMs: 840,
-    sideEffects: [
-      ...TROUBADOUR_TALE_ACTIONS,
-      { on: 'castCommit', do: { type: 'mesmer.troubadour.play-all-instruments' } }
-    ],
     // The committed tale grants defensive effects without performing any instrument attacks.
     effects: [
       {
@@ -258,6 +254,10 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
         timingScale: 'fixed',
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
+    ],
+    sideEffects: [
+      ...TROUBADOUR_TALE_ACTIONS,
+      { on: 'castCommit', do: { type: 'mesmer.troubadour.play-all-instruments' } }
     ]
   },
   [ID.TALE_OF_THE_TORTURED_MASTERMIND]: {
@@ -269,7 +269,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       effects: []
     },
     castTimeMs: 400,
-    sideEffects: TROUBADOUR_TALE_ACTIONS,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -295,9 +294,19 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
         type: 'control',
         atMs: 3360
       }
-    ])
+    ]),
+    sideEffects: TROUBADOUR_TALE_ACTIONS
   },
   [ID.HARMONIOUS_HARP_ALTERNATE]: {
+    // Both Harp variants pulse nearby foes at the shortest valid performance.
+    instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0, damageAtMs: 360 },
+    // Both Harp variants preserve packets independently when interrupted.
+    castTimeMs: 2000,
+    // Match the default stop without restricting the alternate Harp's shorter valid performances.
+    defaultInterruptMs: 480,
+    interruptMode: 'per-packet',
+    effects: [],
+    effectVariants: instrumentEffects('mesmer.troubadour.harmonious-harp-alternate'),
     sideEffects: [
       ...INSTRUMENT_ACTIONS,
       {
@@ -310,22 +319,9 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
           attribution: { source: 'Player', sourceId: ID.HARMONIOUS_HARP_ALTERNATE, actorType: ACTOR.PLAYER }
         }
       }
-    ],
-    effectVariants: instrumentEffects('mesmer.troubadour.harmonious-harp-alternate'),
-    // Both Harp variants preserve packets independently when interrupted.
-    castTimeMs: 2000,
-    // Match the default stop without restricting the alternate Harp's shorter valid performances.
-    defaultInterruptMs: 480,
-    interruptMode: 'per-packet',
-    // Both Harp variants pulse nearby foes at the shortest valid performance.
-    instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0, damageAtMs: 360 },
-    effects: []
+    ]
   },
   [ID.DEAFENING_DRUM]: {
-    sideEffects: INSTRUMENT_ACTIONS,
-    effectVariants: instrumentEffects('mesmer.troubadour.deafening-drum'),
-    castTimeMs: 680,
-    interruptCommitMs: 560,
     instrument: {
       slot: 3,
       instrument: 'Drum',
@@ -333,6 +329,8 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       hits: 1,
       damageAtMs: 520
     },
+    castTimeMs: 680,
+    interruptCommitMs: 560,
     effects: [
       // Performance and afterimage impacts materialize the same authored control.
       {
@@ -344,7 +342,9 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
-    ]
+    ],
+    effectVariants: instrumentEffects('mesmer.troubadour.deafening-drum'),
+    sideEffects: INSTRUMENT_ACTIONS
   },
   [ID.TALE_OF_THE_VALIANT_MARSHAL]: {
     tale: {
@@ -357,17 +357,12 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
         { name: boonKey(BOON.RESISTANCE), type: 'boon', boon: BOON.RESISTANCE, duration: 3, stacks: 1 }
       ]
     },
-    castTimeMs: 0,
     rechargeAnchor: 'castStart',
-    sideEffects: TROUBADOUR_TALE_ACTIONS,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    sideEffects: TROUBADOUR_TALE_ACTIONS
   },
   [ID.LIVELY_LUTE_ALTERNATE]: {
-    sideEffects: LUTE_ACTIONS,
-    effectVariants: instrumentEffects('mesmer.troubadour.lively-lute-alternate'),
-    castTimeMs: 560,
-    // Both Lute variants share the same performance commit point.
-    interruptCommitMs: 360,
     instrument: {
       slot: 1,
       instrument: 'Lute',
@@ -380,7 +375,12 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
         { atMs: 400, coefficient: 1 }
       ]
     },
-    effects: []
+    castTimeMs: 560,
+    // Both Lute variants share the same performance commit point.
+    interruptCommitMs: 360,
+    effects: [],
+    effectVariants: instrumentEffects('mesmer.troubadour.lively-lute-alternate'),
+    sideEffects: LUTE_ACTIONS
   }
 });
 

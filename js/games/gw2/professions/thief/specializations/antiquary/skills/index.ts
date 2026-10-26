@@ -17,19 +17,11 @@ const ARTIFACT_END: NonNullable<Skill['sideEffects']> = [
 
 // Both API IDs share the primary definition so future timing fixes cannot leave the alias behind.
 const METAL_LEGION_GUITAR_SKILL: Partial<Skill> = {
-  sideEffects: [
-    ...ARTIFACT_START,
-    {
-      on: 'castCommit',
-      when: (_runtime, cast) => cast.skill.id === ID.METAL_LEGION_GUITAR,
-      do: { type: 'thief.guitar' }
-    },
-    ...ARTIFACT_END
-  ],
-
-  castTimeMs: 1920,
   cooldown: 0,
   initiativeCost: 0,
+  artifactKind: 'offensive',
+
+  castTimeMs: 1920,
   effects: [
     {
       type: 'strike',
@@ -69,7 +61,15 @@ const METAL_LEGION_GUITAR_SKILL: Partial<Skill> = {
       controlKind: CONTROL.STUN
     }
   ],
-  artifactKind: 'offensive'
+  sideEffects: [
+    ...ARTIFACT_START,
+    {
+      on: 'castCommit',
+      when: (_runtime, cast) => cast.skill.id === ID.METAL_LEGION_GUITAR,
+      do: { type: 'thief.guitar' }
+    },
+    ...ARTIFACT_END
+  ]
 };
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
@@ -78,30 +78,30 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
   [ID.METAL_LEGION_GUITAR]: METAL_LEGION_GUITAR_SKILL,
   [ID.METAL_LEGION_GUITAR_ID_76591]: METAL_LEGION_GUITAR_SKILL,
   [ID.FORGED_SURFER_DASH]: {
-    sideEffects: [
-      ...ARTIFACT_START,
-      { on: 'castCommit', do: { type: 'thief.surfer-window' } },
-      ...ARTIFACT_END,
-      { on: 'castCommit', do: { type: 'thief.forged-surfer' } }
-    ],
     movementSkill: true,
+    cooldown: 0,
+    initiativeCost: 0,
+    artifactKind: 'offensive',
 
     castTimeMs: 200,
     // The buff and bomb sequence commit before the dash ends, while its remaining animation still locks casting.
     interruptCommitMs: 160,
     retainsCastLockoutAfterInterrupt: true,
-    cooldown: 0,
-    initiativeCost: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [],
-    artifactKind: 'offensive'
+    sideEffects: [
+      ...ARTIFACT_START,
+      { on: 'castCommit', do: { type: 'thief.surfer-window' } },
+      ...ARTIFACT_END,
+      { on: 'castCommit', do: { type: 'thief.forged-surfer' } }
+    ]
   },
   [ID.HOLO_DANCER_DECOY]: {
-    sideEffects: [...ARTIFACT_START, { on: 'castCommit', do: { type: 'thief.holo' } }, ...ARTIFACT_END],
-
-    castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 0,
+    artifactKind: 'defensive',
+
+    castTimeMs: 600,
     effects: [
       {
         type: 'control',
@@ -140,15 +140,15 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         }
       ])
     ],
-    artifactKind: 'defensive'
+    sideEffects: [...ARTIFACT_START, { on: 'castCommit', do: { type: 'thief.holo' } }, ...ARTIFACT_END]
   },
   [ID.EXALTED_HAMMER]: {
-    sideEffects: [...ARTIFACT_START, ...ARTIFACT_END],
     movementSkill: true,
-
-    castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
+    artifactKind: 'defensive',
+
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -166,16 +166,14 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         stacks: 1
       }
     ],
-    artifactKind: 'defensive'
+    sideEffects: [...ARTIFACT_START, ...ARTIFACT_END]
   },
   [ID.STONE_SUMMIT_CANNON]: {
-    // Fix the outcome at acceptance; cancellation never rerolls or pays coins.
-    sideEffects: [{ on: 'castStart', do: { type: 'thief.double-edge' } }],
     // Acceptance fixes the outcome; even a cancelled use fires from its effective end with fixed profile offsets.
     usableWhileRecharging: true,
-    castTimeMs: 520,
     cooldown: 15,
     initiativeCost: 0,
+    castTimeMs: 520,
     effects: [],
     effectVariants: [true, false].map<NonNullable<Skill['effectVariants']>[number]>((backfire) => ({
       when: (runtime, cast) => Boolean(antiquaryState.from(runtime).backfireState[cast.skill.id]) === backfire,
@@ -200,15 +198,17 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
             : {})
         }));
       }
-    }))
+    })),
+    // Fix the outcome at acceptance; cancellation never rerolls or pays coins.
+    sideEffects: [{ on: 'castStart', do: { type: 'thief.double-edge' } }]
   },
   [ID.ZEPHYRITE_SUN_CRYSTAL_ID_76733]: {
-    sideEffects: [...ARTIFACT_START, ...ARTIFACT_END],
     movementSkill: true,
-
-    castTimeMs: 680,
     cooldown: 1,
     initiativeCost: 0,
+    artifactKind: 'defensive',
+
+    castTimeMs: 680,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -225,14 +225,14 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         actorType: ACTOR.PLAYER
       }
     ]),
-    artifactKind: 'defensive'
+    sideEffects: [...ARTIFACT_START, ...ARTIFACT_END]
   },
   [ID.CHAK_SHIELD]: {
-    sideEffects: [...ARTIFACT_START, { on: 'castCommit', do: { type: 'thief.chak' } }, ...ARTIFACT_END],
-
-    castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
+    artifactKind: 'defensive',
+
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -245,37 +245,36 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         timingScale: 'fixed'
       }
     ],
-    artifactKind: 'defensive'
+    sideEffects: [...ARTIFACT_START, { on: 'castCommit', do: { type: 'thief.chak' } }, ...ARTIFACT_END]
   },
   [ID.ANTIVENOM_DRAUGHT_BACKFIRED]: {
     // Backfire states are internal outcomes, not independently equipable loadout choices.
     slotSelectable: false,
-    castTimeMs: 520,
     cooldown: 10,
     initiativeCost: 0,
-    effects: [],
-    backfire: true
-  },
-  [ID.ANTIVENOM_DRAUGHT]: {
-    // Fix the outcome at acceptance; cancellation never rerolls or pays coins.
-    sideEffects: [{ on: 'castStart', do: { type: 'thief.double-edge' } }],
-
-    usableWhileRecharging: true,
+    backfire: true,
     castTimeMs: 520,
-    cooldown: 10,
-    initiativeCost: 0,
     effects: []
   },
+  [ID.ANTIVENOM_DRAUGHT]: {
+    usableWhileRecharging: true,
+    cooldown: 10,
+    initiativeCost: 0,
+    castTimeMs: 520,
+    effects: [],
+    // Fix the outcome at acceptance; cancellation never rerolls or pays coins.
+    sideEffects: [{ on: 'castStart', do: { type: 'thief.double-edge' } }]
+  },
   [ID.ZEPHYRITE_SUN_CRYSTAL]: {
-    sideEffects: [...ARTIFACT_START, ...ARTIFACT_END],
     movementSkill: true,
+    cooldown: 1,
+    initiativeCost: 0,
+    artifactKind: 'defensive',
 
     castTimeMs: 240,
     // The arrival commits before the dash animation ends; its launched effects keep the remaining cast lockout.
     interruptCommitMs: 160,
     retainsCastLockoutAfterInterrupt: true,
-    cooldown: 1,
-    initiativeCost: 0,
     effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'strike',
@@ -300,16 +299,14 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         actorType: ACTOR.PLAYER
       }
     ]),
-    artifactKind: 'defensive'
+    sideEffects: [...ARTIFACT_START, ...ARTIFACT_END]
   },
   [ID.UNSTABLE_SKRITT_BOMB]: {
-    // Scuffle grants this manually activated backfire in place of an artifact; using it spends the held grant.
-    sideEffects: [{ on: 'castStart', do: { type: 'thief.artifact-spend' } }],
     slotSelectable: false,
     artifactKind: 'unstable',
-    castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -324,32 +321,34 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.KNOCKBACK
       }
-    ]
+    ],
+    // Scuffle grants this manually activated backfire in place of an artifact; using it spends the held grant.
+    sideEffects: [{ on: 'castStart', do: { type: 'thief.artifact-spend' } }]
   },
   [ID.RESHUFFLE]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.reshuffle' } }],
-
-    castTimeMs: 0,
     cooldown: 5,
     initiativeCost: 2,
-    effects: []
+
+    castTimeMs: 0,
+    effects: [],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.reshuffle' } }]
   },
   [ID.STONE_SUMMIT_CANNON_ID_77092]: {
     // Only the usable cannon is selectable, even though its disabled backfire state shares the same name.
     slotSelectable: false,
-    castTimeMs: 360,
     cooldown: 15,
     initiativeCost: 0,
-    effects: [],
-    backfire: true
+    backfire: true,
+    castTimeMs: 360,
+    effects: []
   },
   [ID.SUMMON_KRYPTIS_TURRET]: {
-    sideEffects: [...ARTIFACT_START, { on: 'castCommit', do: { type: 'thief.kryptis' } }, ...ARTIFACT_END],
-
-    castTimeMs: 440,
     cooldown: 0,
     initiativeCost: 0,
+    artifactKind: 'offensive',
+
+    castTimeMs: 440,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
@@ -369,45 +368,44 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         actorType: ACTOR.PLAYER
       }
     ]),
-    artifactKind: 'offensive'
+    sideEffects: [...ARTIFACT_START, { on: 'castCommit', do: { type: 'thief.kryptis' } }, ...ARTIFACT_END]
   },
   [ID.ZEPHYRITE_SUN_CRYSTAL_ID_78309]: {
     movementSkill: true,
-    castTimeMs: 0,
     cooldown: 1,
     initiativeCost: 0,
+    castTimeMs: 0,
     effects: []
   },
   [ID.CANACH_COIN_TOSS]: {
+    usableWhileRecharging: true,
+    cooldown: 15,
+    initiativeCost: 0,
+    castTimeMs: 0,
+    effects: [],
     // Fix the outcome at acceptance; cancellation never rerolls or pays coins.
     sideEffects: [
       { on: 'castStart', do: { type: 'thief.double-edge' } },
       { on: 'castStart', do: { type: 'thief.roll-coins' } },
       { on: 'castCommit', do: { type: 'thief.pay-coins' } }
-    ],
-
-    usableWhileRecharging: true,
-    castTimeMs: 0,
-    cooldown: 15,
-    initiativeCost: 0,
-    effects: []
+    ]
   },
   [ID.SKRITT_SCUFFLE]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.skritt-scuffle' } }],
-
-    castTimeMs: 560,
     cooldown: 50,
     initiativeCost: 0,
-    effects: []
+
+    castTimeMs: 560,
+    effects: [],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.skritt-scuffle' } }]
   },
   [ID.MISTBURN_MORTAR]: {
-    sideEffects: [...ARTIFACT_START, { on: 'castCommit', do: { type: 'thief.mortar' } }, ...ARTIFACT_END],
+    cooldown: 0,
+    initiativeCost: 0,
+    artifactKind: 'offensive',
 
     // Measured Quickness timings make artifact use reserve the same cast-lane time seen in EVTC.
     castTimeMs: 600,
-    cooldown: 0,
-    initiativeCost: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -427,17 +425,17 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         actorType: ACTOR.PLAYER
       }
     ]),
-    artifactKind: 'offensive'
+    sideEffects: [...ARTIFACT_START, { on: 'castCommit', do: { type: 'thief.mortar' } }, ...ARTIFACT_END]
   },
   [ID.SKRITT_SWIPE]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.skritt-swipe' } }],
     stealTraitSkill: true,
     movementSkill: true,
-
-    castTimeMs: 200,
     cooldown: 25,
     initiativeCost: 0,
-    effects: []
+
+    castTimeMs: 200,
+    effects: [],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.skritt-swipe' } }]
   }
 });

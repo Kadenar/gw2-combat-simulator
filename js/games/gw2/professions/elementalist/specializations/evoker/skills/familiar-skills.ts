@@ -36,10 +36,27 @@ import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/el
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.IGNITE]: {
+    name: 'Ignite',
     tierResetDuration: 15,
     empoweredUnlockDelay: 0.96,
     // A basic cast within this start-to-start window cancels the preceding empowered activation.
     duration: 2.4,
+    type: 'Profession',
+    slot: 'Profession_5',
+    specialization: 'Evoker',
+    attunement: 'Fire',
+    mechanicSlot: 5,
+    categories: ['Familiar'],
+    cooldown: 0,
+    nextChainId: ID.CONFLAGRATION,
+    skillFamily: 'Familiar',
+    castTimeMs: 0,
+    effects: impactEffects({ atMs: 880, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.63 },
+      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2 }
+    ]),
+    // Acceptance advances the Burning tier once and selects that tier's packet for this cast.
+    effectVariants: [{ when: () => true, transform: acceptIgniteEffects }],
     // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
     sideEffects: [
       {
@@ -57,33 +74,9 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         }
       },
       { on: 'castCommit', do: { type: 'elementalist.evoker.settle-basic-familiar' } }
-    ],
-    // Acceptance advances the Burning tier once and selects that tier's packet for this cast.
-    effectVariants: [{ when: () => true, transform: acceptIgniteEffects }],
-
-    name: 'Ignite',
-    type: 'Profession',
-    slot: 'Profession_5',
-    specialization: 'Evoker',
-    attunement: 'Fire',
-    mechanicSlot: 5,
-    categories: ['Familiar'],
-    castTimeMs: 0,
-    cooldown: 0,
-    nextChainId: ID.CONFLAGRATION,
-    skillFamily: 'Familiar',
-    effects: impactEffects({ atMs: 880, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 0.63 },
-      { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2 }
-    ])
+    ]
   },
   [ID.CONFLAGRATION]: {
-    // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
-      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-empowered-familiar' } }
-    ],
-
     name: 'Conflagration',
     type: 'Profession',
     slot: 'Profession_5',
@@ -91,12 +84,12 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     attunement: 'Fire',
     mechanicSlot: 5,
     categories: ['Familiar'],
-    castTimeMs: 360,
-    // A released Conflagration survives cutting the command animation short.
-    interruptCommitMs: 320,
     cooldown: 0,
     nextChainId: ID.IGNITE,
     skillFamily: 'Familiar',
+    castTimeMs: 360,
+    // A released Conflagration survives cutting the command animation short.
+    interruptCommitMs: 320,
     effects: impactEffects(
       { atMs: 1040, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
@@ -108,29 +101,28 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
           duration: 4.5
         }
       ]
-    )
-  },
-  [ID.SPLASH]: {
-    empoweredUnlockDelay: 0.84,
-    // A basic cast within this start-to-start window cancels the preceding empowered activation.
-    duration: 2.4,
+    ),
     // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
     sideEffects: [
       { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
-      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-basic-familiar' } }
-    ],
-
+      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-empowered-familiar' } }
+    ]
+  },
+  [ID.SPLASH]: {
     name: 'Splash',
+    empoweredUnlockDelay: 0.84,
+    // A basic cast within this start-to-start window cancels the preceding empowered activation.
+    duration: 2.4,
     type: 'Profession',
     slot: 'Profession_5',
     specialization: 'Evoker',
     attunement: 'Water',
     mechanicSlot: 5,
     categories: ['Familiar'],
-    castTimeMs: 0,
     cooldown: 0,
     nextChainId: ID.BUOYANT_DELUGE,
     skillFamily: 'Familiar',
+    castTimeMs: 0,
     effects: [
       {
         type: 'boon',
@@ -143,15 +135,14 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]
-  },
-  [ID.BUOYANT_DELUGE]: {
+    ],
     // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
     sideEffects: [
       { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
-      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-empowered-familiar' } }
-    ],
-
+      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-basic-familiar' } }
+    ]
+  },
+  [ID.BUOYANT_DELUGE]: {
     name: 'Buoyant Deluge',
     type: 'Profession',
     slot: 'Profession_5',
@@ -159,9 +150,10 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     attunement: 'Water',
     mechanicSlot: 5,
     categories: ['Familiar'],
-    castTimeMs: 360,
     cooldown: 0,
     nextChainId: ID.SPLASH,
+    skillFamily: 'Familiar',
+    castTimeMs: 360,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -170,7 +162,6 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Familiar',
     effects: [
       {
         type: 'control',
@@ -180,37 +171,28 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         timingScale: 'cast',
         controlKind: CONTROL.STUN
       }
-    ]
-  },
-  [ID.ZAP]: {
-    empoweredUnlockDelay: 0.68,
-    // A basic cast within this start-to-start window cancels the preceding empowered activation.
-    duration: 2.3,
+    ],
     // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
     sideEffects: [
       { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
-      {
-        on: 'castCommit',
-        do: {
-          type: 'elementalist.evoker.zap',
-          id: 'zap-window',
-          effects: [{ type: 'buff', name: 'Zap Window', kind: 'zap buff', stacks: 1, duration: 5 }]
-        }
-      },
-      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-basic-familiar' } }
-    ],
-
+      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-empowered-familiar' } }
+    ]
+  },
+  [ID.ZAP]: {
     name: 'Zap',
+    empoweredUnlockDelay: 0.68,
+    // A basic cast within this start-to-start window cancels the preceding empowered activation.
+    duration: 2.3,
     type: 'Profession',
     slot: 'Profession_5',
     specialization: 'Evoker',
     attunement: 'Air',
     mechanicSlot: 5,
     categories: ['Familiar'],
-    castTimeMs: 0,
     cooldown: 0,
     nextChainId: ID.LIGHTNING_BLITZ,
     skillFamily: 'Familiar',
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -223,24 +205,22 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]
-  },
-  [ID.LIGHTNING_BLITZ]: {
+    ],
     // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
     sideEffects: [
       { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
       {
         on: 'castCommit',
         do: {
-          type: 'elementalist.evoker.lightning-blitz',
-          id: 'electric-enchantment',
-          // Keep this charge batch independent of Hare's Agility and trait-granted enchantments.
-          effects: [{ type: 'buff', name: 'Lightning Blitz Enchantment', stacks: 1, duration: 6 }]
+          type: 'elementalist.evoker.zap',
+          id: 'zap-window',
+          effects: [{ type: 'buff', name: 'Zap Window', kind: 'zap buff', stacks: 1, duration: 5 }]
         }
       },
-      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-empowered-familiar' } }
-    ],
-
+      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-basic-familiar' } }
+    ]
+  },
+  [ID.LIGHTNING_BLITZ]: {
     name: 'Lightning Blitz',
     type: 'Profession',
     slot: 'Profession_5',
@@ -248,10 +228,10 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     attunement: 'Air',
     mechanicSlot: 5,
     categories: ['Familiar'],
-    castTimeMs: 360,
     cooldown: 0,
     nextChainId: ID.ZAP,
     skillFamily: 'Familiar',
+    castTimeMs: 360,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -267,13 +247,42 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
           duration: 3
         }))
       }
-    ])
+    ]),
+    // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
+      {
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.evoker.lightning-blitz',
+          id: 'electric-enchantment',
+          // Keep this charge batch independent of Hare's Agility and trait-granted enchantments.
+          effects: [{ type: 'buff', name: 'Lightning Blitz Enchantment', stacks: 1, duration: 6 }]
+        }
+      },
+      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-empowered-familiar' } }
+    ]
   },
   [ID.CALCIFY]: {
+    name: 'Calcify',
     internalCooldown: 0.25,
     empoweredUnlockDelay: 0.28,
     // A basic cast within this start-to-start window cancels the preceding empowered activation.
     duration: 2.2,
+    type: 'Profession',
+    slot: 'Profession_5',
+    specialization: 'Evoker',
+    attunement: 'Earth',
+    mechanicSlot: 5,
+    categories: ['Familiar'],
+    cooldown: 0,
+    nextChainId: ID.SEISMIC_IMPACT,
+    skillFamily: 'Familiar',
+    castTimeMs: 0,
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.65, canCrit: true },
+      { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
+    ]),
     // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
     sideEffects: [
       {
@@ -295,31 +304,9 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         }
       },
       { on: 'castCommit', do: { type: 'elementalist.evoker.settle-basic-familiar' } }
-    ],
-
-    name: 'Calcify',
-    type: 'Profession',
-    slot: 'Profession_5',
-    specialization: 'Evoker',
-    attunement: 'Earth',
-    mechanicSlot: 5,
-    categories: ['Familiar'],
-    castTimeMs: 0,
-    cooldown: 0,
-    nextChainId: ID.SEISMIC_IMPACT,
-    skillFamily: 'Familiar',
-    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 0.65, canCrit: true },
-      { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
-    ])
+    ]
   },
   [ID.SEISMIC_IMPACT]: {
-    // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
-      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-empowered-familiar' } }
-    ],
-
     name: 'Seismic Impact',
     type: 'Profession',
     slot: 'Profession_5',
@@ -327,10 +314,10 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     attunement: 'Earth',
     mechanicSlot: 5,
     categories: ['Familiar'],
-    castTimeMs: 360,
     cooldown: 0,
     nextChainId: ID.CALCIFY,
     skillFamily: 'Familiar',
+    castTimeMs: 360,
     effects: impactEffects({ atMs: 2120, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -360,7 +347,12 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         intervalTimingScale: 'fixed',
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
-    ])
+    ]),
+    // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
+      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-empowered-familiar' } }
+    ]
   }
 });
 

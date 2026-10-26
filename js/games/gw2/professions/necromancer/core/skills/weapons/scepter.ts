@@ -6,36 +6,6 @@ import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/i
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.GRASPING_DEAD]: {
-    castTimeMs: 880,
-    // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
-    interruptCommitMs: 640,
-    retainsCastLockoutAfterInterrupt: true,
-    // Share this impact's timing while preserving independent payloads and declaration order.
-    effects: impactEffects(
-      { atMs: 560, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
-      [
-        { type: 'strike', coefficient: 0.8 },
-        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 10 },
-        { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 7 }
-      ]
-    )
-  },
-  [ID.PUTRID_CURSE]: {
-    castTimeMs: 600,
-    // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
-    interruptCommitMs: 480,
-    retainsCastLockoutAfterInterrupt: true,
-    // Share this impact's timing while preserving independent payloads and declaration order.
-    effects: impactEffects(
-      { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
-      [
-        { type: 'strike', coefficient: 0.5 },
-        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4.5 },
-        { type: 'condition', condition: CONDITION.POISONED, stacks: 1, duration: 6 }
-      ]
-    )
-  },
   [ID.BLOOD_CURSE]: {
     castTimeMs: 440,
     // Share this impact's timing while preserving independent payloads and declaration order.
@@ -52,7 +22,38 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4.5 }
     ])
   },
+  [ID.PUTRID_CURSE]: {
+    castTimeMs: 600,
+    // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
+    interruptCommitMs: 480,
+    retainsCastLockoutAfterInterrupt: true,
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 0.5 },
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4.5 },
+        { type: 'condition', condition: CONDITION.POISONED, stacks: 1, duration: 6 }
+      ]
+    )
+  },
+  [ID.GRASPING_DEAD]: {
+    castTimeMs: 880,
+    // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
+    interruptCommitMs: 640,
+    retainsCastLockoutAfterInterrupt: true,
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 560, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 0.8 },
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 10 },
+        { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 7 }
+      ]
+    )
+  },
   [ID.FEAST_OF_CORRUPTION]: {
+    flipSkillId: null,
     castTimeMs: 600,
     effects: [
       {
@@ -80,17 +81,14 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
         stacks: 1,
         duration: 4
       }
-    ],
-
-    flipSkillId: null
+    ]
   },
   [ID.DEVOURING_DARKNESS]: {
-    // The skill owns this transaction; its shared helper retains state and lifetime rules.
-    sideEffects: [{ on: 'castStart', do: { type: 'necromancer.devouring-impact' } }],
-    effectVariants: [{ when: () => true, transform: () => [] }],
-    castTimeMs: 600,
     // The replacement handler scales this per-condition payload using the live target state.
     maximumConditions: 5,
+
+    flipParentId: null,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -112,7 +110,8 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
       },
       { type: 'condition', condition: CONDITION.TORMENT, stacks: 1, duration: 4 }
     ],
-
-    flipParentId: null
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castStart', do: { type: 'necromancer.devouring-impact' } }]
   }
 });

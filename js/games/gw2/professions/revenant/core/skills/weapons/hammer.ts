@@ -7,11 +7,96 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 
 // Snap measured impact offsets to 40 ms action ticks instead of retaining EVTC timestamp jitter.
 export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.HAMMER_BOLT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    cooldown: 0,
+    energyCost: 0,
+    castTimeMs: 560,
+    // The projectile launches around 440 ms; cancelling recovery cannot recall it.
+    interruptCommitMs: 440,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [{ atMs: 560, coefficient: 0.9 }],
+        name: 'Hammer Bolt',
+        actorType: ACTOR.PLAYER,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true,
+        comboFinishers: [
+          {
+            ownerId: 'revenant',
+            finisherType: COMBO_FINISHER.PROJECTILE,
+            chance: 1
+          }
+        ]
+      }
+    ]
+  },
+  [ID.COALESCENCE_OF_RUIN]: {
+    cooldown: 4,
+    energyCost: 5,
+    castTimeMs: 720,
+    interruptCommitMs: 600,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: [
+      {
+        type: 'strike',
+        // Each cascade region uses the same 2.3 PvE coefficient, including repeat hits on large targets.
+        ticks: [{ atMs: 560, coefficient: 2.3 }],
+        name: 'Coalescence of Ruin - First Cascade',
+        actorType: ACTOR.PLAYER,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
+      },
+      {
+        // Large targets intersect a second cascade region about 0.96 seconds after the first impact.
+        type: 'strike',
+        ticks: [{ atMs: 1520, coefficient: 2.3 }],
+        name: 'Coalescence of Ruin - Second Cascade',
+        actorType: ACTOR.PLAYER,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true,
+        when: (runtime) => runtime.config.professionAssumptions?.hitboxSize === 'large'
+      }
+    ]
+  },
+  [ID.PHASE_SMASH]: {
+    shadowstepSkill: true,
+    peithaImpactDelayMs: 840,
+    cooldown: 8,
+    energyCost: 5,
+    castTimeMs: 840,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 2.22,
+        hits: 1,
+        name: 'Phase Smash',
+        actorType: ACTOR.PLAYER,
+        comboFinishers: [
+          {
+            ownerId: 'revenant',
+            finisherType: COMBO_FINISHER.BLAST
+          }
+        ]
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.CHILLED,
+        stacks: 1,
+        duration: 2,
+        actorType: ACTOR.PLAYER
+      }
+    ]
+  },
   [ID.FIELD_OF_THE_MISTS]: {
-    // Measured Quickness animations include recovery time beyond the tooltip cast.
-    castTimeMs: 600,
     cooldown: 12,
     energyCost: 10,
+    // Measured Quickness animations include recovery time beyond the tooltip cast.
+    castTimeMs: 600,
     comboFields: [
       {
         ownerId: 'revenant',
@@ -46,39 +131,10 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
       }
     ]
   },
-  [ID.PHASE_SMASH]: {
-    shadowstepSkill: true,
-    peithaImpactDelayMs: 840,
-    castTimeMs: 840,
-    cooldown: 8,
-    energyCost: 5,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.22,
-        hits: 1,
-        name: 'Phase Smash',
-        actorType: ACTOR.PLAYER,
-        comboFinishers: [
-          {
-            ownerId: 'revenant',
-            finisherType: COMBO_FINISHER.BLAST
-          }
-        ]
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.CHILLED,
-        stacks: 1,
-        duration: 2,
-        actorType: ACTOR.PLAYER
-      }
-    ]
-  },
   [ID.DROP_THE_HAMMER]: {
-    castTimeMs: 480,
     cooldown: 15,
     energyCost: 15,
+    castTimeMs: 480,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 1640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -111,61 +167,5 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         controlKind: CONTROL.KNOCKDOWN
       }
     ])
-  },
-  [ID.COALESCENCE_OF_RUIN]: {
-    castTimeMs: 720,
-    interruptCommitMs: 600,
-    retainsCastLockoutAfterInterrupt: true,
-    cooldown: 4,
-    energyCost: 5,
-    effects: [
-      {
-        type: 'strike',
-        // Each cascade region uses the same 2.3 PvE coefficient, including repeat hits on large targets.
-        ticks: [{ atMs: 560, coefficient: 2.3 }],
-        name: 'Coalescence of Ruin - First Cascade',
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        // Large targets intersect a second cascade region about 0.96 seconds after the first impact.
-        type: 'strike',
-        ticks: [{ atMs: 1520, coefficient: 2.3 }],
-        name: 'Coalescence of Ruin - Second Cascade',
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        when: (runtime) => runtime.config.professionAssumptions?.hitboxSize === 'large'
-      }
-    ]
-  },
-  [ID.HAMMER_BOLT]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 560,
-    // The projectile launches around 440 ms; cancelling recovery cannot recall it.
-    interruptCommitMs: 440,
-    cooldown: 0,
-    energyCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 560, coefficient: 0.9 }],
-        name: 'Hammer Bolt',
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        comboFinishers: [
-          {
-            ownerId: 'revenant',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 1
-          }
-        ]
-      }
-    ]
   }
 });

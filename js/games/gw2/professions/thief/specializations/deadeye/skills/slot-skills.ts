@@ -15,20 +15,9 @@ import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types
 /** Cantrips own their utility effects, flip windows, and commitment actions. */
 export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SHADOW_FLARE]: {
-    // A committed Flare opens the follow-up through the shared flip lifecycle.
-    sideEffects: [
-      {
-        on: 'castCommit',
-        do: {
-          type: 'flipArm',
-          skillId: ID.SHADOW_SWAP,
-          durationSec: { profile: PROFILE.shadowFlare, field: 'flipDuration' }
-        }
-      }
-    ],
-    castTimeMs: 480,
     cooldown: 20,
     initiativeCost: 0,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -39,12 +28,23 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, Partial<Skill>>> = Obj
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
+    ],
+    // A committed Flare opens the follow-up through the shared flip lifecycle.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'flipArm',
+          skillId: ID.SHADOW_SWAP,
+          durationSec: { profile: PROFILE.shadowFlare, field: 'flipDuration' }
+        }
+      }
     ]
   },
   [ID.BINDING_SHADOW]: {
-    castTimeMs: 520,
     cooldown: 20,
     initiativeCost: 0,
+    castTimeMs: 520,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -77,38 +77,33 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, Partial<Skill>>> = Obj
     ])
   },
   [ID.MERCY]: {
-    // The fixed reset belongs to the skill; Malice consumption and its scaled refund remain stateful.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.DEADEYES_MARK] } },
-      { on: 'castCommit', do: { type: 'thief.mercy' } }
-    ],
-    castTimeMs: 0,
     cooldown: 1,
     ammo: 2,
     ammoRecharge: 30,
     ammoCastLockout: 1,
     initiativeCost: 0,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    // The fixed reset belongs to the skill; Malice consumption and its scaled refund remain stateful.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.DEADEYES_MARK] } },
+      { on: 'castCommit', do: { type: 'thief.mercy' } }
+    ]
   },
   [ID.MALICIOUS_RESTORATION]: {
-    castTimeMs: 0,
     cooldown: 25,
     initiativeCost: 0,
+    castTimeMs: 0,
     effects: []
   },
   [ID.SHADOW_MELD]: {
-    // Clear Revealed before selecting the stealth grant; only commitment applies it.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'thief.clear-revealed' } },
-      { on: 'castCommit', do: { type: 'thief.stealth' } }
-    ],
-
-    castTimeMs: 440,
     cooldown: 5,
     ammo: 2,
     ammoRecharge: 25,
     ammoCastLockout: 5,
     initiativeCost: 0,
+
+    castTimeMs: 440,
     effects: [
       {
         type: 'buff',
@@ -116,14 +111,17 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, Partial<Skill>>> = Obj
         duration: 3,
         stacks: 1
       }
+    ],
+    // Clear Revealed before selecting the stealth grant; only commitment applies it.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'thief.clear-revealed' } },
+      { on: 'castCommit', do: { type: 'thief.stealth' } }
     ]
   },
   [ID.SHADOW_SWAP]: {
-    // A committed follow-up consumes its window and restores the parent.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.SHADOW_SWAP } }],
-    castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -133,14 +131,14 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, Partial<Skill>>> = Obj
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
-    ]
+    ],
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.SHADOW_SWAP } }]
   },
   [ID.SHADOW_GUST]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.stealth' } }],
-    castTimeMs: 360,
     cooldown: 30,
     initiativeCost: 0,
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -161,7 +159,9 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, Partial<Skill>>> = Obj
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.KNOCKBACK
       }
-    ]
+    ],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.stealth' } }]
   }
 });
 

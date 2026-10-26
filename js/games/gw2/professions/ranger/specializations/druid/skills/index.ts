@@ -11,34 +11,37 @@ export const LUNAR_IMPACT_HIT_MS = 560;
 
 export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.GLYPH_OF_REJUVENATION]: {
-    effects: [],
-    castTimeMs: 333
+    castTimeMs: 333,
+    effects: []
   },
   [ID.RELEASE_CELESTIAL_AVATAR]: {
-    // Use the common form lifecycle for manual entry/release and resource depletion.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.avatar-release' } }],
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     castTimeMs: 0,
     effects: [],
-    inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
+    // Use the common form lifecycle for manual entry/release and resource depletion.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.avatar-release' } }]
   },
   [ID.GLYPH_OF_THE_STARS]: {
-    effects: [],
-    castTimeMs: 667
+    castTimeMs: 667,
+    effects: []
   },
   [ID.CELESTIAL_AVATAR]: {
-    // Use the common form lifecycle for manual entry/release and resource depletion.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.avatar-enter' } }],
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     castTimeMs: 0,
     effects: [],
-    inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
+    // Use the common form lifecycle for manual entry/release and resource depletion.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.avatar-enter' } }]
   },
   [ID.COSMIC_RAY]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    effects: [],
-    castTimeMs: 520
+    castTimeMs: 520,
+    effects: []
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
   },
   [ID.SEED_OF_LIFE]: {
+    cooldown: 4,
+    castTimeMs: 0,
+    canCastConcurrently: true,
     // The planted seed detonates later, including after the player releases Celestial Avatar.
     effects: impactEffects({ atMs: SEED_OF_LIFE_DETONATION_MS, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -47,14 +50,13 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         stacks: 1,
         duration: 4
       }
-    ]),
-
-    cooldown: 4,
-    castTimeMs: 0,
-    canCastConcurrently: true
+    ])
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
   },
   [ID.LUNAR_IMPACT]: {
+    cooldown: 8,
+    // Match the measured Quickness animation from the condition Druid EVTC.
+    castTimeMs: 920,
     // The impact commits before the remaining animation, so cancelling the aftercast retains its effects.
     interruptCommitMs: LUNAR_IMPACT_HIT_MS,
     effects: impactEffects({ atMs: LUNAR_IMPACT_HIT_MS, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -68,14 +70,11 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
           }
         ]
       }
-    ]),
-
-    cooldown: 8,
-    // Match the measured Quickness animation from the condition Druid EVTC.
-    castTimeMs: 920
+    ])
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
   },
   [ID.REJUVENATING_TIDES]: {
+    castTimeMs: 480,
     // A committed cast keeps its delayed pulses and remaining animation lockout after interruption.
     interruptCommitMs: 440,
     retainsCastLockoutAfterInterrupt: true,
@@ -93,11 +92,12 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         persistsAfterInterrupt: true,
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
-    ],
-    castTimeMs: 480
+    ]
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
   },
   [ID.NATURAL_CONVERGENCE]: {
+    cooldown: 10,
+    castTimeMs: 2080,
     // Channel impacts resolve as they occur; only the final impact releases the persistent Black Hole.
     interruptCommitMs: 520,
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -171,10 +171,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         atMs,
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }))
-    ]),
-
-    cooldown: 10,
-    castTimeMs: 2080
+    ])
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
   }
 });

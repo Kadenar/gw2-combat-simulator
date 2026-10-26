@@ -10,6 +10,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Natural Slash uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.URSINE_SLASH]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.URSINE_SLASH]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.URSINE_SLASH]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -17,17 +20,16 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.URSINE_SLASH]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.URSINE_SLASH]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   [ID.SHAKE_IT_OFF]: {
-    effects: [],
+    petSkill: true,
     quicknessCastTimeMs: 333,
-    petSkill: true
+    effects: []
   },
   [ID.POISON_CLOUD_MURELLOW]: {
+    petSkill: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -44,11 +46,11 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
+    ]
   },
   [ID.ENFEEBLING_ROAR]: {
+    petSkill: true,
+    quicknessCastTimeMs: 833,
     effects: [
       {
         type: 'strike',
@@ -65,11 +67,11 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 833,
-    petSkill: true
+    ]
   },
   [ID.ICY_ROAR]: {
+    petSkill: true,
+    quicknessCastTimeMs: 833,
     effects: [
       {
         type: 'strike',
@@ -86,11 +88,11 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 833,
-    petSkill: true
+    ]
   },
   [ID.RENDING_MAUL]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1167,
     effects: [
       {
         type: 'strike',
@@ -108,8 +110,6 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 1167,
-    petSkill: true
+    ]
   }
 });

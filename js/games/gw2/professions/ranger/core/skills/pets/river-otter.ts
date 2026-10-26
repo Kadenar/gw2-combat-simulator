@@ -8,6 +8,8 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const RANGER_CORE_RIVER_OTTER_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.INNOCENT_DISPLAY]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1167,
     effects: [
       {
         type: 'condition',
@@ -17,8 +19,6 @@ export const RANGER_CORE_RIVER_OTTER_PET_SKILL_MECHANICS: Readonly<Record<number
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 1167,
-    petSkill: true
+    ]
   }
 });

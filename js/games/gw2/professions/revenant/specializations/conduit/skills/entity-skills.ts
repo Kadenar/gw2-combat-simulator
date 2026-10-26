@@ -169,6 +169,28 @@ export function cleanseHexEater(runtime: RevenantRuntime, cast: RuntimeCast<Reve
 
 // Both API identities represent the same skill, so one fragment keeps their simulation behavior synchronized.
 const BEGUILING_HAZE_SKILL: Partial<Skill> = {
+  // Relic of Peitha impacts 320 ms after the strike, which lands 40 ms before either variant's cast end.
+  shadowstepSkill: true,
+  peithaImpactAnchor: 'castEnd',
+  peithaImpactDelayMs: 280,
+  cooldown: 10,
+  ammoCastLockout: 0,
+  ammo: 1,
+  ammoRecharge: 10,
+  energyCost: 20,
+  legendId: 'LegendaryEntity',
+  // The 280 ms launch and 240 ms teleport form one main cast; impact precedes completion by one action tick.
+  castTimeMs: 520,
+  effects: [
+    {
+      type: 'strike',
+      name: 'Beguiling Haze',
+      actorType: ACTOR.PLAYER,
+      ticks: [{ atMs: 480, coefficient: 2.2 }],
+      timingAnchor: 'castStart',
+      timingScale: 'fixed'
+    }
+  ],
   // Select the follow-up profile before its transform spends the final charge.
   effectVariants: [
     {
@@ -181,39 +203,16 @@ const BEGUILING_HAZE_SKILL: Partial<Skill> = {
   sideEffects: [
     { on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } },
     { on: 'castCommit', do: { type: 'revenant.complete-haze' } }
-  ],
-  // Relic of Peitha impacts 320 ms after the strike, which lands 40 ms before either variant's cast end.
-  shadowstepSkill: true,
-  peithaImpactAnchor: 'castEnd',
-  peithaImpactDelayMs: 280,
-  // The 280 ms launch and 240 ms teleport form one main cast; impact precedes completion by one action tick.
-  castTimeMs: 520,
-  cooldown: 10,
-  ammoCastLockout: 0,
-  ammo: 1,
-  ammoRecharge: 10,
-  energyCost: 20,
-  effects: [
-    {
-      type: 'strike',
-      name: 'Beguiling Haze',
-      actorType: ACTOR.PLAYER,
-      ticks: [{ atMs: 480, coefficient: 2.2 }],
-      timingAnchor: 'castStart',
-      timingScale: 'fixed'
-    }
-  ],
-  legendId: 'LegendaryEntity'
+  ]
 };
 
 // Both API identities represent the same skill, so one fragment keeps their simulation behavior synchronized.
 const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
-  castTimeMs: 920,
   cooldown: 3,
   energyCost: 25,
   affinityOnHit: true,
-  // Shared Wisdom adds its live profile's Might at the first surviving base impact, independently of hitting a target.
-  effectVariants: [twinMoonSharedWisdom],
+  legendId: 'LegendaryEntity',
+  castTimeMs: 920,
   comboFinishers: [
     {
       ownerId: 'revenant',
@@ -292,7 +291,8 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
         runtime.profession.core.selectedLegendIds.includes(LEGEND.DEMON)
     }
   ]),
-  legendId: 'LegendaryEntity'
+  // Shared Wisdom adds its live profile's Might at the first surviving base impact, independently of hitting a target.
+  effectVariants: [twinMoonSharedWisdom]
 };
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
@@ -302,20 +302,11 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   [ID.TWIN_MOON_SWEEP_ID_77001]: TWIN_MOON_SWEEP_SKILL,
   [ID.BEGUILING_HAZE]: BEGUILING_HAZE_SKILL,
   [ID.HEX_EATER_VORTEX]: {
-    // Snapshot projectiles at acceptance; the commit action consumes only that selection.
-    effectVariants: [{ when: () => true, transform: hexEaterEffects }],
-    // The local variant selects the projectile count; the scheduler owns their authored impacts.
-    castTimeMs: 520,
     cooldown: 5,
     energyCost: 15,
-    // Only a successful cast cleanses its selected conditions and grants Shared Wisdom's Resolution.
-    sideEffects: [
-      {
-        on: 'castCommit',
-        do: { type: 'revenant.hex-eater-cleanse' }
-      },
-      { on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } }
-    ],
+    legendId: 'LegendaryEntity',
+    // The local variant selects the projectile count; the scheduler owns their authored impacts.
+    castTimeMs: 520,
     // Keep each projectile's strike and Torment on the same fixed impact tick.
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -340,29 +331,25 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         }))
       }
     ]),
-    legendId: 'LegendaryEntity'
+    // Snapshot projectiles at acceptance; the commit action consumes only that selection.
+    effectVariants: [{ when: () => true, transform: hexEaterEffects }],
+    // Only a successful cast cleanses its selected conditions and grants Shared Wisdom's Resolution.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: { type: 'revenant.hex-eater-cleanse' }
+      },
+      { on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } }
+    ]
   },
   [ID.GLADIATORS_DEFENSE]: {
-    // Dwarf resonance broadens only this skill's boons; other equipped legends keep them personal.
-    effectVariants: [
-      {
-        when: (runtime) => runtime.profession.core.selectedLegendIds.includes(LEGEND.DWARF),
-        transform: (_runtime, _cast, effects) =>
-          effects.map((effect) =>
-            effect.type === 'boon'
-              ? { ...effect, audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } }
-              : effect
-          )
-      }
-    ],
-    // The default input cancels the remaining animation after the committed impact.
-    castTimeMs: 240,
-    interruptCommitMs: 40,
-    defaultInterruptMs: 40,
     cooldown: 5,
     energyCost: 10,
-    // Shared Wisdom grants only this skill's Stability on a successful cast, using the live trait profile.
-    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } }],
+    legendId: 'LegendaryEntity',
+    // The default input cancels the remaining animation after the committed impact.
+    castTimeMs: 240,
+    defaultInterruptMs: 40,
+    interruptCommitMs: 40,
     // Explicit impact timing lets the ordinary scheduler retain the packets when the animation is cancelled.
     effects: impactEffects({ atMs: 40, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -382,12 +369,25 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       { type: 'boon', boon: BOON.RESOLUTION, duration: 3, stacks: 1 },
       { type: 'boon', boon: BOON.RESISTANCE, duration: 3, stacks: 1 }
     ]),
-    legendId: 'LegendaryEntity'
+    // Dwarf resonance broadens only this skill's boons; other equipped legends keep them personal.
+    effectVariants: [
+      {
+        when: (runtime) => runtime.profession.core.selectedLegendIds.includes(LEGEND.DWARF),
+        transform: (_runtime, _cast, effects) =>
+          effects.map((effect) =>
+            effect.type === 'boon'
+              ? { ...effect, audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } }
+              : effect
+          )
+      }
+    ],
+    // Shared Wisdom grants only this skill's Stability on a successful cast, using the live trait profile.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } }]
   },
   [ID.LEGENDARY_ENTITY_STANCE]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 0,
     effects: []
   }
 });

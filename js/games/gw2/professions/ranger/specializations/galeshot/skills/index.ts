@@ -24,10 +24,13 @@ const cloudburstBlusterReset: SkillSideEffect = {
 export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.WHIRLWIND]: {
     evades: true,
-    effects: [],
-    castTimeMs: 500
+    castTimeMs: 500,
+    effects: []
   },
   [ID.MISTRAL]: {
+    arrowsRestored: 1,
+    castTimeMs: 320,
+    effects: [],
     // Accepted starts restore the live arrow amount through the existing capped recovery clock.
     sideEffects: [
       // Open the enhancement before restoring arrows, matching the activation ordering.
@@ -43,35 +46,20 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
           amount: { skillField: 'arrowsRestored' }
         }
       }
-    ],
-    castTimeMs: 320,
-    effects: [],
-    arrowsRestored: 1
+    ]
   },
   [ID.SUMMON_CYCLONE_BOW]: {
-    // Change bars and notify shared swap observers only after commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.cyclone-bow-enter' } }],
-    castTimeMs: 0,
     paletteTileId: CYCLONE_BOW_PALETTE_TILE,
     paletteTileOrder: 1,
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    castTimeMs: 0,
     effects: [],
-    inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
+    // Change bars and notify shared swap observers only after commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.cyclone-bow-enter' } }]
   },
   [ID.PERFECT_STORM]: {
-    // Accepted starts restore the live arrow amount through the existing capped recovery clock.
-    sideEffects: [
-      {
-        on: 'castStart',
-        when: (_runtime, cast) => !cast.cancelled,
-        do: {
-          type: 'resourceGrant',
-          id: 'arrows-restored',
-          label: 'Arrows restored',
-          resource: 'arrows',
-          amount: { skillField: 'arrowsRestored' }
-        }
-      }
-    ],
+    arrowsRestored: 2,
+    castTimeMs: 600,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -93,35 +81,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         controlKind: CONTROL.LAUNCH
       }
     ]),
-    castTimeMs: 600,
-    arrowsRestored: 2
-  },
-  [ID.WIND_SHEAR]: {
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1
-      },
-      {
-        type: 'boon',
-        boon: BOON.AEGIS,
-        duration: 3,
-        stacks: 1
-      }
-    ],
-    castTimeMs: 333
-  },
-  [ID.DISMISS_CYCLONE_BOW]: {
-    // Change bars and notify shared swap observers only after commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.cyclone-bow-dismiss' } }],
-    castTimeMs: 0,
-    paletteTileId: CYCLONE_BOW_PALETTE_TILE,
-    paletteTileOrder: 2,
-    effects: [],
-    inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
-  },
-  [ID.PIERCING_GALES]: {
     // Accepted starts restore the live arrow amount through the existing capped recovery clock.
     sideEffects: [
       {
@@ -135,7 +94,36 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
           amount: { skillField: 'arrowsRestored' }
         }
       }
-    ],
+    ]
+  },
+  [ID.WIND_SHEAR]: {
+    castTimeMs: 333,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1,
+        hits: 1
+      },
+      {
+        type: 'boon',
+        boon: BOON.AEGIS,
+        duration: 3,
+        stacks: 1
+      }
+    ]
+  },
+  [ID.DISMISS_CYCLONE_BOW]: {
+    paletteTileId: CYCLONE_BOW_PALETTE_TILE,
+    paletteTileOrder: 2,
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    castTimeMs: 0,
+    effects: [],
+    // Change bars and notify shared swap observers only after commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.cyclone-bow-dismiss' } }]
+  },
+  [ID.PIERCING_GALES]: {
+    arrowsRestored: 1,
+    castTimeMs: 640,
     effects: [
       {
         type: 'strike',
@@ -154,17 +142,31 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         duration: 6
       }
     ],
-    castTimeMs: 640,
-    arrowsRestored: 1
+    // Accepted starts restore the live arrow amount through the existing capped recovery clock.
+    sideEffects: [
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        do: {
+          type: 'resourceGrant',
+          id: 'arrows-restored',
+          label: 'Arrows restored',
+          resource: 'arrows',
+          amount: { skillField: 'arrowsRestored' }
+        }
+      }
+    ]
   },
   [ID.SOOTHING_BREEZE]: {
-    effects: [],
-    castTimeMs: 500
+    castTimeMs: 500,
+    effects: []
   },
   [ID.KEEN_SHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     paletteTileId: CYCLONE_BOW_ONE_PALETTE_TILE,
     paletteTileOrder: 1,
+    arrowCost: 0,
+    castTimeMs: 480,
     effects: [
       {
         weaponStrengthProfileId: 'transform.cyclone-bow',
@@ -174,15 +176,14 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    arrowCost: 0,
-    castTimeMs: 480
+    ]
   },
   [ID.HAWKEYE]: {
-    // An accepted Hawkeye attempt consumes Wind Force even when interrupted.
-    sideEffects: [{ on: 'castStart', do: { type: 'ranger.hawkeye' } }],
     paletteTileId: CYCLONE_BOW_ONE_PALETTE_TILE,
     paletteTileOrder: 2,
+    arrowCost: 0,
+
+    castTimeMs: 880,
     effects: [
       {
         weaponStrengthProfileId: 'transform.cyclone-bow',
@@ -196,16 +197,15 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         timingScale: 'fixed'
       }
     ],
-    arrowCost: 0,
-
-    castTimeMs: 880
+    // An accepted Hawkeye attempt consumes Wind Force even when interrupted.
+    sideEffects: [{ on: 'castStart', do: { type: 'ranger.hawkeye' } }]
   },
   [ID.BLUSTER]: {
-    sideEffects: [
-      // Pay for accepted attempts; the guarded gain retains its precommit task deadline.
-      { on: 'castStart', do: { type: 'ranger.arrow-spend' } },
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.wind-force-start' } }
-    ],
+    arrowCost: 1,
+    windForceGain: 1,
+    windForceApplyMs: 480,
+
+    castTimeMs: 680,
     effects: [
       {
         weaponStrengthProfileId: 'transform.cyclone-bow',
@@ -219,19 +219,19 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         timingScale: 'fixed'
       }
     ],
-    arrowCost: 1,
-
-    castTimeMs: 680,
-    windForceGain: 1,
-    windForceApplyMs: 480
-  },
-  [ID.FLEETING_ZEPHYR]: {
     sideEffects: [
       // Pay for accepted attempts; the guarded gain retains its precommit task deadline.
       { on: 'castStart', do: { type: 'ranger.arrow-spend' } },
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.wind-force-start' } }
-    ],
+    ]
+  },
+  [ID.FLEETING_ZEPHYR]: {
     evades: true,
+    arrowCost: 1,
+    windForceGain: 1,
+    windForceApplyMs: 240,
+
+    castTimeMs: 520,
     effects: [
       {
         weaponStrengthProfileId: 'transform.cyclone-bow',
@@ -248,20 +248,20 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         duration: 4
       }
     ],
-    arrowCost: 1,
-
-    castTimeMs: 520,
-    windForceGain: 1,
-    windForceApplyMs: 240
-  },
-  [ID.QUARRYS_PERIL]: {
-    // Committed shortened casts retain Cloudburst's reset at their effective completion boundary.
     sideEffects: [
       // Pay for accepted attempts; the guarded gain retains its precommit task deadline.
       { on: 'castStart', do: { type: 'ranger.arrow-spend' } },
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.wind-force-start' } },
-      cloudburstBlusterReset
-    ],
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.wind-force-start' } }
+    ]
+  },
+  [ID.QUARRYS_PERIL]: {
+    arrowCost: 2,
+    windForceGain: 1,
+    windForceApplyMs: 280,
+
+    castTimeMs: 680,
+    interruptCommitMs: 320,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         weaponStrengthProfileId: 'transform.cyclone-bow',
@@ -279,20 +279,20 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         duration: 2
       }
     ],
-    arrowCost: 2,
-
-    castTimeMs: 680,
-    interruptCommitMs: 320,
-    retainsCastLockoutAfterInterrupt: true,
-    windForceGain: 1,
-    windForceApplyMs: 280
-  },
-  [ID.PELT]: {
+    // Committed shortened casts retain Cloudburst's reset at their effective completion boundary.
     sideEffects: [
       // Pay for accepted attempts; the guarded gain retains its precommit task deadline.
       { on: 'castStart', do: { type: 'ranger.arrow-spend' } },
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.wind-force-start' } }
-    ],
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.wind-force-start' } },
+      cloudburstBlusterReset
+    ]
+  },
+  [ID.PELT]: {
+    arrowCost: 1,
+    windForceGain: 1,
+    windForceApplyMs: 280,
+
+    castTimeMs: 680,
     effects: [
       {
         weaponStrengthProfileId: 'transform.cyclone-bow',
@@ -303,20 +303,18 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         timingScale: 'fixed'
       }
     ],
-    arrowCost: 1,
-
-    castTimeMs: 680,
-    windForceGain: 1,
-    windForceApplyMs: 280
-  },
-  [ID.SUPERSONIC_ARROW]: {
-    // Committed shortened casts retain Cloudburst's reset at their effective completion boundary.
     sideEffects: [
       // Pay for accepted attempts; the guarded gain retains its precommit task deadline.
       { on: 'castStart', do: { type: 'ranger.arrow-spend' } },
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.wind-force-start' } },
-      cloudburstBlusterReset
-    ],
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.wind-force-start' } }
+    ]
+  },
+  [ID.SUPERSONIC_ARROW]: {
+    arrowCost: 3,
+    windForceGain: 2,
+    windForceApplyMs: 760,
+
+    castTimeMs: 1000,
     effects: [
       {
         weaponStrengthProfileId: 'transform.cyclone-bow',
@@ -331,11 +329,13 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         controlKind: CONTROL.DAZE
       }
     ],
-    arrowCost: 3,
-
-    castTimeMs: 1000,
-    windForceGain: 2,
-    windForceApplyMs: 760
+    // Committed shortened casts retain Cloudburst's reset at their effective completion boundary.
+    sideEffects: [
+      // Pay for accepted attempts; the guarded gain retains its precommit task deadline.
+      { on: 'castStart', do: { type: 'ranger.arrow-spend' } },
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.wind-force-start' } },
+      cloudburstBlusterReset
+    ]
   }
 });
 

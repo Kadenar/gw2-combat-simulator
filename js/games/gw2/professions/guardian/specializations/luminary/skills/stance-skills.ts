@@ -26,10 +26,6 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     effects: []
   },
   [ID.DARING_ADVANCE]: {
-    // Schedule the intrinsic self effect at its boundary even when the hostile impact misses.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-daring' } }
-    ],
     castTimeMs: 1000,
 
     effects: [
@@ -50,30 +46,28 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
           }
         ]
       }
-    ]
+    ],
+    // Schedule the intrinsic self effect at its boundary even when the hostile impact misses.
+    sideEffects: [{ on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-daring' } }]
   },
   [ID.EFFULGENT_STANCE]: {
-    // Schedule the intrinsic self effect at its boundary even when the hostile impact misses.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-effulgent' } }
-    ],
-    castTimeMs: 0,
     // The stance owns its aura and detonation tuning; scheduled work chooses when each payload is emitted.
     duration: 4,
     maximumStacks: 10,
     damageIncreasePerStack: 0.35,
-    effectVariants: [{ when: () => true, transform: () => [] }],
+    castTimeMs: 0,
     effects: [
       { type: 'aura', name: AURA.LIGHT, aura: AURA.LIGHT, duration: 4 },
       { type: 'strike', name: 'Strike', coefficient: 0.5, hits: 1 },
       { type: 'control', name: 'Control' }
+    ],
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    // Schedule the intrinsic self effect at its boundary even when the hostile impact misses.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-effulgent' } }
     ]
   },
   [ID.PIERCING_STANCE]: {
-    // Schedule the intrinsic self effect at its boundary even when the hostile impact misses.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-piercing' } }
-    ],
     castTimeMs: 200,
     // Keep the stance's strike and daze on one impact.
     effects: impactEffects({ atMs: PIERCING_STANCE_IMPACT_MS, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -85,7 +79,11 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         type: 'control',
         controlKind: CONTROL.DAZE
       }
-    ])
+    ]),
+    // Schedule the intrinsic self effect at its boundary even when the hostile impact misses.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-piercing' } }
+    ]
   },
   [ID.VALOROUS_STANCE]: {
     // This non-DPS stance has simulated boons; hide it from loadout slots without blocking recorded casts.

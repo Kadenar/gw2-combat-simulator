@@ -10,6 +10,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.AETHER_HUNTER_BITE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_BITE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_BITE]!.quicknessCastTimeMs,
     // The measured Quickness contact pairs its strike and bleed; the pet timing profile restores the slower contact.
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.5, source: 'ranger-pet', actorType: ACTOR.SUMMON },
@@ -21,12 +24,12 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_BITE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_BITE]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   },
   [ID.AETHER_HUNTER_LUNGE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_LUNGE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_LUNGE]!.quicknessCastTimeMs,
     // Lunge's early contact and motion remain unchanged by Quickness in the paired logs.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.8, source: 'ranger-pet', actorType: ACTOR.SUMMON },
@@ -38,12 +41,12 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_LUNGE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_LUNGE]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   },
   [ID.AETHER_HUNTER_LEY_LINE_VORTEX]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_LEY_LINE_VORTEX]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_LEY_LINE_VORTEX]!.quicknessCastTimeMs,
     // Quickness compresses the paired pulses but leaves the full channel recovery; retirement cancels pending pulses.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -63,12 +66,12 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_LEY_LINE_VORTEX]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_LEY_LINE_VORTEX]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   },
   [ID.DIMENSION_BREACH]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.DIMENSION_BREACH]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.DIMENSION_BREACH]!.quicknessCastTimeMs,
     // Breach's launch accompanies its resurfacing strike before the pet can resume basic attacks.
     // Retain the API coefficient: the unquickened sample's lower damage does not isolate a scaling change.
     effects: impactEffects({ atMs: 880, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -80,9 +83,6 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
         actorType: ACTOR.SUMMON
       },
       { type: 'control', controlKind: CONTROL.LAUNCH, source: 'ranger-pet', actorType: ACTOR.SUMMON }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.DIMENSION_BREACH]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.DIMENSION_BREACH]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   }
 });

@@ -6,15 +6,15 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 /** Invoked skills own their patchable payloads and recharge; traits own trigger eligibility. */
 export const NECROMANCER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
   {
-    id: ID.LESSER_CHILBLAINS,
     name: 'Lesser Chilblains',
+    id: ID.LESSER_CHILBLAINS,
     type: 'Proc',
     slot: 'Action',
     simulatorExcluded: true,
     slotSelectable: false,
-    castTimeMs: 0,
     cooldown: 0,
     icon: 'https://render.guildwars2.com/file/A33F6E0F51AD229AD57ED83D7AC040225DFD0FEA/103138.png',
+    castTimeMs: 0,
     effects: [
       {
         name: 'Strike',
@@ -41,15 +41,15 @@ export const NECROMANCER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
     ]
   },
   {
-    id: ID.LESSER_MARK_OF_BLOOD,
     name: 'Lesser Mark of Blood',
+    id: ID.LESSER_MARK_OF_BLOOD,
     type: 'Proc',
     slot: 'Action',
     simulatorExcluded: true,
     slotSelectable: false,
-    castTimeMs: 0,
     cooldown: 0,
     icon: 'https://render.guildwars2.com/file/F205B3A517DF27E3323D2FBCFE6C0FA3430242F9/103813.png',
+    castTimeMs: 0,
     effects: [
       {
         name: 'Strike',
@@ -80,15 +80,15 @@ export const NECROMANCER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
     ]
   },
   {
-    id: ID.LESSER_SPINAL_SHIVERS,
     name: 'Lesser Spinal Shivers',
+    id: ID.LESSER_SPINAL_SHIVERS,
     type: 'Proc',
     slot: 'Action',
     simulatorExcluded: true,
     slotSelectable: false,
-    castTimeMs: 0,
     cooldown: 16,
     icon: 'https://render.guildwars2.com/file/365608D62CC05CD6030EA30FEFD6D7D52EB002E7/103808.png',
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -111,15 +111,15 @@ export const NECROMANCER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
     ]
   },
   {
-    id: ID.LESSER_SIGNET_OF_THE_LOCUST,
     name: 'Lesser Signet of the Locust',
+    id: ID.LESSER_SIGNET_OF_THE_LOCUST,
     type: 'Proc',
     slot: 'Action',
     simulatorExcluded: true,
     slotSelectable: false,
-    castTimeMs: 0,
     cooldown: 15,
     icon: 'https://render.guildwars2.com/file/E9779110A24733AEAC403E48D6ADF00F9F3A0507/58463.png',
+    castTimeMs: 0,
     effects: [
       {
         name: 'Strike',

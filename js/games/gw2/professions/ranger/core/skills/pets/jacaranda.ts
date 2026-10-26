@@ -18,6 +18,9 @@ const EMBRACE_VINE_COEFFICIENT = 0.0845;
 
 export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.JACARANDA_PHOTOSYNTHESIZE]: {
+    petSkill: true,
+    castTimeMs: 750,
+    quicknessCastTimeMs: 500,
     // Regeneration belongs to the casting companion, while healing and cleansing remain outside combat scope.
     effects: [
       {
@@ -29,12 +32,13 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         actorType: ACTOR.SUMMON,
         audience: { recipients: RECIPIENT.SELF }
       }
-    ],
-    castTimeMs: 750,
-    quicknessCastTimeMs: 500,
-    petSkill: true
+    ]
   },
   [ID.JACARANDAS_EMBRACE]: {
+    petSkill: true,
+    // The pet's unquickened animation lasts 1.48 s; treating that measurement as Quickness inflated its lane occupancy.
+    castTimeMs: 1480,
+    quicknessCastTimeMs: 1480,
     // EVTC splits Embrace by owner. The first proc is the pet's projectile: its strike, Vulnerability and 1 s
     // Immobile all belong to the pet, so it can crit and trigger the pet's Sharpened Edges, and Ranger control traits
     // such as Blood Moon ignore it. The four vine procs belong to the Ranger: each strike never crits, and each
@@ -71,13 +75,11 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         source: 'ranger-pet',
         actorType: ACTOR.PLAYER
       }
-    ]),
-    // The pet's unquickened animation lasts 1.48 s; treating that measurement as Quickness inflated its lane occupancy.
-    castTimeMs: 1480,
-    quicknessCastTimeMs: 1480,
-    petSkill: true
+    ])
   },
   [ID.JACARANDA_ROOT_SLAP]: {
+    petSkill: true,
+    quicknessCastTimeMs: 800,
     effects: [
       {
         type: 'strike',
@@ -88,11 +90,11 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 800,
-    petSkill: true
+    ]
   },
   [ID.JACARANDA_CALL_LIGHTNING]: {
+    petSkill: true,
+    quicknessCastTimeMs: 500,
     // The autonomous storm survives attack interruption, but its remaining pulses still end on pet swap.
     interruptCommitMs: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -117,8 +119,6 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    quicknessCastTimeMs: 500,
-    petSkill: true
+    ])
   }
 });

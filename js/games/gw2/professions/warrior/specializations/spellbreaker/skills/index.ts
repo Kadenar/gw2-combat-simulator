@@ -8,6 +8,9 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   [ID.EARTHSHAKER_ID_40601]: {
     skillWeapon: WEAPON.HAMMER,
     cooldown: 8,
+    adrenalineCost: 10,
+    burst: true,
+    castTimeMs: 1000,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -24,19 +27,19 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         type: 'control',
         controlKind: CONTROL.STUN
       }
-    ]),
-    castTimeMs: 1000,
-    adrenalineCost: 10,
-    burst: true
+    ])
   },
   [ID.NATURAL_HEALING]: {
-    effects: [],
-    castTimeMs: 667
+    castTimeMs: 667,
+    effects: []
   },
   [ID.SKULL_CRACK_ID_41110]: {
     // Spellbreaker's level-one variant shares the mace burst's cast and impact timing.
     skillWeapon: WEAPON.MACE,
     cooldown: 8,
+    adrenalineCost: 10,
+    burst: true,
+    castTimeMs: 560,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -48,12 +51,12 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         type: 'control',
         controlKind: CONTROL.DAZE
       }
-    ]),
-    castTimeMs: 560,
-    adrenalineCost: 10,
-    burst: true
+    ])
   },
   [ID.ARCING_SLICE_ID_42707]: {
+    adrenalineCost: 10,
+    burst: true,
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -73,12 +76,12 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         duration: 8,
         stacks: 1
       }
-    ],
-    castTimeMs: 333,
-    adrenalineCost: 10,
-    burst: true
+    ]
   },
   [ID.COMBUSTIVE_SHOT_ID_42803]: {
+    adrenalineCost: 10,
+    burst: true,
+    castTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -92,22 +95,21 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         stacks: 2,
         duration: 5
       }
-    ],
-    castTimeMs: 500,
-    adrenalineCost: 10,
-    burst: true
+    ]
   },
   [ID.BREAK_ENCHANTMENTS]: {
+    castTimeMs: 167,
     effects: [
       {
         type: 'strike',
         coefficient: 1.5,
         hits: 1
       }
-    ],
-    castTimeMs: 167
+    ]
   },
   [ID.EVISCERATE_ID_43566]: {
+    adrenalineCost: 10,
+    burst: true,
     castTimeMs: 0,
     effects: [
       {
@@ -121,19 +123,18 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         coefficient: 2,
         hits: 1
       }
-    ],
-    adrenalineCost: 10,
-    burst: true
+    ]
   },
   [ID.FULL_COUNTER]: {
+    adrenalineCost: 10,
+    burst: true,
+    castTimeMs: 1000,
     // The counterattack only occurs after absorbing an incoming attack. The
     // benchmark target never attacks, so activation alone has no effects.
-    effects: [],
-    castTimeMs: 1000,
-    adrenalineCost: 10,
-    burst: true
+    effects: []
   },
   [ID.WINDS_OF_DISENCHANTMENT]: {
+    castTimeMs: 1000,
     comboFields: [
       {
         ownerId: 'warrior',
@@ -148,10 +149,12 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         type: 'strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 800 + index * 1000, coefficient: 2.25 / 5 }))
       }
-    ]),
-    castTimeMs: 1000
+    ])
   },
   [ID.PATH_TO_VICTORY_ID_72089]: {
+    adrenalineCost: 10,
+    burst: true,
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -165,12 +168,12 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         duration: 5,
         stacks: 1
       }
-    ],
-    castTimeMs: 333,
-    adrenalineCost: 10,
-    burst: true
+    ]
   },
   [ID.HARRIERS_TOSS_ID_73014]: {
+    adrenalineCost: 10,
+    burst: true,
+    castTimeMs: 333,
     effects: [
       {
         type: 'condition',
@@ -183,9 +186,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         coefficient: 2.5,
         hits: 1
       }
-    ],
-    castTimeMs: 333,
-    adrenalineCost: 10,
-    burst: true
+    ]
   }
 });

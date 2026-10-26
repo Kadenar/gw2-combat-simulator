@@ -10,6 +10,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Natural Evil Eye uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.SPINEGAZER_EVIL_EYE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_EVIL_EYE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_EVIL_EYE]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -26,13 +29,13 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_EVIL_EYE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_EVIL_EYE]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Tormenting Visions uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.SPINEGAZER_TORMENTING_VISIONS]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_TORMENTING_VISIONS]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_TORMENTING_VISIONS]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -51,13 +54,13 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_TORMENTING_VISIONS]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_TORMENTING_VISIONS]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Staring Void uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.SPINEGAZER_STARING_VOID]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_STARING_VOID]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_STARING_VOID]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -81,12 +84,11 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_STARING_VOID]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_STARING_VOID]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   [ID.PANOPTICON]: {
+    petSkill: true,
+    quicknessCastTimeMs: 667,
     effects: [
       {
         type: 'strike',
@@ -95,8 +97,6 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 667,
-    petSkill: true
+    ]
   }
 });

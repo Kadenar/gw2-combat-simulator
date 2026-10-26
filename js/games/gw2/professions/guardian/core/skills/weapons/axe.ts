@@ -5,6 +5,49 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.CORE_CLEAVE]: {
+    castTimeMs: 640,
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        ticks: [360, 600].map((atMs) => ({ atMs, coefficient: 0.36 }))
+      },
+      {
+        type: 'condition',
+        ticks: [{ atMs: 600, condition: CONDITION.BLEEDING, stacks: 2, duration: 1 }]
+      }
+    ])
+  },
+  [ID.BLEEDING_EDGE]: {
+    castTimeMs: 680,
+    interruptCommitMs: 640,
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
+      {
+        type: 'strike',
+        ticks: [480, 640].map((atMs) => ({ atMs, coefficient: 0.36 }))
+      },
+      {
+        type: 'condition',
+        ticks: [{ atMs: 640, condition: CONDITION.BLEEDING, stacks: 2, duration: 1 }]
+      }
+    ])
+  },
+  [ID.SEARING_SLASH]: {
+    castTimeMs: 640,
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        ticks: [480, 640].map((atMs) => ({ atMs, coefficient: 1.2 }))
+      },
+      {
+        type: 'condition',
+        ticks: [{ atMs: 640, condition: CONDITION.BURNING, stacks: 2, duration: 2 }]
+      }
+    ])
+  },
   [ID.SYMBOL_OF_VENGEANCE]: {
     // Author symbol identity independently of the skill's display text.
     tags: ['symbol'],
@@ -59,49 +102,6 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
         controlKind: CONTROL.DAZE
       }
     ]
-  },
-  [ID.SEARING_SLASH]: {
-    castTimeMs: 640,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        ticks: [480, 640].map((atMs) => ({ atMs, coefficient: 1.2 }))
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 640, condition: CONDITION.BURNING, stacks: 2, duration: 2 }]
-      }
-    ])
-  },
-  [ID.BLEEDING_EDGE]: {
-    castTimeMs: 680,
-    interruptCommitMs: 640,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
-      {
-        type: 'strike',
-        ticks: [480, 640].map((atMs) => ({ atMs, coefficient: 0.36 }))
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 640, condition: CONDITION.BLEEDING, stacks: 2, duration: 1 }]
-      }
-    ])
-  },
-  [ID.CORE_CLEAVE]: {
-    castTimeMs: 640,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        ticks: [360, 600].map((atMs) => ({ atMs, coefficient: 0.36 }))
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 600, condition: CONDITION.BLEEDING, stacks: 2, duration: 1 }]
-      }
-    ])
   },
   [ID.BLAZING_EDGE]: {
     castTimeMs: 520,

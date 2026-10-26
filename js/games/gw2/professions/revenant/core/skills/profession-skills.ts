@@ -7,62 +7,59 @@ import { readProfessionCoreState } from '#gw2/platform/profession-definition/sta
 
 export const REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.LEGENDARY_DWARF_STANCE_ID_26650]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 0,
     effects: []
   },
   [ID.LEGENDARY_ASSASSIN_STANCE_ID_27659]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 0,
     effects: []
   },
   [ID.LEGENDARY_ASSASSIN_STANCE]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 0,
     effects: []
   },
   [ID.LEGENDARY_CENTAUR_STANCE_ID_28141]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 0,
     effects: []
   },
   [ID.LEGENDARY_CENTAUR_STANCE]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 0,
     effects: []
   },
   [ID.LEGENDARY_DEMON_STANCE_ID_28376]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 0,
     effects: []
   },
   [ID.LEGENDARY_DWARF_STANCE]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 0,
     effects: []
   },
   [ID.LEGENDARY_DEMON_STANCE]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 0,
     effects: []
   },
   [ID.ANCIENT_ECHO]: {
-    // Select the channeled legend at acceptance and refund Energy only when the cast commits.
-    castTimeMs: 360,
     cooldown: 20,
     energyCost: 0,
     resourceGain: 25,
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'resourceGrant', resource: 'energy', amount: { skillField: 'resourceGain' } } }
-    ],
+    // Select the channeled legend at acceptance and refund Energy only when the cast commits.
+    castTimeMs: 360,
     effects: [
       {
         type: 'boon',
@@ -100,6 +97,9 @@ export const REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         when: (runtime) =>
           readProfessionCoreState<RevenantRuntimeState['core']>(runtime.profession).activeLegendId === LEGEND.DWARF
       }
+    ],
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'resourceGrant', resource: 'energy', amount: { skillField: 'resourceGain' } } }
     ]
   }
 });

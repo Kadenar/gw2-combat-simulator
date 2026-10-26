@@ -15,166 +15,17 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.ENTANGLING_ASP]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
-
-    castTimeMs: 520,
-    // The attack launches before impact; a queued finisher must retain the launched strike and chain advancement.
-    interruptCommitMs: 360,
-    cooldown: 0,
-    initiativeCost: 2,
-    effects: impactEffects(
-      { atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
-      [
-        {
-          type: 'strike',
-          coefficient: 1.2,
-          hits: 1,
-          name: 'Entangling Asp',
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.POISONED,
-          stacks: 1,
-          duration: 2,
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.IMMOBILIZED,
-          stacks: 1,
-          duration: 2,
-          actorType: ACTOR.PLAYER
-        }
-      ]
-    )
-  },
-  [ID.SHATTERING_ASSAULT]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'thief.stealth' } },
-      { on: 'castCommit', do: { type: 'thief.spear-chain' } }
-    ],
-
-    castTimeMs: 640,
-    cooldown: 0,
-    initiativeCost: 1,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.8 }],
-        name: 'Shattering Assault',
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'buff',
-        kind: STATUS.STEALTH,
-        duration: 3,
-        stacks: 1
-      }
-    ]
-  },
-  [ID.DISTRACTING_THROW]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
-
-    castTimeMs: 360,
-    cooldown: 0,
-    initiativeCost: 2,
-    effects: [
-      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-        {
-          type: 'strike',
-          coefficient: 0.5,
-          hits: 1,
-          name: 'Distracting Throw',
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.CRIPPLED,
-          stacks: 1,
-          duration: 3,
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.VULNERABILITY,
-          stacks: 3,
-          duration: 6,
-          actorType: ACTOR.PLAYER
-        }
-      ]),
-      {
-        type: 'control',
-        actorType: ACTOR.PLAYER,
-        controlKind: CONTROL.DAZE
-      }
-    ]
-  },
-  [ID.UNSUSPECTING_STRIKE]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
-    castTimeMs: 680,
-    cooldown: 0,
-    initiativeCost: 3,
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
-        name: 'Unsuspecting Strike',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.VULNERABILITY,
-        stacks: 1,
-        duration: 6,
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.BLEEDING,
-        // Only the accepted base Bleeding can earn the high-health bonus application.
-        reactions: [
-          {
-            on: 'condition.applied',
-            actor: ACTOR.PLAYER,
-            packets: 'each',
-            // Both fixed preview health and simulated health use the same strict upper-health gate.
-            when: (runtime) => (runtime.combat.remainingTargetHealthFraction() ?? 1) > 0.9,
-            do: { type: 'thief.unsuspecting-bleeding' }
-          }
-        ],
-        stacks: 1,
-        duration: 6,
-        actorType: ACTOR.PLAYER
-      }
-    ])
-  },
-  [ID.SHADOW_VEIL]: {
-    // The defensive stance releases the input lane immediately after activation.
-    castTimeMs: 80,
-    cooldown: 0,
-    initiativeCost: 3,
-    effects: []
-  },
   [ID.ASHEN_ASSAULT]: {
-    // The chain resets on completion; the channel's landed-hit observer owns the all-strikes initiative refund.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
     preservesStealth: true,
     spearStealthAttack: true,
+    cooldown: 0,
+    initiativeCost: 0,
+    requiredMainHand: WEAPON.SPEAR,
+    stealthAttack: true,
 
     castTimeMs: 1200,
     // Cancelling keeps earlier packets and removes the remainder of the channel.
     interruptMode: 'per-packet',
-    cooldown: 0,
-    initiativeCost: 0,
     effects: [
       {
         type: 'strike',
@@ -218,16 +69,38 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         }
       ])
     ],
-    requiredMainHand: WEAPON.SPEAR,
-    stealthAttack: true
+    // The chain resets on completion; the channel's landed-hit observer owns the all-strikes initiative refund.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }]
+  },
+  [ID.BARBED_SPEAR]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    cooldown: 0,
+    initiativeCost: 0,
+
+    // Preserve the measured repeat cadence for the spear autoattack.
+    castTimeMs: 560,
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 0.375,
+        hits: 1,
+        name: 'Barbed Spear',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 1,
+        duration: 2.25,
+        actorType: ACTOR.PLAYER
+      }
+    ])
   },
   [ID.MANTIS_STING]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
-
-    castTimeMs: 400,
     cooldown: 0,
     initiativeCost: 3,
+
+    castTimeMs: 400,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -250,56 +123,81 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         duration: 4,
         actorType: ACTOR.PLAYER
       }
-    ])
-  },
-  [ID.VAMPIRIC_SLASH]: {
+    ]),
     // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
-
-    // The measured follow-up includes its siphon animation before the next chain input.
-    castTimeMs: 440,
-    // The strike and siphon resolve before the final animation tail.
-    interruptCommitMs: 400,
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }]
+  },
+  [ID.ENTANGLING_ASP]: {
     cooldown: 0,
-    initiativeCost: 1,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 1 }],
-        name: 'Vampiric Slash — Packet 1',
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      ...impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+    initiativeCost: 2,
+
+    castTimeMs: 520,
+    // The attack launches before impact; a queued finisher must retain the launched strike and chain advancement.
+    interruptCommitMs: 360,
+    effects: impactEffects(
+      { atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
         {
           type: 'strike',
-          // The siphon owns a flat Power formula and a separate row from the weapon strike.
-          coefficient: 0,
-          flatStrikeBase: 1410,
-          flatStrikePowerCoeff: 0.2,
-          damageKind: 'life-steal',
-          damageBreakdownName: 'Life Siphon - Vampiric Slash',
+          coefficient: 1.2,
           hits: 1,
-          name: 'Vampiric Slash — Life Siphon',
-          // The vulnerability modifier targets this packet identity without depending on its display label.
-          metadata: { packetKind: 'thief.vampiric-slash-life-siphon' },
-          actorType: ACTOR.PLAYER,
-          canCrit: false
+          name: 'Entangling Asp',
+          actorType: ACTOR.PLAYER
         },
         {
           type: 'condition',
-          condition: CONDITION.WEAKNESS,
+          condition: CONDITION.POISONED,
           stacks: 1,
-          duration: 3,
+          duration: 2,
+          actorType: ACTOR.PLAYER
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.IMMOBILIZED,
+          stacks: 1,
+          duration: 2,
           actorType: ACTOR.PLAYER
         }
-      ])
-    ]
+      ]
+    ),
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }]
   },
   [ID.FALLING_SPIDER]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
+    cooldown: 0,
+    initiativeCost: 1,
+
+    castTimeMs: 600,
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 1.8,
+        hits: 1,
+        name: 'Falling Spider',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 1,
+        duration: 3.5,
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.POISONED,
+        stacks: 1,
+        duration: 3.5,
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.VULNERABILITY,
+        stacks: 4,
+        duration: 8,
+        actorType: ACTOR.PLAYER
+      }
+    ]),
     // Capture the qualifying predecessor at acceptance and transform the live base packets, including patched ticks.
     effectVariants: [
       {
@@ -337,64 +235,166 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         }
       }
     ],
-
-    castTimeMs: 600,
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }]
+  },
+  [ID.UNSUSPECTING_STRIKE]: {
     cooldown: 0,
-    initiativeCost: 1,
+    initiativeCost: 3,
+    castTimeMs: 680,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        coefficient: 1.8,
+        coefficient: 0.8,
         hits: 1,
-        name: 'Falling Spider',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.BLEEDING,
-        stacks: 1,
-        duration: 3.5,
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.POISONED,
-        stacks: 1,
-        duration: 3.5,
+        name: 'Unsuspecting Strike',
         actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
-        stacks: 4,
-        duration: 8,
-        actorType: ACTOR.PLAYER
-      }
-    ])
-  },
-  [ID.BARBED_SPEAR]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-
-    // Preserve the measured repeat cadence for the spear autoattack.
-    castTimeMs: 560,
-    cooldown: 0,
-    initiativeCost: 0,
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 0.375,
-        hits: 1,
-        name: 'Barbed Spear',
+        stacks: 1,
+        duration: 6,
         actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         condition: CONDITION.BLEEDING,
+        // Only the accepted base Bleeding can earn the high-health bonus application.
+        reactions: [
+          {
+            on: 'condition.applied',
+            actor: ACTOR.PLAYER,
+            packets: 'each',
+            // Both fixed preview health and simulated health use the same strict upper-health gate.
+            when: (runtime) => (runtime.combat.remainingTargetHealthFraction() ?? 1) > 0.9,
+            do: { type: 'thief.unsuspecting-bleeding' }
+          }
+        ],
         stacks: 1,
-        duration: 2.25,
+        duration: 6,
         actorType: ACTOR.PLAYER
       }
-    ])
+    ]),
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }]
+  },
+  [ID.VAMPIRIC_SLASH]: {
+    cooldown: 0,
+    initiativeCost: 1,
+
+    // The measured follow-up includes its siphon animation before the next chain input.
+    castTimeMs: 440,
+    // The strike and siphon resolve before the final animation tail.
+    interruptCommitMs: 400,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [{ atMs: 400, coefficient: 1 }],
+        name: 'Vampiric Slash — Packet 1',
+        actorType: ACTOR.PLAYER,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      ...impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          // The siphon owns a flat Power formula and a separate row from the weapon strike.
+          coefficient: 0,
+          flatStrikeBase: 1410,
+          flatStrikePowerCoeff: 0.2,
+          damageKind: 'life-steal',
+          damageBreakdownName: 'Life Siphon - Vampiric Slash',
+          hits: 1,
+          name: 'Vampiric Slash — Life Siphon',
+          // The vulnerability modifier targets this packet identity without depending on its display label.
+          metadata: { packetKind: 'thief.vampiric-slash-life-siphon' },
+          actorType: ACTOR.PLAYER,
+          canCrit: false
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.WEAKNESS,
+          stacks: 1,
+          duration: 3,
+          actorType: ACTOR.PLAYER
+        }
+      ])
+    ],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }]
+  },
+  [ID.SHATTERING_ASSAULT]: {
+    cooldown: 0,
+    initiativeCost: 1,
+
+    castTimeMs: 640,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [{ atMs: 0, coefficient: 1.8 }],
+        name: 'Shattering Assault',
+        actorType: ACTOR.PLAYER,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'buff',
+        kind: STATUS.STEALTH,
+        duration: 3,
+        stacks: 1
+      }
+    ],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'thief.stealth' } },
+      { on: 'castCommit', do: { type: 'thief.spear-chain' } }
+    ]
+  },
+  [ID.DISTRACTING_THROW]: {
+    cooldown: 0,
+    initiativeCost: 2,
+
+    castTimeMs: 360,
+    effects: [
+      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 0.5,
+          hits: 1,
+          name: 'Distracting Throw',
+          actorType: ACTOR.PLAYER
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.CRIPPLED,
+          stacks: 1,
+          duration: 3,
+          actorType: ACTOR.PLAYER
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.VULNERABILITY,
+          stacks: 3,
+          duration: 6,
+          actorType: ACTOR.PLAYER
+        }
+      ]),
+      {
+        type: 'control',
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.DAZE
+      }
+    ],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }]
+  },
+  [ID.SHADOW_VEIL]: {
+    cooldown: 0,
+    initiativeCost: 3,
+    // The defensive stance releases the input lane immediately after activation.
+    castTimeMs: 80,
+    effects: []
   }
 });
 

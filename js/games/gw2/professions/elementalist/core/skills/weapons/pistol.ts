@@ -63,18 +63,18 @@ const AERIAL_AGILITY_FLIP_WINDOW_SECONDS = 5;
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SCORCHING_SHOT]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Scorching Shot',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.PISTOL,
     attunement: 'Fire',
     categories: ['Weapon skill'],
+    cooldown: 0,
+    skillFamily: 'Weapon skill',
     castTimeMs: 520,
     // The projectile launches before impact, so cancelling its aftercast preserves the hit and Burning.
     interruptCommitMs: 320,
-    cooldown: 0,
-    skillFamily: 'Weapon skill',
     effects: impactEffects(
       { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
@@ -85,6 +85,24 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   },
   // Select extra Might from the live bullet before the final action loads or spends that bullet.
   [ID.RAGING_RICOCHET]: {
+    name: 'Raging Ricochet',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    weapon: WEAPON.PISTOL,
+    attunement: 'Fire',
+    categories: ['Weapon skill'],
+    cooldown: 6,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 520,
+    interruptCommitMs: 320,
+    effects: impactEffects(
+      { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 0.8 },
+        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8 },
+        { type: 'boon', boon: BOON.MIGHT, stacks: 1, duration: 6 }
+      ]
+    ),
     // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
     sideEffects: [
       {
@@ -97,53 +115,22 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
         }
       },
       { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
-    ],
-    name: 'Raging Ricochet',
-    type: 'Weapon',
-    slot: 'Weapon_2',
-    weapon: WEAPON.PISTOL,
-    attunement: 'Fire',
-    categories: ['Weapon skill'],
-    castTimeMs: 520,
-    interruptCommitMs: 320,
-    cooldown: 6,
-    skillFamily: 'Weapon skill',
-    effects: impactEffects(
-      { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
-      [
-        { type: 'strike', coefficient: 0.8 },
-        { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8 },
-        { type: 'boon', boon: BOON.MIGHT, stacks: 1, duration: 6 }
-      ]
-    )
+    ]
   },
   // Blast finisher up front, then a four-shot salvo landing together a second later. Spending a Fire
   // bullet additionally grants a Fire Aura through the pistol cast handler.
   [ID.SEARING_SALVO]: {
-    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
-    sideEffects: [
-      {
-        on: 'castCommit',
-        when: hasPistolBullet,
-        do: {
-          type: 'elementalist.pistol.searing-salvo',
-          id: 'fire-bullet',
-          effects: [{ type: 'aura', name: 'Fire', aura: AURA.FIRE, duration: 4 }]
-        }
-      },
-      { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
-    ],
     name: 'Searing Salvo',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.PISTOL,
     attunement: 'Fire',
     categories: ['Weapon skill'],
+    cooldown: 12,
+    skillFamily: 'Weapon skill',
     castTimeMs: 680,
     // The first projectile launches before the aftercast; its impact and follow-up salvo survive cancellation.
     interruptCommitMs: 320,
-    cooldown: 12,
-    skillFamily: 'Weapon skill',
     effects: [
       ...impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         {
@@ -175,19 +162,32 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
         { type: 'strike', coefficient: 0.25 },
         { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2 }
       ])
+    ],
+    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: hasPistolBullet,
+        do: {
+          type: 'elementalist.pistol.searing-salvo',
+          id: 'fire-bullet',
+          effects: [{ type: 'aura', name: 'Fire', aura: AURA.FIRE, duration: 4 }]
+        }
+      },
+      { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
     ]
   },
   [ID.SOOTHING_SPLASH]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Soothing Splash',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.PISTOL,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 520,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -205,18 +205,16 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   // Five-shot channel with a Bleeding stack per shot; `per-packet` interruption keeps only the shots
   // that already landed.
   [ID.FRIGID_FLURRY]: {
-    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }],
     name: 'Frigid Flurry',
-    interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.PISTOL,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 1000,
     cooldown: 5,
     skillFamily: 'Weapon skill',
+    castTimeMs: 1000,
+    interruptMode: 'per-packet',
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -244,39 +242,25 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
           duration: 7
         }))
       }
-    ])
+    ]),
+    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }]
   },
   // The released shot starts a four-second ice field. Its enhanced detonation
   // follows that field's expiry, independently of the remaining aftercast.
   [ID.FROZEN_FUSILLADE]: {
+    name: 'Frozen Fusillade',
     // The enhanced detonation waits this long after release, independently of ordinary packets.
     detonationDelay: 4,
-    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
-    sideEffects: [
-      {
-        on: 'castCommit',
-        when: hasPistolBullet,
-        do: {
-          type: 'elementalist.pistol.frozen-fusillade',
-          id: 'water-bullet',
-          effects: [
-            { type: 'strike', name: 'Water Bullet', coefficient: 0.75, hits: 1 },
-            { type: 'condition', name: 'Water Bullet', condition: CONDITION.BLEEDING, stacks: 5, duration: 8 }
-          ]
-        }
-      },
-      { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
-    ],
-    name: 'Frozen Fusillade',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.PISTOL,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 520,
-    interruptCommitMs: 320,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    castTimeMs: 520,
+    interruptCommitMs: 320,
     // Start the four-second ice field at release, independently of the projectile hit.
     comboFields: [
       {
@@ -293,21 +277,37 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
         { type: 'strike', coefficient: 0.75 },
         { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 1.5 }
       ]
-    )
+    ),
+    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: hasPistolBullet,
+        do: {
+          type: 'elementalist.pistol.frozen-fusillade',
+          id: 'water-bullet',
+          effects: [
+            { type: 'strike', name: 'Water Bullet', coefficient: 0.75, hits: 1 },
+            { type: 'condition', name: 'Water Bullet', condition: CONDITION.BLEEDING, stacks: 5, duration: 8 }
+          ]
+        }
+      },
+      { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
+    ]
   },
   [ID.ELECTRIC_EXPOSURE]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Electric Exposure',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.PISTOL,
     attunement: 'Air',
     categories: ['Weapon skill'],
+    cooldown: 0,
+    skillFamily: 'Weapon skill',
     castTimeMs: 520,
     // The launched projectile still applies its strike and Vulnerability after an aftercast cancellation.
     interruptCommitMs: 320,
-    cooldown: 0,
-    skillFamily: 'Weapon skill',
     effects: impactEffects(
       { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
@@ -319,25 +319,20 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   // Strike plus crowd control; spending an Air bullet opens the Dazing Discharge window tracked in
   // profession state rather than adding packets here.
   [ID.DAZING_DISCHARGE]: {
+    name: 'Dazing Discharge',
     // A consumed Air bullet arms one next-pistol recharge reduction for this window.
     duration: 5,
     nextSkillRechargeMultiplier: 0.67,
-    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
-    sideEffects: [
-      { on: 'castCommit', when: hasPistolBullet, do: { type: 'elementalist.pistol.dazing-discharge' } },
-      { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
-    ],
-    name: 'Dazing Discharge',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.PISTOL,
     attunement: 'Air',
     categories: ['Weapon skill'],
+    cooldown: 8,
+    skillFamily: 'Weapon skill',
     castTimeMs: 440,
     // Commit the cast and bullet interaction before the remaining animation ends.
     interruptCommitMs: 400,
-    cooldown: 8,
-    skillFamily: 'Weapon skill',
     // Preserve the committed strike, Vulnerability, and crowd control after interruption.
     effects: impactEffects(
       { atMs: 280, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
@@ -346,25 +341,28 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
         { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 8, duration: 10 },
         { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
       ]
-    )
+    ),
+    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
+    sideEffects: [
+      { on: 'castCommit', when: hasPistolBullet, do: { type: 'elementalist.pistol.dazing-discharge' } },
+      { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
+    ]
   },
   // First link of the three-step Aerial Agility flipover chain. The zero-coefficient packet exists only
   // to fire the leap finisher. The chain reads the Air bullet without spending it, and the two later
   // links can never stock one.
   [ID.AERIAL_AGILITY]: {
-    // The root only loads Air; its follow-up links neither grant nor consume bullets.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.pistol.load' } }],
-    autoattack: false, // This manually activated flip chain reuses the scheduler's autoattack sequencing index.
     name: 'Aerial Agility',
+    autoattack: false, // This manually activated flip chain reuses the scheduler's autoattack sequencing index.
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.PISTOL,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 520,
     cooldown: 12,
     nextChainId: ID.AERIAL_AGILITY_CHAIN,
     skillFamily: 'Weapon skill',
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -383,37 +381,39 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]
+    ],
+    // The root only loads Air; its follow-up links neither grant nor consume bullets.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.pistol.load' } }]
   },
   [ID.AERIAL_AGILITY_CHAIN]: {
-    autoattack: false,
     name: 'Aerial Agility (chain)',
+    autoattack: false,
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.PISTOL,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 480,
     cooldown: 0,
     nextChainId: ID.AERIAL_AGILITY_DASH,
     skillFamily: 'Weapon skill',
+    castTimeMs: 480,
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.8 },
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 }
     ])
   },
   [ID.AERIAL_AGILITY_DASH]: {
-    autoattack: false,
     name: 'Aerial Agility (dash)',
+    autoattack: false,
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.PISTOL,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 520,
     cooldown: 0,
     nextChainId: ID.AERIAL_AGILITY,
     skillFamily: 'Weapon skill',
+    castTimeMs: 520,
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -430,18 +430,18 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     ])
   },
   [ID.PIERCING_PEBBLE]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Piercing Pebble',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.PISTOL,
     attunement: 'Earth',
     categories: ['Weapon skill'],
+    cooldown: 0,
+    skillFamily: 'Weapon skill',
     castTimeMs: 520,
     // Release commits the projectile one action tick before its hit and Bleeding land.
     interruptCommitMs: 320,
-    cooldown: 0,
-    skillFamily: 'Weapon skill',
     effects: impactEffects(
       { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
@@ -451,9 +451,23 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     )
   },
   [ID.SHATTERING_STONE]: {
+    name: 'Shattering Stone',
     // The self buff arms these charges; impacts consume them until the window expires.
     maximumStacks: 3,
     duration: 10,
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    weapon: WEAPON.PISTOL,
+    attunement: 'Earth',
+    categories: ['Weapon skill'],
+    cooldown: 6,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 520,
+    interruptCommitMs: 400,
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.8 },
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 10 }
+    ]),
     // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
     sideEffects: [
       {
@@ -468,39 +482,20 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
         }
       },
       { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
-    ],
-    name: 'Shattering Stone',
-    type: 'Weapon',
-    slot: 'Weapon_2',
-    weapon: WEAPON.PISTOL,
-    attunement: 'Earth',
-    categories: ['Weapon skill'],
-    castTimeMs: 520,
-    interruptCommitMs: 400,
-    cooldown: 6,
-    skillFamily: 'Weapon skill',
-    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 0.8 },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 10 }
-    ])
+    ]
   },
   [ID.BOULDER_BLAST]: {
-    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
-    sideEffects: [
-      { on: 'castCommit', when: hasPistolBullet, do: { type: 'elementalist.pistol.boulder-blast' } },
-      { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
-    ],
     name: 'Boulder Blast',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.PISTOL,
     attunement: 'Earth',
     categories: ['Weapon skill'],
+    cooldown: 12,
+    skillFamily: 'Weapon skill',
     castTimeMs: 440,
     // Releasing the boulder commits its damage and conditions before the remaining cast animation ends.
     interruptCommitMs: 360,
-    cooldown: 12,
-    skillFamily: 'Weapon skill',
     effects: impactEffects(
       { atMs: 400, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
@@ -518,7 +513,12 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
         { type: 'condition', condition: CONDITION.BLEEDING, stacks: 5, duration: 8 },
         { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1.5 }
       ]
-    )
+    ),
+    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
+    sideEffects: [
+      { on: 'castCommit', when: hasPistolBullet, do: { type: 'elementalist.pistol.boulder-blast' } },
+      { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
+    ]
   },
   [ID.ELEMENTAL_EXPLOSION]: {
     name: 'Elemental Explosion',
@@ -526,27 +526,11 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     slot: 'Weapon_1',
     weapon: WEAPON.PISTOL,
     categories: ['Weapon skill'],
+    cooldown: 0,
+    skillFamily: 'Weapon skill',
     castTimeMs: 520,
     // The explosion commits before its projectile packets, which persist after a 480 ms interruption.
     interruptCommitMs: 480,
-    cooldown: 0,
-    skillFamily: 'Weapon skill',
-    // Elemental Explosion consumes every stored bullet and grants the current attunement's aura.
-    sideEffects: [
-      {
-        on: 'castCommit',
-        do: {
-          type: 'elementalist.core.consume-elemental-explosion',
-          id: 'attunement-aura',
-          effects: [
-            { type: 'aura', name: 'Fire', aura: AURA.FIRE, duration: 4 },
-            { type: 'aura', name: 'Water', aura: AURA.FROST, duration: 4 },
-            { type: 'aura', name: 'Air', aura: AURA.SHOCKING, duration: 3 },
-            { type: 'aura', name: 'Earth', aura: AURA.MAGNETIC, duration: 3 }
-          ]
-        }
-      }
-    ],
     effects: [
       ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         { type: 'strike', coefficient: 0.2 },
@@ -569,6 +553,22 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
         { type: 'strike', coefficient: 0.2 },
         { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 4 }
       ])
+    ],
+    // Elemental Explosion consumes every stored bullet and grants the current attunement's aura.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.core.consume-elemental-explosion',
+          id: 'attunement-aura',
+          effects: [
+            { type: 'aura', name: 'Fire', aura: AURA.FIRE, duration: 4 },
+            { type: 'aura', name: 'Water', aura: AURA.FROST, duration: 4 },
+            { type: 'aura', name: 'Air', aura: AURA.SHOCKING, duration: 3 },
+            { type: 'aura', name: 'Earth', aura: AURA.MAGNETIC, duration: 3 }
+          ]
+        }
+      }
     ]
   }
 });

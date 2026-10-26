@@ -4,17 +4,6 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const GUARDIAN_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.SHIELD_OF_WRATH]: {
-    castTimeMs: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 4000, coefficient: 2.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
-    ]
-  },
   [ID.RAY_OF_JUDGMENT]: {
     castTimeMs: 600,
     // Once launched, the ray keeps striking even when the remaining cast animation is cancelled.
@@ -32,6 +21,17 @@ export const GUARDIAN_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Par
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 3
+      }
+    ]
+  },
+  [ID.SHIELD_OF_WRATH]: {
+    castTimeMs: 0,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [{ atMs: 4000, coefficient: 2.5 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   }

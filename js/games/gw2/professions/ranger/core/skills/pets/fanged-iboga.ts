@@ -16,6 +16,8 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FANG_GRAPPLE]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1000,
     effects: impactEffects({ atMs: 1040, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -37,11 +39,11 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         actorType: ACTOR.SUMMON,
         controlKind: CONTROL.PULL
       }
-    ]),
-    quicknessCastTimeMs: 1000,
-    petSkill: true
+    ])
   },
   [ID.CONSUMING_BITE]: {
+    petSkill: true,
+    quicknessCastTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -51,11 +53,11 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 480,
-    petSkill: true
+    ]
   },
   [ID.CRIPPLING_ANGUISH_PET]: {
+    petSkill: true,
+    quicknessCastTimeMs: 600,
     effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -79,11 +81,19 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    quicknessCastTimeMs: 600,
-    petSkill: true
+    ])
   },
   [ID.NARCOTIC_SPORES_PET]: {
+    petSkill: true,
+    quicknessCastTimeMs: 720,
+    comboFields: [
+      {
+        ownerId: 'ranger',
+        fieldType: COMBO_FIELD.ETHEREAL,
+        duration: 6,
+        startAnchor: 'castEnd'
+      }
+    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -106,17 +116,7 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    quicknessCastTimeMs: 720,
-    comboFields: [
-      {
-        ownerId: 'ranger',
-        fieldType: COMBO_FIELD.ETHEREAL,
-        duration: 6,
-        startAnchor: 'castEnd'
-      }
-    ],
-    petSkill: true
+    ])
   }
 });
 

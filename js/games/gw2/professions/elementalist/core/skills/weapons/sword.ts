@@ -52,12 +52,12 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 440,
-    // The attack commits at the observed 400ms animation threshold.
-    interruptCommitMs: 400,
     cooldown: 0,
     nextChainId: ID.FIRE_SWIPE,
     skillFamily: 'Weapon skill',
+    castTimeMs: 440,
+    // The attack commits at the observed 400ms animation threshold.
+    interruptCommitMs: 400,
     effects: [
       {
         type: 'strike',
@@ -79,11 +79,11 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 440,
-    interruptMode: 'per-packet',
     cooldown: 0,
     nextChainId: ID.SEARING_SLASH,
     skillFamily: 'Weapon skill',
+    castTimeMs: 440,
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
@@ -105,11 +105,11 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
-    interruptMode: 'per-packet',
     cooldown: 0,
     nextChainId: ID.FIRE_STRIKE,
     skillFamily: 'Weapon skill',
+    castTimeMs: 680,
+    interruptMode: 'per-packet',
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.8 },
       { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 4 }
@@ -124,8 +124,9 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 720,
     cooldown: 8,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 720,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -134,7 +135,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     effects: [
       ...impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
         {
@@ -169,9 +169,9 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 440,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    castTimeMs: 440,
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2.91 },
       { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8 }
@@ -184,10 +184,10 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 440,
     cooldown: 0,
     nextChainId: ID.CLAPOTIS,
     skillFamily: 'Weapon skill',
+    castTimeMs: 440,
     effects: [
       {
         type: 'strike',
@@ -209,10 +209,10 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 440,
     cooldown: 0,
     nextChainId: ID.BREAKING_WAVE,
     skillFamily: 'Weapon skill',
+    castTimeMs: 440,
     effects: [
       {
         type: 'strike',
@@ -234,10 +234,10 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
     cooldown: 0,
     nextChainId: ID.SEICHE,
     skillFamily: 'Weapon skill',
+    castTimeMs: 680,
     effects: [
       {
         type: 'strike',
@@ -260,8 +260,9 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 1080,
     cooldown: 12,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 1080,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -270,7 +271,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 40, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.33 },
       { type: 'boon', boon: BOON.REGENERATION, stacks: 1, duration: 5 }
@@ -283,9 +283,9 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    castTimeMs: 680,
     effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.75 },
       {
@@ -305,12 +305,12 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 440,
-    // The attack commits at the observed 400ms animation threshold.
-    interruptCommitMs: 400,
     cooldown: 0,
     nextChainId: ID.POLARIC_SLASH,
     skillFamily: 'Weapon skill',
+    castTimeMs: 440,
+    // The attack commits at the observed 400ms animation threshold.
+    interruptCommitMs: 400,
     effects: [
       {
         type: 'strike',
@@ -332,10 +332,10 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 440,
     cooldown: 0,
     nextChainId: ID.CALL_LIGHTNING,
     skillFamily: 'Weapon skill',
+    castTimeMs: 440,
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1 },
       { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 2 }
@@ -350,11 +350,11 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 760,
-    interruptCommitMs: 560,
     cooldown: 0,
     nextChainId: ID.CHARGED_STRIKE,
     skillFamily: 'Weapon skill',
+    castTimeMs: 760,
+    interruptCommitMs: 560,
     effects: [
       // The main hit and launched bolts share one timeline and survive cancellation after commit.
       strikeTimeline(
@@ -375,9 +375,9 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 440,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    castTimeMs: 440,
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -405,9 +405,9 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
     cooldown: 16,
     skillFamily: 'Weapon skill',
+    castTimeMs: 680,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       strikeTimeline(QUANTUM_STRIKE_TICKS),
@@ -428,10 +428,10 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 440,
     cooldown: 0,
     nextChainId: ID.CRYSTALLINE_STRIKE,
     skillFamily: 'Weapon skill',
+    castTimeMs: 440,
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.8 },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4 }
@@ -444,10 +444,10 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 440,
     cooldown: 0,
     nextChainId: ID.CRYSTALLINE_SUNDER,
     skillFamily: 'Weapon skill',
+    castTimeMs: 440,
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.9 },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4 }
@@ -460,10 +460,10 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
     cooldown: 0,
     nextChainId: ID.CRYSTAL_SLASH,
     skillFamily: 'Weapon skill',
+    castTimeMs: 680,
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.4 },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 8 },
@@ -477,9 +477,9 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 1000,
     cooldown: 10,
     skillFamily: 'Weapon skill',
+    castTimeMs: 1000,
     effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -504,9 +504,9 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SWORD,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 1400,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    castTimeMs: 1400,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       strikeTimeline(RUST_FRENZY_TICKS.map((atMs) => ({ atMs, coefficient: 0.33 }))),

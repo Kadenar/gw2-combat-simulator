@@ -6,15 +6,15 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 /** Invoked skills own their patchable payloads and recharge; traits own trigger eligibility. */
 export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
   {
-    id: ID.LESSER_CALL_OF_THE_WILD,
     name: 'Lesser Call of the Wild',
+    id: ID.LESSER_CALL_OF_THE_WILD,
     type: 'Proc',
     slot: 'Action',
     simulatorExcluded: true,
     slotSelectable: false,
-    castTimeMs: 0,
     cooldown: 15,
     icon: 'https://render.guildwars2.com/file/2BBB18C54A01FF1D5FF9473EB1059AE491AA98FF/103310.png',
+    castTimeMs: 0,
     effects: [
       {
         name: boonKey(BOON.FURY),
@@ -71,15 +71,15 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
     ]
   },
   {
-    id: ID.LESSER_MUDDY_TERRAIN,
     name: 'Lesser Muddy Terrain',
+    id: ID.LESSER_MUDDY_TERRAIN,
     type: 'Proc',
     slot: 'Action',
     simulatorExcluded: true,
     slotSelectable: false,
-    castTimeMs: 0,
     cooldown: 20,
     icon: 'https://render.guildwars2.com/file/B6BD062BE66079C0514191004BB1D1140112E2A1/103996.png',
+    castTimeMs: 0,
     effects: [
       {
         name: CONDITION.IMMOBILIZED,
@@ -115,15 +115,15 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
     ]
   },
   {
-    id: ID.LESSER_SIC_EM,
     name: 'Lesser "Sic \'Em!"',
+    id: ID.LESSER_SIC_EM,
     type: 'Proc',
     slot: 'Action',
     simulatorExcluded: true,
     slotSelectable: false,
-    castTimeMs: 0,
     cooldown: 10,
     icon: 'https://render.guildwars2.com/file/0D6B235E679346723414607E61DE052576097545/104025.png',
+    castTimeMs: 0,
     effects: [
       {
         name: 'lesser-sic-em-pet',

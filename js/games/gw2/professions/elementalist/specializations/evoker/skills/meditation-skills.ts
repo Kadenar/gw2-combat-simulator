@@ -15,22 +15,27 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FOXS_FURY]: {
+    name: "Fox's Fury",
     // Commit the live-element reward before Altruistic Aspect; acceptance-time damage selection stays independent.
     mightTierThreshold: 10,
-    sideEffects: [
-      {
-        on: 'castCommit',
-        do: {
-          type: 'elementalist.evoker.foxs-fury',
-          id: 'boons',
-          effects: [
-            { type: 'boon', name: 'Fox Might', boon: BOON.MIGHT, stacks: 8, duration: 10 },
-            { type: 'boon', name: 'Fox Fire Bonus', boon: BOON.MIGHT, stacks: 3, duration: 10 },
-            { type: 'boon', name: 'Fox Fury', boon: BOON.FURY, stacks: 1, duration: 10 }
-          ]
-        }
-      }
-    ],
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: 'Evoker',
+    categories: ['Meditation'],
+    cooldown: 18,
+    skillFamily: 'Meditation',
+    castTimeMs: 600,
+    // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
+
+    // Tier timing belongs to each selected packet; this cast's own boons cannot raise its accepted tier.
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', name: 'Tier 1', coefficient: 1.5, hits: 1 },
+      { type: 'condition', name: 'Tier 1', condition: CONDITION.BURNING, stacks: 1, duration: 3 },
+      { type: 'strike', name: 'Tier 2', coefficient: 2.25, hits: 1 },
+      { type: 'condition', name: 'Tier 2', condition: CONDITION.BURNING, stacks: 2, duration: 5 },
+      { type: 'strike', name: 'Tier 3', coefficient: 3, hits: 1 },
+      { type: 'condition', name: 'Tier 3', condition: CONDITION.BURNING, stacks: 3, duration: 5 }
+    ]),
     // Snapshot the Might tier at acceptance; committed packets persist, while the common scheduler owns targeting/delay.
     effectVariants: [
       {
@@ -79,25 +84,20 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
         }
       }
     ],
-    name: "Fox's Fury",
-    type: 'Utility',
-    slot: 'Utility',
-    specialization: 'Evoker',
-    categories: ['Meditation'],
-    castTimeMs: 600,
-    cooldown: 18,
-    skillFamily: 'Meditation',
-    // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
-
-    // Tier timing belongs to each selected packet; this cast's own boons cannot raise its accepted tier.
-    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', name: 'Tier 1', coefficient: 1.5, hits: 1 },
-      { type: 'condition', name: 'Tier 1', condition: CONDITION.BURNING, stacks: 1, duration: 3 },
-      { type: 'strike', name: 'Tier 2', coefficient: 2.25, hits: 1 },
-      { type: 'condition', name: 'Tier 2', condition: CONDITION.BURNING, stacks: 2, duration: 5 },
-      { type: 'strike', name: 'Tier 3', coefficient: 3, hits: 1 },
-      { type: 'condition', name: 'Tier 3', condition: CONDITION.BURNING, stacks: 3, duration: 5 }
-    ])
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.evoker.foxs-fury',
+          id: 'boons',
+          effects: [
+            { type: 'boon', name: 'Fox Might', boon: BOON.MIGHT, stacks: 8, duration: 10 },
+            { type: 'boon', name: 'Fox Fire Bonus', boon: BOON.MIGHT, stacks: 3, duration: 10 },
+            { type: 'boon', name: 'Fox Fury', boon: BOON.FURY, stacks: 1, duration: 10 }
+          ]
+        }
+      }
+    ]
   },
   [ID.HARES_AGILITY]: {
     name: "Hare's Agility",
@@ -105,9 +105,16 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
     slot: 'Utility',
     specialization: 'Evoker',
     categories: ['Meditation'],
-    castTimeMs: 0,
     cooldown: 20,
     resourceGain: 50,
+    skillFamily: 'Meditation',
+    castTimeMs: 0,
+    // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
+
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.4 },
+      { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 10 }
+    ]),
     // Committed activations restore endurance using this skill's editable amount.
     sideEffects: [
       {
@@ -123,16 +130,23 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
           effects: [{ type: 'buff', name: 'Hare Enchantment', stacks: 5, duration: 10 }]
         }
       }
-    ],
-    skillFamily: 'Meditation',
-    // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
-
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 0.4 },
-      { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 10 }
-    ])
+    ]
   },
   [ID.TOADS_FORTITUDE]: {
+    name: "Toad's Fortitude",
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: 'Evoker',
+    categories: ['Meditation'],
+    cooldown: 15,
+    skillFamily: 'Meditation',
+    castTimeMs: 640,
+    // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
+
+    effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1.5 },
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 4, duration: 10 }
+    ]),
     // Commit the live-element reward before Altruistic Aspect; acceptance-time damage selection stays independent.
     sideEffects: [
       {
@@ -154,48 +168,34 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
           ]
         }
       }
-    ],
-    name: "Toad's Fortitude",
-    type: 'Utility',
-    slot: 'Utility',
-    specialization: 'Evoker',
-    categories: ['Meditation'],
-    castTimeMs: 640,
-    cooldown: 15,
-    skillFamily: 'Meditation',
-    // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
-
-    effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 1.5 },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 4, duration: 10 }
-    ])
+    ]
   },
   [ID.ELEMENTAL_PROCESSION]: {
-    // Replay the four empowered familiars' offensive payloads without spending charges or granting enchantments.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.evoker.release-elemental-procession' } }],
     name: 'Elemental Procession',
     type: 'Elite',
     slot: 'Elite',
     specialization: 'Evoker',
     categories: ['Meditation'],
-    castTimeMs: 600,
     cooldown: 60,
     skillFamily: 'Meditation',
+    castTimeMs: 600,
     // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
 
-    effects: []
+    effects: [],
+    // Replay the four empowered familiars' offensive payloads without spending charges or granting enchantments.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.evoker.release-elemental-procession' } }]
   },
   [ID.REJUVENATE]: {
-    // Commit the live-element reward before Altruistic Aspect; acceptance-time damage selection stays independent.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.evoker.rejuvenate' } }],
     name: 'Rejuvenate',
     type: 'Heal',
     slot: 'Heal',
     specialization: 'Evoker',
     categories: ['Meditation'],
-    castTimeMs: 600,
     cooldown: 18,
     skillFamily: 'Meditation',
-    effects: []
+    castTimeMs: 600,
+    effects: [],
+    // Commit the live-element reward before Altruistic Aspect; acceptance-time damage selection stays independent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.evoker.rejuvenate' } }]
   }
 });

@@ -6,30 +6,28 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.STEAL]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.steal' } }],
     stealTraitSkill: true,
     movementSkill: true,
-
-    castTimeMs: 0,
     cooldown: 25,
     initiativeCost: 0,
-    effects: []
+
+    castTimeMs: 0,
+    effects: [],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.steal' } }]
   },
   [ID.STEAL_ID_13109]: {
     movementSkill: true,
-    castTimeMs: 0,
     cooldown: 25,
     initiativeCost: 0,
+    castTimeMs: 0,
     effects: []
   },
   [ID.SOUL_STONE_VENOM]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.consume-stolen' } }],
-    // Commitment consumes the selected skill; Improvisation retains one use of the same choice.
-    castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
+    // Commitment consumes the selected skill; Improvisation retains one use of the same choice.
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -39,15 +37,15 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
-    ]
+    ],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.consume-stolen' } }]
   },
   [ID.DETONATE_PLASMA]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.consume-stolen' } }],
-    // Commitment consumes the selected skill; Improvisation retains one use of the same choice.
-    castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
+    // Commitment consumes the selected skill; Improvisation retains one use of the same choice.
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -127,15 +125,15 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 3,
         stacks: 1
       }
-    ]
+    ],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.consume-stolen' } }]
   },
   [ID.THROW_MAGNETIC_BOMB]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.consume-stolen' } }],
-    // Commitment consumes the selected skill; Improvisation retains one use of the same choice.
-    castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
+    // Commitment consumes the selected skill; Improvisation retains one use of the same choice.
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -153,6 +151,8 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.PULL
       }
-    ]
+    ],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.consume-stolen' } }]
   }
 });

@@ -6,7 +6,6 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
   [ID.CRY_OF_FRUSTRATION]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
     shatter: {
       balanceProfileId: 'mesmer.core.cry-of-frustration',
@@ -18,7 +17,6 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
         { name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 3, stacks: 1 }
       ]
     },
-    castTimeMs: 0,
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -26,10 +24,11 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
       }
     ],
     rechargeAnchor: 'castStart',
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }]
   },
   [ID.MIND_WRACK]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
     shatter: {
       balanceProfileId: 'mesmer.core.mind-wrack',
@@ -38,7 +37,6 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
       resolver: 'mesmer.core.clone-shatter',
       coefficients: [0.81, 1.61, 2.42, 3.22]
     },
-    castTimeMs: 0,
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -46,10 +44,11 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
       }
     ],
     rechargeAnchor: 'castStart',
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }]
   },
   [ID.DISTORTION]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
     shatter: {
       balanceProfileId: 'mesmer.core.distortion',
@@ -58,7 +57,6 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
       resolver: 'mesmer.core.clone-shatter',
       coefficients: [0, 0, 0, 0]
     },
-    castTimeMs: 0,
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -66,10 +64,11 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
       }
     ],
     rechargeAnchor: 'castStart',
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }]
   },
   [ID.DIVERSION]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
     shatter: {
       balanceProfileId: 'mesmer.core.diversion',
@@ -78,7 +77,6 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
       resolver: 'mesmer.core.clone-shatter',
       coefficients: [0, 0, 0, 0]
     },
-    castTimeMs: 0,
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -86,6 +84,7 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
       }
     ],
     rechargeAnchor: 'castStart',
+    castTimeMs: 0,
     // The shatter owns its control effect rather than relying on the core CC skill list.
     effects: [
       {
@@ -97,7 +96,8 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
-    ]
+    ],
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }]
   }
 });
 

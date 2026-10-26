@@ -10,17 +10,18 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
   [ID.ELIXIR_GUN]: {
     // Custom: Equips the kit and updates bundle/weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    // Commit the bar transition before cast traits observe the selected kit.
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }],
     kitTransition: 'equip',
-    castTimeMs: 0,
     cooldown: 0,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    // Commit the bar transition before cast traits observe the selected kit.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }]
   },
   [ID.TRANQUILIZER_DART]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 520,
     cooldown: 0,
+    kitId: ID.ELIXIR_GUN,
+    castTimeMs: 520,
     comboFinishers: [
       {
         ownerId: 'engineer',
@@ -51,12 +52,12 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         duration: 1,
         actorType: ACTOR.PLAYER
       }
-    ],
-    kitId: ID.ELIXIR_GUN
+    ]
   },
   [ID.GLOB_SHOT]: {
-    castTimeMs: 520,
     cooldown: 8,
+    kitId: ID.ELIXIR_GUN,
+    castTimeMs: 520,
     effects: [
       {
         weaponStrengthProfileId: 'bundle.ascended',
@@ -87,12 +88,47 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         duration: 3,
         stacks: 1
       }
-    ],
-    kitId: ID.ELIXIR_GUN
+    ]
+  },
+  [ID.FUMIGATE]: {
+    cooldown: 12,
+    kitId: ID.ELIXIR_GUN,
+    castTimeMs: 1520,
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+      {
+        weaponStrengthProfileId: 'bundle.ascended',
+        type: 'strike',
+        ticks: [320, 600, 920, 1200, 1520].map((atMs) => ({ atMs, coefficient: 2 / 5 })),
+        name: 'Fumigate',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        ticks: [320, 600, 920, 1200, 1520].map((atMs) => ({
+          atMs,
+          condition: CONDITION.POISONED,
+          stacks: 1,
+          duration: 2
+        })),
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        ticks: [320, 600, 920, 1200, 1520].map((atMs) => ({
+          atMs,
+          condition: CONDITION.VULNERABILITY,
+          stacks: 1,
+          duration: 6
+        })),
+        actorType: ACTOR.PLAYER
+      }
+    ])
   },
   [ID.ACID_BOMB]: {
-    castTimeMs: 200,
     cooldown: 12,
+    kitId: ID.ELIXIR_GUN,
+    castTimeMs: 200,
     comboFields: [
       {
         ownerId: 'engineer',
@@ -125,12 +161,12 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         name: 'Acid Bomb - Pulses',
         actorType: ACTOR.PLAYER
       }
-    ],
-    kitId: ID.ELIXIR_GUN
+    ]
   },
   [ID.SUPER_ELIXIR]: {
-    castTimeMs: 360,
     cooldown: 16,
+    kitId: ID.ELIXIR_GUN,
+    castTimeMs: 360,
     comboFields: [
       {
         ownerId: 'engineer',
@@ -139,47 +175,12 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         startAnchor: 'castEnd'
       }
     ],
-    effects: [],
-    kitId: ID.ELIXIR_GUN
-  },
-  [ID.FUMIGATE]: {
-    castTimeMs: 1520,
-    cooldown: 12,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
-      {
-        weaponStrengthProfileId: 'bundle.ascended',
-        type: 'strike',
-        ticks: [320, 600, 920, 1200, 1520].map((atMs) => ({ atMs, coefficient: 2 / 5 })),
-        name: 'Fumigate',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        ticks: [320, 600, 920, 1200, 1520].map((atMs) => ({
-          atMs,
-          condition: CONDITION.POISONED,
-          stacks: 1,
-          duration: 2
-        })),
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        ticks: [320, 600, 920, 1200, 1520].map((atMs) => ({
-          atMs,
-          condition: CONDITION.VULNERABILITY,
-          stacks: 1,
-          duration: 6
-        })),
-        actorType: ACTOR.PLAYER
-      }
-    ]),
-    kitId: ID.ELIXIR_GUN
+    effects: []
   },
   [ID.HEALING_MIST]: {
-    castTimeMs: 0,
     cooldown: 20,
+    toolbeltParentId: ID.ELIXIR_GUN,
+    castTimeMs: 0,
     effects: [
       {
         type: 'boon',
@@ -188,25 +189,24 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         duration: 10,
         stacks: 1
       }
-    ],
-    toolbeltParentId: ID.ELIXIR_GUN
+    ]
   },
   [ID.SUPER_ELIXIR_CHAIN_SKILL]: {
-    castTimeMs: 0,
     cooldown: 0,
-    effects: [],
-    kitId: ID.ELIXIR_GUN
+    kitId: ID.ELIXIR_GUN,
+    castTimeMs: 0,
+    effects: []
   },
   [ID.STOW_ELIXIR_GUN]: {
     // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    // Commit the bar transition before cast traits observe the selected kit.
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }],
     kitTransition: 'stow',
     paletteFlip: false,
-    castTimeMs: 0,
     cooldown: 0,
+    kitId: ID.ELIXIR_GUN,
+    castTimeMs: 0,
     effects: [],
-    kitId: ID.ELIXIR_GUN
+    // Commit the bar transition before cast traits observe the selected kit.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }]
   }
 });

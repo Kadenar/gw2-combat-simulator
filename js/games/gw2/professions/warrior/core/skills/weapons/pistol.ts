@@ -18,8 +18,6 @@ export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Par
     ammo: 0,
     ammoRecharge: 0,
     cooldown: 15,
-    // Gunstinger restores three Dragon's Roar charges after completion.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ammoRestore', skillIds: [ID.DRAGONS_ROAR], count: 3 } }],
     castTimeMs: 600,
     effects: [
       {
@@ -39,11 +37,21 @@ export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Par
         duration: 3,
         stacks: 1
       }
-    ]
+    ],
+    // Gunstinger restores three Dragon's Roar charges after completion.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ammoRestore', skillIds: [ID.DRAGONS_ROAR], count: 3 } }]
   },
   [ID.DRAGONS_ROAR]: {
-    // Capture the magazine before depletion; later reloads cannot rewrite its Pistol explosions.
-    sideEffects: [{ on: 'castStart', do: { type: 'warrior.spend-magazine' } }],
+    // Movement classification drives completed Brave Stride rewards.
+    movementSkill: true,
+    ammo: 6,
+    ammoRecharge: 5,
+    // Begin the count recharge when the magazine is reserved, so the cast animation does not delay recovery.
+    rechargeAnchor: 'castStart',
+    cooldown: 5,
+    ammoCastLockout: 1,
+    castTimeMs: 560,
+    effects: [],
     effectVariants: [
       {
         profileId: PROFILE.dragonsRoar,
@@ -75,15 +83,7 @@ export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Par
         }
       }
     ],
-    // Movement classification drives completed Brave Stride rewards.
-    movementSkill: true,
-    ammo: 6,
-    ammoRecharge: 5,
-    // Begin the count recharge when the magazine is reserved, so the cast animation does not delay recovery.
-    rechargeAnchor: 'castStart',
-    cooldown: 5,
-    ammoCastLockout: 1,
-    castTimeMs: 560,
-    effects: []
+    // Capture the magazine before depletion; later reloads cannot rewrite its Pistol explosions.
+    sideEffects: [{ on: 'castStart', do: { type: 'warrior.spend-magazine' } }]
   }
 });

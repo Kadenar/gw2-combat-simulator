@@ -10,6 +10,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Natural Peck uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.MOA_PECK]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.MOA_PECK]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.MOA_PECK]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -17,13 +20,13 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, Partia
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.MOA_PECK]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.MOA_PECK]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Frenzied Attack uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.MOA_FRENZIED_ATTACK]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.MOA_FRENZIED_ATTACK]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.MOA_FRENZIED_ATTACK]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -41,12 +44,11 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, Partia
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.MOA_FRENZIED_ATTACK]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.MOA_FRENZIED_ATTACK]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   [ID.PROTECTING_SCREECH]: {
+    petSkill: true,
+    quicknessCastTimeMs: 667,
     effects: [
       {
         type: 'boon',
@@ -57,11 +59,11 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, Partia
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 667,
-    petSkill: true
+    ]
   },
   [ID.DAZING_SCREECH]: {
+    petSkill: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -70,11 +72,11 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, Partia
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
+    ]
   },
   [ID.DAZING_SCREECH_ID_12709]: {
+    petSkill: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -83,11 +85,11 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, Partia
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
+    ]
   },
   [ID.FURIOUS_SCREECH]: {
+    petSkill: true,
+    quicknessCastTimeMs: 667,
     effects: [
       {
         type: 'boon',
@@ -98,8 +100,6 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, Partia
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 667,
-    petSkill: true
+    ]
   }
 });

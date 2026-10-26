@@ -10,6 +10,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const RANGER_CORE_PHOENIX_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Natural Wicked Bite uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.PHOENIX_WICKED_BITE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PHOENIX_WICKED_BITE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PHOENIX_WICKED_BITE]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -25,13 +28,13 @@ export const RANGER_CORE_PHOENIX_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PHOENIX_WICKED_BITE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PHOENIX_WICKED_BITE]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Dash uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.PHOENIX_DASH]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PHOENIX_DASH]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PHOENIX_DASH]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -39,13 +42,13 @@ export const RANGER_CORE_PHOENIX_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PHOENIX_DASH]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PHOENIX_DASH]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Wing Buffet uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.PHOENIX_WING_BUFFET]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PHOENIX_WING_BUFFET]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PHOENIX_WING_BUFFET]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -60,12 +63,11 @@ export const RANGER_CORE_PHOENIX_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PHOENIX_WING_BUFFET]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PHOENIX_WING_BUFFET]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   [ID.GALE_BREATH]: {
+    petSkill: true,
+    quicknessCastTimeMs: 667,
     effects: [
       {
         type: 'strike',
@@ -74,8 +76,6 @@ export const RANGER_CORE_PHOENIX_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 667,
-    petSkill: true
+    ]
   }
 });

@@ -9,22 +9,22 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Instant shouts share boons with the party while spent charges recharge independently of the use lockout.
   [ID.ADVANCE]: {
-    castTimeMs: 0,
     cooldown: 5,
     ammo: 2,
     ammoRecharge: 24,
     ammoCastLockout: 5,
+    castTimeMs: 0,
     effects: [
       { type: 'boon', boon: BOON.SWIFTNESS, duration: 20, audience: { recipients: RECIPIENT.PARTY } },
       { type: 'boon', boon: BOON.AEGIS, duration: 20, audience: { recipients: RECIPIENT.PARTY } }
     ]
   },
   [ID.HOLD_THE_LINE]: {
-    castTimeMs: 0,
     cooldown: 5,
     ammo: 2,
     ammoRecharge: 20,
     ammoCastLockout: 5,
+    castTimeMs: 0,
     effects: [
       { type: 'boon', boon: BOON.PROTECTION, duration: 6, audience: { recipients: RECIPIENT.PARTY } },
       { type: 'boon', boon: BOON.REGENERATION, duration: 6, audience: { recipients: RECIPIENT.PARTY } }
@@ -75,10 +75,10 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
   },
   [ID.SIGNET_OF_WRATH]: {
     attributeBonuses: { conditionDamage: 180 },
+    cooldown: 18,
     // The active commits before the Quickness cast finishes, allowing the remaining recovery to be canceled.
     castTimeMs: 880,
     interruptCommitMs: 820,
-    cooldown: 18,
     effects: [
       {
         type: 'strike',
@@ -100,6 +100,8 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.RENEWED_FOCUS]: {
+    castTimeMs: 1360,
+    effects: [],
     // A full channel refreshes only the virtues present in the selected specialization's catalog.
     sideEffects: [
       {
@@ -107,22 +109,20 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
         when: (_runtime, cast) => !castWasInterrupted(cast),
         do: { type: 'guardian.refresh-virtues' }
       }
-    ],
-    castTimeMs: 1360,
-    effects: []
+    ]
   },
   [ID.SIGNET_OF_RESOLVE]: {
     castTimeMs: 680,
     effects: []
   },
   [ID.SWORD_OF_JUSTICE]: {
-    castTimeMs: 600,
-    interruptCommitMs: 400,
-    retainsCastLockoutAfterInterrupt: true,
     cooldown: 1,
     ammo: 3,
     ammoRecharge: 15,
     ammoCastLockout: 1,
+    castTimeMs: 600,
+    interruptCommitMs: 400,
+    retainsCastLockoutAfterInterrupt: true,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
@@ -143,8 +143,8 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ])
   },
   [ID.PURGING_FLAMES]: {
-    castTimeMs: 320,
     cooldown: 20,
+    castTimeMs: 320,
     comboFields: [
       {
         ownerId: 'guardian',
@@ -189,8 +189,8 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     effects: []
   },
   [ID.FEEL_MY_WRATH]: {
-    castTimeMs: 400,
     cooldown: 30,
+    castTimeMs: 400,
     effects: [
       { type: 'boon', boon: BOON.QUICKNESS, duration: 3, audience: { recipients: RECIPIENT.PARTY } },
       // The party application includes the caster, so this supplement doubles only the caster's duration to six seconds.

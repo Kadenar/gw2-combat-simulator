@@ -4,29 +4,6 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.PROTECTORS_STRIKE]: {
-    castTimeMs: 520,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2,
-        hits: 1
-      },
-      // The modeled counterattack grants its boons alongside the strike.
-      { type: 'boon', boon: BOON.PROTECTION, duration: 3, stacks: 1, audience: { recipients: RECIPIENT.PARTY } },
-      { type: 'boon', boon: BOON.AEGIS, duration: 6, stacks: 1, audience: { recipients: RECIPIENT.PARTY } }
-    ]
-  },
-  [ID.FAITHFUL_STRIKE]: {
-    castTimeMs: 520,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.55,
-        hits: 1
-      }
-    ]
-  },
   [ID.TRUE_STRIKE]: {
     castTimeMs: 360,
     effects: [
@@ -43,6 +20,16 @@ export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
       {
         type: 'strike',
         coefficient: 1,
+        hits: 1
+      }
+    ]
+  },
+  [ID.FAITHFUL_STRIKE]: {
+    castTimeMs: 520,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.55,
         hits: 1
       }
     ]
@@ -79,6 +66,19 @@ export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         timingScale: 'fixed',
         audience: { recipients: RECIPIENT.PARTY }
       }
+    ]
+  },
+  [ID.PROTECTORS_STRIKE]: {
+    castTimeMs: 520,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 2,
+        hits: 1
+      },
+      // The modeled counterattack grants its boons alongside the strike.
+      { type: 'boon', boon: BOON.PROTECTION, duration: 3, stacks: 1, audience: { recipients: RECIPIENT.PARTY } },
+      { type: 'boon', boon: BOON.AEGIS, duration: 6, stacks: 1, audience: { recipients: RECIPIENT.PARTY } }
     ]
   }
 });

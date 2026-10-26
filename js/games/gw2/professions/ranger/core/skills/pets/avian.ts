@@ -10,6 +10,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.BIRD_SLASH]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BIRD_SLASH]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BIRD_SLASH]!.quicknessCastTimeMs,
     // EVTC separates the claw contacts by about 80 ms, despite the wiki describing simultaneous hits.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -18,12 +21,12 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BIRD_SLASH]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BIRD_SLASH]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   },
   [ID.BIRD_SWOOP]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BIRD_SWOOP]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BIRD_SWOOP]!.quicknessCastTimeMs,
     // The live pet applies one Vulnerability despite the tooltip advertising five.
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -41,12 +44,12 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BIRD_SWOOP]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BIRD_SWOOP]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   },
   [ID.QUICKENING_SCREECH_PET]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.QUICKENING_SCREECH_PET]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.QUICKENING_SCREECH_PET]!.quicknessCastTimeMs,
     // The pet supplies this party boon, so its duration uses pet concentration rather than the ranger's gear.
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -58,12 +61,11 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         actorType: ACTOR.SUMMON,
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.QUICKENING_SCREECH_PET]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.QUICKENING_SCREECH_PET]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   },
   [ID.BLINDING_SLASH]: {
+    petSkill: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -73,11 +75,11 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
+    ]
   },
   [ID.CHILLING_SLASH]: {
+    petSkill: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -95,11 +97,11 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
+    ]
   },
   [ID.BRASH_SLASH]: {
+    petSkill: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -117,11 +119,12 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
+    ]
   },
   [ID.LACERATING_SLASH]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.LACERATING_SLASH]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.LACERATING_SLASH]!.quicknessCastTimeMs,
     // Contacts remain about 80 ms apart, and each applies three bleeding stacks.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -136,9 +139,6 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.LACERATING_SLASH]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.LACERATING_SLASH]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   }
 });

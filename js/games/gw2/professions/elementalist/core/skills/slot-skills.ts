@@ -28,9 +28,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     type: 'Heal',
     slot: 'Heal',
     categories: ['Arcane'],
-    castTimeMs: 640,
     cooldown: 20,
     skillFamily: 'Arcane',
+    castTimeMs: 640,
     effects: [
       {
         type: 'strike',
@@ -56,9 +56,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     type: 'Heal',
     slot: 'Heal',
     categories: ['Signet'],
-    castTimeMs: 440,
     cooldown: 20,
     skillFamily: 'Signet',
+    castTimeMs: 440,
     effects: []
   },
   [ID.GLYPH_OF_ELEMENTAL_HARMONY]: {
@@ -66,9 +66,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     type: 'Heal',
     slot: 'Heal',
     categories: ['Glyph'],
-    castTimeMs: 800,
     cooldown: 20,
     skillFamily: 'Glyph',
+    castTimeMs: 800,
     effects: [
       {
         type: 'boon',
@@ -90,11 +90,11 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     type: 'Utility',
     slot: 'Utility',
     categories: ['Arcane'],
-    castTimeMs: 0,
     cooldown: 1,
     ammo: 3,
     ammoRecharge: 20,
     skillFamily: 'Arcane',
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -116,28 +116,28 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.ARCANE_ECHO]: {
+    name: 'Arcane Echo',
     // The skill owns its window; like Mimic, the consuming weapon skill's recharge becomes one base second.
     duration: 10,
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.arm-arcane-echo' } }],
-    name: 'Arcane Echo',
     type: 'Utility',
     slot: 'Utility',
     categories: ['Arcane'],
-    castTimeMs: 0,
     cooldown: 15,
     skillFamily: 'Arcane',
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.arm-arcane-echo' } }]
   },
   [ID.ARCANE_WAVE]: {
     name: 'Arcane Wave',
     type: 'Utility',
     slot: 'Utility',
     categories: ['Arcane'],
-    castTimeMs: 760,
     cooldown: 2,
     ammo: 2,
     ammoRecharge: 25,
     skillFamily: 'Arcane',
+    castTimeMs: 760,
     effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -160,36 +160,36 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
   // the ground pickup in core/mechanics/conjures.ts, and the bundle's weapon skills live in
   // conjure-skills.ts. (Conjure Fiery Greatsword, below, is the exception — it also strikes.)
   [ID.CONJURE_FROST_BOW]: {
+    name: 'Conjure Frost Bow',
     // The equipped bundle and its ground copy share this skill-owned lifetime.
     duration: 30,
-    // Equip this bundle and create its one-use ground copy on commitment, then emit the weapon-swap event.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.equip-conjure' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
-    name: 'Conjure Frost Bow',
     type: 'Utility',
     slot: 'Utility',
     categories: ['Conjure'],
-    castTimeMs: 480,
     cooldown: 60,
     skillFamily: 'Conjure',
-    effects: []
+    castTimeMs: 480,
+    effects: [],
+    // Equip this bundle and create its one-use ground copy on commitment, then emit the weapon-swap event.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.equip-conjure' } }]
   },
   [ID.CONJURE_LIGHTNING_HAMMER]: {
+    name: 'Conjure Lightning Hammer',
     // The equipped bundle and its ground copy share this skill-owned lifetime.
     duration: 30,
     // Wielding the conjure grants these attributes, including when acquiring its ground copy.
     attributeBonuses: { ferocity: 75, precision: 180 },
-    // Equip this bundle and create its one-use ground copy on commitment, then emit the weapon-swap event.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.equip-conjure' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
-    name: 'Conjure Lightning Hammer',
     type: 'Utility',
     slot: 'Utility',
     categories: ['Conjure'],
-    castTimeMs: 880,
     cooldown: 60,
     skillFamily: 'Conjure',
-    effects: []
+    castTimeMs: 880,
+    effects: [],
+    // Equip this bundle and create its one-use ground copy on commitment, then emit the weapon-swap event.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.equip-conjure' } }]
   },
   // --- Glyph of Elemental Power (one variant per attunement) --------------------
   // The four entries share one slot; `attunement` is the gate — availability rejects a variant
@@ -201,9 +201,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     slot: 'Utility',
     attunement: 'Fire',
     categories: ['Glyph'],
-    castTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Glyph',
+    castTimeMs: 480,
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.5 },
       {
@@ -220,9 +220,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     slot: 'Utility',
     attunement: 'Water',
     categories: ['Glyph'],
-    castTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Glyph',
+    castTimeMs: 480,
     effects: []
   },
   [ID.GLYPH_OF_ELEMENTAL_POWER_AIR]: {
@@ -231,9 +231,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     slot: 'Utility',
     attunement: 'Air',
     categories: ['Glyph'],
-    castTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Glyph',
+    castTimeMs: 480,
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5, canCrit: true },
       { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
@@ -245,9 +245,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     slot: 'Utility',
     attunement: 'Earth',
     categories: ['Glyph'],
-    castTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Glyph',
+    castTimeMs: 480,
     effects: []
   },
   // --- Glyph of Storms (one variant per attunement) ------------------------------
@@ -260,10 +260,10 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     slot: 'Utility',
     attunement: 'Fire',
     categories: ['Glyph'],
-    castTimeMs: 1120,
-    interruptCommitMs: 1080,
     cooldown: 25,
     skillFamily: 'Glyph',
+    castTimeMs: 1120,
+    interruptCommitMs: 1080,
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
@@ -291,9 +291,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
       slot: 'Utility',
       attunement: 'Water',
       categories: ['Glyph'],
-      castTimeMs: 1120,
       cooldown: 30,
       skillFamily: 'Glyph',
+      castTimeMs: 1120,
       // Share timing defaults while preserving each packet, effect order, and local schedule.
       effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
         strikeTimeline([
@@ -339,10 +339,10 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
       slot: 'Utility',
       attunement: 'Air',
       categories: ['Glyph'],
-      castTimeMs: 1120,
-      interruptCommitMs: 880,
       cooldown: 60,
       skillFamily: 'Glyph',
+      castTimeMs: 1120,
+      interruptCommitMs: 880,
       effects: [
         ...[
           [
@@ -421,9 +421,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     slot: 'Utility',
     attunement: 'Earth',
     categories: ['Glyph'],
-    castTimeMs: 1120,
     cooldown: 40,
     skillFamily: 'Glyph',
+    castTimeMs: 1120,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -457,17 +457,17 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
   // --- Signets ------------------------------------------------------------------
   // Active effects are authored here; the attribute modifier reads recharge for Signet of Fire's passive precision.
   [ID.SIGNET_OF_FIRE]: {
+    name: 'Signet of Fire',
     // Readiness and Written in Stone gate this skill-owned passive precision bonus.
     attributeBonuses: { precision: 180 },
-    name: 'Signet of Fire',
     type: 'Utility',
     slot: 'Utility',
     categories: ['Signet'],
+    cooldown: 12,
+    skillFamily: 'Signet',
     castTimeMs: 520,
     // The active commits at 480 ms; earlier interruptions cancel its effects.
     interruptCommitMs: 480,
-    cooldown: 12,
-    skillFamily: 'Signet',
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5 },
       {
@@ -483,11 +483,11 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     type: 'Utility',
     slot: 'Utility',
     categories: ['Signet'],
+    cooldown: 15,
+    skillFamily: 'Signet',
     castTimeMs: 520,
     // The active commits at 480 ms; earlier interruptions cancel its effects.
     interruptCommitMs: 480,
-    cooldown: 15,
-    skillFamily: 'Signet',
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5 },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 4, duration: 9 },
@@ -497,65 +497,65 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
   // --- Elites --------------------------------------------------------------------
   // Unlike the utility conjures this one also strikes, and its hit lands after the cast ends.
   [ID.CONJURE_FIERY_GREATSWORD]: {
+    name: 'Conjure Fiery Greatsword',
     // The equipped bundle and its ground copy share this skill-owned lifetime.
     duration: 30,
     // Wielding the conjure grants these attributes, including when acquiring its ground copy.
     attributeBonuses: { conditionDamage: 180, power: 260 },
-    // Equip this bundle and create its one-use ground copy on commitment, then emit the weapon-swap event.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.equip-conjure' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
-    name: 'Conjure Fiery Greatsword',
     type: 'Elite',
     slot: 'Elite',
     categories: ['Conjure'],
-    castTimeMs: 1160,
     cooldown: 180,
     skillFamily: 'Conjure',
+    castTimeMs: 1160,
     effects: impactEffects({ atMs: 1440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1 },
       { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3 }
-    ])
+    ]),
+    // Equip this bundle and create its one-use ground copy on commitment, then emit the weapon-swap event.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.equip-conjure' } }]
   },
   // The two Glyph of Elementals variants (Fire / Earth) share the elite slot and produce no
   // packets themselves. Their player activation uses the effective cast duration. The companion subsystem in
   // core/mechanics/elementals/ owns the summon's lifetime, attack loop, and post-expiry recharge;
   // it also blocks a recast while the elemental is alive and re-arms the cooldown on expiry.
   [ID.GLYPH_OF_ELEMENTALS]: {
+    name: 'Glyph of Elementals',
     // Companion lifecycle tuning is independent of the glyph's API activation cooldown.
     duration: 120,
     rechargeAfterExpiry: 40,
     summonStartupDelay: 0.16,
-    // Summon on commitment; the companion owns its attacks, command flip, lifetime, and held recharge.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.summon-elemental' } }],
-    name: 'Glyph of Elementals',
     // This simulator projection always summons Fire, independent of the current attunement.
     displayName: 'Glyph of Elementals (Fire)',
     description: 'Glyph. Summon a Fire Elemental regardless of attunement.',
     type: 'Elite',
     slot: 'Elite',
     categories: ['Glyph'],
-    castTimeMs: 840,
     cooldown: 190,
     skillFamily: 'Glyph',
-    effects: []
+    castTimeMs: 840,
+    effects: [],
+    // Summon on commitment; the companion owns its attacks, command flip, lifetime, and held recharge.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.summon-elemental' } }]
   },
   [ID.GLYPH_OF_ELEMENTALS_EARTH]: {
+    name: 'Glyph of Elementals (Earth)',
     // Companion lifecycle tuning is independent of the glyph's API activation cooldown.
     duration: 120,
     rechargeAfterExpiry: 40,
     summonStartupDelay: 0.16,
-    // Summon on commitment; the companion owns its attacks, command flip, lifetime, and held recharge.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.summon-elemental' } }],
-    name: 'Glyph of Elementals (Earth)',
     // This simulator projection always summons Earth, independent of the current attunement.
     description: 'Glyph. Summon an Earth Elemental regardless of attunement.',
     type: 'Elite',
     slot: 'Elite',
     categories: ['Glyph'],
-    castTimeMs: 840,
     cooldown: 190,
     skillFamily: 'Glyph',
-    effects: []
+    castTimeMs: 840,
+    effects: [],
+    // Summon on commitment; the companion owns its attacks, command flip, lifetime, and held recharge.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.summon-elemental' } }]
   },
   // --- Cantrips ---------------------------------------------------------------
   // Instant cast; only the offensive burn and the self Might are modelled (the condition
@@ -565,9 +565,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     type: 'Utility',
     slot: 'Utility',
     categories: ['Cantrip'],
-    castTimeMs: 0,
     cooldown: 20,
     skillFamily: 'Cantrip',
+    castTimeMs: 0,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'condition',

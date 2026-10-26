@@ -10,6 +10,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Natural Bite uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.DRAKE_BITE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.DRAKE_BITE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.DRAKE_BITE]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -17,13 +20,13 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.DRAKE_BITE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.DRAKE_BITE]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Tail Swipe uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.DRAKE_TAIL_SWIPE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.DRAKE_TAIL_SWIPE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.DRAKE_TAIL_SWIPE]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -46,12 +49,11 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.DRAKE_TAIL_SWIPE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.DRAKE_TAIL_SWIPE]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   [ID.FIRE_BREATH]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -69,11 +71,11 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 1000,
-    petSkill: true
+    ]
   },
   [ID.INSECT_SWARM]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -91,11 +93,11 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 1000,
-    petSkill: true
+    ]
   },
   [ID.FROST_BREATH]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -113,11 +115,11 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 1000,
-    petSkill: true
+    ]
   },
   [ID.LIGHTNING_BREATH]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -127,11 +129,11 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 1000,
-    petSkill: true
+    ]
   },
   [ID.SONIC_SHRIEK]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -157,8 +159,6 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 1000,
-    petSkill: true
+    ]
   }
 });

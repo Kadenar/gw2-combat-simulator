@@ -38,15 +38,15 @@ const SCOURGE_LIFE_FORCE_COST = {
 export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.NEFARIOUS_FAVOR]: {
     cost: SCOURGE_LIFE_FORCE_COST,
+    specialization: 'Scourge',
+    lifeForceCost: 1935,
+    castTimeMs: 0,
+    effects: [],
     // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
     sideEffects: [
       { on: 'castCommit', do: { type: 'scourge.cleanse' } },
       { on: 'castCommit', do: { type: 'scourge.strike' } }
-    ],
-    castTimeMs: 0,
-    effects: [],
-    specialization: 'Scourge',
-    lifeForceCost: 1935
+    ]
   },
   [ID.SERPENT_SIPHON]: {
     castTimeMs: 360,
@@ -142,66 +142,66 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   },
   [ID.SAND_CASCADE]: {
     cost: SCOURGE_LIFE_FORCE_COST,
-    // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
-    sideEffects: [{ on: 'castCommit', do: { type: 'scourge.strike' } }],
+    specialization: 'Scourge',
+    lifeForceCost: 2487,
     castTimeMs: 0,
     effects: [barrier],
-    specialization: 'Scourge',
-    lifeForceCost: 2487
+    // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
+    sideEffects: [{ on: 'castCommit', do: { type: 'scourge.strike' } }]
   },
   [ID.GARISH_PILLAR]: {
     cost: SCOURGE_LIFE_FORCE_COST,
+    specialization: 'Scourge',
+    lifeForceCost: 3685,
+    castTimeMs: 0,
+    effects: [],
     // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
     sideEffects: [
       { on: 'castCommit', do: { type: 'scourge.strike' } },
       { on: 'castCommit', do: { type: 'scourge.garish-pillar' } }
-    ],
-    castTimeMs: 0,
-    effects: [],
-    specialization: 'Scourge',
-    lifeForceCost: 3685
+    ]
   },
   [ID.DESERT_SHROUD]: {
     cost: SCOURGE_LIFE_FORCE_COST,
-    // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'scourge.strike' } },
-      { on: 'castCommit', do: { type: 'scourge.desert-shroud' } }
-    ],
-    castTimeMs: 0,
-    effects: [barrier],
     specialization: 'Scourge',
     lifeForceCost: 4606,
     flipSkillId: null,
     paletteTileId: SCOURGE_SHROUD_PALETTE_TILE,
-    paletteTileOrder: 1
+    paletteTileOrder: 1,
+    castTimeMs: 0,
+    effects: [barrier],
+    // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'scourge.strike' } },
+      { on: 'castCommit', do: { type: 'scourge.desert-shroud' } }
+    ]
   },
   [ID.MANIFEST_SAND_SHADE]: {
+    cooldown: 15,
+    ammo: 3,
+    ammoRecharge: 15,
+    specialization: 'Scourge',
+    castTimeMs: 480,
+    effects: [],
     // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
     sideEffects: [
       { on: 'castStart', do: { type: 'scourge.manifest-start' } },
       { on: 'castCommit', do: { type: 'scourge.manifest' } }
-    ],
-    castTimeMs: 480,
-    effects: [],
-    cooldown: 15,
-    ammo: 3,
-    ammoRecharge: 15,
-    specialization: 'Scourge'
+    ]
   },
   [ID.SANDSTORM_SHROUD]: {
     cost: SCOURGE_LIFE_FORCE_COST,
-    // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'scourge.strike' } },
-      { on: 'castCommit', do: { type: 'scourge.sandstorm-shroud' } }
-    ],
-    castTimeMs: 0,
-    effects: [],
     specialization: 'Scourge',
     lifeForceCost: 3224,
     flipParentId: null,
     paletteTileId: SCOURGE_SHROUD_PALETTE_TILE,
-    paletteTileOrder: 2
+    paletteTileOrder: 2,
+    castTimeMs: 0,
+    effects: [],
+    // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'scourge.strike' } },
+      { on: 'castCommit', do: { type: 'scourge.sandstorm-shroud' } }
+    ]
   }
 });

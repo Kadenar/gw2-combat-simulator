@@ -18,6 +18,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Natural Poison Gas uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.SPIDER_POISON_GAS]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIDER_POISON_GAS]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIDER_POISON_GAS]!.quicknessCastTimeMs,
     // Once the cast releases its cloud, later pulses retain the originating companion.
     interruptCommitMs: 3000,
     effects: [
@@ -40,13 +43,13 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIDER_POISON_GAS]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIDER_POISON_GAS]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Entangling Web uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.SPIDER_ENTANGLING_WEB]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIDER_ENTANGLING_WEB]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIDER_ENTANGLING_WEB]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -63,12 +66,11 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIDER_ENTANGLING_WEB]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIDER_ENTANGLING_WEB]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   [ID.DEADLY_VENOM]: {
+    petSkill: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'condition',
@@ -78,11 +80,11 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
+    ]
   },
   [ID.PARALYZING_VENOM]: {
+    petSkill: true,
+    quicknessCastTimeMs: 333,
     // The venom arms the pet's next landed attack for twenty seconds (wiki: Paralyzing_Venom).
     effects: [
       {
@@ -94,11 +96,11 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: ACTOR.SUMMON,
         audience: { recipients: RECIPIENT.SELF }
       }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
+    ]
   },
   [ID.WEAKENING_VENOM]: {
+    petSkill: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'condition',
@@ -124,11 +126,11 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
+    ]
   },
   [ID.SPIT]: {
+    petSkill: true,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIT]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -137,9 +139,7 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIT]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   }
 });
 

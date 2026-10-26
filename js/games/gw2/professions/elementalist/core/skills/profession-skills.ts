@@ -11,55 +11,55 @@ import type { Skill } from '#gw2/platform/skills/types.js';
  */
 export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FIRE_ATTUNEMENT]: {
-    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     name: 'Fire Attunement',
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     type: 'Profession',
     slot: 'Profession_1',
     mechanicSlot: 1,
     categories: ['Attunement'],
-    castTimeMs: 0,
     cooldown: 0,
-    canCastConcurrently: true,
     skillFamily: 'Attunement',
+    castTimeMs: 0,
+    canCastConcurrently: true,
     effects: []
   },
   [ID.WATER_ATTUNEMENT]: {
-    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     name: 'Water Attunement',
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     type: 'Profession',
     slot: 'Profession_2',
     mechanicSlot: 2,
     categories: ['Attunement'],
-    castTimeMs: 0,
     cooldown: 0,
-    canCastConcurrently: true,
     skillFamily: 'Attunement',
+    castTimeMs: 0,
+    canCastConcurrently: true,
     effects: []
   },
   [ID.AIR_ATTUNEMENT]: {
-    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     name: 'Air Attunement',
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     type: 'Profession',
     slot: 'Profession_3',
     mechanicSlot: 3,
     categories: ['Attunement'],
-    castTimeMs: 0,
     cooldown: 0,
-    canCastConcurrently: true,
     skillFamily: 'Attunement',
+    castTimeMs: 0,
+    canCastConcurrently: true,
     effects: []
   },
   [ID.EARTH_ATTUNEMENT]: {
-    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     name: 'Earth Attunement',
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     type: 'Profession',
     slot: 'Profession_4',
     mechanicSlot: 4,
     categories: ['Attunement'],
-    castTimeMs: 0,
     cooldown: 0,
-    canCastConcurrently: true,
     skillFamily: 'Attunement',
+    castTimeMs: 0,
+    canCastConcurrently: true,
     effects: []
   }
 });

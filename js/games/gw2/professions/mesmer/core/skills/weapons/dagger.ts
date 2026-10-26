@@ -5,46 +5,10 @@ import { bladecallEffects } from '#gw2/professions/mesmer/core/skills/weapons/bl
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
-  [ID.BLADECALL_NON_VIRTUOSO]: {
-    // Launched daggers survive cancellation while the committed cast keeps its recovery lockout.
-    interruptCommitMs: 200,
-    retainsCastLockoutAfterInterrupt: true,
-    resource: {
-      mode: 'add',
-      count: 1
-    },
-    effects: bladecallEffects(),
-    castTimeMs: 440
-  },
   [ID.FLYING_CUTTER]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     specialization: '',
-    castTimeMs: 440,
-    interruptCommitMs: 360,
     blade: true,
-    effects: [
-      {
-        type: 'strike',
-        // Only native accepted projectiles contribute to the persistent three-hit burst ledger.
-        reactions: [
-          {
-            on: 'damage.resolved',
-            actor: ACTOR.PLAYER,
-            packets: 'each',
-            when: (_runtime, { event, skill }) => event.sourceId === skill.id,
-            do: { type: 'mesmer.tracked-hit' }
-          }
-        ],
-        coefficient: 0.5,
-        hits: 1,
-        name: 'Projectile',
-        actorType: ACTOR.PLAYER,
-        // Preserve the measured Quickness projectile while the shared scheduler scales slower casts.
-        atMs: 320,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ],
     trackedHitDamage: {
       hitsRequired: 3,
       duration: 5,
@@ -67,12 +31,48 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Part
           coefficient: 0.2
         }
       ]
-    }
+    },
+    castTimeMs: 440,
+    interruptCommitMs: 360,
+    effects: [
+      {
+        type: 'strike',
+        // Only native accepted projectiles contribute to the persistent three-hit burst ledger.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: ACTOR.PLAYER,
+            packets: 'each',
+            when: (_runtime, { event, skill }) => event.sourceId === skill.id,
+            do: { type: 'mesmer.tracked-hit' }
+          }
+        ],
+        coefficient: 0.5,
+        hits: 1,
+        name: 'Projectile',
+        actorType: ACTOR.PLAYER,
+        // Preserve the measured Quickness projectile while the shared scheduler scales slower casts.
+        atMs: 320,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
+  },
+  [ID.BLADECALL_NON_VIRTUOSO]: {
+    resource: {
+      mode: 'add',
+      count: 1
+    },
+    castTimeMs: 440,
+    // Launched daggers survive cancellation while the committed cast keeps its recovery lockout.
+    interruptCommitMs: 200,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: bladecallEffects()
   },
   [ID.UNSTABLE_BLADESTORM]: {
     specialization: '',
-    castTimeMs: 440,
     blade: true,
+    castTimeMs: 440,
     // The storm commits 200ms into a Quickness cast; its four pulse pairs then persist after interruption.
     interruptCommitMs: 200,
     effects: [

@@ -16,20 +16,75 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Log-measured impact/aftercast timings are separate from Aura's fixed one-second fuse pulses.
 export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.SERENE_SLASH]: {
+    cooldown: 0,
+    energyCost: 0,
+    castTimeMs: 560,
+    interruptCommitMs: 280,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.533,
+        hits: 1,
+        name: 'Serene Slash',
+        atMs: 280,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        actorType: ACTOR.PLAYER
+      }
+    ]
+  },
+  [ID.ACERBIC_CUT]: {
+    cooldown: 0,
+    energyCost: 0,
+    castTimeMs: 640,
+    interruptCommitMs: 280,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.533,
+        hits: 1,
+        name: 'Acerbic Cut',
+        atMs: 280,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.MIGHT,
+        duration: 9,
+        stacks: 2
+      }
+    ]
+  },
+  [ID.MOTIVATING_WHIRL]: {
+    cooldown: 0,
+    energyCost: 0,
+    castTimeMs: 440,
+    interruptCommitMs: 280,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1,
+        hits: 1,
+        name: 'Motivating Whirl',
+        atMs: 280,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        actorType: ACTOR.PLAYER
+      }
+    ]
+  },
   [ID.BLOSSOMING_AURA]: {
-    // This declaration activates the Aura lifecycle owned below.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.blossoming-aura' } }
-    ],
-    // The Aura lifecycle pulses these effects as its payload, so the cast itself emits none.
-    effectVariants: [{ when: () => true, transform: () => [] }],
-    castTimeMs: 600,
-    interruptCommitMs: 480,
     rechargeAnchor: 'castStart',
     duration: 4,
     pulseInterval: 1,
     cooldown: 8,
     energyCost: 10,
+    castTimeMs: 600,
+    interruptCommitMs: 480,
     effects: [
       {
         type: 'strike',
@@ -57,84 +112,30 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
         duration: 3,
         actorType: ACTOR.PLAYER
       }
+    ],
+    // The Aura lifecycle pulses these effects as its payload, so the cast itself emits none.
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    // This declaration activates the Aura lifecycle owned below.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.blossoming-aura' } }
     ]
   },
-  [ID.DEACTIVATE_OTHERWORLDLY_BOND]: {
-    // Cancelling the tether also cancels the pending attraction window.
-    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-bond' } }],
+  [ID.DETONATE_BLOSSOMING_AURA]: {
+    cooldown: 0,
+    energyCost: 0,
     castTimeMs: 0,
-    cooldown: 0,
-    energyCost: 0,
-    effects: []
-  },
-  [ID.ACERBIC_CUT]: {
-    castTimeMs: 640,
-    interruptCommitMs: 280,
-    cooldown: 0,
-    energyCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.533,
-        hits: 1,
-        name: 'Acerbic Cut',
-        atMs: 280,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.MIGHT,
-        duration: 9,
-        stacks: 2
-      }
-    ]
-  },
-  [ID.SERENE_SLASH]: {
-    castTimeMs: 560,
-    interruptCommitMs: 280,
-    cooldown: 0,
-    energyCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.533,
-        hits: 1,
-        name: 'Serene Slash',
-        atMs: 280,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        actorType: ACTOR.PLAYER
-      }
-    ]
-  },
-  [ID.MOTIVATING_WHIRL]: {
-    castTimeMs: 440,
-    interruptCommitMs: 280,
-    cooldown: 0,
-    energyCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        name: 'Motivating Whirl',
-        atMs: 280,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        actorType: ACTOR.PLAYER
-      }
+    effects: [],
+    // This declaration activates the Aura lifecycle owned below.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.detonate-aura' } },
+      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DETONATE_BLOSSOMING_AURA } }
     ]
   },
   [ID.OTHERWORLDLY_BOND]: {
-    // This enemy tether offers cancellation and then a pull; ally-target boon payloads do not apply.
-    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.start-bond' } }],
-    castTimeMs: 520,
     flipDuration: 7,
     cooldown: 8,
     energyCost: 5,
+    castTimeMs: 520,
     effects: [
       {
         type: 'condition',
@@ -157,29 +158,28 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
         duration: 1,
         actorType: ACTOR.PLAYER
       }
-    ]
+    ],
+    // This enemy tether offers cancellation and then a pull; ally-target boon payloads do not apply.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.start-bond' } }]
+  },
+  [ID.DEACTIVATE_OTHERWORLDLY_BOND]: {
+    cooldown: 0,
+    energyCost: 0,
+    castTimeMs: 0,
+    effects: [],
+    // Cancelling the tether also cancels the pending attraction window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-bond' } }]
   },
   [ID.OTHERWORLDLY_ATTRACTION_ENEMY]: {
-    // Releasing the mature enemy tether consumes both follow-ups and triggers disable reactions.
-    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-bond' } }],
-    castTimeMs: 360,
     cooldown: 0,
     energyCost: 10,
+    castTimeMs: 360,
     effects: [
       { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 6, duration: 10, actorType: ACTOR.PLAYER },
       { type: 'control', controlKind: CONTROL.PULL, actorType: ACTOR.PLAYER }
-    ]
-  },
-  [ID.DETONATE_BLOSSOMING_AURA]: {
-    // This declaration activates the Aura lifecycle owned below.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.detonate-aura' } },
-      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DETONATE_BLOSSOMING_AURA } }
     ],
-    castTimeMs: 0,
-    cooldown: 0,
-    energyCost: 0,
-    effects: []
+    // Releasing the mature enemy tether consumes both follow-ups and triggers disable reactions.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-bond' } }]
   }
 });
 

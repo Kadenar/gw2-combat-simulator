@@ -5,9 +5,78 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Defines Engineer shortbow essence and detonation skill effects. */
 export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.ESSENCE_OF_LIQUID_WRATH]: {
+  [ID.ARC_DETONATOR]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    cooldown: 0,
+    castTimeMs: 360,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.3,
+        hits: 1,
+        name: 'Arc Detonator — Packet 1',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'strike',
+        coefficient: 0.2,
+        hits: 1,
+        name: 'Shock Damage',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.VULNERABILITY,
+        stacks: 1,
+        duration: 8,
+        actorType: ACTOR.PLAYER
+      }
+    ]
+  },
+  [ID.ESSENCE_OF_ANIMATED_SAND]: {
+    cooldown: 8,
     castTimeMs: 520,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1,
+        hits: 1,
+        name: 'Essence of Animated Sand',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.MIGHT,
+        duration: 8,
+        stacks: 5
+      },
+      {
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.MIGHT,
+        duration: 8,
+        stacks: 3
+      }
+    ]
+  },
+  [ID.ESSENCE_OF_LIVING_SHADOWS]: {
+    cooldown: 15,
+    castTimeMs: 520,
+    effects: [
+      {
+        type: 'strike',
+        // Only the initial detonation deals damage; subsequent pulses heal allies.
+        coefficient: 1,
+        hits: 1,
+        name: 'Essence of Living Shadows',
+        actorType: ACTOR.PLAYER
+      }
+    ]
+  },
+  [ID.ESSENCE_OF_LIQUID_WRATH]: {
     cooldown: 20,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -39,51 +108,9 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
-  [ID.ARC_DETONATOR]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 360,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.3,
-        hits: 1,
-        name: 'Arc Detonator — Packet 1',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'strike',
-        coefficient: 0.2,
-        hits: 1,
-        name: 'Shock Damage',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.VULNERABILITY,
-        stacks: 1,
-        duration: 8,
-        actorType: ACTOR.PLAYER
-      }
-    ]
-  },
-  [ID.ESSENCE_OF_LIVING_SHADOWS]: {
-    castTimeMs: 520,
-    cooldown: 15,
-    effects: [
-      {
-        type: 'strike',
-        // Only the initial detonation deals damage; subsequent pulses heal allies.
-        coefficient: 1,
-        hits: 1,
-        name: 'Essence of Living Shadows',
-        actorType: ACTOR.PLAYER
-      }
-    ]
-  },
   [ID.ESSENCE_OF_BORROWED_TIME]: {
-    castTimeMs: 520,
     cooldown: 25,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -101,33 +128,6 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'control',
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.STUN
-      }
-    ]
-  },
-  [ID.ESSENCE_OF_ANIMATED_SAND]: {
-    castTimeMs: 520,
-    cooldown: 8,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        name: 'Essence of Animated Sand',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.MIGHT,
-        duration: 8,
-        stacks: 5
-      },
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.MIGHT,
-        duration: 8,
-        stacks: 3
       }
     ]
   }

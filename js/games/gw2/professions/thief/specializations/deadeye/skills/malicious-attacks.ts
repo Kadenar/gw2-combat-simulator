@@ -45,10 +45,13 @@ function mapPoisonDurations(effects: readonly SkillEffect[], scaled: (duration: 
 /** Malicious stealth attacks keep their accepted-malice transforms beside their weapon effects. */
 export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.MALICIOUS_DEATHS_JUDGMENT]: {
-    castTimeMs: 680,
-    interruptCommitMs: 560,
     cooldown: 1,
     initiativeCost: 0,
+    requiredMainHand: WEAPON.RIFLE,
+    stealthAttack: true,
+    malicious: true,
+    castTimeMs: 680,
+    interruptCommitMs: 560,
     effects: [
       {
         type: 'strike',
@@ -60,15 +63,15 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    requiredMainHand: WEAPON.RIFLE,
-    stealthAttack: true,
-    malicious: true
+    ]
   },
   [ID.MALICIOUS_SURPRISE_SHOT]: {
-    castTimeMs: 200,
     cooldown: 1,
     initiativeCost: 0,
+    requiredMainHand: WEAPON.SHORTBOW,
+    stealthAttack: true,
+    malicious: true,
+    castTimeMs: 200,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -92,24 +95,16 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         duration: 2,
         actorType: ACTOR.PLAYER
       }
-    ]),
-    requiredMainHand: WEAPON.SHORTBOW,
-    stealthAttack: true,
-    malicious: true
+    ])
   },
   [ID.MALICIOUS_SNEAK_ATTACK]: {
-    // Only a completed channel emits the Torment using its accepted malice.
-    sideEffects: [
-      {
-        on: 'castCommit',
-        when: (_runtime, cast) => !castWasInterrupted(cast) && (deadeyeCastFacts.get(cast)?.markedMalice ?? 0) > 0,
-        do: { type: 'thief.sneak-torment' }
-      }
-    ],
-
-    castTimeMs: 680,
     cooldown: 1,
     initiativeCost: 0,
+    requiredMainHand: WEAPON.PISTOL,
+    stealthAttack: true,
+    malicious: true,
+
+    castTimeMs: 680,
     effects: [
       {
         type: 'strike',
@@ -134,17 +129,25 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         // Malice-scaled Torment is emitted from its removable balance profile at completion.
       ])
     ],
-    requiredMainHand: WEAPON.PISTOL,
-    stealthAttack: true,
-    malicious: true
+    // Only a completed channel emits the Torment using its accepted malice.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => !castWasInterrupted(cast) && (deadeyeCastFacts.get(cast)?.markedMalice ?? 0) > 0,
+        do: { type: 'thief.sneak-torment' }
+      }
+    ]
   },
   [ID.MALICIOUS_BACKSTAB]: {
+    cooldown: 1,
+    initiativeCost: 0,
+    requiredMainHand: WEAPON.DAGGER,
+    stealthAttack: true,
+    malicious: true,
     castTimeMs: 440,
     // Once the stab commits, preserve its strike and the remaining cast lockout after interruption.
     interruptCommitMs: 320,
     retainsCastLockoutAfterInterrupt: true,
-    cooldown: 1,
-    initiativeCost: 0,
     effects: [
       {
         type: 'strike',
@@ -155,43 +158,31 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
-    ],
-    requiredMainHand: WEAPON.DAGGER,
-    stealthAttack: true,
-    malicious: true
+    ]
   },
   [ID.MALICIOUS_TACTICAL_STRIKE]: {
-    castTimeMs: 440,
     cooldown: 1,
     initiativeCost: 0,
+    requiredMainHand: WEAPON.SWORD,
+    stealthAttack: true,
+    malicious: true,
+    castTimeMs: 440,
     // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 2, hits: 1, name: 'Malicious Tactical Strike', actorType: ACTOR.PLAYER },
       { type: 'control', actorType: ACTOR.PLAYER, controlKind: CONTROL.DAZE },
       { type: 'control', actorType: ACTOR.PLAYER, controlKind: CONTROL.DAZE },
       { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 5, actorType: ACTOR.PLAYER }
-    ]),
-    requiredMainHand: WEAPON.SWORD,
-    stealthAttack: true,
-    malicious: true
+    ])
   },
   [ID.MALICIOUS_SHADOWSQUALL]: {
-    // This combat variant targets enemies; regeneration belongs only to the unsupported ally-target variant.
-    // Transform the selected base packet so coefficient and duration patches remain authoritative.
-    effectVariants: [
-      {
-        when: () => true,
-        transform: (_runtime, cast, effects) => {
-          const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
-          const scaled = (duration: unknown) => Number(duration || 0) * (1 + 0.2 * malice);
-          return mapPoisonDurations(effects, scaled);
-        }
-      }
-    ],
-
-    castTimeMs: 1680,
     cooldown: 0,
     initiativeCost: 0,
+    requiredMainHand: WEAPON.SCEPTER,
+    stealthAttack: true,
+    malicious: true,
+
+    castTimeMs: 1680,
     effects: [
       {
         type: 'strike',
@@ -214,30 +205,27 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         timingScale: 'cast'
       }
     ],
-    requiredMainHand: WEAPON.SCEPTER,
-    stealthAttack: true,
-    malicious: true
-  },
-  [ID.MALICIOUS_HOOK_STRIKE]: {
-    // Zero accepted marked malice suppresses Quickness; later malice changes cannot change this payload.
+    // This combat variant targets enemies; regeneration belongs only to the unsupported ally-target variant.
+    // Transform the selected base packet so coefficient and duration patches remain authoritative.
     effectVariants: [
       {
         when: () => true,
         transform: (_runtime, cast, effects) => {
           const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
-          return effects.flatMap((effect): SkillEffect[] => {
-            const quickness =
-              (effect.type === 'boon' && String(effect.boon).toLowerCase() === boonKey(BOON.QUICKNESS)) ||
-              (effect.type === 'buff' && effect.kind === boonKey(BOON.QUICKNESS));
-            return !quickness ? [effect] : malice > 0 ? [{ ...effect, duration: (effect.duration || 0) * malice }] : [];
-          });
+          const scaled = (duration: unknown) => Number(duration || 0) * (1 + 0.2 * malice);
+          return mapPoisonDurations(effects, scaled);
         }
       }
-    ],
-
-    castTimeMs: 0,
+    ]
+  },
+  [ID.MALICIOUS_HOOK_STRIKE]: {
     cooldown: 1,
     initiativeCost: 0,
+    requiredMainHand: WEAPON.STAFF,
+    stealthAttack: true,
+    malicious: true,
+
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -259,38 +247,35 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         controlKind: CONTROL.KNOCKDOWN
       }
     ],
-    requiredMainHand: WEAPON.STAFF,
-    stealthAttack: true,
-    malicious: true
-  },
-  [ID.MALICIOUS_CUNNING_SALVO]: {
-    // The axe exists after a committed throw even when its outgoing strike misses.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.ground-axe' } }],
-    // A committed axe preserves its impact and the remaining cast lockout after interruption.
-    interruptCommitMs: 400,
-    retainsCastLockoutAfterInterrupt: true,
-    // The stealth attack's one-second reuse lockout is independent of Alacrity.
-    rechargeIgnoresAlacrity: true,
-    // Transform the selected base packet so coefficient and duration patches remain authoritative.
+    // Zero accepted marked malice suppresses Quickness; later malice changes cannot change this payload.
     effectVariants: [
       {
         when: () => true,
         transform: (_runtime, cast, effects) => {
           const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
-
-          // Without consumed malice the outgoing axe has no poison application; recall uses the base packet.
-          if (malice === 0)
-            return effects.filter((effect) => effect.type !== 'condition' || effect.condition !== CONDITION.POISONED);
-
-          const scaled = (duration: unknown) => Number(duration || 0) * malice;
-          return mapPoisonDurations(effects, scaled);
+          return effects.flatMap((effect): SkillEffect[] => {
+            const quickness =
+              (effect.type === 'boon' && String(effect.boon).toLowerCase() === boonKey(BOON.QUICKNESS)) ||
+              (effect.type === 'buff' && effect.kind === boonKey(BOON.QUICKNESS));
+            return !quickness ? [effect] : malice > 0 ? [{ ...effect, duration: (effect.duration || 0) * malice }] : [];
+          });
         }
       }
-    ],
-
-    castTimeMs: 440,
+    ]
+  },
+  [ID.MALICIOUS_CUNNING_SALVO]: {
+    // The stealth attack's one-second reuse lockout is independent of Alacrity.
+    rechargeIgnoresAlacrity: true,
     cooldown: 1,
     initiativeCost: 0,
+    requiredMainHand: WEAPON.AXE,
+    stealthAttack: true,
+    malicious: true,
+
+    castTimeMs: 440,
+    // A committed axe preserves its impact and the remaining cast lockout after interruption.
+    interruptCommitMs: 400,
+    retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
@@ -338,13 +323,80 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         actorType: ACTOR.PLAYER
       }
     ]),
-    requiredMainHand: WEAPON.AXE,
-    stealthAttack: true,
-    malicious: true
+    // Transform the selected base packet so coefficient and duration patches remain authoritative.
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, cast, effects) => {
+          const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
+
+          // Without consumed malice the outgoing axe has no poison application; recall uses the base packet.
+          if (malice === 0)
+            return effects.filter((effect) => effect.type !== 'condition' || effect.condition !== CONDITION.POISONED);
+
+          const scaled = (duration: unknown) => Number(duration || 0) * malice;
+          return mapPoisonDurations(effects, scaled);
+        }
+      }
+    ],
+    // The axe exists after a committed throw even when its outgoing strike misses.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.ground-axe' } }]
   },
   [ID.MALICIOUS_ASHEN_ASSAULT]: {
-    // Landed strikes own the initiative refund; the final packet owns accepted-malice Torment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
+    preservesStealth: true,
+    spearStealthAttack: true,
+    cooldown: 0,
+    initiativeCost: 0,
+    requiredMainHand: WEAPON.SPEAR,
+    stealthAttack: true,
+    malicious: true,
+
+    // Malicious Ashen Assault shares the measured spear channel and finishes its damage before aftercast.
+    castTimeMs: 1200,
+    interruptMode: 'per-packet',
+    effects: [
+      {
+        type: 'strike',
+        ticks: [320, 480, 560, 640, 760].map((atMs) => ({
+          atMs,
+          coefficient: 1.5 / 5
+        })),
+        name: 'Malicious Ashen Assault',
+        actorType: ACTOR.PLAYER,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      ...impactEffects({ atMs: 1080, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 0.3,
+          hits: 1,
+          name: 'Malicious Ashen Assault — Final Strike',
+          actorType: ACTOR.PLAYER
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.VULNERABILITY,
+          stacks: 5,
+          duration: 8,
+          actorType: ACTOR.PLAYER
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.BLEEDING,
+          stacks: 3,
+          duration: 4,
+          actorType: ACTOR.PLAYER
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.POISONED,
+          stacks: 3,
+          duration: 4,
+          actorType: ACTOR.PLAYER
+        }
+      ])
+    ],
     effectVariants: [
       {
         when: () => true,
@@ -402,60 +454,8 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, Partial<Skill>>>
         }
       }
     ],
-    preservesStealth: true,
-    spearStealthAttack: true,
-
-    // Malicious Ashen Assault shares the measured spear channel and finishes its damage before aftercast.
-    castTimeMs: 1200,
-    interruptMode: 'per-packet',
-    cooldown: 0,
-    initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [320, 480, 560, 640, 760].map((atMs) => ({
-          atMs,
-          coefficient: 1.5 / 5
-        })),
-        name: 'Malicious Ashen Assault',
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      ...impactEffects({ atMs: 1080, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-        {
-          type: 'strike',
-          coefficient: 0.3,
-          hits: 1,
-          name: 'Malicious Ashen Assault — Final Strike',
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.VULNERABILITY,
-          stacks: 5,
-          duration: 8,
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.BLEEDING,
-          stacks: 3,
-          duration: 4,
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.POISONED,
-          stacks: 3,
-          duration: 4,
-          actorType: ACTOR.PLAYER
-        }
-      ])
-    ],
-    requiredMainHand: WEAPON.SPEAR,
-    stealthAttack: true,
-    malicious: true
+    // Landed strikes own the initiative refund; the final packet owns accepted-malice Torment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }]
   }
 });
 

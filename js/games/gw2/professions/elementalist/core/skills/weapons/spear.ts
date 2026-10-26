@@ -23,16 +23,16 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FLAME_SPEAR]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Flame Spear',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.SPEAR,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 640,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 640,
     // EVTC damage lands 520ms after activation; once the projectile reaches that
     // commit point, preserve its impact even if the remaining animation is cancelled.
     interruptCommitMs: 520,
@@ -58,9 +58,9 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SPEAR,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 560,
     cooldown: 6,
     skillFamily: 'Weapon skill',
+    castTimeMs: 560,
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -77,14 +77,13 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.SEETHE]: {
-    nextSkillDamageMultiplier: 1.2,
     name: 'Seethe',
+    nextSkillDamageMultiplier: 1.2,
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.SPEAR,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 360,
     cooldown: 15,
     skillFamily: 'Weapon skill',
     // Seethe empowers the next qualifying spear hit after completion.
@@ -94,12 +93,14 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castCommit'
       }
     ],
+    castTimeMs: 360,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 4 },
       { type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 10 }
     ])
   },
   [ID.METEOR]: {
+    name: 'Meteor',
     // The simulator assumes a center hit; keep its bonus independent of the base coefficient.
     modifiers: [
       {
@@ -110,16 +111,15 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         factor: 1.25
       }
     ],
-    name: 'Meteor',
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: WEAPON.SPEAR,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
-    interruptCommitMs: 640,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    castTimeMs: 680,
+    interruptCommitMs: 640,
     effects: [
       {
         type: 'strike',
@@ -138,18 +138,17 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
   // Etching root: lays the fire field and arms the Volcano chain at its `lesser` stage; the
   // payoff skills below occupy the same slot and are gated on that stage.
   [ID.ETCHING_VOLCANO]: {
+    name: 'Etching: Volcano',
     // Other completed actions upgrade only this root's live etching.
     etchingCompletionThreshold: 3,
-    // Open a field-length etching; the completion observer excludes this root from its own credits.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }],
-    name: 'Etching: Volcano',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.SPEAR,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 240,
     cooldown: 25,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 240,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -158,7 +157,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     effects: [
       {
         type: 'boon',
@@ -169,21 +167,21 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]
+    ],
+    // Open a field-length etching; the completion observer excludes this root from its own credits.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }]
   },
   // Early payoff: six eruption packets whose coefficients decay from 0.63 down to 0.315.
   [ID.LESSER_VOLCANO]: {
-    // A committed release consumes only its own etching and never advances another etching.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Lesser Volcano',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.SPEAR,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -251,12 +249,12 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]
+    ],
+    // A committed release consumes only its own etching and never advances another etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }]
   },
   // Full payoff: twelve eruption packets decaying from 1.21 to a 0.05 floor.
   [ID.VOLCANO]: {
-    // A committed release consumes only its own etching and never advances another etching.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Volcano',
     // Pin release art because API name lookup does not resolve the etching follow-up reliably.
     icon: 'https://render.guildwars2.com/file/334EA928E56F38C176A22415DE3ECE144C5FD5BB/3379101.png',
@@ -265,9 +263,9 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SPEAR,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -288,21 +286,23 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]
+    ],
+    // A committed release consumes only its own etching and never advances another etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }]
   },
   [ID.RESTORATIVE_SPEAR]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Restorative Spear',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.SPEAR,
     attunement: 'Water',
     categories: ['Weapon skill'],
+    cooldown: 0,
+    skillFamily: 'Weapon skill',
     castTimeMs: 640,
     // Preserve the released projectile when the remaining autoattack animation is cancelled.
     interruptCommitMs: 520,
-    cooldown: 0,
-    skillFamily: 'Weapon skill',
     effects: [
       {
         type: 'strike',
@@ -326,9 +326,9 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SPEAR,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 840,
     cooldown: 6,
     skillFamily: 'Weapon skill',
+    castTimeMs: 840,
     effects: [
       ...impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.7 },
@@ -345,14 +345,13 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.RIPPLE]: {
-    nextSkillRechargeMultiplier: 0.67,
     name: 'Ripple',
+    nextSkillRechargeMultiplier: 0.67,
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.SPEAR,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 800,
     cooldown: 15,
     skillFamily: 'Weapon skill',
     // Ripple empowers the next qualifying spear recharge after completion.
@@ -362,6 +361,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castCommit'
       }
     ],
+    castTimeMs: 800,
     effects: []
   },
   [ID.UNDERTOW]: {
@@ -371,27 +371,26 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SPEAR,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 600,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    castTimeMs: 600,
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.7, canCrit: true },
       { type: 'control', applications: 1, controlKind: CONTROL.PULL }
     ])
   },
   [ID.ETCHING_JO_KULHLAUP]: {
+    name: 'Etching: Jökulhlaup',
     // Other completed actions upgrade only this root's live etching.
     etchingCompletionThreshold: 3,
-    // Roots open their field-length window; releases consume only their own etching.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }],
-    name: 'Etching: Jökulhlaup',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.SPEAR,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 240,
     cooldown: 25,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 240,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -400,21 +399,20 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
-    effects: []
+    effects: [],
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }]
   },
   [ID.LESSER_JO_KULHLAUP]: {
-    // Roots open their field-length window; releases consume only their own etching.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Lesser Jökulhlaup',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.SPEAR,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -427,11 +425,11 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]
+    ],
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }]
   },
   [ID.JO_KULHLAUP]: {
-    // Roots open their field-length window; releases consume only their own etching.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Jökulhlaup',
     icon: 'https://render.guildwars2.com/file/48EB1A03297EE4DFA0FE2CA41F0B02B77302060B/3379104.png',
     type: 'Weapon',
@@ -439,9 +437,9 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SPEAR,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -454,19 +452,21 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]
+    ],
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }]
   },
   [ID.LIGHTNING_JAVELIN]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Lightning Javelin',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.SPEAR,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 640,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 640,
     // EVTC damage lands 520ms after activation; once the projectile reaches that
     // commit point, preserve its strike and vulnerability if the animation is cancelled.
     interruptCommitMs: 520,
@@ -481,6 +481,37 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
   // Lingering aura: five pulses one second apart, each a strike plus one Vulnerability stack,
   // so most of the damage lands well after the 560ms cast.
   [ID.FULGOR]: {
+    name: 'Fulgor',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    weapon: WEAPON.SPEAR,
+    attunement: 'Air',
+    categories: ['Weapon skill'],
+    cooldown: 6,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 560,
+    effects: [
+      ...impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.4 },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
+      ]),
+      ...impactEffects({ atMs: 1480, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.4 },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
+      ]),
+      ...impactEffects({ atMs: 2480, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.4 },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
+      ]),
+      ...impactEffects({ atMs: 3480, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.4 },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
+      ]),
+      ...impactEffects({ atMs: 4480, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.4 },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
+      ])
+    ],
     // Replace the previous noncritical pulse stream while retaining the ordinary strike and Vulnerability.
     sideEffects: [
       {
@@ -503,37 +534,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
           ]
         }
       }
-    ],
-    name: 'Fulgor',
-    type: 'Weapon',
-    slot: 'Weapon_2',
-    weapon: WEAPON.SPEAR,
-    attunement: 'Air',
-    categories: ['Weapon skill'],
-    castTimeMs: 560,
-    cooldown: 6,
-    skillFamily: 'Weapon skill',
-    effects: [
-      ...impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
-        { type: 'strike', coefficient: 0.4 },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
-      ]),
-      ...impactEffects({ atMs: 1480, timingAnchor: 'castStart', timingScale: 'cast' }, [
-        { type: 'strike', coefficient: 0.4 },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
-      ]),
-      ...impactEffects({ atMs: 2480, timingAnchor: 'castStart', timingScale: 'cast' }, [
-        { type: 'strike', coefficient: 0.4 },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
-      ]),
-      ...impactEffects({ atMs: 3480, timingAnchor: 'castStart', timingScale: 'cast' }, [
-        { type: 'strike', coefficient: 0.4 },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
-      ]),
-      ...impactEffects({ atMs: 4480, timingAnchor: 'castStart', timingScale: 'cast' }, [
-        { type: 'strike', coefficient: 0.4 },
-        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
-      ])
     ]
   },
   [ID.ENERGIZE]: {
@@ -543,7 +543,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SPEAR,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 15,
     skillFamily: 'Weapon skill',
     // Energize guarantees the next qualifying spear critical hit after completion.
@@ -553,6 +552,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castCommit'
       }
     ],
+    castTimeMs: 0,
     effects: [
       {
         type: 'buff',
@@ -572,9 +572,9 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SPEAR,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 600,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    castTimeMs: 600,
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -594,18 +594,17 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.ETCHING_DERECHO]: {
+    name: 'Etching: Derecho',
     // Other completed actions upgrade only this root's live etching.
     etchingCompletionThreshold: 3,
-    // Roots open their field-length window; releases consume only their own etching.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }],
-    name: 'Etching: Derecho',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.SPEAR,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 240,
     cooldown: 25,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 240,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -614,7 +613,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     effects: [
       {
         type: 'boon',
@@ -625,28 +623,28 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]
+    ],
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }]
   },
   [ID.LESSER_DERECHO]: {
-    // Roots open their field-length window; releases consume only their own etching.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Lesser Derecho',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.SPEAR,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 600,
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2, canCrit: true },
       { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
-    ])
+    ]),
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }]
   },
   [ID.DERECHO]: {
-    // Roots open their field-length window; releases consume only their own etching.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Derecho',
     icon: 'https://render.guildwars2.com/file/94F1A894667CA4F3407C57B055F8236804264B1F/3379095.png',
     type: 'Weapon',
@@ -654,26 +652,28 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SPEAR,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 600,
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 4, canCrit: true },
       { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
-    ])
+    ]),
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }]
   },
   [ID.STONE_STRIKE]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Stone Strike',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.SPEAR,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 640,
-    interruptCommitMs: 560,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 640,
+    interruptCommitMs: 560,
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.2 },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5 }
@@ -686,9 +686,9 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SPEAR,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
     cooldown: 6,
     skillFamily: 'Weapon skill',
+    castTimeMs: 680,
     effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -711,7 +711,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SPEAR,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 200,
     cooldown: 15,
     skillFamily: 'Weapon skill',
     // Harden adds control to the next qualifying spear hit after completion.
@@ -721,6 +720,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castCommit'
       }
     ],
+    castTimeMs: 200,
     effects: []
   },
   [ID.FISSURE]: {
@@ -730,10 +730,10 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SPEAR,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
-    interruptCommitMs: 640,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    castTimeMs: 680,
+    interruptCommitMs: 640,
     effects: impactEffects(
       { atMs: 560, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
@@ -745,18 +745,17 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   // Earth's etching root is the odd one out: it lays a Dark field rather than an elemental one.
   [ID.ETCHING_HABOOB]: {
+    name: 'Etching: Haboob',
     // Other completed actions upgrade only this root's live etching.
     etchingCompletionThreshold: 3,
-    // Roots open their field-length window; releases consume only their own etching.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }],
-    name: 'Etching: Haboob',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.SPEAR,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 240,
     cooldown: 25,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 240,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -765,21 +764,20 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
-    effects: []
+    effects: [],
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }]
   },
   [ID.LESSER_HABOOB]: {
-    // Roots open their field-length window; releases consume only their own etching.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Lesser Haboob',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.SPEAR,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 600,
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.75 },
       {
@@ -790,12 +788,12 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         applications: 1
       },
       { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 5 }
-    ])
+    ]),
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }]
   },
   // Full payoff retains five-second Cripple and adds Vulnerability and Weakness to the Lesser version's effects.
   [ID.HABOOB]: {
-    // Roots open their field-length window; releases consume only their own etching.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Haboob',
     icon: 'https://render.guildwars2.com/file/562F2D0ED67AD8453F9CA60F27DB154F2E7543FC/3379098.png',
     type: 'Weapon',
@@ -803,9 +801,9 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.SPEAR,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 600,
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 4.25 },
       {
@@ -818,6 +816,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
       { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 6 },
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 4 },
       { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 5 }
-    ])
+    ]),
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }]
   }
 });

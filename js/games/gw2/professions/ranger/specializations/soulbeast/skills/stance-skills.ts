@@ -13,24 +13,22 @@ import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.VULTURE_STANCE]: {
-    // Activation opens the personal and trait-shared windows without waiting for recovery.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.vulture-stance' } }
-    ],
     castTimeMs: 0,
-    effects: []
+    effects: [],
+    // Activation opens the personal and trait-shared windows without waiting for recovery.
+    sideEffects: [{ on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.vulture-stance' } }]
   },
   [ID.BEAR_STANCE]: {
-    effects: [],
-    castTimeMs: 500
+    castTimeMs: 500,
+    effects: []
   },
   [ID.ONE_WOLF_PACK]: {
-    // Activation opens the personal and trait-shared windows without waiting for recovery.
-    sideEffects: [{ on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.one-wolf-pack' } }],
+    castTimeMs: 360,
     // The stance commits before recovery ends, so cancelling after activation retains its proc window.
     interruptCommitMs: 280,
     effects: [],
-    castTimeMs: 360
+    // Activation opens the personal and trait-shared windows without waiting for recovery.
+    sideEffects: [{ on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.one-wolf-pack' } }]
   }
 });
 

@@ -10,22 +10,22 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 const actions: readonly Skill[] = [
   createWeaponSwapSkill(),
   {
+    name: 'Swap Legends',
     id: ID.SWAP_LEGENDS,
-    // Complete the legend transition before cast traits and elite observers.
-    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.swap-legends' } }],
     // Custom: Switches legends and resets energy through `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    name: 'Swap Legends',
     description: 'Invoke the other selected legend and reset energy.',
     icon: '',
     type: 'Profession',
     slot: 'Profession_1',
-    castTimeMs: 0,
     cooldown: 10,
     // Invoking a legend always has a 10 second recharge; Alacrity does not shorten it.
     rechargeIgnoresAlacrity: true,
     resourceGain: 50,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    // Complete the legend transition before cast traits and elite observers.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.swap-legends' } }]
   },
   // Core owns the input and its cost; active specialization hooks supply any dodge replacement.
   createDodgeSkill({

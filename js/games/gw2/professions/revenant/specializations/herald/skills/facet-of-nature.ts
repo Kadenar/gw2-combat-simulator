@@ -27,20 +27,11 @@ const TRUE_NATURE_SHARED_COOLDOWN = 20;
 /** Nature variants share one facet, palette tile, and recharge while their authored effects remain legend-specific. */
 export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FACET_OF_NATURE]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.start-facet' } }
-    ],
-    // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
-    castTimeMs: 0,
     cooldown: 0,
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 1,
     energyCost: 0,
     upkeepCost: 2,
-    effects: [],
     // Herald's F2 remains available outside Glint so the active legend can select its True Nature variant.
     facet: true,
     pulseInterval: 3,
@@ -50,20 +41,25 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       LegendaryDragon: ID.TRUE_NATURE_DRAGON,
       LegendaryCentaur: ID.TRUE_NATURE_CENTAUR,
       LegendaryDemon: ID.TRUE_NATURE_DEMON
-    }
-  },
-  [ID.TRUE_NATURE_ASSASSIN]: {
+    },
+    // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
+    castTimeMs: 0,
+    effects: [],
     // The declaration owns this activation; shared mechanics retain its live state.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
-      { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
-    ],
+      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
+      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
+      { on: 'castCommit', do: { type: 'revenant.start-facet' } }
+    ]
+  },
+  [ID.TRUE_NATURE_ASSASSIN]: {
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
-    // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
-    castTimeMs: 480,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
     energyCost: 0,
+    consume: true,
+    // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
+    castTimeMs: 480,
     // Assassin's consume strikes with the currently equipped weapon's strength.
     effects: [
       {
@@ -75,20 +71,20 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         weaponStrengthSource: 'equipped'
       }
     ],
-    consume: true
-  },
-  [ID.TRUE_NATURE_DWARF]: {
     // The declaration owns this activation; shared mechanics retain its live state.
     sideEffects: [
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
       { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
-    ],
+    ]
+  },
+  [ID.TRUE_NATURE_DWARF]: {
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
-    // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
-    castTimeMs: 480,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
     energyCost: 0,
+    consume: true,
+    // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
+    castTimeMs: 480,
     effects: [
       {
         type: 'boon',
@@ -98,21 +94,20 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ],
-    consume: true
-  },
-  [ID.TRUE_NATURE_DRAGON]: {
     // The declaration owns this activation; shared mechanics retain its live state.
     sideEffects: [
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
-      { on: 'castCommit', do: { type: 'revenant.complete-consume' } },
-      { on: 'castCommit', do: { type: 'revenant.true-nature-dragon' } }
-    ],
+      { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
+    ]
+  },
+  [ID.TRUE_NATURE_DRAGON]: {
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
-    // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
-    castTimeMs: 480,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
     energyCost: 0,
+    consume: true,
+    // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
+    castTimeMs: 480,
     effects: [
       {
         type: 'custom',
@@ -125,38 +120,43 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         }
       }
     ],
-    consume: true
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
+      { on: 'castCommit', do: { type: 'revenant.complete-consume' } },
+      { on: 'castCommit', do: { type: 'revenant.true-nature-dragon' } }
+    ]
   },
   [ID.TRUE_NATURE_CENTAUR]: {
+    paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
+    paletteTileOrder: 2,
+    cooldown: TRUE_NATURE_SHARED_COOLDOWN,
+    energyCost: 0,
+    consume: true,
+    // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
+    castTimeMs: 480,
+    effects: [],
     // The declaration owns this activation; shared mechanics retain its live state.
     sideEffects: [
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
       { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
-    ],
-    paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
-    paletteTileOrder: 2,
-    // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
-    castTimeMs: 480,
-    cooldown: TRUE_NATURE_SHARED_COOLDOWN,
-    energyCost: 0,
-    effects: [],
-    consume: true
+    ]
   },
   [ID.TRUE_NATURE_DEMON]: {
+    paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
+    paletteTileOrder: 2,
+    cooldown: TRUE_NATURE_SHARED_COOLDOWN,
+    energyCost: 0,
+    consume: true,
+    // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
+    castTimeMs: 480,
+    // Demon's condition transfer has no simulated effect; consuming still ends the upkeep.
+    effects: [],
     // The declaration owns this activation; shared mechanics retain its live state.
     sideEffects: [
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
       { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
-    ],
-    paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
-    paletteTileOrder: 2,
-    // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
-    castTimeMs: 480,
-    cooldown: TRUE_NATURE_SHARED_COOLDOWN,
-    energyCost: 0,
-    // Demon's condition transfer has no simulated effect; consuming still ends the upkeep.
-    effects: [],
-    consume: true
+    ]
   }
 });
 

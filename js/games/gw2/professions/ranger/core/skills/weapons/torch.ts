@@ -5,9 +5,47 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.THROW_TORCH]: {
+    cooldown: 15,
+    ammo: 2,
+    ammoRecharge: 15,
+    ammoCastLockout: 1,
+    castTimeMs: 440,
+    interruptCommitMs: 400,
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 0.666,
+        hits: 1
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BURNING,
+        stacks: 1,
+        duration: 10
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BLINDNESS,
+        stacks: 1,
+        duration: 3
+      }
+    ])
+  },
   [ID.BONFIRE]: {
+    cooldown: 25,
+    // Match the measured Quickness animation from the benchmark EVTC.
+    castTimeMs: 560,
     // Once placed, Bonfire keeps its pulses and combo field when the remaining animation is interrupted.
     interruptCommitMs: 520,
+    comboFields: [
+      {
+        ownerId: 'ranger',
+        fieldType: COMBO_FIELD.FIRE,
+        duration: 8,
+        startAnchor: 'castEnd'
+      }
+    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -29,46 +67,6 @@ export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<
           }))
         ]
       }
-    ]),
-
-    cooldown: 25,
-    // Match the measured Quickness animation from the benchmark EVTC.
-    castTimeMs: 560,
-    comboFields: [
-      {
-        ownerId: 'ranger',
-        fieldType: COMBO_FIELD.FIRE,
-        duration: 8,
-        startAnchor: 'castEnd'
-      }
-    ]
-  },
-  [ID.THROW_TORCH]: {
-    interruptCommitMs: 400,
-    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 0.666,
-        hits: 1
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.BURNING,
-        stacks: 1,
-        duration: 10
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.BLINDNESS,
-        stacks: 1,
-        duration: 3
-      }
-    ]),
-
-    cooldown: 15,
-    ammo: 2,
-    ammoRecharge: 15,
-    ammoCastLockout: 1,
-    castTimeMs: 440
+    ])
   }
 });

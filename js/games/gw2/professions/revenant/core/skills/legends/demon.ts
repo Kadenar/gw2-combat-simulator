@@ -18,20 +18,21 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RESIST_THE_DARKNESS]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-upkeep' } }],
-    // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    legendId: 'LegendaryDemon',
+    // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
+    castTimeMs: 0,
     effects: [],
-    legendId: 'LegendaryDemon'
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-upkeep' } }]
   },
   [ID.PAIN_ABSORPTION]: {
-    // Grant the base boons without assuming any allied conditions were absorbed.
-    castTimeMs: 360,
     cooldown: 0,
     energyCost: 30,
+    legendId: 'LegendaryDemon',
+    // Grant the base boons without assuming any allied conditions were absorbed.
+    castTimeMs: 360,
     effects: [
       {
         type: 'boon',
@@ -46,15 +47,15 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         duration: 5,
         stacks: 1
       }
-    ],
-    legendId: 'LegendaryDemon'
+    ]
   },
   [ID.BANISH_ENCHANTMENT]: {
-    // Banish Enchantment commits at 400 ms, preserving the launched multi-hit sequence after interruption.
-    interruptCommitMs: 400,
-    castTimeMs: 440,
     cooldown: 0,
     energyCost: 20,
+    legendId: 'LegendaryDemon',
+    castTimeMs: 440,
+    // Banish Enchantment commits at 400 ms, preserving the launched multi-hit sequence after interruption.
+    interruptCommitMs: 400,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
@@ -85,17 +86,15 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
 
         actorType: ACTOR.PLAYER
       }
-    ]),
-    legendId: 'LegendaryDemon'
+    ])
   },
   [ID.CALL_TO_ANGUISH]: {
-    // Expose the follow-up on commitment; its declaration owns the window.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.UNYIELDING_IMPACT, durationSec: null } }],
-    // Call to Anguish completes on its 800 ms impact, which also commits its effects.
-    interruptCommitMs: 800,
-    castTimeMs: 800,
     cooldown: 3,
     energyCost: 30,
+    legendId: 'LegendaryDemon',
+    castTimeMs: 800,
+    // Call to Anguish completes on its 800 ms impact, which also commits its effects.
+    interruptCommitMs: 800,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects(
       { atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
@@ -121,12 +120,14 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         }
       ]
     ),
-    legendId: 'LegendaryDemon'
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.UNYIELDING_IMPACT, durationSec: null } }]
   },
   [ID.EMPOWERING_MISERY]: {
-    castTimeMs: 520,
     cooldown: 30,
     energyCost: 5,
+    legendId: 'LegendaryDemon',
+    castTimeMs: 520,
     effects: [
       {
         type: 'boon',
@@ -134,23 +135,17 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         duration: 8,
         stacks: 1
       }
-    ],
-    legendId: 'LegendaryDemon'
+    ]
   },
   [ID.EMBRACE_THE_DARKNESS]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.embrace-opening' } }
-    ],
-    // Shared upkeep owns the drain; upkeep-pulses.ts schedules the legend-owned payload below.
-    castTimeMs: 440,
-    interruptCommitMs: 400,
     cooldown: 3,
     energyCost: 5,
     upkeepCost: 6,
     pulseInterval: 1,
+    legendId: 'LegendaryDemon',
+    // Shared upkeep owns the drain; upkeep-pulses.ts schedules the legend-owned payload below.
+    castTimeMs: 440,
+    interruptCommitMs: 400,
     effects: [
       {
         type: 'strike',
@@ -179,15 +174,19 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         metadata: { trigger: 'empowered-upkeep-pulse' }
       }
     ],
-    legendId: 'LegendaryDemon'
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
+      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.embrace-opening' } }
+    ]
   },
   [ID.UNYIELDING_IMPACT]: {
-    // A committed follow-up consumes its window and restores the parent.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.UNYIELDING_IMPACT } }],
-    // The reviewed activation ends after the existing 560 ms impact packets.
-    castTimeMs: 680,
     cooldown: 0,
     energyCost: 5,
+    legendId: 'LegendaryDemon',
+    // The reviewed activation ends after the existing 560 ms impact packets.
+    castTimeMs: 680,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -219,7 +218,8 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         actorType: ACTOR.PLAYER
       }
     ]),
-    legendId: 'LegendaryDemon'
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.UNYIELDING_IMPACT } }]
   }
 });
 

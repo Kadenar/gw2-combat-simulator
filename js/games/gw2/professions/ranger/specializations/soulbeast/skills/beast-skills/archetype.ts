@@ -12,6 +12,7 @@ const PRIMAL_CRY_PULSES_MS = [160, 520, 840];
 
 export const SOULBEAST_ARCHETYPE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.PRIMAL_CRY]: {
+    castTimeMs: 840,
     // Each surviving pulse deals damage before applying its own poison, bleeding, and vulnerability.
     interruptMode: 'per-packet',
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -36,10 +37,10 @@ export const SOULBEAST_ARCHETYPE_BEAST_SKILL_MECHANICS: Readonly<Record<number, 
           duration: 6
         }))
       }
-    ]),
-    castTimeMs: 840
+    ])
   },
   [ID.WORLDLY_IMPACT]: {
+    castTimeMs: 680,
     interruptCommitMs: 520,
     effects: [
       {
@@ -48,10 +49,10 @@ export const SOULBEAST_ARCHETYPE_BEAST_SKILL_MECHANICS: Readonly<Record<number, 
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    castTimeMs: 680
+    ]
   },
   [ID.PRELUDE_LASH]: {
+    castTimeMs: 167,
     effects: [
       {
         type: 'strike',
@@ -65,10 +66,10 @@ export const SOULBEAST_ARCHETYPE_BEAST_SKILL_MECHANICS: Readonly<Record<number, 
       },
       // The lash binds the target on impact in PvE (wiki: Prelude_Lash).
       { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }
-    ],
-    castTimeMs: 167
+    ]
   },
   [ID.SPIRITUAL_REPRIEVE]: {
+    castTimeMs: 667,
     effects: [
       {
         type: 'boon',
@@ -77,11 +78,10 @@ export const SOULBEAST_ARCHETYPE_BEAST_SKILL_MECHANICS: Readonly<Record<number, 
         duration: 3,
         stacks: 1
       }
-    ],
-    castTimeMs: 667
+    ]
   },
   [ID.UNFLINCHING_FORTITUDE]: {
-    effects: [],
-    castTimeMs: 167
+    castTimeMs: 167,
+    effects: []
   }
 });

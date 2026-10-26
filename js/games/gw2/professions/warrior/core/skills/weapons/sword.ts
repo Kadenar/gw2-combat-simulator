@@ -7,6 +7,46 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.SEVER_ARTERY]: {
+    dualWieldEffectOffsetsMs: { 200: 160 },
+    castTimeMs: 360,
+    dualWieldCastTimeMs: 280,
+    // Require the slash to commit before an interrupted cast can deal damage.
+    interruptCommitMs: 320,
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      {
+        type: 'strike',
+        coefficient: 0.8
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 1,
+        duration: 6
+      }
+    ])
+  },
+  [ID.GASH]: {
+    dualWieldEffectOffsetsMs: { 280: 240 },
+    castTimeMs: 520,
+    dualWieldCastTimeMs: 360,
+    interruptCommitMs: 360,
+    retainsCastLockoutAfterInterrupt: true,
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      {
+        type: 'strike',
+        coefficient: 0.8
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 1,
+        duration: 6
+      }
+    ])
+  },
   [ID.HAMSTRING]: {
     castTimeMs: 400,
     dualWieldCastTimeMs: 320,
@@ -33,49 +73,13 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
       }
     ])
   },
-  [ID.SEVER_ARTERY]: {
-    castTimeMs: 360,
-    dualWieldCastTimeMs: 280,
-    dualWieldEffectOffsetsMs: { 200: 160 },
-    // Require the slash to commit before an interrupted cast can deal damage.
-    interruptCommitMs: 320,
-    // Share impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      {
-        type: 'strike',
-        coefficient: 0.8
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.BLEEDING,
-        stacks: 1,
-        duration: 6
-      }
-    ])
-  },
-  [ID.GASH]: {
-    castTimeMs: 520,
-    dualWieldCastTimeMs: 360,
-    dualWieldEffectOffsetsMs: { 280: 240 },
-    interruptCommitMs: 360,
-    retainsCastLockoutAfterInterrupt: true,
-    // Share impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      {
-        type: 'strike',
-        coefficient: 0.8
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.BLEEDING,
-        stacks: 1,
-        duration: 6
-      }
-    ])
-  },
   [ID.SAVAGE_LEAP]: {
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
+    castTimeMs: 1000,
+    interruptMode: 'commit',
+    // Preserve the landing effects once the leap commits, even if the cast is interrupted.
+    interruptCommitMs: 960,
     // Retain a field crossed during the leap even when it expires before landing.
     comboFinishers: [
       {
@@ -84,10 +88,6 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
         fieldSelectionAnchor: 'castStart'
       }
     ],
-    castTimeMs: 1000,
-    // Preserve the landing effects once the leap commits, even if the cast is interrupted.
-    interruptCommitMs: 960,
-    interruptMode: 'commit',
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects(
       { atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
@@ -111,87 +111,10 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
       ]
     )
   },
-  [ID.RIPOSTE]: {
-    // Release the block early by default so its follow-up can be selected within the original channel window.
-    defaultInterruptMs: 200,
-    interruptCommitMs: 80,
-    sideEffects: [
-      {
-        on: 'castCommit',
-        when: (runtime, cast) => runtime.time < cast.fullEnd,
-        do: { type: 'warrior.riposte-arm' }
-      }
-    ],
-    castTimeMs: 2400,
-    effects: []
-  },
-  [ID.IMPALE]: {
-    // Expose Rip for the embedded sword's lifetime, independently of Impale's recharge.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.RIP, durationSec: 4 } }],
-    // Use the reviewed cast durations, with the shorter recovery selected by Dual Wielding.
-    castTimeMs: 440,
-    dualWieldCastTimeMs: 360,
-    // The projectile and its immediate payload precede full recovery; later cripple pulses retain their own schedule.
-    effects: impactEffects({ atMs: -40, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 1.5,
-        hits: 1
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.TORMENT,
-        stacks: 5,
-        duration: 8
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.CRIPPLED,
-        stacks: 1,
-        duration: 1,
-        applications: 5,
-        atMs: 0,
-        intervalMs: 1000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ])
-  },
-  [ID.RIP]: {
-    // Accepting the follow-up restores Impale's tile even when Rip is subsequently canceled.
-    sideEffects: [{ on: 'castStart', do: { type: 'flipConsume', skillId: ID.RIP } }],
-    castTimeMs: 680,
-    dualWieldCastTimeMs: 420,
-    dualWieldEffectOffsetsMs: { 440: 320 },
-    // Rip's impact is measured separately from its user-selected cast duration.
-    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      {
-        type: 'strike',
-        coefficient: 2,
-        hits: 1
-      },
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.MIGHT,
-        duration: 5,
-        stacks: 10
-      }
-    ])
-  },
-  [ID.ADRENALINE_RUSH]: {
-    // Adrenaline Rush instantly grants its resource without striking the target.
-    castTimeMs: 0,
-    sideEffects: [
-      { on: 'castStart', do: { type: 'flipConsume', skillId: ID.ADRENALINE_RUSH } },
-      { on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 3 } }
-    ],
-    effects: []
-  },
   [ID.REND]: {
+    dualWieldEffectOffsetsMs: { 440: 320 },
     castTimeMs: 960,
     dualWieldCastTimeMs: 720,
-    dualWieldEffectOffsetsMs: { 440: 320 },
     // Interrupted replay keeps every Rend packet after its two-part attack commits.
     interruptCommitMs: 920,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -223,6 +146,83 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
         duration: 6
       }
     ])
+  },
+  [ID.IMPALE]: {
+    // Use the reviewed cast durations, with the shorter recovery selected by Dual Wielding.
+    castTimeMs: 440,
+    dualWieldCastTimeMs: 360,
+    // The projectile and its immediate payload precede full recovery; later cripple pulses retain their own schedule.
+    effects: impactEffects({ atMs: -40, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 1.5,
+        hits: 1
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.TORMENT,
+        stacks: 5,
+        duration: 8
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.CRIPPLED,
+        stacks: 1,
+        duration: 1,
+        applications: 5,
+        atMs: 0,
+        intervalMs: 1000,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ]),
+    // Expose Rip for the embedded sword's lifetime, independently of Impale's recharge.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.RIP, durationSec: 4 } }]
+  },
+  [ID.RIP]: {
+    dualWieldEffectOffsetsMs: { 440: 320 },
+    castTimeMs: 680,
+    dualWieldCastTimeMs: 420,
+    // Rip's impact is measured separately from its user-selected cast duration.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      {
+        type: 'strike',
+        coefficient: 2,
+        hits: 1
+      },
+      {
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.MIGHT,
+        duration: 5,
+        stacks: 10
+      }
+    ]),
+    // Accepting the follow-up restores Impale's tile even when Rip is subsequently canceled.
+    sideEffects: [{ on: 'castStart', do: { type: 'flipConsume', skillId: ID.RIP } }]
+  },
+  [ID.RIPOSTE]: {
+    castTimeMs: 2400,
+    // Release the block early by default so its follow-up can be selected within the original channel window.
+    defaultInterruptMs: 200,
+    interruptCommitMs: 80,
+    effects: [],
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (runtime, cast) => runtime.time < cast.fullEnd,
+        do: { type: 'warrior.riposte-arm' }
+      }
+    ]
+  },
+  [ID.ADRENALINE_RUSH]: {
+    // Adrenaline Rush instantly grants its resource without striking the target.
+    castTimeMs: 0,
+    effects: [],
+    sideEffects: [
+      { on: 'castStart', do: { type: 'flipConsume', skillId: ID.ADRENALINE_RUSH } },
+      { on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 3 } }
+    ]
   }
 });
 

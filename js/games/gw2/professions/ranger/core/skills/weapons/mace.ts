@@ -22,7 +22,88 @@ const RESET_SKILLS: readonly SkillId[] = [ID.FLOURISH, ID.OAKEN_CUDGEL, ID.THIST
 // Measured from 20261015-192637.zevtc with Quickness, rounded to the 40 ms action grid.
 // Cast durations include normal recovery; impact offsets keep on-hit rewards ahead of that recovery.
 export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.GERMINATE]: {
+    castTimeMs: 440,
+    interruptCommitMs: 360,
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 0.9, hits: 1 }
+    ])
+  },
+  [ID.BURGEON]: {
+    castTimeMs: 600,
+    interruptCommitMs: 440,
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 1.1, hits: 1 }
+    ])
+  },
+  [ID.CULTIVATE]: {
+    castTimeMs: 920,
+    interruptCommitMs: 520,
+    // Once the uppercut connects, cancelling its recovery does not release the player cast lane early.
+    retainsCastLockoutAfterInterrupt: true,
+    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 1.4, hits: 1, reactions: [naturesStrengthReaction()] },
+      {
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.VIGOR,
+        duration: 3,
+        stacks: 1
+      },
+      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 2 }
+    ])
+  },
+  [ID.FLOURISH]: {
+    castTimeMs: 800,
+    interruptCommitMs: 480,
+    // Once the ground is struck, its delayed bloom continues after the player leaves the cast.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
+      {
+        type: 'strike',
+        coefficient: 0.85,
+        hits: 1,
+        atMs: 480,
+        name: 'Flourish - Initial Damage',
+        reactions: [naturesStrengthReaction()]
+      },
+      { type: 'strike', coefficient: 1.275, hits: 1, atMs: 1480, name: 'Flourish - Delayed Damage' },
+      {
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.REGENERATION,
+        duration: 4,
+        stacks: 1,
+        atMs: 480
+      }
+    ])
+  },
+  [ID.OAKEN_CUDGEL]: {
+    // The leap remains 960 ms in this Quickness log; its animation is not accelerated.
+    castTimeMs: 960,
+    interruptCommitMs: 800,
+    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 2, hits: 1, reactions: [naturesStrengthReaction()] },
+      // Resolve the leap's stun alongside its impact so control-triggered effects can activate.
+      { type: 'control', controlKind: CONTROL.STUN },
+      {
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.PROTECTION,
+        duration: 4,
+        stacks: 1
+      }
+    ])
+  },
+  [ID.THISTLEGUARD]: {
+    castTimeMs: 280,
+    interruptCommitMs: 240,
+    effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 1.2, hits: 1, reactions: [naturesStrengthReaction()] },
+      { type: 'boon', boon: BOON.STABILITY, duration: 1, stacks: 1 }
+    ])
+  },
   [ID.WILD_STRIKES]: {
+    castTimeMs: 1240,
     // Only the final surviving slam grants Nature's Strength; earlier slams survive a cancelled channel.
     interruptMode: 'per-packet',
     effects: [
@@ -50,88 +131,7 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    castTimeMs: 1240
-  },
-  [ID.CULTIVATE]: {
-    interruptCommitMs: 520,
-    // Once the uppercut connects, cancelling its recovery does not release the player cast lane early.
-    retainsCastLockoutAfterInterrupt: true,
-    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 1.4, hits: 1, reactions: [naturesStrengthReaction()] },
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.VIGOR,
-        duration: 3,
-        stacks: 1
-      },
-      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 2 }
-    ]),
-    castTimeMs: 920
-  },
-  [ID.THISTLEGUARD]: {
-    interruptCommitMs: 240,
-    effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 1.2, hits: 1, reactions: [naturesStrengthReaction()] },
-      { type: 'boon', boon: BOON.STABILITY, duration: 1, stacks: 1 }
-    ]),
-    castTimeMs: 280
-  },
-  [ID.OAKEN_CUDGEL]: {
-    interruptCommitMs: 800,
-    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 2, hits: 1, reactions: [naturesStrengthReaction()] },
-      // Resolve the leap's stun alongside its impact so control-triggered effects can activate.
-      { type: 'control', controlKind: CONTROL.STUN },
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.PROTECTION,
-        duration: 4,
-        stacks: 1
-      }
-    ]),
-    // The leap remains 960 ms in this Quickness log; its animation is not accelerated.
-    castTimeMs: 960
-  },
-  [ID.FLOURISH]: {
-    interruptCommitMs: 480,
-    // Once the ground is struck, its delayed bloom continues after the player leaves the cast.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
-      {
-        type: 'strike',
-        coefficient: 0.85,
-        hits: 1,
-        atMs: 480,
-        name: 'Flourish - Initial Damage',
-        reactions: [naturesStrengthReaction()]
-      },
-      { type: 'strike', coefficient: 1.275, hits: 1, atMs: 1480, name: 'Flourish - Delayed Damage' },
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.REGENERATION,
-        duration: 4,
-        stacks: 1,
-        atMs: 480
-      }
-    ]),
-    castTimeMs: 800
-  },
-  [ID.BURGEON]: {
-    interruptCommitMs: 440,
-    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 1.1, hits: 1 }
-    ]),
-    castTimeMs: 600
-  },
-  [ID.GERMINATE]: {
-    interruptCommitMs: 360,
-    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 0.9, hits: 1 }
-    ]),
-    castTimeMs: 440
+    ]
   }
 });
 

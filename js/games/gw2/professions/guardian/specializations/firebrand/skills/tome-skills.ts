@@ -13,6 +13,81 @@ const scorchedAftermathApplicationMs = 440;
  */
 
 export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.SEARING_SPELL]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
+    castTimeMs: 680,
+    // A cancel after commitment retains the completed page use and its effects.
+    interruptCommitMs: 480,
+    // Keep the committed page's strike and conditions on one impact.
+    effects: impactEffects(
+      { atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          weaponStrengthProfileId: 'bundle.exotic',
+          type: 'strike',
+          coefficient: 0.95
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.BURNING,
+          stacks: 1,
+          duration: 2.5
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.VULNERABILITY,
+          stacks: 2,
+          duration: 10
+        }
+      ]
+    )
+  },
+  [ID.IGNITING_BURST]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
+    castTimeMs: 480,
+    // Keep the page's strike, Burning, and Weakness on one impact.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        weaponStrengthProfileId: 'bundle.exotic',
+        type: 'strike',
+        coefficient: 0.55
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BURNING,
+        stacks: 1,
+        duration: 10
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.WEAKNESS,
+        stacks: 1,
+        duration: 4
+      }
+    ])
+  },
+  [ID.HEATED_REBUKE]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
+    castTimeMs: 200,
+    effects: [
+      {
+        weaponStrengthProfileId: 'bundle.exotic',
+        type: 'strike',
+        coefficient: 0.45,
+        hits: 1
+      },
+      {
+        type: 'control',
+        controlKind: CONTROL.PULL
+      }
+    ]
+  },
   [ID.SCORCHED_AFTERMATH]: {
     // Debit on commitment before the earned Swift Scholar refund, like the other tome skills.
     resourceCost: 1,
@@ -52,31 +127,70 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       )
     ])
   },
-  [ID.IGNITING_BURST]: {
+  [ID.ASHES_OF_THE_JUST]: {
     // Debit on commitment before the earned Swift Scholar refund.
     resourceCost: 1,
     cost: { resource: 'tomePages', spendOn: 'castCommit' },
-    castTimeMs: 480,
-    // Keep the page's strike, Burning, and Weakness on one impact.
-    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+    castTimeMs: 880,
+    // A committed cancellation preserves the separately scheduled Ashes grant.
+    interruptCommitMs: 640,
+    effects: [],
+    // Accepted casts schedule the party grant at its application boundary during the animation.
+    sideEffects: [
       {
-        weaponStrengthProfileId: 'bundle.exotic',
-        type: 'strike',
-        coefficient: 0.55
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.BURNING,
-        stacks: 1,
-        duration: 10
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.WEAKNESS,
-        stacks: 1,
-        duration: 4
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        do: {
+          type: 'guardian.start-ashes',
+          id: 'grant',
+          effects: [
+            {
+              type: 'buff',
+              name: 'ashes-of-the-just',
+              kind: 'ashes-of-the-just',
+              stacks: 2,
+              duration: 10,
+              actorType: ACTOR.PLAYER
+            },
+            {
+              type: 'boon',
+              name: 'might',
+              boon: BOON.MIGHT,
+              stacks: 8,
+              duration: 10,
+              actorType: ACTOR.PLAYER
+            }
+          ]
+        }
       }
-    ])
+    ]
+  },
+  [ID.STOW_TOME]: {
+    // Custom: Closes the active tome and updates tome state; see `firebrand/mechanics/tomes.ts`.
+    inputCategory: 'bar-swap',
+    castTimeMs: 0,
+    // Tome transitions change the available bar without cancelling the active animation.
+    canCastConcurrently: true,
+    effects: [],
+    // Stow closes the bar and ends its Swift Scholar session.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.stow-tome' } }]
+  },
+  [ID.TOME_OF_RESOLVE]: {
+    dormantCooldown: 30,
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
+    castTimeMs: 0,
+    // Tome transitions change the available bar without cancelling the active animation.
+    canCastConcurrently: true,
+    effects: [],
+    // Reopening preserves the shared dormancy and session controller.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-resolve' } }]
+  },
+  [ID.DESERT_BLOOM]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
+    castTimeMs: 200,
+    effects: []
   },
   [ID.RADIANT_RECOVERY]: {
     // Debit on commitment before the earned Swift Scholar refund.
@@ -85,7 +199,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     castTimeMs: 200,
     effects: []
   },
-  [ID.STALWART_STAND]: {
+  [ID.AZURE_SUN]: {
     // Debit on commitment before the earned Swift Scholar refund.
     resourceCost: 1,
     cost: { resource: 'tomePages', spendOn: 'castCommit' },
@@ -94,119 +208,50 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       {
         type: 'boon',
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.RESISTANCE,
-        duration: 1
+        boon: BOON.VIGOR,
+        duration: 5
       },
       {
         type: 'boon',
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.RESISTANCE,
-        duration: 1,
-        atMs: 1240,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        boon: BOON.REGENERATION,
+        duration: 6
       },
       {
         type: 'boon',
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.RESISTANCE,
-        duration: 1,
-        atMs: 2240,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.RESISTANCE,
-        duration: 1,
-        atMs: 3240,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        boon: BOON.SWIFTNESS,
+        duration: 5
       }
     ]
   },
-  [ID.SEARING_SPELL]: {
-    // Debit on commitment before the earned Swift Scholar refund.
-    resourceCost: 1,
-    cost: { resource: 'tomePages', spendOn: 'castCommit' },
-    castTimeMs: 680,
-    // A cancel after commitment retains the completed page use and its effects.
-    interruptCommitMs: 480,
-    // Keep the committed page's strike and conditions on one impact.
-    effects: impactEffects(
-      { atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
-      [
-        {
-          weaponStrengthProfileId: 'bundle.exotic',
-          type: 'strike',
-          coefficient: 0.95
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.BURNING,
-          stacks: 1,
-          duration: 2.5
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.VULNERABILITY,
-          stacks: 2,
-          duration: 10
-        }
-      ]
-    )
-  },
-  [ID.STOW_TOME]: {
-    // Stow closes the bar and ends its Swift Scholar session.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.stow-tome' } }],
-    // Tome transitions change the available bar without cancelling the active animation.
-    canCastConcurrently: true,
-    castTimeMs: 0,
-    // Custom: Closes the active tome and updates tome state; see `firebrand/mechanics/tomes.ts`.
-    inputCategory: 'bar-swap',
-    effects: []
-  },
-  [ID.TOME_OF_RESOLVE]: {
-    dormantCooldown: 30,
-    // Reopening preserves the shared dormancy and session controller.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-resolve' } }],
+  [ID.TOME_OF_COURAGE]: {
+    dormantCooldown: 45,
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
-    // Tome transitions change the available bar without cancelling the active animation.
-    canCastConcurrently: true,
+    passiveInterval: 40,
     castTimeMs: 0,
-    effects: []
-  },
-  [ID.VALIANT_BULWARK]: {
-    // Debit on commitment before the earned Swift Scholar refund.
-    resourceCost: 1,
-    cost: { resource: 'tomePages', spendOn: 'castCommit' },
-    castTimeMs: 200,
-    effects: []
-  },
-  [ID.DARING_CHALLENGE]: {
-    // Debit on commitment before the earned Swift Scholar refund.
-    resourceCost: 1,
-    cost: { resource: 'tomePages', spendOn: 'castCommit' },
-    castTimeMs: 200,
+    canCastConcurrently: true,
     effects: [
       {
-        weaponStrengthProfileId: 'bundle.exotic',
-        type: 'strike',
-        coefficient: 1.4,
-        hits: 1
-      },
-      {
-        type: 'control',
-        controlKind: CONTROL.TAUNT
-      },
-      {
         type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.RESOLUTION,
-        duration: 3
+        name: 'aegis',
+        boon: BOON.AEGIS,
+        stacks: 1,
+        duration: 40,
+        metadata: {
+          trigger: 'virtue'
+        }
       }
-    ]
+    ],
+    effectVariants: [triggeredVirtueEffects],
+    // Reopening preserves the shared dormancy and session controller.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-courage' } }]
+  },
+  [ID.TOME_OF_COURAGE_ID_42371]: {
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
+    castTimeMs: 0,
+    canCastConcurrently: true,
+    effects: []
   },
   [ID.SHINING_RIVER]: {
     // Debit on commitment before the earned Swift Scholar refund.
@@ -258,90 +303,6 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       }
     ]
   },
-  [ID.TOME_OF_COURAGE]: {
-    dormantCooldown: 45,
-    // Reopening preserves the shared dormancy and session controller.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-courage' } }],
-    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
-    canCastConcurrently: true,
-    castTimeMs: 0,
-    passiveInterval: 40,
-    effectVariants: [triggeredVirtueEffects],
-    effects: [
-      {
-        type: 'boon',
-        name: 'aegis',
-        boon: BOON.AEGIS,
-        stacks: 1,
-        duration: 40,
-        metadata: {
-          trigger: 'virtue'
-        }
-      }
-    ]
-  },
-  [ID.TOME_OF_COURAGE_ID_42371]: {
-    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
-    canCastConcurrently: true,
-    castTimeMs: 0,
-    effects: []
-  },
-  [ID.HEATED_REBUKE]: {
-    // Debit on commitment before the earned Swift Scholar refund.
-    resourceCost: 1,
-    cost: { resource: 'tomePages', spendOn: 'castCommit' },
-    castTimeMs: 200,
-    effects: [
-      {
-        weaponStrengthProfileId: 'bundle.exotic',
-        type: 'strike',
-        coefficient: 0.45,
-        hits: 1
-      },
-      {
-        type: 'control',
-        controlKind: CONTROL.PULL
-      }
-    ]
-  },
-  [ID.ASHES_OF_THE_JUST]: {
-    // Accepted casts schedule the party grant at its application boundary during the animation.
-    sideEffects: [
-      {
-        on: 'castStart',
-        when: (_runtime, cast) => !cast.cancelled,
-        do: {
-          type: 'guardian.start-ashes',
-          id: 'grant',
-          effects: [
-            {
-              type: 'buff',
-              name: 'ashes-of-the-just',
-              kind: 'ashes-of-the-just',
-              stacks: 2,
-              duration: 10,
-              actorType: ACTOR.PLAYER
-            },
-            {
-              type: 'boon',
-              name: 'might',
-              boon: BOON.MIGHT,
-              stacks: 8,
-              duration: 10,
-              actorType: ACTOR.PLAYER
-            }
-          ]
-        }
-      }
-    ],
-    // Debit on commitment before the earned Swift Scholar refund.
-    resourceCost: 1,
-    cost: { resource: 'tomePages', spendOn: 'castCommit' },
-    castTimeMs: 880,
-    // A committed cancellation preserves the separately scheduled Ashes grant.
-    interruptCommitMs: 640,
-    effects: []
-  },
   [ID.ETERNAL_OASIS]: {
     // Debit on commitment before the earned Swift Scholar refund.
     resourceCost: 2,
@@ -369,15 +330,87 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       }
     ]
   },
+  [ID.DARING_CHALLENGE]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
+    castTimeMs: 200,
+    effects: [
+      {
+        weaponStrengthProfileId: 'bundle.exotic',
+        type: 'strike',
+        coefficient: 1.4,
+        hits: 1
+      },
+      {
+        type: 'control',
+        controlKind: CONTROL.TAUNT
+      },
+      {
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.RESOLUTION,
+        duration: 3
+      }
+    ]
+  },
   [ID.TOME_OF_JUSTICE]: {
     dormantCooldown: 20,
-    // Reopening preserves the shared dormancy and session controller.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-justice' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
+    castTimeMs: 0,
     // Tome transitions change the available bar without cancelling the active animation.
     canCastConcurrently: true,
-    castTimeMs: 0,
+    effects: [],
+    // Reopening preserves the shared dormancy and session controller.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-justice' } }]
+  },
+  [ID.VALIANT_BULWARK]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
+    castTimeMs: 200,
     effects: []
+  },
+  [ID.STALWART_STAND]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
+    castTimeMs: 200,
+    effects: [
+      {
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.RESISTANCE,
+        duration: 1
+      },
+      {
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.RESISTANCE,
+        duration: 1,
+        atMs: 1240,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.RESISTANCE,
+        duration: 1,
+        atMs: 2240,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.RESISTANCE,
+        duration: 1,
+        atMs: 3240,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.UNBROKEN_LINES]: {
     // Debit on commitment before the earned Swift Scholar refund.
@@ -408,39 +441,6 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.AEGIS,
         duration: 4
-      }
-    ]
-  },
-  [ID.DESERT_BLOOM]: {
-    // Debit on commitment before the earned Swift Scholar refund.
-    resourceCost: 1,
-    cost: { resource: 'tomePages', spendOn: 'castCommit' },
-    castTimeMs: 200,
-    effects: []
-  },
-  [ID.AZURE_SUN]: {
-    // Debit on commitment before the earned Swift Scholar refund.
-    resourceCost: 1,
-    cost: { resource: 'tomePages', spendOn: 'castCommit' },
-    castTimeMs: 200,
-    effects: [
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.VIGOR,
-        duration: 5
-      },
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.REGENERATION,
-        duration: 6
-      },
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.SWIFTNESS,
-        duration: 5
       }
     ]
   }

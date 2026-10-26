@@ -19,12 +19,7 @@ import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necro
 
 export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.INNERVATE_PRESERVATION]: {
-    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [
-      { on: 'castCommit', do: lifeForceGrant({ id: 'innervate', unit: 'cast', grant: { percent: 10 } }) },
-      { on: 'castCommit', do: { type: 'ritualist.innervate' } }
-    ],
-    effectVariants: [{ when: () => true, transform: () => [] }],
+    usableInShroud: true,
     castTimeMs: 0,
     // Commit grants life force, then the Innervate handler applies the party payload.
 
@@ -51,166 +46,31 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ],
-    usableInShroud: true
-  },
-  [ID.SUMMON_SPIRITS]: {
-    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-spirits' } }],
-    castTimeMs: 0,
-    effects: [],
-    type: 'Profession',
-    slot: 'Weapon_5',
-    shroud: 'ritualist',
-    shroudSlot: 5,
-    specialization: 'Ritualist'
-  },
-  [ID.PRESERVATION]: {
-    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-preservation' } }],
     effectVariants: [{ when: () => true, transform: () => [] }],
-    castTimeMs: 480,
-    // Summoning grants these boons before the spirit's autonomous attack loop starts.
-    effects: [
-      {
-        type: 'boon',
-        boon: BOON.PROTECTION,
-        duration: 4,
-        stacks: 1,
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
-      },
-      {
-        type: 'boon',
-        boon: BOON.VIGOR,
-        duration: 4,
-        stacks: 1,
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
-      }
-    ],
-    type: 'Profession',
-    slot: 'Weapon_4',
-    shroud: 'ritualist',
-    shroudSlot: 4,
-    specialization: 'Ritualist'
-  },
-  [ID.INNERVATE_WANDERLUST]: {
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
     sideEffects: [
       { on: 'castCommit', do: lifeForceGrant({ id: 'innervate', unit: 'cast', grant: { percent: 10 } }) },
       { on: 'castCommit', do: { type: 'ritualist.innervate' } }
-    ],
-    effectVariants: [{ when: () => true, transform: () => [] }],
-    castTimeMs: 0,
-
-    effects: [
-      {
-        type: 'condition',
-        condition: CONDITION.FEAR,
-        stacks: 1,
-        duration: 2
-      }
-    ],
-    usableInShroud: true
-  },
-  [ID.NIGHTMARE_WEAPON]: {
-    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.nightmare-weapon' } }],
-    effectVariants: [{ when: () => true, transform: () => [] }],
-    castTimeMs: 240,
-    effects: [
-      {
-        type: 'buff',
-        kind: 'nightmare-weapon',
-        duration: 10,
-        stacks: 5,
-        allyStacks: 3,
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
-      }
     ]
-  },
-  [ID.ANGUISH]: {
-    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-anguish' } }],
-    castTimeMs: 560,
-    interruptCommitMs: 400,
-    interruptMode: 'commit',
-    retainsCastLockoutAfterInterrupt: true,
-    effects: [],
-    type: 'Profession',
-    slot: 'Weapon_2',
-    shroud: 'ritualist',
-    shroudSlot: 2,
-    specialization: 'Ritualist'
-  },
-  [ID.EXIT_RITUALISTS_SHROUD]: {
-    // The skill owns this transaction; its shared helper retains state and lifetime rules.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.exit-shroud' } }],
-    castTimeMs: 0,
-    effects: [],
-    cooldown: 0,
-    specialization: 'Ritualist',
-    shroudExit: 'ritualist',
-    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
-    inputCategory: 'bar-swap'
-  },
-  [ID.WANDERLUST]: {
-    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'ritualist.wanderlust-opening' } },
-      { on: 'castCommit', do: { type: 'ritualist.summon-wanderlust' } }
-    ],
-    castTimeMs: 760,
-    effects: [],
-    type: 'Profession',
-    slot: 'Weapon_3',
-    shroud: 'ritualist',
-    shroudSlot: 3,
-    specialization: 'Ritualist'
-  },
-  [ID.SPLINTER_WEAPON]: {
-    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.splinter-weapon' } }],
-    effectVariants: [{ when: () => true, transform: () => [] }],
-    castTimeMs: 240,
-    effects: [
-      {
-        type: 'buff',
-        kind: 'splinter-weapon',
-        duration: 10,
-        stacks: 5,
-        allyStacks: 3,
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
-      }
-    ]
-  },
-  [ID.INNERVATE_ANGUISH]: {
-    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [
-      { on: 'castCommit', do: lifeForceGrant({ id: 'innervate', unit: 'cast', grant: { percent: 10 } }) },
-      { on: 'castCommit', do: { type: 'ritualist.innervate' } }
-    ],
-    effectVariants: [{ when: () => true, transform: () => [] }],
-    castTimeMs: 0,
-
-    effects: [
-      { type: 'strike', coefficient: 1.3, hits: 1 },
-      {
-        type: 'boon',
-        boon: BOON.MIGHT,
-        duration: 10,
-        stacks: 8,
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
-      },
-      {
-        type: 'boon',
-        boon: BOON.FURY,
-        duration: 5,
-        stacks: 1,
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
-      }
-    ],
-    usableInShroud: true
   },
   [ID.ESSENCE_BLAST]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    type: 'Profession',
+    slot: 'Weapon_1',
+    shroud: 'ritualist',
+    shroudSlot: 1,
+    specialization: 'Ritualist',
+    castTimeMs: 600,
+    interruptCommitMs: 560,
+    effects: [
+      {
+        weaponStrengthProfileId: 'transform.ritualist-shroud',
+        type: 'strike',
+        coefficient: 0.75,
+        hits: 1,
+        persistsAfterInterrupt: true
+      }
+    ],
     // Carry the accepted weapon and spirit count into the delayed packet, retaining selected patch data.
     effectVariants: [
       {
@@ -230,42 +90,179 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
           }));
         }
       }
-    ],
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 600,
-    interruptCommitMs: 560,
+    ]
+  },
+  [ID.ANGUISH]: {
+    type: 'Profession',
+    slot: 'Weapon_2',
+    shroud: 'ritualist',
+    shroudSlot: 2,
+    specialization: 'Ritualist',
+    castTimeMs: 560,
+    interruptMode: 'commit',
+    interruptCommitMs: 400,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: [],
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-anguish' } }]
+  },
+  [ID.INNERVATE_WANDERLUST]: {
+    usableInShroud: true,
+    castTimeMs: 0,
+
     effects: [
       {
-        weaponStrengthProfileId: 'transform.ritualist-shroud',
-        type: 'strike',
-        coefficient: 0.75,
-        hits: 1,
-        persistsAfterInterrupt: true
+        type: 'condition',
+        condition: CONDITION.FEAR,
+        stacks: 1,
+        duration: 2
       }
     ],
-    type: 'Profession',
-    slot: 'Weapon_1',
-    shroud: 'ritualist',
-    shroudSlot: 1,
-    specialization: 'Ritualist'
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [
+      { on: 'castCommit', do: lifeForceGrant({ id: 'innervate', unit: 'cast', grant: { percent: 10 } }) },
+      { on: 'castCommit', do: { type: 'ritualist.innervate' } }
+    ]
   },
-  [ID.RITUALISTS_SHROUD]: {
-    // The skill owns this transaction; its shared helper retains state and lifetime rules.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.enter-shroud' } }],
+  [ID.NIGHTMARE_WEAPON]: {
+    castTimeMs: 240,
+    effects: [
+      {
+        type: 'buff',
+        kind: 'nightmare-weapon',
+        duration: 10,
+        stacks: 5,
+        allyStacks: 3,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      }
+    ],
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.nightmare-weapon' } }]
+  },
+  [ID.WANDERLUST]: {
+    type: 'Profession',
+    slot: 'Weapon_3',
+    shroud: 'ritualist',
+    shroudSlot: 3,
+    specialization: 'Ritualist',
+    castTimeMs: 760,
+    effects: [],
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'ritualist.wanderlust-opening' } },
+      { on: 'castCommit', do: { type: 'ritualist.summon-wanderlust' } }
+    ]
+  },
+  [ID.EXIT_RITUALISTS_SHROUD]: {
+    cooldown: 0,
+    specialization: 'Ritualist',
+    shroudExit: 'ritualist',
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
+    inputCategory: 'bar-swap',
     castTimeMs: 0,
     effects: [],
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.exit-shroud' } }]
+  },
+  [ID.PRESERVATION]: {
+    type: 'Profession',
+    slot: 'Weapon_4',
+    shroud: 'ritualist',
+    shroudSlot: 4,
+    specialization: 'Ritualist',
+    castTimeMs: 480,
+    // Summoning grants these boons before the spirit's autonomous attack loop starts.
+    effects: [
+      {
+        type: 'boon',
+        boon: BOON.PROTECTION,
+        duration: 4,
+        stacks: 1,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      },
+      {
+        type: 'boon',
+        boon: BOON.VIGOR,
+        duration: 4,
+        stacks: 1,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      }
+    ],
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-preservation' } }]
+  },
+  [ID.SPLINTER_WEAPON]: {
+    castTimeMs: 240,
+    effects: [
+      {
+        type: 'buff',
+        kind: 'splinter-weapon',
+        duration: 10,
+        stacks: 5,
+        allyStacks: 3,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      }
+    ],
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.splinter-weapon' } }]
+  },
+  [ID.INNERVATE_ANGUISH]: {
+    usableInShroud: true,
+    castTimeMs: 0,
+
+    effects: [
+      { type: 'strike', coefficient: 1.3, hits: 1 },
+      {
+        type: 'boon',
+        boon: BOON.MIGHT,
+        duration: 10,
+        stacks: 8,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      },
+      {
+        type: 'boon',
+        boon: BOON.FURY,
+        duration: 5,
+        stacks: 1,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      }
+    ],
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [
+      { on: 'castCommit', do: lifeForceGrant({ id: 'innervate', unit: 'cast', grant: { percent: 10 } }) },
+      { on: 'castCommit', do: { type: 'ritualist.innervate' } }
+    ]
+  },
+  [ID.SUMMON_SPIRITS]: {
+    type: 'Profession',
+    slot: 'Weapon_5',
+    shroud: 'ritualist',
+    shroudSlot: 5,
+    specialization: 'Ritualist',
+    castTimeMs: 0,
+    effects: [],
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-spirits' } }]
+  },
+  [ID.RITUALISTS_SHROUD]: {
     cooldown: 10,
     specialization: 'Ritualist',
     shroudEntry: 'ritualist',
     shroudProfileId: PROFILE.resources,
     minimumShroudLifeForcePercent: 10,
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
-    inputCategory: 'bar-swap'
+    inputCategory: 'bar-swap',
+    castTimeMs: 0,
+    effects: [],
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.enter-shroud' } }]
   },
   [ID.RESILIENT_WEAPON]: {
-    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.resilient-weapon' } }],
-    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 680,
     effects: [
       {
@@ -276,7 +273,10 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         allyStacks: 3,
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
-    ]
+    ],
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.resilient-weapon' } }]
   }
 });
 

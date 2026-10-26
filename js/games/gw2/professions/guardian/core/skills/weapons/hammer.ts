@@ -4,29 +4,6 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.BANISH]: {
-    castTimeMs: 520,
-    effects: [
-      {
-        type: 'strike',
-        // A landed strike refreshes the hammer leap, including its Glacial Heart replacement; misses grant no reset.
-        reactions: [
-          {
-            on: 'damage.resolved',
-            actor: ACTOR.PLAYER,
-            packets: 'each',
-            do: { type: 'rechargeReset', skillIds: [ID.MIGHTY_BLOW, ID.GLACIAL_BLOW] }
-          }
-        ],
-        coefficient: 3,
-        hits: 1
-      },
-      {
-        type: 'control',
-        controlKind: CONTROL.LAUNCH
-      }
-    ]
-  },
   [ID.HAMMER_SWING]: {
     castTimeMs: 480,
     effects: [
@@ -97,35 +74,6 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
       }
     ]
   },
-  [ID.RING_OF_WARDING]: {
-    castTimeMs: 520,
-    // Ring is represented only by the five-second Light field relevant to combo resolution.
-    comboFields: [
-      {
-        ownerId: 'guardian',
-        fieldType: COMBO_FIELD.LIGHT,
-        duration: 5,
-        startAnchor: 'castEnd'
-      }
-    ],
-    effects: []
-  },
-  [ID.ZEALOTS_EMBRACE]: {
-    castTimeMs: 520,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.25,
-        hits: 1
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.IMMOBILIZED,
-        stacks: 1,
-        duration: 2
-      }
-    ]
-  },
   [ID.GLACIAL_BLOW]: {
     castTimeMs: 520,
     effects: [
@@ -147,5 +95,57 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 2.5
       }
     ]
+  },
+  [ID.ZEALOTS_EMBRACE]: {
+    castTimeMs: 520,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 2.25,
+        hits: 1
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.IMMOBILIZED,
+        stacks: 1,
+        duration: 2
+      }
+    ]
+  },
+  [ID.BANISH]: {
+    castTimeMs: 520,
+    effects: [
+      {
+        type: 'strike',
+        // A landed strike refreshes the hammer leap, including its Glacial Heart replacement; misses grant no reset.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: ACTOR.PLAYER,
+            packets: 'each',
+            do: { type: 'rechargeReset', skillIds: [ID.MIGHTY_BLOW, ID.GLACIAL_BLOW] }
+          }
+        ],
+        coefficient: 3,
+        hits: 1
+      },
+      {
+        type: 'control',
+        controlKind: CONTROL.LAUNCH
+      }
+    ]
+  },
+  [ID.RING_OF_WARDING]: {
+    castTimeMs: 520,
+    // Ring is represented only by the five-second Light field relevant to combo resolution.
+    comboFields: [
+      {
+        ownerId: 'guardian',
+        fieldType: COMBO_FIELD.LIGHT,
+        duration: 5,
+        startAnchor: 'castEnd'
+      }
+    ],
+    effects: []
   }
 });

@@ -20,35 +20,9 @@ const DEMOLISH_SMASH_AT_MS = 1440;
 
 // Declare each protocol once; its three catalog entries differ only in mechanic slot.
 const shred: Partial<AmalgamSkill> = {
-  // This protocol's strain is consumed by Evolve or Silver Lining, never emitted unconditionally.
-  sideEffects: [
-    {
-      on: 'castCommit',
-      do: {
-        type: 'engineer.morph',
-        id: 'strain',
-        effects: [
-          {
-            type: 'boon',
-            boon: 'Quickness',
-            duration: 8,
-            sourceId: 'engineer.predator-strain',
-            name: 'Predator Strain'
-          },
-          {
-            type: 'buff',
-            kind: 'superspeed',
-            duration: 8,
-            sourceId: 'engineer.predator-strain',
-            name: 'Predator Strain'
-          }
-        ]
-      }
-    }
-  ],
   countsAsToolbeltSkill: true,
-  castTimeMs: 760,
   cooldown: 20,
+  castTimeMs: 760,
   comboFinishers: [
     {
       ownerId: 'engineer',
@@ -77,6 +51,32 @@ const shred: Partial<AmalgamSkill> = {
       duration: 3,
       actorType: ACTOR.PLAYER
     }
+  ],
+  // This protocol's strain is consumed by Evolve or Silver Lining, never emitted unconditionally.
+  sideEffects: [
+    {
+      on: 'castCommit',
+      do: {
+        type: 'engineer.morph',
+        id: 'strain',
+        effects: [
+          {
+            type: 'boon',
+            boon: 'Quickness',
+            duration: 8,
+            sourceId: 'engineer.predator-strain',
+            name: 'Predator Strain'
+          },
+          {
+            type: 'buff',
+            kind: 'superspeed',
+            duration: 8,
+            sourceId: 'engineer.predator-strain',
+            name: 'Predator Strain'
+          }
+        ]
+      }
+    }
   ]
 };
 
@@ -84,6 +84,20 @@ const thorns: Partial<AmalgamSkill> = {
   // The intrinsic field-gated retaliation is scheduled once; Morph trait rewards remain shared.
   maximumStacks: 6,
   retaliationInterval: 1,
+  countsAsToolbeltSkill: true,
+  cooldown: 20,
+  // Custom: Activates the selected morph, strain, and form-specific effects; see `amalgam/mechanics/evolved-form.ts`.
+
+  castTimeMs: 0,
+  effects: [
+    {
+      type: 'strike',
+      coefficient: 1,
+      hits: 1,
+      name: 'Initial Damage',
+      actorType: ACTOR.PLAYER
+    }
+  ],
   // Retaliation and strain grants are independent components of the accepted Thorns protocol.
   sideEffects: [
     {
@@ -95,51 +109,17 @@ const thorns: Partial<AmalgamSkill> = {
       }
     },
     { on: 'castCommit', do: { type: 'engineer.morph', id: 'strain', effects: [] } }
-  ],
-  countsAsToolbeltSkill: true,
-  // Custom: Activates the selected morph, strain, and form-specific effects; see `amalgam/mechanics/evolved-form.ts`.
-
-  castTimeMs: 0,
-  cooldown: 20,
-  effects: [
-    {
-      type: 'strike',
-      coefficient: 1,
-      hits: 1,
-      name: 'Initial Damage',
-      actorType: ACTOR.PLAYER
-    }
   ]
 };
 
 const demolish: Partial<AmalgamSkill> = {
-  // This protocol's strain is consumed by Evolve or Silver Lining, never emitted unconditionally.
-  sideEffects: [
-    {
-      on: 'castCommit',
-      do: {
-        type: 'engineer.morph',
-        id: 'strain',
-        effects: [
-          {
-            type: 'boon',
-            boon: 'Stability',
-            duration: 8,
-            stacks: 5,
-            sourceId: 'engineer.berserker-strain',
-            name: 'Berserker Strain'
-          }
-        ]
-      }
-    }
-  ],
   countsAsToolbeltSkill: true,
-  castTimeMs: DEMOLISH_CAST_TIME_MS,
-  // Commit after the smash so its remaining aftercast can be interrupted.
-  interruptCommitMs: 1520,
   cooldown: 20,
   rechargeAnchor: 'castStart',
   rechargeOffsetMs: DEMOLISH_RECHARGE_OFFSET_MS,
+  castTimeMs: DEMOLISH_CAST_TIME_MS,
+  // Commit after the smash so its remaining aftercast can be interrupted.
+  interruptCommitMs: 1520,
   effects: [
     {
       type: 'strike',
@@ -169,10 +149,50 @@ const demolish: Partial<AmalgamSkill> = {
         }
       ]
     }
+  ],
+  // This protocol's strain is consumed by Evolve or Silver Lining, never emitted unconditionally.
+  sideEffects: [
+    {
+      on: 'castCommit',
+      do: {
+        type: 'engineer.morph',
+        id: 'strain',
+        effects: [
+          {
+            type: 'boon',
+            boon: 'Stability',
+            duration: 8,
+            stacks: 5,
+            sourceId: 'engineer.berserker-strain',
+            name: 'Berserker Strain'
+          }
+        ]
+      }
+    }
   ]
 };
 
 const obliterate: Partial<AmalgamSkill> = {
+  countsAsToolbeltSkill: true,
+  cooldown: 20,
+  castTimeMs: 800,
+  // Share one impact timing while preserving independent payloads and declaration order.
+  effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+    {
+      type: 'strike',
+      coefficient: 2.88,
+      hits: 1,
+      name: 'Offensive Protocol: Obliterate',
+      actorType: ACTOR.PLAYER
+    },
+    {
+      type: 'condition',
+      condition: CONDITION.BLEEDING,
+      stacks: 8,
+      duration: 6,
+      actorType: ACTOR.PLAYER
+    }
+  ]),
   // This protocol's strain is consumed by Evolve or Silver Lining, never emitted unconditionally.
   sideEffects: [
     {
@@ -192,30 +212,21 @@ const obliterate: Partial<AmalgamSkill> = {
         ]
       }
     }
-  ],
-  countsAsToolbeltSkill: true,
-  castTimeMs: 800,
-  cooldown: 20,
-  // Share one impact timing while preserving independent payloads and declaration order.
-  effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-    {
-      type: 'strike',
-      coefficient: 2.88,
-      hits: 1,
-      name: 'Offensive Protocol: Obliterate',
-      actorType: ACTOR.PLAYER
-    },
-    {
-      type: 'condition',
-      condition: CONDITION.BLEEDING,
-      stacks: 8,
-      duration: 6,
-      actorType: ACTOR.PLAYER
-    }
-  ])
+  ]
 };
 
 const cleanse: Partial<AmalgamSkill> = {
+  countsAsToolbeltSkill: true,
+  cooldown: 20,
+  castTimeMs: 0,
+  effects: [
+    {
+      type: 'boon',
+      boon: BOON.PROTECTION,
+      duration: 3,
+      stacks: 1
+    }
+  ],
   // This protocol's strain is consumed by Evolve or Silver Lining, never emitted unconditionally.
   sideEffects: [
     {
@@ -234,37 +245,13 @@ const cleanse: Partial<AmalgamSkill> = {
         ]
       }
     }
-  ],
-  countsAsToolbeltSkill: true,
-  castTimeMs: 0,
-  cooldown: 20,
-  effects: [
-    {
-      type: 'boon',
-      boon: BOON.PROTECTION,
-      duration: 3,
-      stacks: 1
-    }
   ]
 };
 
 const pierce: Partial<AmalgamSkill> = {
-  // This protocol's strain is consumed by Evolve or Silver Lining, never emitted unconditionally.
-  sideEffects: [
-    {
-      on: 'castCommit',
-      do: {
-        type: 'engineer.morph',
-        id: 'strain',
-        effects: [
-          { type: 'control', controlKind: 'stun', sourceId: 'engineer.volatile-strain', name: 'Volatile Strain' }
-        ]
-      }
-    }
-  ],
   countsAsToolbeltSkill: true,
-  castTimeMs: 680,
   cooldown: 20,
+  castTimeMs: 680,
   effects: [
     {
       type: 'strike',
@@ -285,10 +272,27 @@ const pierce: Partial<AmalgamSkill> = {
       actorType: ACTOR.PLAYER,
       controlKind: CONTROL.STUN
     }
+  ],
+  // This protocol's strain is consumed by Evolve or Silver Lining, never emitted unconditionally.
+  sideEffects: [
+    {
+      on: 'castCommit',
+      do: {
+        type: 'engineer.morph',
+        id: 'strain',
+        effects: [
+          { type: 'control', controlKind: 'stun', sourceId: 'engineer.volatile-strain', name: 'Volatile Strain' }
+        ]
+      }
+    }
   ]
 };
 
 const protect: Partial<AmalgamSkill> = {
+  countsAsToolbeltSkill: true,
+  cooldown: 20,
+  castTimeMs: 1000,
+  effects: [],
   // This protocol's strain is consumed by Evolve or Silver Lining, never emitted unconditionally.
   sideEffects: [
     {
@@ -307,11 +311,7 @@ const protect: Partial<AmalgamSkill> = {
         ]
       }
     }
-  ],
-  countsAsToolbeltSkill: true,
-  castTimeMs: 1000,
-  cooldown: 20,
-  effects: []
+  ]
 };
 
 export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, Partial<AmalgamSkill>>> = Object.freeze({

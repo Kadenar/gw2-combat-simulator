@@ -30,86 +30,26 @@ function stalkersStrikeTargetImpaired(hasCondition: (condition: string) => boole
 
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
 export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.CRIPPLING_TALON]: {
-    // Once the projectile launches, cancelling the remaining animation preserves its impact effects.
-    interruptCommitMs: 320,
-    effects: impactEffects({ persistsAfterInterrupt: true }, [
-      {
-        type: 'strike',
-        projectile: true,
-        coefficient: 0.9,
-        hits: 1,
-        comboFinishers: [
-          {
-            ownerId: 'ranger',
-            finisherType: COMBO_FINISHER.PROJECTILE
-          }
-        ]
-      },
+  [ID.GROUNDWORK_GOUGE]: {
+    castTimeMs: 280,
+    // Committing the opening strike preserves its effects and advances the dagger chain when interrupted.
+    interruptCommitMs: 200,
+    effects: [
       {
         type: 'condition',
-        condition: CONDITION.BLEEDING,
-        stacks: 3,
-        duration: 6
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.CRIPPLED,
+        condition: CONDITION.VULNERABILITY,
         stacks: 1,
         duration: 4
-      }
-    ]),
-    castTimeMs: 360
-  },
-  [ID.STALKERS_STRIKE]: {
-    // Double this strike against the supported impairments, evaluated at impact.
-    modifiers: [
-      {
-        id: 'ranger.stalkers-strike-movement-impaired',
-        label: "Stalker's Strike - impaired target",
-        target: 'strikeDamage',
-        operation: 'multiply',
-        factor: (context) => balanceNumberFromContext(context, PROFILE.stalkersStrikeImpaired, 'damageMultiplier'),
-        when: (context) =>
-          stalkersStrikeTargetImpaired((condition) =>
-            targetHasCondition(context.config ?? {}, condition, context.time, context.runtime)
-          )
-      }
-    ],
-    evades: true,
-    // The early stab commits before the evade ends; cancelling retains its damage and the remaining evade lockout.
-    interruptCommitMs: 200,
-    retainsCastLockoutAfterInterrupt: true,
-    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        // The strike owns only its impaired-target bonus; the base poison remains independent.
-        reactions: [
-          {
-            on: 'damage.resolved',
-            actor: ACTOR.PLAYER,
-            packets: 'each',
-            when: (runtime, { event }) =>
-              Number(event.coefficient) > 0 &&
-              !isPetStrike(event) &&
-              stalkersStrikeTargetImpaired((condition) => runtime.combat.targetHasCondition(condition, event.at)),
-            do: { type: 'ranger.stalkers-poison' }
-          }
-        ],
-        coefficient: 0.6,
-        hits: 1
       },
       {
-        type: 'condition',
-        condition: CONDITION.POISONED,
-        stacks: 3,
-        duration: 8
+        type: 'strike',
+        coefficient: 0.4,
+        hits: 1
       }
-    ]),
-    // Movement impairment adds the remaining strike and Poison bonuses during resolution.
-    castTimeMs: 760
+    ]
   },
   [ID.LEADING_SWIPE]: {
+    castTimeMs: 320,
     effects: [
       {
         type: 'condition',
@@ -122,8 +62,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
         coefficient: 0.42,
         hits: 1
       }
-    ],
-    castTimeMs: 320
+    ]
   },
   [ID.SERPENT_STAB]: {
     castTimeMs: 280,
@@ -141,28 +80,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
         hits: 1
       }
     ])
-  },
-  [ID.DOUBLE_ARC]: {
-    // Arm subsequent qualifying hits only on semantic commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.poisonous-strikes' } }],
-    effects: [
-      {
-        type: 'condition',
-        condition: CONDITION.BLEEDING,
-        stacks: 6,
-        duration: 6
-      },
-      {
-        type: 'strike',
-        coefficient: 1.6,
-        hits: 2,
-        atMs: 0
-      }
-    ],
-
-    cooldown: 6,
-    castTimeMs: 600
-    // Double Arc arms the pet's next two attacks; the weapon hit does not poison directly.
   },
   [ID.DEADLY_DELIVERY]: {
     castTimeMs: 440,
@@ -193,25 +110,30 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
       }
     ])
   },
-  [ID.GROUNDWORK_GOUGE]: {
-    // Committing the opening strike preserves its effects and advances the dagger chain when interrupted.
-    interruptCommitMs: 200,
+  [ID.DOUBLE_ARC]: {
+    cooldown: 6,
+    castTimeMs: 600,
     effects: [
       {
         type: 'condition',
-        condition: CONDITION.VULNERABILITY,
-        stacks: 1,
-        duration: 4
+        condition: CONDITION.BLEEDING,
+        stacks: 6,
+        duration: 6
       },
       {
         type: 'strike',
-        coefficient: 0.4,
-        hits: 1
+        coefficient: 1.6,
+        hits: 2,
+        atMs: 0
       }
     ],
-    castTimeMs: 280
+    // Arm subsequent qualifying hits only on semantic commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.poisonous-strikes' } }]
+    // Double Arc arms the pet's next two attacks; the weapon hit does not poison directly.
   },
   [ID.INSTINCTIVE_ENGAGE]: {
+    cooldown: 12,
+    castTimeMs: 840,
     effects: [
       {
         type: 'strike',
@@ -242,10 +164,86 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
         stacks: 4,
         duration: 8
       }
+    ]
+  },
+  [ID.STALKERS_STRIKE]: {
+    // Double this strike against the supported impairments, evaluated at impact.
+    modifiers: [
+      {
+        id: 'ranger.stalkers-strike-movement-impaired',
+        label: "Stalker's Strike - impaired target",
+        target: 'strikeDamage',
+        operation: 'multiply',
+        factor: (context) => balanceNumberFromContext(context, PROFILE.stalkersStrikeImpaired, 'damageMultiplier'),
+        when: (context) =>
+          stalkersStrikeTargetImpaired((condition) =>
+            targetHasCondition(context.config ?? {}, condition, context.time, context.runtime)
+          )
+      }
     ],
-
-    cooldown: 12,
-    castTimeMs: 840
+    evades: true,
+    // Movement impairment adds the remaining strike and Poison bonuses during resolution.
+    castTimeMs: 760,
+    // The early stab commits before the evade ends; cancelling retains its damage and the remaining evade lockout.
+    interruptCommitMs: 200,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        // The strike owns only its impaired-target bonus; the base poison remains independent.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: ACTOR.PLAYER,
+            packets: 'each',
+            when: (runtime, { event }) =>
+              Number(event.coefficient) > 0 &&
+              !isPetStrike(event) &&
+              stalkersStrikeTargetImpaired((condition) => runtime.combat.targetHasCondition(condition, event.at)),
+            do: { type: 'ranger.stalkers-poison' }
+          }
+        ],
+        coefficient: 0.6,
+        hits: 1
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.POISONED,
+        stacks: 3,
+        duration: 8
+      }
+    ])
+  },
+  [ID.CRIPPLING_TALON]: {
+    castTimeMs: 360,
+    // Once the projectile launches, cancelling the remaining animation preserves its impact effects.
+    interruptCommitMs: 320,
+    effects: impactEffects({ persistsAfterInterrupt: true }, [
+      {
+        type: 'strike',
+        projectile: true,
+        coefficient: 0.9,
+        hits: 1,
+        comboFinishers: [
+          {
+            ownerId: 'ranger',
+            finisherType: COMBO_FINISHER.PROJECTILE
+          }
+        ]
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 3,
+        duration: 6
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.CRIPPLED,
+        stacks: 1,
+        duration: 4
+      }
+    ])
   }
 });
 

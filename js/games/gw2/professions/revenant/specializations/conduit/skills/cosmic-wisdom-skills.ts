@@ -6,9 +6,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FORM_OF_THE_DERVISH_ATTACK]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -20,18 +20,18 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.SHIELDING_HANDS]: {
-    // A completed heal grants Shared Wisdom's Protection through the same trait hook as Entity utilities.
-    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } }],
-    castTimeMs: 1000,
     cooldown: 30,
     energyCost: 5,
+    legendId: 'LegendaryEntity',
+    castTimeMs: 1000,
     effects: [],
-    legendId: 'LegendaryEntity'
+    // A completed heal grants Shared Wisdom's Protection through the same trait hook as Entity utilities.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } }]
   },
   [ID.FORM_OF_THE_DERVISH_ATTACK_ELITE]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -43,12 +43,10 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.COSMIC_WISDOM]: {
-    // Complete pre-form trait rewards before opening the form and publishing its gift.
-    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.cosmic-wisdom' } }],
-    // Custom: Activates the Cosmic Wisdom affinity window; see `conduit/hooks.ts`.
-    castTimeMs: 0,
     cooldown: 20,
     energyCost: 0,
+    // Custom: Activates the Cosmic Wisdom affinity window; see `conduit/hooks.ts`.
+    castTimeMs: 0,
     effects: [
       {
         name: 'cosmic-wisdom',
@@ -58,12 +56,14 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Part
         stacks: 1,
         actorType: ACTOR.PLAYER
       }
-    ]
+    ],
+    // Complete pre-form trait rewards before opening the form and publishing its gift.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.cosmic-wisdom' } }]
   },
   [ID.LESSER_ENCHANTED_DAGGERS]: {
-    castTimeMs: 0,
     cooldown: 1,
     energyCost: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',

@@ -15,6 +15,7 @@ const WHIRLING_DEFENSE_TICK_OFFSETS_MS = [200, 360, 600, 840, 1040, 1280, 1520, 
 export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RICOCHET]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    castTimeMs: 600,
     interruptCommitMs: 320,
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -35,10 +36,11 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         duration: 5,
         stacks: 1
       }
-    ]),
-    castTimeMs: 600
+    ])
   },
   [ID.SPLITBLADE]: {
+    // Match the observed median Quickness animation, rounded to the 40 ms action tick.
+    castTimeMs: 560,
     interruptCommitMs: 480,
     retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -61,13 +63,10 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         stacks: 5,
         duration: 6
       }
-    ]),
-    // Match the observed median Quickness animation, rounded to the 40 ms action tick.
-    castTimeMs: 560
+    ])
   },
   [ID.WINTERS_BITE]: {
-    // Arm subsequent qualifying hits only on semantic commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.winter-bite' } }],
+    castTimeMs: 520,
     interruptCommitMs: 360,
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -88,9 +87,11 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         duration: 4
       }
     ]),
-    castTimeMs: 520
+    // Arm subsequent qualifying hits only on semantic commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.winter-bite' } }]
   },
   [ID.PATH_OF_SCARS]: {
+    castTimeMs: 440,
     interruptCommitMs: 360,
     // Both range variants share the same weapon-slot recharge after completion.
 
@@ -117,10 +118,10 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         atMs: 480,
         controlKind: CONTROL.PULL
       }
-    ]),
-    castTimeMs: 440
+    ])
   },
   [ID.WHIRLING_DEFENSE]: {
+    castTimeMs: 2720,
     interruptMode: 'per-packet',
     effects: [
       // Each landed channel tick applies one stack and attempts a whirl; interruption drops the remaining pairs.
@@ -149,26 +150,25 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         duration: 4,
         stacks: 1
       }
-    ],
-    castTimeMs: 2720
+    ]
   }
 });
 
 /** Owns the max-range Path of Scars identity beside the canonical Axe fragment. */
 export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   {
-    id: ID.PATH_OF_SCARS_MAX_RANGE,
-    interruptCommitMs: 360,
     name: 'Path of Scars (Max Range)',
+    id: ID.PATH_OF_SCARS_MAX_RANGE,
     description: 'Throw your axe from maximum range so its returning strike lands later.',
     icon: 'https://render.guildwars2.com/file/B5B27723701C39327D2145DEE76579FB007F9344/103903.png',
     variantBadge: 'MAX',
     type: 'Weapon',
     weapon: WEAPON.AXE,
     slot: 'Weapon_4',
-    castTimeMs: 440,
     rechargeAnchor: 'castStart',
     cooldown: 15,
+    castTimeMs: 440,
+    interruptCommitMs: 360,
     // Both range variants share the same weapon-slot recharge after completion.
 
     // Share timing defaults while preserving each packet, effect order, and local schedule.

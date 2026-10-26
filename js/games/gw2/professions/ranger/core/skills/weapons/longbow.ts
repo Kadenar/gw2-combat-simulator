@@ -6,29 +6,27 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
 export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.BARRAGE]: {
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+  [ID.LONG_RANGE_SHOT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    castTimeMs: 480,
+    effects: [
       {
         type: 'strike',
-        ticks: [1440, 1920, 2400, 2880, 3480, 4080, 4680, 5280, 5880, 6480, 7080, 7680].map((atMs) => ({
-          atMs,
-          coefficient: 0.5
-        }))
-      },
-      {
-        type: 'condition',
-        ticks: [1440, 1920, 2400, 2880, 3480, 4080, 4680, 5280, 5880, 6480, 7080, 7680].map((atMs) => ({
-          atMs,
-          condition: CONDITION.CRIPPLED,
-          stacks: 1,
-          duration: 1
-        }))
+        projectile: true,
+        coefficient: 1.33,
+        hits: 1,
+        comboFinishers: [
+          {
+            ownerId: 'ranger',
+            finisherType: COMBO_FINISHER.PROJECTILE,
+            chance: 0.2
+          }
+        ]
       }
-    ]),
-    castTimeMs: 1880
+    ]
   },
   [ID.RAPID_FIRE]: {
+    castTimeMs: 1800,
     interruptMode: 'per-packet',
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -53,50 +51,10 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
           duration: 10
         }))
       }
-    ]),
-    castTimeMs: 1800
-  },
-  [ID.LONG_RANGE_SHOT]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    effects: [
-      {
-        type: 'strike',
-        projectile: true,
-        coefficient: 1.33,
-        hits: 1,
-        comboFinishers: [
-          {
-            ownerId: 'ranger',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 0.2
-          }
-        ]
-      }
-    ],
-    castTimeMs: 480
-  },
-  [ID.POINT_BLANK_SHOT]: {
-    effects: [
-      {
-        type: 'strike',
-        projectile: true,
-        coefficient: 0.8,
-        hits: 1,
-        comboFinishers: [
-          {
-            ownerId: 'ranger',
-            finisherType: COMBO_FINISHER.PROJECTILE
-          }
-        ]
-      },
-      {
-        type: 'control',
-        controlKind: CONTROL.KNOCKBACK
-      }
-    ],
-    castTimeMs: 360
+    ])
   },
   [ID.HUNTERS_SHOT]: {
+    castTimeMs: 320,
     effects: [
       {
         type: 'strike',
@@ -116,7 +74,49 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
         duration: 3,
         stacks: 1
       }
-    ],
-    castTimeMs: 320
+    ]
+  },
+  [ID.POINT_BLANK_SHOT]: {
+    castTimeMs: 360,
+    effects: [
+      {
+        type: 'strike',
+        projectile: true,
+        coefficient: 0.8,
+        hits: 1,
+        comboFinishers: [
+          {
+            ownerId: 'ranger',
+            finisherType: COMBO_FINISHER.PROJECTILE
+          }
+        ]
+      },
+      {
+        type: 'control',
+        controlKind: CONTROL.KNOCKBACK
+      }
+    ]
+  },
+  [ID.BARRAGE]: {
+    castTimeMs: 1880,
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        ticks: [1440, 1920, 2400, 2880, 3480, 4080, 4680, 5280, 5880, 6480, 7080, 7680].map((atMs) => ({
+          atMs,
+          coefficient: 0.5
+        }))
+      },
+      {
+        type: 'condition',
+        ticks: [1440, 1920, 2400, 2880, 3480, 4080, 4680, 5280, 5880, 6480, 7080, 7680].map((atMs) => ({
+          atMs,
+          condition: CONDITION.CRIPPLED,
+          stacks: 1,
+          duration: 1
+        }))
+      }
+    ])
   }
 });

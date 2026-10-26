@@ -8,28 +8,43 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
   [ID.MED_KIT]: {
     // Custom: Equips the kit and updates bundle/weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    // Commit the bar transition before cast traits observe the selected kit.
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }],
     kitTransition: 'equip',
-    castTimeMs: 0,
     cooldown: 0,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    // Commit the bar transition before cast traits observe the selected kit.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }]
   },
   [ID.STOW_MED_KIT]: {
     // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    // Commit the bar transition before cast traits observe the selected kit.
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }],
     kitTransition: 'stow',
     paletteFlip: false,
-    castTimeMs: 0,
     cooldown: 0,
+    kitId: ID.MED_KIT,
+    castTimeMs: 0,
     effects: [],
-    kitId: ID.MED_KIT
+    // Commit the bar transition before cast traits observe the selected kit.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }]
+  },
+  [ID.MED_BLASTER]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    cooldown: 0,
+    kitId: ID.MED_KIT,
+    castTimeMs: 840,
+    effects: []
+  },
+  [ID.BANDAGE_SELF]: {
+    cooldown: 17,
+    toolbeltParentId: ID.MED_KIT,
+    mechanicSlot: 1,
+    castTimeMs: 680,
+    effects: []
   },
   [ID.BANDAGE_BLAST]: {
-    castTimeMs: 360,
     cooldown: 8,
+    kitId: ID.MED_KIT,
+    castTimeMs: 360,
     effects: [
       {
         type: 'boon',
@@ -37,26 +52,12 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
         duration: 3,
         stacks: 1
       }
-    ],
-    kitId: ID.MED_KIT
-  },
-  [ID.BANDAGE_SELF]: {
-    castTimeMs: 680,
-    cooldown: 17,
-    effects: [],
-    toolbeltParentId: ID.MED_KIT,
-    mechanicSlot: 1
-  },
-  [ID.MED_BLASTER]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 840,
-    cooldown: 0,
-    effects: [],
-    kitId: ID.MED_KIT
+    ]
   },
   [ID.CLEANSING_FIELD]: {
-    castTimeMs: 400,
     cooldown: 15,
+    kitId: ID.MED_KIT,
+    castTimeMs: 400,
     comboFields: [
       {
         ownerId: 'engineer',
@@ -65,18 +66,18 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
         startAnchor: 'castEnd'
       }
     ],
-    effects: [],
-    kitId: ID.MED_KIT
+    effects: []
   },
   [ID.VITAL_BURST]: {
-    castTimeMs: 0,
     cooldown: 20,
-    effects: [],
-    kitId: ID.MED_KIT
+    kitId: ID.MED_KIT,
+    castTimeMs: 0,
+    effects: []
   },
   [ID.INFUSION_BOMB]: {
-    castTimeMs: 680,
     cooldown: 20,
+    kitId: ID.MED_KIT,
+    castTimeMs: 680,
     comboFinishers: [
       {
         ownerId: 'engineer',
@@ -105,7 +106,6 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
         duration: 10,
         stacks: 1
       }
-    ],
-    kitId: ID.MED_KIT
+    ]
   }
 });

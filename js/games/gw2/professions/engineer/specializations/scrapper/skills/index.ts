@@ -10,8 +10,10 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
   [ID.RECONSTRUCTION_FIELD]: {
-    castTimeMs: 360,
     cooldown: 25,
+    toolbeltParentId: ID.MEDIC_GYRO,
+    mechanicSlot: 1,
+    castTimeMs: 360,
     comboFields: [
       {
         ownerId: 'engineer',
@@ -29,19 +31,17 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
         duration: 2,
         stacks: 1
       }
-    ],
-    toolbeltParentId: ID.MEDIC_GYRO,
-    mechanicSlot: 1
+    ]
   },
   [ID.BYPASS_COATING]: {
-    castTimeMs: 0,
     cooldown: 20,
-    effects: [],
-    toolbeltParentId: ID.BLAST_GYRO
+    toolbeltParentId: ID.BLAST_GYRO,
+    castTimeMs: 0,
+    effects: []
   },
   [ID.SHREDDER_GYRO]: {
-    castTimeMs: 520,
     cooldown: 20,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -54,8 +54,8 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
     ]
   },
   [ID.MEDIC_GYRO]: {
-    castTimeMs: 360,
     cooldown: 20,
+    castTimeMs: 360,
     comboFields: [
       {
         ownerId: 'engineer',
@@ -68,13 +68,14 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
     effects: []
   },
   [ID.SNEAK_GYRO]: {
-    castTimeMs: 520,
     cooldown: 45,
+    castTimeMs: 520,
     effects: []
   },
   [ID.SPARE_CAPACITOR]: {
-    castTimeMs: 360,
     cooldown: 24,
+    toolbeltParentId: ID.SHREDDER_GYRO,
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -84,12 +85,11 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
         name: 'Spare Capacitor',
         actorType: ACTOR.PLAYER
       }
-    ],
-    toolbeltParentId: ID.SHREDDER_GYRO
+    ]
   },
   [ID.BLAST_GYRO]: {
-    castTimeMs: 200,
     cooldown: 15,
+    castTimeMs: 200,
     effects: [
       {
         type: 'strike',
@@ -116,8 +116,9 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
   [ID.FUNCTION_GYRO]: {
     // Function Gyro occupies Scrapper's F5 but still triggers toolbelt traits.
     countsAsToolbeltSkill: true,
-    castTimeMs: 280,
     cooldown: 25,
+    mechanicSlot: 5,
+    castTimeMs: 280,
     effects: [
       {
         type: 'strike',
@@ -126,7 +127,6 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
         name: 'Function Gyro (tool belt skill)',
         actorType: ACTOR.PLAYER
       }
-    ],
-    mechanicSlot: 5
+    ]
   }
 });

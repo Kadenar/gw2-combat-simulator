@@ -29,9 +29,10 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.STAFF,
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
-    castTimeMs: 650,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 650,
     effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2 },
       {
@@ -42,8 +43,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         applications: 1
       },
       { type: 'boon', boon: BOON.REGENERATION, stacks: 1, duration: 4 }
-    ]),
-    specialization: 'Weaver'
+    ])
   },
   [ID.PLASMA_BLAST]: {
     name: 'Plasma Blast',
@@ -52,9 +52,10 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.STAFF,
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
-    castTimeMs: 480,
     cooldown: 12,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -67,8 +68,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    specialization: 'Weaver'
+    ]
   },
   // Fire+Earth. The only staff dual that lays a field: a four-second Fire field
   // opening at cast end, backed by an impact hit at 720 ms and then four
@@ -82,8 +82,10 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.STAFF,
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
     cooldown: 15,
+    skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 680,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -92,7 +94,6 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     effects: [
       ...impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.8 },
@@ -119,8 +120,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    specialization: 'Weaver'
+    ]
   },
   // Air+Water. Three 0.25 hits at 280/640/1000 ms, but only the first carries
   // the payload - eight stacks of Vulnerability, Chilled and the crowd-control
@@ -132,9 +132,10 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.STAFF,
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
-    castTimeMs: 640,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 640,
     effects: [
       ...impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.25, canCrit: true },
@@ -164,8 +165,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    specialization: 'Weaver'
+    ]
   },
   // Water+Earth. Five one-second pulses from 1280 ms to 5280 ms - all of them
   // after the 640 ms cast - each re-applying Cripple and Immobilize.
@@ -176,9 +176,10 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.STAFF,
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 640,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 640,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -203,8 +204,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           duration: 2
         }))
       }
-    ]),
-    specialization: 'Weaver'
+    ])
   },
   [ID.PILE_DRIVER]: {
     name: 'Pile Driver',
@@ -213,9 +213,10 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.STAFF,
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 1320,
     cooldown: 18,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 1320,
     effects: impactEffects({ atMs: 1160, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -231,7 +232,6 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         canCrit: true
       },
       { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
-    ]),
-    specialization: 'Weaver'
+    ])
   }
 });

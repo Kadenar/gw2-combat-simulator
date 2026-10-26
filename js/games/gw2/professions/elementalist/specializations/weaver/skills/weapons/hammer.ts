@@ -34,17 +34,17 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     weapon: WEAPON.HAMMER,
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    // Create both authored hand elements and refresh the shared orb lifetime.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
+    specialization: 'Weaver',
+    castTimeMs: 0,
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
       { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 0.75 },
       { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
     ]),
-    specialization: 'Weaver'
+    // Create both authored hand elements and refresh the shared orb lifetime.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   [ID.DUAL_ORBITS_FIRE_AND_AIR]: {
     name: 'Dual Orbits: Fire and Air',
@@ -53,17 +53,17 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     weapon: WEAPON.HAMMER,
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    // Create both authored hand elements and refresh the shared orb lifetime.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
+    specialization: 'Weaver',
+    castTimeMs: 0,
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
       { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 0.75 },
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 1.5 }
     ]),
-    specialization: 'Weaver'
+    // Create both authored hand elements and refresh the shared orb lifetime.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   [ID.DUAL_ORBITS_FIRE_AND_EARTH]: {
     name: 'Dual Orbits: Fire and Earth',
@@ -72,17 +72,17 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     weapon: WEAPON.HAMMER,
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    // Create both authored hand elements and refresh the shared orb lifetime.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
+    specialization: 'Weaver',
+    castTimeMs: 0,
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
       { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 0.75 },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 2.5 }
     ]),
-    specialization: 'Weaver'
+    // Create both authored hand elements and refresh the shared orb lifetime.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   [ID.DUAL_ORBITS_WATER_AND_AIR]: {
     name: 'Dual Orbits: Water and Air',
@@ -91,17 +91,17 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     weapon: WEAPON.HAMMER,
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    // Create both authored hand elements and refresh the shared orb lifetime.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
+    specialization: 'Weaver',
+    castTimeMs: 0,
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
       { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 },
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 1.5 }
     ]),
-    specialization: 'Weaver'
+    // Create both authored hand elements and refresh the shared orb lifetime.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   [ID.DUAL_ORBITS_WATER_AND_EARTH]: {
     name: 'Dual Orbits: Water and Earth',
@@ -110,17 +110,17 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     weapon: WEAPON.HAMMER,
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    // Create both authored hand elements and refresh the shared orb lifetime.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
+    specialization: 'Weaver',
+    castTimeMs: 0,
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 2.5 },
       { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
     ]),
-    specialization: 'Weaver'
+    // Create both authored hand elements and refresh the shared orb lifetime.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   [ID.DUAL_ORBITS_AIR_AND_EARTH]: {
     name: 'Dual Orbits: Air and Earth',
@@ -129,16 +129,16 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     weapon: WEAPON.HAMMER,
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    // Create both authored hand elements and refresh the shared orb lifetime.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
+    specialization: 'Weaver',
+    castTimeMs: 0,
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 2.5 },
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 1.5 }
     ]),
-    specialization: 'Weaver'
+    // Create both authored hand elements and refresh the shared orb lifetime.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   }
 });

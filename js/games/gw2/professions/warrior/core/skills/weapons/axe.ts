@@ -6,9 +6,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.CHOP]: {
-    interruptCommitMs: 440,
-    dualWieldCastTimeMs: 320,
     castTimeMs: 520,
+    dualWieldCastTimeMs: 320,
+    interruptCommitMs: 440,
     effects: [
       {
         type: 'strike',
@@ -61,86 +61,6 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
       }
     ]
   },
-  [ID.THROW_AXE]: {
-    ammo: 2,
-    ammoRecharge: 10,
-    cooldown: 10,
-    ammoCastLockout: 1,
-    castTimeMs: 360,
-    dualWieldCastTimeMs: 240,
-    comboFinishers: [
-      {
-        ownerId: 'warrior',
-        finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 1
-      }
-    ],
-    // Share impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      {
-        type: 'strike',
-        // Impact-time health selects the narrowest execute threshold once.
-        coefficientModifiers: [
-          { kind: 'target-health-below', threshold: 0.25, multiplier: 2 },
-          { kind: 'target-health-below', threshold: 0.5, multiplier: 1.5 }
-        ],
-        coefficient: 0.85,
-        projectile: true
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.CRIPPLED,
-        stacks: 1,
-        duration: 4
-      }
-    ])
-  },
-  [ID.WHIRLING_AXE]: {
-    interruptMode: 'per-packet',
-    cooldown: 15,
-    castTimeMs: 2720,
-    dualWieldCastTimeMs: 2040,
-    effects: [
-      {
-        type: 'strike',
-        ticks: Array.from({ length: 15 }, (_, index) => ({
-          atMs: 320 + index * 160,
-          coefficient: 0.5592
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        comboFinishers: [
-          {
-            ownerId: 'warrior',
-            finisherType: COMBO_FINISHER.WHIRL
-          }
-        ]
-      }
-    ]
-  },
-  [ID.DUAL_STRIKE]: {
-    cooldown: 12,
-    castTimeMs: 560,
-    dualWieldCastTimeMs: 400,
-    // Both strikes and Quickness arrive at the measured impact, before cast recovery.
-    dualWieldEffectOffsetsMs: { 400: 280 },
-    // Share impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 2.35,
-        hits: 2
-      },
-      {
-        type: 'boon',
-        boon: BOON.QUICKNESS,
-        duration: 2,
-        stacks: 1,
-        applications: 2,
-        intervalMs: 0
-      }
-    ])
-  },
   [ID.CYCLONE_AXE]: {
     cooldown: 6,
     castTimeMs: 400,
@@ -176,5 +96,85 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
         atMs: 200
       }
     ])
+  },
+  [ID.THROW_AXE]: {
+    ammo: 2,
+    ammoRecharge: 10,
+    cooldown: 10,
+    ammoCastLockout: 1,
+    castTimeMs: 360,
+    dualWieldCastTimeMs: 240,
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: COMBO_FINISHER.PROJECTILE,
+        chance: 1
+      }
+    ],
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      {
+        type: 'strike',
+        // Impact-time health selects the narrowest execute threshold once.
+        coefficientModifiers: [
+          { kind: 'target-health-below', threshold: 0.25, multiplier: 2 },
+          { kind: 'target-health-below', threshold: 0.5, multiplier: 1.5 }
+        ],
+        coefficient: 0.85,
+        projectile: true
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.CRIPPLED,
+        stacks: 1,
+        duration: 4
+      }
+    ])
+  },
+  [ID.DUAL_STRIKE]: {
+    cooldown: 12,
+    // Both strikes and Quickness arrive at the measured impact, before cast recovery.
+    dualWieldEffectOffsetsMs: { 400: 280 },
+    castTimeMs: 560,
+    dualWieldCastTimeMs: 400,
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 2.35,
+        hits: 2
+      },
+      {
+        type: 'boon',
+        boon: BOON.QUICKNESS,
+        duration: 2,
+        stacks: 1,
+        applications: 2,
+        intervalMs: 0
+      }
+    ])
+  },
+  [ID.WHIRLING_AXE]: {
+    cooldown: 15,
+    castTimeMs: 2720,
+    dualWieldCastTimeMs: 2040,
+    interruptMode: 'per-packet',
+    effects: [
+      {
+        type: 'strike',
+        ticks: Array.from({ length: 15 }, (_, index) => ({
+          atMs: 320 + index * 160,
+          coefficient: 0.5592
+        })),
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        comboFinishers: [
+          {
+            ownerId: 'warrior',
+            finisherType: COMBO_FINISHER.WHIRL
+          }
+        ]
+      }
+    ]
   }
 });

@@ -6,14 +6,14 @@ import { impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.j
 /** Invoked skills own their payloads and recharge; fixed pulse timelines preserve their independent impact timing. */
 export const MESMER_CORE_TRAIT_SKILLS: readonly MesmerSkill[] = Object.freeze([
   {
-    id: ID.LESSER_CHAOS_STORM,
     name: 'Lesser Chaos Storm',
+    id: ID.LESSER_CHAOS_STORM,
     type: 'Proc',
     slot: 'Action',
     simulatorExcluded: true,
     slotSelectable: false,
-    castTimeMs: 0,
     cooldown: 28,
+    castTimeMs: 0,
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       strikeTimeline(
         Array.from({ length: 6 }, (_, index) => ({ atMs: index * 1000, coefficient: 0.33 })),

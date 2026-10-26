@@ -31,11 +31,9 @@ const CONJURE_ACTION_ICONS = Object.freeze({
 export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   createWeaponSwapSkill(),
   {
-    id: ID.DROP_BUNDLE,
-    // Dropping clears the equipped copy and reports one real bundle swap.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.drop-conjure' } }],
-    inputCategory: 'bar-swap', // Dropping a conjure is an explicit return to the equipped weapon bar.
     name: '__drop_bundle',
+    id: ID.DROP_BUNDLE,
+    inputCategory: 'bar-swap', // Dropping a conjure is an explicit return to the equipped weapon bar.
     displayName: 'Drop Bundle',
     description: 'Drop the currently equipped conjured weapon.',
     icon: WEAPON_SWAP_ICON,
@@ -49,27 +47,20 @@ export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = Object.fr
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    castTimeMs: 0,
     simulatorExcluded: false,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    // Dropping clears the equipped copy and reports one real bundle swap.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.drop-conjure' } }]
   },
   ...[
     ['Frost Bow', ID.PICK_UP_FROST_BOW],
     ['Lightning Hammer', ID.PICK_UP_LIGHTNING_HAMMER],
     ['Fiery Greatsword', ID.PICK_UP_FIERY_GREATSWORD]
   ].map(([weapon, id]): Skill => ({
-    id: Number(id),
-    // Capture an available ground copy before expiry, then consume that copy only on successful commitment.
-    sideEffects: [
-      {
-        on: 'castStart',
-        when: (_runtime, cast) => !cast.cancelled,
-        do: { type: 'elementalist.capture-conjure-pickup' }
-      },
-      { on: 'castCommit', do: { type: 'elementalist.pick-up-conjure' } }
-    ],
-    inputCategory: 'bar-swap',
     name: `__pickup_${weapon}`,
+    id: Number(id),
+    inputCategory: 'bar-swap',
     displayName: `Pick up ${weapon}`,
     description: `Pick up the available ${weapon}.`,
     icon: CONJURE_ACTION_ICONS[weapon as keyof typeof CONJURE_ACTION_ICONS],
@@ -83,9 +74,18 @@ export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = Object.fr
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    castTimeMs: 300,
 
     simulatorExcluded: false,
-    effects: []
+    castTimeMs: 300,
+    effects: [],
+    // Capture an available ground copy before expiry, then consume that copy only on successful commitment.
+    sideEffects: [
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        do: { type: 'elementalist.capture-conjure-pickup' }
+      },
+      { on: 'castCommit', do: { type: 'elementalist.pick-up-conjure' } }
+    ]
   }))
 ]);

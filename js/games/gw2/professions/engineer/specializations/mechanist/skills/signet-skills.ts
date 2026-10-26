@@ -17,33 +17,33 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 /** Supplies Mechanist signet fragments to specialization composition. */
 export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<MechanistSkill>>> = Object.freeze({
   [ID.RECTIFIER_SIGNET]: {
-    castTimeMs: 520,
     cooldown: 30,
+    castTimeMs: 520,
     effects: []
   },
   [ID.OVERCLOCK_SIGNET]: {
     // Intrinsic tuning follows this selected skill through patches and deferred work.
     rechargeMultiplier: 0.8,
-
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.overclock-signet' } }],
+    cooldown: 90,
     // Orders the active mech to channel Jade Buster Cannon; see `mechanist/mechanics/mech.ts`.
 
     castTimeMs: 0,
-    cooldown: 90,
-    effects: []
+    effects: [],
+
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.overclock-signet' } }]
   },
   [ID.SHIFT_SIGNET]: {
-    castTimeMs: 0,
     cooldown: 25,
+    castTimeMs: 0,
     effects: []
   },
   [ID.SUPERCONDUCTING_SIGNET]: {
     // Intrinsic tuning follows this selected skill through patches and deferred work.
     conditionDamageIncrease: 0.1,
+    cooldown: 30,
 
     castTimeMs: 880,
     interruptCommitMs: 560,
-    cooldown: 30,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
       {
@@ -92,9 +92,9 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<M
   [ID.FORCE_SIGNET]: {
     // Intrinsic tuning follows this selected skill through patches and deferred work.
     damageIncrease: 0.15,
+    cooldown: 30,
 
     castTimeMs: 520,
-    cooldown: 30,
     effects: [
       {
         type: 'strike',
@@ -111,8 +111,8 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<M
     ]
   },
   [ID.BARRIER_SIGNET]: {
-    castTimeMs: 360,
     cooldown: 30,
+    castTimeMs: 360,
     effects: []
   }
 });

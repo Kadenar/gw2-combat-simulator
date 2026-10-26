@@ -43,9 +43,11 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.SPEAR,
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 0,
+    effects: [{ type: 'aura', aura: AURA.FIRE, duration: 3 }],
     // Different live hand elements make the current primary immediately re-attunable on commitment.
     sideEffects: [
       { on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } },
@@ -72,9 +74,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           ]
         }
       }
-    ],
-    effects: [{ type: 'aura', aura: AURA.FIRE, duration: 3 }],
-    specialization: 'Weaver'
+    ]
   },
   // Fire+Air. Heaviest single spear packet, paired with self superspeed and
   // three stacks of Might rather than any condition.
@@ -85,9 +85,14 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.SPEAR,
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 12,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 0,
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3 },
+      { type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 6 }
+    ]),
     // Different live hand elements make the current primary immediately re-attunable on commitment.
     sideEffects: [
       { on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } },
@@ -110,12 +115,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           ]
         }
       }
-    ],
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3 },
-      { type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 6 }
-    ]),
-    specialization: 'Weaver'
+    ]
   },
   // Fire+Earth. Blast finisher into the oldest eligible field, plus Burning
   // and three stacks of Bleeding.
@@ -126,9 +126,11 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.SPEAR,
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 0,
+    effects: [],
     // Different live hand elements make the current primary immediately re-attunable on commitment.
     sideEffects: [
       { on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } },
@@ -172,9 +174,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           ]
         }
       }
-    ],
-    effects: [],
-    specialization: 'Weaver'
+    ]
   },
   [ID.ELUTRIATE]: {
     name: 'Elutriate',
@@ -183,9 +183,11 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.SPEAR,
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 0,
+    effects: [],
     // Different live hand elements make the current primary immediately re-attunable on commitment.
     sideEffects: [
       { on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } },
@@ -222,9 +224,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           ]
         }
       }
-    ],
-    effects: [],
-    specialization: 'Weaver'
+    ]
   },
   // Water+Earth. Modelled purely as a Blast finisher: one strike, no conditions
   // and no boons.
@@ -235,9 +235,11 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.SPEAR,
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 0,
+    effects: [],
     // Different live hand elements make the current primary immediately re-attunable on commitment.
     sideEffects: [
       { on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } },
@@ -270,9 +272,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           ]
         }
       }
-    ],
-    effects: [],
-    specialization: 'Weaver'
+    ]
   },
   [ID.SHALE_STORM]: {
     name: 'Shale Storm',
@@ -281,9 +281,11 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.SPEAR,
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 0,
+    effects: [],
     // Different live hand elements make the current primary immediately re-attunable on commitment.
     sideEffects: [
       { on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } },
@@ -320,9 +322,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           ]
         }
       }
-    ],
-    effects: [],
-    specialization: 'Weaver'
+    ]
   }
 });
 

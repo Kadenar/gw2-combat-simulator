@@ -50,34 +50,9 @@ export const rangerShortbowConditionDurationModifier: Gw2ModifierRule = {
 // Full-cast medians and successful minimums from 20261006-010612, snapped to 40 ms.
 // Committed arrows retain their impacts and observed aftercast; offsets include this log's projectile travel.
 export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.POISON_VOLLEY]: {
-    interruptCommitMs: 280,
-    retainsCastLockoutAfterInterrupt: true,
-    effects: impactEffects(
-      { atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
-      [
-        {
-          type: 'strike',
-          projectile: true,
-          coefficient: 1.5,
-          hits: 5,
-          atMs: 280
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.POISONED,
-          // One application per arrow preserves per-application poison reactions.
-          applications: 5,
-          intervalMs: 0,
-          stacks: 1,
-          duration: 5
-        }
-      ]
-    ),
-    castTimeMs: 560
-  },
   [ID.CROSSFIRE]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    castTimeMs: 360,
     // Infer commitment at 200 ms from pQEm-20260716-181334's connected arrows; retain the full 360 ms lockout.
     interruptCommitMs: 200,
     retainsCastLockoutAfterInterrupt: true,
@@ -104,12 +79,67 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
           duration: 2
         }
       ]
-    ),
-    castTimeMs: 360
+    )
+  },
+  [ID.POISON_VOLLEY]: {
+    castTimeMs: 560,
+    interruptCommitMs: 280,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: impactEffects(
+      { atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          projectile: true,
+          coefficient: 1.5,
+          hits: 5,
+          atMs: 280
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.POISONED,
+          // One application per arrow preserves per-application poison reactions.
+          applications: 5,
+          intervalMs: 0,
+          stacks: 1,
+          duration: 5
+        }
+      ]
+    )
+  },
+  [ID.QUICK_SHOT]: {
+    evades: true,
+    castTimeMs: 840,
+    interruptCommitMs: 840,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: impactEffects(
+      { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          projectile: true,
+          coefficient: 0.5,
+          hits: 1,
+          comboFinishers: [
+            {
+              ownerId: 'ranger',
+              finisherType: COMBO_FINISHER.PROJECTILE
+            }
+          ]
+        },
+        {
+          type: 'boon',
+          boon: BOON.SWIFTNESS,
+          // Swiftness is self-applied at launch, independently of the later projectile hit.
+          atMs: 280,
+          duration: 9,
+          stacks: 1
+        }
+      ]
+    )
   },
   [ID.CRIPPLING_SHOT]: {
-    // Arm subsequent qualifying hits only on semantic commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.blood-thirst' } }],
+    castTimeMs: 360,
     interruptCommitMs: 160,
     retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects(
@@ -143,9 +173,11 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
         }
       ]
     ),
-    castTimeMs: 360
+    // Arm subsequent qualifying hits only on semantic commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.blood-thirst' } }]
   },
   [ID.CONCUSSION_SHOT]: {
+    castTimeMs: 640,
     interruptCommitMs: 520,
     retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects(
@@ -174,39 +206,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
           when: (runtime) => Boolean(runtime.config.target?.defiant)
         }
       ]
-    ),
-    castTimeMs: 640
-  },
-  [ID.QUICK_SHOT]: {
-    evades: true,
-    interruptCommitMs: 840,
-    retainsCastLockoutAfterInterrupt: true,
-    effects: impactEffects(
-      { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
-      [
-        {
-          type: 'strike',
-          projectile: true,
-          coefficient: 0.5,
-          hits: 1,
-          comboFinishers: [
-            {
-              ownerId: 'ranger',
-              finisherType: COMBO_FINISHER.PROJECTILE
-            }
-          ]
-        },
-        {
-          type: 'boon',
-          boon: BOON.SWIFTNESS,
-          // Swiftness is self-applied at launch, independently of the later projectile hit.
-          atMs: 280,
-          duration: 9,
-          stacks: 1
-        }
-      ]
-    ),
-    castTimeMs: 840
+    )
   }
 });
 

@@ -10,6 +10,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Natural Bite uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.CANINE_BITE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BITE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BITE]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -17,13 +20,13 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BITE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BITE]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Crippling Leap uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.CANINE_CRIPPLING_LEAP]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_CRIPPLING_LEAP]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_CRIPPLING_LEAP]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -46,13 +49,13 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_CRIPPLING_LEAP]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_CRIPPLING_LEAP]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Brutal Charge uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.CANINE_BRUTAL_CHARGE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BRUTAL_CHARGE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BRUTAL_CHARGE]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -67,12 +70,11 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BRUTAL_CHARGE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BRUTAL_CHARGE]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   [ID.INTIMIDATING_HOWL]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -91,11 +93,11 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 1000,
-    petSkill: true
+    ]
   },
   [ID.CHILLING_HOWL]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -112,11 +114,11 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 1000,
-    petSkill: true
+    ]
   },
   [ID.REGENERATE_FERN_HOUND]: {
+    petSkill: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'boon',
@@ -127,16 +129,16 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
+    ]
   },
   [ID.HOWL_OF_THE_PACK]: {
-    effects: [],
+    petSkill: true,
     quicknessCastTimeMs: 1000,
-    petSkill: true
+    effects: []
   },
   [ID.TERRIFYING_HOWL]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -145,8 +147,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 1000,
-    petSkill: true
+    ]
   }
 });

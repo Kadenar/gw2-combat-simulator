@@ -33,8 +33,8 @@ import type {
 /** Supplies Holosmith slot-skill fragments to Holosmith module composition. */
 export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
   [ID.COOLANT_BLAST]: {
-    castTimeMs: 520,
     cooldown: 20,
+    castTimeMs: 520,
     effects: [
       {
         type: 'condition',
@@ -52,6 +52,12 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     highPacketCount: 3,
     initialDelay: 0.48,
     enhancedStrikeFactor: 1.35,
+    cooldown: 0.5,
+    requiresArmedFlip: true,
+    // Availability requires the parent skill's exposed window.
+
+    castTimeMs: 520,
+    effects: [],
 
     // A committed follow-up consumes its window and restores the parent.
     sideEffects: [
@@ -78,13 +84,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         }
       },
       { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.LAUNCH_WALL } }
-    ],
-    // Availability requires the parent skill's exposed window.
-
-    castTimeMs: 520,
-    cooldown: 0.5,
-    requiresArmedFlip: true,
-    effects: []
+    ]
   },
   [ID.PRIME_LIGHT_BEAM]: {
     // Intrinsic tuning follows this selected skill through patches and deferred work.
@@ -93,16 +93,9 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     packetInterval: 1,
     enhancedStrikeFactor: 1.2,
     enhancedConditionBaseDurationFactor: 1.5,
+    cooldown: 60,
 
     castTimeMs: 1160,
-    cooldown: 60,
-    // The field resolver consumes these named templates; acceptance emits only the initial beam, marker, and control.
-    effectVariants: [
-      {
-        when: () => true,
-        transform: (_runtime, _cast, effects) => effects.filter((effect) => effect.metadata?.trigger !== 'heat-field')
-      }
-    ],
     effects: [
       {
         name: 'Prime Light Beam Heat Tier',
@@ -141,9 +134,27 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.LAUNCH
       }
+    ],
+    // The field resolver consumes these named templates; acceptance emits only the initial beam, marker, and control.
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, _cast, effects) => effects.filter((effect) => effect.metadata?.trigger !== 'heat-field')
+      }
     ]
   },
   [ID.LASER_DISK]: {
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    highStrikeFactor: 1,
+    basePacketCount: 12,
+    highPacketCount: 18,
+    packetInterval: 0.52,
+    enhancedStrikeFactor: 1.35,
+    cooldown: 30,
+
+    castTimeMs: 960,
+    interruptCommitMs: 920,
+    effects: [],
     sideEffects: [
       {
         on: 'castStart',
@@ -167,33 +178,23 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
           ]
         }
       }
-    ],
-    // Intrinsic tuning follows this selected skill through patches and deferred work.
-    highStrikeFactor: 1,
-    basePacketCount: 12,
-    highPacketCount: 18,
-    packetInterval: 0.52,
-    enhancedStrikeFactor: 1.35,
-
-    castTimeMs: 960,
-    interruptCommitMs: 920,
-    cooldown: 30,
-    effects: []
+    ]
   },
   [ID.PHOTON_WALL]: {
-    // Expose the follow-up on commitment; its declaration owns the window.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.LAUNCH_WALL, durationSec: null } }],
-    castTimeMs: 400,
     cooldown: 25,
-    effects: []
+    castTimeMs: 400,
+    effects: [],
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.LAUNCH_WALL, durationSec: null } }]
   },
   [ID.BLADE_BURST]: {
     // Intrinsic tuning follows this selected skill through patches and deferred work.
     highStrikeFactor: 1.25,
     enhancedStrikeFactor: 1.35,
+    cooldown: 20,
+    toolbeltParentId: ID.LASER_DISK,
 
     castTimeMs: 0,
-    cooldown: 20,
     effects: [
       {
         type: 'strike',
@@ -210,23 +211,23 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         duration: 6,
         actorType: ACTOR.PLAYER
       }
-    ],
-    toolbeltParentId: ID.LASER_DISK
+    ]
   },
   [ID.CAUTERIZE]: {
-    castTimeMs: 0,
     cooldown: 30,
-    effects: [],
     toolbeltParentId: ID.COOLANT_BLAST,
-    mechanicSlot: 1
+    mechanicSlot: 1,
+    castTimeMs: 0,
+    effects: []
   },
   [ID.PARTICLE_ACCELERATOR]: {
     // Intrinsic tuning follows this selected skill through patches and deferred work.
     highStrikeFactor: 1.1,
     enhancedStrikeFactor: 1.35,
+    cooldown: 8,
+    toolbeltParentId: ID.PHOTON_WALL,
 
     castTimeMs: 0,
-    cooldown: 8,
     effects: [
       {
         type: 'strike',
@@ -257,8 +258,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         duration: 3,
         stacks: 1
       }
-    ],
-    toolbeltParentId: ID.PHOTON_WALL
+    ]
   }
 });
 

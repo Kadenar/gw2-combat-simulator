@@ -10,6 +10,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const SOULBEAST_PORCINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.MAUL_ID_41406]: {
+    castTimeMs: 560,
     interruptCommitMs: 400,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -22,11 +23,14 @@ export const SOULBEAST_PORCINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Pa
         // Each impact applies one stack, keeping partial casts consistent with their landed hits.
         ticks: [400, 440].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 1, duration: 6 }))
       }
-    ]),
-    castTimeMs: 560
+    ])
   },
   [ID.UNDEAD_PLAGUE]: {
+    castTimeMs: 680,
     interruptCommitMs: 680,
+    comboFields: [
+      { ownerId: 'ranger', fieldType: COMBO_FIELD.POISON, duration: 5, startMs: 680, startAnchor: 'castStart' }
+    ],
     // The cast launches a five-pulse poison field; later pulses survive the next player action.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       { type: 'strike', ticks: [680, 1680, 2680, 3680, 4680].map((atMs) => ({ atMs, coefficient: 0.2 })) },
@@ -39,11 +43,7 @@ export const SOULBEAST_PORCINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Pa
           duration: 4
         }))
       }
-    ]),
-    comboFields: [
-      { ownerId: 'ranger', fieldType: COMBO_FIELD.POISON, duration: 5, startMs: 680, startAnchor: 'castStart' }
-    ],
-    castTimeMs: 680
+    ])
   },
   [ID.BRUTAL_CHARGE_ID_46432]: {
     castTimeMs: 0,

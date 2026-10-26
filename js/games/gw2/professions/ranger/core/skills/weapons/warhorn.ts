@@ -9,6 +9,7 @@ const huntersCallHitTimes = Array.from({ length: 16 }, (_, index) => 1080 + inde
 
 export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.HUNTERS_CALL]: {
+    castTimeMs: 1240,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -20,10 +21,10 @@ export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, Partia
         // Each bird hit adds its own stack so Vulnerability builds over the attack sequence.
         ticks: huntersCallHitTimes.map((atMs) => ({ atMs, condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5 }))
       }
-    ]),
-    castTimeMs: 1240
+    ])
   },
   [ID.CALL_OF_THE_WILD]: {
+    castTimeMs: 600,
     comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.BLAST }],
     effects: [
       {
@@ -57,7 +58,6 @@ export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'control',
         controlKind: CONTROL.DAZE
       }
-    ],
-    castTimeMs: 600
+    ]
   }
 });

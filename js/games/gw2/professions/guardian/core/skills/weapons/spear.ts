@@ -196,21 +196,28 @@ function completeSpearIllumination(runtime: GuardianRuntime, cast: RuntimeCast<G
 }
 
 export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.DAYBREAKING_SLASH]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    castTimeMs: 560,
+    // Damage commits at 400 ms, allowing a queued cancel to release the action lane early.
+    interruptCommitMs: 400,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [{ atMs: 400, coefficient: 0.7 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
+  },
   [ID.HELIO_RUSH]: {
     illuminatedDamageMultiplier: 1.5,
-    // Capture illumination at acceptance and settle only that captured charge on commitment.
-    effectVariants: [
-      illuminatedSpearVariant(),
-      // Only an illuminated charge grants Resolution.
-      { when: () => true, transform: (_runtime, _cast, effects) => effects.filter((effect) => effect.type !== 'boon') }
-    ],
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.spear-illumination' } }],
-    castTimeMs: 440,
     // Consecutive charges lock for two seconds while each spent count recharges over eight seconds.
     cooldown: 2,
     ammo: 2,
     ammoRecharge: 8,
     ammoCastLockout: 2,
+    castTimeMs: 440,
     // Helio occupies the action lane for at most 440 ms, but collision or a
     // queued cancel can release it on any action tick from 240 ms onward.
     interruptCommitMs: 240,
@@ -226,17 +233,21 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         boon: BOON.RESOLUTION,
         duration: 4
       }
-    ])
+    ]),
+    // Capture illumination at acceptance and settle only that captured charge on commitment.
+    effectVariants: [
+      illuminatedSpearVariant(),
+      // Only an illuminated charge grants Resolution.
+      { when: () => true, transform: (_runtime, _cast, effects) => effects.filter((effect) => effect.type !== 'boon') }
+    ],
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.spear-illumination' } }]
   },
   [ID.GLEAMING_DISC]: {
     illuminatedDamageMultiplier: 1.25,
-    // Capture illumination at acceptance and settle only that captured charge on commitment.
-    effectVariants: [illuminatedSpearVariant()],
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.spear-illumination' } }],
+    cooldown: 12,
     castTimeMs: 560,
     // The disc commits at 520 ms, allowing a queued cancel to release the remaining animation.
     interruptCommitMs: 520,
-    cooldown: 12,
     effects: [
       {
         type: 'strike',
@@ -248,24 +259,45 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ]
-  },
-  [ID.DAYBREAKING_SLASH]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 560,
-    // Damage commits at 400 ms, allowing a queued cancel to release the action lane early.
-    interruptCommitMs: 400,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 0.7 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
-    ]
+    ],
+    // Capture illumination at acceptance and settle only that captured charge on commitment.
+    effectVariants: [illuminatedSpearVariant()],
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.spear-illumination' } }]
   },
   [ID.SOLAR_STORM]: {
     illuminatedDamageMultiplier: 1.25,
+    cooldown: 15,
+    castTimeMs: 560,
+
+    // The volley commits before impact; cancelling the remaining animation preserves its delayed strikes.
+    interruptCommitMs: 480,
+    effects: [
+      {
+        type: 'strike',
+        // Shards begin 1120 ms after activation, after the cast and projectile delay.
+        ticks: [{ atMs: 1120, coefficient: 1.5 }],
+        name: 'Solar Storm — 1st Strike',
+        persistsAfterInterrupt: true,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'strike',
+        ticks: [{ atMs: 1320, coefficient: 1.2 }],
+        name: 'Solar Storm — 2nd Strike',
+        persistsAfterInterrupt: true,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'strike',
+        ticks: [{ atMs: 1520, coefficient: 0.9 }],
+        name: 'Solar Storm — 3rd Strike',
+        persistsAfterInterrupt: true,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ],
     // Capture illumination at acceptance and settle only that captured charge on commitment.
     effectVariants: [illuminatedSpearVariant()],
     sideEffects: [
@@ -298,73 +330,14 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
           ]
         }
       }
-    ],
-    castTimeMs: 560,
-
-    // The volley commits before impact; cancelling the remaining animation preserves its delayed strikes.
-    interruptCommitMs: 480,
-    cooldown: 15,
-    effects: [
-      {
-        type: 'strike',
-        // Shards begin 1120 ms after activation, after the cast and projectile delay.
-        ticks: [{ atMs: 1120, coefficient: 1.5 }],
-        name: 'Solar Storm — 1st Strike',
-        persistsAfterInterrupt: true,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 1320, coefficient: 1.2 }],
-        name: 'Solar Storm — 2nd Strike',
-        persistsAfterInterrupt: true,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 1520, coefficient: 0.9 }],
-        name: 'Solar Storm — 3rd Strike',
-        persistsAfterInterrupt: true,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
     ]
   },
   [ID.SYMBOL_OF_LUMINANCE]: {
     // Author symbol identity independently of the skill's display text.
     tags: ['symbol'],
-    // The symbol grants an independent window from semantic completion.
-    sideEffects: [
-      {
-        on: 'castCommit',
-        do: {
-          type: 'guardian.spear-luminance',
-          id: 'illumination',
-          effects: [
-            {
-              type: 'buff',
-              name: 'illuminated',
-              kind: 'illuminated',
-              stacks: 1,
-              duration: 5
-            },
-            {
-              type: 'buff',
-              name: 'guardian-spear-luminance',
-              kind: 'guardian-spear-luminance',
-              stacks: 1,
-              duration: 5,
-              actorType: ACTOR.PLAYER
-            }
-          ]
-        }
-      }
-    ],
-    castTimeMs: 440,
 
     cooldown: 20,
+    castTimeMs: 440,
     // The Light field begins on the initial impact and lasts four seconds.
     comboFields: [
       { ownerId: 'guardian', fieldType: COMBO_FIELD.LIGHT, duration: 4, startMs: 360, startAnchor: 'castStart' }
@@ -392,7 +365,34 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         controlKind: CONTROL.KNOCKBACK,
         atMs: 360
       }
-    ])
+    ]),
+    // The symbol grants an independent window from semantic completion.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'guardian.spear-luminance',
+          id: 'illumination',
+          effects: [
+            {
+              type: 'buff',
+              name: 'illuminated',
+              kind: 'illuminated',
+              stacks: 1,
+              duration: 5
+            },
+            {
+              type: 'buff',
+              name: 'guardian-spear-luminance',
+              kind: 'guardian-spear-luminance',
+              stacks: 1,
+              duration: 5,
+              actorType: ACTOR.PLAYER
+            }
+          ]
+        }
+      }
+    ]
   }
 });
 

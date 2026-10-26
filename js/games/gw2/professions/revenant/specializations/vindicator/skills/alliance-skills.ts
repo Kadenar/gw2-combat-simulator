@@ -6,11 +6,12 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 
 export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SELFISH_SPIRIT]: {
-    castTimeMs: 1000,
     cooldown: 10,
     // Override the imported ammo fact: Selfish Spirit is one channel with a normal cooldown.
     ammo: 0,
     energyCost: 10,
+    legendId: 'LegendaryAlliance',
+    castTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -32,14 +33,13 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
         duration: 5,
         stacks: 1
       }
-    ],
-    legendId: 'LegendaryAlliance'
+    ]
   },
   [ID.NOMADS_ADVANCE]: {
-    castTimeMs: 960,
-
     cooldown: 3,
     energyCost: 10,
+    legendId: 'LegendaryAlliance',
+    castTimeMs: 960,
     effects: [
       {
         type: 'strike',
@@ -55,13 +55,13 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
         duration: 6,
         stacks: 1
       }
-    ],
-    legendId: 'LegendaryAlliance'
+    ]
   },
   [ID.REAVERS_RAGE]: {
-    castTimeMs: 360,
     cooldown: 10,
     energyCost: 15,
+    legendId: 'LegendaryAlliance',
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -87,14 +87,14 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.DAZE
       }
-    ],
-    legendId: 'LegendaryAlliance'
+    ]
   },
   [ID.SPEAR_OF_ARCHEMORUS]: {
-    castTimeMs: 480,
-    interruptCommitMs: 400,
     cooldown: 12,
     energyCost: 20,
+    legendId: 'LegendaryAlliance',
+    castTimeMs: 480,
+    interruptCommitMs: 400,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects(
       { atMs: 2960, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true },
@@ -114,13 +114,13 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
           actorType: ACTOR.PLAYER
         }
       ]
-    ),
-    legendId: 'LegendaryAlliance'
+    )
   },
   [ID.SCAVENGER_BURST]: {
-    castTimeMs: 520,
     cooldown: 3,
     energyCost: 15,
+    legendId: 'LegendaryAlliance',
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -148,7 +148,6 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
         duration: 5,
         stacks: 1
       }
-    ],
-    legendId: 'LegendaryAlliance'
+    ]
   }
 });

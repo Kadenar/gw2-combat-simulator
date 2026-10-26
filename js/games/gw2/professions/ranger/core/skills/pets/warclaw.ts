@@ -10,6 +10,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Natural Slash uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.WARCLAW_SLASH]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WARCLAW_SLASH]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WARCLAW_SLASH]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -17,13 +20,13 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WARCLAW_SLASH]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WARCLAW_SLASH]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Battle Maul uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.WARCLAW_BATTLE_MAUL]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WARCLAW_BATTLE_MAUL]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WARCLAW_BATTLE_MAUL]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -39,13 +42,13 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WARCLAW_BATTLE_MAUL]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WARCLAW_BATTLE_MAUL]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Bop uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.WARCLAW_BOP]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WARCLAW_BOP]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WARCLAW_BOP]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -60,14 +63,11 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WARCLAW_BOP]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WARCLAW_BOP]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   [ID.RALLYING_ROAR]: {
-    effects: [],
+    petSkill: true,
     quicknessCastTimeMs: 333,
-    petSkill: true
+    effects: []
   }
 });

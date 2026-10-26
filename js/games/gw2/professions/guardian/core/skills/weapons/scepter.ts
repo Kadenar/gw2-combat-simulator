@@ -5,11 +5,24 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.ORB_OF_WRATH]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    castTimeMs: 440,
+    interruptCommitMs: 360,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.6,
+        hits: 1,
+        persistsAfterInterrupt: true
+      }
+    ]
+  },
   [ID.SYMBOL_OF_PUNISHMENT]: {
     // Author symbol identity independently of the skill's display text.
     tags: ['symbol'],
-    castTimeMs: 320,
     cooldown: 10,
+    castTimeMs: 320,
     comboFields: [
       {
         ownerId: 'guardian',
@@ -52,19 +65,6 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
         intervalMs: 1000
       }
     ])
-  },
-  [ID.ORB_OF_WRATH]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 440,
-    interruptCommitMs: 360,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.6,
-        hits: 1,
-        persistsAfterInterrupt: true
-      }
-    ]
   },
   [ID.CHAINS_OF_LIGHT]: {
     castTimeMs: 520,

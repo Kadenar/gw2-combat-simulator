@@ -20,14 +20,11 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ENCHANTED_DAGGERS]: {
-    // The skill-owned lifecycle arms charges on commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.enchanted-daggers' } }],
-    // The commit lifecycle reads these effects as its payload, so the cast itself emits none.
-    effectVariants: [{ when: () => true, transform: () => [] }],
-    // Charges feed the strike-triggered siphon defined below.
-    castTimeMs: 360,
     cooldown: 30,
     energyCost: 5,
+    legendId: 'LegendaryAssassin',
+    // Charges feed the strike-triggered siphon defined below.
+    castTimeMs: 360,
     effects: [
       {
         name: 'enchanted-daggers',
@@ -51,26 +48,22 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
         actorType: ACTOR.EFFECT
       }
     ],
-    legendId: 'LegendaryAssassin'
+    // The commit lifecycle reads these effects as its payload, so the cast itself emits none.
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    // The skill-owned lifecycle arms charges on commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.enchanted-daggers' } }]
   },
   [ID.RELINQUISH_POWER]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-upkeep' } }],
-    // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    legendId: 'LegendaryAssassin',
+    // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
+    castTimeMs: 0,
     effects: [],
-    legendId: 'LegendaryAssassin'
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-upkeep' } }]
   },
   [ID.IMPOSSIBLE_ODDS]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
-    ],
-    // Shared upkeep owns the drain and release; qualifying strikes trigger the follow-up defined below.
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 5,
     upkeepCost: 6,
@@ -80,6 +73,9 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
     pulseInterval: 1,
     // Space eligible by 280 ms independently of upkeep pulses and the strike delay.
     triggerIntervalMs: 280,
+    legendId: 'LegendaryAssassin',
+    // Shared upkeep owns the drain and release; qualifying strikes trigger the follow-up defined below.
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -90,12 +86,17 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
         actorType: ACTOR.EFFECT
       }
     ],
-    legendId: 'LegendaryAssassin'
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
+      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
+    ]
   },
   [ID.PHASE_TRAVERSAL]: {
-    castTimeMs: 360,
     cooldown: 5,
     energyCost: 30,
+    legendId: 'LegendaryAssassin',
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -110,13 +111,13 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
         duration: 3,
         stacks: 1
       }
-    ],
-    legendId: 'LegendaryAssassin'
+    ]
   },
   [ID.JADE_WINDS]: {
-    castTimeMs: 680,
     cooldown: 10,
     energyCost: 35,
+    legendId: 'LegendaryAssassin',
+    castTimeMs: 680,
     effects: [
       {
         type: 'strike',
@@ -132,13 +133,13 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
         duration: 6,
         actorType: ACTOR.PLAYER
       }
-    ],
-    legendId: 'LegendaryAssassin'
+    ]
   },
   [ID.RIPOSTING_SHADOWS]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 30,
+    legendId: 'LegendaryAssassin',
+    castTimeMs: 0,
     effects: [
       {
         type: 'boon',
@@ -146,13 +147,13 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
         duration: 6,
         stacks: 1
       }
-    ],
-    legendId: 'LegendaryAssassin'
+    ]
   },
   [ID.JADE_WINDS_ID_31294]: {
-    castTimeMs: 680,
     cooldown: 10,
     energyCost: 35,
+    legendId: 'LegendaryAssassin',
+    castTimeMs: 680,
     effects: [
       {
         type: 'strike',
@@ -168,8 +169,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
         duration: 6,
         actorType: ACTOR.PLAYER
       }
-    ],
-    legendId: 'LegendaryAssassin'
+    ]
   }
 });
 

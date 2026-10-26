@@ -16,32 +16,36 @@ import { weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 
 export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.CLEANSING_FLAME]: {
-    interruptMode: 'per-packet',
-    // Store the measured effective action duration directly.
-    castTimeMs: 2600,
-    // Match the reference hit offsets, with Burning applied on the final strike.
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
-      {
-        type: 'strike',
-        ticks: [280, 520, 760, 1000, 1240, 1480, 1720, 1960, 2200, 2520].map((atMs) => ({ atMs, coefficient: 4 / 10 }))
-      },
+  [ID.ZEALOTS_FLAME]: {
+    // Zealot's Fire stays available while the flame burns; Radiant Fire lengthens it.
+    flipDuration: 3,
+    // Fire sets this lockout; another actual skill clears it at commitment.
+    lockouts: [{ group: 'guardian-zealots-flame-after-fire', durationMs: 400 }],
+    cooldown: 15,
+    ammo: 1,
+    ammoRecharge: 15,
+    ammoCastLockout: 0,
+    castTimeMs: 0,
+    effects: [
       {
         type: 'condition',
-        ticks: [{ atMs: 2520, condition: CONDITION.BURNING, stacks: 2, duration: 4 }]
+        ticks: Array.from({ length: 4 }, (_, index) => ({
+          atMs: 0 + index * 1000,
+          condition: CONDITION.BURNING,
+          stacks: 1,
+          duration: 3
+        })),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
-    ])
+    ],
+    // The selected trait extends this activation's follow-up window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-zealots-fire' } }]
   },
   [ID.ZEALOTS_FIRE]: {
-    // Consume once before blocking immediate Flame reuse.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.ZEALOTS_FIRE } },
-      { on: 'castCommit', do: { type: 'guardian.zealots-fire-lockout' } }
-    ],
+    cooldown: 0,
     castTimeMs: 680,
     interruptCommitMs: 480,
-    cooldown: 0,
     // Keep the thrown flame's strike and Burning on one impact.
     effects: impactEffects(
       { atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
@@ -59,33 +63,29 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Par
           duration: 3
         }
       ]
-    )
+    ),
+    // Consume once before blocking immediate Flame reuse.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.ZEALOTS_FIRE } },
+      { on: 'castCommit', do: { type: 'guardian.zealots-fire-lockout' } }
+    ]
   },
-  [ID.ZEALOTS_FLAME]: {
-    // The selected trait extends this activation's follow-up window.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-zealots-fire' } }],
-    // Zealot's Fire stays available while the flame burns; Radiant Fire lengthens it.
-    flipDuration: 3,
-    // Fire sets this lockout; another actual skill clears it at commitment.
-    lockouts: [{ group: 'guardian-zealots-flame-after-fire', durationMs: 400 }],
-    castTimeMs: 0,
-    cooldown: 15,
-    ammo: 1,
-    ammoRecharge: 15,
-    ammoCastLockout: 0,
-    effects: [
+  [ID.CLEANSING_FLAME]: {
+    // Store the measured effective action duration directly.
+    castTimeMs: 2600,
+    interruptMode: 'per-packet',
+    // Match the reference hit offsets, with Burning applied on the final strike.
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+      {
+        type: 'strike',
+        ticks: [280, 520, 760, 1000, 1240, 1480, 1720, 1960, 2200, 2520].map((atMs) => ({ atMs, coefficient: 4 / 10 }))
+      },
       {
         type: 'condition',
-        ticks: Array.from({ length: 4 }, (_, index) => ({
-          atMs: 0 + index * 1000,
-          condition: CONDITION.BURNING,
-          stacks: 1,
-          duration: 3
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 2520, condition: CONDITION.BURNING, stacks: 2, duration: 4 }]
       }
-    ]
+    ])
   }
 });
 

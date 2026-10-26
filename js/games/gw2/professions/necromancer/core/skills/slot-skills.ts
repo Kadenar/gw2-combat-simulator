@@ -30,19 +30,16 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: []
   },
   [ID.SUMMON_BONE_FIEND]: {
-    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }],
+    rechargeOnMinionDeath: true,
     castTimeMs: 360,
     effects: [],
-    rechargeOnMinionDeath: true
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }]
   },
   [ID.PUTRID_EXPLOSION]: {
-    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }],
-    effectVariants: [{ when: () => true, transform: () => [] }],
-    castTimeMs: 360,
     minionKey: 'bone-minion',
     consumes: 1,
+    castTimeMs: 360,
     effects: [
       { type: 'strike', coefficient: 1, hits: 1, actorType: ACTOR.SUMMON },
       {
@@ -52,24 +49,19 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 5,
         actorType: ACTOR.SUMMON
       }
-    ]
+    ],
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }]
   },
   [ID.SUMMON_BONE_MINIONS]: {
-    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }],
+    rechargeOnMinionDeath: true,
     castTimeMs: 360,
     effects: [],
-    rechargeOnMinionDeath: true
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }]
   },
   [ID.BLOOD_IS_POWER]: {
-    effectVariants: [
-      {
-        when: () => true,
-        transform: (_runtime, _cast, effects) => effects.filter((effect) => !isCorruptionCompletionEffect(effect))
-      }
-    ],
-    // Opening application owns self-conditions and Might so concurrent transfers can use them during the aftercast.
-    sideEffects: [{ on: 'castStart', do: { type: 'necromancer.blood-is-power-launch' } }],
     castTimeMs: 880,
     // Blood Is Power cannot cancel its remaining aftercast, so importers and live execution retain the full cast lane.
     interruptCommitMs: 600,
@@ -97,7 +89,15 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 20,
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
-    ]
+    ],
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, _cast, effects) => effects.filter((effect) => !isCorruptionCompletionEffect(effect))
+      }
+    ],
+    // Opening application owns self-conditions and Might so concurrent transfers can use them during the aftercast.
+    sideEffects: [{ on: 'castStart', do: { type: 'necromancer.blood-is-power-launch' } }]
   },
   // Wells use their EVTC-observed Quickness packet schedule for every damage and condition pulse.
   [ID.WELL_OF_CORRUPTION]: {
@@ -122,9 +122,9 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.WELL_OF_SUFFERING]: {
+    castTimeMs: 480,
     // The well commits after 320 ms, allowing its remaining pulses to continue after a later interruption.
     interruptCommitMs: 320,
-    castTimeMs: 480,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
@@ -143,20 +143,12 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.SUMMON_BLOOD_FIEND]: {
-    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }],
     castTimeMs: 680,
-    effects: []
+    effects: [],
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }]
   },
   [ID.CONSUME_CONDITIONS]: {
-    effectVariants: [
-      {
-        when: () => true,
-        transform: (_runtime, _cast, effects) => effects.filter((effect) => !isCorruptionCompletionEffect(effect))
-      }
-    ],
-    // The skill owns this transaction; its shared helper retains state and lifetime rules.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.corruption' } }],
     castTimeMs: 680,
     effects: [
       // Corruption completion owns self-conditions and boons independently of hostile impacts.
@@ -168,9 +160,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 4,
         target: RECIPIENT.SELF
       }
-    ]
-  },
-  [ID.PLAGUELANDS]: {
+    ],
     effectVariants: [
       {
         when: () => true,
@@ -178,7 +168,9 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
       }
     ],
     // The skill owns this transaction; its shared helper retains state and lifetime rules.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.corruption' } }],
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.corruption' } }]
+  },
+  [ID.PLAGUELANDS]: {
     castTimeMs: 920,
     // Committed Plaguelands retains its pulses and the remaining cast lockout after interruption.
     interruptCommitMs: 800,
@@ -277,31 +269,36 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 10,
         target: RECIPIENT.SELF
       }
-    ]
+    ],
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, _cast, effects) => effects.filter((effect) => !isCorruptionCompletionEffect(effect))
+      }
+    ],
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.corruption' } }]
   },
   [ID.LICH_FORM]: {
-    // The skill owns this transaction; its shared helper retains state and lifetime rules.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.enter-lich' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
+    // Life force is granted once when the transform ends, by its manual or timed exit.
+    cooldown: 120,
     castTimeMs: 680,
     effects: [],
-    // Life force is granted once when the transform ends, by its manual or timed exit.
-    cooldown: 120
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.enter-lich' } }]
   },
   [ID.PLAGUE_SIGNET]: {
-    // The skill owns this transaction; its shared helper retains state and lifetime rules.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.signet-transfer' } }],
-    castTimeMs: 0,
     // The handler and tooltip share the maximum number of distinct self-condition types transferred.
     conditionsTransferred: 5,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.signet-transfer' } }]
   },
   [ID.RIGOR_MORTIS]: {
-    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }],
-    effectVariants: [{ when: () => true, transform: () => [] }],
-    castTimeMs: 0,
     minionKey: 'bone-fiend',
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -341,30 +338,30 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       // Each commanded projectile immobilizes for two seconds (wiki: Rigor_Mortis).
       { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2, actorType: ACTOR.SUMMON }
-    ]
+    ],
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }]
   },
   [ID.TASTE_OF_DEATH]: {
-    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }],
-    castTimeMs: 680,
     minionKey: 'blood-fiend',
     consumes: 1,
-    effects: []
+    castTimeMs: 680,
+    effects: [],
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }]
   },
   [ID.SUMMON_SHADOW_FIEND]: {
-    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }],
+    rechargeOnMinionDeath: true,
     castTimeMs: 360,
     effects: [],
-    rechargeOnMinionDeath: true
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }]
   },
   [ID.HAUNT]: {
-    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }],
-    effectVariants: [{ when: () => true, transform: () => [] }],
-    castTimeMs: 0,
     minionKey: 'shadow-fiend',
     impactDelay: 2,
+    castTimeMs: 0,
 
     effects: [
       {
@@ -404,7 +401,10 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 5,
         actorType: ACTOR.SUMMON
       }
-    ]
+    ],
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }]
   },
   [ID.WELL_OF_DARKNESS]: {
     castTimeMs: 480,
@@ -491,18 +491,15 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.SUMMON_FLESH_GOLEM]: {
-    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }],
+    rechargeOnMinionDeath: true,
     castTimeMs: 680,
     effects: [],
-    rechargeOnMinionDeath: true
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }]
   },
   [ID.CHARGE]: {
-    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }],
-    effectVariants: [{ when: () => true, transform: () => [] }],
-    castTimeMs: 680,
     minionKey: 'flesh-golem',
+    castTimeMs: 680,
     effects: [
       { type: 'strike', coefficient: 1.5, hits: 1, actorType: ACTOR.SUMMON },
       {
@@ -510,17 +507,12 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         actorType: ACTOR.SUMMON,
         controlKind: CONTROL.KNOCKDOWN
       }
-    ]
+    ],
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }]
   },
   [ID.CORROSIVE_POISON_CLOUD]: {
-    effectVariants: [
-      {
-        when: () => true,
-        transform: (_runtime, _cast, effects) => effects.filter((effect) => !isCorruptionCompletionEffect(effect))
-      }
-    ],
-    // The skill owns this transaction; its shared helper retains state and lifetime rules.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.corruption' } }],
     castTimeMs: 600,
     effects: [
       {
@@ -538,7 +530,15 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 6,
         target: RECIPIENT.SELF
       }
-    ]
+    ],
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, _cast, effects) => effects.filter((effect) => !isCorruptionCompletionEffect(effect))
+      }
+    ],
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.corruption' } }]
   },
   [ID.SIGNET_OF_VAMPIRISM]: {
     castTimeMs: 880,

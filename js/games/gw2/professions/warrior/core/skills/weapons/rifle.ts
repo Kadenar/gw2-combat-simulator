@@ -5,53 +5,9 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.RIFLE_BUTT]: {
-    // Completed strikes restock the live rifle catalog and reset its bursts.
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.rifle-restock' } }],
-    // Rifle Butt uses its successful-hit recharge and reloads the rest of the rifle kit on completion.
-    cooldown: 12,
-    castTimeMs: 480,
-    // Share impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1
-      },
-      {
-        type: 'control',
-        controlKind: CONTROL.KNOCKBACK
-      }
-    ])
-  },
-  [ID.VOLLEY]: {
-    comboFinishers: [
-      {
-        ownerId: 'warrior',
-        finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2
-      }
-    ],
-    interruptMode: 'per-packet',
-    castTimeMs: 1760,
-    effects: [
-      {
-        type: 'strike',
-        // The fifth close-range packet is inferred from the complete, more distant cast.
-        ticks: [
-          { atMs: 440, coefficient: 0.8 },
-          { atMs: 720, coefficient: 0.8 },
-          { atMs: 1000, coefficient: 0.8 },
-          { atMs: 1320, coefficient: 0.8 },
-          { atMs: 1600, coefficient: 0.8 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
-    ]
-  },
   [ID.FIERCE_SHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    castTimeMs: 600,
     // Rifle projectile finishers stay declarative so each emitted shot uses the shared combo scheduler.
     comboFinishers: [
       {
@@ -60,7 +16,6 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
         chance: 0.2
       }
     ],
-    castTimeMs: 600,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -76,6 +31,32 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
         stacks: 1
       }
     ])
+  },
+  [ID.VOLLEY]: {
+    castTimeMs: 1760,
+    interruptMode: 'per-packet',
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: COMBO_FINISHER.PROJECTILE,
+        chance: 0.2
+      }
+    ],
+    effects: [
+      {
+        type: 'strike',
+        // The fifth close-range packet is inferred from the complete, more distant cast.
+        ticks: [
+          { atMs: 440, coefficient: 0.8 },
+          { atMs: 720, coefficient: 0.8 },
+          { atMs: 1000, coefficient: 0.8 },
+          { atMs: 1320, coefficient: 0.8 },
+          { atMs: 1600, coefficient: 0.8 }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.EXPLOSIVE_SHELL]: {
     castTimeMs: 560,
@@ -104,6 +85,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
   [ID.BRUTAL_SHOT]: {
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
+    castTimeMs: 500,
     comboFinishers: [
       {
         ownerId: 'warrior',
@@ -111,7 +93,6 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
         chance: 1
       }
     ],
-    castTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -131,5 +112,24 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
         duration: 12
       }
     ]
+  },
+  [ID.RIFLE_BUTT]: {
+    // Rifle Butt uses its successful-hit recharge and reloads the rest of the rifle kit on completion.
+    cooldown: 12,
+    castTimeMs: 480,
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 1,
+        hits: 1
+      },
+      {
+        type: 'control',
+        controlKind: CONTROL.KNOCKBACK
+      }
+    ]),
+    // Completed strikes restock the live rifle catalog and reset its bursts.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.rifle-restock' } }]
   }
 });

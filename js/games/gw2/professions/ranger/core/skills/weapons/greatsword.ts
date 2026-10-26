@@ -18,6 +18,7 @@ import type { RangerResolverContext, RangerRuntimeState, RangerSkill } from '#gw
 // Both Maul variants share their strike, timing, recharge, and vulnerability; their bonus recipients differ.
 const maul: Partial<Skill> = {
   cooldown: 4,
+  castTimeMs: 840,
   effects: [
     {
       type: 'strike',
@@ -50,25 +51,90 @@ const maul: Partial<Skill> = {
       ]
     },
     { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 8 }
-  ],
-  castTimeMs: 840
+  ]
 };
 
 export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SLASH_ID_12474]: {
+    castTimeMs: 400,
     effects: [
       {
         type: 'strike',
         coefficient: 0.88,
         hits: 1
       }
+    ]
+  },
+  [ID.SLICE]: {
+    castTimeMs: 600,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.1,
+        hits: 1
+      }
+    ]
+  },
+  [ID.ENDURING_SWING]: {
+    castTimeMs: 800,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.76,
+        hits: 1
+      }
     ],
-    castTimeMs: 400
+    // Only a fully completed chain finisher grants the selected endurance reward.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'resourceGrant',
+          resource: 'endurance',
+          amount: { profile: ID.ENDURING_SWING, field: 'resourceGain' }
+        }
+      }
+    ]
+  },
+  [ID.MAUL_SOULBEAST]: maul,
+  [ID.MAUL_BASE]: maul,
+  [ID.SWOOP]: {
+    cooldown: 10,
+    evades: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 2.4,
+        hits: 1,
+        comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.LEAP }]
+      }
+    ]
+  },
+  [ID.COUNTERATTACK]: {
+    castTimeMs: 2000,
+    effects: [],
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.COUNTERATTACK_KICK, durationSec: 5 } }]
+  },
+  [ID.COUNTERATTACK_KICK]: {
+    evades: true,
+    castTimeMs: 333,
+    // The PvE kick lands once and its knockback can trigger control reactions.
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 2.5,
+        hits: 1
+      },
+      { type: 'control', controlKind: CONTROL.KNOCKBACK }
+    ],
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.COUNTERATTACK_KICK } }]
   },
   [ID.HILT_BASH]: {
-    // The completed activation refreshes its paired skill through the shared recharge owner.
-    sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.MAUL_SOULBEAST, ID.MAUL_BASE] } }],
     cooldown: 20,
+    castTimeMs: 640,
 
     effects: [
       {
@@ -80,75 +146,9 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       { type: 'control', controlKind: CONTROL.DAZE, when: (runtime) => !runtime.config.target?.defiant },
       { type: 'control', controlKind: CONTROL.STUN, when: (runtime) => Boolean(runtime.config.target?.defiant) }
     ],
-    castTimeMs: 640
-  },
-  [ID.SLICE]: {
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.1,
-        hits: 1
-      }
-    ],
-    castTimeMs: 600
-  },
-  [ID.ENDURING_SWING]: {
-    // Only a fully completed chain finisher grants the selected endurance reward.
-    sideEffects: [
-      {
-        on: 'castCommit',
-        do: {
-          type: 'resourceGrant',
-          resource: 'endurance',
-          amount: { profile: ID.ENDURING_SWING, field: 'resourceGain' }
-        }
-      }
-    ],
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.76,
-        hits: 1
-      }
-    ],
-    castTimeMs: 800
-  },
-  [ID.SWOOP]: {
-    cooldown: 10,
-    evades: true,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.4,
-        hits: 1,
-        comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.LEAP }]
-      }
-    ],
-    castTimeMs: 500
-  },
-  [ID.COUNTERATTACK]: {
-    // Expose the follow-up on commitment; its declaration owns the window.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.COUNTERATTACK_KICK, durationSec: 5 } }],
-    effects: [],
-    castTimeMs: 2000
-  },
-  [ID.COUNTERATTACK_KICK]: {
-    // A committed follow-up consumes its window and restores the parent.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.COUNTERATTACK_KICK } }],
-    evades: true,
-    // The PvE kick lands once and its knockback can trigger control reactions.
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.5,
-        hits: 1
-      },
-      { type: 'control', controlKind: CONTROL.KNOCKBACK }
-    ],
-    castTimeMs: 333
-  },
-  [ID.MAUL_SOULBEAST]: maul,
-  [ID.MAUL_BASE]: maul
+    // The completed activation refreshes its paired skill through the shared recharge owner.
+    sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.MAUL_SOULBEAST, ID.MAUL_BASE] } }]
+  }
 });
 
 // Only direct attacks spend the charge; trait and stance damage cannot steal it.

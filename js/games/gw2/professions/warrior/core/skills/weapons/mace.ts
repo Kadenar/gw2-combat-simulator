@@ -51,32 +51,43 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
       }
     ])
   },
-  [ID.TREMOR]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.CRUSHING_BLOW] } }],
-    // Tremor refreshes Crushing Blow when its cast completes.
-    castTimeMs: 560,
-    dualWieldCastTimeMs: 400,
-    // The travelling impacts retain their observed spacing instead of scaling every packet proportionally.
-    dualWieldEffectOffsetsMs: { 440: 320, 520: 360 },
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+  [ID.COUNTERBLOW]: {
+    // Like Illusionary Counter, the block arms a separate attack and can release its channel early.
+    cooldown: 7,
+    castTimeMs: 1960,
+    defaultInterruptMs: 200,
+    interruptCommitMs: 80,
+    effects: [],
+    // Early commitment exposes the follow-up only for the original block window.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (runtime, cast) => runtime.time < cast.fullEnd,
+        do: { type: 'warrior.counterblow-arm' }
+      }
+    ]
+  },
+  [ID.TACTICAL_BLOW]: {
+    castTimeMs: 480,
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [440, 520].map((atMs) => ({ atMs, coefficient: 1.25 })),
-        comboFinishers: [
-          {
-            ownerId: 'warrior',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 1
-          }
-        ]
+        coefficient: 2,
+        hits: 1
       },
       {
-        type: 'control',
-        atMs: 440,
-        controlKind: CONTROL.KNOCKDOWN
+        type: 'condition',
+        condition: CONDITION.VULNERABILITY,
+        stacks: 5,
+        duration: 8
       }
-    ])
+    ]),
+    // Acceptance consumes the follow-up even if its attack is canceled.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'flipConsume', skillId: ID.TACTICAL_BLOW } },
+      { on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 5 } }
+    ]
   },
   [ID.POMMEL_BASH]: {
     cooldown: 10,
@@ -94,26 +105,10 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
       }
     ])
   },
-  [ID.COUNTERBLOW]: {
-    // Early commitment exposes the follow-up only for the original block window.
-    sideEffects: [
-      {
-        on: 'castCommit',
-        when: (runtime, cast) => runtime.time < cast.fullEnd,
-        do: { type: 'warrior.counterblow-arm' }
-      }
-    ],
-    // Like Illusionary Counter, the block arms a separate attack and can release its channel early.
-    cooldown: 7,
-    castTimeMs: 1960,
-    defaultInterruptMs: 200,
-    interruptCommitMs: 80,
-    effects: []
-  },
   [ID.CRUSHING_BLOW]: {
+    dualWieldEffectOffsetsMs: { 440: 320 },
     castTimeMs: 560,
     dualWieldCastTimeMs: 400,
-    dualWieldEffectOffsetsMs: { 440: 320 },
     interruptCommitMs: 440,
     dualWieldInterruptCommitMs: 360,
     // Share impact timing while preserving independent payloads and declaration order.
@@ -136,27 +131,32 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
       }
     ])
   },
-  [ID.TACTICAL_BLOW]: {
-    castTimeMs: 480,
-    // Acceptance consumes the follow-up even if its attack is canceled.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'flipConsume', skillId: ID.TACTICAL_BLOW } },
-      { on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 5 } }
-    ],
-    // Share impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+  [ID.TREMOR]: {
+    // The travelling impacts retain their observed spacing instead of scaling every packet proportionally.
+    dualWieldEffectOffsetsMs: { 440: 320, 520: 360 },
+    // Tremor refreshes Crushing Blow when its cast completes.
+    castTimeMs: 560,
+    dualWieldCastTimeMs: 400,
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 1
+        ticks: [440, 520].map((atMs) => ({ atMs, coefficient: 1.25 })),
+        comboFinishers: [
+          {
+            ownerId: 'warrior',
+            finisherType: COMBO_FINISHER.PROJECTILE,
+            chance: 1
+          }
+        ]
       },
       {
-        type: 'condition',
-        condition: CONDITION.VULNERABILITY,
-        stacks: 5,
-        duration: 8
+        type: 'control',
+        atMs: 440,
+        controlKind: CONTROL.KNOCKDOWN
       }
-    ])
+    ]),
+    sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.CRUSHING_BLOW] } }]
   }
 });
 

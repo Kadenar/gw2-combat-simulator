@@ -48,11 +48,11 @@ function ambush(
   return {
     castTimeMs,
     ...(timing.interruptCommitMs == null ? {} : { interruptCommitMs: timing.interruptCommitMs }),
-    sideEffects: [{ on: 'castStart', do: { type: 'ranger.ambush-consume' } }],
     // Launched projectiles and their first-hit siphon outlive cancellation of the remaining animation.
     effects: [...effects, naturalFortitudeAmbushEffect(firstHitMs)].map((effect) =>
       timing.persistsAfterInterrupt ? { ...effect, persistsAfterInterrupt: true } : effect
-    )
+    ),
+    sideEffects: [{ on: 'castStart', do: { type: 'ranger.ambush-consume' } }]
   };
 }
 

@@ -26,12 +26,88 @@ import {
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.ABYSSAL_BLITZ]: {
+  [ID.ABYSSAL_STRIKE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    cooldown: 0,
+    energyCost: 0,
+    rechargeReduction: 1,
+    nextChainId: null,
     // The spear lifecycle reduces Abyssal Raze recharge after the qualifying hit.
     castTimeMs: 520,
+    interruptCommitMs: 396,
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          // The accepted authored strike owns the recharge reward.
+          reactions: [
+            { on: 'damage.resolved', actor: ACTOR.PLAYER, packets: 'first', do: { type: 'revenant.spear-recharge' } }
+          ],
+          coefficient: 0.85,
+          hits: 1,
+          name: 'Abyssal Strike',
+          actorType: ACTOR.PLAYER
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.TORMENT,
+          stacks: 1,
+          duration: 3,
+          actorType: ACTOR.PLAYER
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.VULNERABILITY,
+          stacks: 1,
+          duration: 6,
+          actorType: ACTOR.PLAYER
+        }
+      ]
+    )
+  },
+  [ID.ABYSSAL_FORCE]: {
+    cooldown: 6,
+    energyCost: 4,
+    rechargeReduction: 5,
+    // The spear lifecycle reduces Abyssal Raze recharge after the qualifying hit.
+    castTimeMs: 520,
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 1160, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        // The accepted authored strike owns the recharge reward.
+        reactions: [
+          { on: 'damage.resolved', actor: ACTOR.PLAYER, packets: 'first', do: { type: 'revenant.spear-recharge' } }
+        ],
+        coefficient: 0.8,
+        hits: 1,
+        name: 'Abyssal Force',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BURNING,
+        stacks: 1,
+        duration: 8,
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.CHILLED,
+        stacks: 1,
+        duration: 2,
+        actorType: ACTOR.PLAYER
+      }
+    ])
+  },
+  [ID.ABYSSAL_BLITZ]: {
     cooldown: 10,
     energyCost: 10,
     rechargeReduction: 3,
+    // The spear lifecycle reduces Abyssal Raze recharge after the qualifying hit.
+    castTimeMs: 520,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -62,14 +138,14 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.ABYSSAL_BLOT]: {
-    // Abyssal Blot commits after 760 ms, preserving its field and delayed impacts after interruption.
-    interruptCommitMs: 760,
-    // The spear lifecycle reduces Abyssal Raze recharge after the qualifying hit.
-    castTimeMs: 800,
     cooldown: 15,
     energyCost: 12,
     // The initial pull recharges Raze by 3 seconds per target, matching the in-game tooltip.
     rechargeReduction: 3,
+    // The spear lifecycle reduces Abyssal Raze recharge after the qualifying hit.
+    castTimeMs: 800,
+    // Abyssal Blot commits after 760 ms, preserving its field and delayed impacts after interruption.
+    interruptCommitMs: 760,
     // The dark field spans Blot's five impacts so subsequent spear finishers
     // resolve their combo outcome against the field instead of its damage.
     comboFields: [
@@ -133,98 +209,16 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
       ])
     ]
   },
-  [ID.ABYSSAL_FORCE]: {
-    // The spear lifecycle reduces Abyssal Raze recharge after the qualifying hit.
-    castTimeMs: 520,
-    cooldown: 6,
-    energyCost: 4,
-    rechargeReduction: 5,
-    // Share one impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 1160, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        // The accepted authored strike owns the recharge reward.
-        reactions: [
-          { on: 'damage.resolved', actor: ACTOR.PLAYER, packets: 'first', do: { type: 'revenant.spear-recharge' } }
-        ],
-        coefficient: 0.8,
-        hits: 1,
-        name: 'Abyssal Force',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.BURNING,
-        stacks: 1,
-        duration: 8,
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.CHILLED,
-        stacks: 1,
-        duration: 2,
-        actorType: ACTOR.PLAYER
-      }
-    ])
-  },
-  [ID.ABYSSAL_STRIKE]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    // The spear lifecycle reduces Abyssal Raze recharge after the qualifying hit.
-    castTimeMs: 520,
-    interruptCommitMs: 396,
-    cooldown: 0,
-    energyCost: 0,
-    rechargeReduction: 1,
-    nextChainId: null,
-    // Share one impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects(
-      { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
-      [
-        {
-          type: 'strike',
-          // The accepted authored strike owns the recharge reward.
-          reactions: [
-            { on: 'damage.resolved', actor: ACTOR.PLAYER, packets: 'first', do: { type: 'revenant.spear-recharge' } }
-          ],
-          coefficient: 0.85,
-          hits: 1,
-          name: 'Abyssal Strike',
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.TORMENT,
-          stacks: 1,
-          duration: 3,
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.VULNERABILITY,
-          stacks: 1,
-          duration: 6,
-          actorType: ACTOR.PLAYER
-        }
-      ]
-    )
-  },
   [ID.ABYSSAL_RAZE]: {
-    // This declaration schedules the live-stack impact owned below.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.abyssal-raze' } }
-    ],
-    // The impact task reads these effects as its payload, so the cast itself emits none.
-    effectVariants: [{ when: () => true, transform: () => [] }],
-    // Impact reads live Crushing Abyss stacks, emits scaled damage, then grants one stack.
-    // A qualifying weapon swap consumes the pool.
-    castTimeMs: 600,
     cooldown: 1,
     ammoCastLockout: 1,
     ammo: 3,
     ammoRecharge: 15,
     energyCost: 8,
     maximumStacks: 3,
+    // Impact reads live Crushing Abyss stacks, emits scaled damage, then grants one stack.
+    // A qualifying weapon swap consumes the pool.
+    castTimeMs: 600,
     comboFinishers: [
       {
         ownerId: 'revenant',
@@ -265,7 +259,11 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         name: 'Crushing Abyss',
         actorType: ACTOR.PLAYER
       }
-    ])
+    ]),
+    // The impact task reads these effects as its payload, so the cast itself emits none.
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    // This declaration schedules the live-stack impact owned below.
+    sideEffects: [{ on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.abyssal-raze' } }]
   }
 });
 

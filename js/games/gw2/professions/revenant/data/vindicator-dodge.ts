@@ -10,14 +10,14 @@ export const VINDICATOR_DODGE_MS = VINDICATOR_AIRBORNE_MS + VINDICATOR_LANDING_M
 
 /** Retain saved Dodge Jump identities for validation; Vindicator's modifySkillId executes the shared Dodge instead. */
 export const VINDICATOR_DODGE_INPUT: Skill = Object.freeze({
-  id: 23275,
   name: 'Dodge Jump',
+  id: 23275,
   description: 'Perform the selected Vindicator dodge and landing.',
   icon: DODGE_ICON,
   type: 'Action',
   slot: 'Action',
   specialization: 'Vindicator',
+  patchAuthoringExcluded: true,
   // Log replay still needs the input occupancy; costs and landing effects belong only to the resolved shared action.
-  castTimeMs: VINDICATOR_DODGE_MS,
-  patchAuthoringExcluded: true
+  castTimeMs: VINDICATOR_DODGE_MS
 });

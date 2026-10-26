@@ -5,33 +5,12 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 
 export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.BLOODBANE_PATH]: {
-    interruptMode: 'per-packet',
-    castTimeMs: 760,
-    cooldown: 3,
-    energyCost: 4,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        name: 'Bloodbane Path',
-        actorType: ACTOR.PLAYER,
-        ticks: [600, 720, 840].map((atMs) => ({ atMs, coefficient: 0.4 }))
-      },
-      {
-        type: 'condition',
-        // Each Bloodbane projectile owns its Bleeding so partial casts retain only landed packets.
-        ticks: [600, 720, 840].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 1, duration: 6 })),
-        actorType: ACTOR.PLAYER
-      }
-    ])
-  },
   [ID.SHATTERSHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 480,
-    interruptCommitMs: 400,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 480,
+    interruptCommitMs: 400,
     comboFinishers: [
       {
         ownerId: 'revenant',
@@ -61,39 +40,33 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
       ]
     )
   },
-  [ID.SCORCHRAZOR]: {
-    castTimeMs: 360,
-    cooldown: 12,
-    energyCost: 16,
-    // Share one impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+  [ID.BLOODBANE_PATH]: {
+    cooldown: 3,
+    energyCost: 4,
+    castTimeMs: 760,
+    interruptMode: 'per-packet',
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        name: 'Scorchrazor',
-        actorType: ACTOR.PLAYER
+        name: 'Bloodbane Path',
+        actorType: ACTOR.PLAYER,
+        ticks: [600, 720, 840].map((atMs) => ({ atMs, coefficient: 0.4 }))
       },
       {
         type: 'condition',
-        condition: CONDITION.BURNING,
-        stacks: 1,
-        duration: 4,
+        // Each Bloodbane projectile owns its Bleeding so partial casts retain only landed packets.
+        ticks: [600, 720, 840].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 1, duration: 6 })),
         actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'control',
-        actorType: ACTOR.PLAYER,
-        controlKind: CONTROL.KNOCKDOWN
       }
     ])
   },
   [ID.SEVENSHOT]: {
+    cooldown: 7,
+    energyCost: 7,
     castTimeMs: 440,
     // Once the volley releases, its projectiles keep traveling after the remaining animation is interrupted.
     interruptCommitMs: 400,
-    cooldown: 7,
-    energyCost: 7,
     comboFinishers: [
       {
         ownerId: 'revenant',
@@ -122,10 +95,9 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.SPIRITCRUSH]: {
-    castTimeMs: 400,
-
     cooldown: 9,
     energyCost: 12,
+    castTimeMs: 400,
     comboFields: [
       {
         ownerId: 'revenant',
@@ -167,6 +139,33 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
           duration: 1.5
         })),
         actorType: ACTOR.PLAYER
+      }
+    ])
+  },
+  [ID.SCORCHRAZOR]: {
+    cooldown: 12,
+    energyCost: 16,
+    castTimeMs: 360,
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 1,
+        hits: 1,
+        name: 'Scorchrazor',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BURNING,
+        stacks: 1,
+        duration: 4,
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'control',
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.KNOCKDOWN
       }
     ])
   }

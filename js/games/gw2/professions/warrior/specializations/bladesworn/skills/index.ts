@@ -36,44 +36,45 @@ const furyBeforeCast = new WeakSet<RuntimeCast<WarriorSkill>>();
 
 export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.UNSHEATHE_GUNSABER]: {
-    // Successful commitment owns this transition or reward.
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.gunsaber-enter' } }],
     // Gunsaber transitions use a five-second base recharge before recharge modifiers.
     cooldown: 5,
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     castTimeMs: 0,
     effects: [],
-    inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
+    // Successful commitment owns this transition or reward.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.gunsaber-enter' } }]
   },
   [ID.DRAGON_TRIGGER]: {
-    // Successful commitment owns this transition or reward.
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.dragon-trigger-enter' } }],
-    effects: [],
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     castTimeMs: 0,
     canCastConcurrently: false,
-    inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
+    effects: [],
+    // Successful commitment owns this transition or reward.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.dragon-trigger-enter' } }]
   },
   [ID.SHEATHE_GUNSABER]: {
-    // Successful commitment owns this transition or reward.
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.gunsaber-exit' } }],
     cooldown: 5,
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     castTimeMs: 0,
     effects: [],
-    inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
+    // Successful commitment owns this transition or reward.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.gunsaber-exit' } }]
   },
   [ID.TACTICAL_RELOAD]: {
-    // Successful commitment owns this transition or reward.
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.tactical-reload' } }],
-    effects: [],
     castTimeMs: 560,
     dualWieldCastTimeMs: 400,
     // Commitment grants the reload while the remaining animation retains its cast lockout.
     interruptCommitMs: 480,
-    retainsCastLockoutAfterInterrupt: true
+    retainsCastLockoutAfterInterrupt: true,
+    effects: [],
+    // Successful commitment owns this transition or reward.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.tactical-reload' } }]
   },
   [ID.DRAGONSPIKE_MINE]: {
-    // The completed activation refreshes its paired skill through the shared recharge owner.
-    sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.DRAGON_TRIGGER] } }],
     movementSkill: true,
+    castTimeMs: 640,
+    // Interrupted replay keeps the mine effects once their observed activation has committed.
+    interruptCommitMs: 640,
     // Dragonspike Mine refreshes Dragon Trigger when its cast completes.
     effects: [
       {
@@ -98,16 +99,10 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         persistsAfterInterrupt: true
       }
     ],
-    castTimeMs: 640,
-    // Interrupted replay keeps the mine effects once their observed activation has committed.
-    interruptCommitMs: 640
+    // The completed activation refreshes its paired skill through the shared recharge owner.
+    sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.DRAGON_TRIGGER] } }]
   },
   [ID.FLOW_STABILIZER]: {
-    // Capture preexisting Fury before this skill applies its own boon.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'warrior.flow-snapshot' } },
-      { on: 'castCommit', do: { type: 'warrior.flow-stabilize' } }
-    ],
     castTimeMs: 0,
     // Flow Stabilizer opens its passive-flow window and grants its conditional flow on completion.
     effects: [
@@ -124,9 +119,15 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         duration: 8,
         stacks: 2
       }
+    ],
+    // Capture preexisting Fury before this skill applies its own boon.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'warrior.flow-snapshot' } },
+      { on: 'castCommit', do: { type: 'warrior.flow-stabilize' } }
     ]
   },
   [ID.COMBAT_STIMULANT]: {
+    castTimeMs: 500,
     effects: [
       {
         type: 'boon',
@@ -146,26 +147,28 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         duration: 10,
         stacks: 1
       }
-    ],
-    castTimeMs: 500
+    ]
   },
   [ID.OVERCHARGED_CARTRIDGES]: {
-    // Activation precedes completion, so acceptance schedules its own guarded wake.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'warrior.cartridges-schedule' } }
-    ],
     ammo: 2,
     ammoRecharge: 20,
     cooldown: 20,
     ammoCastLockout: 1,
-    effects: [],
     castTimeMs: 600,
     dualWieldCastTimeMs: 480,
     // Committed interrupted casts keep the cartridge window consumed by later explosions.
-    interruptCommitMs: 400
+    interruptCommitMs: 400,
+    effects: [],
+    // Activation precedes completion, so acceptance schedules its own guarded wake.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'warrior.cartridges-schedule' } }
+    ]
   },
   // Only explicitly named explosion packets trigger explosion modifiers and traits; ordinary gunsaber hits do not.
   [ID.SWIFT_CUT]: {
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber',
+    castTimeMs: 640,
     effects: [
       {
         weaponStrengthProfileId: 'bundle.exotic',
@@ -181,12 +184,12 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         coefficient: 0.75 * 0.33,
         hits: 1
       }
-    ],
-    castTimeMs: 640,
-    gunsaberSkill: true,
-    skillWeapon: 'Gunsaber'
+    ]
   },
   [ID.STEEL_DIVIDE]: {
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber',
+    castTimeMs: 600,
     effects: [
       {
         weaponStrengthProfileId: 'bundle.exotic',
@@ -202,12 +205,12 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         coefficient: 0.75 * 0.33,
         hits: 1
       }
-    ],
-    castTimeMs: 600,
-    gunsaberSkill: true,
-    skillWeapon: 'Gunsaber'
+    ]
   },
   [ID.EXPLOSIVE_THRUST]: {
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber',
+    castTimeMs: 440,
     effects: [
       {
         weaponStrengthProfileId: 'bundle.exotic',
@@ -224,16 +227,18 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         hits: 1,
         damageKind: 'explosion'
       }
-    ],
-    castTimeMs: 440,
-    gunsaberSkill: true,
-    skillWeapon: 'Gunsaber'
+    ]
   },
   [ID.BLOOMING_FIRE]: {
     ammo: 2,
     ammoRecharge: 10,
     cooldown: 10,
     ammoCastLockout: 2,
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber',
+    castTimeMs: 600,
+    // Interrupted replay keeps every Blooming Fire packet after its observed activation commits.
+    interruptCommitMs: 600,
     effects: [
       {
         weaponStrengthProfileId: 'bundle.exotic',
@@ -253,16 +258,17 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         damageKind: 'explosion',
         persistsAfterInterrupt: true
       }
-    ],
-    castTimeMs: 600,
-    // Interrupted replay keeps every Blooming Fire packet after its observed activation commits.
-    interruptCommitMs: 600,
-    gunsaberSkill: true,
-    skillWeapon: 'Gunsaber'
+    ]
   },
   [ID.ARTILLERY_SLASH]: {
-    // Capture every round before shared commitment spends the last reserved round.
-    sideEffects: [{ on: 'castStart', do: { type: 'warrior.spend-magazine' } }],
+    ammo: 2,
+    ammoRecharge: 15,
+    cooldown: 15,
+    ammoCastLockout: 2,
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber',
+    castTimeMs: 680,
+    effects: [],
     effectVariants: [
       {
         profileId: PROFILE.artillerySlash,
@@ -270,20 +276,19 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         transform: (runtime, cast) => artilleryEffects(runtime, cast, false)
       }
     ],
-    ammo: 2,
-    ammoRecharge: 15,
-    cooldown: 15,
-    ammoCastLockout: 2,
-    effects: [],
-    castTimeMs: 680,
-    gunsaberSkill: true,
-    skillWeapon: 'Gunsaber'
+    // Capture every round before shared commitment spends the last reserved round.
+    sideEffects: [{ on: 'castStart', do: { type: 'warrior.spend-magazine' } }]
   },
   [ID.CYCLONE_TRIGGER]: {
     ammo: 2,
     ammoRecharge: 20,
     cooldown: 20,
     ammoCastLockout: 1,
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber',
+    castTimeMs: 400,
+    // Interrupted replay keeps every Cyclone Trigger packet after its observed activation commits.
+    interruptCommitMs: 240,
     effects: [
       {
         weaponStrengthProfileId: 'bundle.exotic',
@@ -299,12 +304,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         stacks: 1,
         persistsAfterInterrupt: true
       }
-    ],
-    castTimeMs: 400,
-    // Interrupted replay keeps every Cyclone Trigger packet after its observed activation commits.
-    interruptCommitMs: 240,
-    gunsaberSkill: true,
-    skillWeapon: 'Gunsaber'
+    ]
   },
   [ID.BREAK_STEP]: {
     movementSkill: true,
@@ -312,6 +312,11 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ammoRecharge: 20,
     cooldown: 20,
     ammoCastLockout: 1,
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber',
+    castTimeMs: 320,
+    // Interrupted replay keeps every Break Step packet after its observed activation commits.
+    interruptCommitMs: 320,
     effects: [
       {
         weaponStrengthProfileId: 'bundle.exotic',
@@ -328,19 +333,9 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         stacks: 1,
         persistsAfterInterrupt: true
       }
-    ],
-    castTimeMs: 320,
-    // Interrupted replay keeps every Break Step packet after its observed activation commits.
-    interruptCommitMs: 320,
-    gunsaberSkill: true,
-    skillWeapon: 'Gunsaber'
+    ]
   },
   [ID.DRAGON_SLASH_FORCE]: {
-    // Normal and Sharp releases share captured facts and their own interpolation endpoints.
-    sideEffects: [{ on: 'castStart', do: { type: 'warrior.slash-release' } }],
-    effectVariants: [{ when: () => true, transform: slashEffects }],
-    effects: [],
-    castTimeMs: 1040,
     // Force hits during its animation so expiring buffs are evaluated before recovery ends.
     dragonSlashImpactOffsetMs: 520,
     burst: true,
@@ -348,53 +343,61 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     skillWeapon: 'Gunsaber',
     dragonSlash: true,
     dragonSlashMinimumCoefficient: 1.16,
-    dragonSlashMaximumCoefficient: 20.4
+    dragonSlashMaximumCoefficient: 20.4,
+    castTimeMs: 1040,
+    effects: [],
+    effectVariants: [{ when: () => true, transform: slashEffects }],
+    // Normal and Sharp releases share captured facts and their own interpolation endpoints.
+    sideEffects: [{ on: 'castStart', do: { type: 'warrior.slash-release' } }]
   },
   [ID.DRAGON_SLASH_BOOST]: {
-    // Normal and Sharp releases share captured facts and their own interpolation endpoints.
-    sideEffects: [{ on: 'castStart', do: { type: 'warrior.slash-release' } }],
-    effectVariants: [{ when: () => true, transform: slashEffects }],
     movementSkill: true,
-    effects: [],
-    castTimeMs: 1040,
     burst: true,
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber',
     dragonSlash: true,
     dragonSlashMinimumCoefficient: 0.92,
-    dragonSlashMaximumCoefficient: 16.3
+    dragonSlashMaximumCoefficient: 16.3,
+    castTimeMs: 1040,
+    effects: [],
+    effectVariants: [{ when: () => true, transform: slashEffects }],
+    // Normal and Sharp releases share captured facts and their own interpolation endpoints.
+    sideEffects: [{ on: 'castStart', do: { type: 'warrior.slash-release' } }]
   },
   [ID.DRAGON_SLASH_REACH]: {
-    // Normal and Sharp releases share captured facts and their own interpolation endpoints.
-    sideEffects: [{ on: 'castStart', do: { type: 'warrior.slash-release' } }],
-    effectVariants: [{ when: () => true, transform: slashEffects }],
-    effects: [],
-    castTimeMs: 1040,
     burst: true,
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber',
     dragonSlash: true,
     dragonSlashMinimumCoefficient: 0.56,
-    dragonSlashMaximumCoefficient: 10.21
+    dragonSlashMaximumCoefficient: 10.21,
+    castTimeMs: 1040,
+    effects: [],
+    effectVariants: [{ when: () => true, transform: slashEffects }],
+    // Normal and Sharp releases share captured facts and their own interpolation endpoints.
+    sideEffects: [{ on: 'castStart', do: { type: 'warrior.slash-release' } }]
   },
   [ID.FLICKER_STEP]: {
     ammo: 3,
     ammoRecharge: 20,
     cooldown: 20,
     ammoCastLockout: 0.5,
-    castTimeMs: 0,
-    effects: [],
     gunsaberSkill: true,
     dragonTriggerSkill: true,
     shadowstepSkill: true,
     peithaImpactDelayMs: 240,
-    skillWeapon: 'Gunsaber'
+    skillWeapon: 'Gunsaber',
+    castTimeMs: 0,
+    effects: []
   },
   [ID.TRIGGERGUARD]: {
     ammo: 2,
     ammoRecharge: 30,
     cooldown: 30,
     ammoCastLockout: 1,
+    gunsaberSkill: true,
+    dragonTriggerSkill: true,
+    skillWeapon: 'Gunsaber',
     castTimeMs: 0,
     effects: [
       {
@@ -403,10 +406,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         duration: 2,
         stacks: 1
       }
-    ],
-    gunsaberSkill: true,
-    dragonTriggerSkill: true,
-    skillWeapon: 'Gunsaber'
+    ]
   }
 });
 
@@ -415,16 +415,16 @@ function sharpAsTheWindVariant(id: number, parentId: number, name: string, overr
   const parent = WARRIOR_SUPPLEMENTAL_SKILLS.find((skill) => skill.id === parentId);
 
   return Object.freeze({
-    id,
     name,
+    id,
     description: 'Sharp as the Wind condition variant.',
     icon: parent?.icon || '',
     type: parent?.type || 'Bundle',
     // Trait replacements retain their occupied Gunsaber or Dragon Trigger control.
     slot: parent?.slot,
     specialization: 'Bladesworn',
-    castTimeMs: 0,
     cooldown: 0,
+    castTimeMs: 0,
     effects: [],
     ...BLADESWORN_SKILL_MECHANICS[parentId],
     ...overrides,

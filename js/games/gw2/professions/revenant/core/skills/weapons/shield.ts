@@ -4,16 +4,10 @@ import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js'
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const REVENANT_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.CRYSTAL_HIBERNATION]: {
-    castTimeMs: 2000,
-    cooldown: 25,
-    energyCost: 20,
-    effects: []
-  },
   [ID.ENVOY_OF_EXUBERANCE]: {
-    castTimeMs: 520,
     cooldown: 15,
     energyCost: 8,
+    castTimeMs: 520,
     effects: [
       {
         type: 'boon',
@@ -30,5 +24,11 @@ export const REVENANT_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Pa
         stacks: 1
       }
     ]
+  },
+  [ID.CRYSTAL_HIBERNATION]: {
+    cooldown: 25,
+    energyCost: 20,
+    castTimeMs: 2000,
+    effects: []
   }
 });

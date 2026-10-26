@@ -27,40 +27,124 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 
 export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.JURISDICTION]: {
-    castTimeMs: 800,
-    interruptCommitMs: 640,
-    cooldown: 20,
-    // Keep the projectile's strike, Burning, and stun on one committed impact.
+  [ID.THROUGH_THE_HEART]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    castTimeMs: 600,
+    interruptCommitMs: 360,
+    // Keep the projectile strike and Bleeding on one committed impact.
     effects: impactEffects(
-      { atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      { atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
       [
         {
           type: 'strike',
-          coefficient: 3,
+          coefficient: 0.6,
           projectile: true
         },
         {
           type: 'condition',
-          condition: CONDITION.BURNING,
-          stacks: 5,
-          duration: 6
-        },
-        {
-          type: 'control',
-          controlKind: CONTROL.STUN
+          condition: CONDITION.BLEEDING,
+          stacks: 1,
+          duration: 8,
+          projectile: true
         }
       ]
     )
   },
+  [ID.PEACEKEEPER]: {
+    cooldown: 6,
+    rechargeAnchor: 'castStart',
+    // EVTC impact offsets keep Burning aligned with each strike.
+    castTimeMs: 1040,
+    interruptCommitMs: 960,
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
+      {
+        type: 'strike',
+        ticks: [280, 480, 640, 800, 960].map((atMs) => ({
+          atMs,
+          coefficient: 0.25
+        }))
+      },
+      // Each strike applies the same Burning packet at its impact time.
+      ...[280, 480, 640, 800, 960].map((atMs) => ({
+        type: 'condition' as const,
+        ticks: [{ atMs, condition: CONDITION.BURNING, stacks: 1, duration: 1.5 }]
+      }))
+    ])
+  },
+  [ID.SYMBOL_OF_IGNITION]: {
+    internalCooldown: 0.24,
+    // Author symbol identity independently of the skill's display text.
+    tags: ['symbol'],
+    castTimeMs: 360,
+    interruptCommitMs: 320,
+    comboFields: [
+      {
+        ownerId: 'guardian',
+        fieldType: COMBO_FIELD.LIGHT,
+        duration: 4,
+        startAnchor: 'castEnd'
+      }
+    ],
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
+      {
+        type: 'strike',
+        metadata: { guardianSymbol: true },
+        coefficient: 0.4,
+        // Ignition pulses on its own 680 ms cadence, independently of its four-second field.
+        atMs: 280,
+        applications: 5,
+        intervalMs: 680
+      },
+      {
+        type: 'boon',
+        boon: BOON.MIGHT,
+        stacks: 1,
+        duration: 5,
+        audience: { recipients: RECIPIENT.PARTY },
+        atMs: 280,
+        applications: 5,
+        intervalMs: 680
+      }
+    ]),
+    // Placement opens the shared ignition observer only after commitment.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'guardian.place-ignition',
+          id: 'ignition',
+          effects: [
+            {
+              type: 'condition',
+              name: 'Burning',
+              condition: CONDITION.BURNING,
+              stacks: 1,
+              duration: 1,
+              actorType: ACTOR.PLAYER
+            },
+            {
+              type: 'buff',
+              name: 'guardian-symbol-of-ignition-field',
+              kind: 'guardian-symbol-of-ignition-field',
+              stacks: 1,
+              duration: 4,
+              actorType: ACTOR.EFFECT
+            }
+          ]
+        }
+      }
+    ]
+  },
   [ID.HAIL_OF_JUSTICE]: {
-    castTimeMs: 1120,
-    // Cancelling the channel keeps landed hits and their conditions, while dropping later packets.
-    interruptMode: 'per-packet',
     cooldown: 10,
     ammo: 2,
     ammoRecharge: 10,
     ammoCastLockout: 1,
+    castTimeMs: 1120,
+    // Cancelling the channel keeps landed hits and their conditions, while dropping later packets.
+    interruptMode: 'per-packet',
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -93,112 +177,28 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
       }
     ])
   },
-  [ID.PEACEKEEPER]: {
-    // EVTC impact offsets keep Burning aligned with each strike.
-    castTimeMs: 1040,
-    interruptCommitMs: 960,
-    cooldown: 6,
-    rechargeAnchor: 'castStart',
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
-      {
-        type: 'strike',
-        ticks: [280, 480, 640, 800, 960].map((atMs) => ({
-          atMs,
-          coefficient: 0.25
-        }))
-      },
-      // Each strike applies the same Burning packet at its impact time.
-      ...[280, 480, 640, 800, 960].map((atMs) => ({
-        type: 'condition' as const,
-        ticks: [{ atMs, condition: CONDITION.BURNING, stacks: 1, duration: 1.5 }]
-      }))
-    ])
-  },
-  [ID.SYMBOL_OF_IGNITION]: {
-    internalCooldown: 0.24,
-    // Author symbol identity independently of the skill's display text.
-    tags: ['symbol'],
-    // Placement opens the shared ignition observer only after commitment.
-    sideEffects: [
-      {
-        on: 'castCommit',
-        do: {
-          type: 'guardian.place-ignition',
-          id: 'ignition',
-          effects: [
-            {
-              type: 'condition',
-              name: 'Burning',
-              condition: CONDITION.BURNING,
-              stacks: 1,
-              duration: 1,
-              actorType: ACTOR.PLAYER
-            },
-            {
-              type: 'buff',
-              name: 'guardian-symbol-of-ignition-field',
-              kind: 'guardian-symbol-of-ignition-field',
-              stacks: 1,
-              duration: 4,
-              actorType: ACTOR.EFFECT
-            }
-          ]
-        }
-      }
-    ],
-    castTimeMs: 360,
-    interruptCommitMs: 320,
-    comboFields: [
-      {
-        ownerId: 'guardian',
-        fieldType: COMBO_FIELD.LIGHT,
-        duration: 4,
-        startAnchor: 'castEnd'
-      }
-    ],
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
-      {
-        type: 'strike',
-        metadata: { guardianSymbol: true },
-        coefficient: 0.4,
-        // Ignition pulses on its own 680 ms cadence, independently of its four-second field.
-        atMs: 280,
-        applications: 5,
-        intervalMs: 680
-      },
-      {
-        type: 'boon',
-        boon: BOON.MIGHT,
-        stacks: 1,
-        duration: 5,
-        audience: { recipients: RECIPIENT.PARTY },
-        atMs: 280,
-        applications: 5,
-        intervalMs: 680
-      }
-    ])
-  },
-  [ID.THROUGH_THE_HEART]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 600,
-    interruptCommitMs: 360,
-    // Keep the projectile strike and Bleeding on one committed impact.
+  [ID.JURISDICTION]: {
+    cooldown: 20,
+    castTimeMs: 800,
+    interruptCommitMs: 640,
+    // Keep the projectile's strike, Burning, and stun on one committed impact.
     effects: impactEffects(
-      { atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      { atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
       [
         {
           type: 'strike',
-          coefficient: 0.6,
+          coefficient: 3,
           projectile: true
         },
         {
           type: 'condition',
-          condition: CONDITION.BLEEDING,
-          stacks: 1,
-          duration: 8,
-          projectile: true
+          condition: CONDITION.BURNING,
+          stacks: 5,
+          duration: 6
+        },
+        {
+          type: 'control',
+          controlKind: CONTROL.STUN
         }
       ]
     )

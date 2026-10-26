@@ -22,31 +22,29 @@ const SIGNET_COMPLETED: NonNullable<Skill['sideEffects']> = [
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.WITHDRAW]: {
-    castTimeMs: 0,
     cooldown: 18,
     initiativeCost: 0,
+    castTimeMs: 0,
     effects: []
   },
   [ID.PREPARE_THOUSAND_NEEDLES]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.prepare-trap' } }],
-
-    castTimeMs: 600,
-    // Placement survives cancellation once the preparation commits.
-    interruptCommitMs: 400,
     cooldown: 30,
     rechargeAnchor: 'castStart',
     initiativeCost: 0,
     duration: 3,
-    effects: []
+
+    castTimeMs: 600,
+    // Placement survives cancellation once the preparation commits.
+    interruptCommitMs: 400,
+    effects: [],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.prepare-trap' } }]
   },
   [ID.HIDE_IN_SHADOWS]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.stealth' } }],
-    // The heal occupies its full recorded animation before granting stealth.
-    castTimeMs: 920,
     cooldown: 25,
     initiativeCost: 0,
+    // The heal occupies its full recorded animation before granting stealth.
+    castTimeMs: 920,
     effects: [
       {
         type: 'buff',
@@ -60,14 +58,16 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
         duration: 6,
         stacks: 1
       }
-    ]
+    ],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.stealth' } }]
   },
   [ID.CALTROPS]: {
+    cooldown: 24,
+    initiativeCost: 0,
     castTimeMs: 920,
     // Once placed, the field keeps pulsing after the cast is interrupted.
     interruptCommitMs: 800,
-    cooldown: 24,
-    initiativeCost: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
@@ -92,22 +92,20 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ])
   },
   [ID.SPIDER_VENOM]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.activate-venom' } }],
-
-    castTimeMs: 0,
     cooldown: 30,
     initiativeCost: 0,
+
+    castTimeMs: 0,
     effects: [
       { type: 'buff', kind: 'spider-venom', duration: 24, stacks: 6, audience: { recipients: RECIPIENT.PARTY } }
-    ]
+    ],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.activate-venom' } }]
   },
   [ID.BLINDING_POWDER]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.stealth' } }],
-    castTimeMs: 0,
     cooldown: 20,
     initiativeCost: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'buff',
@@ -122,45 +120,53 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
         duration: 5,
         actorType: ACTOR.PLAYER
       }
-    ]
+    ],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.stealth' } }]
   },
   [ID.ASSASSINS_SIGNET]: {
-    // Activate only after recharge settlement.
-    sideEffects: [...SIGNET_COMPLETED, { on: 'castCommit', do: { type: 'thief.assassins-signet' } }],
-
-    castTimeMs: 0,
     cooldown: 20,
     initiativeCost: 0,
-    effects: []
-  },
-  [ID.SIGNET_OF_MALICE]: {
-    sideEffects: SIGNET_COMPLETED,
-    castTimeMs: 200,
-    cooldown: 12,
-    initiativeCost: 0,
-    effects: []
-  },
-  [ID.SKALE_VENOM]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.activate-venom' } }],
 
     castTimeMs: 0,
+    effects: [],
+    // Activate only after recharge settlement.
+    sideEffects: [...SIGNET_COMPLETED, { on: 'castCommit', do: { type: 'thief.assassins-signet' } }]
+  },
+  [ID.SIGNET_OF_MALICE]: {
+    cooldown: 12,
+    initiativeCost: 0,
+    castTimeMs: 200,
+    effects: [],
+    sideEffects: SIGNET_COMPLETED
+  },
+  [ID.SKALE_VENOM]: {
     cooldown: 30,
     initiativeCost: 0,
-    effects: [{ type: 'buff', kind: 'skale-venom', duration: 24, stacks: 4, audience: { recipients: RECIPIENT.PARTY } }]
+
+    castTimeMs: 0,
+    effects: [
+      { type: 'buff', kind: 'skale-venom', duration: 24, stacks: 4, audience: { recipients: RECIPIENT.PARTY } }
+    ],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.activate-venom' } }]
   },
   [ID.PREPARE_PITFALL]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.prepare-trap' } }],
-
-    castTimeMs: 360,
     cooldown: 25,
     rechargeAnchor: 'castStart',
     initiativeCost: 0,
     duration: 3,
-    effects: []
+
+    castTimeMs: 360,
+    effects: [],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.prepare-trap' } }]
   },
   [ID.SIGNET_OF_AGILITY]: {
+    cooldown: 30,
+    initiativeCost: 0,
+    castTimeMs: 0,
+    effects: [],
     // The active grant commits once and uses the selected balance profile.
     sideEffects: [
       ...SIGNET_COMPLETED,
@@ -172,27 +178,23 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
           amount: { profile: PROFILE.signetOfAgility, field: 'resourceGain' }
         }
       }
-    ],
-    castTimeMs: 0,
-    cooldown: 30,
-    initiativeCost: 0,
-    effects: []
+    ]
   },
   [ID.INFILTRATORS_SIGNET]: {
-    // Activate only after recharge settlement.
-    sideEffects: [...SIGNET_COMPLETED, { on: 'castCommit', do: { type: 'thief.restart-signet' } }],
     // The active shadowstep participates in movement traits and relic triggers.
     movementSkill: true,
     shadowstepSkill: true,
-    castTimeMs: 0,
     cooldown: 20,
     initiativeCost: 0,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    // Activate only after recharge settlement.
+    sideEffects: [...SIGNET_COMPLETED, { on: 'castCommit', do: { type: 'thief.restart-signet' } }]
   },
   [ID.HASTE]: {
-    castTimeMs: 0,
     cooldown: 20,
     initiativeCost: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'boon',
@@ -215,13 +217,8 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ]
   },
   [ID.THIEVES_GUILD]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.summon-guild' } }],
-
-    castTimeMs: 1000,
     cooldown: 120,
     initiativeCost: 0,
-    effects: [],
     summonAttack: {
       basePower: 1750,
       criticalChance: 0.2,
@@ -312,12 +309,17 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
           attacks: [{ name: 'Basic Attack', coefficientPerHit: 1.2, hits: 1, initialDelay: 1, interval: 1 }]
         }
       ]
-    }
+    },
+
+    castTimeMs: 1000,
+    effects: [],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.summon-guild' } }]
   },
   [ID.DAGGER_STORM]: {
-    castTimeMs: 1840,
     cooldown: 60,
     initiativeCost: 0,
+    castTimeMs: 1840,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -343,36 +345,34 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ])
   },
   [ID.DEVOURER_VENOM]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.activate-venom' } }],
+    cooldown: 40,
+    initiativeCost: 0,
 
     castTimeMs: 0,
-    cooldown: 40,
-    initiativeCost: 0,
     effects: [
       { type: 'buff', kind: 'devourer-venom', duration: 24, stacks: 2, audience: { recipients: RECIPIENT.PARTY } }
-    ]
+    ],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.activate-venom' } }]
   },
   [ID.BASILISK_VENOM]: {
-    castTimeMs: 680,
     cooldown: 40,
     initiativeCost: 0,
+    castTimeMs: 680,
     // Model only its control contribution on activation; venom sharing and on-hit charges are intentionally omitted.
     effects: [{ type: 'control', controlKind: CONTROL.STUN, atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }]
   },
   [ID.SKELK_VENOM]: {
-    castTimeMs: 680,
     cooldown: 25,
     initiativeCost: 0,
+    castTimeMs: 680,
     effects: []
   },
   [ID.PITFALL]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.activate-trap' } }],
-
-    castTimeMs: 0,
     cooldown: 3,
     initiativeCost: 0,
+
+    castTimeMs: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       {
@@ -407,15 +407,15 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
           controlKind: CONTROL.KNOCKDOWN
         }
       ])
-    ]
+    ],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.activate-trap' } }]
   },
   [ID.THOUSAND_NEEDLES]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.activate-trap' } }],
-
-    castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
+
+    castTimeMs: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -464,7 +464,9 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
           duration: 2
         }))
       }
-    ])
+    ]),
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.activate-trap' } }]
   }
 });
 

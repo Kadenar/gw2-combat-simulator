@@ -5,32 +5,13 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.ARCING_ARROW]: {
-    comboFinishers: [
-      {
-        ownerId: 'warrior',
-        finisherType: COMBO_FINISHER.BLAST
-      }
-    ],
-    castTimeMs: 560,
-    // Share impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 2.5,
-        // The impact is an explosion so explosion-triggered Bladesworn effects can observe it.
-        damageKind: 'explosion'
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.BURNING,
-        stacks: 1,
-        duration: 5
-      }
-    ])
-  },
   [ID.DUAL_SHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    castTimeMs: 840,
+    interruptMode: 'commit',
+    // Preserve committed arrows and hold the cast lane through the remaining animation.
+    interruptCommitMs: 720,
+    retainsCastLockoutAfterInterrupt: true,
     comboFinishers: [
       {
         ownerId: 'warrior',
@@ -38,11 +19,6 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Pa
         chance: 0.2
       }
     ],
-    castTimeMs: 840,
-    // Preserve committed arrows and hold the cast lane through the remaining animation.
-    interruptCommitMs: 720,
-    interruptMode: 'commit',
-    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',
@@ -53,65 +29,6 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Pa
         persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
-      }
-    ]
-  },
-  [ID.PIN_DOWN]: {
-    comboFinishers: [
-      {
-        ownerId: 'warrior',
-        finisherType: COMBO_FINISHER.PROJECTILE
-      }
-    ],
-    castTimeMs: 680,
-    // Share impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 0.44
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.BLEEDING,
-        stacks: 6,
-        duration: 12
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.IMMOBILIZED,
-        stacks: 1,
-        duration: 3
-      }
-    ])
-  },
-  [ID.SMOLDERING_ARROW]: {
-    ammo: 3,
-    ammoRecharge: 16,
-    ammoCastLockout: 0.5,
-    comboFinishers: [
-      {
-        ownerId: 'warrior',
-        finisherType: COMBO_FINISHER.PROJECTILE
-      }
-    ],
-    castTimeMs: 160,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.2,
-        hits: 1,
-        // The impact is an explosion so explosion-triggered Bladesworn effects can observe it.
-        damageKind: 'explosion'
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.BLINDNESS,
-        stacks: 1,
-        duration: 5
-      },
-      {
-        type: 'control',
-        controlKind: CONTROL.DAZE
       }
     ]
   },
@@ -132,6 +49,89 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'condition',
         condition: CONDITION.BURNING,
         stacks: 3,
+        duration: 3
+      }
+    ])
+  },
+  [ID.ARCING_ARROW]: {
+    castTimeMs: 560,
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: COMBO_FINISHER.BLAST
+      }
+    ],
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 2.5,
+        // The impact is an explosion so explosion-triggered Bladesworn effects can observe it.
+        damageKind: 'explosion'
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BURNING,
+        stacks: 1,
+        duration: 5
+      }
+    ])
+  },
+  [ID.SMOLDERING_ARROW]: {
+    ammo: 3,
+    ammoRecharge: 16,
+    ammoCastLockout: 0.5,
+    castTimeMs: 160,
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: COMBO_FINISHER.PROJECTILE
+      }
+    ],
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.2,
+        hits: 1,
+        // The impact is an explosion so explosion-triggered Bladesworn effects can observe it.
+        damageKind: 'explosion'
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BLINDNESS,
+        stacks: 1,
+        duration: 5
+      },
+      {
+        type: 'control',
+        controlKind: CONTROL.DAZE
+      }
+    ]
+  },
+  [ID.PIN_DOWN]: {
+    castTimeMs: 680,
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: COMBO_FINISHER.PROJECTILE
+      }
+    ],
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 0.44
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 6,
+        duration: 12
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.IMMOBILIZED,
+        stacks: 1,
         duration: 3
       }
     ])

@@ -9,17 +9,13 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.VENGEFUL_HAMMERS]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
-    ],
-    // Shared upkeep owns the drain; upkeep-pulses.ts schedules the legend-owned payload below.
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 5,
     upkeepCost: 6,
     pulseInterval: 1 / 3,
+    legendId: 'LegendaryDwarf',
+    // Shared upkeep owns the drain; upkeep-pulses.ts schedules the legend-owned payload below.
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -30,12 +26,17 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         actorType: ACTOR.EFFECT
       }
     ],
-    legendId: 'LegendaryDwarf'
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
+      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
+    ]
   },
   [ID.FORCED_ENGAGEMENT]: {
-    castTimeMs: 360,
     cooldown: 15,
     energyCost: 10,
+    legendId: 'LegendaryDwarf',
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -56,23 +57,23 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.TAUNT
       }
-    ],
-    legendId: 'LegendaryDwarf'
+    ]
   },
   [ID.RELEASE_HAMMERS]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-upkeep' } }],
-    // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    legendId: 'LegendaryDwarf',
+    // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
+    castTimeMs: 0,
     effects: [],
-    legendId: 'LegendaryDwarf'
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-upkeep' } }]
   },
   [ID.SOOTHING_STONE]: {
-    castTimeMs: 680,
     cooldown: 30,
     energyCost: 5,
+    legendId: 'LegendaryDwarf',
+    castTimeMs: 680,
     effects: [
       {
         type: 'boon',
@@ -80,20 +81,20 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         duration: 5,
         stacks: 1
       }
-    ],
-    legendId: 'LegendaryDwarf'
+    ]
   },
   [ID.RITE_OF_THE_GREAT_DWARF]: {
-    castTimeMs: 840,
     cooldown: 0,
     energyCost: 40,
-    effects: [],
-    legendId: 'LegendaryDwarf'
+    legendId: 'LegendaryDwarf',
+    castTimeMs: 840,
+    effects: []
   },
   [ID.INSPIRING_REINFORCEMENT]: {
-    castTimeMs: 200,
     cooldown: 10,
     energyCost: 30,
+    legendId: 'LegendaryDwarf',
+    castTimeMs: 200,
     effects: [
       {
         type: 'strike',
@@ -128,13 +129,13 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
-    ],
-    legendId: 'LegendaryDwarf'
+    ]
   },
   [ID.SOOTHING_STONE_ID_56661]: {
-    castTimeMs: 680,
     cooldown: 30,
     energyCost: 5,
+    legendId: 'LegendaryDwarf',
+    castTimeMs: 680,
     effects: [
       {
         type: 'boon',
@@ -142,13 +143,13 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         duration: 5,
         stacks: 1
       }
-    ],
-    legendId: 'LegendaryDwarf'
+    ]
   },
   [ID.FORCED_ENGAGEMENT_ID_56662]: {
-    castTimeMs: 360,
     cooldown: 15,
     energyCost: 10,
+    legendId: 'LegendaryDwarf',
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -169,21 +170,16 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.TAUNT
       }
-    ],
-    legendId: 'LegendaryDwarf'
+    ]
   },
   [ID.VENGEFUL_HAMMERS_ID_56752]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
-    ],
-    // Shared upkeep owns the drain; upkeep-pulses.ts schedules the legend-owned payload below.
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 5,
     upkeepCost: 6,
     pulseInterval: 1 / 3,
+    legendId: 'LegendaryDwarf',
+    // Shared upkeep owns the drain; upkeep-pulses.ts schedules the legend-owned payload below.
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -194,19 +190,24 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         actorType: ACTOR.EFFECT
       }
     ],
-    legendId: 'LegendaryDwarf'
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
+      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
+    ]
   },
   [ID.RITE_OF_THE_GREAT_DWARF_ID_56773]: {
-    castTimeMs: 840,
     cooldown: 0,
     energyCost: 40,
-    effects: [],
-    legendId: 'LegendaryDwarf'
+    legendId: 'LegendaryDwarf',
+    castTimeMs: 840,
+    effects: []
   },
   [ID.INSPIRING_REINFORCEMENT_ID_56841]: {
-    castTimeMs: 200,
     cooldown: 10,
     energyCost: 30,
+    legendId: 'LegendaryDwarf',
+    castTimeMs: 200,
     effects: [
       {
         type: 'strike',
@@ -237,8 +238,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         duration: 3,
         stacks: 1
       }
-    ],
-    legendId: 'LegendaryDwarf'
+    ]
   }
 });
 

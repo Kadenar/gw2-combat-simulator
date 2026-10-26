@@ -20,15 +20,15 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
   // `skillWeapon` is the bundle gate: availability blocks these unless the matching conjure is
   // equipped, and blocks normal weapon skills while it is (see core/mechanics/availability.ts).
   [ID.WATER_ARROW]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Water Arrow',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     skillWeapon: 'Frost Bow',
     categories: ['Weapon skill'],
-    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -49,9 +49,9 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     slot: 'Weapon_2',
     skillWeapon: 'Frost Bow',
     categories: ['Weapon skill'],
-    castTimeMs: 1600,
     cooldown: 6,
     skillFamily: 'Weapon skill',
+    castTimeMs: 1600,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -85,9 +85,9 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     slot: 'Weapon_3',
     skillWeapon: 'Frost Bow',
     categories: ['Weapon skill'],
-    castTimeMs: 560,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    castTimeMs: 560,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -112,9 +112,9 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
       slot: 'Weapon_4',
       skillWeapon: 'Frost Bow',
       categories: ['Weapon skill'],
-      castTimeMs: 2360,
       cooldown: 20,
       skillFamily: 'Weapon skill',
+      castTimeMs: 2360,
       // Share timing defaults while preserving each packet, effect order, and local schedule.
       effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
         strikeTimeline([
@@ -164,9 +164,9 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     slot: 'Weapon_5',
     skillWeapon: 'Frost Bow',
     categories: ['Weapon skill'],
-    castTimeMs: 1120,
     cooldown: 30,
     skillFamily: 'Weapon skill',
+    castTimeMs: 1120,
     effects: impactEffects({ atMs: 1120, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.8, canCrit: true },
       { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 5 },
@@ -182,10 +182,10 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     slot: 'Weapon_1',
     skillWeapon: 'Lightning Hammer',
     categories: ['Weapon skill'],
-    castTimeMs: 480,
     cooldown: 0,
     nextChainId: ID.STATIC_SWING,
     skillFamily: 'Weapon skill',
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -206,10 +206,10 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     slot: 'Weapon_1',
     skillWeapon: 'Lightning Hammer',
     categories: ['Weapon skill'],
-    castTimeMs: 640,
     cooldown: 0,
     nextChainId: ID.THUNDERCLAP,
     skillFamily: 'Weapon skill',
+    castTimeMs: 640,
     effects: [
       {
         type: 'strike',
@@ -230,10 +230,10 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     slot: 'Weapon_1',
     skillWeapon: 'Lightning Hammer',
     categories: ['Weapon skill'],
-    castTimeMs: 440,
     cooldown: 0,
     nextChainId: ID.LIGHTNING_SWING,
     skillFamily: 'Weapon skill',
+    castTimeMs: 440,
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -261,9 +261,9 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     slot: 'Weapon_2',
     skillWeapon: 'Lightning Hammer',
     categories: ['Weapon skill'],
-    castTimeMs: 960,
     cooldown: 8,
     skillFamily: 'Weapon skill',
+    castTimeMs: 960,
     effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -285,9 +285,9 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     slot: 'Weapon_3',
     skillWeapon: 'Lightning Hammer',
     categories: ['Weapon skill'],
-    castTimeMs: 960,
     cooldown: 18,
     skillFamily: 'Weapon skill',
+    castTimeMs: 960,
     effects: impactEffects({ atMs: 680, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.33, canCrit: true },
       { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3 },
@@ -301,9 +301,9 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
       slot: 'Weapon_4',
       skillWeapon: 'Lightning Hammer',
       categories: ['Weapon skill'],
-      castTimeMs: 920,
       cooldown: 20,
       skillFamily: 'Weapon skill',
+      castTimeMs: 920,
       effects: [
         strikeTimeline(
           [
@@ -342,8 +342,9 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     slot: 'Weapon_5',
     skillWeapon: 'Lightning Hammer',
     categories: ['Weapon skill'],
-    castTimeMs: 760,
     cooldown: 25,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 760,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -352,7 +353,6 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5, canCrit: true },
       { type: 'control', applications: 1, controlKind: CONTROL.STUN }
@@ -361,15 +361,15 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
   // --- Fiery Greatsword (conjure elite) ---------------------------------------
   // Weapon_1 is a single skill that fires four evenly spaced waves rather than a chain.
   [ID.FLAME_WAVE]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Flame Wave',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     skillWeapon: 'Fiery Greatsword',
     categories: ['Weapon skill'],
-    castTimeMs: 2160,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 2160,
     effects: [
       {
         type: 'strike',
@@ -425,9 +425,9 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     slot: 'Weapon_2',
     skillWeapon: 'Fiery Greatsword',
     categories: ['Weapon skill'],
-    castTimeMs: 720,
     cooldown: 5,
     skillFamily: 'Weapon skill',
+    castTimeMs: 720,
     effects: [
       {
         type: 'condition',
@@ -481,9 +481,9 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
       slot: 'Weapon_3',
       skillWeapon: 'Fiery Greatsword',
       categories: ['Weapon skill'],
-      castTimeMs: 1320,
       cooldown: 5,
       skillFamily: 'Weapon skill',
+      castTimeMs: 1320,
       // Share timing defaults while preserving each packet, effect order, and local schedule.
       effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
         strikeTimeline(
@@ -524,9 +524,9 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     slot: 'Weapon_4',
     skillWeapon: 'Fiery Greatsword',
     categories: ['Weapon skill'],
-    castTimeMs: 1280,
     cooldown: 10,
     skillFamily: 'Weapon skill',
+    castTimeMs: 1280,
     effects: [
       {
         type: 'strike',
@@ -548,9 +548,9 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
     slot: 'Weapon_5',
     skillWeapon: 'Fiery Greatsword',
     categories: ['Weapon skill'],
-    castTimeMs: 760,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    castTimeMs: 760,
     effects: [
       {
         type: 'strike',

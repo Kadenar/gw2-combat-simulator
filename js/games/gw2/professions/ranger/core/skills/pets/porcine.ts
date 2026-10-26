@@ -10,15 +10,18 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.PORCINE_JAB]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_JAB]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_JAB]!.quicknessCastTimeMs,
     // The tusk impact precedes recovery; pet ownership supplies independent stats and swap cancellation.
     effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.41, source: 'ranger-pet', actorType: ACTOR.SUMMON }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_JAB]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_JAB]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   },
   [ID.PORCINE_MAUL]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_MAUL]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_MAUL]!.quicknessCastTimeMs,
     // Both contacts apply two bleeds each; Quickness does not accelerate the measured Maul animation.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -33,12 +36,12 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_MAUL]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_MAUL]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   },
   [ID.PORCINE_BRUTAL_CHARGE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_BRUTAL_CHARGE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_BRUTAL_CHARGE]!.quicknessCastTimeMs,
     // Quickness leaves the charge unchanged; its leap and knockdown resolve with the landed strike.
     effects: impactEffects({ atMs: 1080, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -55,21 +58,21 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         actorType: ACTOR.SUMMON
       },
       { type: 'control', controlKind: CONTROL.KNOCKDOWN, source: 'ranger-pet', actorType: ACTOR.SUMMON }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_BRUTAL_CHARGE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_BRUTAL_CHARGE]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   },
   [ID.VAMPIRIC_BITE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.VAMPIRIC_BITE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.VAMPIRIC_BITE]!.quicknessCastTimeMs,
     // The bite can crit; its healing does not add a separate life-siphon damage packet.
     effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.42, source: 'ranger-pet', actorType: ACTOR.SUMMON }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.VAMPIRIC_BITE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.VAMPIRIC_BITE]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   },
   [ID.WALLOW_MAUL]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WALLOW_MAUL]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WALLOW_MAUL]!.quicknessCastTimeMs,
     // Both hits land together, each applying two bleeding stacks.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -84,12 +87,12 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WALLOW_MAUL]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WALLOW_MAUL]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   },
   [ID.UNDEAD_PLAGUE_PET]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.UNDEAD_PLAGUE_PET]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.UNDEAD_PLAGUE_PET]!.quicknessCastTimeMs,
     interruptCommitMs: 640,
     // Once released, the cloud retains its pet owner and one-second pulses while the pet resumes attacking.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
@@ -112,34 +115,34 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.UNDEAD_PLAGUE_PET]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.UNDEAD_PLAGUE_PET]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   },
   [ID.FORAGE_ROCK]: {
-    // Foraging occupies the pet lane but creates no direct damage; picked-up bundle skills belong to the player.
-    effects: [],
+    petSkill: true,
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FORAGE_ROCK]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FORAGE_ROCK]!.quicknessCastTimeMs,
-    petSkill: true
+    // Foraging occupies the pet lane but creates no direct damage; picked-up bundle skills belong to the player.
+    effects: []
   },
   [ID.FORAGE_SCALE]: {
-    effects: [],
+    petSkill: true,
     quicknessCastTimeMs: 667,
-    petSkill: true
+    effects: []
   },
   [ID.FORAGE_FEATHERS]: {
-    effects: [],
+    petSkill: true,
     quicknessCastTimeMs: 667,
-    petSkill: true
+    effects: []
   },
   [ID.FORAGE_SWORD]: {
-    effects: [],
+    petSkill: true,
     quicknessCastTimeMs: 667,
-    petSkill: true
+    effects: []
   },
   [ID.BLOODTHIRSTY_CHARGE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BLOODTHIRSTY_CHARGE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BLOODTHIRSTY_CHARGE]!.quicknessCastTimeMs,
     // The strike, bleed, and knockback land together before the charge's recovery finishes.
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -163,9 +166,6 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BLOODTHIRSTY_CHARGE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BLOODTHIRSTY_CHARGE]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   }
 });

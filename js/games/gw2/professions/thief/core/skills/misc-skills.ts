@@ -7,9 +7,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.LESSER_CALTROPS]: {
-    castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
+    castTimeMs: 0,
     // Three one-second pulses retain their own condition durations and patchable payloads.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -37,9 +37,9 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ])
   },
   [ID.LESSER_HASTE]: {
-    castTimeMs: 0,
     cooldown: 60,
     initiativeCost: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'boon',
@@ -65,9 +65,9 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   },
   [ID.BURST_OF_SHADOWS]: {
-    castTimeMs: 0,
     cooldown: 1,
     initiativeCost: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',

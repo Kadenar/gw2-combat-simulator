@@ -7,11 +7,123 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
-  [ID.PHANTASMAL_LANCER]: {
-    sideEffects: [
-      { on: 'castStart', do: { type: 'mesmer.consume-clarity' } },
-      { on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }
+  [ID.PSYCUT]: {
+    nextChainId: ID.PSYSTRIKE,
+    castTimeMs: 400,
+    // Landing Psycut advances the chain even when its remaining recovery is cancelled.
+    interruptCommitMs: 360,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1,
+        hits: 1,
+        // Resolve the hit before the remaining cast recovery.
+        atMs: 360,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Damage',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SPEAR.toLowerCase()
+      }
+    ]
+  },
+  [ID.PSYSTRIKE]: {
+    nextChainId: ID.MIND_PIERCE,
+    castTimeMs: 520,
+    interruptCommitMs: 480,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1,
+        hits: 1,
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Damage',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SPEAR.toLowerCase()
+      }
+    ]
+  },
+  [ID.MIND_PIERCE]: {
+    nextChainId: null,
+    castTimeMs: 560,
+    // Preserve the finisher's damage when interruption only skips the remaining recovery.
+    interruptCommitMs: 400,
+    // The chain finisher's strike and Weakness share an impact before cast recovery ends.
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 1.5,
+        hits: 1,
+        name: 'Damage',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SPEAR.toLowerCase()
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.WEAKNESS,
+        stacks: 1,
+        duration: 2
+      }
+    ])
+  },
+  [ID.MIND_THE_GAP]: {
+    // The impact uses the next action tick after 480 ms so a just-prior shatter cannot consume this clone.
+    resource: {
+      mode: 'add',
+      count: 1,
+      timingAnchor: 'castStart',
+      atMs: 520
+    },
+    castTimeMs: 600,
+    // Committed interrupts preserve the attack while its full cast still occupies the casting lane.
+    interruptCommitMs: 520,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.92,
+        hits: 1,
+        name: 'Outer-edge damage',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SPEAR.toLowerCase(),
+        // The impact lands before the retained aftercast, alongside the clone gain.
+        atMs: 520,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        // Mind the Gap owns the Clarity grant; a committed interruption retains its completion-time buff.
+        type: 'buff',
+        kind: 'clarity',
+        name: 'Clarity',
+        duration: 15,
+        icon: new URL('@images/wiki/clarity.png', import.meta.url).href,
+        audience: { recipients: RECIPIENT.SELF },
+        persistsAfterInterrupt: true
+      }
     ],
+    // Clarity is granted at commitment while damage keeps its independent packet timestamp.
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.grant-clarity' } }]
+  },
+  [ID.IMAGINARY_INVERSION]: {
+    castTimeMs: 680,
+    interruptCommitMs: 600,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [{ atMs: 600, coefficient: 2.4 }],
+        name: 'Damage',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SPEAR.toLowerCase(),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ],
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.consume-clarity' } }]
+  },
+  [ID.PHANTASMAL_LANCER]: {
     // The summon owns its attack and conversion timeline independently of the player cast.
     phantasmTiming: {
       // Clarity agents spawn together, but their observed attacks/conversions can stagger:
@@ -21,6 +133,12 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
       spawnAtMs: 2040,
       // The trait blade lands about one second after the Lancer's javelin hit.
       phantasmalBladeDelayAfterSpawnMs: 120
+    },
+    phantasm: true,
+    resource: {
+      mode: 'phantasm',
+      count: 1,
+      clarityCount: 2
     },
     castTimeMs: 520,
     effects: [
@@ -66,19 +184,12 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
         phantasmEntityIndex: 1
       }
     ],
-    phantasm: true,
-    resource: {
-      mode: 'phantasm',
-      count: 1,
-      clarityCount: 2
-    }
-  },
-  [ID.MENTAL_COLLAPSE]: {
-    // A committed cast resets Mind the Gap even when the remaining animation is interrupted.
     sideEffects: [
       { on: 'castStart', do: { type: 'mesmer.consume-clarity' } },
-      { on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.MIND_THE_GAP] } }
-    ],
+      { on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }
+    ]
+  },
+  [ID.MENTAL_COLLAPSE]: {
     shadowstepSkill: true,
     peithaImpactDelayMs: 800,
     castTimeMs: 640,
@@ -117,122 +228,11 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
           }
         ]
       }
-    ]
-  },
-  [ID.PSYSTRIKE]: {
-    castTimeMs: 520,
-    interruptCommitMs: 480,
-    nextChainId: ID.MIND_PIERCE,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        atMs: 400,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        name: 'Damage',
-        actorType: ACTOR.PLAYER,
-        weapon: WEAPON.SPEAR.toLowerCase()
-      }
-    ]
-  },
-  [ID.MIND_THE_GAP]: {
-    // Clarity is granted at commitment while damage keeps its independent packet timestamp.
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.grant-clarity' } }],
-    castTimeMs: 600,
-    // Committed interrupts preserve the attack while its full cast still occupies the casting lane.
-    interruptCommitMs: 520,
-    retainsCastLockoutAfterInterrupt: true,
-    // The impact uses the next action tick after 480 ms so a just-prior shatter cannot consume this clone.
-    resource: {
-      mode: 'add',
-      count: 1,
-      timingAnchor: 'castStart',
-      atMs: 520
-    },
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.92,
-        hits: 1,
-        name: 'Outer-edge damage',
-        actorType: ACTOR.PLAYER,
-        weapon: WEAPON.SPEAR.toLowerCase(),
-        // The impact lands before the retained aftercast, alongside the clone gain.
-        atMs: 520,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        // Mind the Gap owns the Clarity grant; a committed interruption retains its completion-time buff.
-        type: 'buff',
-        kind: 'clarity',
-        name: 'Clarity',
-        duration: 15,
-        icon: new URL('@images/wiki/clarity.png', import.meta.url).href,
-        audience: { recipients: RECIPIENT.SELF },
-        persistsAfterInterrupt: true
-      }
-    ]
-  },
-  [ID.MIND_PIERCE]: {
-    castTimeMs: 560,
-    // Preserve the finisher's damage when interruption only skips the remaining recovery.
-    interruptCommitMs: 400,
-    nextChainId: null,
-    // The chain finisher's strike and Weakness share an impact before cast recovery ends.
-    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        name: 'Damage',
-        actorType: ACTOR.PLAYER,
-        weapon: WEAPON.SPEAR.toLowerCase()
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.WEAKNESS,
-        stacks: 1,
-        duration: 2
-      }
-    ])
-  },
-  [ID.IMAGINARY_INVERSION]: {
-    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.consume-clarity' } }],
-    castTimeMs: 680,
-    interruptCommitMs: 600,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 600, coefficient: 2.4 }],
-        name: 'Damage',
-        actorType: ACTOR.PLAYER,
-        weapon: WEAPON.SPEAR.toLowerCase(),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
-    ]
-  },
-  [ID.PSYCUT]: {
-    // Landing Psycut advances the chain even when its remaining recovery is cancelled.
-    interruptCommitMs: 360,
-    nextChainId: ID.PSYSTRIKE,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        // Resolve the hit before the remaining cast recovery.
-        atMs: 360,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        name: 'Damage',
-        actorType: ACTOR.PLAYER,
-        weapon: WEAPON.SPEAR.toLowerCase()
-      }
     ],
-    castTimeMs: 400
+    // A committed cast resets Mind the Gap even when the remaining animation is interrupted.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'mesmer.consume-clarity' } },
+      { on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.MIND_THE_GAP] } }
+    ]
   }
 });

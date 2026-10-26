@@ -32,33 +32,17 @@ function primordialStance(attunement: ElementalistAttunement): Partial<Skill> {
   const offsets = [0, 1000, 2000, 3000, 4000, 5000];
   const { condition, stacks, duration } = PRIMORDIAL_STANCE_EFFECTS[attunement];
   return {
-    // Each pulse reads the live hands; these effects supply editable timing without emitting a second stream.
-    sideEffects: [
-      {
-        on: 'castStart',
-        when: (_runtime, cast) => !cast.cancelled,
-        // Every variant reads the selected Fire skill's payload, so balance edits have one owner.
-        do:
-          attunement === 'Fire'
-            ? {
-                type: 'elementalist.weaver.start-primordial-stance',
-                id: 'pulses',
-                effects: Object.values(PRIMORDIAL_STANCE_EFFECTS)
-              }
-            : { type: 'elementalist.weaver.start-primordial-stance' }
-      }
-    ],
     name: `Primordial Stance (${attunement})`,
     type: 'Utility',
     slot: 'Utility',
     specialization: 'Weaver',
     attunement,
     categories: ['Stance'],
-    castTimeMs: 0,
     cooldown: 5,
     ammo: 2,
     ammoRecharge: 20,
     skillFamily: 'Stance',
+    castTimeMs: 0,
 
     // Timing-only templates: `when: () => false` keeps them from emitting. The condition ticks set the pulse times
     // and the strike ticks describe expected hit times for readers of authored strikes, such as log import. Their
@@ -83,6 +67,22 @@ function primordialStance(attunement: ElementalistAttunement): Partial<Skill> {
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
+    ],
+    // Each pulse reads the live hands; these effects supply editable timing without emitting a second stream.
+    sideEffects: [
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        // Every variant reads the selected Fire skill's payload, so balance edits have one owner.
+        do:
+          attunement === 'Fire'
+            ? {
+                type: 'elementalist.weaver.start-primordial-stance',
+                id: 'pulses',
+                effects: Object.values(PRIMORDIAL_STANCE_EFFECTS)
+              }
+            : { type: 'elementalist.weaver.start-primordial-stance' }
+      }
     ]
   };
 }
@@ -96,15 +96,15 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     slot: 'Heal',
     specialization: 'Weaver',
     categories: ['Stance'],
-    castTimeMs: 640,
     cooldown: 20,
     resourceGain: 50,
+    skillFamily: 'Stance',
+    castTimeMs: 640,
+    effects: [],
     // Committed activations restore endurance using this skill's editable amount.
     sideEffects: [
       { on: 'castCommit', do: { type: 'resourceGrant', resource: 'endurance', amount: { skillField: 'resourceGain' } } }
-    ],
-    skillFamily: 'Stance',
-    effects: []
+    ]
   },
   [ID.PRIMORDIAL_STANCE_FIRE]: primordialStance('Fire'),
   [ID.PRIMORDIAL_STANCE_WATER]: primordialStance('Water'),
@@ -113,23 +113,23 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
   // Weave Self and Tailored Victory chain into each other: completing Weave Self
   // opens the Perfect Weave flipover, and Tailored Victory consumes it.
   [ID.WEAVE_SELF]: {
+    name: 'Weave Self',
     // Weave Self lasts `duration`; completing every attunement opens Tailored Victory for `flipDuration`.
     duration: 20,
     flipDuration: 10,
     // The form activates, and recharge starts, at this fraction of the cast.
     rechargeProgress: 0.65,
-    // Schedule the mid-cast activation at the recharge point; interruption before it grants no window.
-    sideEffects: [{ on: 'castStart', do: { type: 'elementalist.weaver.start-weave-self' } }],
-    name: 'Weave Self',
     type: 'Elite',
     slot: 'Elite',
     specialization: 'Weaver',
     categories: ['Stance'],
-    castTimeMs: 800,
     cooldown: 90,
     nextChainId: ID.TAILORED_VICTORY,
     skillFamily: 'Stance',
-    effects: []
+    castTimeMs: 800,
+    effects: [],
+    // Schedule the mid-cast activation at the recharge point; interruption before it grants no window.
+    sideEffects: [{ on: 'castStart', do: { type: 'elementalist.weaver.start-weave-self' } }]
   },
   [ID.TAILORED_VICTORY]: {
     name: 'Tailored Victory',
@@ -139,7 +139,6 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     slot: 'Elite',
     specialization: 'Weaver',
     categories: ['Stance'],
-    castTimeMs: 560,
     cooldown: 0,
     nextChainId: ID.WEAVE_SELF,
     skillFamily: 'Stance',
@@ -150,13 +149,24 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
         timingAnchor: 'castCommit'
       }
     ],
+    castTimeMs: 560,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.75, canCrit: true },
       { type: 'control', applications: 1, controlKind: CONTROL.FLOAT }
     ])
   },
   [ID.UNRAVEL]: {
+    name: 'Unravel',
     duration: 5,
+    type: 'Profession',
+    slot: 'Profession_5',
+    specialization: 'Weaver',
+    categories: ['Stance'],
+    mechanicSlot: 5,
+    cooldown: 25,
+    skillFamily: 'Stance',
+    castTimeMs: 0,
+    effects: [],
     // After completion traits, unify the live hands, clear attunement recharge, and grant the current element's boon.
     sideEffects: [
       {
@@ -172,29 +182,24 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
           ]
         }
       }
-    ],
-    name: 'Unravel',
-    type: 'Profession',
-    slot: 'Profession_5',
-    specialization: 'Weaver',
-    categories: ['Stance'],
-    mechanicSlot: 5,
-    castTimeMs: 0,
-    cooldown: 25,
-    skillFamily: 'Stance',
-    effects: []
+    ]
   },
   [ID.FERVENT_STANCE]: {
+    name: 'Fervent Stance',
     // The committed stance arms this window; later dual attacks read the action's Might reward.
     duration: 8,
-    name: 'Fervent Stance',
     type: 'Utility',
     slot: 'Utility',
     specialization: 'Weaver',
     categories: ['Stance'],
-    castTimeMs: 0,
     cooldown: 20,
     skillFamily: 'Stance',
+    castTimeMs: 0,
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 6 },
+      { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 6 },
+      { type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 6 }
+    ]),
     // Fervent Stance arms its dual-attack might window after completion.
     sideEffects: [
       {
@@ -205,12 +210,7 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
           effects: [{ type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 3, duration: 8 }]
         }
       }
-    ],
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 6 },
-      { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 6 },
-      { type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 6 }
-    ])
+    ]
   }
 });
 

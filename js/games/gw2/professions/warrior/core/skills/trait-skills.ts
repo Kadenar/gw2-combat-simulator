@@ -6,15 +6,15 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 /** Invoked skills own their patchable payloads and recharge; traits own trigger eligibility. */
 export const WARRIOR_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
   {
-    id: ID.LESSER_SIGNET_OF_MIGHT,
     name: 'Lesser Signet of Might',
+    id: ID.LESSER_SIGNET_OF_MIGHT,
     type: 'Proc',
     slot: 'Action',
     simulatorExcluded: true,
     slotSelectable: false,
-    castTimeMs: 0,
     cooldown: 20,
     icon: 'https://render.guildwars2.com/file/450973A6DE4D0BEE580256F5759F632B7EBC7ADD/103798.png',
+    castTimeMs: 0,
     effects: [
       {
         name: boonKey(BOON.MIGHT),

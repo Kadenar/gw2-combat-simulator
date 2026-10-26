@@ -22,11 +22,9 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
     slot: 'Utility',
     specialization: 'Catalyst',
     categories: ['Augment'],
-    castTimeMs: 240,
     cooldown: 20,
     skillFamily: 'Augment',
-    // Select the authored window from live sphere state when the cast commits.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.catalyst.augment-window' } }],
+    castTimeMs: 240,
     effects: [
       {
         type: 'buff',
@@ -46,7 +44,9 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
         audience: { recipients: RECIPIENT.SELF },
         when: (runtime) => catalystState.from(runtime).sphereExpiry.Fire > runtime.time
       }
-    ]
+    ],
+    // Select the authored window from live sphere state when the cast commits.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.catalyst.augment-window' } }]
   },
   [ID.SHATTERING_ICE]: {
     name: 'Shattering Ice',
@@ -54,25 +54,11 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
     slot: 'Utility',
     specialization: 'Catalyst',
     categories: ['Augment'],
-    castTimeMs: 240,
     cooldown: 20,
     skillFamily: 'Augment',
     // Select the authored window from live sphere state when the cast commits.
     internalCooldown: 1,
-    sideEffects: [
-      {
-        on: 'castCommit',
-        do: {
-          type: 'elementalist.catalyst.augment-window',
-          id: 'triggered-packet',
-          // These rewards apply only to qualifying hits during the accepted window.
-          effects: [
-            { name: 'Shattering Ice - Triggered Packet', type: 'strike', coefficient: 0.6, hits: 1 },
-            { name: CONDITION.CHILLED, type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 1 }
-          ]
-        }
-      }
-    ],
+    castTimeMs: 240,
     effects: [
       {
         type: 'buff',
@@ -92,6 +78,20 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
         audience: { recipients: RECIPIENT.SELF },
         when: (runtime) => catalystState.from(runtime).sphereExpiry.Water > runtime.time
       }
+    ],
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'elementalist.catalyst.augment-window',
+          id: 'triggered-packet',
+          // These rewards apply only to qualifying hits during the accepted window.
+          effects: [
+            { name: 'Shattering Ice - Triggered Packet', type: 'strike', coefficient: 0.6, hits: 1 },
+            { name: CONDITION.CHILLED, type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 1 }
+          ]
+        }
+      }
     ]
   },
   [ID.ELEMENTAL_CELERITY]: {
@@ -100,11 +100,9 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
     slot: 'Elite',
     specialization: 'Catalyst',
     categories: ['Augment'],
-    castTimeMs: 240,
     cooldown: 90,
     skillFamily: 'Augment',
-    // The active catalog selects reset targets; each surviving sphere gates its own authored boon.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.catalyst.refresh-weapons' } }],
+    castTimeMs: 240,
     effects: [
       {
         type: 'boon',
@@ -138,7 +136,9 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
         duration: 4,
         when: (runtime, cast) => catalystState.from(runtime).sphereExpiry.Earth > cast.effectiveEnd
       }
-    ]
+    ],
+    // The active catalog selects reset targets; each surviving sphere gates its own authored boon.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.catalyst.refresh-weapons' } }]
   }
 });
 

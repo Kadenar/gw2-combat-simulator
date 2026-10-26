@@ -27,16 +27,16 @@ const HAMMER_ORB_PACKET_OFFSETS_MS = Array.from({ length: 15 }, (_, index) => (i
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SINGEING_STRIKE]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Singeing Strike',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.HAMMER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 440,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 440,
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.69 },
       { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 1.5 }
@@ -49,9 +49,9 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.HAMMER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 880,
     cooldown: 8,
     skillFamily: 'Weapon skill',
+    castTimeMs: 880,
     effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2.07 },
       { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3 }
@@ -61,17 +61,15 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // orb's real payoff is the projectile Grand Finale later fires for it. `hammer-orbs` marks the skill
   // as state-gated (it is unavailable while its own orb is still active).
   [ID.FLAME_WHEEL]: {
-    // Create this element's orb and refresh existing orb lifetimes without duplicating their buffs.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     name: 'Flame Wheel',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.HAMMER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -94,7 +92,9 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]
+    ],
+    // Create this element's orb and refresh existing orb lifetimes without duplicating their buffs.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   // Three simultaneous strike/Burning pairs at a single packet time.
   [ID.TRIPLE_SEAR]: {
@@ -104,9 +104,9 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.HAMMER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 560,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    castTimeMs: 560,
     effects: [
       ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1 },
@@ -130,9 +130,9 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.HAMMER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 760,
     cooldown: 25,
     skillFamily: 'Weapon skill',
+    castTimeMs: 760,
     effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -158,10 +158,10 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.HAMMER,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 480,
     cooldown: 0,
     nextChainId: ID.WATER_RUSH,
     skillFamily: 'Weapon skill',
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -183,10 +183,10 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.HAMMER,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 640,
     cooldown: 0,
     nextChainId: ID.CHILLING_CRACK,
     skillFamily: 'Weapon skill',
+    castTimeMs: 640,
     effects: [
       {
         type: 'strike',
@@ -209,10 +209,10 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.HAMMER,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 440,
     cooldown: 0,
     nextChainId: ID.STREAM_STRIKE,
     skillFamily: 'Weapon skill',
+    castTimeMs: 440,
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.38 },
       { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 1.5 }
@@ -222,15 +222,15 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // hits that landed before the cancel.
   [ID.RAIN_OF_BLOWS]: {
     name: 'Rain of Blows',
-    interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.HAMMER,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 920,
     cooldown: 6,
     skillFamily: 'Weapon skill',
+    castTimeMs: 920,
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
@@ -273,17 +273,15 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   // Water orb creator; same token-packet shape as Flame Wheel, applying Vulnerability instead of Burning.
   [ID.ICY_COIL]: {
-    // Create this element's orb and refresh existing orb lifetimes without duplicating their buffs.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     name: 'Icy Coil',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.HAMMER,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -306,7 +304,9 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]
+    ],
+    // Create this element's orb and refresh existing orb lifetimes without duplicating their buffs.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   // Leap finisher; the single impact is its whole payload.
   [ID.CRASHING_FONT]: {
@@ -316,9 +316,9 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.HAMMER,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 960,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    castTimeMs: 960,
     effects: [
       {
         type: 'strike',
@@ -347,9 +347,9 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.HAMMER,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 480,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -371,16 +371,16 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.WIND_SLAM]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Wind Slam',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.HAMMER,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 680,
     effects: [
       {
         type: 'strike',
@@ -399,15 +399,15 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Vulnerability stack; `per-packet` interruption truncates both timelines at the same point.
   [ID.HURRICANE_OF_PAIN]: {
     name: 'Hurricane of Pain',
-    interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.HAMMER,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 2080,
     cooldown: 10,
     skillFamily: 'Weapon skill',
+    castTimeMs: 2080,
+    interruptMode: 'per-packet',
     effects: [
       strikeTimeline(
         HURRICANE_OF_PAIN_TICKS.map((atMs) => ({ atMs, coefficient: 0.55 })),
@@ -426,17 +426,15 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   // Air orb creator; same token-packet shape as Flame Wheel, applying Weakness.
   [ID.CRESCENT_WIND]: {
-    // Create this element's orb and refresh existing orb lifetimes without duplicating their buffs.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     name: 'Crescent Wind',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.HAMMER,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -459,7 +457,9 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]
+    ],
+    // Create this element's orb and refresh existing orb lifetimes without duplicating their buffs.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   // Small strike that mainly exists for its self-Superspeed and crowd-control application.
   [ID.WIND_STORM]: {
@@ -469,9 +469,9 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.HAMMER,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 440,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    castTimeMs: 440,
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.3, canCrit: true },
       { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3 },
@@ -486,9 +486,9 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.HAMMER,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 280,
     cooldown: 25,
     skillFamily: 'Weapon skill',
+    castTimeMs: 280,
     effects: [
       {
         type: 'strike',
@@ -520,16 +520,16 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.STONESTRIKE]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Stonestrike',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.HAMMER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 560,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 560,
     effects: [
       {
         type: 'strike',
@@ -547,15 +547,15 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Five-hit channel with a Bleeding stack per hit; `per-packet` interruption keeps only the landed prefix.
   [ID.WHIRLING_STONES]: {
     name: 'Whirling Stones',
-    interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.HAMMER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 1440,
     cooldown: 8,
     skillFamily: 'Weapon skill',
+    castTimeMs: 1440,
+    interruptMode: 'per-packet',
     effects: [
       ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.84 },
@@ -581,17 +581,15 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   // Earth orb creator; same token-packet shape as Flame Wheel, applying Bleeding.
   [ID.ROCKY_LOOP]: {
-    // Create this element's orb and refresh existing orb lifetimes without duplicating their buffs.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     name: 'Rocky Loop',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.HAMMER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -614,7 +612,9 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]
+    ],
+    // Create this element's orb and refresh existing orb lifetimes without duplicating their buffs.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   // Defensive channel with no packets; only its long cast time and recharge affect the rotation.
   [ID.IMMUTABLE_STONE]: {
@@ -624,9 +624,9 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.HAMMER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 1520,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    castTimeMs: 1520,
     effects: []
   },
   [ID.GROUND_POUND]: {
@@ -636,9 +636,9 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.HAMMER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 760,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    castTimeMs: 760,
     effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -658,19 +658,14 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Snapshot each active orb at acceptance so consuming it at completion does not erase its delayed projectile.
   // Each active orb owns its condition total and projectile finisher; resolution splits condition stacks.
   [ID.GRAND_FINALE]: {
-    // Retire old orbit contacts before packet selection; consume the captured orbs only on commitment.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'elementalist.cancel-hammer-orbits' } },
-      { on: 'castCommit', do: { type: 'elementalist.consume-hammer-orbs' } }
-    ],
     name: 'Grand Finale',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.HAMMER,
     categories: ['Weapon skill'],
-    castTimeMs: 680,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 680,
     effects: (
       [
         ['Fire', CONDITION.BURNING, 2, 5],
@@ -699,6 +694,11 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
           return expiresAt != null && expiresAt >= cast.start;
         }
       }))
-    )
+    ),
+    // Retire old orbit contacts before packet selection; consume the captured orbs only on commitment.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'elementalist.cancel-hammer-orbits' } },
+      { on: 'castCommit', do: { type: 'elementalist.consume-hammer-orbs' } }
+    ]
   }
 });

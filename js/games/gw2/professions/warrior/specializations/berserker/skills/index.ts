@@ -10,6 +10,7 @@ import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warri
 export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SUNDERING_LEAP]: {
     movementSkill: true,
+    castTimeMs: 960,
     // Retain a field crossed during the leap even when it expires before landing.
     comboFinishers: [
       {
@@ -43,7 +44,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         stacks: 1
       }
     ]),
-    castTimeMs: 960,
     sideEffects: [
       // Base duration combines with selected trait extensions in the mode owner.
       {
@@ -63,6 +63,10 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.GUN_FLAME]: {
+    adrenalineCost: 10,
+    burst: true,
+    primalBurst: true,
+    castTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -79,13 +83,13 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'control',
         controlKind: CONTROL.DAZE
       }
-    ],
-    castTimeMs: 500,
-    adrenalineCost: 10,
-    burst: true,
-    primalBurst: true
+    ]
   },
   [ID.SKULL_GRINDER]: {
+    adrenalineCost: 10,
+    burst: true,
+    primalBurst: true,
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -114,14 +118,18 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         stacks: 1,
         duration: 8
       }
-    ],
-    castTimeMs: 333,
-    adrenalineCost: 10,
-    burst: true,
-    primalBurst: true
+    ]
   },
   [ID.ARC_DIVIDER]: {
     skillWeapon: WEAPON.GREATSWORD,
+    adrenalineCost: 10,
+    burst: true,
+    primalBurst: true,
+    castTimeMs: 680,
+    interruptMode: 'commit',
+    // Committed bursts preserve their effects and hold the cast lane through the remaining animation.
+    interruptCommitMs: 640,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',
@@ -130,18 +138,14 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    castTimeMs: 680,
-    // Committed bursts preserve their effects and hold the cast lane through the remaining animation.
-    interruptCommitMs: 640,
-    interruptMode: 'commit',
-    retainsCastLockoutAfterInterrupt: true,
-    adrenalineCost: 10,
-    burst: true,
-    primalBurst: true
+    ]
   },
   [ID.SCORCHED_EARTH]: {
     skillWeapon: WEAPON.LONGBOW,
+    adrenalineCost: 10,
+    burst: true,
+    primalBurst: true,
+    castTimeMs: 360,
     comboFields: [
       {
         ownerId: 'warrior',
@@ -160,13 +164,10 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'condition',
         ticks: [320, 2320, 4320].map((atMs) => ({ atMs, condition: CONDITION.BURNING, stacks: 1, duration: 3 }))
       }
-    ]),
-    castTimeMs: 360,
-    adrenalineCost: 10,
-    burst: true,
-    primalBurst: true
+    ])
   },
   [ID.WILD_BLOW]: {
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -186,7 +187,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         stacks: 1
       }
     ],
-    castTimeMs: 600,
     sideEffects: [
       // Base duration combines with selected trait extensions in the mode owner.
       {
@@ -206,6 +206,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.SHATTERING_BLOW]: {
+    castTimeMs: 520,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -225,7 +226,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         stacks: 2
       }
     ]),
-    castTimeMs: 520,
     sideEffects: [
       // Base duration combines with selected trait extensions in the mode owner.
       {
@@ -245,9 +245,9 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.BERSERK]: {
+    adrenalineCost: 30,
     castTimeMs: 0,
     effects: [],
-    adrenalineCost: 30,
     // Acceptance spends even when canceled; commitment grants before the new cap clamps the pool.
     sideEffects: [
       { on: 'castStart', do: { type: 'warrior.berserk-spend' } },
@@ -265,9 +265,9 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.BLOOD_RECKONING]: {
-    effects: [],
     castTimeMs: 280,
     dualWieldCastTimeMs: 240,
+    effects: [],
     // Reset live primal skills only after the completed heal's adrenaline grant.
     sideEffects: [
       // Base duration combines with selected trait extensions in the mode owner.
@@ -289,6 +289,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.OUTRAGE]: {
+    stunbreak: true,
     castTimeMs: 0,
     effects: [],
     sideEffects: [
@@ -307,11 +308,15 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
           amount: 10
         }
       }
-    ],
-    stunbreak: true
+    ]
   },
   [ID.HEAD_BUTT]: {
     movementSkill: true,
+    // Head Butt stuns both the foe and the player. The self-stun holds the cast
+    // lane for 1s unless broken by a stunbreak (Outrage) or negated by stability.
+    selfStunMs: 1000,
+    castTimeMs: 800,
+    interruptCommitMs: 760,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -323,8 +328,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         controlKind: CONTROL.STUN
       }
     ]),
-    castTimeMs: 800,
-    interruptCommitMs: 760,
     sideEffects: [
       // Base duration combines with selected trait extensions in the mode owner.
       {
@@ -341,17 +344,18 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
           amount: 30
         }
       }
-    ],
-    // Head Butt stuns both the foe and the player. The self-stun holds the cast
-    // lane for 1s unless broken by a stunbreak (Outrage) or negated by stability.
-    selfStunMs: 1000
+    ]
   },
   [ID.FLAMING_FLURRY]: {
     skillWeapon: WEAPON.SWORD,
+    adrenalineCost: 10,
+    burst: true,
+    primalBurst: true,
+    castTimeMs: 1600,
+    interruptMode: 'per-packet',
     // Flaming Flurry safely commits by its final 1560ms packet; per-packet
     // interruptions retain only the strike and burning packets already fired.
     interruptCommitMs: 1560,
-    interruptMode: 'per-packet',
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -367,15 +371,16 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
           duration: 3.5
         }))
       }
-    ]),
-    castTimeMs: 1600,
-    adrenalineCost: 10,
-    burst: true,
-    primalBurst: true
+    ])
   },
   [ID.DECAPITATE]: {
     skillWeapon: WEAPON.AXE,
     cooldown: 0,
+    adrenalineCost: 10,
+    burst: true,
+    primalBurst: true,
+    castTimeMs: 720,
+    dualWieldCastTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -388,17 +393,16 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         duration: 5,
         stacks: 5
       }
-    ],
-    castTimeMs: 720,
-    dualWieldCastTimeMs: 480,
-    adrenalineCost: 10,
-    burst: true,
-    primalBurst: true
+    ]
   },
   [ID.RUPTURING_SMASH]: {
     movementSkill: true,
     skillWeapon: WEAPON.HAMMER,
     cooldown: 5,
+    adrenalineCost: 10,
+    burst: true,
+    primalBurst: true,
+    castTimeMs: 920,
     effects: [
       {
         type: 'strike',
@@ -421,27 +425,27 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         type: 'control',
         controlKind: CONTROL.DAZE
       }
-    ],
-    castTimeMs: 920,
-    adrenalineCost: 10,
-    burst: true,
-    primalBurst: true
+    ]
   },
   [ID.SLICING_MAELSTROM]: {
     cooldown: 5,
+    adrenalineCost: 10,
+    burst: true,
+    primalBurst: true,
+    castTimeMs: 500,
     effects: [
       {
         type: 'strike',
         coefficient: 2.5,
         hits: 1
       }
-    ],
-    castTimeMs: 500,
-    adrenalineCost: 10,
-    burst: true,
-    primalBurst: true
+    ]
   },
   [ID.RAMPART_SPLITTER]: {
+    adrenalineCost: 10,
+    burst: true,
+    primalBurst: true,
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -456,15 +460,15 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         stacks: 1
       },
       { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }
-    ],
-    castTimeMs: 333,
-    adrenalineCost: 10,
-    burst: true,
-    primalBurst: true
+    ]
   },
   [ID.WILD_THROW]: {
-    interruptMode: 'per-packet',
     skillWeapon: WEAPON.SPEAR,
+    adrenalineCost: 10,
+    burst: true,
+    primalBurst: true,
+    castTimeMs: 1280,
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
@@ -495,11 +499,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         stacks: 2,
         duration: 5
       }
-    ],
-    castTimeMs: 1280,
-    adrenalineCost: 10,
-    burst: true,
-    primalBurst: true
+    ]
   }
 });
 

@@ -19,9 +19,10 @@ const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
 
 export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SIGNET_OF_STAMINA]: {
+    cooldown: 20,
     // The instant signet restores endurance and activates signet traits; incoming conditions are outside scope.
     castTimeMs: 0,
-    cooldown: 20,
+    effects: [],
     sideEffects: [
       {
         on: 'castCommit',
@@ -33,8 +34,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
           amount: 50
         }
       }
-    ],
-    effects: []
+    ]
   },
   [ID.THROW_BOLAS]: {
     // Bolas immobilizes on impact and always finishes a projectile combo in an eligible field.
@@ -63,13 +63,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
   [ID.SIGNET_OF_RAGE]: {
     // The selected active reward enables adrenaline and weapon-burst recovery on successful activation.
     resourceGain: 0,
-    sideEffects: [
-      {
-        on: 'castCommit',
-        when: (_runtime, cast) => Number(cast.skill.resourceGain) > 0,
-        do: { type: 'warrior.signet-of-rage-active' }
-      }
-    ],
     castTimeMs: 200,
     dualWieldCastTimeMs: 160,
     effects: [
@@ -90,6 +83,13 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
         boon: BOON.SWIFTNESS,
         duration: 25,
         stacks: 1
+      }
+    ],
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => Number(cast.skill.resourceGain) > 0,
+        do: { type: 'warrior.signet-of-rage-active' }
       }
     ]
   },
@@ -129,13 +129,14 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
   },
   [ID.MENDING]: {
     cooldown: 12,
-    castTimeMs: 920,
     categories: ['Physical'],
+    castTimeMs: 920,
     effects: []
   },
   [ID.TO_THE_LIMIT]: {
     cooldown: 24,
     castTimeMs: 680,
+    effects: [],
     // The heal restores two dodge bars when its cast completes.
     sideEffects: [
       { on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 30 } },
@@ -150,8 +151,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
           amount: 100
         }
       }
-    ],
-    effects: []
+    ]
   },
   [ID.SIGNET_OF_MIGHT]: {
     cooldown: 20,
@@ -220,7 +220,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     cooldown: 16,
     castTimeMs: 400,
     dualWieldCastTimeMs: 280,
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 30 } }],
     effects: [
       {
         type: 'buff',
@@ -231,7 +230,8 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
         timingScale: 'fixed',
         stacks: 1
       }
-    ]
+    ],
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 30 } }]
   },
   [ID.BATTLE_STANDARD]: {
     castTimeMs: 1333,
@@ -305,9 +305,9 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     movementSkill: true,
     // Bull's Charge keeps its fixed 640 ms cast and has no measured Dual Wielding variant.
     castTimeMs: 640,
+    interruptMode: 'commit',
     // Once the charge commits, its effects survive interruption.
     interruptCommitMs: 600,
-    interruptMode: 'commit',
     comboFinishers: [
       {
         ownerId: 'warrior',

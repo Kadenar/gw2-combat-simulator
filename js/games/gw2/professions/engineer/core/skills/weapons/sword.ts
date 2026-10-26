@@ -6,62 +6,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Defines non-Holosmith Engineer sword timing, damage, conditions, boons, and combo behavior. */
 export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.RADIANT_ARC_NON_HOLOSMITH]: {
-    castTimeMs: 840,
-    cooldown: 14,
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: COMBO_FINISHER.LEAP
-      }
-    ],
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
-        name: 'Radiant Arc (non-holosmith)',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.CRIPPLED,
-        stacks: 1,
-        duration: 4,
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'boon',
-        boon: BOON.QUICKNESS,
-        duration: 3,
-        stacks: 1
-      }
-    ]
-  },
-  [ID.SUN_RIPPER_NON_HOLOSMITH]: {
-    castTimeMs: 480,
-    cooldown: 0,
-    // Share one impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 1.02,
-        hits: 1,
-        name: 'Sun Ripper (non-holosmith)',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.VULNERABILITY,
-        stacks: 1,
-        duration: 10,
-        actorType: ACTOR.PLAYER
-      }
-    ])
-  },
   [ID.SUN_EDGE_NON_HOLOSMITH]: {
-    castTimeMs: 440,
     cooldown: 0,
+    castTimeMs: 440,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -80,14 +27,33 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       }
     ])
   },
+  [ID.SUN_RIPPER_NON_HOLOSMITH]: {
+    cooldown: 0,
+    castTimeMs: 480,
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 1.02,
+        hits: 1,
+        name: 'Sun Ripper (non-holosmith)',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.VULNERABILITY,
+        stacks: 1,
+        duration: 10,
+        actorType: ACTOR.PLAYER
+      }
+    ])
+  },
   [ID.GLEAM_SABER_NON_HOLOSMITH]: {
-    // A committed finisher reduces live sword recharge, including shortened casts.
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.sword-recharge', amount: 1 } }],
+    cooldown: 0,
     castTimeMs: 720,
     // Commit the strike and recharge at 600 ms while retaining the full cast lockout.
     interruptCommitMs: 600,
     retainsCastLockoutAfterInterrupt: true,
-    cooldown: 0,
     effects: [
       {
         type: 'strike',
@@ -97,11 +63,13 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         timingScale: 'fixed',
         actorType: ACTOR.PLAYER
       }
-    ]
+    ],
+    // A committed finisher reduces live sword recharge, including shortened casts.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.sword-recharge', amount: 1 } }]
   },
   [ID.REFRACTION_CUTTER_NON_HOLOSMITH]: {
-    castTimeMs: 520,
     cooldown: 6,
+    castTimeMs: 520,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       {
@@ -134,6 +102,38 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
           actorType: ACTOR.PLAYER
         }
       ])
+    ]
+  },
+  [ID.RADIANT_ARC_NON_HOLOSMITH]: {
+    cooldown: 14,
+    castTimeMs: 840,
+    comboFinishers: [
+      {
+        ownerId: 'engineer',
+        finisherType: COMBO_FINISHER.LEAP
+      }
+    ],
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 2.5,
+        hits: 1,
+        name: 'Radiant Arc (non-holosmith)',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.CRIPPLED,
+        stacks: 1,
+        duration: 4,
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'boon',
+        boon: BOON.QUICKNESS,
+        duration: 3,
+        stacks: 1
+      }
     ]
   }
 });

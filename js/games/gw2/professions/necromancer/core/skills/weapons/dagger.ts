@@ -8,27 +8,6 @@ import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/i
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.DARK_PACT]: {
-    castTimeMs: 680,
-    // Share this impact's timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      {
-        type: 'strike',
-        // The selected landed strike owns this skill-specific transaction.
-        reactions: [
-          {
-            on: 'damage.resolved',
-            actor: ACTOR.PLAYER,
-            packets: 'first',
-            when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.dark-pact' }
-          }
-        ],
-        coefficient: 2.4
-      },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 10 }
-    ])
-  },
   [ID.NECROTIC_SLASH]: {
     castTimeMs: 360,
     // The slash lands before its aftercast; committed interruptions keep its strike packet.
@@ -84,10 +63,52 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
       }
     ]
   },
+  [ID.LIFE_SIPHON]: {
+    castTimeMs: 560,
+    effects: [
+      {
+        type: 'strike',
+        // The selected landed strike owns this skill-specific transaction.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: ACTOR.PLAYER,
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.life-siphon' }
+          }
+        ],
+        ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 480 + index * 160, coefficient: 2.7 / 9 })),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
+  },
+  [ID.DARK_PACT]: {
+    castTimeMs: 680,
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      {
+        type: 'strike',
+        // The selected landed strike owns this skill-specific transaction.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: ACTOR.PLAYER,
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.dark-pact' }
+          }
+        ],
+        coefficient: 2.4
+      },
+      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 10 }
+    ])
+  },
   [ID.DEATHLY_SWARM]: {
-    castTimeMs: 480,
     // The handler and tooltip share the maximum number of distinct self-condition types transferred.
     conditionsTransferred: 2,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -126,27 +147,6 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
         { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 6 }
       ]
     )
-  },
-  [ID.LIFE_SIPHON]: {
-    castTimeMs: 560,
-    effects: [
-      {
-        type: 'strike',
-        // The selected landed strike owns this skill-specific transaction.
-        reactions: [
-          {
-            on: 'damage.resolved',
-            actor: ACTOR.PLAYER,
-            packets: 'first',
-            when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.life-siphon' }
-          }
-        ],
-        ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 480 + index * 160, coefficient: 2.7 / 9 })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
-    ]
   }
 });
 

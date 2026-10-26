@@ -31,8 +31,10 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     weapon: WEAPON.DAGGER,
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
-    castTimeMs: 560,
     cooldown: 18,
+    skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 560,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -41,7 +43,6 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     effects: [
       {
         type: 'strike',
@@ -54,8 +55,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    specialization: 'Weaver'
+    ]
   },
   // Fire+Air. Single hit that doubles as a Blast finisher into the oldest
   // eligible field.
@@ -66,9 +66,10 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     weapon: WEAPON.DAGGER,
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
-    castTimeMs: 600,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 600,
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -82,8 +83,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         ]
       },
       { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 6 }
-    ]),
-    specialization: 'Weaver'
+    ])
   },
   // Fire+Earth. Two stages: a token 0.1 packet at 440 ms that exists to carry
   // the blind, then the real 1.4 hit plus Burning at 920 ms.
@@ -94,9 +94,10 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     weapon: WEAPON.DAGGER,
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 920,
     cooldown: 12,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 920,
     effects: [
       ...impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.1 },
@@ -112,8 +113,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         { type: 'strike', coefficient: 1.4 },
         { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8 }
       ])
-    ],
-    specialization: 'Weaver'
+    ]
   },
   // Air+Water. Two crowd-control applications far apart on the timeline: the
   // opening 0.1 packet at 240 ms carries the Blast finisher, Chilled,
@@ -126,9 +126,10 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     weapon: WEAPON.DAGGER,
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
-    castTimeMs: 280,
     cooldown: 18,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 280,
     effects: [
       ...impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'cast' }, [
         {
@@ -152,8 +153,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         { type: 'strike', coefficient: 1.25, canCrit: true },
         { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
       ])
-    ],
-    specialization: 'Weaver'
+    ]
   },
   // Water+Earth. Effectively a pure control skill: the 0.15 packet exists to
   // deliver the crowd-control application, not damage.
@@ -164,14 +164,14 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     weapon: WEAPON.DAGGER,
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 1000,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 1000,
     effects: impactEffects({ atMs: 960, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.15, canCrit: true },
       { type: 'control', applications: 1, controlKind: CONTROL.KNOCKDOWN }
-    ]),
-    specialization: 'Weaver'
+    ])
   },
   // Air+Earth. Six 0.275 pulses on a 520 ms cadence from 920 ms to 3520 ms,
   // each stacking Bleeding; the damage keeps running well past the 600 ms cast.
@@ -183,9 +183,10 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     weapon: WEAPON.DAGGER,
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 600,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 600,
     effects: [
       ...impactEffects({ atMs: 920, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.275 },
@@ -212,7 +213,6 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         { type: 'strike', coefficient: 0.275 },
         { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6 }
       ])
-    ],
-    specialization: 'Weaver'
+    ]
   }
 });

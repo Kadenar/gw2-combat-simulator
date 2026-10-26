@@ -20,68 +20,68 @@ const PLASMATIC_STATE_RECHARGE_OFFSET_MS = 480;
 /** Supplies Evolve and its state-dependent action identities to specialization composition. */
 export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
   [ID.SYMBIOTIC_SHIELDING]: {
-    castTimeMs: 0,
     cooldown: 25,
-    effects: [],
     toolbeltParentId: ID.MITOTIC_STATE,
-    mechanicSlot: 1
+    mechanicSlot: 1,
+    castTimeMs: 0,
+    effects: []
   },
   [ID.EVOLVE_BASE]: {
-    // Schedule the form transition before the first affected packet, only when the cast reaches it.
-    sideEffects: [{ on: 'castStart', do: { type: 'engineer.schedule-evolve' } }],
     name: 'Evolve (Base)',
     // The selected skill owns its form lifetime and base attribute scaling for combat, previews, and tooltips.
     duration: 8,
     attributeMultiplier: 1.1,
     description: 'Enter Evolved form. Double Helix replaces this action with the two-charge variant.',
     countsAsToolbeltSkill: true,
+    // Evolve begins recharging on activation, so its cast window contributes to the next use.
+    rechargeAnchor: 'castStart',
+    cooldown: 40,
+    mechanicSlot: 5,
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
 
     castTimeMs: 640,
-    // Evolve begins recharging on activation, so its cast window contributes to the next use.
-    rechargeAnchor: 'castStart',
     // Commit before the animation ends so its remaining aftercast can be interrupted.
     interruptCommitMs: 560,
-    cooldown: 40,
     effects: [],
-    mechanicSlot: 5
+    // Schedule the form transition before the first affected packet, only when the cast reaches it.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.schedule-evolve' } }]
   },
   [ID.EVOLVE_DOUBLE_HELIX]: {
-    // Schedule the form transition before the first affected packet, only when the cast reaches it.
-    sideEffects: [{ on: 'castStart', do: { type: 'engineer.schedule-evolve' } }],
     name: 'Evolve (Double Helix)',
     // Double Helix owns the stronger attribute bonus; this variant owns its duration and ammunition.
     duration: 8,
     description: 'Enter Evolved form with an increased attribute bonus. Requires Double Helix.',
     countsAsToolbeltSkill: true,
-    // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
-
-    castTimeMs: 640,
     // Keep the traited identity on the same activation-anchored recharge contract.
     rechargeAnchor: 'castStart',
-    // Commit before the animation ends so its remaining aftercast can be interrupted.
-    interruptCommitMs: 560,
     cooldown: 40,
     ammo: 2,
     // The traited action has a short between-cast recharge and a separate per-charge recovery.
     ammoCastLockout: 1,
     ammoRecharge: 40,
+    mechanicSlot: 5,
+    // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
+
+    castTimeMs: 640,
+    // Commit before the animation ends so its remaining aftercast can be interrupted.
+    interruptCommitMs: 560,
     effects: [],
-    mechanicSlot: 5
+    // Schedule the form transition before the first affected packet, only when the cast reaches it.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.schedule-evolve' } }]
   },
   [ID.MITOTIC_STATE]: {
-    castTimeMs: 680,
     cooldown: 20,
+    castTimeMs: 680,
     effects: []
   },
   [ID.LOCKED]: {
-    castTimeMs: 0,
     cooldown: 0,
+    castTimeMs: 0,
     effects: []
   },
   [ID.LIQUID_STATE]: {
-    castTimeMs: 1000,
     cooldown: 20,
+    castTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -108,8 +108,8 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     ]
   },
   [ID.FLUX_STATE]: {
-    castTimeMs: 640,
     cooldown: 50,
+    castTimeMs: 640,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       {
@@ -147,8 +147,8 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     ]
   },
   [ID.SOLID_STATE]: {
-    castTimeMs: 520,
     cooldown: 25,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -171,21 +171,19 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     ]
   },
   [ID.LOCKED_ID_77107]: {
-    castTimeMs: 0,
     cooldown: 0,
+    castTimeMs: 0,
     effects: []
   },
   [ID.PLASMATIC_STATE]: {
     // The cast skill owns the damage-bonus window that starts with its first strike.
     duration: 6,
-    // Schedule the form transition before the first affected packet, only when the cast reaches it.
-    sideEffects: [{ on: 'castStart', do: { type: 'engineer.schedule-plasmatic' } }],
-    // Custom: Activates Plasmatic State and its duration/state event; see `amalgam/mechanics/evolved-form.ts`.
-
-    castTimeMs: PLASMATIC_STATE_CAST_TIME_MS,
     cooldown: 25,
     rechargeAnchor: 'castStart',
     rechargeOffsetMs: PLASMATIC_STATE_RECHARGE_OFFSET_MS,
+    // Custom: Activates Plasmatic State and its duration/state event; see `amalgam/mechanics/evolved-form.ts`.
+
+    castTimeMs: PLASMATIC_STATE_CAST_TIME_MS,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -199,11 +197,13 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
         ticks: [440, 800].map((atMs) => ({ atMs, condition: CONDITION.BURNING, stacks: 2, duration: 5 })),
         actorType: ACTOR.PLAYER
       }
-    ])
+    ]),
+    // Schedule the form transition before the first affected packet, only when the cast reaches it.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.schedule-plasmatic' } }]
   },
   [ID.LOCKED_ID_77388]: {
-    castTimeMs: 0,
     cooldown: 0,
+    castTimeMs: 0,
     effects: []
   }
 });

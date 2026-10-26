@@ -8,8 +8,8 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FRAGMENTATION_SHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 520,
     cooldown: 0,
+    castTimeMs: 520,
     comboFinishers: [
       {
         ownerId: 'engineer',
@@ -42,8 +42,8 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
     )
   },
   [ID.POISON_DART_VOLLEY]: {
-    castTimeMs: 840,
     cooldown: 8,
+    castTimeMs: 840,
     // Poison Dart Volley is a channel: interruption retains landed darts and cancels only its future packets.
     interruptMode: 'per-packet',
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -68,8 +68,8 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.STATIC_SHOT]: {
-    castTimeMs: 320,
     cooldown: 12,
+    castTimeMs: 320,
     effects: [
       {
         type: 'strike',
@@ -95,10 +95,36 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
       }
     ]
   },
-  [ID.GLUE_SHOT]: {
+  [ID.BLOWTORCH]: {
+    cooldown: 12,
     castTimeMs: 560,
+    interruptCommitMs: 360,
+    // Committed flame casts keep their remaining lockout before the next player input.
+    retainsCastLockoutAfterInterrupt: true,
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      // The flame and burning land before aftercast; scheduling at cast end drops committed shortened casts.
+      {
+        type: 'strike',
+        coefficient: 2,
+        hits: 1,
+        name: 'Maximum Damage',
+        actorType: ACTOR.PLAYER
+      },
+      // Each Burning stack is a separate application and can trigger its own relic check.
+      {
+        type: 'condition',
+        condition: CONDITION.BURNING,
+        stacks: 3,
+        duration: 4.5,
+        actorType: ACTOR.PLAYER
+      }
+    ])
+  },
+  [ID.GLUE_SHOT]: {
     cooldown: 20,
     duration: 5,
+    castTimeMs: 560,
     comboFinishers: [
       {
         ownerId: 'engineer',
@@ -134,31 +160,5 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         actorType: ACTOR.PLAYER
       }
     ]
-  },
-  [ID.BLOWTORCH]: {
-    castTimeMs: 560,
-    interruptCommitMs: 360,
-    // Committed flame casts keep their remaining lockout before the next player input.
-    retainsCastLockoutAfterInterrupt: true,
-    cooldown: 12,
-    // Share one impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      // The flame and burning land before aftercast; scheduling at cast end drops committed shortened casts.
-      {
-        type: 'strike',
-        coefficient: 2,
-        hits: 1,
-        name: 'Maximum Damage',
-        actorType: ACTOR.PLAYER
-      },
-      // Each Burning stack is a separate application and can trigger its own relic check.
-      {
-        type: 'condition',
-        condition: CONDITION.BURNING,
-        stacks: 3,
-        duration: 4.5,
-        actorType: ACTOR.PLAYER
-      }
-    ])
   }
 });

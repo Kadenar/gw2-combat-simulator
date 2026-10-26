@@ -10,11 +10,11 @@ import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js'
 /** Defines Core toolbelt skill fragments and their parent-slot relationships. */
 export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.MINE_FIELD]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.mine-field' } }],
+    cooldown: 17,
+    toolbeltParentId: ID.THROW_MINE,
     // Mine Field defers precast packets to the combat-start handler below, retaining detonation trait ordering.
 
     castTimeMs: 920,
-    cooldown: 17,
     effects: [
       {
         // Precast mines are released by their combat-start owner; ordinary casts use these packets.
@@ -42,11 +42,12 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         actorType: ACTOR.PLAYER
       }
     ],
-    toolbeltParentId: ID.THROW_MINE
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.mine-field' } }]
   },
   [ID.DETONATE_MINE_FIELD]: {
-    castTimeMs: 0,
     cooldown: 0,
+    toolbeltParentId: ID.THROW_MINE,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -64,12 +65,13 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         duration: 2.5,
         actorType: ACTOR.PLAYER
       }
-    ],
-    toolbeltParentId: ID.THROW_MINE
+    ]
   },
   [ID.REGENERATING_MIST]: {
-    castTimeMs: 300,
     cooldown: 18,
+    toolbeltParentId: ID.HEALING_TURRET,
+    mechanicSlot: 1,
+    castTimeMs: 300,
     comboFields: [
       {
         ownerId: 'engineer',
@@ -86,14 +88,14 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         duration: 3,
         stacks: 2
       }
-    ],
-    toolbeltParentId: ID.HEALING_TURRET,
-    mechanicSlot: 1
+    ]
   },
 
   [ID.STATIC_SHOCK]: {
-    castTimeMs: 680,
     cooldown: 20,
+    toolbeltParentId: ID.A_E_D,
+    mechanicSlot: 1,
+    castTimeMs: 680,
     interruptCommitMs: 480,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -110,16 +112,14 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.DAZE
       }
-    ]),
-    toolbeltParentId: ID.A_E_D,
-    mechanicSlot: 1
+    ])
   },
   [ID.MED_PACK_DROP]: {
-    castTimeMs: 360,
     cooldown: 50,
-    effects: [],
     toolbeltParentId: ID.SUPPLY_CRATE,
-    mechanicSlot: 5
+    mechanicSlot: 5,
+    castTimeMs: 360,
+    effects: []
   }
 });
 

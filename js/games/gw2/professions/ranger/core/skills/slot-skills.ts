@@ -64,6 +64,7 @@ function spiritShakes(boon: string, duration: number, stacks = 1): SkillEffect {
 
 export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SPIKE_TRAP]: {
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -76,14 +77,14 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         stacks: 6,
         duration: 6
       }
-    ],
-    castTimeMs: 333
+    ]
   },
   [ID.TROLL_UNGUENT]: {
-    effects: [],
-    castTimeMs: 500
+    castTimeMs: 500,
+    effects: []
   },
   [ID.HEALING_SPRING]: {
+    castTimeMs: 333,
     effects: [
       {
         type: 'boon',
@@ -92,10 +93,10 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         duration: 3,
         stacks: 6
       }
-    ],
-    castTimeMs: 333
+    ]
   },
   [ID.SIGNET_OF_THE_WILD]: {
+    castTimeMs: 520,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -112,11 +113,20 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         duration: 1,
         atMs
       }))
-    ]),
-    castTimeMs: 520
+    ])
   },
   [ID.FROST_TRAP]: {
+    castTimeMs: 520,
     interruptCommitMs: 440,
+    comboFields: [
+      {
+        ownerId: 'ranger',
+        fieldType: COMBO_FIELD.ICE,
+        duration: 5,
+        startMs: 880,
+        startAnchor: 'castStart'
+      }
+    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
@@ -135,21 +145,10 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
           coefficient: 1
         }))
       }
-    ]),
-    castTimeMs: 520,
-    comboFields: [
-      {
-        ownerId: 'ranger',
-        fieldType: COMBO_FIELD.ICE,
-        duration: 5,
-        startMs: 880,
-        startAnchor: 'castStart'
-      }
-    ]
+    ])
   },
   [ID.STORM_SPIRIT]: {
-    // A committed summon invokes Call Lightning; the parent owns only its summon reward and boon shakes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.storm-spirit' } }],
+    castTimeMs: 360,
     effects: [
       {
         type: 'condition',
@@ -159,9 +158,11 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       },
       spiritShakes(boonKey(BOON.FURY), 2)
     ],
-    castTimeMs: 360
+    // A committed summon invokes Call Lightning; the parent owns only its summon reward and boon shakes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.storm-spirit' } }]
   },
   [ID.STONE_SPIRIT]: {
+    castTimeMs: 167,
     effects: [
       {
         type: 'boon',
@@ -181,11 +182,21 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 6 }
       ]),
       spiritShakes(boonKey(BOON.PROTECTION), 2)
-    ],
-    castTimeMs: 167
+    ]
   },
   [ID.VIPERS_NEST]: {
+    // Match the measured Quickness animation from the benchmark EVTC.
+    castTimeMs: 600,
     interruptCommitMs: 440,
+    comboFields: [
+      {
+        ownerId: 'ranger',
+        fieldType: COMBO_FIELD.POISON,
+        duration: 2,
+        startMs: 1400,
+        startAnchor: 'castStart'
+      }
+    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
@@ -204,20 +215,10 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
           duration: 8
         }))
       }
-    ]),
-    // Match the measured Quickness animation from the benchmark EVTC.
-    castTimeMs: 600,
-    comboFields: [
-      {
-        ownerId: 'ranger',
-        fieldType: COMBO_FIELD.POISON,
-        duration: 2,
-        startMs: 1400,
-        startAnchor: 'castStart'
-      }
-    ]
+    ])
   },
   [ID.FROST_SPIRIT]: {
+    castTimeMs: 167,
     effects: [
       {
         type: 'boon',
@@ -236,12 +237,12 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         }
       ]),
       spiritShakes(boonKey(BOON.RESOLUTION), 2)
-    ],
-    castTimeMs: 167
+    ]
   },
   [ID.SUN_SPIRIT]: {
-    // A committed summon schedules Solar Flare alongside its first shake.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.sun-spirit' } }],
+    cooldown: 20,
+    // Use the measured Quickness animation so later casts begin at the logged time.
+    castTimeMs: 360,
     effects: [
       spiritShakes(boonKey(BOON.MIGHT), 15, 2),
       {
@@ -251,13 +252,15 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         duration: 5
       }
     ],
-
-    cooldown: 20,
-    // Use the measured Quickness animation so later casts begin at the logged time.
-    castTimeMs: 360
+    // A committed summon schedules Solar Flare alongside its first shake.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.sun-spirit' } }]
   },
   [ID.FLAME_TRAP]: {
+    castTimeMs: 333,
     interruptCommitMs: 500,
+    comboFields: [
+      { ownerId: 'ranger', fieldType: COMBO_FIELD.FIRE, duration: 3, startMs: 520, startAnchor: 'castEnd' }
+    ],
     // Arm after placement, then preserve the trap's pulses and field independently of later casts.
     // ponytail: nominal half-second pulse spacing; calibrate these offsets against a live combat log if needed.
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -276,13 +279,10 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
           duration: 2.5
         }))
       }
-    ]),
-    comboFields: [
-      { ownerId: 'ranger', fieldType: COMBO_FIELD.FIRE, duration: 3, startMs: 520, startAnchor: 'castEnd' }
-    ],
-    castTimeMs: 333
+    ])
   },
   [ID.MUDDY_TERRAIN]: {
+    castTimeMs: 500,
     effects: [
       {
         type: 'condition',
@@ -298,11 +298,12 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       },
       // Immobilize applies once when the area is created, independently of its pulses (wiki: Muddy_Terrain).
       { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 3 }
-    ],
-    castTimeMs: 500
+    ]
   },
   [ID.STRENGTH_OF_THE_PACK]: {
     categories: ['Command'],
+    // The command completes on the 840 ms action tick before its buffs and command traits apply.
+    castTimeMs: 840,
     effects: [
       {
         type: 'buff',
@@ -331,28 +332,28 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         stacks: 1,
         audience: { recipients: RECIPIENT.SUMMONS, maximumRecipients: 2 }
       }
-    ],
-    // The command completes on the 840 ms action tick before its buffs and command traits apply.
-    castTimeMs: 840
+    ]
   },
   [ID.SHARPENING_STONE]: {
+    castTimeMs: 0,
+    canCastConcurrently: true,
+    effects: [],
     // Activate the intrinsic reward at its declared boundary, before common trait observers.
     sideEffects: [
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.sharpening-stone' } }
-    ],
-    effects: [],
-    castTimeMs: 0,
-    canCastConcurrently: true
+    ]
   },
   [ID.SPIRIT_OF_NATURE]: {
+    castTimeMs: 1000,
     // Revival has no combat payload while all players remain alive at full health.
     effects: [
       ...spiritSlam([{ type: 'custom', eventType: 'marker', event: { name: "Nature's Renewal" } }]),
       spiritShakes(boonKey(BOON.REGENERATION), 3)
-    ],
-    castTimeMs: 1000
+    ]
   },
   [ID.ENTANGLE]: {
+    // Match the measured Quickness animation from the benchmark EVTC.
+    castTimeMs: 680,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -380,13 +381,12 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
           duration: 2
         }))
       }
-    ]),
-    // Match the measured Quickness animation from the benchmark EVTC.
-    castTimeMs: 680
+    ])
   },
   [ID.SOLAR_FLARE]: {
     // The API exposes a generic missing-icon asset, so pin the wiki's dedicated icon for result rows.
     icon: 'https://render.guildwars2.com/file/1D55D34FB4EE20B1962E315245E40CA5E1042D0E/62248.png',
+    castTimeMs: 500,
     effects: [
       {
         type: 'condition',
@@ -394,12 +394,12 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         stacks: 3,
         duration: 6
       }
-    ],
-    castTimeMs: 500
+    ]
   },
   [ID.CALL_LIGHTNING]: {
     // Use the dedicated spirit icon because the API supplies a generic missing-icon asset.
     icon: 'https://render.guildwars2.com/file/1D55D34FB4EE20B1962E315245E40CA5E1042D0E/62248.png',
+    castTimeMs: 333,
     // The spirit owns the slam formula; the Ranger supplies critical stats and outgoing modifiers.
     effects: [
       { type: 'control', controlKind: CONTROL.DAZE },
@@ -409,10 +409,10 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         weaponStrengthProfileId: 'summon.storm-spirit',
         hits: 1
       }
-    ],
-    castTimeMs: 333
+    ]
   },
   [ID.QUAKE]: {
+    castTimeMs: 500,
     effects: [
       {
         type: 'condition',
@@ -426,19 +426,19 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         stacks: 1,
         duration: 6
       }
-    ],
-    castTimeMs: 500
+    ]
   },
   [ID.COLD_SNAP]: {
-    effects: [],
-    castTimeMs: 500
+    castTimeMs: 500,
+    effects: []
   },
   [ID.NATURES_RENEWAL]: {
-    effects: [],
-    castTimeMs: 500
+    castTimeMs: 500,
+    effects: []
   },
   [ID.PROTECT_ME]: {
     categories: ['Command'],
+    castTimeMs: 333,
     effects: [
       {
         type: 'boon',
@@ -446,11 +446,11 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         duration: 4,
         stacks: 1
       }
-    ],
-    castTimeMs: 333
+    ]
   },
   [ID.GUARD]: {
     categories: ['Command'],
+    castTimeMs: 333,
     effects: [
       {
         type: 'boon',
@@ -458,32 +458,30 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         duration: 10,
         stacks: 1
       }
-    ],
-    castTimeMs: 333
+    ]
   },
   [ID.SIC_EM]: {
-    // Instant activation selects the current pet or merged recipient before subsequent impacts.
-    sideEffects: [{ on: 'castStart', do: { type: 'ranger.sic-em' } }],
     categories: ['Command'],
     castTimeMs: 0,
-    effects: []
+    effects: [],
+    // Instant activation selects the current pet or merged recipient before subsequent impacts.
+    sideEffects: [{ on: 'castStart', do: { type: 'ranger.sic-em' } }]
   },
   [ID.WATER_SPIRIT]: {
+    castTimeMs: 500,
     // Healing has no combat payload under the fixed-full-health simulation assumption.
     effects: [
       ...spiritSlam([{ type: 'custom', eventType: 'marker', event: { name: 'Aqua Surge' } }]),
       spiritShakes(boonKey(BOON.VIGOR), 2)
-    ],
-    castTimeMs: 500
+    ]
   },
   [ID.AQUA_SURGE]: {
-    effects: [],
-    castTimeMs: 500
+    castTimeMs: 500,
+    effects: []
   },
   [ID.WE_HEAL_AS_ONE]: {
-    // Activate the intrinsic reward at its declared boundary, before common trait observers.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.copy-healing-boons' } }],
     categories: ['Command'],
+    castTimeMs: 920,
     // These non-emitting templates provide the duration menu for the live two-way copy.
     effects: [
       { type: 'boon', when: () => false, boon: BOON.AEGIS, duration: 5 },
@@ -499,7 +497,8 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       { type: 'boon', when: () => false, boon: BOON.SWIFTNESS, duration: 3 },
       { type: 'boon', when: () => false, boon: BOON.VIGOR, duration: 3 }
     ],
-    castTimeMs: 920
+    // Activate the intrinsic reward at its declared boundary, before common trait observers.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.copy-healing-boons' } }]
   }
 });
 

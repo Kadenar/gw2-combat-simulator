@@ -7,17 +7,17 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.BLAZE_BREAKER]: {
     cooldown: 12,
+    castTimeMs: 480,
+    interruptMode: 'commit',
+    // Preserve committed blast effects and hold the cast lane through the remaining animation.
+    interruptCommitMs: 440,
+    retainsCastLockoutAfterInterrupt: true,
     comboFinishers: [
       {
         ownerId: 'warrior',
         finisherType: COMBO_FINISHER.BLAST
       }
     ],
-    castTimeMs: 480,
-    // Preserve committed blast effects and hold the cast lane through the remaining animation.
-    interruptCommitMs: 440,
-    interruptMode: 'commit',
-    retainsCastLockoutAfterInterrupt: true,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects(
       { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
@@ -43,6 +43,7 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Part
   },
   [ID.FLAMES_OF_WAR]: {
     cooldown: 20,
+    castTimeMs: 520,
     comboFields: [
       {
         ownerId: 'warrior',
@@ -51,7 +52,6 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Part
         startAnchor: 'castEnd'
       }
     ],
-    castTimeMs: 520,
     // Group identical Burning pulses separately from the explosion's stronger, longer Burning.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {

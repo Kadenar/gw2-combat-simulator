@@ -10,6 +10,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Natural Headbutt uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.ROCK_GAZELLE_HEADBUTT]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.ROCK_GAZELLE_HEADBUTT]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.ROCK_GAZELLE_HEADBUTT]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -17,13 +20,13 @@ export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<numbe
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.ROCK_GAZELLE_HEADBUTT]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.ROCK_GAZELLE_HEADBUTT]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Kick uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.ROCK_GAZELLE_KICK]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.ROCK_GAZELLE_KICK]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.ROCK_GAZELLE_KICK]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -41,13 +44,13 @@ export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<numbe
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.ROCK_GAZELLE_KICK]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.ROCK_GAZELLE_KICK]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Charge uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.ROCK_GAZELLE_CHARGE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.ROCK_GAZELLE_CHARGE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.ROCK_GAZELLE_CHARGE]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -69,12 +72,11 @@ export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<numbe
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.ROCK_GAZELLE_CHARGE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.ROCK_GAZELLE_CHARGE]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   [ID.HEAD_TOSS]: {
+    petSkill: true,
+    quicknessCastTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -83,8 +85,6 @@ export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<numbe
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 500,
-    petSkill: true
+    ]
   }
 });

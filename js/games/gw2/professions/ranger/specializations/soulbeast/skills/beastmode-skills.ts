@@ -11,25 +11,25 @@ const BEASTMODE_PALETTE_TILE = 'ranger-soulbeast-beastmode-toggle';
 
 export const SOULBEAST_BEASTMODE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.BEASTMODE]: {
+    paletteTileId: BEASTMODE_PALETTE_TILE,
+    paletteTileOrder: 1,
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    castTimeMs: 0,
+    effects: [],
     // Merge state and pet lifetime change before the transition's trait observer.
     sideEffects: [
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.beastmode-enter' } }
-    ],
-    castTimeMs: 0,
-    paletteTileId: BEASTMODE_PALETTE_TILE,
-    paletteTileOrder: 1,
-    effects: [],
-    inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
+    ]
   },
   [ID.LEAVE_BEASTMODE]: {
+    paletteTileId: BEASTMODE_PALETTE_TILE,
+    paletteTileOrder: 2,
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    castTimeMs: 0,
+    effects: [],
     // Merge state and pet lifetime change before the transition's trait observer.
     sideEffects: [
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.beastmode-leave' } }
-    ],
-    castTimeMs: 0,
-    paletteTileId: BEASTMODE_PALETTE_TILE,
-    paletteTileOrder: 2,
-    effects: [],
-    inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
+    ]
   }
 });

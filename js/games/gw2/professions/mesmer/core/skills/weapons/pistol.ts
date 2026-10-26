@@ -5,7 +5,6 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
   [ID.PHANTASMAL_DUELIST]: {
-    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
     // The summon owns its attack and conversion timeline independently of the player cast.
     phantasmTiming: {
       damageAtMs: 2240,
@@ -14,15 +13,16 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Part
       phantasmalBladeDelayAfterSpawnMs: 175
     },
     phantasm: true,
-    // Cancelling after commitment preserves the Duelist's attacks and clone conversion while retaining its cast lockout.
-    interruptCommitMs: 360,
     phantasmSummonProgress: 360 / 560,
-    // Weapon-swap cancellation does not shorten Duelist's cast lane, so replay must not add the same aftercast as idle time.
-    retainsCastLockoutAfterInterrupt: true,
     resource: {
       mode: 'phantasm',
       count: 1
     },
+    castTimeMs: 560,
+    // Cancelling after commitment preserves the Duelist's attacks and clone conversion while retaining its cast lockout.
+    interruptCommitMs: 360,
+    // Weapon-swap cancellation does not shorten Duelist's cast lane, so replay must not add the same aftercast as idle time.
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',
@@ -80,9 +80,10 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Part
         packetLabel: 'Illusion Damage'
       }
     ],
-    castTimeMs: 560
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }]
   },
   [ID.MAGIC_BULLET]: {
+    castTimeMs: 440,
     effects: [
       // Preserve this skill's existing cast-completion CC timing in its own definition.
       {
@@ -114,7 +115,6 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Part
         duration: 5,
         stacks: 3
       }
-    ],
-    castTimeMs: 440
+    ]
   }
 });

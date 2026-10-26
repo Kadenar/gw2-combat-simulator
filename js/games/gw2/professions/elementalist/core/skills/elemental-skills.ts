@@ -8,8 +8,8 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 /** Supplies command flipovers absent from the API catalog for active Fire and Earth elementals. */
 export const ELEMENTALIST_CORE_ELEMENTAL_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   {
-    id: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND,
     name: 'Flame Barrage',
+    id: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND,
     displayName: 'Flame Barrage',
     description: 'Command your summoned Fire Elemental to unleash a flame barrage.',
     icon: 'https://render.guildwars2.com/file/64A5054179704B60614F90964DE1FB3D39AEC972/867446.png',
@@ -24,16 +24,16 @@ export const ELEMENTALIST_CORE_ELEMENTAL_EXTRA_SKILLS: readonly Skill[] = Object
     nextChainId: null,
     flipSkillId: null,
     flipParentId: ID.GLYPH_OF_ELEMENTALS,
-    castTimeMs: 0,
     slotSelectable: false,
     simulatorExcluded: false,
+    castTimeMs: 0,
+    effects: [],
     // A committed command preempts the live elemental action and schedules its next decision.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.command-elemental' } }],
-    effects: []
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.command-elemental' } }]
   },
   {
-    id: ID.STOMP_ELEMENTAL_COMMAND,
     name: 'Stomp',
+    id: ID.STOMP_ELEMENTAL_COMMAND,
     displayName: 'Stomp',
     description:
       'Command your summoned Earth Elemental to stomp, granting Protection to allies and crippling and immobilizing nearby foes.',
@@ -49,11 +49,11 @@ export const ELEMENTALIST_CORE_ELEMENTAL_EXTRA_SKILLS: readonly Skill[] = Object
     nextChainId: null,
     flipSkillId: null,
     flipParentId: ID.GLYPH_OF_ELEMENTALS_EARTH,
-    castTimeMs: 0,
     slotSelectable: false,
     simulatorExcluded: false,
+    castTimeMs: 0,
+    effects: [],
     // A committed command preempts the live elemental action and schedules its next decision.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.command-elemental' } }],
-    effects: []
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.command-elemental' } }]
   }
 ]);

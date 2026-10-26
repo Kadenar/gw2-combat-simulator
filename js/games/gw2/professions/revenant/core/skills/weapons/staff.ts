@@ -6,35 +6,39 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Snap each intended packet independently so rounding a repeated interval cannot accumulate drift.
 export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.SURGE_OF_THE_MISTS]: {
-    // Reviewed timings are Quickness durations; Surge's coefficient is the total across nine hits.
-    castTimeMs: 1720,
-    cooldown: 20,
-    energyCost: 15,
+  [ID.RAPID_SWIPE]: {
+    cooldown: 0,
+    energyCost: 0,
+    castTimeMs: 440,
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 9 }, (_, index) => ({
-          atMs: quantizeGw2ActionTimingMs(75.48 + index * 75.48), // TODO: Validate these estimated packet offsets against a combat log.
-          coefficient: 3.24 / 9
-        })),
-        name: 'Surge of the Mists',
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
+        coefficient: 0.65,
+        hits: 1,
+        name: 'Rapid Swipe',
+        actorType: ACTOR.PLAYER
+      }
+    ]
+  },
+  [ID.FORCEFUL_BASH]: {
+    cooldown: 0,
+    energyCost: 0,
+    castTimeMs: 440,
+    effects: [
       {
-        type: 'control',
-        actorType: ACTOR.PLAYER,
-        controlKind: CONTROL.KNOCKBACK
+        type: 'strike',
+        coefficient: 0.75,
+        hits: 1,
+        name: 'Forceful Bash',
+        actorType: ACTOR.PLAYER
       }
     ]
   },
   [ID.REJUVENATING_ASSAULT]: {
-    castTimeMs: 680,
-    comboFinishers: [{ ownerId: 'revenant', finisherType: COMBO_FINISHER.WHIRL }],
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 680,
+    comboFinishers: [{ ownerId: 'revenant', finisherType: COMBO_FINISHER.WHIRL }],
     effects: [
       {
         type: 'strike',
@@ -50,9 +54,9 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.MENDERS_REBUKE]: {
-    castTimeMs: 520,
     cooldown: 5,
     energyCost: 5,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -70,24 +74,10 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
       }
     ]
   },
-  [ID.RAPID_SWIPE]: {
-    castTimeMs: 440,
-    cooldown: 0,
-    energyCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.65,
-        hits: 1,
-        name: 'Rapid Swipe',
-        actorType: ACTOR.PLAYER
-      }
-    ]
-  },
   [ID.WARDING_RIFT]: {
-    castTimeMs: 1000,
     cooldown: 12,
     energyCost: 10,
+    castTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -106,22 +96,32 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.RENEWING_WAVE]: {
-    castTimeMs: 680,
     cooldown: 15,
     energyCost: 15,
+    castTimeMs: 680,
     effects: []
   },
-  [ID.FORCEFUL_BASH]: {
-    castTimeMs: 440,
-    cooldown: 0,
-    energyCost: 0,
+  [ID.SURGE_OF_THE_MISTS]: {
+    cooldown: 20,
+    energyCost: 15,
+    // Reviewed timings are Quickness durations; Surge's coefficient is the total across nine hits.
+    castTimeMs: 1720,
     effects: [
       {
         type: 'strike',
-        coefficient: 0.75,
-        hits: 1,
-        name: 'Forceful Bash',
-        actorType: ACTOR.PLAYER
+        ticks: Array.from({ length: 9 }, (_, index) => ({
+          atMs: quantizeGw2ActionTimingMs(75.48 + index * 75.48), // TODO: Validate these estimated packet offsets against a combat log.
+          coefficient: 3.24 / 9
+        })),
+        name: 'Surge of the Mists',
+        actorType: ACTOR.PLAYER,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'control',
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.KNOCKBACK
       }
     ]
   }

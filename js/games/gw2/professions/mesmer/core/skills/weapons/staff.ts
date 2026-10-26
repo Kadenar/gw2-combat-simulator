@@ -32,96 +32,9 @@ export const CHAOS_STORM_POISON_PROFILE = defineSkillVariantProfile(
 );
 
 export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
-  [ID.CHAOS_STORM]: {
-    // Once the field's opening impact lands, cancelling the aftercast preserves its remaining pulses.
-    interruptCommitMs: CHAOS_STORM_PULSES_MS[0],
-    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.core.chaos-storm-poison' } }],
-    comboFields: [
-      {
-        ownerId: 'mesmer',
-        fieldType: COMBO_FIELD.ETHEREAL,
-        duration: 5,
-        // The field exists on its opening impact, allowing an instant Phase Retreat during the aftercast to combo.
-        startAnchor: 'castStart',
-        startMs: CHAOS_STORM_PULSES_MS[0]
-      }
-    ],
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        ticks: CHAOS_STORM_PULSES_MS.map((atMs) => ({ atMs, coefficient: 0.33 })),
-        name: 'Six pulses',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        // Only the first impact dazes; subsequent field pulses do not repeat the CC.
-        type: 'control',
-        controlKind: CONTROL.DAZE,
-        source: 'Player',
-        actorType: ACTOR.PLAYER,
-        atMs: CHAOS_STORM_PULSES_MS[0]
-      }
-    ]),
-    castTimeMs: 480
-  },
-  [ID.PHANTASMAL_WARLOCK]: {
-    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
-    // The summon owns its attack and conversion timeline independently of the player cast.
-    phantasmTiming: {
-      damageAtMs: 2920,
-      damageAtMsByEntity: [2800, 2920],
-      // Both Warlocks retain their observed attack and clone-conversion stagger.
-      spawnAtMs: 4120,
-      spawnAtMsByEntity: [4080, 4180],
-      damageTicksByEntity: [
-        {
-          'One warlock': [{ atMs: 1200 }, { atMs: 2000 }, { atMs: 2800 }]
-        },
-        {
-          'One warlock': [{ atMs: 1320 }, { atMs: 2120 }, { atMs: 2920 }]
-        }
-      ]
-    },
-    phantasm: true,
-    resource: {
-      mode: 'phantasm',
-      count: 2
-    },
-    // Committed interrupts retain the full cast lockout and the phantasm launched at the fixed summon point.
-    retainsCastLockoutAfterInterrupt: true,
-    interruptCommitMs: 600,
-    phantasmSummonProgress: 600 / 880,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          { atMs: 1200, coefficient: 0.15 },
-          { atMs: 2000, coefficient: 0.15 },
-          { atMs: 2800, coefficient: 0.15 }
-        ],
-        name: 'One warlock',
-        actorType: ACTOR.SUMMON,
-        summonKind: 'phantasm',
-        weapon: 'Phantasm high',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.TORMENT,
-        duration: 4,
-        stacks: 6,
-        // Each Warlock hit applies its share immediately, including each entity's staggered attacks.
-        packetLabel: 'One warlock',
-        actorType: ACTOR.SUMMON,
-        summonKind: 'phantasm',
-        persistsAfterInterrupt: true
-      }
-    ],
-    castTimeMs: 880
-  },
   [ID.WINDS_OF_CHAOS]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    castTimeMs: 760,
     interruptCommitMs: 560,
     effects: [
       {
@@ -151,18 +64,17 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
         stacks: 1,
         persistsAfterInterrupt: true
       }
-    ],
-    castTimeMs: 760
+    ]
   },
   [ID.PHASE_RETREAT]: {
     shadowstepSkill: true,
     peithaImpactDelayMs: 840,
-    castTimeMs: 0,
     rechargeAnchor: 'castStart',
     resource: {
       mode: 'add',
       count: 1
     },
+    castTimeMs: 0,
     comboFinishers: [
       {
         ownerId: 'mesmer',
@@ -172,9 +84,64 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
     ],
     effects: []
   },
+  [ID.PHANTASMAL_WARLOCK]: {
+    // The summon owns its attack and conversion timeline independently of the player cast.
+    phantasmTiming: {
+      damageAtMs: 2920,
+      damageAtMsByEntity: [2800, 2920],
+      // Both Warlocks retain their observed attack and clone-conversion stagger.
+      spawnAtMs: 4120,
+      spawnAtMsByEntity: [4080, 4180],
+      damageTicksByEntity: [
+        {
+          'One warlock': [{ atMs: 1200 }, { atMs: 2000 }, { atMs: 2800 }]
+        },
+        {
+          'One warlock': [{ atMs: 1320 }, { atMs: 2120 }, { atMs: 2920 }]
+        }
+      ]
+    },
+    phantasm: true,
+    resource: {
+      mode: 'phantasm',
+      count: 2
+    },
+    phantasmSummonProgress: 600 / 880,
+    castTimeMs: 880,
+    interruptCommitMs: 600,
+    // Committed interrupts retain the full cast lockout and the phantasm launched at the fixed summon point.
+    retainsCastLockoutAfterInterrupt: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          { atMs: 1200, coefficient: 0.15 },
+          { atMs: 2000, coefficient: 0.15 },
+          { atMs: 2800, coefficient: 0.15 }
+        ],
+        name: 'One warlock',
+        actorType: ACTOR.SUMMON,
+        summonKind: 'phantasm',
+        weapon: 'Phantasm high',
+        persistsAfterInterrupt: true
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.TORMENT,
+        duration: 4,
+        stacks: 6,
+        // Each Warlock hit applies its share immediately, including each entity's staggered attacks.
+        packetLabel: 'One warlock',
+        actorType: ACTOR.SUMMON,
+        summonKind: 'phantasm',
+        persistsAfterInterrupt: true
+      }
+    ],
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }]
+  },
   [ID.CHAOS_ARMOR]: {
-    castTimeMs: 0,
     rechargeAnchor: 'castStart',
+    castTimeMs: 0,
     effects: [
       // The self aura must reach aura-gain traits independently of the offensive conditions.
       {
@@ -200,5 +167,38 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
         stacks: 3
       }
     ]
+  },
+  [ID.CHAOS_STORM]: {
+    castTimeMs: 480,
+    // Once the field's opening impact lands, cancelling the aftercast preserves its remaining pulses.
+    interruptCommitMs: CHAOS_STORM_PULSES_MS[0],
+    comboFields: [
+      {
+        ownerId: 'mesmer',
+        fieldType: COMBO_FIELD.ETHEREAL,
+        duration: 5,
+        // The field exists on its opening impact, allowing an instant Phase Retreat during the aftercast to combo.
+        startAnchor: 'castStart',
+        startMs: CHAOS_STORM_PULSES_MS[0]
+      }
+    ],
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        ticks: CHAOS_STORM_PULSES_MS.map((atMs) => ({ atMs, coefficient: 0.33 })),
+        name: 'Six pulses',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        // Only the first impact dazes; subsequent field pulses do not repeat the CC.
+        type: 'control',
+        controlKind: CONTROL.DAZE,
+        source: 'Player',
+        actorType: ACTOR.PLAYER,
+        atMs: CHAOS_STORM_PULSES_MS[0]
+      }
+    ]),
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.core.chaos-storm-poison' } }]
   }
 });

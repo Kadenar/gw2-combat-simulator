@@ -20,6 +20,27 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.OVERLOAD_FIRE]: {
+    name: 'Overload Fire',
+    type: 'Profession',
+    slot: 'Profession_1',
+    specialization: 'Tempest',
+    attunement: 'Fire',
+    mechanicSlot: 1,
+    categories: ['Attunement'],
+    cooldown: 20,
+    rechargeAnchor: 'castEnd',
+    overload: true,
+    skillFamily: 'Attunement',
+    castTimeMs: 3320,
+    comboFields: [
+      {
+        ownerId: 'elementalist',
+        fieldType: COMBO_FIELD.FIRE,
+        duration: 9,
+        startAnchor: 'castEnd'
+      }
+    ],
+    effects: TEMPEST_OVERLOAD_EFFECTS[ID.OVERLOAD_FIRE],
     // Only a completed channel locks its attunement; Air also grants Jolt, and non-Water overloads add two etching credits.
     sideEffects: [
       {
@@ -30,39 +51,11 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         on: 'castCommit',
         do: { type: 'elementalist.tempest.etching-credits' }
       }
-    ],
-    name: 'Overload Fire',
-    type: 'Profession',
-    slot: 'Profession_1',
-    specialization: 'Tempest',
-    attunement: 'Fire',
-    mechanicSlot: 1,
-    categories: ['Attunement'],
-    castTimeMs: 3320,
-    cooldown: 20,
-    comboFields: [
-      {
-        ownerId: 'elementalist',
-        fieldType: COMBO_FIELD.FIRE,
-        duration: 9,
-        startAnchor: 'castEnd'
-      }
-    ],
-    rechargeAnchor: 'castEnd',
-    overload: true,
-    skillFamily: 'Attunement',
-    effects: TEMPEST_OVERLOAD_EFFECTS[ID.OVERLOAD_FIRE]
+    ]
   },
   // Overload Water is modeled for its cast time, recharge, and trait triggers only: its healing
   // pulses carry no simulated damage, condition, or boon packets.
   [ID.OVERLOAD_WATER]: {
-    // Only a completed channel locks its attunement; Air also grants Jolt, and non-Water overloads add two etching credits.
-    sideEffects: [
-      {
-        on: 'castCommit',
-        do: { type: 'elementalist.tempest.overload-lockout' }
-      }
-    ],
     name: 'Overload Water',
     type: 'Profession',
     slot: 'Profession_2',
@@ -70,14 +63,44 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     attunement: 'Water',
     mechanicSlot: 2,
     categories: ['Attunement'],
-    castTimeMs: 2920,
     cooldown: 20,
     rechargeAnchor: 'castEnd',
     overload: true,
     skillFamily: 'Attunement',
-    effects: TEMPEST_OVERLOAD_EFFECTS[ID.OVERLOAD_WATER]
+    castTimeMs: 2920,
+    effects: TEMPEST_OVERLOAD_EFFECTS[ID.OVERLOAD_WATER],
+    // Only a completed channel locks its attunement; Air also grants Jolt, and non-Water overloads add two etching credits.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: { type: 'elementalist.tempest.overload-lockout' }
+      }
+    ]
   },
   [ID.OVERLOAD_AIR]: {
+    name: 'Overload Air',
+    type: 'Profession',
+    slot: 'Profession_3',
+    specialization: 'Tempest',
+    attunement: 'Air',
+    mechanicSlot: 3,
+    categories: ['Attunement'],
+    cooldown: 20,
+    rechargeAnchor: 'castEnd',
+    overload: true,
+    skillFamily: 'Attunement',
+    castTimeMs: 3200,
+    // The channel commits before the remaining aftercast, retaining the storm and completion rewards.
+    interruptCommitMs: 3140,
+    comboFields: [
+      {
+        ownerId: 'elementalist',
+        fieldType: COMBO_FIELD.LIGHTNING,
+        duration: 4,
+        startAnchor: 'castEnd'
+      }
+    ],
+    effects: TEMPEST_OVERLOAD_EFFECTS[ID.OVERLOAD_AIR],
     // Only a completed channel locks its attunement; Air also grants Jolt, and non-Water overloads add two etching credits.
     sideEffects: [
       {
@@ -97,32 +120,22 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         on: 'castCommit',
         do: { type: 'elementalist.tempest.etching-credits' }
       }
-    ],
-    name: 'Overload Air',
+    ]
+  },
+  [ID.OVERLOAD_EARTH]: {
+    name: 'Overload Earth',
     type: 'Profession',
-    slot: 'Profession_3',
+    slot: 'Profession_4',
     specialization: 'Tempest',
-    attunement: 'Air',
-    mechanicSlot: 3,
+    attunement: 'Earth',
+    mechanicSlot: 4,
     categories: ['Attunement'],
-    castTimeMs: 3200,
-    // The channel commits before the remaining aftercast, retaining the storm and completion rewards.
-    interruptCommitMs: 3140,
     cooldown: 20,
-    comboFields: [
-      {
-        ownerId: 'elementalist',
-        fieldType: COMBO_FIELD.LIGHTNING,
-        duration: 4,
-        startAnchor: 'castEnd'
-      }
-    ],
     rechargeAnchor: 'castEnd',
     overload: true,
     skillFamily: 'Attunement',
-    effects: TEMPEST_OVERLOAD_EFFECTS[ID.OVERLOAD_AIR]
-  },
-  [ID.OVERLOAD_EARTH]: {
+    castTimeMs: 2760,
+    effects: TEMPEST_OVERLOAD_EFFECTS[ID.OVERLOAD_EARTH],
     // Only a completed channel locks its attunement; Air also grants Jolt, and non-Water overloads add two etching credits.
     sideEffects: [
       {
@@ -133,20 +146,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         on: 'castCommit',
         do: { type: 'elementalist.tempest.etching-credits' }
       }
-    ],
-    name: 'Overload Earth',
-    type: 'Profession',
-    slot: 'Profession_4',
-    specialization: 'Tempest',
-    attunement: 'Earth',
-    mechanicSlot: 4,
-    categories: ['Attunement'],
-    castTimeMs: 2760,
-    cooldown: 20,
-    rechargeAnchor: 'castEnd',
-    overload: true,
-    skillFamily: 'Attunement',
-    effects: TEMPEST_OVERLOAD_EFFECTS[ID.OVERLOAD_EARTH]
+    ]
   },
   [ID.WASH_THE_PAIN_AWAY]: {
     name: 'Wash the Pain Away!',
@@ -154,9 +154,9 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     slot: 'Heal',
     specialization: 'Tempest',
     categories: ['Shout'],
-    castTimeMs: 1040,
     cooldown: 20,
     skillFamily: 'Shout',
+    castTimeMs: 1040,
     // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
 
     effects: []
@@ -167,9 +167,9 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     slot: 'Utility',
     specialization: 'Tempest',
     categories: ['Shout'],
-    castTimeMs: 0,
     cooldown: 25,
     skillFamily: 'Shout',
+    castTimeMs: 0,
     // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
 
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -203,9 +203,9 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     slot: 'Utility',
     specialization: 'Tempest',
     categories: ['Shout'],
-    castTimeMs: 0,
     cooldown: 30,
     skillFamily: 'Shout',
+    castTimeMs: 0,
     // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
 
     effects: [

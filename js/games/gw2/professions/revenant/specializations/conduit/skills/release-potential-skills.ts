@@ -50,11 +50,10 @@ function releaseEffects(
 
 export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RELEASE_POTENTIAL_MONK]: {
-    effectVariants: [{ when: () => true, transform: releaseEffects }],
-    // The shared scheduler materializes these packets; conditional legend components declare their own gates.
-    castTimeMs: 360,
     cooldown: 10,
     energyCost: 0,
+    // The shared scheduler materializes these packets; conditional legend components declare their own gates.
+    castTimeMs: 360,
     effects: [
       {
         type: 'boon',
@@ -70,17 +69,14 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         duration: 6,
         stacks: 1
       }
-    ]
+    ],
+    effectVariants: [{ when: () => true, transform: releaseEffects }]
   },
   [ID.RELEASE_POTENTIAL_MESMER]: {
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.mesmer-release' } }
-    ],
-    effectVariants: [{ when: () => true, transform: releaseEffects }],
-    // Strike and daze use ordinary scheduling; Conduit evaluates the conditions' affinity at impact.
-    castTimeMs: 440,
     cooldown: 10,
     energyCost: 0,
+    // Strike and daze use ordinary scheduling; Conduit evaluates the conditions' affinity at impact.
+    castTimeMs: 440,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -112,7 +108,11 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.DAZE
       }
-    ])
+    ]),
+    effectVariants: [{ when: () => true, transform: releaseEffects }],
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.mesmer-release' } }
+    ]
   },
   [ID.RELEASE_POTENTIAL_DERVISH]: {
     // Strike damage reads current affinity at impact, independently of the selected legend components.
@@ -127,13 +127,12 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         factor: (context, _target, parameters) => 1 + affinity(context) * parameters.damagePerAffinity
       }
     ],
-    effectVariants: [{ when: () => true, transform: releaseEffects }],
+    cooldown: 10,
+    energyCost: 0,
     // The shared scheduler materializes these packets; conditional legend components declare their own gates.
     castTimeMs: 680,
     // Dervish commits its impact before the remaining animation can be cancelled.
     interruptCommitMs: 560,
-    cooldown: 10,
-    energyCost: 0,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -172,7 +171,8 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         metadata: { legendId: LEGEND.CENTAUR },
         when: releaseLegend(LEGEND.CENTAUR)
       }
-    ])
+    ]),
+    effectVariants: [{ when: () => true, transform: releaseEffects }]
   },
   [ID.RELEASE_POTENTIAL_ASSASSIN]: {
     // Strike affinity remains live while the condition durations retain their separate cast snapshot.
@@ -187,14 +187,13 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         factor: (context, _target, parameters) => 1 + affinity(context) * parameters.damagePerAffinity
       }
     ],
-    effectVariants: [{ when: () => true, transform: releaseEffects }],
+    cooldown: 10,
+    energyCost: 0,
     // Conduit snapshots condition-duration scaling; the shared scheduler owns all release packets.
     // Assassin releases the cast lane at 720 ms; the final strike follows at 800 ms.
     castTimeMs: 720,
     interruptCommitMs: 640,
     retainsCastLockoutAfterInterrupt: true,
-    cooldown: 10,
-    energyCost: 0,
     effects: [
       {
         type: 'strike',
@@ -228,7 +227,8 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
           actorType: ACTOR.PLAYER
         }
       ])
-    ]
+    ],
+    effectVariants: [{ when: () => true, transform: releaseEffects }]
   },
   [ID.RELEASE_POTENTIAL_WARRIOR]: {
     // Warrior's release has a stronger intrinsic strike bonus per current affinity stack.
@@ -243,11 +243,10 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         factor: (context, _target, parameters) => 1 + affinity(context) * parameters.damagePerAffinity
       }
     ],
-    effectVariants: [{ when: () => true, transform: releaseEffects }],
-    // The shared scheduler materializes these packets; conditional legend components declare their own gates.
-    castTimeMs: 520,
     cooldown: 10,
     energyCost: 0,
+    // The shared scheduler materializes these packets; conditional legend components declare their own gates.
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -256,7 +255,8 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         name: 'Release Potential: Warrior',
         actorType: ACTOR.PLAYER
       }
-    ]
+    ],
+    effectVariants: [{ when: () => true, transform: releaseEffects }]
   }
 });
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';

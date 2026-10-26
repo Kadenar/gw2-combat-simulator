@@ -5,9 +5,29 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Defines Engineer mace skill damage, conditions, boons, control, and combo behavior. */
 export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.MACE_SMASH]: {
-    castTimeMs: 360,
+  [ID.MACE_STRIKE]: {
     cooldown: 0,
+    castTimeMs: 360,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1,
+        hits: 1,
+        name: 'Mace Strike',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.CONFUSION,
+        stacks: 1,
+        duration: 5,
+        actorType: ACTOR.PLAYER
+      }
+    ]
+  },
+  [ID.MACE_SMASH]: {
+    cooldown: 0,
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -25,9 +45,37 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
       }
     ]
   },
-  [ID.ENERGIZING_SLAM]: {
+  [ID.MACE_BLAST]: {
+    cooldown: 0,
     castTimeMs: 520,
+    // Mace Blast is both an Explosion for Engineer traits and a leap combo finisher.
+    comboFinishers: [
+      {
+        ownerId: 'engineer',
+        finisherType: COMBO_FINISHER.LEAP
+      }
+    ],
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.4,
+        hits: 1,
+        name: 'Mace Blast',
+        actorType: ACTOR.PLAYER,
+        damageKind: 'explosion'
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.CONFUSION,
+        stacks: 3,
+        duration: 5,
+        actorType: ACTOR.PLAYER
+      }
+    ]
+  },
+  [ID.ENERGIZING_SLAM]: {
     cooldown: 6,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -66,57 +114,9 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
       }
     ]
   },
-  [ID.MACE_BLAST]: {
-    castTimeMs: 520,
-    cooldown: 0,
-    // Mace Blast is both an Explosion for Engineer traits and a leap combo finisher.
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: COMBO_FINISHER.LEAP
-      }
-    ],
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.4,
-        hits: 1,
-        name: 'Mace Blast',
-        actorType: ACTOR.PLAYER,
-        damageKind: 'explosion'
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.CONFUSION,
-        stacks: 3,
-        duration: 5,
-        actorType: ACTOR.PLAYER
-      }
-    ]
-  },
-  [ID.MACE_STRIKE]: {
-    castTimeMs: 360,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        name: 'Mace Strike',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.CONFUSION,
-        stacks: 1,
-        duration: 5,
-        actorType: ACTOR.PLAYER
-      }
-    ]
-  },
   [ID.ROCKET_FIST_PROTOTYPE]: {
-    castTimeMs: 360,
     cooldown: 12,
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',

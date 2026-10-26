@@ -11,8 +11,8 @@ import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js
 /** Defines the catalog fragments used by Core Engineer trait effects. */
 export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<EngineerSkill>>> = Object.freeze({
   [ID.LESSER_GRENADE_BARRAGE]: {
-    castTimeMs: 0,
     cooldown: 20,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -31,8 +31,8 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Eng
     ]
   },
   [ID.LESSER_ELIXIR_B]: {
-    castTimeMs: 0,
     cooldown: 24,
+    castTimeMs: 0,
     effects: [
       {
         type: 'boon',
@@ -73,8 +73,8 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Eng
         factor: (context) => skillNumberFromContext(context, ID.STATIC_DISCHARGE_TRAIT_SKILL, 'criticalDamage')
       }
     ],
-    castTimeMs: 0,
     cooldown: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -89,8 +89,8 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Eng
     ]
   },
   [ID.DROP_MINE]: {
-    castTimeMs: 0,
     cooldown: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -103,13 +103,13 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Eng
   },
 
   [ID.MAGNETIC_AURA_TRAIT_SKILL]: {
-    castTimeMs: 0,
     cooldown: 0,
+    castTimeMs: 0,
     effects: []
   },
   [ID.BUNKER_DOWN_TRAIT_SKILL]: {
-    castTimeMs: 0,
     cooldown: 1,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -129,8 +129,8 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Eng
   },
 
   [ID.CLEANSING_PULSE]: {
-    castTimeMs: 0,
     cooldown: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'boon',
@@ -142,8 +142,8 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Eng
     ]
   },
   [ID.LESSER_UTILITY_GOGGLES]: {
-    castTimeMs: 0,
     cooldown: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'boon',
@@ -154,8 +154,8 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Eng
     ]
   },
   [ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL]: {
-    castTimeMs: 0,
     cooldown: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -174,8 +174,8 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Eng
     ]
   },
   [ID.BANDAGE_TRAIT_SKILL]: {
-    castTimeMs: 0,
     cooldown: 1,
+    castTimeMs: 0,
     effects: [
       {
         type: 'boon',
@@ -186,8 +186,8 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Eng
     ]
   },
   [ID.ORBITAL_COMMAND_STRIKE]: {
-    castTimeMs: 0,
     cooldown: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -206,8 +206,8 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Eng
     ]
   },
   [ID.CONTROLLED_ANALYSIS]: {
-    castTimeMs: 0,
     cooldown: 25,
+    castTimeMs: 0,
     effects: [
       {
         type: 'condition',
@@ -225,8 +225,8 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Eng
     ]
   },
   [ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL]: {
-    castTimeMs: 0,
     cooldown: 0.25,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',

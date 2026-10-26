@@ -6,6 +6,32 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Packet offsets are the canonical Quickness timings measured from EVTC animation starts.
 export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.PUNCTURE_SHOT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    castTimeMs: 680,
+    // The shot has committed by its observed impact; cancelling the remaining animation preserves the projectile.
+    interruptCommitMs: 560,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [{ atMs: 560, coefficient: 1 }],
+        persistsAfterInterrupt: true,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
+  },
+  [ID.TRUE_SHOT]: {
+    castTimeMs: 680,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [{ atMs: 680, coefficient: 2.8 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
+  },
   [ID.DEFLECTING_SHOT]: {
     castTimeMs: 600,
     // Keep the shot's strike and control on one impact.
@@ -50,32 +76,6 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, P
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 12
-      }
-    ]
-  },
-  [ID.TRUE_SHOT]: {
-    castTimeMs: 680,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 680, coefficient: 2.8 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
-    ]
-  },
-  [ID.PUNCTURE_SHOT]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 680,
-    // The shot has committed by its observed impact; cancelling the remaining animation preserves the projectile.
-    interruptCommitMs: 560,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 560, coefficient: 1 }],
-        persistsAfterInterrupt: true,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
       }
     ]
   },

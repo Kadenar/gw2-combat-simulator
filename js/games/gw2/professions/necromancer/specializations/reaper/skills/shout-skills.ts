@@ -52,9 +52,9 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ]
   },
   [ID.SUFFER]: {
-    castTimeMs: 0,
     // The handler and tooltip share the maximum number of distinct self-condition types transferred.
     conditionsTransferred: 2,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',

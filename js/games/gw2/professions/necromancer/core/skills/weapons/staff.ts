@@ -33,6 +33,22 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
+  [ID.MARK_OF_BLOOD]: {
+    castTimeMs: 480,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.5,
+        hits: 1
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 2,
+        duration: 8
+      }
+    ]
+  },
   [ID.CHILLBLAINS]: {
     castTimeMs: 480,
     effects: [
@@ -55,26 +71,10 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
-  [ID.REAPERS_MARK]: {
-    castTimeMs: 520,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 3,
-        hits: 1
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.FEAR,
-        stacks: 1,
-        duration: 1
-      }
-    ]
-  },
   [ID.PUTRID_MARK]: {
-    castTimeMs: 480,
     // The handler and tooltip share the maximum number of distinct self-condition types transferred.
     conditionsTransferred: 3,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -99,19 +99,19 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
-  [ID.MARK_OF_BLOOD]: {
-    castTimeMs: 480,
+  [ID.REAPERS_MARK]: {
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
+        coefficient: 3,
         hits: 1
       },
       {
         type: 'condition',
-        condition: CONDITION.BLEEDING,
-        stacks: 2,
-        duration: 8
+        condition: CONDITION.FEAR,
+        stacks: 1,
+        duration: 1
       }
     ]
   }

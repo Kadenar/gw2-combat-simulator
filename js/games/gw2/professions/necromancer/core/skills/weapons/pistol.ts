@@ -6,29 +6,21 @@ import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/i
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.VILE_BLAST]: {
+  [ID.VICIOUS_SHOT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
-    // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
-    interruptCommitMs: 560,
-    retainsCastLockoutAfterInterrupt: true,
-    // Share this impact's timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+    interruptMode: 'per-packet',
+    comboFinishers: [
       {
-        type: 'strike',
-        // Accepted strikes apply their declared percentage through the shared resource owner.
-        reactions: [
-          {
-            on: 'damage.resolved',
-            actor: ACTOR.PLAYER,
-            packets: 'first',
-            when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 4 } })
-          }
-        ],
-        coefficient: 1
-      },
-      { type: 'condition', condition: CONDITION.POISONED, stacks: 5, duration: 6 },
-      { type: 'control', controlKind: CONTROL.STUN }
+        ownerId: 'necromancer',
+        finisherType: COMBO_FINISHER.PROJECTILE,
+        chance: 0.2
+      }
+    ],
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.65 },
+      { type: 'condition', condition: CONDITION.TORMENT, stacks: 1, duration: 3.5 }
     ])
   },
   [ID.WEEPING_SHOTS]: {
@@ -78,21 +70,29 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
       }
     ])
   },
-  [ID.VICIOUS_SHOT]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    interruptMode: 'per-packet',
+  [ID.VILE_BLAST]: {
     castTimeMs: 600,
-    comboFinishers: [
-      {
-        ownerId: 'necromancer',
-        finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2
-      }
-    ],
+    // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
+    interruptCommitMs: 560,
+    retainsCastLockoutAfterInterrupt: true,
     // Share this impact's timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 0.65 },
-      { type: 'condition', condition: CONDITION.TORMENT, stacks: 1, duration: 3.5 }
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      {
+        type: 'strike',
+        // Accepted strikes apply their declared percentage through the shared resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: ACTOR.PLAYER,
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 4 } })
+          }
+        ],
+        coefficient: 1
+      },
+      { type: 'condition', condition: CONDITION.POISONED, stacks: 5, duration: 6 },
+      { type: 'control', controlKind: CONTROL.STUN }
     ])
   }
 });

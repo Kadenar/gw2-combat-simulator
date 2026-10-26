@@ -39,10 +39,9 @@ export function scheduleLanding(runtime: RevenantRuntime, cast: RuntimeCast<Reve
 export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Saint's Shield replaces dodge damage with a party alacrity application at the landing effect point.
   [ID.SAINTS_SHIELD]: {
-    castTimeMs: VINDICATOR_LANDING_MS,
-
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: VINDICATOR_LANDING_MS,
     effects: [
       {
         type: 'boon',
@@ -57,10 +56,9 @@ export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.DEATH_DROP]: {
-    castTimeMs: VINDICATOR_LANDING_MS,
-
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: VINDICATOR_LANDING_MS,
     effects: [
       {
         type: 'strike',
@@ -80,10 +78,9 @@ export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.IMPERIAL_IMPACT]: {
-    castTimeMs: VINDICATOR_LANDING_MS,
-
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: VINDICATOR_LANDING_MS,
     effects: [
       {
         type: 'strike',

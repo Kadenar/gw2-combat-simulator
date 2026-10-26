@@ -15,28 +15,6 @@ import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/i
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.OPPRESSIVE_COLLAPSE]: {
-    castTimeMs: 600,
-    // Share this impact's timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      {
-        type: 'strike',
-        // Only this selected application owns its accepted-impact reward.
-        reactions: [
-          {
-            on: 'damage.resolved',
-            actor: ACTOR.PLAYER,
-            packets: 'first',
-            when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.oppressive-collapse' }
-          }
-        ],
-        coefficient: 1.2
-      },
-      { type: 'condition', condition: CONDITION.TORMENT, stacks: 2, duration: 9 },
-      { type: 'control', controlKind: CONTROL.KNOCKDOWN }
-    ])
-  },
   [ID.HARROWING_WAVE]: {
     castTimeMs: 440,
     // Share this impact's timing while preserving independent payloads and declaration order.
@@ -57,6 +35,28 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
       },
       { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8 },
       { type: 'condition', condition: CONDITION.TORMENT, stacks: 2, duration: 6 }
+    ])
+  },
+  [ID.OPPRESSIVE_COLLAPSE]: {
+    castTimeMs: 600,
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      {
+        type: 'strike',
+        // Only this selected application owns its accepted-impact reward.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: ACTOR.PLAYER,
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.oppressive-collapse' }
+          }
+        ],
+        coefficient: 1.2
+      },
+      { type: 'condition', condition: CONDITION.TORMENT, stacks: 2, duration: 9 },
+      { type: 'control', controlKind: CONTROL.KNOCKDOWN }
     ])
   }
 });

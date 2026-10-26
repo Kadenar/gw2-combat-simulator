@@ -34,13 +34,6 @@ import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/
 export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Slot 1: autoattack.
   [ID.GLARING_BURST]: {
-    // Snapshot the selected weapon before core modifiers, with one cadence change per accepted blade attack.
-    effectVariants: [
-      {
-        when: () => true,
-        transform: burstEffects
-      }
-    ],
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     // The replacement strike lands at 480 ms and remains committed when the
@@ -81,25 +74,18 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
         metadata: { radiantWeapon: 'bulwark' }
       },
       { type: 'condition', name: CONDITION.VULNERABILITY, condition: CONDITION.VULNERABILITY, stacks: 1, duration: 8 }
+    ],
+    // Snapshot the selected weapon before core modifiers, with one cadence change per accepted blade attack.
+    effectVariants: [
+      {
+        when: () => true,
+        transform: burstEffects
+      }
     ]
   },
 
   // Slot 2: hammer and its follow-up.
   [ID.DAZZLING_HAMMER]: {
-    // Justice and the combo aura have separate admission paths; neither fires as an ordinary cast effect.
-    effectVariants: [
-      {
-        when: () => true,
-        transform: (_runtime, _cast, effects) =>
-          effects.filter((effect) => effect.metadata?.trigger !== 'radiant-justice' && effect.type !== 'aura')
-      }
-    ],
-    // An accepted equip belongs to its captured forge entry, including delayed commitment.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.snapshot-forge' } },
-      { on: 'castCommit', do: { type: 'guardian.equip-forge' } },
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.empower-hammer' } }
-    ],
     castTimeMs: 480,
     interruptCommitMs: 400,
     // Keep the hammer's boons, strike, and daze together in declaration order.
@@ -168,11 +154,23 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
           metadata: { trigger: 'radiant-justice' }
         }
       ])
+    ],
+    // Justice and the combo aura have separate admission paths; neither fires as an ordinary cast effect.
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, _cast, effects) =>
+          effects.filter((effect) => effect.metadata?.trigger !== 'radiant-justice' && effect.type !== 'aura')
+      }
+    ],
+    // An accepted equip belongs to its captured forge entry, including delayed commitment.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.snapshot-forge' } },
+      { on: 'castCommit', do: { type: 'guardian.equip-forge' } },
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.empower-hammer' } }
     ]
   },
   [ID.SHINING_SPIN]: {
-    // Only the committed follow-up consumes its own flip.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.SHINING_SPIN } }],
     castTimeMs: 480,
     // The 400 ms strike remains committed when the remaining aftercast is cancelled at 440 ms.
     interruptCommitMs: 440,
@@ -184,30 +182,15 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]
+    ],
+    // Only the committed follow-up consumes its own flip.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.SHINING_SPIN } }]
   },
 
   // Slot 3: staff and its follow-up.
   [ID.LUMINOUS_STAFF]: {
     // Author symbol identity independently of the skill's display text.
     tags: ['symbol'],
-    // An accepted equip belongs to its captured forge entry, including delayed commitment.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.snapshot-forge' } },
-      { on: 'castCommit', do: { type: 'guardian.equip-forge' } }
-    ],
-    // An armed Radiant Resolve is consumed by the next accepted staff and travels with that cast's own packets.
-    effectVariants: [
-      {
-        when: (runtime, cast) => !cast.cancelled && luminaryState.from(runtime).radiantResolveArmed,
-        transform: (runtime, _cast, effects) => radiantResolveStaff(runtime, effects)
-      },
-      {
-        when: () => true,
-        transform: (_runtime, _cast, effects) =>
-          effects.filter((effect) => effect.metadata?.trigger !== 'radiant-resolve')
-      }
-    ],
     castTimeMs: 560,
     // Luminous Staff's symbol creates a four-second Light field on its first pulse.
     comboFields: [
@@ -256,34 +239,34 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
         audience: { recipients: RECIPIENT.PARTY },
         metadata: { trigger: 'radiant-resolve' }
       }
-    ]
-  },
-  [ID.RESTORATIVE_GLOW]: {
-    // Only the committed follow-up consumes its own flip.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.RESTORATIVE_GLOW } }],
-    castTimeMs: 560,
-    effects: []
-  },
-
-  // Slot 4: blade and its follow-up.
-  [ID.GLEAMING_BLADE]: {
-    // An accepted equip belongs to its captured forge entry, including delayed commitment.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.snapshot-forge' } },
-      { on: 'castCommit', do: { type: 'guardian.equip-forge' } }
     ],
-    // An armed Radiant Courage is consumed by the next accepted blade and travels with that cast's own packets.
+    // An armed Radiant Resolve is consumed by the next accepted staff and travels with that cast's own packets.
     effectVariants: [
       {
-        when: (runtime, cast) => !cast.cancelled && luminaryState.from(runtime).radiantCourageSwordArmed,
-        transform: (runtime, _cast, effects) => radiantCourageBlade(runtime, effects)
+        when: (runtime, cast) => !cast.cancelled && luminaryState.from(runtime).radiantResolveArmed,
+        transform: (runtime, _cast, effects) => radiantResolveStaff(runtime, effects)
       },
       {
         when: () => true,
         transform: (_runtime, _cast, effects) =>
-          effects.filter((effect) => effect.metadata?.trigger !== 'radiant-courage')
+          effects.filter((effect) => effect.metadata?.trigger !== 'radiant-resolve')
       }
     ],
+    // An accepted equip belongs to its captured forge entry, including delayed commitment.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.snapshot-forge' } },
+      { on: 'castCommit', do: { type: 'guardian.equip-forge' } }
+    ]
+  },
+  [ID.RESTORATIVE_GLOW]: {
+    castTimeMs: 560,
+    effects: [],
+    // Only the committed follow-up consumes its own flip.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.RESTORATIVE_GLOW } }]
+  },
+
+  // Slot 4: blade and its follow-up.
+  [ID.GLEAMING_BLADE]: {
     castTimeMs: 840,
     interruptCommitMs: 760,
     retainsCastLockoutAfterInterrupt: true,
@@ -311,11 +294,26 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
         duration: 2,
         metadata: { trigger: 'radiant-courage' }
       }
+    ],
+    // An armed Radiant Courage is consumed by the next accepted blade and travels with that cast's own packets.
+    effectVariants: [
+      {
+        when: (runtime, cast) => !cast.cancelled && luminaryState.from(runtime).radiantCourageSwordArmed,
+        transform: (runtime, _cast, effects) => radiantCourageBlade(runtime, effects)
+      },
+      {
+        when: () => true,
+        transform: (_runtime, _cast, effects) =>
+          effects.filter((effect) => effect.metadata?.trigger !== 'radiant-courage')
+      }
+    ],
+    // An accepted equip belongs to its captured forge entry, including delayed commitment.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.snapshot-forge' } },
+      { on: 'castCommit', do: { type: 'guardian.equip-forge' } }
     ]
   },
   [ID.LUCENT_THRUST]: {
-    // Only the committed follow-up consumes its own flip.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.LUCENT_THRUST } }],
     castTimeMs: 440,
     // The melee hit blinds; the separate projectile adds damage without a disable.
     effects: [
@@ -342,19 +340,16 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
           duration: 3
         }
       ])
-    ]
+    ],
+    // Only the committed follow-up consumes its own flip.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.LUCENT_THRUST } }]
   },
 
   // Slot 5: bulwark and its follow-up.
   [ID.RADIANT_BULWARK]: {
+    castTimeMs: 1360,
     // Stopping the blocking channel preserves its activation boons and radiant weapon equip rewards.
     interruptMode: 'per-packet',
-    // An accepted equip belongs to its captured forge entry, including delayed commitment.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.snapshot-forge' } },
-      { on: 'castCommit', do: { type: 'guardian.equip-forge' } }
-    ],
-    castTimeMs: 1360,
     // Shield activation protects nearby allies while the blocking channel runs.
     effects: [
       {
@@ -366,11 +361,14 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
         timingScale: 'fixed',
         audience: { recipients: RECIPIENT.PARTY }
       }
+    ],
+    // An accepted equip belongs to its captured forge entry, including delayed commitment.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.snapshot-forge' } },
+      { on: 'castCommit', do: { type: 'guardian.equip-forge' } }
     ]
   },
   [ID.BRILLIANT_SLAM]: {
-    // Only the committed follow-up consumes its own flip.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.BRILLIANT_SLAM } }],
     castTimeMs: 480,
     effects: [
       {
@@ -379,28 +377,30 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 1.2,
         hits: 1
       }
-    ]
+    ],
+    // Only the committed follow-up consumes its own flip.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.BRILLIANT_SLAM } }]
   },
 
   // Profession controls: enter and exit the forge.
   [ID.ENTER_RADIANT_FORGE]: {
-    // Commit changes the form once through its shared lifetime controller.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.enter-forge' } }],
-    castTimeMs: 0,
     // Custom: Enters or exits Radiant Forge and updates forge resources; see `luminary/hooks.ts`.
     inputCategory: 'bar-swap',
     // The form controller consumes these values; ordinary cast packets must not duplicate its lifetime.
     rechargeReduction: 5,
+    castTimeMs: 0,
+    effects: [{ type: 'buff', name: 'radiant-forge', kind: 'radiant-forge', stacks: 1, duration: 20 }],
     effectVariants: [{ when: () => true, transform: () => [] }],
-    effects: [{ type: 'buff', name: 'radiant-forge', kind: 'radiant-forge', stacks: 1, duration: 20 }]
+    // Commit changes the form once through its shared lifetime controller.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.enter-forge' } }]
   },
   [ID.EXIT_RADIANT_FORGE]: {
-    // Commit changes the form once through its shared lifetime controller.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.exit-forge' } }],
-    castTimeMs: 0,
     // Custom: Enters or exits Radiant Forge and updates forge resources; see `luminary/hooks.ts`.
     inputCategory: 'bar-swap',
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    // Commit changes the form once through its shared lifetime controller.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.exit-forge' } }]
   }
 });
 

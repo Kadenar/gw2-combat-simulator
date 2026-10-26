@@ -18,27 +18,6 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
       }
     ]
   },
-  [ID.STAGGERING_BLOW]: {
-    cooldown: 18,
-    castTimeMs: 480,
-    // Share impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 1.5,
-        comboFinishers: [
-          {
-            ownerId: 'warrior',
-            finisherType: COMBO_FINISHER.WHIRL
-          }
-        ]
-      },
-      {
-        type: 'control',
-        controlKind: CONTROL.KNOCKBACK
-      }
-    ])
-  },
   [ID.HAMMER_BASH]: {
     castTimeMs: 640,
     effects: [
@@ -51,8 +30,8 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.HAMMER_SMASH]: {
-    interruptCommitMs: 320,
     castTimeMs: 440,
+    interruptCommitMs: 320,
     effects: [
       {
         type: 'strike',
@@ -63,9 +42,9 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.FIERCE_BLOW]: {
-    interruptCommitMs: 600,
     cooldown: 6,
     castTimeMs: 880,
+    interruptCommitMs: 600,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -97,8 +76,28 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
       }
     ])
   },
+  [ID.STAGGERING_BLOW]: {
+    cooldown: 18,
+    castTimeMs: 480,
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 1.5,
+        comboFinishers: [
+          {
+            ownerId: 'warrior',
+            finisherType: COMBO_FINISHER.WHIRL
+          }
+        ]
+      },
+      {
+        type: 'control',
+        controlKind: CONTROL.KNOCKBACK
+      }
+    ])
+  },
   [ID.BACKBREAKER]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.FIERCE_BLOW] } }],
     cooldown: 25,
     // Backbreaker refreshes Fierce Blow when its cast completes.
     castTimeMs: 880,
@@ -112,7 +111,8 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'control',
         controlKind: CONTROL.KNOCKDOWN
       }
-    ])
+    ]),
+    sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.FIERCE_BLOW] } }]
   }
 });
 

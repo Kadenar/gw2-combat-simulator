@@ -15,11 +15,10 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     // The landed tether owns these deferred condition templates and its cadence.
     duration: 6,
     tetherInterval: 1,
-    effectVariants: [triggeredVirtueEffects],
+    cooldown: 20,
     castTimeMs: 560,
     // The virtue commits at 520 ms, allowing the remaining animation to be cancelled.
     interruptCommitMs: 520,
-    cooldown: 20,
     effects: [
       {
         type: 'condition',
@@ -65,7 +64,8 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         timingScale: 'cast',
         weaponStrengthSource: 'equipped'
       }
-    ]
+    ],
+    effectVariants: [triggeredVirtueEffects]
   },
   [ID.PURIFICATION]: {
     castTimeMs: 600,
@@ -87,7 +87,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   [ID.SHIELD_OF_COURAGE]: {
     // Passive Aegis is delivered only by the readiness-aware scheduler.
     passiveInterval: 40,
-    effectVariants: [triggeredVirtueEffects],
     castTimeMs: 0,
     effects: [
       {
@@ -100,14 +99,15 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           trigger: 'virtue'
         }
       }
-    ]
+    ],
+    effectVariants: [triggeredVirtueEffects]
   },
   [ID.WINGS_OF_RESOLVE]: {
-    // The added strike and condition keep the weapon wielded at acceptance and the base virtue's effects.
-    effectVariants: [soaringDevastationEffects],
-    castTimeMs: 0,
     cooldown: 25,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    // The added strike and condition keep the weapon wielded at acceptance and the base virtue's effects.
+    effectVariants: [soaringDevastationEffects]
   },
   [ID.DRAGONS_MAW]: {
     castTimeMs: 440,
@@ -168,15 +168,15 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ]
   },
   [ID.HUNTERS_VERDICT]: {
-    // Only a committed verdict breaks the live tether.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.break-tether' } }],
-    castTimeMs: 0,
     cooldown: 40,
+    castTimeMs: 0,
     effects: [
       {
         type: 'control',
         controlKind: CONTROL.PULL
       }
-    ]
+    ],
+    // Only a committed verdict breaks the live tether.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.break-tether' } }]
   }
 });

@@ -38,50 +38,10 @@ const swordHeatFactors = { highStrikeFactor: 1.2, enhancedStrikeFactor: 1.3 };
 
 /** Supplies Holosmith sword fragments to Holosmith module composition. */
 export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
-  // Holosmith owns the original sword IDs; Core owns the non-heat Weaponmaster variants.
-  [ID.RADIANT_ARC]: {
-    // Intrinsic tuning follows this selected skill through patches and deferred work.
-    baseDuration: 2,
-    highDuration: 4,
-    enhancedDuration: 6,
-
-    castTimeMs: 840,
-    cooldown: 12,
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: COMBO_FINISHER.LEAP
-      }
-    ],
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
-        name: 'Radiant Arc',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.CRIPPLED,
-        stacks: 1,
-        duration: 4,
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'custom',
-        eventType: 'engineer.radiant-arc-quickness',
-        event: {
-          name: 'Radiant Arc - quickness'
-        },
-        actorType: ACTOR.PLAYER
-      }
-    ]
-  },
   [ID.SUN_EDGE]: {
     ...swordHeatFactors,
-    castTimeMs: 440,
     cooldown: 0,
+    castTimeMs: 440,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -100,42 +60,90 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
       }
     ])
   },
-  [ID.REFRACTION_CUTTER]: {
-    sideEffects: [
+  [ID.SUN_RIPPER]: {
+    ...swordHeatFactors,
+    cooldown: 0,
+    castTimeMs: 480,
+    // The EVTC's successful 441 ms cast must advance the sword chain after replay timing rounds to 440 ms.
+    interruptCommitMs: 440,
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
-        on: 'castStart',
-        do: {
-          type: 'engineer.refraction-cutter-extra-blades',
-          id: 'heat-payload',
-          effects: [
-            {
-              name: 'Refraction Cutter Heat Tier',
-              type: 'strike',
-              coefficient: 0.4,
-              hits: 1
-            },
-            {
-              name: 'Bleeding',
-              type: 'condition',
-              condition: CONDITION.BLEEDING,
-              stacks: 1,
-              duration: 4
-            }
-          ]
-        }
+        type: 'strike',
+        coefficient: 0.93,
+        hits: 1,
+        name: 'Sun Ripper',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.VULNERABILITY,
+        stacks: 1,
+        duration: 10,
+        actorType: ACTOR.PLAYER
+      }
+    ])
+  },
+  [ID.GLEAM_SABER]: {
+    ...swordHeatFactors,
+    cooldown: 0,
+    castTimeMs: 720,
+    // Commit the strike and recharge at 600 ms while retaining the full cast lockout.
+    interruptCommitMs: 600,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [{ atMs: 600, coefficient: 1.5 }],
+        name: 'Gleam Saber',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: ACTOR.PLAYER
       }
     ],
+    // A committed finisher reduces live sword recharge, including shortened casts.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.sword-recharge', amount: 1 } }]
+  },
+  [ID.REFRACTION_CUTTER_BLADE]: {
+    cooldown: 0,
+    castTimeMs: 0,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.4,
+        hits: 1,
+        name: 'Refraction Cutter Blade',
+        damageBreakdownName: 'Refraction Cutter Blade',
+        actorType: ACTOR.PLAYER,
+        comboFinishers: [
+          {
+            ownerId: 'engineer',
+            finisherType: COMBO_FINISHER.PROJECTILE
+          }
+        ],
+        projectile: true
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 1,
+        duration: 4,
+        actorType: ACTOR.PLAYER
+      }
+    ]
+  },
+  [ID.REFRACTION_CUTTER]: {
     // Intrinsic tuning follows this selected skill through patches and deferred work.
     baseExtraBlades: 0,
     highExtraBlades: 2,
     enhancedExtraBlades: 4,
     initialDelay: 0.36,
+    cooldown: 6,
 
     castTimeMs: 520,
     // Preserve committed swing/blade damage and keep the parent cast's lockout before the next input.
     interruptCommitMs: 360,
     retainsCastLockoutAfterInterrupt: true,
-    cooldown: 6,
     effects: [
       {
         type: 'strike',
@@ -172,76 +180,68 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
           actorType: ACTOR.PLAYER
         }
       ])
+    ],
+    sideEffects: [
+      {
+        on: 'castStart',
+        do: {
+          type: 'engineer.refraction-cutter-extra-blades',
+          id: 'heat-payload',
+          effects: [
+            {
+              name: 'Refraction Cutter Heat Tier',
+              type: 'strike',
+              coefficient: 0.4,
+              hits: 1
+            },
+            {
+              name: 'Bleeding',
+              type: 'condition',
+              condition: CONDITION.BLEEDING,
+              stacks: 1,
+              duration: 4
+            }
+          ]
+        }
+      }
     ]
   },
-  [ID.REFRACTION_CUTTER_BLADE]: {
-    castTimeMs: 0,
-    cooldown: 0,
+  // Holosmith owns the original sword IDs; Core owns the non-heat Weaponmaster variants.
+  [ID.RADIANT_ARC]: {
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    baseDuration: 2,
+    highDuration: 4,
+    enhancedDuration: 6,
+    cooldown: 12,
+
+    castTimeMs: 840,
+    comboFinishers: [
+      {
+        ownerId: 'engineer',
+        finisherType: COMBO_FINISHER.LEAP
+      }
+    ],
     effects: [
       {
         type: 'strike',
-        coefficient: 0.4,
+        coefficient: 2.5,
         hits: 1,
-        name: 'Refraction Cutter Blade',
-        damageBreakdownName: 'Refraction Cutter Blade',
-        actorType: ACTOR.PLAYER,
-        comboFinishers: [
-          {
-            ownerId: 'engineer',
-            finisherType: COMBO_FINISHER.PROJECTILE
-          }
-        ],
-        projectile: true
+        name: 'Radiant Arc',
+        actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
-        condition: CONDITION.BLEEDING,
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
         duration: 4,
         actorType: ACTOR.PLAYER
-      }
-    ]
-  },
-  [ID.SUN_RIPPER]: {
-    ...swordHeatFactors,
-    castTimeMs: 480,
-    // The EVTC's successful 441 ms cast must advance the sword chain after replay timing rounds to 440 ms.
-    interruptCommitMs: 440,
-    cooldown: 0,
-    // Share one impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 0.93,
-        hits: 1,
-        name: 'Sun Ripper',
-        actorType: ACTOR.PLAYER
       },
       {
-        type: 'condition',
-        condition: CONDITION.VULNERABILITY,
-        stacks: 1,
-        duration: 10,
-        actorType: ACTOR.PLAYER
-      }
-    ])
-  },
-  [ID.GLEAM_SABER]: {
-    ...swordHeatFactors,
-    // A committed finisher reduces live sword recharge, including shortened casts.
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.sword-recharge', amount: 1 } }],
-    castTimeMs: 720,
-    // Commit the strike and recharge at 600 ms while retaining the full cast lockout.
-    interruptCommitMs: 600,
-    retainsCastLockoutAfterInterrupt: true,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 600, coefficient: 1.5 }],
-        name: 'Gleam Saber',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        type: 'custom',
+        eventType: 'engineer.radiant-arc-quickness',
+        event: {
+          name: 'Radiant Arc - quickness'
+        },
         actorType: ACTOR.PLAYER
       }
     ]

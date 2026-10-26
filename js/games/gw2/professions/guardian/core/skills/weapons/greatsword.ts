@@ -5,59 +5,6 @@ import { impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.j
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.LEAP_OF_FAITH]: {
-    castTimeMs: 720,
-    // Cancelling at or after 680 ms preserves the landing strike and blind.
-    interruptCommitMs: 680,
-    // Keep the landing strike and blind together, 80 ms before the animation ends.
-    effects: impactEffects(
-      {
-        atMs: 640,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      [
-        {
-          type: 'strike',
-          coefficient: 2,
-          hits: 1,
-          // Leap of Faith only creates combo effects when this packet resolves through an active field.
-          comboFinishers: [
-            {
-              ownerId: 'guardian',
-              finisherType: COMBO_FINISHER.LEAP
-            }
-          ]
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.BLINDNESS,
-          stacks: 1,
-          duration: 3
-        }
-      ]
-    )
-  },
-  [ID.WHIRLING_WRATH]: {
-    interruptMode: 'per-packet',
-    // Store the measured effective action duration directly.
-    castTimeMs: 1480,
-    // ponytail: land both hits at projectile arrival so cancellation uses one boundary per pair;
-    // restore separate launch timing only if the 40 ms melee lead needs to be modeled.
-    effects: [
-      strikeTimeline(
-        Array.from({ length: 7 }, (_, index) => [
-          { atMs: 480 + index * 160, coefficient: 0.35 },
-          { atMs: 480 + index * 160, projectile: true, coefficient: 0.275 }
-        ]).flat(),
-        {
-          timingAnchor: 'castStart',
-          timingScale: 'cast'
-        }
-      )
-    ]
-  },
   [ID.GREAT_SWORD_STRIKE]: {
     castTimeMs: 400,
     // A committed cancel advances the chain and preserves the pending hit at its normal impact time.
@@ -102,16 +49,69 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       }
     ]
   },
+  [ID.WHIRLING_WRATH]: {
+    // Store the measured effective action duration directly.
+    castTimeMs: 1480,
+    interruptMode: 'per-packet',
+    // ponytail: land both hits at projectile arrival so cancellation uses one boundary per pair;
+    // restore separate launch timing only if the 40 ms melee lead needs to be modeled.
+    effects: [
+      strikeTimeline(
+        Array.from({ length: 7 }, (_, index) => [
+          { atMs: 480 + index * 160, coefficient: 0.35 },
+          { atMs: 480 + index * 160, projectile: true, coefficient: 0.275 }
+        ]).flat(),
+        {
+          timingAnchor: 'castStart',
+          timingScale: 'cast'
+        }
+      )
+    ]
+  },
+  [ID.LEAP_OF_FAITH]: {
+    castTimeMs: 720,
+    // Cancelling at or after 680 ms preserves the landing strike and blind.
+    interruptCommitMs: 680,
+    // Keep the landing strike and blind together, 80 ms before the animation ends.
+    effects: impactEffects(
+      {
+        atMs: 640,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
+      },
+      [
+        {
+          type: 'strike',
+          coefficient: 2,
+          hits: 1,
+          // Leap of Faith only creates combo effects when this packet resolves through an active field.
+          comboFinishers: [
+            {
+              ownerId: 'guardian',
+              finisherType: COMBO_FINISHER.LEAP
+            }
+          ]
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.BLINDNESS,
+          stacks: 1,
+          duration: 3
+        }
+      ]
+    )
+  },
   [ID.SYMBOL_OF_RESOLUTION]: {
     // Author symbol identity independently of the skill's display text.
     tags: ['symbol'],
+    rechargeAnchor: 'castStart',
     castTimeMs: 320,
     defaultInterruptMs: 280,
 
     // The symbol commits at 240 ms but may occupy the action lane through 320 ms, so imported tick timings
     // between those bounds are safe interrupts and the committed symbol keeps pulsing afterward.
     interruptCommitMs: 240,
-    rechargeAnchor: 'castStart',
     comboFields: [
       {
         ownerId: 'guardian',
@@ -161,12 +161,10 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.BINDING_BLADE]: {
-    // Expose the follow-up on commitment; its declaration owns the window.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.PULL, expiryPriority: -220 } }],
-    castTimeMs: 480,
-    interruptCommitMs: 440,
     // Pull Self stays available for the tether's lifetime.
     flipDuration: 10,
+    castTimeMs: 480,
+    interruptCommitMs: 440,
     effects: [
       {
         type: 'strike',
@@ -188,11 +186,11 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         flatStrikeBase: 160,
         flatStrikePowerCoeff: 0.3
       }
-    ]
+    ],
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.PULL, expiryPriority: -220 } }]
   },
   [ID.PULL]: {
-    // A committed follow-up consumes its window and restores the parent.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.PULL } }],
     castTimeMs: 520,
     // Binding Blade only tethers; its armed Pull flip owns the control event that can trigger control relics.
     effects: [
@@ -200,6 +198,8 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         type: 'control',
         controlKind: CONTROL.PULL
       }
-    ]
+    ],
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.PULL } }]
   }
 });

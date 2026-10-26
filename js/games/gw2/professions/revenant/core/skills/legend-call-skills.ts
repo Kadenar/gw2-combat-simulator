@@ -12,9 +12,9 @@ export const REVENANT_CORE_CALL_BY_LEGEND: Readonly<Record<string, SkillId>> = O
 
 export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.CALL_OF_THE_DWARF]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -34,9 +34,9 @@ export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.CALL_OF_THE_ASSASSIN]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -63,9 +63,9 @@ export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.CALL_OF_THE_DEMON]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',

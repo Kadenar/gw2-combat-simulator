@@ -31,11 +31,10 @@ const BOMBARDMENT_IMPACT_MS = [640, 800, 920, 1000, 1040, 1160, 1240, 1400, 1480
 
 export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.CITADEL_BOMBARDMENT]: {
-    // Quantize the pooled Hibernus/Seatek impact estimates to 40 ms after cast completion; exclude incomplete volleys.
-    castTimeMs: 600,
-
     cooldown: 15,
     energyCost: 35,
+    // Quantize the pooled Hibernus/Seatek impact estimates to 40 ms after cast completion; exclude incomplete volleys.
+    castTimeMs: 600,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
@@ -57,13 +56,9 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ])
   },
   [ID.HEROIC_COMMAND]: {
-    // Skill-owned triggers delegate shared state transitions to the registered mechanic.
-    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.heroic-command' } }],
-    // The cast emits nothing itself: `heroic-command.ts` scales this Might payload by live Fervor at commitment.
-    effectVariants: [{ when: () => true, transform: () => [] }],
-    castTimeMs: 480,
     cooldown: 10,
     energyCost: 10,
+    castTimeMs: 480,
     effects: [
       {
         name: boonKey(BOON.MIGHT),
@@ -74,14 +69,16 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         stacks: 2,
         actorType: ACTOR.PLAYER
       }
-    ]
+    ],
+    // The cast emits nothing itself: `heroic-command.ts` scales this Might payload by live Fervor at commitment.
+    effectVariants: [{ when: () => true, transform: () => [] }],
+    // Skill-owned triggers delegate shared state transitions to the registered mechanic.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.heroic-command' } }]
   },
   [ID.ORDERS_FROM_ABOVE]: {
-    // These trait-selected pulses need no live Fervor state; normal scheduling preserves their fixed cadence.
-    effectVariants: righteousRebelOrderVariants,
-    castTimeMs: 0,
     cooldown: 20,
     energyCost: 20,
+    castTimeMs: 0,
     effects: [
       {
         type: 'boon',
@@ -95,6 +92,8 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         timingScale: 'fixed',
         actorType: ACTOR.PLAYER
       }
-    ]
+    ],
+    // These trait-selected pulses need no live Fervor state; normal scheduling preserves their fixed cadence.
+    effectVariants: righteousRebelOrderVariants
   }
 });

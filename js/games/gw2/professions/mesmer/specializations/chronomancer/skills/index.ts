@@ -59,8 +59,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
       coefficients: [0, 0, 0, 0],
       durationPerTier: 1.5
     },
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.chronomancer.begin-continuum' } }],
-    castTimeMs: 0,
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -68,7 +66,9 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
       }
     ],
     rechargeAnchor: 'castStart',
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.chronomancer.begin-continuum' } }]
   },
   [ID.WELL_OF_SENILITY]: {
     castTimeMs: 760,
@@ -207,7 +207,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
     ]
   },
   [ID.TIME_SINK]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
     shatter: {
       balanceProfileId: 'mesmer.chronomancer.time-sink',
@@ -216,7 +215,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
       resolver: 'mesmer.core.clone-shatter',
       coefficients: [0, 0, 0, 0]
     },
-    castTimeMs: 0,
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -224,6 +222,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
       }
     ],
     rechargeAnchor: 'castStart',
+    castTimeMs: 0,
     effects: [
       {
         type: 'control',
@@ -235,10 +234,10 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
         timingScale: 'fixed'
       },
       { type: 'condition', condition: CONDITION.SLOW, stacks: 1, duration: 2 }
-    ]
+    ],
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }]
   },
   [ID.REWINDER]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
     shatter: {
       balanceProfileId: 'mesmer.chronomancer.rewinder',
@@ -251,7 +250,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
         { name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 3, stacks: 1 }
       ]
     },
-    castTimeMs: 0,
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -259,10 +257,11 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
       }
     ],
     rechargeAnchor: 'castStart',
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }]
   },
   [ID.SPLIT_SECOND]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
     shatter: {
       balanceProfileId: 'mesmer.chronomancer.split-second',
@@ -276,7 +275,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
         { atMs: 1000, coefficient: coefficient / 2 }
       ])
     },
-    castTimeMs: 0,
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -284,14 +282,16 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
       }
     ],
     rechargeAnchor: 'castStart',
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }]
   }
 });
 
 export const MESMER_CHRONOMANCER_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze([
   {
-    id: ID.CONTINUUM_SHIFT,
     name: 'Continuum Shift',
+    id: ID.CONTINUUM_SHIFT,
     // The return face occupies the same profession control as Continuum Split.
     inputControl: 'profession-5',
     description: 'End Continuum Split early and restore the cooldown state captured when the split began.',
@@ -299,7 +299,6 @@ export const MESMER_CHRONOMANCER_EXTRA_SKILLS: readonly MesmerSkill[] = Object.f
     icon: 'https://render.guildwars2.com/file/4BD3BEF1DE31476B3E40002708049EA1026F1F0B/1012895.png',
     type: 'Action',
     slot: 'Action',
-    castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 0,
     specialization: 'Chronomancer',
@@ -310,6 +309,7 @@ export const MESMER_CHRONOMANCER_EXTRA_SKILLS: readonly MesmerSkill[] = Object.f
         timingAnchor: 'castEnd'
       }
     ],
+    castTimeMs: 0,
     effects: []
   }
 ] satisfies readonly MesmerSkill[]);

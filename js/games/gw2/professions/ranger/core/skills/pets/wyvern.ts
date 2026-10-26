@@ -10,6 +10,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Natural Wing Swipe uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.WYVERN_WING_SWIPE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WYVERN_WING_SWIPE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WYVERN_WING_SWIPE]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -19,13 +22,13 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WYVERN_WING_SWIPE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WYVERN_WING_SWIPE]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Tail Lash uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.WYVERN_TAIL_LASH]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WYVERN_TAIL_LASH]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WYVERN_TAIL_LASH]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -41,13 +44,13 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WYVERN_TAIL_LASH]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WYVERN_TAIL_LASH]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Wing Buffet uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.WYVERN_WING_BUFFET]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WYVERN_WING_BUFFET]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WYVERN_WING_BUFFET]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -64,12 +67,11 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WYVERN_WING_BUFFET]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.WYVERN_WING_BUFFET]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   [ID.LIGHTNING_ASSAULT]: {
+    petSkill: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -78,11 +80,11 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
+    ]
   },
   [ID.CONSUMING_FLAME]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1667,
     effects: [
       {
         type: 'strike',
@@ -99,8 +101,6 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 1667,
-    petSkill: true
+    ]
   }
 });

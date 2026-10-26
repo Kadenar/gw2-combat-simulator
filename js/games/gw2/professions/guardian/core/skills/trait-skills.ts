@@ -11,15 +11,15 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
  */
 export const GUARDIAN_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
   {
-    id: ID.LESSER_SYMBOL_OF_BLADES,
     name: 'Lesser Symbol of Blades',
+    id: ID.LESSER_SYMBOL_OF_BLADES,
     tags: ['symbol'],
     type: 'Proc',
     slot: 'Action',
     simulatorExcluded: true,
     slotSelectable: false,
-    castTimeMs: 0,
     cooldown: 10,
+    castTimeMs: 0,
     comboFields: [{ ownerId: 'guardian', fieldType: COMBO_FIELD.LIGHT, duration: 4 }],
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
@@ -36,15 +36,15 @@ export const GUARDIAN_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
     ])
   },
   {
-    id: ID.LESSER_SYMBOL_OF_PROTECTION,
     name: 'Lesser Symbol of Protection',
+    id: ID.LESSER_SYMBOL_OF_PROTECTION,
     tags: ['symbol'],
     type: 'Proc',
     slot: 'Action',
     simulatorExcluded: true,
     slotSelectable: false,
-    castTimeMs: 0,
     cooldown: 20,
+    castTimeMs: 0,
     comboFields: [{ ownerId: 'guardian', fieldType: COMBO_FIELD.LIGHT, duration: 2 }],
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
@@ -71,15 +71,15 @@ export const GUARDIAN_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
     ])
   },
   {
-    id: ID.LESSER_SYMBOL_OF_RESOLUTION,
     name: 'Lesser Symbol of Resolution',
+    id: ID.LESSER_SYMBOL_OF_RESOLUTION,
     tags: ['symbol'],
     type: 'Proc',
     slot: 'Action',
     simulatorExcluded: true,
     slotSelectable: false,
-    castTimeMs: 0,
     cooldown: 30,
+    castTimeMs: 0,
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',

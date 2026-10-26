@@ -4,12 +4,18 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
+  [ID.TEMPORAL_CURTAIN]: {
+    // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
+    flipArm: { skillId: ID.INTO_THE_VOID, duration: 5, delay: 1, anchor: 'castStart' },
+    castTimeMs: 740,
+    effects: [],
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }]
+  },
   // Flip actions share their parent's catalog so ordinary mechanics assembly owns both faces.
   [ID.INTO_THE_VOID]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.INTO_THE_VOID } }],
-    castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 0,
+    castTimeMs: 0,
     // Activating the flip applies its pull immediately.
     effects: [
       {
@@ -20,17 +26,10 @@ export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Parti
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
-    ]
-  },
-  [ID.TEMPORAL_CURTAIN]: {
-    // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
-    flipArm: { skillId: ID.INTO_THE_VOID, duration: 5, delay: 1, anchor: 'castStart' },
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }],
-    castTimeMs: 740,
-    effects: []
+    ],
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.INTO_THE_VOID } }]
   },
   [ID.PHANTASMAL_WARDEN]: {
-    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
     // The summon owns its attack and conversion timeline independently of the player cast.
     phantasmTiming: {
       damageAtMs: 4880,
@@ -41,6 +40,7 @@ export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Parti
       mode: 'phantasm',
       count: 1
     },
+    castTimeMs: 440,
     effects: [
       {
         type: 'strike',
@@ -64,6 +64,6 @@ export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Parti
         weapon: 'phantasm medium'
       }
     ],
-    castTimeMs: 440
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }]
   }
 });

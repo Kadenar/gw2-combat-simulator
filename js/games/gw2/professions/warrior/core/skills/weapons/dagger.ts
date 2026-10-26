@@ -7,13 +7,40 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.PRECISE_CUT]: {
+    castTimeMs: 320,
+    dualWieldCastTimeMs: 240,
+    effects: [
+      {
+        type: 'strike',
+        // The slash retains 40 ms of recovery at either measured attack speed.
+        coefficient: 0.6,
+        atMs: -40,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ]
+  },
+  [ID.FOCUSED_SLASH]: {
+    dualWieldEffectOffsetsMs: { 280: 200 },
+    castTimeMs: 360,
+    dualWieldCastTimeMs: 240,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [{ atMs: 280, coefficient: 0.65 }],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
+  },
   [ID.KEEN_STRIKE]: {
+    dualWieldEffectOffsetsMs: { 280: 200 },
+    castTimeMs: 440,
+    dualWieldCastTimeMs: 320,
     interruptCommitMs: 280,
     // Dual Wielding uses the measured commit point for the faster slash.
     dualWieldInterruptCommitMs: 240,
-    castTimeMs: 440,
-    dualWieldCastTimeMs: 320,
-    dualWieldEffectOffsetsMs: { 280: 200 },
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -45,93 +72,12 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
       }
     ])
   },
-  [ID.FOCUSED_SLASH]: {
-    castTimeMs: 360,
-    dualWieldCastTimeMs: 240,
-    dualWieldEffectOffsetsMs: { 280: 200 },
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 280, coefficient: 0.65 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ]
-  },
-  [ID.PRECISE_CUT]: {
-    castTimeMs: 320,
-    dualWieldCastTimeMs: 240,
-    effects: [
-      {
-        type: 'strike',
-        // The slash retains 40 ms of recovery at either measured attack speed.
-        coefficient: 0.6,
-        atMs: -40,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
-  },
-  [ID.WASTRELS_RUIN]: {
-    interruptCommitMs: 400,
-    cooldown: 12,
-    castTimeMs: 440,
-    dualWieldCastTimeMs: 320,
-    effects: [
-      {
-        type: 'strike',
-        // The impact follows the full cast's recovery boundary, independent of an interruption.
-        coefficient: 1.5,
-        atMs: -40,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
-  },
-  [ID.DISRUPTING_STAB]: {
-    castTimeMs: 440,
-    dualWieldCastTimeMs: 320,
-    dualWieldEffectOffsetsMs: { 160: 120 },
-    dualWieldInterruptCommitMs: 160,
-    retainsCastLockoutAfterInterrupt: true,
-    // Share impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 160, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      {
-        type: 'strike',
-        coefficient: 1.2
-      },
-      {
-        type: 'control',
-        controlKind: CONTROL.DAZE
-      }
-    ])
-  },
-  [ID.HUSHBLADE]: {
-    interruptCommitMs: 440,
-    ammo: 2,
-    ammoRecharge: 12,
-    cooldown: 12,
-    ammoCastLockout: 1,
-    castTimeMs: 520,
-    dualWieldCastTimeMs: 400,
-    // Damage and daze share the measured 80 ms recovery at both attack speeds.
-    effects: impactEffects({ atMs: -80, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 1.5
-      },
-      {
-        type: 'control',
-        controlKind: CONTROL.DAZE
-      }
-    ])
-  },
   [ID.AURA_SLICER]: {
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
+    castTimeMs: 840,
     // Aura Slicer ignores Quickness and Dual Wielding, so its observed timing stays fixed.
     interruptCommitMs: 760,
-    castTimeMs: 840,
     comboFinishers: [
       {
         ownerId: 'warrior',
@@ -151,6 +97,60 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
         condition: CONDITION.SLOW,
         stacks: 1,
         duration: 1.5
+      }
+    ])
+  },
+  [ID.DISRUPTING_STAB]: {
+    dualWieldEffectOffsetsMs: { 160: 120 },
+    castTimeMs: 440,
+    dualWieldCastTimeMs: 320,
+    dualWieldInterruptCommitMs: 160,
+    retainsCastLockoutAfterInterrupt: true,
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 160, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      {
+        type: 'strike',
+        coefficient: 1.2
+      },
+      {
+        type: 'control',
+        controlKind: CONTROL.DAZE
+      }
+    ])
+  },
+  [ID.WASTRELS_RUIN]: {
+    cooldown: 12,
+    castTimeMs: 440,
+    dualWieldCastTimeMs: 320,
+    interruptCommitMs: 400,
+    effects: [
+      {
+        type: 'strike',
+        // The impact follows the full cast's recovery boundary, independent of an interruption.
+        coefficient: 1.5,
+        atMs: -40,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ]
+  },
+  [ID.HUSHBLADE]: {
+    ammo: 2,
+    ammoRecharge: 12,
+    cooldown: 12,
+    ammoCastLockout: 1,
+    castTimeMs: 520,
+    dualWieldCastTimeMs: 400,
+    interruptCommitMs: 440,
+    // Damage and daze share the measured 80 ms recovery at both attack speeds.
+    effects: impactEffects({ atMs: -80, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 1.5
+      },
+      {
+        type: 'control',
+        controlKind: CONTROL.DAZE
       }
     ])
   }

@@ -29,15 +29,15 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     weapon: WEAPON.SCEPTER,
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
-    castTimeMs: 880,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 880,
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.1 },
       { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 4 },
       { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3 }
-    ]),
-    specialization: 'Weaver'
+    ])
   },
   // Fire+Air. Five equal 0.55 beam pulses across the cast (240/360/520/640/760
   // ms) with no conditions attached - pure strike damage split five ways.
@@ -48,9 +48,10 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     weapon: WEAPON.SCEPTER,
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
-    castTimeMs: 920,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 920,
     effects: [
       {
         type: 'strike',
@@ -107,8 +108,7 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    specialization: 'Weaver'
+    ]
   },
   // Fire+Earth. Two identical hits at 240 and 840 ms, each repeating the same
   // Burning plus three-stack Vulnerability payload.
@@ -119,9 +119,10 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     weapon: WEAPON.SCEPTER,
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 920,
     cooldown: 12,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 920,
     effects: [
       ...impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1.2 },
@@ -133,8 +134,7 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2 },
         { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 3, duration: 8 }
       ])
-    ],
-    specialization: 'Weaver'
+    ]
   },
   // Air+Water. One heavy hit that bundles Chilled, self-Stability and a
   // crowd-control application on the same 480 ms packet.
@@ -145,16 +145,16 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     weapon: WEAPON.SCEPTER,
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
-    castTimeMs: 560,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 560,
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2, canCrit: true },
       { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 4 },
       { type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5 },
       { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
-    ]),
-    specialization: 'Weaver'
+    ])
   },
   // Water+Earth. Eight 0.3 pulses on a 280 ms cadence from 760 ms to 2720 ms,
   // running well past the 600 ms cast; every pulse stacks 3 s Bleeding and
@@ -167,9 +167,10 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     weapon: WEAPON.SCEPTER,
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 600,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 600,
     effects: [
       ...impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },
@@ -212,8 +213,7 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 3 },
         { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 3 }
       ])
-    ],
-    specialization: 'Weaver'
+    ]
   },
   // Air+Earth. Opening 1.4 hit at 440 ms, then a second 1.0 hit at 720 ms that
   // carries the crowd-control application.
@@ -224,9 +224,10 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     weapon: WEAPON.SCEPTER,
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 560,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 560,
     effects: [
       {
         type: 'strike',
@@ -243,7 +244,6 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         { type: 'strike', coefficient: 1, canCrit: true },
         { type: 'control', applications: 1, controlKind: CONTROL.STUN }
       ])
-    ],
-    specialization: 'Weaver'
+    ]
   }
 });

@@ -9,10 +9,10 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 
 export const GUARDIAN_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.JUSTICE]: {
-    // A committed activation entitles the next eligible hit to the selected active burn.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-justice' } }],
     castTimeMs: 0,
-    effects: []
+    effects: [],
+    // A committed activation entitles the next eligible hit to the selected active burn.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-justice' } }]
   },
   [ID.COURAGE]: {
     castTimeMs: 0,

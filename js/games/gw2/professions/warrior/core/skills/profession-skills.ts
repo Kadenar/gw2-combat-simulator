@@ -23,6 +23,32 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.EVISCERATE]: {
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
+    // The API omits the burst's weapon; axe critical traits still apply to this strike.
+    skillWeapon: WEAPON.AXE,
+    cooldown: 8,
+    adrenalineCost: 10,
+    burst: true,
+    castTimeMs: 0,
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: COMBO_FINISHER.LEAP
+      }
+    ],
+    effects: [
+      {
+        type: 'boon',
+        boon: BOON.MIGHT,
+        duration: 5,
+        stacks: 5
+      },
+      {
+        type: 'strike',
+        coefficient: 2,
+        hits: 1,
+        name: 'Eviscerate — Level 1 Damage'
+      }
+    ],
     // Captured adrenaline selects only the strike coefficient; Might and burst ownership stay intact.
     effectVariants: [PROFILE.eviscerateTier1, PROFILE.eviscerateTier2, PROFILE.eviscerateTier3].map<
       NonNullable<Skill['effectVariants']>[number]
@@ -40,53 +66,13 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
             : [effect]
         );
       }
-    })),
-    // The API omits the burst's weapon; axe critical traits still apply to this strike.
-    skillWeapon: WEAPON.AXE,
-    comboFinishers: [
-      {
-        ownerId: 'warrior',
-        finisherType: COMBO_FINISHER.LEAP
-      }
-    ],
-    cooldown: 8,
-    castTimeMs: 0,
-    adrenalineCost: 10,
-    burst: true,
-    effects: [
-      {
-        type: 'boon',
-        boon: BOON.MIGHT,
-        duration: 5,
-        stacks: 5
-      },
-      {
-        type: 'strike',
-        coefficient: 2,
-        hits: 1,
-        name: 'Eviscerate — Level 1 Damage'
-      }
-    ]
+    }))
   },
   [ID.ARCING_SLICE]: {
-    // Packet selection uses the accepted spend, never the later live pool.
-    effectVariants: [
-      {
-        when: () => true,
-        transform(runtime, cast, effects) {
-          const tier = warriorBurstTier(runtime, warriorBurstSpend(cast)!);
-          return effects.map((effect) =>
-            effect.type === 'boon' && effect.boon === BOON.FURY
-              ? { ...effect, duration: effect.duration * [1, 1.5, 2][tier - 1] }
-              : effect
-          );
-        }
-      }
-    ],
     cooldown: 8,
-    castTimeMs: 480,
     adrenalineCost: 10,
     burst: true,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -106,6 +92,20 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         duration: 8,
         stacks: 1
       }
+    ],
+    // Packet selection uses the accepted spend, never the later live pool.
+    effectVariants: [
+      {
+        when: () => true,
+        transform(runtime, cast, effects) {
+          const tier = warriorBurstTier(runtime, warriorBurstSpend(cast)!);
+          return effects.map((effect) =>
+            effect.type === 'boon' && effect.boon === BOON.FURY
+              ? { ...effect, duration: effect.duration * [1, 1.5, 2][tier - 1] }
+              : effect
+          );
+        }
+      }
     ]
   },
   [ID.EARTHSHAKER]: {
@@ -113,9 +113,9 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     movementSkill: true,
     skillWeapon: WEAPON.HAMMER,
     cooldown: 8,
-    castTimeMs: 1000,
     adrenalineCost: 10,
     burst: true,
+    castTimeMs: 1000,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -135,6 +135,30 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.KILL_SHOT]: {
+    skillWeapon: WEAPON.RIFLE,
+    // Kill Shot lands before its measured animation ends; tier scaling preserves this packet.
+    cooldown: 8,
+    adrenalineCost: 10,
+    burst: true,
+    castTimeMs: 1160,
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: COMBO_FINISHER.PROJECTILE,
+        chance: 1
+      }
+    ],
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 2.25,
+        hits: 1,
+        name: 'Kill Shot — Level 1 Damage',
+        atMs: 1000,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ],
     // Packet selection uses the accepted spend, never the later live pool.
     effectVariants: [
       {
@@ -148,39 +172,15 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
           );
         }
       }
-    ],
-    skillWeapon: WEAPON.RIFLE,
-    comboFinishers: [
-      {
-        ownerId: 'warrior',
-        finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 1
-      }
-    ],
-    // Kill Shot lands before its measured animation ends; tier scaling preserves this packet.
-    cooldown: 8,
-    castTimeMs: 1160,
-    adrenalineCost: 10,
-    burst: true,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.25,
-        hits: 1,
-        name: 'Kill Shot — Level 1 Damage',
-        atMs: 1000,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
     ]
   },
   [ID.SKULL_CRACK]: {
     // The burst's daze and damage share the observed impact before the animation ends.
     skillWeapon: WEAPON.MACE,
     cooldown: 8,
-    castTimeMs: 560,
     adrenalineCost: 10,
     burst: true,
+    castTimeMs: 560,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -195,6 +195,18 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.COMBUSTIVE_SHOT]: {
+    adrenalineCost: 10,
+    burst: true,
+    castTimeMs: 520,
+    comboFields: [
+      {
+        ownerId: 'warrior',
+        fieldType: COMBO_FIELD.FIRE,
+        duration: 3,
+        startAnchor: 'castEnd'
+      }
+    ],
+    effects: [],
     // Fixed pulses preserve independent Strike/Burning removal and persistent field cadence.
     effectVariants: [
       {
@@ -246,37 +258,25 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
           ];
         }
       }
-    ],
-    comboFields: [
-      {
-        ownerId: 'warrior',
-        fieldType: COMBO_FIELD.FIRE,
-        duration: 3,
-        startAnchor: 'castEnd'
-      }
-    ],
-    castTimeMs: 520,
-    adrenalineCost: 10,
-    burst: true,
-    effects: []
+    ]
   },
   [ID.BREACHING_STRIKE]: {
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
+    skillWeapon: WEAPON.DAGGER,
+    cooldown: 8,
+
+    adrenalineCost: 10,
+    burst: true,
+    castTimeMs: 840,
     // Keep commitment, damage, and boon removal together on the nearest 40 ms tick.
     interruptCommitMs: 760,
-    skillWeapon: WEAPON.DAGGER,
     comboFinishers: [
       {
         ownerId: 'warrior',
         finisherType: COMBO_FINISHER.LEAP
       }
     ],
-    cooldown: 8,
-    castTimeMs: 840,
-
-    adrenalineCost: 10,
-    burst: true,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects(
       { atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
@@ -289,9 +289,9 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     )
   },
   [ID.PATH_TO_VICTORY]: {
-    castTimeMs: 333,
     adrenalineCost: 10,
     burst: true,
+    castTimeMs: 333,
     // Numeric variants share the canonical burst's resource and trait contract.
     effects: [
       {
@@ -309,9 +309,9 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.PATH_TO_VICTORY_ID_71932]: {
-    castTimeMs: 333,
     adrenalineCost: 10,
     burst: true,
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -328,9 +328,9 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.PATH_TO_VICTORY_ID_71950]: {
-    castTimeMs: 333,
     adrenalineCost: 10,
     burst: true,
+    castTimeMs: 333,
     // Numeric variants share the canonical burst's resource and trait contract.
     effects: [
       {
@@ -348,9 +348,9 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.HARRIERS_TOSS_ID_73006]: {
-    castTimeMs: 333,
     adrenalineCost: 10,
     burst: true,
+    castTimeMs: 333,
     // Numeric variants share the canonical burst's resource and trait contract.
     effects: [
       {
@@ -367,9 +367,9 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.HARRIERS_TOSS]: {
-    castTimeMs: 333,
     adrenalineCost: 10,
     burst: true,
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -385,9 +385,9 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.HARRIERS_TOSS_ID_73042]: {
-    castTimeMs: 333,
     adrenalineCost: 10,
     burst: true,
+    castTimeMs: 333,
     // Numeric variants share the canonical burst's resource and trait contract.
     effects: [
       {
@@ -404,6 +404,24 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.BLOODTHIRSTER]: {
+    skillWeapon: WEAPON.SWORD,
+    adrenalineCost: 10,
+    burst: true,
+    castTimeMs: 520,
+    dualWieldCastTimeMs: 400,
+    // Bloodthirster's strike and bleeding retain 80 ms of recovery with or without Dual Wielding.
+    effects: impactEffects({ atMs: -80, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 2
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 3,
+        duration: 6
+      }
+    ]),
     // Packet selection uses the accepted spend, never the later live pool.
     effectVariants: [
       {
@@ -427,25 +445,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
           );
         }
       }
-    ],
-    skillWeapon: WEAPON.SWORD,
-    castTimeMs: 520,
-    dualWieldCastTimeMs: 400,
-    adrenalineCost: 10,
-    burst: true,
-    // Bloodthirster's strike and bleeding retain 80 ms of recovery with or without Dual Wielding.
-    effects: impactEffects({ atMs: -80, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 2
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.BLEEDING,
-        stacks: 3,
-        duration: 6
-      }
-    ])
+    ]
   }
 });
 

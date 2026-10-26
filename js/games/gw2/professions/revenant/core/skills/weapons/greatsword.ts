@@ -14,13 +14,29 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 
 export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.MIST_SWING]: {
+    cooldown: 0,
+    energyCost: 0,
+    castTimeMs: 400,
+    // Recorded 365 ms casts land their strike and advance to Mist Slash on the 360 ms action frame.
+    interruptCommitMs: 360,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.7,
+        hits: 1,
+        name: 'Mist Swing',
+        actorType: ACTOR.PLAYER,
+        persistsAfterInterrupt: true
+      }
+    ]
+  },
   [ID.MIST_SLASH]: {
+    cooldown: 0,
+    energyCost: 0,
     castTimeMs: 600,
     // The strike survives a committed aftercast cancel without shortening the normal auto chain.
     interruptCommitMs: 520,
-
-    cooldown: 0,
-    energyCost: 0,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -39,38 +55,12 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       }
     ])
   },
-  [ID.MIST_UNLEASHED]: {
-    castTimeMs: 520,
-    // Commit the attack at 480 ms while reserving the remaining skill lockout.
-    interruptCommitMs: 440,
-    retainsCastLockoutAfterInterrupt: true,
-    cooldown: 3,
-    energyCost: 5,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 1.6 }],
-        name: 'Mist Unleashed',
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.VULNERABILITY,
-        stacks: 3,
-        duration: 10,
-        actorType: ACTOR.PLAYER
-      }
-    ]
-  },
   [ID.ARCING_MISTS]: {
+    cooldown: 0,
+    energyCost: 0,
     castTimeMs: 680,
     // A committed cancel retains the strike and conditions during the remaining aftercast.
     interruptCommitMs: 480,
-
-    cooldown: 0,
-    energyCost: 0,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -96,31 +86,40 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       }
     ])
   },
-  [ID.TRUE_STRIKE]: {
-    // This declaration opens the channel-owned True Strike window below.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.TRUE_STRIKE } }],
+  [ID.MIST_UNLEASHED]: {
+    cooldown: 3,
+    energyCost: 5,
     castTimeMs: 520,
-    cooldown: 0,
-    energyCost: 0,
+    // Commit the attack at 480 ms while reserving the remaining skill lockout.
+    interruptCommitMs: 440,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        name: 'True Strike (vindicator) — Packet 1',
+        ticks: [{ atMs: 400, coefficient: 1.6 }],
+        name: 'Mist Unleashed',
+        actorType: ACTOR.PLAYER,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.VULNERABILITY,
+        stacks: 3,
+        duration: 10,
         actorType: ACTOR.PLAYER
       }
     ]
   },
   [ID.PHANTOMS_ONSLAUGHT]: {
-    // Keep the 40 ms dash and the 600/400 ms follow-up on 40 ms action frames.
-
-    castTimeMs: 440,
     cooldown: 8,
     rechargeAnchor: 'castStart',
     // Recharge begins when the dash completes, while the follow-up strike is still casting.
     rechargeOffsetMs: 40,
     energyCost: 8,
+    // Keep the 40 ms dash and the 600/400 ms follow-up on 40 ms action frames.
+
+    castTimeMs: 440,
     effects: [
       {
         type: 'strike',
@@ -144,40 +143,38 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       }
     ]
   },
-  [ID.MIST_SWING]: {
-    // Recorded 365 ms casts land their strike and advance to Mist Slash on the 360 ms action frame.
-    interruptCommitMs: 360,
-    castTimeMs: 400,
-
-    cooldown: 0,
-    energyCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.7,
-        hits: 1,
-        name: 'Mist Swing',
-        actorType: ACTOR.PLAYER,
-        persistsAfterInterrupt: true
-      }
-    ]
-  },
   [ID.IMPERIAL_GUARD]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [{ on: 'castStart', do: { type: 'revenant.imperial-guard' } }],
+    cooldown: 12,
+    energyCost: 10,
     castTimeMs: 2000,
 
     defaultInterruptMs: 80,
-    cooldown: 12,
-    energyCost: 10,
-    effects: []
+    effects: [],
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [{ on: 'castStart', do: { type: 'revenant.imperial-guard' } }]
+  },
+  [ID.TRUE_STRIKE]: {
+    cooldown: 0,
+    energyCost: 0,
+    castTimeMs: 520,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.5,
+        hits: 1,
+        name: 'True Strike (vindicator) — Packet 1',
+        actorType: ACTOR.PLAYER
+      }
+    ],
+    // This declaration opens the channel-owned True Strike window below.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.TRUE_STRIKE } }]
   },
   [ID.ETERNITYS_REQUIEM]: {
+    cooldown: 15,
+    energyCost: 10,
     castTimeMs: 840,
     // Preserve the impacts when the cast is interrupted after committing at 800 ms.
     interruptCommitMs: 800,
-    cooldown: 15,
-    energyCost: 10,
     effects: [
       {
         type: 'strike',

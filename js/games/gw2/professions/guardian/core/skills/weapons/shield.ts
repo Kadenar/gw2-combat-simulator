@@ -13,22 +13,6 @@ export const GUARDIAN_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Pa
       }
     ]
   },
-  [ID.SHIELD_OF_ABSORPTION]: {
-    // Expose the follow-up on commitment; its declaration owns the window.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'flipArm', skillId: ID.SHIELD_OF_ABSORPTION_ID_DETONATE, expiryPriority: -220 } }
-    ],
-    castTimeMs: 520,
-    // Detonation stays available while the dome lasts.
-    flipDuration: 4,
-    effects: []
-  },
-  [ID.SHIELD_OF_ABSORPTION_ID_DETONATE]: {
-    // A committed follow-up consumes its window and restores the parent.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.SHIELD_OF_ABSORPTION_ID_DETONATE } }],
-    castTimeMs: 520,
-    effects: []
-  },
   [ID.SHIELD_OF_JUDGMENT_ID_15834]: {
     castTimeMs: 520,
     effects: [
@@ -38,5 +22,21 @@ export const GUARDIAN_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Pa
         hits: 1
       }
     ]
+  },
+  [ID.SHIELD_OF_ABSORPTION]: {
+    // Detonation stays available while the dome lasts.
+    flipDuration: 4,
+    castTimeMs: 520,
+    effects: [],
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'flipArm', skillId: ID.SHIELD_OF_ABSORPTION_ID_DETONATE, expiryPriority: -220 } }
+    ]
+  },
+  [ID.SHIELD_OF_ABSORPTION_ID_DETONATE]: {
+    castTimeMs: 520,
+    effects: [],
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.SHIELD_OF_ABSORPTION_ID_DETONATE } }]
   }
 });

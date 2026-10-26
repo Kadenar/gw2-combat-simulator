@@ -6,11 +6,11 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 
 export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FRIGID_BLITZ]: {
+    cooldown: 10,
+    energyCost: 10,
     // Keep the axe hit when only the opening phase completes; the follow-up needs the remaining cast.
     castTimeMs: 1000,
     interruptMode: 'per-packet',
-    cooldown: 10,
-    energyCost: 10,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -38,12 +38,12 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
     ])
   },
   [ID.TEMPORAL_RIFT]: {
+    cooldown: 15,
+    energyCost: 10,
     castTimeMs: 560,
     // Once opened at 480 ms, the rift retains its delayed effects and the remaining cast lockout.
     interruptCommitMs: 480,
     retainsCastLockoutAfterInterrupt: true,
-    cooldown: 15,
-    energyCost: 10,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 640, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {

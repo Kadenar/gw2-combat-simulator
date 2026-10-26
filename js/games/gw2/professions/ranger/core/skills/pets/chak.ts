@@ -10,6 +10,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const RANGER_CORE_CHAK_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Natural Unleash Energy uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.CHAK_UNLEASH_ENERGY]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CHAK_UNLEASH_ENERGY]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CHAK_UNLEASH_ENERGY]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -18,13 +21,13 @@ export const RANGER_CORE_CHAK_PET_SKILL_MECHANICS: Readonly<Record<number, Parti
         actorType: ACTOR.SUMMON,
         projectile: true
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CHAK_UNLEASH_ENERGY]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CHAK_UNLEASH_ENERGY]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Electrocute uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.CHAK_ELECTROCUTE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CHAK_ELECTROCUTE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CHAK_ELECTROCUTE]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -41,13 +44,13 @@ export const RANGER_CORE_CHAK_PET_SKILL_MECHANICS: Readonly<Record<number, Parti
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CHAK_ELECTROCUTE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CHAK_ELECTROCUTE]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Spit Goop uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.CHAK_SPIT_GOOP]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CHAK_SPIT_GOOP]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CHAK_SPIT_GOOP]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -64,12 +67,11 @@ export const RANGER_CORE_CHAK_PET_SKILL_MECHANICS: Readonly<Record<number, Parti
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CHAK_SPIT_GOOP]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CHAK_SPIT_GOOP]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   [ID.LEY_ENERGY_PULSE]: {
+    petSkill: true,
+    quicknessCastTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -78,8 +80,6 @@ export const RANGER_CORE_CHAK_PET_SKILL_MECHANICS: Readonly<Record<number, Parti
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 500,
-    petSkill: true
+    ]
   }
 });

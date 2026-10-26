@@ -8,23 +8,22 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
   // Flip actions share their parent's catalog so ordinary mechanics assembly owns both faces.
   [ID.POWER_RETURN]: {
-    // Start prepared and return to the parent when exhausted; Heal identity still triggers traits at fixed full health.
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.exhaust-mantra' } }],
-    castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 20,
     ammoCastLockout: 1,
     ammo: 2,
     armedAtStart: true,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    // Start prepared and return to the parent when exhausted; Heal identity still triggers traits at fixed full health.
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.exhaust-mantra' } }]
   },
   [ID.POWER_SPIKE]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.exhaust-mantra' } }],
-    castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 10,
     ammo: 2,
     armedAtStart: true,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -40,7 +39,8 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
         duration: 8,
         stacks: 5
       }
-    ]
+    ],
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.exhaust-mantra' } }]
   },
   [ID.ETHER_FEAST]: {
     castTimeMs: 666.666666667,
@@ -51,31 +51,31 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     effects: []
   },
   [ID.MIRROR_IMAGES]: {
-    castTimeMs: 0,
     rechargeAnchor: 'castStart',
     resource: {
       mode: 'add',
       count: 2
     },
+    castTimeMs: 0,
     effects: []
   },
   [ID.MANTRA_OF_PAIN]: {
     // Charges belong to the prepared flip; preparation must not create its own ammo pool.
     ammo: 0,
     ammoRecharge: 0,
-    // Preparation replaces spent charges and any previous recharge state.
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.prepare-mantra' } }],
     castTimeMs: 1600,
-    effects: []
+    effects: [],
+    // Preparation replaces spent charges and any previous recharge state.
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.prepare-mantra' } }]
   },
   [ID.MANTRA_OF_RECOVERY]: {
     // Charges belong to the prepared flip; preparation must not create its own ammo pool.
     ammo: 0,
     ammoRecharge: 0,
-    // Completing preparation restores the healing mantra's own two-charge flip.
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.prepare-mantra' } }],
     castTimeMs: 1600,
-    effects: []
+    effects: [],
+    // Completing preparation restores the healing mantra's own two-charge flip.
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.prepare-mantra' } }]
   },
   [ID.SIGNET_OF_DOMINATION]: {
     castTimeMs: 480,
@@ -92,8 +92,8 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     ]
   },
   [ID.SIGNET_OF_MIDNIGHT]: {
-    castTimeMs: 0,
     rechargeAnchor: 'castStart',
+    castTimeMs: 0,
     // Activating the signet applies one five-second blind.
     effects: [
       {
@@ -111,9 +111,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     effects: []
   },
   [ID.SIGNET_OF_ILLUSIONS]: {
-    // Committed activation refreshes the selected catalog's eligible shatters and instruments.
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.signet-reset' } }],
-    castTimeMs: 1120,
     // Restart the passive clone interval only after the active cast completes.
     tasks: [
       {
@@ -121,10 +118,12 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
         timingAnchor: 'castEnd'
       }
     ],
-    effects: []
+    castTimeMs: 1120,
+    effects: [],
+    // Committed activation refreshes the selected catalog's eligible shatters and instruments.
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.signet-reset' } }]
   },
   [ID.PHANTASMAL_DISENCHANTER]: {
-    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
     // The summon owns its attack and conversion timeline independently of the player cast.
     phantasmTiming: {
       damageAtMs: 1240,
@@ -136,6 +135,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
       mode: 'phantasm',
       count: 1
     },
+    castTimeMs: 760,
     effects: [
       {
         type: 'strike',
@@ -147,11 +147,11 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
         weapon: 'phantasm medium'
       }
     ],
-    castTimeMs: 760
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }]
   },
   [ID.FEEDBACK]: {
-    castTimeMs: 0,
     rechargeAnchor: 'castStart',
+    castTimeMs: 0,
     // Feedback's dome provides an ethereal combo field for its six-second lifetime.
     comboFields: [{ ownerId: 'mesmer', fieldType: COMBO_FIELD.ETHEREAL, duration: 6, startAnchor: 'castStart' }],
     effects: []
@@ -188,7 +188,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     ])
   },
   [ID.PHANTASMAL_DEFENDER]: {
-    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
     // The summon owns its attack and conversion timeline independently of the player cast.
     phantasmTiming: {
       damageAtMs: 3800,
@@ -199,6 +198,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
       mode: 'phantasm',
       count: 1
     },
+    castTimeMs: 760,
     effects: [
       // Record the taunt's control trigger and three-second target condition at cast completion.
       ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
@@ -226,11 +226,9 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
         weapon: 'phantasm defender'
       }
     ],
-    castTimeMs: 760
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }]
   },
   [ID.SIGNET_OF_THE_ETHER]: {
-    // Reset phantasms at commitment; the delayed self-relock remains independent.
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.signet-reset' } }],
     // The live skill re-locks itself 300ms after completion despite resetting phantasms immediately.
     tasks: [
       {
@@ -240,8 +238,10 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
         timingScale: 'fixed'
       }
     ],
+    castTimeMs: 920,
     effects: [],
-    castTimeMs: 920
+    // Reset phantasms at commitment; the delayed self-relock remains independent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.signet-reset' } }]
   },
   [ID.SIGNET_OF_HUMILITY]: {
     castTimeMs: 880,
@@ -258,9 +258,9 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     ]
   },
   [ID.MIMIC]: {
-    // Arm a fresh utility-reset window at semantic completion.
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-mimic' } }],
     castTimeMs: 640,
-    effects: []
+    effects: [],
+    // Arm a fresh utility-reset window at semantic completion.
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-mimic' } }]
   }
 });

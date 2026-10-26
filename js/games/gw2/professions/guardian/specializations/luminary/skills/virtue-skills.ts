@@ -16,31 +16,31 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 
 export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RADIANT_COURAGE]: {
-    // Commitment arms this virtue's next weapon entitlement, then fires the arming point.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-radiant-courage' } }],
     castTimeMs: 0,
     // Courage's activation grants these boons to the player and nearby allies.
     effects: [
       { type: 'boon', boon: BOON.AEGIS, duration: 20, audience: { recipients: RECIPIENT.PARTY } },
       { type: 'boon', boon: BOON.RESISTANCE, duration: 4, audience: { recipients: RECIPIENT.PARTY } }
-    ]
+    ],
+    // Commitment arms this virtue's next weapon entitlement, then fires the arming point.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-radiant-courage' } }]
   },
   [ID.RADIANT_RESOLVE]: {
+    castTimeMs: 0,
+    effects: [{ type: 'aura', name: AURA.LIGHT, aura: AURA.LIGHT, duration: 4 }],
+    // Resolve's scheduled grant owns its aura separately from its staff empowerment.
+    effectVariants: [{ when: () => true, transform: () => [] }],
     sideEffects: [
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.resolve-aura' } },
       // Commitment arms this virtue's next weapon entitlement, then fires the arming point.
       { on: 'castCommit', do: { type: 'guardian.arm-radiant-resolve' } }
-    ],
-    castTimeMs: 0,
-    // Resolve's scheduled grant owns its aura separately from its staff empowerment.
-    effectVariants: [{ when: () => true, transform: () => [] }],
-    effects: [{ type: 'aura', name: AURA.LIGHT, aura: AURA.LIGHT, duration: 4 }]
+    ]
   },
   [ID.RADIANT_JUSTICE]: {
-    // Commitment arms this virtue's next weapon entitlement, then fires the arming point.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-radiant-justice' } }],
     castTimeMs: 0,
-    effects: []
+    effects: [],
+    // Commitment arms this virtue's next weapon entitlement, then fires the arming point.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-radiant-justice' } }]
   }
 });
 

@@ -9,11 +9,11 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SHADOW_BOLT]: {
+    cooldown: 0,
+    initiativeCost: 0,
     castTimeMs: 520,
     // The bolt commits before the aftercast ends; EVTC keeps raw sub-480 ms attempts below this grid boundary.
     interruptCommitMs: 480,
-    cooldown: 0,
-    initiativeCost: 0,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
@@ -31,55 +31,37 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
       }
     ])
   },
-  [ID.ENDLESS_NIGHT]: {
-    // A committed follow-up consumes its window and restores the parent.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.ENDLESS_NIGHT } }],
-    castTimeMs: 1920,
-    // Retain each beam packet already emitted when the channel is interrupted.
-    interruptMode: 'per-packet',
+  [ID.DOUBLE_BOLT]: {
     cooldown: 0,
-    initiativeCost: 3,
+    initiativeCost: 0,
+    castTimeMs: 640,
+    interruptMode: 'per-packet',
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [280, 560, 840, 1080, 1360, 1640, 1920].map((atMs) => ({
-          atMs,
-          coefficient: 2.31 / 7
-        })),
-        name: 'Endless Night',
+        ticks: [{ atMs: 320, coefficient: 0.375 }],
+        name: 'Double Bolt - First Bolt',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'strike',
+        ticks: [{ atMs: 600, coefficient: 0.375 }],
+        name: 'Double Bolt - Second Bolt',
         actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
-        // Every beam pulse applies Slow alongside its Torment packet.
-        ticks: [280, 560, 840, 1080, 1360, 1640, 1920].map((atMs) => ({
-          atMs,
-          condition: CONDITION.SLOW,
-          stacks: 1,
-          duration: 1.5
-        })),
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        ticks: [280, 560, 840, 1080, 1360, 1640, 1920].map((atMs) => ({
-          atMs,
-          condition: CONDITION.TORMENT,
-          stacks: 1,
-          duration: 6
-        })),
+        ticks: [320, 600].map((atMs) => ({ atMs, condition: CONDITION.TORMENT, stacks: 1, duration: 4 })),
         actorType: ACTOR.PLAYER
       }
-    ]),
-    requiredMainHand: WEAPON.SCEPTER,
-    requiredOffHand: WEAPON.PISTOL
+    ])
   },
   [ID.TRIPLE_BOLT]: {
-    castTimeMs: 1080,
-    interruptMode: 'per-packet',
     cooldown: 0,
     initiativeCost: 0,
+    castTimeMs: 1080,
+    interruptMode: 'per-packet',
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -107,10 +89,73 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
       }
     ])
   },
-  [ID.TRIPLE_THREAT]: {
-    castTimeMs: 1000,
+  [ID.SHADOWSQUALL]: {
+    cooldown: 0,
+    initiativeCost: 0,
+    requiredMainHand: WEAPON.SCEPTER,
+    stealthAttack: true,
+    castTimeMs: 1960,
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+      {
+        type: 'strike',
+        ticks: [240, 480, 720, 1000, 1240, 1480, 1720, 1960].map((atMs) => ({ atMs, coefficient: 1.6 / 8 })),
+        name: 'Shadowsquall',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        ticks: [240, 480, 720, 1000, 1240, 1480, 1720, 1960].map((atMs) => ({
+          atMs,
+          condition: CONDITION.POISONED,
+          stacks: 1,
+          duration: 3
+        })),
+        actorType: ACTOR.PLAYER
+      }
+    ])
+  },
+  [ID.SHADOW_SAP]: {
     cooldown: 0,
     initiativeCost: 4,
+    castTimeMs: 600,
+    comboFinishers: [
+      {
+        ownerId: 'thief',
+        finisherType: COMBO_FINISHER.BLAST
+      }
+    ],
+    effects: [
+      {
+        type: 'strike',
+        ticks: [{ atMs: 0, coefficient: 0.77 }],
+        name: 'Shadow Sap',
+        actorType: ACTOR.PLAYER,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.MIGHT,
+        duration: 10,
+        stacks: 5
+      },
+      {
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.PROTECTION,
+        duration: 4,
+        stacks: 1
+      }
+    ]
+  },
+  [ID.TRIPLE_THREAT]: {
+    cooldown: 0,
+    initiativeCost: 4,
+    requiredMainHand: WEAPON.SCEPTER,
+    requiredOffHand: false,
+    castTimeMs: 1000,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -127,42 +172,16 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
         ticks: [320, 680, 1000].map((atMs) => ({ atMs, condition: CONDITION.TORMENT, stacks: 1, duration: 4 })),
         actorType: ACTOR.PLAYER
       }
-    ]),
-    requiredMainHand: WEAPON.SCEPTER,
-    requiredOffHand: false
-  },
-  [ID.DOUBLE_BOLT]: {
-    castTimeMs: 640,
-    interruptMode: 'per-packet',
-    cooldown: 0,
-    initiativeCost: 0,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 320, coefficient: 0.375 }],
-        name: 'Double Bolt - First Bolt',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 600, coefficient: 0.375 }],
-        name: 'Double Bolt - Second Bolt',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        ticks: [320, 600].map((atMs) => ({ atMs, condition: CONDITION.TORMENT, stacks: 1, duration: 4 })),
-        actorType: ACTOR.PLAYER
-      }
     ])
   },
   [ID.TWILIGHT_COMBO]: {
+    cooldown: 0,
+    initiativeCost: 4,
+    requiredMainHand: WEAPON.SCEPTER,
+    requiredOffHand: WEAPON.DAGGER,
     castTimeMs: 760,
     // The paired projectiles are committed before the remaining aftercast; the log permits the next input immediately.
     interruptCommitMs: 720,
-    cooldown: 0,
-    initiativeCost: 4,
     effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'strike',
@@ -203,21 +222,21 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]),
-    requiredMainHand: WEAPON.SCEPTER,
-    requiredOffHand: WEAPON.DAGGER
+    ])
   },
   [ID.MEASURED_SHOT]: {
-    // Expose the follow-up on commitment; its declaration owns the window.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.ENDLESS_NIGHT } }],
-    castTimeMs: 560,
-    // Commit the shot at 320 ms, preserving its impact and remaining cast lockout after interruption.
-    interruptCommitMs: 320,
-    retainsCastLockoutAfterInterrupt: true,
     // Endless Night replaces Measured Shot for five seconds after the shot commits.
     flipDuration: 5,
     cooldown: 0,
     initiativeCost: 4,
+    movementSkill: true,
+    shadowstepSkill: true,
+    requiredMainHand: WEAPON.SCEPTER,
+    requiredOffHand: WEAPON.PISTOL,
+    castTimeMs: 560,
+    // Commit the shot at 320 ms, preserving its impact and remaining cast lockout after interruption.
+    interruptCommitMs: 320,
+    retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects(
       {
         atMs: 0,
@@ -242,70 +261,51 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
         }
       ]
     ),
-    movementSkill: true,
-    shadowstepSkill: true,
-    requiredMainHand: WEAPON.SCEPTER,
-    requiredOffHand: WEAPON.PISTOL
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.ENDLESS_NIGHT } }]
   },
-  [ID.SHADOWSQUALL]: {
-    castTimeMs: 1960,
+  [ID.ENDLESS_NIGHT]: {
     cooldown: 0,
-    initiativeCost: 0,
+    initiativeCost: 3,
+    requiredMainHand: WEAPON.SCEPTER,
+    requiredOffHand: WEAPON.PISTOL,
+    castTimeMs: 1920,
+    // Retain each beam packet already emitted when the channel is interrupted.
+    interruptMode: 'per-packet',
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [240, 480, 720, 1000, 1240, 1480, 1720, 1960].map((atMs) => ({ atMs, coefficient: 1.6 / 8 })),
-        name: 'Shadowsquall',
+        ticks: [280, 560, 840, 1080, 1360, 1640, 1920].map((atMs) => ({
+          atMs,
+          coefficient: 2.31 / 7
+        })),
+        name: 'Endless Night',
         actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
-        ticks: [240, 480, 720, 1000, 1240, 1480, 1720, 1960].map((atMs) => ({
+        // Every beam pulse applies Slow alongside its Torment packet.
+        ticks: [280, 560, 840, 1080, 1360, 1640, 1920].map((atMs) => ({
           atMs,
-          condition: CONDITION.POISONED,
+          condition: CONDITION.SLOW,
           stacks: 1,
-          duration: 3
+          duration: 1.5
+        })),
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        ticks: [280, 560, 840, 1080, 1360, 1640, 1920].map((atMs) => ({
+          atMs,
+          condition: CONDITION.TORMENT,
+          stacks: 1,
+          duration: 6
         })),
         actorType: ACTOR.PLAYER
       }
     ]),
-    requiredMainHand: WEAPON.SCEPTER,
-    stealthAttack: true
-  },
-  [ID.SHADOW_SAP]: {
-    castTimeMs: 600,
-    cooldown: 0,
-    initiativeCost: 4,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.77 }],
-        name: 'Shadow Sap',
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.MIGHT,
-        duration: 10,
-        stacks: 5
-      },
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.PROTECTION,
-        duration: 4,
-        stacks: 1
-      }
-    ],
-    comboFinishers: [
-      {
-        ownerId: 'thief',
-        finisherType: COMBO_FINISHER.BLAST
-      }
-    ]
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.ENDLESS_NIGHT } }]
   }
 });

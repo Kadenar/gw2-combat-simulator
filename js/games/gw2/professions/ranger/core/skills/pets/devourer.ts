@@ -14,6 +14,20 @@ const POISONOUS_CLOUD_PULSE_TIMES_MS = [1160, 2160, 3160, 4160, 5160, 6160];
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.POISONOUS_CLOUD]: {
+    petSkill: true,
+    // The unquickened pet animation occupies 1.8 s
+    castTimeMs: 1800,
+    quicknessCastTimeMs: 1800,
+    comboFields: [
+      {
+        ownerId: 'ranger',
+        fieldType: COMBO_FIELD.POISON,
+        duration: 5,
+        // The five-second field runs from the first fixed pulse through the sixth.
+        startMs: POISONOUS_CLOUD_PULSE_TIMES_MS[0],
+        startAnchor: 'castStart'
+      }
+    ],
     // In-game bug: both strikes and poison use Ranger stats instead of pet stats; preserve that behavior.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -43,23 +57,11 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         source: 'ranger',
         actorType: ACTOR.PLAYER
       }
-    ]),
-    // The unquickened pet animation occupies 1.8 s
-    castTimeMs: 1800,
-    quicknessCastTimeMs: 1800,
-    comboFields: [
-      {
-        ownerId: 'ranger',
-        fieldType: COMBO_FIELD.POISON,
-        duration: 5,
-        // The five-second field runs from the first fixed pulse through the sixth.
-        startMs: POISONOUS_CLOUD_PULSE_TIMES_MS[0],
-        startAnchor: 'castStart'
-      }
-    ],
-    petSkill: true
+    ])
   },
   [ID.POISON_BARBS]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1667,
     effects: [
       {
         type: 'strike',
@@ -76,11 +78,11 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 1667,
-    petSkill: true
+    ]
   },
   [ID.RENDING_BARBS]: {
+    petSkill: true,
+    quicknessCastTimeMs: 2667,
     effects: [
       {
         type: 'strike',
@@ -98,11 +100,11 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 2667,
-    petSkill: true
+    ]
   },
   [ID.TWIN_DARTS]: {
+    petSkill: true,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TWIN_DARTS]!.quicknessCastTimeMs,
     // An interrupted autonomous windup must cancel its pending darts and their conditions together.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -130,11 +132,11 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TWIN_DARTS]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   },
   [ID.PET_TAIL_LASH]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1280,
     effects: impactEffects({ atMs: 1280, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -148,8 +150,6 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         actorType: ACTOR.SUMMON,
         controlKind: CONTROL.KNOCKBACK
       }
-    ]),
-    quicknessCastTimeMs: 1280,
-    petSkill: true
+    ])
   }
 });

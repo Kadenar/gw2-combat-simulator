@@ -6,50 +6,35 @@ import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior
 
 export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.WE_WILL_NEVER_YIELD]: {
-    // Echo identity belongs to the command; empty defensive echoes retain their lifetime.
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.command-arm' } }],
+    categories: ['Command'],
+    castTimeMs: 667,
 
     effects: [],
-    castTimeMs: 667,
-    categories: ['Command']
+    // Echo identity belongs to the command; empty defensive echoes retain their lifetime.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.command-arm' } }]
   },
   [ID.WE_SHALL_RETURN]: {
-    // Echo identity belongs to the command; empty defensive echoes retain their lifetime.
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.command-arm' } }],
-
     cooldown: 20,
-    effects: [],
+    categories: ['Command'],
     castTimeMs: 667,
-    categories: ['Command']
+    effects: [],
+    // Echo identity belongs to the command; empty defensive echoes retain their lifetime.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.command-arm' } }]
   },
   [ID.CHANT_OF_RECUPERATION]: {
-    // Successful activation replaces the refrain; each pulse selects its recipe before spending.
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.chant-activate' } }],
-    effects: [],
-    castTimeMs: 320,
-    dualWieldCastTimeMs: 240,
     adrenalineCost: 10,
     burst: true,
-    categories: ['Burst', 'Chant']
+    categories: ['Burst', 'Chant'],
+    castTimeMs: 320,
+    dualWieldCastTimeMs: 240,
+    effects: [],
+    // Successful activation replaces the refrain; each pulse selects its recipe before spending.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.chant-activate' } }]
   },
   [ID.FIND_THEIR_WEAKNESS]: {
-    // Echo identity belongs to the command; empty defensive echoes retain their lifetime.
-
-    // The initial reward precedes echo arming; later rewards remain with echo consumption.
-    sideEffects: [
-      {
-        on: 'castCommit',
-        do: {
-          type: 'resourceGrant',
-          resource: 'adrenaline',
-          id: 'adrenaline-gained',
-          label: 'Adrenaline gained',
-          amount: 3
-        }
-      },
-      { on: 'castCommit', do: { type: 'warrior.command-arm' } }
-    ],
     cooldown: 15,
+    categories: ['Command'],
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -69,14 +54,27 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         stacks: 7
       }
     ],
-    castTimeMs: 333,
-    categories: ['Command']
+    // Echo identity belongs to the command; empty defensive echoes retain their lifetime.
+
+    // The initial reward precedes echo arming; later rewards remain with echo consumption.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'resourceGrant',
+          resource: 'adrenaline',
+          id: 'adrenaline-gained',
+          label: 'Adrenaline gained',
+          amount: 3
+        }
+      },
+      { on: 'castCommit', do: { type: 'warrior.command-arm' } }
+    ]
   },
   [ID.ON_YOUR_KNEES]: {
-    // Echo identity belongs to the command; empty defensive echoes retain their lifetime.
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.command-arm' } }],
-
     cooldown: 15,
+    categories: ['Command'],
+    castTimeMs: 167,
     effects: [
       {
         type: 'strike',
@@ -96,28 +94,28 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         duration: 6
       }
     ],
-    castTimeMs: 167,
-    categories: ['Command']
+    // Echo identity belongs to the command; empty defensive echoes retain their lifetime.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.command-arm' } }]
   },
   [ID.CHANT_OF_FREEDOM]: {
-    // Successful activation replaces the refrain; each pulse selects its recipe before spending.
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.chant-activate' } }],
-    effects: [],
-    castTimeMs: 320,
-    dualWieldCastTimeMs: 240,
     adrenalineCost: 10,
     burst: true,
-    categories: ['Burst', 'Chant']
+    categories: ['Burst', 'Chant'],
+    castTimeMs: 320,
+    dualWieldCastTimeMs: 240,
+    effects: [],
+    // Successful activation replaces the refrain; each pulse selects its recipe before spending.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.chant-activate' } }]
   },
   [ID.CHANT_OF_ACTION]: {
-    // Successful activation replaces the refrain; each pulse selects its recipe before spending.
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.chant-activate' } }],
-    effects: [],
-    castTimeMs: 320,
-    dualWieldCastTimeMs: 240,
     adrenalineCost: 10,
     burst: true,
-    categories: ['Burst', 'Chant']
+    categories: ['Burst', 'Chant'],
+    castTimeMs: 320,
+    dualWieldCastTimeMs: 240,
+    effects: [],
+    // Successful activation replaces the refrain; each pulse selects its recipe before spending.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.chant-activate' } }]
   }
 });
 

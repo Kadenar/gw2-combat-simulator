@@ -22,15 +22,15 @@ import { canonicalTime } from '#kernel/core/clock.js';
 /** Deadeye's Mark commits the target and stolen-skill transaction through its skill-owned action. */
 export const DEADEYE_MARK_SKILLS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.DEADEYES_MARK]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.deadeyes-mark' } }],
     stealTraitSkill: true,
     movementSkill: true,
-
-    castTimeMs: 0,
     cooldown: 25,
     initiativeCost: 0,
-    effects: []
+
+    castTimeMs: 0,
+    effects: [],
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.deadeyes-mark' } }]
   }
 });
 

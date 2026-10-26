@@ -5,11 +5,40 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.MIGHTY_THROW]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    castTimeMs: 640,
+    interruptMode: 'commit',
+    // Once the throw commits, its effects survive interruption.
+    interruptCommitMs: 600,
+    // Both impact packets count as explosions; shards still require a secondary target.
+    effects: impactEffects({ persistsAfterInterrupt: true }, [
+      {
+        type: 'strike',
+        ticks: [{ atMs: 480, coefficient: 1.2 }],
+        name: 'Mighty Throw — Spear Damage',
+        damageKind: 'explosion',
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'strike',
+        ticks: [{ atMs: 480, coefficient: 0.9 }],
+        name: 'Mighty Throw — Shard Damage',
+        damageKind: 'explosion',
+        // Single-target suppression follows this stable packet identity rather than the display label.
+        metadata: { packetKind: 'warrior.mighty-throw-shard' },
+        when: () => false, // Shards require a secondary target; this simulation has one target.
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ])
+  },
   [ID.MAIMING_SPEAR]: {
     castTimeMs: 480,
+    interruptMode: 'commit',
     // Committed throws preserve their effects and hold the cast lane through the remaining animation.
     interruptCommitMs: 400,
-    interruptMode: 'commit',
     retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
@@ -52,40 +81,11 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
       }
     ])
   },
-  [ID.MIGHTY_THROW]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 640,
-    // Once the throw commits, its effects survive interruption.
-    interruptCommitMs: 600,
-    interruptMode: 'commit',
-    // Both impact packets count as explosions; shards still require a secondary target.
-    effects: impactEffects({ persistsAfterInterrupt: true }, [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 480, coefficient: 1.2 }],
-        name: 'Mighty Throw — Spear Damage',
-        damageKind: 'explosion',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 480, coefficient: 0.9 }],
-        name: 'Mighty Throw — Shard Damage',
-        damageKind: 'explosion',
-        // Single-target suppression follows this stable packet identity rather than the display label.
-        metadata: { packetKind: 'warrior.mighty-throw-shard' },
-        when: () => false, // Shards require a secondary target; this simulation has one target.
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ])
-  },
   [ID.DISRUPTING_THROW]: {
     castTimeMs: 520,
+    interruptMode: 'commit',
     // Committed throws preserve their effects and hold the cast lane through the remaining animation.
     interruptCommitMs: 400,
-    interruptMode: 'commit',
     retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
@@ -115,9 +115,9 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
   },
   [ID.SPEARMARSHALS_SUPPORT]: {
     castTimeMs: 520,
+    interruptMode: 'commit',
     // Once support commits, its delayed strikes survive interruption.
     interruptCommitMs: 480,
-    interruptMode: 'commit',
     effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'strike',

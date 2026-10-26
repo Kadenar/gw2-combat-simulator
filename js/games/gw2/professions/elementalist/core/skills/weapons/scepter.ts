@@ -23,18 +23,18 @@ const HURL_PACKET_TIMES = [320, 520, 720, 920, 1120] as const;
 export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Two-stage autoattack: each strike packet carries its own Burning application.
   [ID.FLAMESTRIKE]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Flamestrike',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.SCEPTER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
+    cooldown: 0,
+    skillFamily: 'Weapon skill',
     castTimeMs: 600,
     // Flamestrike commits its first packet on the first 40 ms action tick after 400 ms, then its second at 520 ms.
     interruptCommitMs: 520,
-    cooldown: 0,
-    skillFamily: 'Weapon skill',
     effects: [
       ...impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         { type: 'strike', coefficient: 0.5, interruptCommitMs: 320 },
@@ -61,10 +61,10 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     weapon: WEAPON.SCEPTER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
-    interruptCommitMs: 640,
     cooldown: 6,
     skillFamily: 'Weapon skill',
+    castTimeMs: 680,
+    interruptCommitMs: 640,
     effects: impactEffects(
       { atMs: 2600, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
@@ -92,10 +92,10 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     weapon: WEAPON.SCEPTER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 480,
-    interruptCommitMs: 440,
     cooldown: 10,
     skillFamily: 'Weapon skill',
+    castTimeMs: 480,
+    interruptCommitMs: 440,
     effects: [
       {
         type: 'strike',
@@ -134,17 +134,17 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ICE_SHARDS]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Ice Shards',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.SCEPTER,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 560,
-    interruptCommitMs: 520,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 560,
+    interruptCommitMs: 520,
     effects: [
       {
         type: 'strike',
@@ -164,9 +164,9 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     weapon: WEAPON.SCEPTER,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 400,
     cooldown: 3,
     skillFamily: 'Weapon skill',
+    castTimeMs: 400,
     effects: [
       ...impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.8 },
@@ -186,12 +186,12 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     weapon: WEAPON.SCEPTER,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
-    interruptCommitMs: 640,
     cooldown: 1,
     ammo: 2,
     ammoRecharge: 10,
     skillFamily: 'Weapon skill',
+    castTimeMs: 680,
+    interruptCommitMs: 640,
     effects: [
       {
         type: 'strike',
@@ -207,17 +207,17 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ARC_LIGHTNING]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Arc Lightning',
-    interruptMode: 'per-packet',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.SCEPTER,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 2720,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 2720,
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
@@ -246,9 +246,9 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     weapon: WEAPON.SCEPTER,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 5,
     skillFamily: 'Weapon skill',
+    castTimeMs: 0,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.2 },
       { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 10 }
@@ -262,11 +262,11 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     weapon: WEAPON.SCEPTER,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 0.5,
     ammo: 2,
     ammoRecharge: 10,
     skillFamily: 'Weapon skill',
+    castTimeMs: 0,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'condition',
@@ -281,17 +281,17 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
   // Three-shard autoattack; each shard is an independent 20%-chance projectile finisher and
   // applies its own Bleeding stack.
   [ID.STONE_SHARDS]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Stone Shards',
-    interruptMode: 'per-packet',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.SCEPTER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 1400,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 1400,
+    interruptMode: 'per-packet',
     effects: [
       ...impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
         {
@@ -343,15 +343,14 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
   // Rock Barrier and Hurl are a two-state flip pair sharing the Weapon_2 slot: availability
   // gates each on whether a barrier is currently stored (see core/mechanics/availability.ts).
   [ID.ROCK_BARRIER]: {
+    name: 'Rock Barrier',
     // The stored barrier's availability and held recharge share this skill-owned window.
     flipDuration: 30,
-    name: 'Rock Barrier',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.SCEPTER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 760,
     cooldown: 8,
     nextChainId: ID.HURL,
     skillFamily: 'Weapon skill',
@@ -362,6 +361,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
         timingAnchor: 'castCommit'
       }
     ],
+    castTimeMs: 760,
     effects: [
       {
         type: 'boon',
@@ -382,7 +382,6 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     weapon: WEAPON.SCEPTER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 0,
     nextChainId: ID.ROCK_BARRIER,
     skillFamily: 'Weapon skill',
@@ -393,6 +392,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
         timingAnchor: 'castCommit'
       }
     ],
+    castTimeMs: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       strikeTimeline(
@@ -426,11 +426,11 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     weapon: WEAPON.SCEPTER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 320,
     cooldown: 15,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 320,
     // EVTC shows the dust projectile committing at 160 ms and striking again at one-second intervals.
     interruptCommitMs: 160,
-    skillFamily: 'Weapon skill',
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {

@@ -28,12 +28,12 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
   [ID.FLAMETHROWER]: {
     // Custom: Equips the kit and updates bundle/weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    // Commit the bar transition before cast traits observe the selected kit.
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }],
     kitTransition: 'equip',
-    castTimeMs: 0,
     cooldown: 0,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    // Commit the bar transition before cast traits observe the selected kit.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }]
   },
   [ID.FLAME_JET]: {
     // Sample Burning at each impact; automatic skill scoping preserves the additive bonus's owner.
@@ -47,8 +47,9 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
       }
     ],
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 1720,
     cooldown: 0,
+    kitId: ID.FLAMETHROWER,
+    castTimeMs: 1720,
     effects: [
       {
         weaponStrengthProfileId: 'bundle.ascended',
@@ -66,60 +67,12 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         duration: 4,
         actorType: ACTOR.PLAYER
       }
-    ],
-    kitId: ID.FLAMETHROWER
-  },
-  [ID.NAPALM]: {
-    castTimeMs: 1760,
-    cooldown: 25,
-    // Napalm fires independent volleys, so interruption retains only packets launched before the cutoff.
-    interruptMode: 'per-packet',
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        weaponStrengthProfileId: 'bundle.ascended',
-        type: 'strike',
-        // The EVTC records five visual volleys as ten damage packets. Each
-        // packet has a 0.5 coefficient and a matching Burning application.
-        ticks: NAPALM_TICK_OFFSETS_MS.map((atMs) => ({ atMs, coefficient: 0.5 })),
-        name: 'Napalm',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        ticks: NAPALM_TICK_OFFSETS_MS.map((atMs) => ({
-          atMs,
-          condition: CONDITION.BURNING,
-          stacks: 1,
-          duration: 3.25
-        })),
-        actorType: ACTOR.PLAYER
-      }
-    ]),
-    kitId: ID.FLAMETHROWER
-  },
-  [ID.AIR_BLAST]: {
-    castTimeMs: 360,
-    cooldown: 15,
-    effects: [
-      {
-        // Custom: Burning and missile procs require an already-burning target at impact; the handler below preserves that live check.
-        type: 'custom',
-        eventType: 'engineer.air-blast',
-        event: { condition: CONDITION.BURNING, stacks: 1, duration: 5, projectile: true },
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'control',
-        actorType: ACTOR.PLAYER,
-        controlKind: CONTROL.KNOCKBACK
-      }
-    ],
-    kitId: ID.FLAMETHROWER
+    ]
   },
   [ID.FLAME_BLAST]: {
-    castTimeMs: 800,
     cooldown: 6,
+    kitId: ID.FLAMETHROWER,
+    castTimeMs: 800,
     // The blast lands at 520 ms after its earlier commit while the cast keeps its full lockout.
     retainsCastLockoutAfterInterrupt: true,
     // Share one impact timing while preserving independent payloads and declaration order.
@@ -151,38 +104,31 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
           actorType: ACTOR.PLAYER
         }
       ]
-    ),
-    kitId: ID.FLAMETHROWER
+    )
   },
-  [ID.STOW_FLAMETHROWER]: {
-    // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    // Commit the bar transition before cast traits observe the selected kit.
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }],
-    kitTransition: 'stow',
-    paletteFlip: false,
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    kitId: ID.FLAMETHROWER
-  },
-  [ID.SMOKE_VENT]: {
-    castTimeMs: 0,
+  [ID.AIR_BLAST]: {
     cooldown: 15,
+    kitId: ID.FLAMETHROWER,
+    castTimeMs: 360,
     effects: [
       {
-        type: 'condition',
-        condition: CONDITION.BLINDNESS,
-        stacks: 1,
-        duration: 5,
+        // Custom: Burning and missile procs require an already-burning target at impact; the handler below preserves that live check.
+        type: 'custom',
+        eventType: 'engineer.air-blast',
+        event: { condition: CONDITION.BURNING, stacks: 1, duration: 5, projectile: true },
         actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'control',
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.KNOCKBACK
       }
-    ],
-    toolbeltParentId: ID.FLAMETHROWER
+    ]
   },
   [ID.STOKE_THE_FLAMES]: {
-    castTimeMs: 440,
     cooldown: 20,
+    kitId: ID.FLAMETHROWER,
+    castTimeMs: 440,
     comboFields: [
       {
         ownerId: 'engineer',
@@ -223,8 +169,62 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         duration: 8,
         stacks: 8
       }
-    ]),
-    kitId: ID.FLAMETHROWER
+    ])
+  },
+  [ID.STOW_FLAMETHROWER]: {
+    // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    kitTransition: 'stow',
+    paletteFlip: false,
+    cooldown: 0,
+    kitId: ID.FLAMETHROWER,
+    castTimeMs: 0,
+    effects: [],
+    // Commit the bar transition before cast traits observe the selected kit.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }]
+  },
+  [ID.SMOKE_VENT]: {
+    cooldown: 15,
+    toolbeltParentId: ID.FLAMETHROWER,
+    castTimeMs: 0,
+    effects: [
+      {
+        type: 'condition',
+        condition: CONDITION.BLINDNESS,
+        stacks: 1,
+        duration: 5,
+        actorType: ACTOR.PLAYER
+      }
+    ]
+  },
+  [ID.NAPALM]: {
+    cooldown: 25,
+    kitId: ID.FLAMETHROWER,
+    castTimeMs: 1760,
+    // Napalm fires independent volleys, so interruption retains only packets launched before the cutoff.
+    interruptMode: 'per-packet',
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        weaponStrengthProfileId: 'bundle.ascended',
+        type: 'strike',
+        // The EVTC records five visual volleys as ten damage packets. Each
+        // packet has a 0.5 coefficient and a matching Burning application.
+        ticks: NAPALM_TICK_OFFSETS_MS.map((atMs) => ({ atMs, coefficient: 0.5 })),
+        name: 'Napalm',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        ticks: NAPALM_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: CONDITION.BURNING,
+          stacks: 1,
+          duration: 3.25
+        })),
+        actorType: ACTOR.PLAYER
+      }
+    ])
   }
 });
 

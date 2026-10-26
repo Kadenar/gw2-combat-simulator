@@ -8,9 +8,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RIFLE_BURST]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    cooldown: 0,
     // Rifle Burst occupies an 840 ms channel; interruption retains landed packets and cancels future packets.
     castTimeMs: 840,
-    cooldown: 0,
     interruptMode: 'per-packet',
     effects: [
       {
@@ -44,11 +44,55 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
       }
     ]
   },
+  [ID.RIFLE_BURST_GRENADE]: {
+    simulatorExcluded: true,
+    cooldown: 0,
+    castTimeMs: 0,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.8,
+        hits: 1,
+        name: 'Rifle Burst Grenade',
+        actorType: ACTOR.PLAYER,
+        damageKind: 'explosion',
+        projectile: true
+      }
+    ]
+  },
+  [ID.BLUNDERBUSS]: {
+    cooldown: 6,
+    castTimeMs: 400,
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 2.2,
+        hits: 1,
+        name: 'Maximum Damage',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 3,
+        duration: 9,
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.MIGHT,
+        duration: 8,
+        stacks: 5
+      }
+    ])
+  },
   [ID.NET_SHOT]: {
+    cooldown: 9,
     castTimeMs: 600,
     // Commit Net Shot at 560 ms so later interruptions keep the activation.
     interruptCommitMs: 560,
-    cooldown: 9,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -75,12 +119,32 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
       }
     ])
   },
+  [ID.OVERCHARGED_SHOT]: {
+    cooldown: 14,
+    castTimeMs: 400,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [{ atMs: 440, coefficient: 1 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Overcharged Shot',
+        actorType: ACTOR.PLAYER,
+        projectile: true
+      },
+      {
+        type: 'control',
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.LAUNCH
+      }
+    ]
+  },
   [ID.JUMP_SHOT]: {
+    cooldown: 18,
     castTimeMs: 1000,
     // Once the leap commits, retain its cast lockout and landing payload through interruption.
     interruptCommitMs: 520,
     retainsCastLockoutAfterInterrupt: true,
-    cooldown: 18,
     effects: [
       {
         type: 'strike',
@@ -114,70 +178,6 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
           actorType: ACTOR.PLAYER
         }
       ])
-    ]
-  },
-  [ID.BLUNDERBUSS]: {
-    castTimeMs: 400,
-    cooldown: 6,
-    // Share one impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 2.2,
-        hits: 1,
-        name: 'Maximum Damage',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.BLEEDING,
-        stacks: 3,
-        duration: 9,
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.MIGHT,
-        duration: 8,
-        stacks: 5
-      }
-    ])
-  },
-  [ID.OVERCHARGED_SHOT]: {
-    castTimeMs: 400,
-    cooldown: 14,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 440, coefficient: 1 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        name: 'Overcharged Shot',
-        actorType: ACTOR.PLAYER,
-        projectile: true
-      },
-      {
-        type: 'control',
-        actorType: ACTOR.PLAYER,
-        controlKind: CONTROL.LAUNCH
-      }
-    ]
-  },
-  [ID.RIFLE_BURST_GRENADE]: {
-    simulatorExcluded: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
-        name: 'Rifle Burst Grenade',
-        actorType: ACTOR.PLAYER,
-        damageKind: 'explosion',
-        projectile: true
-      }
     ]
   }
 });

@@ -25,6 +25,7 @@ export const hammerLifecycle = {
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.HAMMER_STRIKE]: {
+    castTimeMs: 480,
     interruptCommitMs: 360,
     effects: [
       {
@@ -33,76 +34,10 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    castTimeMs: 480
-  },
-  [ID.UNLEASHED_SAVAGE_SHOCK_WAVE]: {
-    interruptCommitMs: 520,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [520, 800, 1080].map((atMs) => ({
-          atMs,
-          coefficient: 0.8
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        damageKind: 'ranger-unleashed-disabled-condition-count'
-      }
-    ],
-    castTimeMs: 560
-  },
-  [ID.UNLEASHED_OVERBEARING_SMASH]: {
-    // Keep the opening impact when cancelled between hits; the follow-up requires reaching its own packet.
-    interruptMode: 'per-packet',
-    effects: [
-      ...impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-        {
-          type: 'strike',
-          coefficient: 0.75
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.BLINDNESS,
-          stacks: 1,
-          duration: 2
-        }
-      ]),
-      {
-        type: 'strike',
-        sourceId: ID.OVERBEARING_SMASH_SECOND_STRIKE,
-        ticks: [{ atMs: 960, coefficient: 1.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        name: 'Unleashed Overbearing Smash - Follow-Up Damage'
-      }
-    ],
-    castTimeMs: 960
-  },
-  [ID.UNLEASHED_THUMP]: {
-    interruptCommitMs: 800,
-    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 2.3
-      },
-      {
-        type: 'boon',
-        boon: BOON.MIGHT,
-        duration: 6.5,
-        stacks: 6
-      },
-      {
-        type: 'boon',
-        boon: BOON.FURY,
-        duration: 6.5,
-        stacks: 1
-      }
-    ]),
-    castTimeMs: 960
+    ]
   },
   [ID.HAMMER_SLAM]: {
+    castTimeMs: 640,
     interruptCommitMs: 320,
     effects: [
       {
@@ -111,23 +46,10 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    castTimeMs: 640
-  },
-  [ID.UNLEASHED_WILD_SWING]: {
-    interruptCommitMs: 400,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        damageKind: 'ranger-unleashed-disabled'
-      }
-    ],
-    castTimeMs: 480
+    ]
   },
   [ID.HEAVY_SMASH]: {
+    castTimeMs: 440,
     interruptCommitMs: 320,
     effects: [
       {
@@ -136,10 +58,10 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    castTimeMs: 440
+    ]
   },
   [ID.WILD_SWING]: {
+    castTimeMs: 480,
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -151,23 +73,23 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial
         stacks: 1,
         duration: 5
       }
-    ]),
-    castTimeMs: 480
+    ])
   },
-  [ID.THUMP]: {
-    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+  [ID.UNLEASHED_WILD_SWING]: {
+    castTimeMs: 480,
+    interruptCommitMs: 400,
+    effects: [
       {
         type: 'strike',
-        coefficient: 1.25
-      },
-      {
-        type: 'control',
-        controlKind: CONTROL.KNOCKDOWN
+        ticks: [{ atMs: 400, coefficient: 2 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        damageKind: 'ranger-unleashed-disabled'
       }
-    ]),
-    castTimeMs: 960
+    ]
   },
   [ID.OVERBEARING_SMASH]: {
+    castTimeMs: 960,
     interruptCommitMs: 240,
     effects: [
       ...impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -192,10 +114,37 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial
           controlKind: CONTROL.DAZE
         }
       ])
-    ],
-    castTimeMs: 960
+    ]
+  },
+  [ID.UNLEASHED_OVERBEARING_SMASH]: {
+    castTimeMs: 960,
+    // Keep the opening impact when cancelled between hits; the follow-up requires reaching its own packet.
+    interruptMode: 'per-packet',
+    effects: [
+      ...impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 0.75
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.BLINDNESS,
+          stacks: 1,
+          duration: 2
+        }
+      ]),
+      {
+        type: 'strike',
+        sourceId: ID.OVERBEARING_SMASH_SECOND_STRIKE,
+        ticks: [{ atMs: 960, coefficient: 1.5 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Unleashed Overbearing Smash - Follow-Up Damage'
+      }
+    ]
   },
   [ID.SAVAGE_SHOCK_WAVE]: {
+    castTimeMs: 560,
     effects: [
       {
         type: 'strike',
@@ -229,8 +178,59 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial
           duration: 2
         }
       ])
-    ],
-    castTimeMs: 560
+    ]
+  },
+  [ID.UNLEASHED_SAVAGE_SHOCK_WAVE]: {
+    castTimeMs: 560,
+    interruptCommitMs: 520,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [520, 800, 1080].map((atMs) => ({
+          atMs,
+          coefficient: 0.8
+        })),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true,
+        damageKind: 'ranger-unleashed-disabled-condition-count'
+      }
+    ]
+  },
+  [ID.THUMP]: {
+    castTimeMs: 960,
+    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 1.25
+      },
+      {
+        type: 'control',
+        controlKind: CONTROL.KNOCKDOWN
+      }
+    ])
+  },
+  [ID.UNLEASHED_THUMP]: {
+    castTimeMs: 960,
+    interruptCommitMs: 800,
+    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 2.3
+      },
+      {
+        type: 'boon',
+        boon: BOON.MIGHT,
+        duration: 6.5,
+        stacks: 6
+      },
+      {
+        type: 'boon',
+        boon: BOON.FURY,
+        duration: 6.5,
+        stacks: 1
+      }
+    ])
   }
 });
 

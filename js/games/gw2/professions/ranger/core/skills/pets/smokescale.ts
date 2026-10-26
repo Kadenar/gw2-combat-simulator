@@ -10,6 +10,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Natural Bite uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.SMOKESCALE_BITE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SMOKESCALE_BITE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SMOKESCALE_BITE]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -25,13 +28,13 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SMOKESCALE_BITE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SMOKESCALE_BITE]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Takedown uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.SMOKESCALE_TAKEDOWN]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SMOKESCALE_TAKEDOWN]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SMOKESCALE_TAKEDOWN]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -47,13 +50,13 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SMOKESCALE_TAKEDOWN]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SMOKESCALE_TAKEDOWN]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Smoke Assault uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.SMOKESCALE_SMOKE_ASSAULT]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SMOKESCALE_SMOKE_ASSAULT]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SMOKESCALE_SMOKE_ASSAULT]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -74,12 +77,11 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SMOKESCALE_SMOKE_ASSAULT]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SMOKESCALE_SMOKE_ASSAULT]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   [ID.SMOKE_CLOUD]: {
+    petSkill: true,
+    quicknessCastTimeMs: 500,
     // The pet's persistent field lets ranger leap/blast finishers grant ordinary stealth.
     comboFields: [
       {
@@ -90,8 +92,6 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
         startAnchor: 'castEnd'
       }
     ],
-    effects: [],
-    quicknessCastTimeMs: 500,
-    petSkill: true
+    effects: []
   }
 });

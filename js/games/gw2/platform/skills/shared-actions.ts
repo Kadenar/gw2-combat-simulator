@@ -20,10 +20,10 @@ export function createWeaponSwapSkill(
     type: 'Action',
     slot: 'Action',
     inputCategory: 'weapon-swap',
-    castTimeMs: 0,
     cooldown: 10,
     rechargeIgnoresAlacrity: true,
     rechargeAnchor: 'castStart',
+    castTimeMs: 0,
     ...overrides,
     id: SHARED_SKILL_IDS.SWAP_WEAPONS,
     effects: []
@@ -56,9 +56,9 @@ export function createDodgeSkill(
     slot: 'Action',
     // The dodge key drives editor shortcuts and input-activity tracing for every profession's dodge.
     inputControl: 'dodge',
-    castTimeMs: 800,
     cooldown: 0,
     cost: { resource: 'endurance', amount: ENDURANCE.dodgeCost },
+    castTimeMs: 800,
     ...overrides,
     id: SHARED_SKILL_IDS.DODGE,
     effects: []

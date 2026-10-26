@@ -58,16 +58,16 @@ const METEOR_SHOWER_STRIKE_TICKS = [
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FIREBALL]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Fireball',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.STAFF,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 960,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 960,
     effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.4 },
       { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 1 }
@@ -81,8 +81,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.STAFF,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 280,
     cooldown: 6,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 280,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -91,7 +92,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       // Field pulses land once per second; lifetime extensions add whole pulses on the same interval.
@@ -121,9 +121,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.STAFF,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 360,
     cooldown: 10,
     skillFamily: 'Weapon skill',
+    castTimeMs: 360,
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1 },
       {
@@ -150,8 +150,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.STAFF,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 1000,
     cooldown: 18,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 1000,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -160,7 +161,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     effects: [
       ...impactEffects({ atMs: 80, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.2 },
@@ -199,9 +199,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
       weapon: WEAPON.STAFF,
       attunement: 'Fire',
       categories: ['Weapon skill'],
-      castTimeMs: 2640,
       cooldown: 30,
       skillFamily: 'Weapon skill',
+      castTimeMs: 2640,
       effects: [
         strikeTimeline(METEOR_SHOWER_STRIKE_TICKS, {
           timingAnchor: 'castStart',
@@ -212,16 +212,16 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     12
   ),
   [ID.WATER_BLAST]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Water Blast',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.STAFF,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 840,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 840,
     effects: [
       {
         type: 'strike',
@@ -244,9 +244,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.STAFF,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 520,
     cooldown: 6,
     skillFamily: 'Weapon skill',
+    castTimeMs: 520,
     effects: impactEffects({ atMs: 1760, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -270,8 +270,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.STAFF,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 560,
     cooldown: 20,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 560,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -280,7 +281,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     effects: []
   },
   // Ice field for combo purposes; only the initial Chilled application is emitted.
@@ -291,8 +291,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.STAFF,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 280,
     cooldown: 30,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 280,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -301,7 +302,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     effects: [
       {
         type: 'condition',
@@ -325,8 +325,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.STAFF,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 840,
     cooldown: 35,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 840,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -335,7 +336,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     effects: [
       {
         type: 'boon',
@@ -351,16 +351,16 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.CHAIN_LIGHTNING]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Chain Lightning',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.STAFF,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 840,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 840,
     effects: [
       {
         type: 'strike',
@@ -382,9 +382,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.STAFF,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 1000,
     cooldown: 10,
     skillFamily: 'Weapon skill',
+    castTimeMs: 1000,
     effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.8 },
       {
@@ -403,9 +403,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.STAFF,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Weapon skill',
+    castTimeMs: 480,
     effects: [
       {
         type: 'control',
@@ -424,9 +424,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.STAFF,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 480,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    castTimeMs: 480,
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'boon',
@@ -446,8 +446,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.STAFF,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
     cooldown: 30,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 680,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -456,7 +457,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     effects: [
       ...impactEffects({ atMs: 680, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.5, canCrit: true },
@@ -465,16 +465,16 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.STONING]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Stoning',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.STAFF,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 880,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 880,
     effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -498,9 +498,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.STAFF,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 840,
     cooldown: 6,
     skillFamily: 'Weapon skill',
+    castTimeMs: 840,
     effects: impactEffects({ atMs: 4000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -526,25 +526,23 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.STAFF,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 30,
     nextChainId: ID.TRANSMUTE_EARTH,
     skillFamily: 'Weapon skill',
+    castTimeMs: 0,
     effects: [{ type: 'aura', aura: AURA.MAGNETIC, duration: 4 }]
   },
   [ID.TRANSMUTE_EARTH]: {
-    // Consume all live matching auras on commitment, regardless of which skill or trait granted them.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.transmute-aura' } }],
     name: 'Transmute Earth',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.STAFF,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 360,
     cooldown: 10,
     nextChainId: ID.MAGNETIC_AURA,
     skillFamily: 'Weapon skill',
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -563,7 +561,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]
+    ],
+    // Consume all live matching auras on commitment, regardless of which skill or trait granted them.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.transmute-aura' } }]
   },
   [ID.UNSTEADY_GROUND]: {
     name: 'Unsteady Ground',
@@ -572,9 +572,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.STAFF,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 720,
     cooldown: 30,
     skillFamily: 'Weapon skill',
+    castTimeMs: 720,
     effects: [
       {
         type: 'control',
@@ -594,9 +594,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.STAFF,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
     cooldown: 25,
     skillFamily: 'Weapon skill',
+    castTimeMs: 680,
     effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',

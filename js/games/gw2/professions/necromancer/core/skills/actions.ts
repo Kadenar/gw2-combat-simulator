@@ -12,19 +12,19 @@ const extraSkills: Skill[] = [
   // Dodge uses the shared endurance controller and remains available in every transform.
   { ...createDodgeSkill(), usableInShroud: true },
   {
-    id: ID.EXIT_LICH_FORM,
-    // Manual and timed exits share the same guarded life-force reward.
-    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.exit-lich' } }],
-    inputCategory: 'bar-swap', // Manual form exit replaces the active skill bar.
     name: 'Exit Lich Form',
+    id: ID.EXIT_LICH_FORM,
+    inputCategory: 'bar-swap', // Manual form exit replaces the active skill bar.
     description: 'Leave Lich Form and return to your normal skill bar.',
     icon: 'https://render.guildwars2.com/file/A6CAF2146D9DF2EBEFD9285CB0E9E3617A659071/1770528.png',
     type: 'Profession',
     slot: 'Profession_1',
-    castTimeMs: 0,
     cooldown: 0,
     flipParentId: ID.LICH_FORM,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    // Manual and timed exits share the same guarded life-force reward.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.exit-lich' } }]
   }
 ];
 

@@ -10,25 +10,24 @@ import type { HolosmithSkillFragment } from '#gw2/professions/engineer/specializ
 /** Supplies Photon Forge fragments to Holosmith module composition. */
 export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
   [ID.DEACTIVATE_PHOTON_FORGE]: {
-    // Commit voluntary exit without replacing an overheat-owned Lens grant.
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.exit-forge' } }],
     // Custom: Leaves Photon Forge and starts passive heat decay; see `holosmith/mechanics/photon-forge.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    cooldown: 6,
+    countsAsToolbeltSkill: false,
+    mechanicSlot: 5,
 
     castTimeMs: 0,
-    cooldown: 6,
     effects: [],
-    countsAsToolbeltSkill: false,
-    mechanicSlot: 5
+    // Commit voluntary exit without replacing an overheat-owned Lens grant.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.exit-forge' } }]
   },
-  [ID.FLASH_CUTTER_STORM]: {
-    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
-    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }],
-    // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
-
-    castTimeMs: 560,
+  [ID.LIGHT_STRIKE_STORM]: {
     cooldown: 0,
     heatGain: 3,
+    forgeSkill: true,
+    // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
+
+    castTimeMs: 360,
     comboFinishers: [
       {
         ownerId: 'engineer',
@@ -40,25 +39,24 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
       {
         weaponStrengthProfileId: 'transform.photon-forge',
         type: 'strike',
-        ticks: [200, 360].map((atMs) => ({ atMs, coefficient: 1.6 / 2 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        name: 'Flash Cutter—Storm',
+        coefficient: 1,
+        hits: 1,
+        name: 'Light Strike—Storm',
         actorType: ACTOR.PLAYER,
         damageKind: 'explosion',
         projectile: true
       }
     ],
-    forgeSkill: true
+    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
   },
   [ID.BRIGHT_SLASH_STORM]: {
-    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
-    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }],
+    cooldown: 0,
+    heatGain: 3,
+    forgeSkill: true,
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
 
     castTimeMs: 520,
-    cooldown: 0,
-    heatGain: 3,
     interruptCommitMs: 280,
     comboFinishers: [
       {
@@ -81,83 +79,82 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         projectile: true
       }
     ],
-    forgeSkill: true
-  },
-  [ID.HOLOGRAPHIC_SHOCKWAVE]: {
     // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
-    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }],
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
+  },
+  [ID.FLASH_CUTTER_STORM]: {
+    cooldown: 0,
+    heatGain: 3,
+    forgeSkill: true,
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
 
-    castTimeMs: 520,
-    cooldown: 15,
-    heatGain: 25,
-    // Shockwave always critically strikes and blasts the active combo field.
-    comboFinishers: [{ ownerId: 'engineer', finisherType: COMBO_FINISHER.BLAST }],
+    castTimeMs: 560,
+    comboFinishers: [
+      {
+        ownerId: 'engineer',
+        finisherType: COMBO_FINISHER.PROJECTILE,
+        chance: 0.2
+      }
+    ],
     effects: [
       {
         weaponStrengthProfileId: 'transform.photon-forge',
         type: 'strike',
-        coefficient: 1.8,
-        hits: 1,
-        name: 'Holographic Shockwave',
-        forceCrit: true,
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'control',
+        ticks: [200, 360].map((atMs) => ({ atMs, coefficient: 1.6 / 2 })),
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        name: 'Flash Cutter—Storm',
         actorType: ACTOR.PLAYER,
-        controlKind: CONTROL.LAUNCH
+        damageKind: 'explosion',
+        projectile: true
       }
     ],
-    forgeSkill: true
+    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
   },
   [ID.ENGAGE_PHOTON_FORGE]: {
     // Intrinsic tuning follows this selected skill through patches and deferred work.
     kitLockoutDuration: 6,
-
-    // Commit the bar transition; shared heat cadence and Lens lifetime retain their mechanic owner.
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.enter-forge' } }],
     // Custom: Enters Photon Forge and starts its heat lifecycle; see `holosmith/mechanics/photon-forge.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    cooldown: 1,
+    countsAsToolbeltSkill: false,
+    mechanicSlot: 5,
 
     castTimeMs: 0,
-    cooldown: 1,
     effects: [],
-    countsAsToolbeltSkill: false,
-    mechanicSlot: 5
+
+    // Commit the bar transition; shared heat cadence and Lens lifetime retain their mechanic owner.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.enter-forge' } }]
   },
-  [ID.HOLO_LEAP]: {
-    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
-    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }],
+  [ID.LIGHT_STRIKE]: {
+    cooldown: 0,
+    heatGain: 2,
+    forgeSkill: true,
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
 
-    castTimeMs: 520,
-    cooldown: 2,
-    heatGain: 7,
+    castTimeMs: 360,
+    interruptCommitMs: 200,
     effects: [
       {
         weaponStrengthProfileId: 'transform.photon-forge',
         type: 'strike',
-        coefficient: 1.8,
-        hits: 1,
-        name: 'Holo Leap',
+        ticks: [{ atMs: 200, coefficient: 1 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true,
+        name: 'Light Strike',
         actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 3 },
-        boon: BOON.SWIFTNESS,
-        duration: 3,
-        stacks: 1
       }
     ],
-    forgeSkill: true
+    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
   },
   [ID.VENT_EXHAUST]: {
-    castTimeMs: 0,
     cooldown: 0,
     // Vent Exhaust owns both its combat packets and the heat it vents; Thermal Release Valve only invokes it.
     heatLoss: 15,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -177,53 +174,108 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     ]
   },
   [ID.OVERHEAT]: {
-    castTimeMs: 0,
     cooldown: 0,
+    castTimeMs: 0,
     effects: []
   },
-  [ID.LIGHT_STRIKE_STORM]: {
-    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
-    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }],
+  [ID.BRIGHT_SLASH]: {
+    cooldown: 0,
+    heatGain: 2,
+    forgeSkill: true,
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
 
-    castTimeMs: 360,
-    cooldown: 0,
-    heatGain: 3,
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: COMBO_FINISHER.PROJECTILE,
-        chance: 0.2
-      }
-    ],
+    castTimeMs: 520,
+    // The report's shortest successful cast is 441 ms (440 on the replay grid); hit timing alone is not a cutoff.
+    interruptCommitMs: 440,
     effects: [
       {
         weaponStrengthProfileId: 'transform.photon-forge',
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        name: 'Light Strike—Storm',
-        actorType: ACTOR.PLAYER,
-        damageKind: 'explosion',
-        projectile: true
+        ticks: [{ atMs: 280, coefficient: 1 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Bright Slash',
+        actorType: ACTOR.PLAYER
       }
     ],
-    forgeSkill: true
+    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
   },
   [ID.HOLOFORGE_OVERHEATED]: {
-    castTimeMs: 0,
     cooldown: 0,
+    castTimeMs: 0,
     effects: []
   },
+  [ID.FLASH_CUTTER]: {
+    cooldown: 0,
+    heatGain: 2,
+    forgeSkill: true,
+    // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
+
+    castTimeMs: 520,
+    interruptCommitMs: 480,
+    effects: [
+      {
+        weaponStrengthProfileId: 'transform.photon-forge',
+        type: 'strike',
+        // The second impact precedes the aftercast; shortening it must not stretch or drop either strike.
+        ticks: [280, 440].map((atMs) => ({ atMs, coefficient: 1.6 / 2 })),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Flash Cutter',
+        actorType: ACTOR.PLAYER
+      }
+    ],
+    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
+  },
+  [ID.HOLO_LEAP]: {
+    cooldown: 2,
+    heatGain: 7,
+    forgeSkill: true,
+    // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
+
+    castTimeMs: 520,
+    effects: [
+      {
+        weaponStrengthProfileId: 'transform.photon-forge',
+        type: 'strike',
+        coefficient: 1.8,
+        hits: 1,
+        name: 'Holo Leap',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 3 },
+        boon: BOON.SWIFTNESS,
+        duration: 3,
+        stacks: 1
+      }
+    ],
+    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
+  },
+  [ID.DEACTIVATE_PHOTON_FORGE_HOT]: {
+    // Custom: Leaves Photon Forge and starts passive heat decay; see `holosmith/mechanics/photon-forge.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    cooldown: 6,
+    countsAsToolbeltSkill: false,
+    mechanicSlot: 5,
+
+    castTimeMs: 0,
+    effects: [],
+    // Commit voluntary exit without replacing an overheat-owned Lens grant.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.exit-forge' } }]
+  },
   [ID.CORONA_BURST]: {
-    // A released Corona owns its complete heat pulse sequence, including after Forge exit.
-    sideEffects: [{ on: 'castStart', do: { type: 'engineer.corona-heat' } }],
+    cooldown: 6,
+    heatGain: 10,
+    forgeSkill: true,
     // Custom: Schedules committed heat pulses that persist after Forge exit; see `holosmith/mechanics/photon-forge.ts`.
 
     castTimeMs: 480,
     interruptCommitMs: 400,
-    cooldown: 6,
-    heatGain: 10,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
@@ -295,76 +347,18 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         }
       ])
     ],
-    forgeSkill: true
-  },
-  [ID.LIGHT_STRIKE]: {
-    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
-    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }],
-    // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
-
-    castTimeMs: 360,
-    interruptCommitMs: 200,
-    cooldown: 0,
-    heatGain: 2,
-    effects: [
-      {
-        weaponStrengthProfileId: 'transform.photon-forge',
-        type: 'strike',
-        ticks: [{ atMs: 200, coefficient: 1 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        name: 'Light Strike',
-        actorType: ACTOR.PLAYER
-      }
-    ],
-    forgeSkill: true
-  },
-  [ID.DEACTIVATE_PHOTON_FORGE_HOT]: {
-    // Commit voluntary exit without replacing an overheat-owned Lens grant.
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.exit-forge' } }],
-    // Custom: Leaves Photon Forge and starts passive heat decay; see `holosmith/mechanics/photon-forge.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-
-    castTimeMs: 0,
-    cooldown: 6,
-    effects: [],
-    countsAsToolbeltSkill: false,
-    mechanicSlot: 5
-  },
-  [ID.BRIGHT_SLASH]: {
-    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
-    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }],
-    // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
-
-    castTimeMs: 520,
-    // The report's shortest successful cast is 441 ms (440 on the replay grid); hit timing alone is not a cutoff.
-    interruptCommitMs: 440,
-    cooldown: 0,
-    heatGain: 2,
-    effects: [
-      {
-        weaponStrengthProfileId: 'transform.photon-forge',
-        type: 'strike',
-        ticks: [{ atMs: 280, coefficient: 1 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        name: 'Bright Slash',
-        actorType: ACTOR.PLAYER
-      }
-    ],
-    forgeSkill: true
+    // A released Corona owns its complete heat pulse sequence, including after Forge exit.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.corona-heat' } }]
   },
   [ID.PHOTON_BLITZ]: {
-    // Only projectiles launched before interruption schedule their heat.
-    sideEffects: [{ on: 'castStart', do: { type: 'engineer.blitz-heat' } }],
+    cooldown: 10,
+    heatGain: 16,
+    forgeSkill: true,
     // Custom: Adds heat per completed projectile launch; see `holosmith/mechanics/photon-forge.ts`.
 
     castTimeMs: 1320,
     // Each launched projectile and matching burn survive independently when the channel ends early.
     interruptMode: 'per-packet',
-    cooldown: 10,
-    heatGain: 16,
     comboFinishers: [
       {
         ownerId: 'engineer',
@@ -393,29 +387,35 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         actorType: ACTOR.PLAYER
       }
     ]),
-    forgeSkill: true
+    // Only projectiles launched before interruption schedule their heat.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.blitz-heat' } }]
   },
-  [ID.FLASH_CUTTER]: {
-    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
-    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }],
+  [ID.HOLOGRAPHIC_SHOCKWAVE]: {
+    cooldown: 15,
+    heatGain: 25,
+    forgeSkill: true,
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
 
     castTimeMs: 520,
-    interruptCommitMs: 480,
-    cooldown: 0,
-    heatGain: 2,
+    // Shockwave always critically strikes and blasts the active combo field.
+    comboFinishers: [{ ownerId: 'engineer', finisherType: COMBO_FINISHER.BLAST }],
     effects: [
       {
         weaponStrengthProfileId: 'transform.photon-forge',
         type: 'strike',
-        // The second impact precedes the aftercast; shortening it must not stretch or drop either strike.
-        ticks: [280, 440].map((atMs) => ({ atMs, coefficient: 1.6 / 2 })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        name: 'Flash Cutter',
+        coefficient: 1.8,
+        hits: 1,
+        name: 'Holographic Shockwave',
+        forceCrit: true,
         actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'control',
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.LAUNCH
       }
     ],
-    forgeSkill: true
+    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
   }
 });

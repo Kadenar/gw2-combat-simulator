@@ -30,19 +30,19 @@ const DRAKES_BREATH_TICK_OFFSETS_MS = [520, 760, 1000, 1240] as const;
 export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Three claws are thrown together, so one packet time carries three independent strikes.
   [ID.DRAGONS_CLAW]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: "Dragon's Claw",
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.DAGGER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
+    cooldown: 0,
+    skillFamily: 'Weapon skill',
     castTimeMs: 720,
     // The three projectiles commit together by 440 ms; cancelling the aftercast keeps their damage and lockout.
     interruptCommitMs: 440,
     retainsCastLockoutAfterInterrupt: true,
-    cooldown: 0,
-    skillFamily: 'Weapon skill',
     effects: [
       {
         type: 'strike',
@@ -59,15 +59,15 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   // only the ticks that already landed when the channel is cut short.
   [ID.DRAKES_BREATH]: {
     name: "Drake's Breath",
-    interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.DAGGER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 1360,
     cooldown: 5,
     skillFamily: 'Weapon skill',
+    castTimeMs: 1360,
+    interruptMode: 'per-packet',
     // Share the channel timing while retaining each timeline's packet indices and interruption behavior.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -97,8 +97,9 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.DAGGER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 800,
     cooldown: 12,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 800,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -107,7 +108,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     effects: [
       ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 3 },
@@ -143,10 +143,11 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.DAGGER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
+    cooldown: 15,
+    skillFamily: 'Weapon skill',
     castTimeMs: 480,
     // The field is committed before the final 40 ms of aftercast.
     interruptCommitMs: 440,
-    cooldown: 15,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -155,7 +156,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2 },
       {
@@ -173,10 +173,10 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.DAGGER,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 560,
-    interruptCommitMs: 480,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    castTimeMs: 560,
+    interruptCommitMs: 480,
     effects: [
       {
         type: 'strike',
@@ -194,16 +194,16 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   // The blade strikes outbound and again on its return a second later, each pass applying Vulnerability.
   [ID.VAPOR_BLADE]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Vapor Blade',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.DAGGER,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 360,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 360,
     effects: [
       ...impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.33 },
@@ -223,9 +223,9 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.DAGGER,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 1360,
     cooldown: 10,
     skillFamily: 'Weapon skill',
+    castTimeMs: 1360,
     effects: [
       {
         type: 'strike',
@@ -281,8 +281,9 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.DAGGER,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 600,
     cooldown: 12,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 600,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -291,7 +292,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -315,26 +315,24 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.DAGGER,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 10,
     nextChainId: ID.TRANSMUTE_FROST,
     skillFamily: 'Weapon skill',
+    castTimeMs: 0,
     effects: [{ type: 'aura', aura: AURA.FROST, duration: 10 }]
   },
   // Consumes the Frost Aura and flips the slot back to Frost Aura.
   [ID.TRANSMUTE_FROST]: {
-    // Consume all live matching auras on commitment, regardless of which skill or trait granted them.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.transmute-aura' } }],
     name: 'Transmute Frost',
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: WEAPON.DAGGER,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 360,
     cooldown: 10,
     nextChainId: ID.FROST_AURA,
     skillFamily: 'Weapon skill',
+    castTimeMs: 360,
     effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5 },
       {
@@ -345,7 +343,9 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         stacks: 1,
         duration: 4
       }
-    ])
+    ]),
+    // Consume all live matching auras on commitment, regardless of which skill or trait granted them.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.transmute-aura' } }]
   },
   // Heal/cleanse only: no offensive packets, so the fragment exists to occupy cast time and recharge.
   [ID.CLEANSING_WAVE]: {
@@ -355,25 +355,25 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.DAGGER,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 960,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    castTimeMs: 960,
     effects: []
   },
   // Two-hit auto-attack landing inside a single cast.
   [ID.LIGHTNING_WHIP]: {
-    // Cutting the two-hit attack short keeps only strikes that have already landed.
-    interruptMode: 'per-packet',
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Lightning Whip',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.DAGGER,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 640,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 640,
+    // Cutting the two-hit attack short keeps only strikes that have already landed.
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
@@ -407,9 +407,9 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.DAGGER,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 360,
     cooldown: 8,
     skillFamily: 'Weapon skill',
+    castTimeMs: 360,
     effects: impactEffects({ atMs: 1320, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -434,47 +434,47 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.DAGGER,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 10,
     nextChainId: ID.TRANSMUTE_LIGHTNING,
     skillFamily: 'Weapon skill',
+    castTimeMs: 0,
     effects: [{ type: 'aura', aura: AURA.SHOCKING, duration: 10 }]
   },
   // Consumes the Shocking Aura for a crit-capable strike plus a crowd-control application, then flips back.
   [ID.TRANSMUTE_LIGHTNING]: {
-    // Consume all live matching auras on commitment, regardless of which skill or trait granted them.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.transmute-aura' } }],
     name: 'Transmute Lightning',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.DAGGER,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 360,
-    interruptCommitMs: 280,
     cooldown: 10,
     nextChainId: ID.SHOCKING_AURA,
     skillFamily: 'Weapon skill',
+    castTimeMs: 360,
+    interruptCommitMs: 280,
     effects: impactEffects(
       { atMs: 840, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 1.5, canCrit: true },
         { type: 'control', applications: 1, controlKind: CONTROL.STUN }
       ]
-    )
+    ),
+    // Consume all live matching auras on commitment, regardless of which skill or trait granted them.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.transmute-aura' } }]
   },
   [ID.RIDE_THE_LIGHTNING]: {
+    name: 'Ride the Lightning',
     // Recharge policy applies this intrinsic on-hit reduction; the simulated target is always hit.
     rechargeMultiplier: 0.5,
-    name: 'Ride the Lightning',
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: WEAPON.DAGGER,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 120,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    castTimeMs: 120,
     effects: [
       {
         type: 'strike',
@@ -496,9 +496,9 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.DAGGER,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 880,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    castTimeMs: 880,
     effects: impactEffects({ atMs: 880, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         // Updraft's launch registers a 0-damage strike, which is what lets it
@@ -512,16 +512,16 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     ])
   },
   [ID.IMPALE]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Impale',
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.DAGGER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
+    castTimeMs: 600,
     effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.77 },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 10 }
@@ -536,9 +536,9 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.DAGGER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 880,
     cooldown: 6,
     skillFamily: 'Weapon skill',
+    castTimeMs: 880,
     effects: [
       ...impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.33 },
@@ -559,9 +559,9 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.DAGGER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 640,
     cooldown: 12,
     skillFamily: 'Weapon skill',
+    castTimeMs: 640,
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -584,10 +584,10 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.DAGGER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
-    interruptCommitMs: 640,
     cooldown: 16,
     skillFamily: 'Weapon skill',
+    castTimeMs: 680,
+    interruptCommitMs: 640,
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -614,11 +614,11 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     weapon: WEAPON.DAGGER,
     attunement: 'Earth',
     categories: ['Weapon skill'],
+    cooldown: 20,
+    skillFamily: 'Weapon skill',
     castTimeMs: 960,
     // The eruption commits at 800 ms; cancelling the remaining aftercast keeps its damage and conditions.
     interruptCommitMs: 800,
-    cooldown: 20,
-    skillFamily: 'Weapon skill',
     effects: [
       {
         type: 'strike',

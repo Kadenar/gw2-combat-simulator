@@ -14,9 +14,10 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.SWORD,
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
-    castTimeMs: 640,
     cooldown: 10,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 640,
     effects: [
       ...impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1 },
@@ -26,8 +27,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         { type: 'strike', coefficient: 1.5 },
         { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8 }
       ])
-    ],
-    specialization: 'Weaver'
+    ]
   },
   [ID.PYRO_VORTEX]: {
     name: 'Pyro Vortex',
@@ -36,9 +36,10 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.SWORD,
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
-    castTimeMs: 560,
     cooldown: 12,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 560,
     effects: [
       ...impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1 },
@@ -76,8 +77,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         { type: 'strike', coefficient: 0.33 },
         { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 2 }
       ])
-    ],
-    specialization: 'Weaver'
+    ]
   },
   [ID.LAVA_SKIN]: {
     name: 'Lava Skin',
@@ -86,9 +86,10 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.SWORD,
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 400,
     cooldown: 18,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 400,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -104,8 +105,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           duration: 1
         }))
       }
-    ]),
-    specialization: 'Weaver'
+    ])
   },
   [ID.SHEARING_EDGE]: {
     name: 'Shearing Edge',
@@ -114,15 +114,15 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.SWORD,
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
-    castTimeMs: 640,
     cooldown: 12,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 640,
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.8 },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 8 },
       { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 2.5 }
-    ]),
-    specialization: 'Weaver'
+    ])
   },
   [ID.NATURAL_FRENZY]: {
     name: 'Natural Frenzy',
@@ -131,9 +131,10 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.SWORD,
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 1400,
     cooldown: 10,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 1400,
     effects: [
       ...impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.44 },
@@ -175,8 +176,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6 },
         { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 1.5 }
       ])
-    ],
-    specialization: 'Weaver'
+    ]
   },
   [ID.GALE_STRIKE]: {
     // The initial lift disables once; cyclone damage does not repeatedly trigger disable procs.
@@ -186,9 +186,10 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     weapon: WEAPON.SWORD,
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 720,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    specialization: 'Weaver',
+    castTimeMs: 720,
     effects: [
       ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.275, canCrit: true },
@@ -216,7 +217,6 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5 },
         { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5 }
       ])
-    ],
-    specialization: 'Weaver'
+    ]
   }
 });

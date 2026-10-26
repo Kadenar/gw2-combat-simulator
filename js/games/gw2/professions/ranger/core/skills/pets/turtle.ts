@@ -10,6 +10,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Natural Jade Cannon uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.TURTLE_JADE_CANNON]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TURTLE_JADE_CANNON]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TURTLE_JADE_CANNON]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -18,13 +21,13 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: ACTOR.SUMMON,
         projectile: true
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TURTLE_JADE_CANNON]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TURTLE_JADE_CANNON]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Heavy Shot uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.TURTLE_HEAVY_SHOT]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TURTLE_HEAVY_SHOT]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TURTLE_HEAVY_SHOT]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -40,13 +43,13 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TURTLE_HEAVY_SHOT]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TURTLE_HEAVY_SHOT]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Slam uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.TURTLE_SLAM]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TURTLE_SLAM]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TURTLE_SLAM]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -61,12 +64,11 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TURTLE_SLAM]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TURTLE_SLAM]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   [ID.HUNKER_DOWN]: {
+    petSkill: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'boon',
@@ -77,8 +79,6 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
+    ]
   }
 });

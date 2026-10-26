@@ -48,20 +48,29 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
       }
     ]
   },
-  [ID.RUSH]: {
-    // Movement classification drives completed Brave Stride rewards.
-    movementSkill: true,
-    castTimeMs: 1000,
-    // Require Rush to commit before interruption can preserve its strike, keeping the remaining cast lockout.
-    interruptCommitMs: 840,
-    retainsCastLockoutAfterInterrupt: true,
+  [ID.HUNDRED_BLADES]: {
+    castTimeMs: 2440,
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
-        // The committed charge still lands its strike after the animation is interrupted.
-        persistsAfterInterrupt: true,
-        coefficient: 2.5,
-        hits: 1
+        ticks: [
+          { atMs: 320, coefficient: 0.775 },
+          { atMs: 480, coefficient: 0.775 },
+          { atMs: 680, coefficient: 0.775 },
+          { atMs: 880, coefficient: 0.775 },
+          { atMs: 1160, coefficient: 0.775 },
+          { atMs: 1320, coefficient: 0.775 },
+          { atMs: 1560, coefficient: 0.775 },
+          { atMs: 1800, coefficient: 0.775 },
+          {
+            atMs: 2280,
+            coefficient: 1.5,
+            name: 'Hundred Blades — Final Strike Damage'
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ]
   },
@@ -108,29 +117,20 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
       }
     ]
   },
-  [ID.HUNDRED_BLADES]: {
-    interruptMode: 'per-packet',
-    castTimeMs: 2440,
+  [ID.RUSH]: {
+    // Movement classification drives completed Brave Stride rewards.
+    movementSkill: true,
+    castTimeMs: 1000,
+    // Require Rush to commit before interruption can preserve its strike, keeping the remaining cast lockout.
+    interruptCommitMs: 840,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 320, coefficient: 0.775 },
-          { atMs: 480, coefficient: 0.775 },
-          { atMs: 680, coefficient: 0.775 },
-          { atMs: 880, coefficient: 0.775 },
-          { atMs: 1160, coefficient: 0.775 },
-          { atMs: 1320, coefficient: 0.775 },
-          { atMs: 1560, coefficient: 0.775 },
-          { atMs: 1800, coefficient: 0.775 },
-          {
-            atMs: 2280,
-            coefficient: 1.5,
-            name: 'Hundred Blades — Final Strike Damage'
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        // The committed charge still lands its strike after the animation is interrupted.
+        persistsAfterInterrupt: true,
+        coefficient: 2.5,
+        hits: 1
       }
     ]
   }

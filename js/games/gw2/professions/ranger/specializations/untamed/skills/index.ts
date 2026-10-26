@@ -20,6 +20,14 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   ...UNTAMED_WEAPON_AMBUSH_MECHANICS,
   [ID.ENVELOPING_HAZE]: {
     castTimeMs: 0,
+    comboFields: [
+      {
+        ownerId: 'ranger',
+        fieldType: COMBO_FIELD.POISON,
+        duration: 5,
+        startAnchor: 'castEnd'
+      }
+    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -45,48 +53,25 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    comboFields: [
-      {
-        ownerId: 'ranger',
-        fieldType: COMBO_FIELD.POISON,
-        duration: 5,
-        startAnchor: 'castEnd'
-      }
-    ]
+    ])
   },
   [ID.NATURES_BINDING]: {
-    effects: [],
-    castTimeMs: 500
+    castTimeMs: 500,
+    effects: []
   },
   [ID.UNLEASH_RANGER]: {
-    // Transfers require commitment; ambush attempts spend their opportunity even on cancellation.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.unleash-ranger' } }],
-    castTimeMs: 0,
     cooldown: 1,
     // Both Unleash sides receive the same fixed, Alacrity-independent recharge.
 
     paletteTileId: UNLEASH_PALETTE_TILE,
     paletteTileOrder: 1,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    // Transfers require commitment; ambush attempts spend their opportunity even on cancellation.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.unleash-ranger' } }]
   },
   [ID.EXPLODING_SPORES]: {
-    // Capture Unleash at acceptance, adding the selected live boon to the skill's hostile packets.
-    effectVariants: (
-      [
-        [true, PROFILE.explodingSporesRanger, boonKey(BOON.MIGHT)],
-        [false, PROFILE.explodingSporesPet, boonKey(BOON.PROTECTION)]
-      ] as const
-    ).map<NonNullable<Skill['effectVariants']>[number]>(([unleashed, profileId, boon]) => ({
-      when: (runtime) => untamedState.from(runtime).rangerUnleashed === unleashed,
-      profileId,
-      transform: (_runtime, cast, effects) => [
-        ...(cast.skill.effects ?? []),
-        ...effects
-          .filter((effect) => effect.type === 'boon' && effect.name === boon)
-          .map((effect) => ({ ...effect, timingAnchor: 'castEnd' as const, atMs: 0 }))
-      ]
-    })),
+    castTimeMs: 480,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -110,9 +95,26 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         controlKind: CONTROL.KNOCKDOWN
       }
     ]),
-    castTimeMs: 480
+    // Capture Unleash at acceptance, adding the selected live boon to the skill's hostile packets.
+    effectVariants: (
+      [
+        [true, PROFILE.explodingSporesRanger, boonKey(BOON.MIGHT)],
+        [false, PROFILE.explodingSporesPet, boonKey(BOON.PROTECTION)]
+      ] as const
+    ).map<NonNullable<Skill['effectVariants']>[number]>(([unleashed, profileId, boon]) => ({
+      when: (runtime) => untamedState.from(runtime).rangerUnleashed === unleashed,
+      profileId,
+      transform: (_runtime, cast, effects) => [
+        ...(cast.skill.effects ?? []),
+        ...effects
+          .filter((effect) => effect.type === 'boon' && effect.name === boon)
+          .map((effect) => ({ ...effect, timingAnchor: 'castEnd' as const, atMs: 0 }))
+      ]
+    }))
   },
   [ID.FORESTS_FORTIFICATION]: {
+    // Use the effective cast duration so defensive boons begin at the corrected completion time.
+    castTimeMs: 840,
     effects: [
       {
         type: 'boon',
@@ -132,9 +134,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         duration: 6,
         stacks: 1
       }
-    ],
-    // Use the effective cast duration so defensive boons begin at the corrected completion time.
-    castTimeMs: 840
+    ]
   },
   [ID.VENOMOUS_OUTBURST]: {
     castTimeMs: 0,
@@ -197,23 +197,22 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ])
   },
   [ID.PERILOUS_GIFT]: {
-    effects: [],
-    castTimeMs: 500
+    castTimeMs: 500,
+    effects: []
   },
   [ID.UNLEASH_PET]: {
-    // Transfers require commitment; ambush attempts spend their opportunity even on cancellation.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.unleash-pet' } }],
-    castTimeMs: 0,
     cooldown: 1,
     // Both Unleash sides receive the same fixed, Alacrity-independent recharge.
 
     paletteTileId: UNLEASH_PALETTE_TILE,
     paletteTileOrder: 2,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    // Transfers require commitment; ambush attempts spend their opportunity even on cancellation.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.unleash-pet' } }]
   },
   [ID.RELENTLESS_WHIRL]: {
-    // Transfers require commitment; ambush attempts spend their opportunity even on cancellation.
-    sideEffects: [{ on: 'castStart', do: { type: 'ranger.ambush-consume' } }],
+    castTimeMs: 1560,
     interruptMode: 'per-packet',
     effects: [
       {
@@ -261,11 +260,11 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       ]),
       naturalFortitudeAmbushEffect(360)
     ],
-    castTimeMs: 1560
+    // Transfers require commitment; ambush attempts spend their opportunity even on cancellation.
+    sideEffects: [{ on: 'castStart', do: { type: 'ranger.ambush-consume' } }]
   },
   [ID.DEFT_STRIKE]: {
-    // Transfers require commitment; ambush attempts spend their opportunity even on cancellation.
-    sideEffects: [{ on: 'castStart', do: { type: 'ranger.ambush-consume' } }],
+    castTimeMs: 960,
     effects: [
       ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
@@ -301,6 +300,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       ]),
       naturalFortitudeAmbushEffect(800)
     ],
-    castTimeMs: 960
+    // Transfers require commitment; ambush attempts spend their opportunity even on cancellation.
+    sideEffects: [{ on: 'castStart', do: { type: 'ranger.ambush-consume' } }]
   }
 });

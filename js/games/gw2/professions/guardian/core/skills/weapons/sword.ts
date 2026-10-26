@@ -4,6 +4,49 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.SWORD_OF_WRATH]: {
+    castTimeMs: 360,
+    // Sword chain hits land before their recovery animations, allowing committed cancels to advance the chain.
+    interruptCommitMs: 200,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.75,
+        hits: 1,
+        atMs: 200,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
+  },
+  [ID.SWORD_ARC]: {
+    castTimeMs: 520,
+    interruptCommitMs: 280,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.8,
+        hits: 1,
+        atMs: 280,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
+  },
+  [ID.SWORD_WAVE]: {
+    castTimeMs: 680,
+    interruptCommitMs: 480,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.65,
+        hits: 3,
+        atMs: 480,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
+  },
   [ID.SYMBOL_OF_BLADES]: {
     // Author symbol identity independently of the skill's display text.
     tags: ['symbol'],
@@ -41,35 +84,6 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       }
     ]
   },
-  [ID.SWORD_OF_WRATH]: {
-    castTimeMs: 360,
-    // Sword chain hits land before their recovery animations, allowing committed cancels to advance the chain.
-    interruptCommitMs: 200,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.75,
-        hits: 1,
-        atMs: 200,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ]
-  },
-  [ID.SWORD_ARC]: {
-    castTimeMs: 520,
-    interruptCommitMs: 280,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
-        atMs: 280,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ]
-  },
   [ID.ZEALOTS_DEFENSE]: {
     castTimeMs: 1400,
     // Cancelling the channel retains only projectiles that arrive within the observed cast window.
@@ -78,20 +92,6 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         type: 'strike',
         ticks: [400, 400, 640, 680, 880, 880, 1120, 1160].map((atMs) => ({ atMs, coefficient: 4.8 / 8 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ]
-  },
-  [ID.SWORD_WAVE]: {
-    castTimeMs: 680,
-    interruptCommitMs: 480,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.65,
-        hits: 3,
-        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

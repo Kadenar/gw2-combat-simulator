@@ -16,32 +16,32 @@ const energyMeldRewards: readonly SkillSideEffect[] = [
 
 export const VINDICATOR_PROFESSION_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.LEGENDARY_ALLIANCE_STANCE_ID_62749]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 0,
     effects: []
   },
   [ID.ENERGY_MELD]: {
-    castTimeMs: 440,
     cooldown: 20,
     energyCost: 10,
     resourceGain: 25,
-    sideEffects: energyMeldRewards,
-    effects: []
+    castTimeMs: 440,
+    effects: [],
+    sideEffects: energyMeldRewards
   },
   [ID.ENERGY_MELD_ID_72058]: {
-    castTimeMs: 440,
     cooldown: 20,
     energyCost: 10,
     resourceGain: 25,
-    sideEffects: energyMeldRewards,
-    effects: []
+    castTimeMs: 440,
+    effects: [],
+    sideEffects: energyMeldRewards
   },
   [ID.CALL_OF_THE_ALLIANCE]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     resourceGain: 8,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -53,9 +53,9 @@ export const VINDICATOR_PROFESSION_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.LEGENDARY_ALLIANCE_STANCE]: {
-    castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
+    castTimeMs: 0,
     effects: []
   }
 });

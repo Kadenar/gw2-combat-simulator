@@ -34,9 +34,10 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.FOCUS,
     attunement: 'Fire',
     categories: ['Weapon skill'],
+    cooldown: 20,
+    skillFamily: 'Weapon skill',
     castTimeMs: 560,
     interruptCommitMs: 480,
-    cooldown: 20,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -45,7 +46,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     // Flamewall pulses on creation and each second through its eight-second duration, including the final boundary.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
       {
@@ -75,27 +75,25 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.FOCUS,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 25,
     nextChainId: ID.TRANSMUTE_FIRE,
     skillFamily: 'Weapon skill',
+    castTimeMs: 0,
     effects: [{ type: 'aura', aura: AURA.FIRE, duration: 4 }]
   },
   // Consumes the Fire Aura for a strike, Burning, and five Might, then flips back to Fire Shield.
   [ID.TRANSMUTE_FIRE]: {
-    // Consume all live matching auras on commitment, regardless of which skill or trait granted them.
-    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.transmute-aura' } }],
     name: 'Transmute Fire',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.FOCUS,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 360,
-    interruptCommitMs: 280,
     cooldown: 10,
     nextChainId: ID.FIRE_SHIELD,
     skillFamily: 'Weapon skill',
+    castTimeMs: 360,
+    interruptCommitMs: 280,
     effects: impactEffects(
       { atMs: 840, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
@@ -110,7 +108,9 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
           duration: 6
         }
       ]
-    )
+    ),
+    // Consume all live matching auras on commitment, regardless of which skill or trait granted them.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.transmute-aura' } }]
   },
   [ID.FREEZING_GUST]: {
     name: 'Freezing Gust',
@@ -119,9 +119,9 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.FOCUS,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 440,
     cooldown: 25,
     skillFamily: 'Weapon skill',
+    castTimeMs: 440,
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.25 },
       { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3 }
@@ -135,9 +135,9 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.FOCUS,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
     cooldown: 25,
     skillFamily: 'Weapon skill',
+    castTimeMs: 680,
     effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -163,9 +163,9 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.FOCUS,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 680,
     cooldown: 30,
     skillFamily: 'Weapon skill',
+    castTimeMs: 680,
     effects: []
   },
   // Pure crowd control: a control application with no strike, so it contributes no damage.
@@ -176,9 +176,9 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.FOCUS,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 560,
     cooldown: 40,
     skillFamily: 'Weapon skill',
+    castTimeMs: 560,
     effects: [
       {
         type: 'control',
@@ -198,9 +198,9 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.FOCUS,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 0,
     cooldown: 25,
     skillFamily: 'Weapon skill',
+    castTimeMs: 0,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -224,9 +224,9 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
     weapon: WEAPON.FOCUS,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 3800,
     cooldown: 50,
     skillFamily: 'Weapon skill',
+    castTimeMs: 3800,
     effects: []
   }
 });

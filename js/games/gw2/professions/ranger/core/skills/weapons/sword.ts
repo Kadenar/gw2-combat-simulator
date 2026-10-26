@@ -9,6 +9,7 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 // Apply each attack's hit rewards before recovery ends so completed impacts survive recovery cancellation.
 export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SLASH]: {
+    castTimeMs: 480,
     interruptCommitMs: 400,
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -17,10 +18,10 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
         coefficient: 0.9,
         hits: 1
       }
-    ]),
-    castTimeMs: 480
+    ])
   },
   [ID.CRIPPLING_THRUST]: {
+    castTimeMs: 320,
     interruptCommitMs: 240,
     effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -35,11 +36,12 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
         stacks: 1,
         duration: 2
       }
-    ]),
-    castTimeMs: 320
+    ])
   },
   [ID.PRECISION_SWIPE]: {
+    castTimeMs: 600,
     interruptCommitMs: 520,
+    retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -53,13 +55,37 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
         stacks: 1,
         audience: { recipients: RECIPIENT.SUMMONS, affectsSelf: false, maximumRecipients: 1 }
       }
-    ]),
-    castTimeMs: 600,
-    retainsCastLockoutAfterInterrupt: true
+    ])
+  },
+  [ID.POUNCE]: {
+    castTimeMs: 840,
+    interruptCommitMs: 760,
+    effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 2,
+        hits: 1,
+        damageKind: 'ranger-pounce-defiant',
+        comboFinishers: [
+          {
+            ownerId: 'ranger',
+            finisherType: COMBO_FINISHER.LEAP
+          }
+        ]
+      },
+      {
+        type: 'boon',
+        boon: BOON.VIGOR,
+        duration: 3,
+        stacks: 1
+      }
+    ])
   },
   [ID.SERPENTS_STRIKE]: {
     evades: true,
+    castTimeMs: 1000,
     interruptCommitMs: 800,
+    retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -90,33 +116,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
         stacks: 1,
         duration: 3
       }
-    ]),
-    castTimeMs: 1000,
-    retainsCastLockoutAfterInterrupt: true
-  },
-  [ID.POUNCE]: {
-    interruptCommitMs: 760,
-    effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 2,
-        hits: 1,
-        damageKind: 'ranger-pounce-defiant',
-        comboFinishers: [
-          {
-            ownerId: 'ranger',
-            finisherType: COMBO_FINISHER.LEAP
-          }
-        ]
-      },
-      {
-        type: 'boon',
-        boon: BOON.VIGOR,
-        duration: 3,
-        stacks: 1
-      }
-    ]),
-    castTimeMs: 840
+    ])
   }
 });
 

@@ -80,9 +80,9 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     weapon: WEAPON.WARHORN,
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 840,
     cooldown: 30,
     skillFamily: 'Weapon skill',
+    castTimeMs: 840,
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 10 },
       { type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 10 }
@@ -96,10 +96,11 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     weapon: WEAPON.WARHORN,
     attunement: 'Fire',
     categories: ['Weapon skill'],
+    cooldown: 30,
+    skillFamily: 'Weapon skill',
     castTimeMs: 840,
     // Commit the field before the remaining cast animation ends.
     interruptCommitMs: 720,
-    cooldown: 30,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -108,7 +109,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     // Committed field pulses survive interruption. The regular pulses repeat once per second; the calibrated
     // large-target overlap pulses are a separate timeline that field extensions do not lengthen.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
@@ -147,9 +147,9 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     weapon: WEAPON.WARHORN,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 440,
     cooldown: 30,
     skillFamily: 'Weapon skill',
+    castTimeMs: 440,
     effects: impactEffects({ atMs: 920, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -175,8 +175,9 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     weapon: WEAPON.WARHORN,
     attunement: 'Water',
     categories: ['Weapon skill'],
-    castTimeMs: 840,
     cooldown: 30,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 840,
     comboFields: [
       {
         ownerId: 'elementalist',
@@ -185,7 +186,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         startAnchor: 'castEnd'
       }
     ],
-    skillFamily: 'Weapon skill',
     effects: []
   },
   [ID.CYCLONE]: {
@@ -195,9 +195,9 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     weapon: WEAPON.WARHORN,
     attunement: 'Air',
     categories: ['Weapon skill'],
-    castTimeMs: 800,
     cooldown: 25,
     skillFamily: 'Weapon skill',
+    castTimeMs: 800,
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.9, canCrit: true },
       {
@@ -222,9 +222,9 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       weapon: WEAPON.WARHORN,
       attunement: 'Air',
       categories: ['Weapon skill'],
-      castTimeMs: 440,
       cooldown: 25,
       skillFamily: 'Weapon skill',
+      castTimeMs: 440,
       effects: LIGHTNING_ORB_STRIKE_TICK_LAYERS.flatMap((ticks) => [
         strikeTimeline(ticks, { timingAnchor: 'castStart', timingScale: 'cast' }),
         conditionTimeline(
@@ -248,9 +248,9 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     weapon: WEAPON.WARHORN,
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    castTimeMs: 840,
     cooldown: 30,
     skillFamily: 'Weapon skill',
+    castTimeMs: 840,
     comboFinishers: [
       {
         ownerId: 'elementalist',
@@ -281,9 +281,9 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       weapon: WEAPON.WARHORN,
       attunement: 'Earth',
       categories: ['Weapon skill'],
-      castTimeMs: 840,
       cooldown: 30,
       skillFamily: 'Weapon skill',
+      castTimeMs: 840,
       // Share pulse timing without changing the hitbox pairing or the independent Resistance grant.
       effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
         strikeTimeline(

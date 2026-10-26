@@ -15,11 +15,11 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
     type: 'Proc',
     slot: 'Action',
     categories: ['Trait'],
-    castTimeMs: 0,
     cooldown: 10,
     simulatorExcluded: true,
     slotSelectable: false,
     skillFamily: 'Trait',
+    castTimeMs: 0,
 
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', weaponStrengthProfileId: 'nonweapon.unequipped', coefficient: 1 },
@@ -31,11 +31,11 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
     type: 'Proc',
     slot: 'Action',
     categories: ['Trait'],
-    castTimeMs: 0,
     cooldown: 10,
     simulatorExcluded: true,
     slotSelectable: false,
     skillFamily: 'Trait',
+    castTimeMs: 0,
 
     effects: []
   },
@@ -44,11 +44,11 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
     type: 'Proc',
     slot: 'Action',
     categories: ['Trait'],
-    castTimeMs: 0,
     cooldown: 10,
     simulatorExcluded: true,
     slotSelectable: false,
     skillFamily: 'Trait',
+    castTimeMs: 0,
 
     effects: [
       {
@@ -68,11 +68,11 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
     type: 'Proc',
     slot: 'Action',
     categories: ['Trait'],
-    castTimeMs: 0,
     cooldown: 10,
     simulatorExcluded: true,
     slotSelectable: false,
     skillFamily: 'Trait',
+    castTimeMs: 0,
 
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {

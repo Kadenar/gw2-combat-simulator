@@ -12,6 +12,9 @@ import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics
 export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Natural Phase Pounce uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.FELINE_PHASE_POUNCE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_PHASE_POUNCE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_PHASE_POUNCE]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -29,12 +32,11 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_PHASE_POUNCE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_PHASE_POUNCE]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   [ID.MIGHTY_ROAR]: {
+    petSkill: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'boon',
@@ -45,11 +47,11 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
+    ]
   },
   [ID.RENDING_POUNCE]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -67,11 +69,11 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 1000,
-    petSkill: true
+    ]
   },
   [ID.ICY_POUNCE]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -89,17 +91,18 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 1000,
-    petSkill: true
+    ]
   },
   [ID.STALK]: {
-    // Jaguar grants its ranger stealth, enabling spear attacks without spending Panther's Prowl.
-    effects: [{ type: 'buff', kind: STATUS.STEALTH, duration: 3, stacks: 1 }],
+    petSkill: true,
     quicknessCastTimeMs: 333,
-    petSkill: true
+    // Jaguar grants its ranger stealth, enabling spear attacks without spending Panther's Prowl.
+    effects: [{ type: 'buff', kind: STATUS.STEALTH, duration: 3, stacks: 1 }]
   },
   [ID.FURIOUS_POUNCE]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FURIOUS_POUNCE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FURIOUS_POUNCE]!.quicknessCastTimeMs,
     // Impact precedes the remaining animation; the pet lane retains the full recovery.
     effects: impactEffects({ atMs: 1080, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -118,12 +121,12 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FURIOUS_POUNCE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FURIOUS_POUNCE]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   },
   [ID.FELINE_SLASH]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_SLASH]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_SLASH]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -133,12 +136,13 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_SLASH]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_SLASH]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   [ID.FELINE_BITE]: {
+    petSkill: true,
+    // Recorded pet activation timing keeps manual commands on the pet's independent lane.
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_BITE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_BITE]!.quicknessCastTimeMs,
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -154,13 +158,12 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    // Recorded pet activation timing keeps manual commands on the pet's independent lane.
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_BITE]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_BITE]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   },
   [ID.FELINE_MAUL]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_MAUL]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_MAUL]!.quicknessCastTimeMs,
     // Each strike applies its own two stacks, so the second hit cannot bleed early.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -178,12 +181,11 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ]),
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_MAUL]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_MAUL]!.quicknessCastTimeMs,
-    petSkill: true
+    ])
   },
   [ID.SAVANNAH_STRIKE]: {
+    petSkill: true,
+    quicknessCastTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -202,11 +204,11 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 500,
-    petSkill: true
+    ]
   },
   [ID.BLINDING_ROAR]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -216,11 +218,11 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 1000,
-    petSkill: true
+    ]
   },
   [ID.GUARDIANS_ROAR]: {
+    petSkill: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'boon',
@@ -231,8 +233,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
+    ]
   }
 });

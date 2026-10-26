@@ -24,9 +24,6 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 
 export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<MesmerSkill>>> = Object.freeze({
   [ID.BLADECALL]: {
-    // Commit when the daggers launch so their persistent packets and blade gain share the same successful cast.
-    interruptCommitMs: 200,
-    retainsCastLockoutAfterInterrupt: true,
     resource: {
       mode: 'add',
       count: 1,
@@ -34,12 +31,15 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
       atMs: 200
     },
     blade: true,
-    effects: bladecallEffects(),
-    castTimeMs: 440
+    castTimeMs: 440,
+    // Commit when the daggers launch so their persistent packets and blade gain share the same successful cast.
+    interruptCommitMs: 200,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: bladecallEffects()
   },
   [ID.THOUSAND_CUTS]: {
-    castTimeMs: 0,
     blade: true,
+    castTimeMs: 0,
     // The portal delivers ten equal impacts at a fixed cadence after its startup delay.
     effects: Array.from({ length: 10 }, (_, index) => 560 + index * 520).flatMap((atMs) =>
       impactEffects({ atMs, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
@@ -54,9 +54,9 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
     )
   },
   [ID.SWORD_OF_DECIMATION]: {
+    blade: true,
     // Resolve the strike after the reviewed activation duration.
     castTimeMs: 720,
-    blade: true,
     effects: [
       {
         type: 'strike',
@@ -71,18 +71,18 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
     ]
   },
   [ID.BLADE_RENEWAL]: {
-    // Fill stored blades only after the reviewed channel completes.
-    castTimeMs: 2040,
     resource: {
       mode: 'fill',
       count: 5
     },
     blade: true,
+    // Fill stored blades only after the reviewed channel completes.
+    castTimeMs: 2040,
     effects: []
   },
   [ID.RAIN_OF_SWORDS]: {
-    castTimeMs: 680,
     blade: true,
+    castTimeMs: 680,
     // Each delayed pulse owns its strike and vulnerability together so they share the same impact timing.
     effects: Array.from({ length: 5 }, (_, index) => 840 + index * 1000).flatMap((atMs) =>
       impactEffects({ atMs, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
@@ -98,8 +98,8 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
     )
   },
   [ID.TWIN_BLADE_RESTORATION]: {
-    castTimeMs: 680,
     blade: true,
+    castTimeMs: 680,
     effects: [
       {
         type: 'strike',
@@ -113,7 +113,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
     ]
   },
   [ID.BLADETURN_REQUIEM]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
     shatter: {
       balanceProfileId: 'mesmer.virtuoso.bladeturn-requiem',
@@ -125,7 +124,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
       resourceSpendProgress: 1,
       ticks: bladePacketTiers([0, 0.5, 1, 1.5, 2, 2.5], [1000, 2000, 3000, 4000, 5000])
     },
-    castTimeMs: 0,
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -133,10 +131,11 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
       }
     ],
     blade: true,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }]
   },
   [ID.BLADESONG_DISSONANCE]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
     shatter: {
       balanceProfileId: 'mesmer.virtuoso.bladesong-dissonance',
@@ -148,7 +147,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
       resourceSpendProgress: 1,
       damageAtMs: 400
     },
-    castTimeMs: 480,
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -156,6 +154,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
       }
     ],
     blade: true,
+    castTimeMs: 480,
     effects: [
       {
         type: 'control',
@@ -166,10 +165,10 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
-    ]
+    ],
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }]
   },
   [ID.BLADESONG_SORROW]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
     shatter: {
       balanceProfileId: 'mesmer.virtuoso.bladesong-sorrow',
@@ -184,7 +183,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
         { name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 3, stacks: 1 }
       ]
     },
-    castTimeMs: 480,
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -192,10 +190,11 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
       }
     ],
     blade: true,
-    effects: []
+    castTimeMs: 480,
+    effects: [],
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }]
   },
   [ID.BLADESONG_HARMONY]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
     shatter: {
       balanceProfileId: 'mesmer.virtuoso.bladesong-harmony',
@@ -207,9 +206,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
       resourceSpendProgress: 1,
       ticks: bladePacketTiers([0, 0.7, 1.4, 2.1, 2.8, 3.5], [40, 200, 360, 520, 680])
     },
-    castTimeMs: 640,
-    interruptCommitMs: 560,
-    retainsCastLockoutAfterInterrupt: true,
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -217,10 +213,13 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
       }
     ],
     blade: true,
-    effects: []
+    castTimeMs: 640,
+    interruptCommitMs: 560,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: [],
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }]
   },
   [ID.BLADESONG_DISTORTION]: {
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
     shatter: {
       balanceProfileId: 'mesmer.virtuoso.bladesong-distortion',
@@ -230,7 +229,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
       minimumResource: 1,
       coefficients: [0, 0, 0, 0, 0, 0]
     },
-    castTimeMs: 0,
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -239,7 +237,9 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
     ],
     rechargeAnchor: 'castStart',
     blade: true,
-    effects: []
+    castTimeMs: 0,
+    effects: [],
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }]
   }
 });
 

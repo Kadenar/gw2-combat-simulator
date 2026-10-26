@@ -24,19 +24,12 @@ const flameEffects = [
 export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // This combat-log identity is absent from API metadata, so its canonical fragment supplies its identity too.
   [ID.WILLBENDER_FLAMES_COURAGE]: {
-    id: ID.WILLBENDER_FLAMES_COURAGE,
     name: 'Willbender Flames',
+    id: ID.WILLBENDER_FLAMES_COURAGE,
     castTimeMs: 0,
     effects: flameEffects
   },
   [ID.ROILING_LIGHT]: {
-    // Expose the follow-up on commitment; its declaration owns the window.
-    sideEffects: [
-      {
-        on: 'castCommit',
-        do: { type: 'flipArm', skillId: ID.QUICK_RETRIBUTION, durationSec: 15, expiryPriority: -220 }
-      }
-    ],
     castTimeMs: 200,
     effects: [
       {
@@ -50,6 +43,13 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         stacks: 1,
         duration: 5
       }
+    ],
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: { type: 'flipArm', skillId: ID.QUICK_RETRIBUTION, durationSec: 15, expiryPriority: -220 }
+      }
     ]
   },
   [ID.WILLBENDER_FLAMES]: {
@@ -57,6 +57,29 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: flameEffects
   },
   [ID.CRASHING_COURAGE]: {
+    castTimeMs: 680,
+    // Grant the virtue's defensive boons with its initial strike.
+    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 1,
+        // Virtue strikes use mechanic weapon strength independently of equipped weapons.
+        weapon: 'Profession Mechanic',
+        name: 'Crashing Courage — Initial Damage'
+      },
+      {
+        type: 'boon',
+        boon: BOON.AEGIS,
+        stacks: 1,
+        duration: 4
+      },
+      {
+        type: 'boon',
+        boon: BOON.STABILITY,
+        stacks: 1,
+        duration: 4
+      }
+    ]),
     // Accepted activations launch the self window and autonomous flame group.
     sideEffects: [
       {
@@ -90,30 +113,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
           ]
         }
       }
-    ],
-    castTimeMs: 680,
-    // Grant the virtue's defensive boons with its initial strike.
-    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 1,
-        // Virtue strikes use mechanic weapon strength independently of equipped weapons.
-        weapon: 'Profession Mechanic',
-        name: 'Crashing Courage — Initial Damage'
-      },
-      {
-        type: 'boon',
-        boon: BOON.AEGIS,
-        stacks: 1,
-        duration: 4
-      },
-      {
-        type: 'boon',
-        boon: BOON.STABILITY,
-        stacks: 1,
-        duration: 4
-      }
-    ])
+    ]
   },
   [ID.HEEL_CRACK]: {
     castTimeMs: 200,
@@ -130,8 +130,8 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   },
   [ID.HEAVENS_PALM]: {
-    castTimeMs: 960,
     cooldown: 20,
+    castTimeMs: 960,
     effects: [
       {
         type: 'strike',
@@ -145,9 +145,9 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   },
   [ID.WHIRLING_LIGHT]: {
+    cooldown: 15,
     castTimeMs: 960,
     interruptCommitMs: 920,
-    cooldown: 15,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
@@ -186,6 +186,9 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ])
   },
   [ID.FLOWING_RESOLVE]: {
+    ammoCastLockout: 0.5,
+    castTimeMs: 520,
+    effects: [],
     // Accepted activations launch the self window and autonomous flame group.
     sideEffects: [
       {
@@ -205,19 +208,11 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
           ]
         }
       }
-    ],
-    castTimeMs: 520,
-
-    ammoCastLockout: 0.5,
-    effects: []
+    ]
   },
   [ID.FLASH_COMBO]: {
-    // Committed combos arm Repose, including shortened channels; old occurrences expire before same-time casts.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'flipArm', skillId: ID.REPOSE, durationSec: 6, expiryPriority: -220 } }
-    ],
-    castTimeMs: 680,
     cooldown: 20,
+    castTimeMs: 680,
     interruptMode: 'per-packet',
     effects: [
       {
@@ -226,6 +221,10 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         timingScale: 'cast',
         ticks: [120, 280, 400, 520, 600].map((atMs) => ({ atMs, coefficient: 0.9 }))
       }
+    ],
+    // Committed combos arm Repose, including shortened channels; old occurrences expire before same-time casts.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'flipArm', skillId: ID.REPOSE, durationSec: 6, expiryPriority: -220 } }
     ]
   },
   [ID.WILLBENDER_FLAMES_ID_62618]: {
@@ -237,6 +236,26 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: []
   },
   [ID.RUSHING_JUSTICE]: {
+    rechargeAnchor: 'castStart',
+    castTimeMs: 480,
+    // Both impact packets retain the impact identity; the strike uses mechanic weapon strength.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 1.5,
+        sourceId: ID.RUSHING_JUSTICE_IMPACT,
+        weapon: 'Profession Mechanic',
+        name: 'Rushing Justice — Impact Damage'
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BURNING,
+        stacks: 1,
+        duration: 4,
+        sourceId: ID.RUSHING_JUSTICE_IMPACT,
+        name: 'Rushing Justice — Initial Burning'
+      }
+    ]),
     // Accepted activations launch the self window and autonomous flame group.
     sideEffects: [
       {
@@ -256,37 +275,15 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
           ]
         }
       }
-    ],
-    castTimeMs: 480,
-    rechargeAnchor: 'castStart',
-    // Both impact packets retain the impact identity; the strike uses mechanic weapon strength.
-    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 1.5,
-        sourceId: ID.RUSHING_JUSTICE_IMPACT,
-        weapon: 'Profession Mechanic',
-        name: 'Rushing Justice — Impact Damage'
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.BURNING,
-        stacks: 1,
-        duration: 4,
-        sourceId: ID.RUSHING_JUSTICE_IMPACT,
-        name: 'Rushing Justice — Initial Burning'
-      }
-    ])
+    ]
   },
   [ID.REPOSE]: {
-    // A committed follow-up consumes its window and restores the parent.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.REPOSE } }],
     castTimeMs: 200,
-    effects: []
+    effects: [],
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.REPOSE } }]
   },
   [ID.QUICK_RETRIBUTION]: {
-    // The follow-up owns the outgoing daze; Roiling Light only breaks the player's stun and opens this window.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.QUICK_RETRIBUTION } }],
     castTimeMs: 200,
     effects: [
       {
@@ -298,6 +295,8 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         type: 'control',
         controlKind: CONTROL.DAZE
       }
-    ]
+    ],
+    // The follow-up owns the outgoing daze; Roiling Light only breaks the player's stun and opens this window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.QUICK_RETRIBUTION } }]
   }
 });

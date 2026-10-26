@@ -6,9 +6,29 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Defines Engineer hammer skill timing, damage, control, conditions, boons, and combo behavior. */
 export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.NEGATIVE_BASH]: {
-    castTimeMs: 640,
+  [ID.POSITIVE_STRIKE]: {
     cooldown: 0,
+    castTimeMs: 480,
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 0.7,
+        hits: 1,
+        name: 'Positive Strike',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'boon',
+        boon: BOON.MIGHT,
+        duration: 8,
+        stacks: 1
+      }
+    ])
+  },
+  [ID.NEGATIVE_BASH]: {
+    cooldown: 0,
+    castTimeMs: 640,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -27,53 +47,11 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
       }
     ])
   },
-  [ID.SHOCK_SHIELD]: {
-    castTimeMs: 1200,
-    cooldown: 18,
-    effects: [
-      {
-        type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 240 + index * 240, coefficient: 1.25 / 5 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        name: 'Shock Shield',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.VULNERABILITY,
-        stacks: 10,
-        duration: 5,
-        actorType: ACTOR.PLAYER
-      }
-    ]
-  },
-  [ID.ELECTRO_WHIRL]: {
-    castTimeMs: 680,
-    cooldown: 6,
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: COMBO_FINISHER.WHIRL
-      }
-    ],
-    effects: [
-      {
-        type: 'strike',
-        ticks: [360, 680].map((atMs) => ({ atMs, coefficient: 3 / 2 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        name: 'Electro-whirl',
-        actorType: ACTOR.PLAYER,
-        damageKind: 'explosion'
-      }
-    ]
-  },
   [ID.EQUALIZING_BLOW]: {
+    cooldown: 0,
+    castTimeMs: 440,
     // A kit swap after the final attack packet still commits Equalizing Blow's effects.
     interruptCommitMs: 400,
-    castTimeMs: 440,
-    cooldown: 0,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -98,30 +76,30 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
       }
     ])
   },
-  [ID.POSITIVE_STRIKE]: {
-    castTimeMs: 480,
-    cooldown: 0,
-    // Share one impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+  [ID.ELECTRO_WHIRL]: {
+    cooldown: 6,
+    castTimeMs: 680,
+    comboFinishers: [
+      {
+        ownerId: 'engineer',
+        finisherType: COMBO_FINISHER.WHIRL
+      }
+    ],
+    effects: [
       {
         type: 'strike',
-        coefficient: 0.7,
-        hits: 1,
-        name: 'Positive Strike',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'boon',
-        boon: BOON.MIGHT,
-        duration: 8,
-        stacks: 1
+        ticks: [360, 680].map((atMs) => ({ atMs, coefficient: 3 / 2 })),
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        name: 'Electro-whirl',
+        actorType: ACTOR.PLAYER,
+        damageKind: 'explosion'
       }
-    ])
+    ]
   },
   [ID.ROCKET_CHARGE]: {
-    castTimeMs: 1920,
-
     cooldown: 12,
+    castTimeMs: 1920,
     effects: [
       {
         type: 'strike',
@@ -137,9 +115,30 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
       }
     ]
   },
+  [ID.SHOCK_SHIELD]: {
+    cooldown: 18,
+    castTimeMs: 1200,
+    effects: [
+      {
+        type: 'strike',
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 240 + index * 240, coefficient: 1.25 / 5 })),
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        name: 'Shock Shield',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.VULNERABILITY,
+        stacks: 10,
+        duration: 5,
+        actorType: ACTOR.PLAYER
+      }
+    ]
+  },
   [ID.THUNDERCLAP]: {
-    castTimeMs: 520,
     cooldown: 20,
+    castTimeMs: 520,
     comboFields: [
       {
         ownerId: 'engineer',

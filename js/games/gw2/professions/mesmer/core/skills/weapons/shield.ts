@@ -4,6 +4,31 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 export const MESMER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
+  [ID.ECHO_OF_MEMORY]: {
+    // The summon owns its attack and conversion timeline independently of the player cast.
+    phantasmTiming: {
+      damageAtMs: 1440,
+      spawnAtMs: 2160
+    },
+    phantasm: true,
+    resource: {
+      mode: 'phantasm',
+      count: 1
+    },
+    castTimeMs: 1640,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.9,
+        hits: 1,
+        name: 'Damage',
+        actorType: ACTOR.SUMMON,
+        summonKind: 'phantasm',
+        weapon: 'phantasm medium'
+      }
+    ],
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }]
+  },
   [ID.TIDES_OF_TIME]: {
     castTimeMs: 680,
     effects: [
@@ -25,30 +50,5 @@ export const MESMER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Part
         weapon: WEAPON.SHIELD.toLowerCase()
       }
     ]
-  },
-  [ID.ECHO_OF_MEMORY]: {
-    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
-    // The summon owns its attack and conversion timeline independently of the player cast.
-    phantasmTiming: {
-      damageAtMs: 1440,
-      spawnAtMs: 2160
-    },
-    phantasm: true,
-    resource: {
-      mode: 'phantasm',
-      count: 1
-    },
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.9,
-        hits: 1,
-        name: 'Damage',
-        actorType: ACTOR.SUMMON,
-        summonKind: 'phantasm',
-        weapon: 'phantasm medium'
-      }
-    ],
-    castTimeMs: 1640
   }
 });

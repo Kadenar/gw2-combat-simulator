@@ -13,9 +13,9 @@ const PHYSICAL_ENDURANCE: NonNullable<Skill['sideEffects']> = [
 
 export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.IMPACT_STRIKE]: {
-    castTimeMs: 360,
     cooldown: 25,
     initiativeCost: 0,
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -33,9 +33,9 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.FINISHING_BLOW]: {
-    castTimeMs: 1000,
     cooldown: 0,
     initiativeCost: 0,
+    castTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -48,9 +48,9 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.UPPERCUT]: {
-    castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -68,10 +68,9 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.IMPAIRING_DAGGERS]: {
-    sideEffects: PHYSICAL_ENDURANCE,
-    castTimeMs: 480,
     cooldown: 15,
     initiativeCost: 0,
+    castTimeMs: 480,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -99,27 +98,27 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         ticks: [{ atMs: 520, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }],
         actorType: ACTOR.PLAYER
       }
-    ])
+    ]),
+    sideEffects: PHYSICAL_ENDURANCE
   },
   [ID.CHANNELED_VIGOR]: {
+    cooldown: 20,
+    initiativeCost: 0,
+    resourceGain: 125,
+    castTimeMs: 480,
+    // The endurance grant commits at 440 ms, allowing the remaining cast to be interrupted.
+    interruptCommitMs: 440,
+    effects: [],
     // Keep the intrinsic completion grant separate from the acceptance trait reward.
     sideEffects: [
       ...PHYSICAL_ENDURANCE,
       { on: 'castCommit', do: { type: 'resourceGrant', resource: 'endurance', amount: { skillField: 'resourceGain' } } }
-    ],
-    castTimeMs: 480,
-    // The endurance grant commits at 440 ms, allowing the remaining cast to be interrupted.
-    interruptCommitMs: 440,
-    cooldown: 20,
-    initiativeCost: 0,
-    resourceGain: 125,
-    effects: []
+    ]
   },
   [ID.REFLEXIVE_STRIKE]: {
-    sideEffects: PHYSICAL_ENDURANCE,
-    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -134,14 +133,14 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.KNOCKDOWN
       }
-    ]
+    ],
+    sideEffects: PHYSICAL_ENDURANCE
   },
   [ID.DISTRACTING_DAGGERS]: {
-    sideEffects: PHYSICAL_ENDURANCE,
-    castTimeMs: 0,
     cooldown: 1,
     ammo: 3,
     initiativeCost: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -156,21 +155,20 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.DAZE
       }
-    ]
+    ],
+    sideEffects: PHYSICAL_ENDURANCE
   },
   [ID.BANDITS_DEFENSE]: {
-    sideEffects: PHYSICAL_ENDURANCE,
-    castTimeMs: 1000,
     cooldown: 16,
     initiativeCost: 0,
-    effects: []
+    castTimeMs: 1000,
+    effects: [],
+    sideEffects: PHYSICAL_ENDURANCE
   },
   [ID.PALM_STRIKE]: {
-    // A committed follow-up consumes its window and restores the parent.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.PALM_STRIKE } }],
-    castTimeMs: 480,
     cooldown: 0,
     initiativeCost: 0,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -196,12 +194,14 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.STUN
       }
-    ]
+    ],
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.PALM_STRIKE } }]
   },
   [ID.PULMONARY_IMPACT_TRAIT_SKILL]: {
-    castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
+    castTimeMs: 0,
     effects: [
       {
         type: 'strike',
@@ -214,22 +214,9 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.FIST_FLURRY]: {
-    // Only a complete on-target flurry exposes Palm Strike; accepted casts still grant trait endurance.
-    sideEffects: [
-      ...PHYSICAL_ENDURANCE,
-      {
-        on: 'castCommit',
-        when: (_runtime, cast) => cast.command.offTarget !== true && !castWasInterrupted(cast),
-        do: {
-          type: 'flipArm',
-          skillId: ID.PALM_STRIKE,
-          durationSec: { profile: PROFILE.palmStrike, field: 'flipDuration' }
-        }
-      }
-    ],
-    castTimeMs: 680,
     cooldown: 16,
     initiativeCost: 0,
+    castTimeMs: 680,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -243,12 +230,25 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         ticks: [{ atMs: 120, condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5 }],
         actorType: ACTOR.PLAYER
       }
-    ])
+    ]),
+    // Only a complete on-target flurry exposes Palm Strike; accepted casts still grant trait endurance.
+    sideEffects: [
+      ...PHYSICAL_ENDURANCE,
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => cast.command.offTarget !== true && !castWasInterrupted(cast),
+        do: {
+          type: 'flipArm',
+          skillId: ID.PALM_STRIKE,
+          durationSec: { profile: PROFILE.palmStrike, field: 'flipDuration' }
+        }
+      }
+    ]
   },
   [ID.BOUND]: {
-    castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -261,9 +261,9 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.DASH_TRAIT_SKILL]: {
-    castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
+    castTimeMs: 520,
     effects: [
       {
         type: 'boon',
@@ -274,9 +274,15 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.IMPALING_LOTUS]: {
-    castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
+    castTimeMs: 0,
+    comboFinishers: [
+      {
+        ownerId: 'thief',
+        finisherType: COMBO_FINISHER.WHIRL
+      }
+    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -309,12 +315,6 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         ],
         actorType: ACTOR.PLAYER
       }
-    ]),
-    comboFinishers: [
-      {
-        ownerId: 'thief',
-        finisherType: COMBO_FINISHER.WHIRL
-      }
-    ]
+    ])
   }
 });

@@ -19,6 +19,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Natural Spike Shoot uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.BRISTLEBACK_SPIKE_SHOOT]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BRISTLEBACK_SPIKE_SHOOT]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BRISTLEBACK_SPIKE_SHOOT]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -27,13 +30,13 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
         actorType: ACTOR.SUMMON,
         projectile: true
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BRISTLEBACK_SPIKE_SHOOT]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BRISTLEBACK_SPIKE_SHOOT]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Sharpen Spines uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.BRISTLEBACK_SHARPEN_SPINES]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BRISTLEBACK_SHARPEN_SPINES]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BRISTLEBACK_SHARPEN_SPINES]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'buff',
@@ -46,13 +49,13 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BRISTLEBACK_SHARPEN_SPINES]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BRISTLEBACK_SHARPEN_SPINES]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   // Natural Rain of Spikes uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.BRISTLEBACK_RAIN_OF_SPIKES]: {
+    petSkill: true,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BRISTLEBACK_RAIN_OF_SPIKES]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BRISTLEBACK_RAIN_OF_SPIKES]!.quicknessCastTimeMs,
     effects: [
       {
         type: 'strike',
@@ -69,12 +72,11 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BRISTLEBACK_RAIN_OF_SPIKES]!.castTimeMs,
-    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.BRISTLEBACK_RAIN_OF_SPIKES]!.quicknessCastTimeMs,
-    petSkill: true
+    ]
   },
   [ID.SPIKE_BARRAGE]: {
+    petSkill: true,
+    quicknessCastTimeMs: 1333,
     effects: [
       {
         type: 'strike',
@@ -92,9 +94,7 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
-    ],
-    quicknessCastTimeMs: 1333,
-    petSkill: true
+    ]
   }
 });
 
